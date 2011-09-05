@@ -6,7 +6,7 @@
 # norootforbuild
 
 Name:           qa_sdk_tcf_generator
-Version:	2.1.0
+Version:	2.2.0
 Release:	0
 Summary:	"find executable script ,convert to tcf format"
 Group:		SUSE internal

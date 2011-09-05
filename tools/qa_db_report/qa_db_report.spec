@@ -16,7 +16,7 @@ Name:           qa_db_report
 License:        GPL v2 or later
 Group:          SUSE internal
 AutoReqProv:    on
-Version:        2.1.0
+Version:        2.2.0
 Release:        0
 Summary:        QADB submit code
 #Url:          http://qa.suse.de/hamsta

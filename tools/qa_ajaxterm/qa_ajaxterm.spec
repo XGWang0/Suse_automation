@@ -16,7 +16,7 @@ License:        GPL v2 or later
 Group:          SuSE internal
 AutoReqProv:    on
 Version:        0.10
-Release:        7
+Release:        8
 Summary:        ajax based ssh client, include vncserver setup script
 Url:            http://antony.lesuisse.org/software/ajaxterm/
 Source0:        ajaxterm-%version.tar.bz2

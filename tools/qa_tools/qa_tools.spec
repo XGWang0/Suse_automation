@@ -16,7 +16,7 @@ Name:           qa_tools
 License:        GPL v2 or later
 Group:          SUSE internal
 AutoReqProv:    on
-Version:        2.1.0
+Version:        2.2.0
 Release:        0
 Summary:        rd-qa internal package for test systems
 #Url:          http://qa.suse.de/hamsta

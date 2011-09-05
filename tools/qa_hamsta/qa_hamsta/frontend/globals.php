@@ -2,10 +2,13 @@
 
 	# Keep this structure (for now), especially the " -- " between the feature title and description
 	$latestFeatures = array(
+			"2.2.0" => array(
+				'5 September 2011 -- To be done'
+			),
 			"2.1.0" => array(
 				'4 September 2011 -- Hamsta Virtual Machine Integration (QA Cloud) -- Hamsta can now track and manage virtual machine hosts as well as the VMs installed on those hosts, including basic VM installs (now officially supported).',
 				'4 September 2011 -- Renam of QA packages -- Almost all  QA packages were renamed. New naming corresponds to the role of the package.',
-				'4 September 2011 --- Upgrade support -- HAMSTA now supports automated upgrade of machines to SLES11-SP2',
+				'4 September 2011 -- Upgrade support -- HAMSTA now supports automated upgrade of machines to SLES11-SP2',
 				'4 September 2011 --  Changed format of configuration files -- Format of /etc/qa files has changed, it is now more user friendly and is easier to parse.',
 				'4 September 2011 -- More teststsuites -- More testsuites were added to automation, including HA and more Autotest testsuites.'
 			),

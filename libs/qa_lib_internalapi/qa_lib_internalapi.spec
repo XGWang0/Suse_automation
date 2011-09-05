@@ -15,7 +15,7 @@ BuildRequires:  doxygen libpng swig
 License:        No license agreement found in package
 Group:          SuSE internal
 Autoreqprov:    on
-Version:        2.1.0
+Version:        2.2.0
 Release:        0
 Summary:        RD-QA internal library for easier testcase creation
 URL:            http://w3d.suse.de/Dev/QA/QAInternalAPI

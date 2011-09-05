@@ -5,7 +5,7 @@ License:        GPL v2 or later
 Group:          SuSE internal
 Summary:        (rd-)qa package for virtualization automation - data package
 AutoReqProv:    on
-Version:        2.1.0_110608
+Version:        2.2.0_110905
 Release:        0
 Source:         %name-%version.tar.bz2
 Source1:	qa_lib_virtauto-data.8

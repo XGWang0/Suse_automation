@@ -14,7 +14,7 @@ Name:           qa_lib_config
 License:        GPL v2 or later
 Group:		QA Automation
 AutoReqProv:    on
-Version:        2.1.0
+Version:        2.2.0
 Release:        0
 Summary:        Basic configutation for QA automation tools
 Source0:        %name-%version.tar.bz2

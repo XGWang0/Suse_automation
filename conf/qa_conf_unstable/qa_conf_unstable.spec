@@ -14,7 +14,7 @@ Name:           qa_conf_unstable
 License:        GPL v2 or later
 Group:		QA Automation
 AutoReqProv:    on
-Version:        2.1.0
+Version:        2.2.0
 Release:        0
 Summary:        Configutation for QA automation tools, which switches to the development (bleeding edge) servers
 Source0:         %name-%version.tar.bz2

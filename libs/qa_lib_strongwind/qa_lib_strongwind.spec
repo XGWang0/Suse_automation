@@ -24,7 +24,7 @@ BuildRequires:  python
 AutoReqProv:    on
 URL:            http://git.gnome.org/browse/qa_lib_strongwind
 Version:        1.0
-Release:        1
+Release:        2
 Source0:        strongwind-%version.tar.bz2
 Source1:	qa_lib_strongwind.8
 Patch0:         opsqa.patch

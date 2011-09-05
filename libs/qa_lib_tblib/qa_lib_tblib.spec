@@ -22,7 +22,7 @@ Name:           qa_lib_tblib
 License:        GPL v2 or later
 Group:          System/Management
 AutoReqProv:    on
-Version:        2.1.0
+Version:        2.2.0
 Release:        0
 Summary:        TBlib - PHP functions for MySQL and HTML
 Url:            http://qadb.suse.de/qadb
