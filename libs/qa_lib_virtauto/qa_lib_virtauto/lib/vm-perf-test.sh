@@ -45,13 +45,16 @@ vmpasswd=`$getSettings vm.pass > /dev/null 2>&1`
 dumUVersion=`export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP 'grep VERSION /etc/SuSE-release | cut -d" " -f3'`
 domUSubversion=`export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP 'grep PATCHLEVEL /etc/SuSE-release | cut -d" " -f3'`
 
-# Get repoURL  # FIXME
+# Get repoURL
+source /usr/share/qa/lib/config ''
+install_repo=`get_qa_config install_qa_repository`
+
 if [ $dumUVersion -eq "11" ]; then
-	[ $domUSubversion -eq "0" ] && repoURL="http://dist.suse.de/ibs/QA:/Head/SUSE_SLE-11_GA/"
-	[ $domUSubversion -eq "1" ] && repoURL="http://dist.suse.de/ibs/QA:/Head/SUSE_SLE-11-SP1_GA/"
+	[ $domUSubversion -eq "0" ] && repoURL="$install_repo/SUSE_SLE-11_GA/"
+	[ $domUSubversion -eq "1" ] && repoURL="$install_repo/SUSE_SLE-11-SP1_GA/"
 elif [ $dumUVersion -eq "10" ]; then
-	[ $domUSubversion -eq "3" ] && repoURL="http://dist.suse.de/ibs/QA:/Head/SLE_10_SP3/"
-	[ $domUSubversion -eq "4" ] && repoURL="http://dist.suse.de/ibs/QA:/Head/SLE_10_SP4/"
+	[ $domUSubversion -eq "3" ] && repoURL="$install_repo/SLE_10_SP3/"
+	[ $domUSubversion -eq "4" ] && repoURL="$install_repo/SLE_10_SP4/"
 fi
 
 vmInfo=`virsh dominfo $domuName 2>/dev/null`
