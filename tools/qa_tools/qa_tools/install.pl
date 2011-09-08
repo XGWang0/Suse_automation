@@ -98,7 +98,7 @@ if ( $userprofile ) {
 	# to_type: opensuse|sles|sled|slert|slepos
 	my ($to_type, $to_version, $to_subversion, $to_arch) = &parse_source_url( $source ) or die "Cannot understand your URL";
 	if ( $to_arch =~ /^i[3456]86$/ ) {
-		$to_arch = 'i386'; $to_arch = 'i586' if $to_version eq '11'; 
+		$to_arch = ($to_version>10 ? 'i586' : 'i386');
 	}
 	print "Reinstalling to:\n", &stats( $to_type, $to_version, $to_subversion, $to_arch );
 
