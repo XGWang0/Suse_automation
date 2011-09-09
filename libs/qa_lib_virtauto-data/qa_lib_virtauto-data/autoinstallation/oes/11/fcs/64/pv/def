@@ -4,7 +4,7 @@
   <add-on>
     <add_on_products config:type="list">
       <listentry>
-        <media_url><![CDATA[http://farek.provo.novell.com/install/oes11/Beta3.5/x86_64/]]></media_url>
+        <media_url><![CDATA[http://farek.provo.novell.com/install/oes11/Beta3.15/x86_64/]]></media_url>
         <product>Novell Open Enterprise Server 11</product>
         <product_dir>/</product_dir>
       </listentry>
