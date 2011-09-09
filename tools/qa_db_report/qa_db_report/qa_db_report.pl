@@ -604,7 +604,7 @@ sub exec_submission_type # $submissionID, $configID, $type
 		my $patchID=shift @released_rpms;
 		$dst->die_cleanly("No patch submit possible") unless @released_rpms;
 
-		&TRANSACTION('released_rpms','maintenance_testing');
+		&TRANSACTION('rpm_basenames','softwareConfig','rpms','released_rpms','maintenance_testing');
 		foreach my $rpm( @released_rpms )
 		{
 			my $basenameID=$dst->enum_get_id('rpm_basenames',$rpm);
