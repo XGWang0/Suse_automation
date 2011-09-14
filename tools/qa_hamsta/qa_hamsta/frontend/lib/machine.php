@@ -679,11 +679,11 @@ class Machine {
 					return round($days);
 				else
 					return ceil($days);
-			} else if ($remaining < 0 && date('Y/m/d H:i:s', $expires) != '-0001/11/30 00:00:00') {
+			} else if ($remaining < 0 && $expires != '') {
 				$this->set_used_by('');
 				$this->set_usage('');
-				$this->set_expires('0000-00-00 00:00:00');
-				$this->set_reserved('0000-00-00 00:00:00');
+				$this->set_expires(NULL);
+				$this->set_reserved(NULL);
 				return NULL;
 			} else {
 				return NULL;
@@ -716,11 +716,11 @@ class Machine {
 	 * @return void
 	 */
 	function set_expires($days) {
-		if ($days == '') {
+		if ($days != NULL) {
 			$this->set_reserved(date('Y/m/d H:i:s'));
-			$days_sql = ':days';
-		} else {
 			$days_sql = 'DATE_ADD(NOW(), INTERVAL :days DAY)';
+		} else {
+			$days_sql = ':days';
 		}
 		$stmt = get_pdo()->prepare('UPDATE machine SET `expires` = '.$days_sql.' WHERE machine_id = :id');
 		$stmt->bindParam(':id', $this->fields["id"]);
@@ -737,11 +737,7 @@ class Machine {
 	function get_reserved() {
 		if( isset($this->fields["reserved"]) ) {
 			$date = date('Y/m/d H:i:s', strtotime($this->fields["reserved"]));
-			if ($date != '-0001/11/30 00:00:00') {
-				return date('Y/m/d', strtotime($date));
-			} else {
-				return NULL;
-			}
+			return date('Y/m/d', strtotime($date));
 		} else {
 			return NULL;
 		}
