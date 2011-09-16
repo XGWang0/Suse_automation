@@ -172,9 +172,10 @@ if (request_str("proceed")) {
 		}
 		if (count($errors)==0)
 			header("Location: index.php");
+	} else {
+		$_SESSION['message'] = implode("\n", $errors);
+		$_SESSION['mtype'] = "fail";
 	}
-	$_SESSION['message'] = implode("\n", $errors);
-	$_SESSION['mtype'] = "fail";
 }
 $html_title = "Reinstall";
 ?>

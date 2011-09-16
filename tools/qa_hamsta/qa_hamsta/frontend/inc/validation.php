@@ -75,7 +75,9 @@
 					$error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
 				}
 			} else {
-				echo "<div class=\"failmessage\">Product URL or SDK URL is wrong, please make sure $repourl/media.1/media and $sdkurl/media.1/media  exist</div>"; $ret3="fail";
+				$_SESSION['message'] = 'Product URL or SDK URL is wrong, please make sure "'.$repourl.'/media.1/media" and "'.$sdkurl.'/media.1/media" exist.';
+				$_SESSION['mtype'] = "fail";
+				$ret3="fail";
 			}
 		}
 		if ($ret3!="fail" and empty($error))
