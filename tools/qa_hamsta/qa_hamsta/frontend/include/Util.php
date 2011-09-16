@@ -14,6 +14,10 @@
 
 	function showRefresh($page, $html_refresh_interval)
 	{
+		//if (!is_numeric($html_refresh_interval) && (int)$html_refresh_interval == $html_refresh_interval && $html_refresh_interval >= 0) {
+		//	$_SESSION['message'] = 'Refresh interval must be a positive integer.';
+		//	$_SESSION['mtype'] = "fail";
+		//}
 		return "<table class=\"tbrefresh\">" .
 			"<tr>" .
 				"<form action=\"$page\" method=\"post\">" .

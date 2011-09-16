@@ -6,10 +6,11 @@
 		$GLOBALS['xml_norefresh'] = "";
 		if(request_int("page")){ $GLOBALS['refresh_page'] = "&amp;page=".request_int("page");}else{$GLOBALS['refresh_page']="";};
 		if(request_int("machine")){ $GLOBALS['refresh_machine'] = "&amp;machine=".request_int("machine");}else{$GLOBALS['refresh_machine']="";};
-		if(request_str("interval")&& ! (ereg("^[0-9]+$",request_str("interval")))) 
+		if(request_str("interval") && !preg_match("/^[0-9]+$/", request_str("interval")))
 		{
 			$pre_value = request_int("pre_value");
-			echo("<div class=\"failmessage text-main\">The refresh interval must be a positive number!</div>");
+			$_SESSION['message'] = 'The refresh interval must be a positive number!';
+			$_SESSION['mtype'] = "fail";
 		};
 
 		if(request_int("interval")&&(request_int("interval")>0))
