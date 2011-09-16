@@ -1,0 +1,226 @@
+<?xml version="1.0"?>
+<job>
+    <config>
+        <name>SUT full kernel tests</name>
+        <debuglevel>4</debuglevel>
+        <distributable>0</distributable>
+        <parallel>0</parallel>
+        <logdir>/tmp</logdir>
+	<mail notify="0">yxu@suse.de</mail>
+        <description>SUT full kernel tests: validation, regression, performance</description>
+        <motd>!!!BE AWARE: the system is running full kernel tests now. See screen -r kerneltests for details.!!!</motd>
+    </config>
+
+
+    <commands>
+
+	<!-- only one worker -->
+        <worker>
+        <!-- Required -->
+        <command execution="forked">
+
+#! /bin/bash
+
+#start all tests
+
+echo -e "All tests starts now, see screen -r kerneltests for details\n"
+
+screen -L -S kerneltests  -d -m /bin/bash -c '(
+
+#Acceptance test start
+
+	logger NEW validation run
+
+	cd /usr/lib/ctcs2
+
+	logger file system stress test runs now
+	./tools/run /usr/share/qa/tcf/fs_stress.tcf
+
+	logger process_stress runs now
+	./tools/run /usr/share/qa/tcf/process_stress.tcf
+
+	logger sched_stress runs now
+	./tools/run /usr/share/qa/tcf/sched_stress.tcf
+
+	logger END of validation tests
+
+#Regression test start
+
+        logger NEW regression run
+
+        cd /usr/share/qa/tools
+
+        logger qa_bind runs now
+        ./bind-run
+
+        logger qa_coreutils runs now
+        ./coreutils-run
+
+        logger qa_openssh runs now
+        ./openssh-run
+
+        logger qa_apache_testsuite runs now
+        ./apache_testsuite-run
+
+        logger qa_cpio runs now
+        ./cpio-run
+
+        logger qa_net-snmp runs now
+        ./net-snmp-run
+
+        logger qa_indent runs now
+        ./indent-run
+
+        logger qa_sharutils runs now
+        ./sharutils-run
+
+        logger qa_cabextract runs now
+        ./cabextract-run
+
+        logger qa_gzip runs now
+        ./gzip-run
+
+        logger qa_findutils runs now
+        ./findutils-run
+
+        logger qa_postfix runs now
+        ./postfix-run
+
+        logger qa_fetchmail runs now
+        ./fetchmail-run
+
+        logger qa_php5 and qa_php5-server runs now
+        ./php5-run
+
+        logger qa_nfs runs now
+        ./nfs-run
+
+        logger qa_bzip2 runs now
+        ./bzip2-run
+
+        logger qa_apparmor runs now
+        ./apparmor-run
+
+        logger qa_apparmor-profiles runs now
+        ./apparmor-profiles-run
+
+        logger qa_cracklib runs now
+        ./cracklib-run
+
+        logger END of regression tests
+
+#Performance test start
+
+        ARCH=$HOSTTYPE
+        if [ "$ARCH" != "s390x" ] ; then
+
+	logger NEW performance run
+
+	logger qa_siege runs now
+	./siege-run
+
+	logger interbench runs now
+	./interbench-run
+
+	logger kernbench runs now
+	./kernbench-run
+
+	cd /usr/lib/ctcs2/tools
+
+	logger libmicro runs now
+	./libmicro-run
+	./libmicro-bench-run
+
+	logger reaim runs now
+	./reaim-run
+
+	logger bonnie runs now
+	./bonnie-run
+
+	logger tiobench runs now
+	./tiobench-run
+
+	logger dbench runs now
+	mkdir -p /abuild
+	./dbench-run
+	rm -r /abuild/dbench*
+
+	logger END of performance tests
+
+        else
+        echo "skip performance tests on $ARCH architecture!"
+        fi
+
+#Kernel test start
+
+        logger NEW kerneltest run
+
+	cd /usr/lib/ctcs2
+
+        logger ltp runs now
+        ./tools/ltp-run
+	rm /test -rf
+
+        logger newburn runs now
+        ./tools/newburn-run
+
+        logger memtester runs now
+        ./tools/memtester-run
+
+        logger memeater runs now
+        ./tools/memeat-run
+
+        logger memtst runs now
+        ./tools/run /usr/share/qa/tcf/memtst.tcf
+
+        logger netperf runs now
+        ./tools/netperf-run
+
+        logger ftpload runs now
+	mkdir -p /abuild/ftpload_test
+	ftpload -d /abuild/ftpload_test -c 20 ftp://10.11.136.9/400MB
+
+        logger lmbench runs now
+	./tools/lmbench-run
+
+        logger sysbench runs now
+	ARCH=$HOSTTYPE
+	if [ $ARCH = "s390x" ] ; then
+		if [ ! "`grep abuild /usr/lib/ctcs2/bin/runtest`" ] ; then
+        		cp /usr/lib/ctcs2/bin/runtest /usr/lib/ctcs2/bin/runtest.bak
+  	      		sed -i "s/testpath=.*/testpath=\"\/abuild\"/g" /usr/lib/ctcs2/bin/runtest
+		fi 
+		ulimit -s 4096 
+	fi
+        cd /abuild
+        /usr/lib/ctcs2/tools/run /usr/lib/ctcs2/tcf/sysbench-full.tcf
+        rm /abuild/test_file*
+        rm /usr/lib/ctcs2/bin/test_file*
+	if [ $ARCH = "s390x" ] ; then
+        	cp /usr/lib/ctcs2/bin/runtest.bak /usr/lib/ctcs2/bin/runtest
+		ulimit -s 8192
+	fi
+
+
+        logger END of Kernel tests
+
+
+	echo "All tests have finished. Next is to submit results."
+
+	echo " " > /etc/motd
+
+        )'
+
+		while screen -ls | grep kerneltests > /dev/null ; do sleep 30; done
+
+
+                </command>
+
+                <!-- Optional -->
+                <directory>/</directory>
+
+                </worker>
+
+        </commands>
+</job>
+

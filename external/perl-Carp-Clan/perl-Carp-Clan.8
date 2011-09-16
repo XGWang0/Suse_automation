@@ -1,0 +1,35 @@
+." Manpage for perl-Carp-Clan.
+." Contact David Mulder <dmulder@novell.com> to correct errors or typos.
+.TH man 8 "11 Jul 2011" "1.0" "perl-Carp-Clan man page"
+.SH NAME
+perl-Carp-Clan
+.SH SYNOPSIS
+None.
+.SH TYPE
+tool
+.SH DESCRIPTION
+This module reports errors from the perspective of the caller of a "clan" of modules, similar to "Carp.pm" itself. But instead of giving it a number of levels to skip on the calling stack, you give it a pattern to characterize the package names of the "clan" of modules that should never be blamed for errors. It makes these modules stick together like a "clan" and any error that occurs will be blamed on the "outsider" script or modules not belonging to this "clan".
+.SH README
+None. 
+.SH OPTIONS
+None.
+.SH WHAT IT DOES
+None.
+.SH COMMON PROBLEMS
+None.
+.SH WARNINGS
+None.
+.SH SEE ALSO
+None.
+.SH BUGS
+None.
+.SH DISTRIBUTION
+External, no patches. Only redistributed/packaged to fullfil dependencies.
+.SH LICENSE
+License: Artistic; GPL v2 or later. Spec file license: Artistic; GPL v2 or later. Just built because we needed it in our repo (available externally on CPAN).
+.SH UPSTREAM
+http://cpan.org/modules/by-module/Carp/
+.SH AUTHOR
+Steffen Beyer <sb@engelschall.com>
+.SH MAINTAINER
+anicka@novell.com

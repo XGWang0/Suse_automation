@@ -1,0 +1,277 @@
+..the last state of api proposal..
+
+
+BUT: some were changed, modified etc. please look at the
+libqainternal.h for current spec
+
+
+
+Just some very first thoughts, modifications...
+
+Am Freitag 21 Oktober 2005 13:23 schrieb Christian Hueller:
+> # generic functions:
+cleanup(string in $part) {
+>         ;cleanup remaining files,users,configs:
+>         ; if $part is
+>         ;    "files"    - remove all stale files from previous runs
+>         ;    "users"    - remove all stale users from previous runs
+>         ;    "configs"  - restore all original configs
+>         ;    "services" - restore all services to state before testrun
+>         ;    "errors"   - reset all errorcounter
+>         ;    "all"      - remove all stale files and users, restore confi=
+gs
+>         ;    <empty> - don't do anything
+>         ;return 0 on success, else 1
+> }
+
+
+>
+> # user functions:
+>
+addUser(string out $userhandle, string in $user){
+        ;add $user if not yet existing
+        ;register $user with $userhandle in db
+        ;return 0 on success, else 1
+}
+
+addToGroup(string in $userhandle, string in $group) {
+	;add the user associated to $userhandle
+        ;into the group $group
+	;return: 0 on success, else 1
+}
+
+delUser(string in $userhandle){
+        ;deletes $user associated with $userlabel
+        ;return 0 on success, else 1
+}
+
+getUser(string in $userhandle, string out $user) {
+	;looks for the $user associated with the given handle
+	;return: 0 on success ($user was found), else 1
+}
+
+getGroups(string in $userhandle, string out $groups) {
+        ;looks for the groups the user associated with the
+        ;$userhandle is in and places them into $groups
+        ;as commaseparated list
+	;return: 0 on success ($user's groups were found), else 1
+}
+
+>
+>
+>
+> # file functions
+>
+createFile(string out $filehandle, string in $filename) {
+        ;create $filename if not yet existing
+        ;return 0 on success, else 1
+}
+
+createFile(string out $filehandle, string in $filename, unsigned int in
+ $minfilesize) {
+        ;create $filename if no yet existing that needs
+        ;at least $minfilesize bytes (make sure enough space is on media)
+        ;return 0 on success (enough space is there), else 1
+}
+
+createTempFile(string out $filehandle) {
+        ;create a temporal file, accessible via the filehandle
+        ;return 0 on success, else 1
+}
+
+removeFile(string in $filehandle) {
+        ;remove file associated with $filehandle
+        ;return 0 on success, else 1
+}
+
+lookupFile(string in $filehandle, string out $filename) {
+        ; looksup the $filename that is associated with
+        ;the $filehandle
+        ;return 0 on success(was found), else 1
+}
+
+writeBinaryFile(string in $filehandle, string in $data) {
+        ;writes the data $data binary without any changes or
+        ;intrepretations int the file associated with $filehandle
+	;return: 0 on success(all data was written), else 1
+}
+
+writeTextFile(string in $filehandle, string in $data) {
+	;write the data $data as text into the file associated
+        ;with $filehandle (\n etc. gets interpreted)
+        ;return: 0 on success(all data was written), else 1
+}
+
+readTextFile(string in $filehandle, string out $data, unsigned int out=20
+$sizeread) {
+	;read the whole file associated to $filehandle
+        ;into $data, while the size is put into $sizeread
+	;return: 0 on success, else 1
+}
+
+readTextlineFile(string in $filehandle, string out $data, unsigned int out=
+=20
+$sizeread) {
+	;read the file associated with $filehandle until the next linebreak
+	;into $data and put the number of read bytes into $sizeread
+	;return: 0 on success, else 1
+}
+
+readBinayFile(string in $filehandle, string out $data, unsigned int in=20
+$bytestoread) {
+        ;reads $bytestoread bytes of the file associated to $filehandle
+        ;into $data
+        ;return: 0 on success, else 1
+}
+
+> # service functions
+>
+
+checkService(string in $servicehandle) {
+          ;get the current stat of the services associated
+          ; ..with $servicehandle
+          ;return: 0 if it is running, else 1
+}
+
+associateService(string out $servicehandle, string in $service) {
+           ;associate the service named $service with the
+           ;doesnt change state of service
+           ;return: 0 on success, else 1
+}
+
+
+startService(string in $servicehandle) {
+        ;start the associated service of $servicehandle via init script
+        ;return: 0 on success, else 1
+}
+
+stopService(string in $servicehandle) {
+         ;stop service associated with $servicehandle
+         ;return: 0 on success, else 1
+}
+
+checkpidOfService(string in $servicehandle) {
+        ;check the pid of the $service associated with $servicehandle
+        ;return 0 on success, else 1
+}
+
+checkprocOfService(string in $servicehandle) {
+        ;check the process of the $service associated with $servicehandle
+        ;return 0 on success, else 1
+}
+
+oenportsOfService(string in $servicehandle, string out $ports) {
+        ;check if the service associated to $servicehandle has
+        ;open network ports and put them as csv list into $ports
+        ;return: 0 on success (open ports found), else 1
+}
+
+restartService(string in $servicehandle) {
+        ;restart the $service associated with $servicehandle
+        ;make sure the process ID has changed from before the restart
+        ;return 0 on success, else 1
+}
+>
+>
+> # config functions
+>
+copyConfig(string in/out $confighandle, string in $testconf, string in $ori=
+g)=20
+{
+        ;check if $confighandle is already associated with $orig
+        ; if yes =3D> exit script with return value 1
+        ; else continue
+        ;backup $orig to $backup
+        ;associate $orig with $confighandle
+        ;copy $testconf to $orig
+        ;return 0 on success, else 1
+}
+
+
+removeConfig(string in $confighandle) {
+        ;get $orig associated with $confighandle
+        ;restore $orig from $backup
+        ;unset $confighandle
+        ;remove $orig from $backup
+        ;return 0 on success, else 1
+}
+
+checkConfig(string in $confighandle) {
+        ;check which $orig $confhandle is associated with
+        ;print out $orig and $testconf
+        ;return 0 if $confighandle is set, 1 else
+}
+>
+>
+> # compare functions
+>
+md5Compare(string in $result ,string in $reference) {
+        ;create the md5sum from $result and compare it to $reference
+        ;return 0 on success, else 1
+}
+
+strCompare(string in $result ,string in $reference) {
+        ;compare the content of $result with the content of $reference
+        ;return 0 on success, else 1
+}
+>
+>
+>
+> # execute functions
+>
+
+associateCmd(string out $commandhandler,string in $command,string in $optio=
+ns)
+{
+	;associate given $command with $options to $commandhandler
+	;return: 0 on success, else 1
+}
+
+runCmd(string in $commandhandler) {
+        ;run cmd (in sync) associated before with $commandhandler
+        ;return 0 on success, else 1
+}
+
+runCmdAs(string in $commandhandle, string in $userhandle)  {
+        ;run cmnd (in sync) associated with $commandhandle=20
+        ;as user associated with $userhandle=20
+        ;return: 0 on success, else 1
+}
+
+runCmdAsync(string in $commandhandle) {
+	;run cmd associated with $commandhandle in an async fork
+        ;return: 0 on success, else 1
+}
+
+runCmdAsyncAs(string in $commandhandle,string in $userhandle) {
+	;run cmd associated with $commandhandle as user
+        ;associated with $userhandle in an async fork
+        ;return: 0 on success, else 1
+}
+
+pidOfCmd(string in $commandhandle, unsigned int out $pid) {
+	;looks for the pid for this cmd's (associated by $commandhandle)
+	;return: 0 on success (pid was found), else 1
+}
+
+killCmd(string $commandhandle) {
+        ;kill the process that got started by command associated with
+        ;$commandhandler
+        ;return: 0 on success, else 1
+}
+> -------------------------------------snip--------------------------------=
+=2D-
+
+General notes:
+ - should we perhaps add a prefix for our api-functions (like "qa_")?
+ - all feedback welcome...
+ - will go deeper into it on the weekend (cc'ing to private email)
+
+Greetings,
+ Frank
+=2D---------------------------------------------------------------
+Dipl.-Inf. (FH) Frank Seidel - Engineer Quality Assurance
+SUSE LINUX Products GmbH, Maxfeldstr. 5, D-90409 Nuernberg
+Tel.: =A0+49 (0) 911 / 74053 - 468   Email: fseidel@suse.de
+=2D---------------------------------------------------------------
+

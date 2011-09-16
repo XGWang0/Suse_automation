@@ -1,0 +1,177 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <configure>
+    <networking>
+      <dhcp_options>
+        <dhclient_additional_options></dhclient_additional_options>
+        <dhclient_client_id></dhclient_client_id>
+        <dhclient_hostname_option>AUTO</dhclient_hostname_option>
+      </dhcp_options>
+      <dns>
+        <dhcp_hostname config:type="boolean">false</dhcp_hostname>
+        <dhcp_resolv config:type="boolean">false</dhcp_resolv>
+        <domain>REPLACEMEWITHDOMAIN</domain>
+        <hostname>REPLACEMEWITHNAME</hostname>
+        <nameservers config:type="list">
+          <nameserver>REPLACEMEWITHDNS</nameserver>
+        </nameservers>
+        <searchlist config:type="list">
+          <search>REPLACEMEWITHDOMAIN</search>
+        </searchlist>
+      </dns>
+      <interfaces config:type="list">
+        <interface>
+          <bootproto>static</bootproto>
+          <broadcast>REPLACEMEWITHBCAST</broadcast>
+          <device>eth-id-REPLACEMEWITHMAC</device>
+          <ipaddr>REPLACEMEWITHIP</ipaddr>
+          <netmask>REPLACEMEWITHMASK</netmask>
+          <network>REPLACEMEWITHNETWORK</network>
+          <startmode>onboot</startmode>
+        </interface>
+      </interfaces>
+      <modules config:type="list">
+        <module_entry>
+          <device>bus-xen-vif-0</device>
+          <module></module>
+          <options></options>
+        </module_entry>
+      </modules>
+      <routing>
+        <ip_forward config:type="boolean">false</ip_forward>
+        <routes config:type="list">
+          <route>
+            <destination>default</destination>
+            <device>-</device>
+            <gateway>REPLACEMEWITHGATEWAY</gateway>
+            <netmask>-</netmask>
+          </route>
+        </routes>
+      </routing>
+    </networking>
+    <users config:type="list">
+      <user>
+        <encrypted config:type="boolean">true</encrypted>
+        <user_password>Dx3Uax51cZ/og</user_password>
+        <username>root</username>
+      </user>
+    </users>
+    <x11>
+      <color_depth config:type="integer">16</color_depth>
+      <configure_x11 config:type="boolean">true</configure_x11>
+      <display_manager>kdm</display_manager>
+      <enable_3d config:type="boolean">false</enable_3d>
+      <monitor>
+        <display>
+          <frequency config:type="integer">60</frequency>
+          <height config:type="integer">768</height>
+          <width config:type="integer">1024</width>
+        </display>
+        <monitor_device>1024X768@60HZ</monitor_device>
+        <monitor_vendor> LCD</monitor_vendor>
+      </monitor>
+      <resolution>1024x768</resolution>
+      <window_manager>kde</window_manager>
+    </x11>
+  </configure>
+  <install>
+    <bootloader>
+      <global config:type="list"/>
+      <initrd_modules config:type="list">
+        <initrd_module>
+          <module>reiserfs</module>
+        </initrd_module>
+      </initrd_modules>
+      <loader_device></loader_device>
+      <loader_type>none</loader_type>
+      <location>custom</location>
+      <sections config:type="list"/>
+    </bootloader>
+    <general>
+      <clock>
+        <hwclock>UTC</hwclock>
+        <timezone>US/Mountain</timezone>
+      </clock>
+      <keyboard>
+        <keymap>english-us</keymap>
+      </keyboard>
+      <language>en_US</language>
+      <mode>
+        <confirm config:type="boolean">false</confirm>
+      </mode>
+      <mouse>
+        <id>22_exps2</id>
+      </mouse>
+    </general>
+    <partitioning config:type="list">
+      <drive>
+        <device>/dev/xvda</device>
+        <partitions config:type="list">
+          <partition>
+            <filesystem config:type="symbol">swap</filesystem>
+            <format config:type="boolean">true</format>
+            <mount>swap</mount>
+            <partition_id config:type="integer">130</partition_id>
+            <partition_nr config:type="integer">1</partition_nr>
+            <region config:type="list">
+              <region_entry config:type="integer">0</region_entry>
+              <region_entry config:type="integer">66</region_entry>
+            </region>
+            <size>auto</size>
+          </partition>
+          <partition>
+            <filesystem config:type="symbol">reiser</filesystem>
+            <format config:type="boolean">true</format>
+            <mount>/</mount>
+            <partition_id config:type="integer">131</partition_id>
+            <partition_nr config:type="integer">2</partition_nr>
+            <region config:type="list">
+              <region_entry config:type="integer">66</region_entry>
+              <region_entry config:type="integer">456</region_entry>
+            </region>
+            <size>max</size>
+          </partition>
+        </partitions>
+        <use>all</use>
+      </drive>
+    </partitioning>
+    <report>
+      <errors>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </errors>
+      <messages>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </messages>
+      <warnings>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </warnings>
+      <yesno_messages>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </yesno_messages>
+    </report>
+    <software>
+      <addons config:type="list">
+        <addon>Print-Server</addon>
+        <addon>YaST2</addon>
+        <addon>Basis-Sound</addon>
+        <addon>auth</addon>
+        <addon>Base-System</addon>
+        <addon>Kde-Desktop</addon>
+        <addon>Linux-Tools</addon>
+        <addon>X11</addon>
+        <addon>SuSE-Documentation</addon>
+      </addons>
+      <base>default</base>
+      <packages config:type="list"/>
+    </software>
+  </install>
+</profile>

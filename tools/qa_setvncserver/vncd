@@ -1,0 +1,37 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          vncd
+# Required-Start:    $network
+# Required-Stop:     $network
+# Default-Start:     3 5
+# Default-Stop:      0 1 2 4 6
+# Short-Description: vncd
+# Description: vnc server daemon
+### END INIT INFO
+
+case "$1" in
+    start)
+        export USER="/root"
+        export HOME="/root"
+        rm -rf /tmp/.X11-unix/X1
+        /usr/bin/vncserver :1;;
+    stop)
+        killall Xvnc;;
+    restart)
+        $0 stop
+        sleep 1
+        $0 start
+        ;;
+    status)
+        echo -n "Checking for Xvnc: "
+        if (( `ps aux | grep Xvnc | wc -l` > 1 ));then
+            echo running
+        else
+            echo unused
+        fi
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|status}"
+        exit 1
+        ;;
+esac

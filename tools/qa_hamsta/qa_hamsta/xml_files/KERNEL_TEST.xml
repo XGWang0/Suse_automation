@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<job>
+    <config>
+        <name>KERNEL_TEST</name>
+        <debuglevel>4</debuglevel>
+        <distributable>0</distributable>
+        <parallel>0</parallel>
+        <mail notify="1">ldai@novell.com, jwang1@novell.com, csxia@novell.com</mail>
+	<rpm>qa_hamsta qa_tools qa_lib_perl qa_test_fs_stress qa_test_ftpload qa_test_lmbench qa_test_memeat qa_test_memtester qa_test_netperf qa_test_newburn qa_test_sysbench qa_test_autotest</rpm>
+        <logdir>/tmp</logdir>
+        <description>SLES10-SP4 kernel test</description>
+        <motd>[Custom job]: SLES10-SP4 kernel test is running</motd>
+    </config>
+
+    <commands>
+        <worker>
+            <!-- Required -->
+            <command execution="forked">
+#!/bin/bash
+/usr/share/hamsta/testscript/customtest qa_test_fs_stress qa_test_ftpload qa_test_lmbench qa_test_memeat qa_test_memtester qa_test_netperf qa_test_newburn qa_test_sysbench
+/usr/share/hamsta/testscript/autotest aborttest aio_dio_bugs aiostress barriertest bash_shared_mapping bonnie btreplay cerberus compilebench cpu_hotplug cyclictest dacapo dbench dbt2 disktest dma_memtest ebizzy fio fsdev fsfuzzer fs_mark fsstress fsx hackbench hwclock interbench iosched_bugs iozone ipv6connect isic kernbench kernelbuild kvm kvmtest libhugetlbfs linus_stress lmbench lsb_dtk ltp memory_api monotonic_time npb parallel_dd perfmon pi_tests pktgen posixtest qemu_iotests reaim real_time_tests rmaptest rttester scrashme selftest signaltest sleeptest sparse spew stress synctest sysbench systemtap tbench tiobench tsc unixbench uptime xmtest
+</command>
+            <!-- Optional -->
+            <directory>/</directory>
+            <timeout>300000</timeout>
+        </worker>
+    </commands>
+</job>

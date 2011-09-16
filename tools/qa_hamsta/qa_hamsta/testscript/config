@@ -1,0 +1,18 @@
+# User configurations
+logdir="/var/log/qa/ctcs2"
+input="/tmp/result.html"
+output="/tmp/summary.txt"
+MAILFILTER="[TestRunner]"
+hn=`cat /etc/HOSTNAME`
+cache="/tmp/cache"
+ARCH=$HOSTTYPE
+if [ "$ARCH" != "" ]; then
+        case $ARCH in
+        i[3-9]86)  ARCH="i386";;
+        p*pc) ARCH="ppc";;
+        p*pc64) ARCH="ppc64";;
+        esac
+else
+        echo "cannot determine architecture";
+        exit 1
+fi

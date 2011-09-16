@@ -1,0 +1,23 @@
+# this is the Slave configuration PREPROCESSOR - for configuration, please use /etc/qa!!!
+package Slave;
+
+use warnings;
+use strict;
+
+BEGIN { push @INC, '.', '/usr/share/hamsta/master', '/usr/share/qa/lib'; }
+use qaconfig;
+
+$Slave::directory = "/usr/share/hamsta";
+
+# Slave configuration
+
+$Slave::debug = $qaconf{hamsta_slave_verbosity};
+$Slave::multicast_address = $qaconf{hamsta_multicast_address};
+$Slave::multicast_port = $qaconf{hamsta_multicast_port};
+$Slave::slave_port = $qaconf{hamsta_client_port};
+
+
+ # standard groups are located in file "groups" in the directory "master_root"
+
+1;
+

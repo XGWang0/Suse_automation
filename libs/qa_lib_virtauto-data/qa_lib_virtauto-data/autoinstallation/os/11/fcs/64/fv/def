@@ -1,0 +1,173 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <bootloader>
+    <initrd_modules config:type="list">
+      <initrd_module>
+        <module>xenblk</module>
+      </initrd_module>
+      <initrd_module>
+        <module>processor</module>
+      </initrd_module>
+      <initrd_module>
+        <module>thermal</module>
+      </initrd_module>
+      <initrd_module>
+        <module>fan</module>
+      </initrd_module>
+      <initrd_module>
+        <module>reiserfs</module>
+      </initrd_module>
+      <initrd_module>
+        <module>edd</module>
+      </initrd_module>
+    </initrd_modules>
+    <loader_type>none</loader_type>
+    <sections config:type="list"/>
+  </bootloader>
+  <firewall>
+    <FW_ALLOW_FW_BROADCAST_DMZ>no</FW_ALLOW_FW_BROADCAST_DMZ>
+    <FW_ALLOW_FW_BROADCAST_EXT>no</FW_ALLOW_FW_BROADCAST_EXT>
+    <FW_ALLOW_FW_BROADCAST_INT>no</FW_ALLOW_FW_BROADCAST_INT>
+    <FW_CONFIGURATIONS_EXT>sshd</FW_CONFIGURATIONS_EXT>
+    <FW_DEV_EXT>any</FW_DEV_EXT>
+    <FW_IGNORE_FW_BROADCAST_DMZ>no</FW_IGNORE_FW_BROADCAST_DMZ>
+    <FW_IGNORE_FW_BROADCAST_EXT>yes</FW_IGNORE_FW_BROADCAST_EXT>
+    <FW_IGNORE_FW_BROADCAST_INT>no</FW_IGNORE_FW_BROADCAST_INT>
+    <FW_IPSEC_TRUST>no</FW_IPSEC_TRUST>
+    <FW_LOAD_MODULES>nf_conntrack_netbios_ns</FW_LOAD_MODULES>
+    <FW_LOG_ACCEPT_ALL>no</FW_LOG_ACCEPT_ALL>
+    <FW_LOG_ACCEPT_CRIT>yes</FW_LOG_ACCEPT_CRIT>
+    <FW_LOG_DROP_ALL>no</FW_LOG_DROP_ALL>
+    <FW_LOG_DROP_CRIT>yes</FW_LOG_DROP_CRIT>
+    <FW_MASQUERADE>no</FW_MASQUERADE>
+    <FW_PROTECT_FROM_INT>no</FW_PROTECT_FROM_INT>
+    <FW_ROUTE>no</FW_ROUTE>
+    <enable_firewall config:type="boolean">true</enable_firewall>
+    <start_firewall config:type="boolean">true</start_firewall>
+  </firewall>
+  <general>
+    <ask-list config:type="list"/>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+    <mouse>
+      <id>none</id>
+    </mouse>
+    <signature-handling>
+      <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+      <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+      <accept_verification_failed config:type="boolean">false</accept_verification_failed>
+      <import_gpg_key config:type="boolean">true</import_gpg_key>
+    </signature-handling>
+  </general>
+  <groups config:type="list"/>
+  <keyboard>
+    <keyboard_values>
+      <capslock config:type="boolean">false</capslock>
+      <delay></delay>
+      <discaps config:type="boolean">false</discaps>
+      <numlock>bios</numlock>
+      <rate></rate>
+      <scrlock config:type="boolean">false</scrlock>
+      <tty>tty1 tty2 tty3 tty4 tty5 tty6</tty>
+    </keyboard_values>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <networking>
+    <dhcp_options>
+      <dhclient_additional_options></dhclient_additional_options>
+      <dhclient_client_id></dhclient_client_id>
+      <dhclient_hostname_option>AUTO</dhclient_hostname_option>
+    </dhcp_options>
+    <dns>
+      <dhcp_hostname config:type="boolean">true</dhcp_hostname>
+      <dhcp_resolv config:type="boolean">true</dhcp_resolv>
+    </dns>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>
+        <startmode>auto</startmode>
+        <usercontrol>no</usercontrol>
+      </interface>
+    </interfaces>
+    <managed config:type="boolean">false</managed>
+    <routing>
+      <ip_forward config:type="boolean">false</ip_forward>
+    </routing>
+  </networking>
+  <partitioning config:type="list">
+    <drive>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </yesno_messages>
+  </report>
+  <software>
+    <patterns config:type="list">
+      <pattern>base</pattern>
+      <pattern>devel_tcl</pattern>
+      <pattern>enhanced_base</pattern>
+      <pattern>fonts</pattern>
+      <pattern>gnome_admin</pattern>
+      <pattern>gnome_basis</pattern>
+      <pattern>gnome_games</pattern>
+      <pattern>gnome_imaging</pattern>
+      <pattern>gnome_multimedia</pattern>
+      <pattern>gnome_office</pattern>
+      <pattern>gnome_utilities</pattern>
+      <pattern>gnome_utilities_opt</pattern>
+      <pattern>gnome_xgl</pattern>
+      <pattern>gnome_yast</pattern>
+      <pattern>multimedia</pattern>
+      <pattern>office</pattern>
+      <pattern>print_server</pattern>
+      <pattern>sw_management</pattern>
+      <pattern>sw_management_gnome</pattern>
+      <pattern>voip</pattern>
+      <pattern>x11</pattern>
+      <pattern>xgl</pattern>
+      <pattern>yast2_basis</pattern>
+      <pattern>yast2_install_wf</pattern>
+    </patterns>
+  </software>
+  <user_defaults>
+    <expire></expire>
+    <group>17</group>
+    <groups>video,dialout</groups>
+    <home>/home</home>
+    <inactive>-1</inactive>
+    <shell>/bin/bash</shell>
+    <skel>/etc/skel</skel>
+  </user_defaults>
+  <users config:type="list">
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <user_password>$2a$05$X5mhO/SvDYhmdR7/yjFjOeXBFXTDF6jVHEjZiOKG/wFhTkzTqvTwO</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>

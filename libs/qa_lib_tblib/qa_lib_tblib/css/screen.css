@@ -1,0 +1,309 @@
+/* 
+  TOC:
+  ====
+  0. global settings
+  1. navigation - by pkirsch
+  2. table headers & rows
+  3. buttons
+  4. resizeable table bodies
+  5. table row highlights
+*/
+
+
+/* 0. global settings */
+body {
+	background-color:#ddd;
+	color:#000;
+}
+
+textarea { font-size:12px; margin:0 0 8px 0; } 
+pre { font-size:12px; }
+.row_header 
+{ 
+	background-color: #e0e0e0;
+	font-weight: bold;
+}
+.row_body { padding-bottom: 5px;}
+
+
+/* 1. navigation - by pkirsch */
+#subnav-hdr {
+	background-color:#6484A4;
+	color:#fff;
+	line-height:18px;
+	padding:2px 17px;
+	text-align:left;
+	font-weight:normal;
+}
+
+#subnav-hdr a {
+	text-decoration:none;
+	color:#fff;
+}
+
+#subnav-hdr a:hover 
+{ 
+	text-decoration:underline;
+	color:#ccc;  
+}
+
+#subnav-hdr a .board_new { 
+	color:#ff0;
+	font-weight:bold;
+}
+
+#subnav-hdr .item { 
+	padding: 1.5px 1em 1.5px 1em;
+	word-spacing: 0.3em;
+}
+
+/* 2. table headers & rows */
+.tbl th a
+{
+	color:#000;
+	text-decoration:none;
+}
+.tbl th a:hover { text-decoration:underline; }
+.tbl th { 
+	background-color:#68a; 
+	color:#fff;
+	text-align:left;
+	padding: 4px 3px;
+	font-size:110%;
+	font-weight:normal;
+}
+.tbl th, #subnav-hdr {
+	border: solid 1px;
+	border-color: #8bd #568 #457 #8bd;
+}
+.tbl td
+{ 
+	border: solid 1px;
+	border-color: #ddd #aaa #888 #ddd;
+	padding: 2px 3px 3px 4px;
+}
+.tbl.shrank .last { padding-right:16px; }
+.tbl {
+	border-spacing:0;
+	border: solid 1px;
+	border-color: #8bd #999 #777 #aaa;
+	font-size: 80%;
+}
+.total { margin: 1em; }
+
+/* 3. buttons - taken from phpMyAdmin */
+button.mult_submit { background-color:   transparent; }
+th .mult_submit { border:none; }
+.icon {
+    vertical-align:     middle;
+    padding-right:       0.3em;
+    padding-left:        0.3em;
+}
+td .icon, th .icon { margin: 0; }
+button { display: inline; }
+
+/* 4. resizeable table bodies */
+.tbl tbody {
+        overflow: auto;
+        overflow-x:hidden;
+}
+.tbl.shrank tbody {
+        overflow: auto;
+        overflow-x:hidden;
+        height: 25em;
+}
+.tbl.shrank td:last-child { padding-right: 18px; }
+.tbl.controls td:last-child { white-space:nowrap; }
+
+/* 5. table row highlights */
+.failed.evenrow, .r.evenrow				{ background-color:#fbb; }
+.failed.oddrow,  .r.oddrow				{ background-color:#eaa; }
+.internalerr.evenrow, .wr.evenrow			{ background-color:#fbf; }
+.internalerr.oddrow,  .wr.oddrow			{ background-color:#eae; }
+.skipped.evenrow					{ background-color:#bbb; }
+.skipped.oddrow						{ background-color:#aaa; }
+.i.evenrow						{ background-color:#bfb; }
+.i.oddrow						{ background-color:#aea; }
+.wi.evenrow						{ background-color:#bdd; }
+.wi.oddrow						{ background-color:#acc; }
+.m.evenrow						{ background-color:#ffb; }
+.m.oddrow						{ background-color:#eea; }
+.evenrow						{ background-color:#fff; }
+.oddrow							{ background-color:#eee; }
+
+.evenrow:hover, .oddrow:hover				{ background-color:#eec; }
+.failed.evenrow:hover, .failed.oddrow:hover		{ background-color:#f44; }
+.r:hover						{ background-color:#fdd; }
+.internalerr.evenrow:hover, .internalerr.oddrow:hover	{ background-color:#f4f; }
+.skipped.evenrow:hover, .skipped.oddrow:hover		{ background-color:#bb8; }
+.wr:hover						{ background-color:#fdf; }
+.i:hover						{ background-color:#cfc; }
+.wi:hover						{ background-color:#dfd; }
+.m:hover						{ background-color:#ffd; }
+
+/* buttons */
+.btn,.btn_disabled
+{ 
+	border: solid 1px;
+	border-color: #fff #888 #666 #eee ; 
+	padding: 0.1em 0.3em 0.1em 0.3em;
+	margin: 0.2em;
+	background-color: #9bc;
+}
+.btn_disabled { background-color:#ddd; }
+.btn:hover { background-color: #68a; }
+.evenrow a.btn					{ background-color: #bcd; }
+.oddrow a.btn 					{ background-color: #9bc; }
+.failed.evenrow a.btn, .r.evenrow a.btn		{ background-color:#f88; }
+.failed.oddrow a.btn,  .r.oddrow a.btn		{ background-color:#e77; }
+.internalerr.evenrow a.btn, .wr.evenrow	a.btn	{ background-color:#f8f; }
+.internalerr.oddrow a.btn,  .wr.oddrow a.btn	{ background-color:#e7e; }
+.skipped.evenrow a.btn				{ background-color:#eee; }
+.skipped.oddrow a.btn				{ background-color:#ddd; }
+.i.evenrow a.btn				{ background-color:#8f8; }
+.i.oddrow a.btn					{ background-color:#7e7; }
+.wi.evenrow a.btn				{ background-color:#8dd; }
+.wi.oddrow a.btn				{ background-color:#acc; }
+.m.evenrow a.btn				{ background-color:#ff8; }
+.m.oddrow a.btn					{ background-color:#ee7; }
+tr.w
+{
+	font-weight: bold;
+	border-style: dashed;
+}
+
+a.btn:link, a.btn:visited 
+{ 
+	text-decoration:none;
+	color: #000;
+}
+a.btn:hover	{ text-decoration:underline; }
+
+div.pagesel { margin: 1em; }
+
+select[multiple] {height:10em;}
+.static { display: none; }
+input[type="submit"] 
+{ 
+	float:left;
+	clear:both;
+	margin-bottom: 1em;
+}
+.inputblock
+{ 
+	clear:none;
+	float:left;
+	margin-right: 1em;
+	margin-bottom: 1em;
+}
+.inputtitle
+{
+	display:block;
+	font-weight:bold;
+	margin-bottom: 0.2em;
+	text-transform:capitalize;
+}
+hr
+{ 
+	clear:both; 
+	border: dashed #68a 2px;
+	padding:0;
+}
+
+/* SQL info */
+.sqlinfo 
+{ 
+	margin-top: 4em;
+	font-size: 50%; 
+}
+.sqlinfo>.header
+{
+	font-weight: bold;
+	margin-right:1em;
+}
+.sqlitem .header:after { content:' : '; }
+.sqlitem { margin-right:1em; }
+
+/* database table description */
+table.tbldesc	{ border-collapse: collapse; }
+.tbldesc th	{
+	background-color: #ccc; 
+	font-size:1em;
+}
+.tbldesc td, .tbldesc th	{
+	border: solid 1px black;
+	padding: 4px;
+}
+.tbldesc td		{ 
+	font-size:0.8em; 
+	background-color: #fff;
+}
+.tbldesc td:first-child	{ font-size:1em; }
+
+/* cards */
+.steps { margin: 0 0 0.2em 1em; }
+.steps span 
+{
+	display:inline;
+	margin: 0 1em 3em 0;
+	border:solid 1px;
+	padding:0.2em 1em 0.2em 1em;
+}
+.steps span.nosel 
+{
+	background-color:#9bc;
+	border-color:#fff #999 #888 #fff;
+	border-bottom:none;
+}
+.steps span.sel 
+{
+	background-color:#68a;
+	border-color:#cef #568 #68a #cef;
+	font-weight: bold;
+}
+.steps2 
+{
+	border: solid 1px;
+	border-color:#cef #568 #457 #cef;
+	background-color:#68a;
+}
+.steps a 
+{ 
+	text-decoration: none;
+	color: #000;
+}
+.steps a:hover { text-decoration: underline; }
+#card 
+{
+	border: solid 1px;
+	border-color:#fff #aaa #999 #fff;
+	padding: 1em;
+	padding-bottom:2em;
+}
+
+
+
+.space { margin-top: 7em; }
+div.controls 
+{ margin-top:1em; }
+.allresults
+{
+	display:block;
+	font-size:120%;
+	margin: 1em;
+}
+
+.confirm .message
+{
+	margin: 1em;
+	font-size: 200%;
+	color: #f00;
+}
+.confirm form { 
+	float: left;
+	margin-left:2em;
+}
+.list a {
+	display: block;
+	margin-left: 3em;
+}

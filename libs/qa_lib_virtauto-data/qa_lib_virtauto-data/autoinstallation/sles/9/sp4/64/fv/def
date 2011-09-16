@@ -1,0 +1,211 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <configure>
+    <firewall>
+      <fw_allow_fw_traceroute>yes</fw_allow_fw_traceroute>
+      <fw_autoprotect_services>yes</fw_autoprotect_services>
+      <fw_dev_dmz></fw_dev_dmz>
+      <fw_dev_ext>auto</fw_dev_ext>
+      <fw_dev_int></fw_dev_int>
+      <fw_ipsec_trust>no</fw_ipsec_trust>
+      <fw_log_accept_all>no</fw_log_accept_all>
+      <fw_log_accept_crit>yes</fw_log_accept_crit>
+      <fw_log_drop_all>no</fw_log_drop_all>
+      <fw_log_drop_crit>yes</fw_log_drop_crit>
+      <fw_masq_nets></fw_masq_nets>
+      <fw_masquerade>no</fw_masquerade>
+      <fw_protect_from_internal>yes</fw_protect_from_internal>
+      <fw_route>no</fw_route>
+      <fw_services_dmz_ip></fw_services_dmz_ip>
+      <fw_services_dmz_tcp></fw_services_dmz_tcp>
+      <fw_services_dmz_udp></fw_services_dmz_udp>
+      <fw_services_ext_ip></fw_services_ext_ip>
+      <fw_services_ext_tcp>ssh</fw_services_ext_tcp>
+      <fw_services_ext_udp></fw_services_ext_udp>
+      <fw_services_int_ip></fw_services_int_ip>
+      <fw_services_int_tcp></fw_services_int_tcp>
+      <fw_services_int_udp></fw_services_int_udp>
+      <start_firewall config:type="boolean">true</start_firewall>
+    </firewall>
+    <networking>
+      <dhcp_options>
+        <dhclient_additional_options></dhclient_additional_options>
+        <dhclient_client_id></dhclient_client_id>
+        <dhclient_hostname_option>AUTO</dhclient_hostname_option>
+      </dhcp_options>
+      <dns>
+        <dhcp_hostname config:type="boolean">true</dhcp_hostname>
+        <dhcp_resolv config:type="boolean">true</dhcp_resolv>
+      </dns>
+      <interfaces config:type="list">
+        <interface>
+          <bootproto>dhcp</bootproto>
+          <startmode>onboot</startmode>
+        </interface>
+      </interfaces>
+      <modules config:type="list">
+        <module_entry>
+          <device>bus-pci-0000:00:04.0</device>
+          <module>8139cp</module>
+          <options></options>
+        </module_entry>
+      </modules>
+      <routing>
+        <ip_forward config:type="boolean">false</ip_forward>
+      </routing>
+    </networking>
+    <users config:type="list">
+      <user>
+        <encrypted config:type="boolean">true</encrypted>
+        <user_password>W.UbwwLmhrgkY</user_password>
+        <username>root</username>
+      </user>
+    </users>
+    <x11>
+      <color_depth config:type="integer">8</color_depth>
+      <configure_x11 config:type="boolean">true</configure_x11>
+      <display_manager>kdm</display_manager>
+      <enable_3d config:type="boolean">false</enable_3d>
+      <monitor>
+        <display>
+          <frequency config:type="integer">60</frequency>
+          <height config:type="integer">768</height>
+          <width config:type="integer">1024</width>
+        </display>
+        <monitor_device>1024X768@60HZ</monitor_device>
+        <monitor_vendor> VESA</monitor_vendor>
+      </monitor>
+      <resolution>1024x768</resolution>
+      <window_manager>kde</window_manager>
+    </x11>
+  </configure>
+  <install>
+    <bootloader>
+      <activate config:type="boolean">false</activate>
+      <device_map config:type="list">
+        <device_map_entry>
+          <firmware>(hd0)</firmware>
+          <linux>/dev/hda</linux>
+        </device_map_entry>
+      </device_map>
+      <global config:type="list">
+        <global_entry>
+          <key>color</key>
+          <value>white/blue black/light-gray</value>
+        </global_entry>
+        <global_entry>
+          <key>default</key>
+          <value config:type="integer">0</value>
+        </global_entry>
+        <global_entry>
+          <key>timeout</key>
+          <value config:type="integer">8</value>
+        </global_entry>
+        <global_entry>
+          <key>gfxmenu</key>
+          <value>(hd0,1)/boot/message</value>
+        </global_entry>
+      </global>
+      <initrd_modules config:type="list">
+        <initrd_module>
+          <module>reiserfs</module>
+        </initrd_module>
+      </initrd_modules>
+      <loader_device>/dev/hda</loader_device>
+      <loader_type>grub</loader_type>
+      <location>mbr</location>
+      <repl_mbr config:type="boolean">false</repl_mbr>
+      <sections config:type="list">
+        <section config:type="list">
+          <section_entry>
+            <key>title</key>
+            <value>Linux</value>
+          </section_entry>
+          <section_entry>
+            <key>kernel</key>
+            <value>(hd0,1)/boot/vmlinuz root=/dev/hda2 vga=0x317 selinux=0 quiet splash=silent resume=/dev/hda1 elevator=cfq showopts</value>
+          </section_entry>
+          <section_entry>
+            <key>initrd</key>
+            <value>(hd0,1)/boot/initrd</value>
+          </section_entry>
+        </section>
+        <section config:type="list">
+          <section_entry>
+            <key>title</key>
+            <value>Failsafe</value>
+          </section_entry>
+          <section_entry>
+            <key>kernel</key>
+            <value>(hd0,1)/boot/vmlinuz root=/dev/hda2 showopts ide=nodma apm=off acpi=off vga=normal noresume selinux=0 barrier=off iommu=noforce  3</value>
+          </section_entry>
+          <section_entry>
+            <key>initrd</key>
+            <value>(hd0,1)/boot/initrd</value>
+          </section_entry>
+        </section>
+      </sections>
+    </bootloader>
+    <general>
+      <clock>
+        <hwclock>UTC</hwclock>
+        <timezone>US/Mountain</timezone>
+      </clock>
+      <keyboard>
+        <keymap>english-us</keymap>
+      </keyboard>
+      <language>en_US</language>
+      <mode>
+        <confirm config:type="boolean">false</confirm>
+      </mode>
+      <mouse>
+        <id>22_exps2</id>
+      </mouse>
+    </general>
+    <partitioning config:type="list">
+      <drive>
+        <use>all</use>
+      </drive>
+    </partitioning>
+    <report>
+      <errors>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </errors>
+      <messages>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </messages>
+      <warnings>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </warnings>
+      <yesno_messages>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </yesno_messages>
+    </report>
+    <software>
+      <addons config:type="list">
+        <addon>YaST2</addon>
+        <addon>SuSE-Documentation</addon>
+        <addon>Kde-Desktop</addon>
+        <addon>Linux-Tools</addon>
+        <addon>Print-Server</addon>
+        <addon>Basis-Sound</addon>
+        <addon>Base-System</addon>
+        <addon>X11</addon>
+        <addon>auth</addon>
+      </addons>
+      <base>default</base>
+      <packages config:type="list">
+        <package>curl-32bit</package>
+      </packages>
+    </software>
+  </install>
+</profile>

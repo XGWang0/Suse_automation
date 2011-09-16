@@ -1,0 +1,9 @@
+to run somehting u currently got to set the LD_LIBRARY_PATH to "." with...
+
+export LD_LIBRARY_PATH="."
+
+you best install it via
+
+"make all" (in this dir)
+"make install" (as root)
+

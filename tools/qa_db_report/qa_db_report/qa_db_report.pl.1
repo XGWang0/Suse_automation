@@ -1,0 +1,169 @@
+.\" Process this file with
+.\" groff -man -Tascii qa_db_report.pl.1
+.\"
+.TH "qa_db_report.pl" "QADB" "1"
+.SH NAME
+qa_db_report.pl \- submit test results into QADB
+.SH SYNOPSIS
+.B qa\_db\_report.pl -p 
+.I product-release
+.B -[bLDA] [-c 
+.I comment
+.B ] [-v 
+.I <n>
+.B ] [-a 
+.I arch
+.B ] [-f 
+.I path
+.B ] [-k
+.I kernel
+.B ] [-m 
+.I testhost
+.B ] [-t 
+.I type
+.B ] [-T 
+.I tester
+.B ]
+.SH DESCRIPTION
+.B qa_db_report.pl
+reads result directories (default in /var/log/qa),
+stores the results into QADB (server can be set with 
+.BR select_db.pl (1)
+),
+copies the logs to the archive using
+.BR scp (1)
+on 
+.I qadb.suse.de:/suse/rd-qa/Exports/Results
+, and moves the processed log to a subdirectory named
+.I oldlogs/.
+
+The most of the options should have sane default values,
+but you need to specify at least the product.
+
+
+.SH OPTIONS
+
+.IP "\fB-a arch"
+Here you can specify the architecture.
+Architecture must already exist in QADB, table architectures.
+When omitted, the script tries to auto-detect it.
+
+.IP "\fB-A"
+Do not copy the logs to the archive using SCP.
+
+.IP "\fB-b"
+Batch processing - not interactive, does not ask for confirmations.
+When
+.I hwinfo
+or
+.I rpmlist
+is missing, prints a warning and generates it automatically, using current machine's data.
+Multiple submissions caused by multiple different RPM or hwinfo configurations
+are automatically created.
+
+Batch processing also fails, when you have no user/password set in 
+.BR .mysql_loc.rc (5)
+
+.IP "\fB-c comment"
+Here you can specify the comment related to your submission(s).
+
+
+.B NOTE
+Submission type is set at the end of the whole submit process, so you cannot see it in QADB earlier.
+
+When the submit fails, the newly inserted data are deleted from the database again (you will need the DELETE privilege for that).
+
+
+.IP "\fB-D"
+Do not write to the database.
+
+.IP "\fB-f path"
+The path to your test results,
+.I /var/log/qa/
+by default. This directory must have correct structure (subdirectories for each parser, e.g. ctcs2, autotest, ...).
+
+.IP "\fB-k kernel"
+Kernel version (for KOTD tests), autodetected by default.
+
+.IP "\fB-L"
+Do not moves logs to oldlogs.
+
+
+.IP "\fB-m testhost"
+The machine you ran the tests on.
+By default hostname of the current machine.
+
+.IP "\fB-p product\-release"
+This is the only mandatory switch.
+Product must already exist in QADB, table products.
+Release will be created, when not known in QADB.
+
+Example : SLES-10-beta1 , SLES-9-SP4-RC1 , ...
+
+
+Currently, following architectures exist:
+i586, ia64, ppc, ppc64, s390, s390x, x86_64, xen0-i586, xen0-x86_64, xen0-x86_64-xenU-i586, xenU-i586, xenU-x86_64
+
+.IP "\fB-t type"
+Submission type.
+.RS 
+.B product
+.RS
+The default submission type, means that you submit results from a product test.
+.RE
+.B patch:<md5sum>
+.RS
+Testing a patch with given md5sum.
+.I /mounts/work/built/patchinfo
+with details about the specified patch must be available, otherwise the submit fails.
+.RE
+.B kotd:<release>:<version>:<branch>:<flavor>
+.RS
+This one means that you submit results from Kernel of the day testing, with given kernel release, version, branch, and flavor.
+.RE
+.RE
+
+.IP "\fB-T tester"
+Username of the tester.
+
+.IP "\fB-v <n>"
+Sets the verbosity level.
+Default value is 5, you can set following values:
+
+.nf
+0 : no messages at all
+1 : critical errors
+2 : errors
+3 : warnings
+4 : notices
+5 : info
+6 : details
+7 : debug messages
+.fi
+
+All messages are sent to 
+.B STDERR.
+
+
+.SH FILES
+.I ~/.mysql_loc.rc
+.RS
+File that specifies your default DB connection. 
+By default, database 'qadb' on 'qadb.suse.de' is used, user and password would be interactively asked.
+See
+.BR mysql_loc.rc (5), select_db.pl (1)
+for further details.
+.RE
+
+.SH KNOWN BUGS
+Inotify not yet implemented, you cannot submit your results while the test runs.
+
+.SH AUTHOR
+Vilem Marsik <vmarsik@novell.com>, using work of Patrick Kirsch
+
+.SH "SEE ALSO"
+.BR select_db.pl (1),
+.BR mysql_loc.rc (5),
+.BR product.pl (1),
+.BR arch.pl (1),
+

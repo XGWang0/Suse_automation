@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Read the config
+source /usr/share/qa/lib/config "$1"
+
+# Dump all config
+dump_qa_config
+

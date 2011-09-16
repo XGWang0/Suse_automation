@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<job>
+    <roles>
+        <role id="0" name="server" num_min="1" num_max="1"/>
+        <role id="1" name="client" num_min="1"/>
+    </roles>
+    <config>
+        <name>dummy</name>
+        <debuglevel>4</debuglevel>
+        <distributable>0</distributable>
+        <mail notify="0">vmarsik@suse.cz</mail>        
+	<description>Just an example how to write multimachine job XMLs</description>
+	<logdir>/tmp</logdir>
+    </config>
+
+    <commands>
+    <worker>
+	    <!-- Pre -->
+	    <command execution="forked" role_id="0">#!/bin/bash
+		echo I am server
+		echo Clients are at $ROLE_1_IP, named as $ROLE_1_NAME
+		echo Done
+           </command>
+           <command execution="forked" role_id="1">#!/bin/bash
+        	echo I am client
+        	echo Server is at $ROLE_0_IP, named as $ROLE_0_NAME
+        	echo Done
+           </command>
+
+	   <directory>/var/log/qa/ctcs2</directory>
+     </worker>
+    </commands>
+</job>

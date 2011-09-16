@@ -1,0 +1,181 @@
+#!/bin/bash
+#8/24/2010
+#generate a spec file.
+function Usage(){
+cat <<EOF
+Usage: $0 qa_<package_name> 
+Usage: $0 qa_<package_name> -a "arths" -e "arths@novell.com" -l "nothing for new" -d "just for the new feature"
+Details:
+$0 generates a qa_<package_name>.spec with information which is provided by qa_<packages> 
+	The local dir should have 3 parts:
+	1. qa_<package_name> (dir)
+	2. <package_name>-run (script)
+	3. qa_<package_name>.tcf (tcf file)
+ Options:
+ -a:	author name 
+ -d:	description
+ -e:	email address
+ -h:	show this message
+ -l:	one_line "changelog"
+ -v:	version
+EOF
+}
+#generate a template for modify
+function gen_template(){
+cat <<'eof'
+#
+# spec file for package qa_sample
+# Copyright (c) 2010 Novell, Inc.
+# This file and all modifications and additions to the pristine
+# package are under the same license as the package itself.
+#
+# Please submit bugfixes or comments via http://bugzilla.novell.com/
+#
+
+# norootforbuild
+
+Name:           qa_sample
+License:        GPL v2 or later
+Group:          OpenSUSE
+AutoReqProv:    on
+Version:        0.1
+Release:        1
+Summary:        qa_sample
+Url:            http://www.novell.com/
+Source0:        %name-%version.tar.bz2
+Source1:        %name.tcf
+Source2:        sample-run
+BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+Requires:       ctcs2 qa_dummy
+BuildRequires:  ctcs2 qa_dummy
+
+%description
+
+%prep
+%setup -q -n %{name}
+
+%install
+install -m 755 -d $RPM_BUILD_ROOT/usr/share/qa/tcf
+install -m 755 -d $RPM_BUILD_ROOT/usr/share/qa/tools
+install -m 755 -d $RPM_BUILD_ROOT/usr/share/qa/%name
+install -m 755 -d $RPM_BUILD_ROOT/usr/share/qa/%name/tcf
+install -m 644 %{S:1} $RPM_BUILD_ROOT/usr/share/qa/%name/tcf
+install -m 755 %{S:2} $RPM_BUILD_ROOT/usr/share/qa/tools
+cp -a * $RPM_BUILD_ROOT/usr/share/qa/%name
+ln -s ../%name/tcf/%name.tcf $RPM_BUILD_ROOT/usr/share/qa/tcf/
+find $RPM_BUILD_ROOT/usr/share/qa/%name -depth -type d -name CVS -exec rm -rf {} \;
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(-,root,root)   
+/usr/share/qa/%name
+/usr/share/qa/tcf/%{name}.tcf
+
+%changelog
+
+eof
+}
+
+#set the one_line value
+function line_modify()
+{
+	line_tag=$1
+	line_tag_value=$2
+	sed -i "/^$1:/{s/:.*$/: $2/}" $spec_name
+}
+
+#add new line to the section
+function section_append()
+{
+	section_tag=$1
+	section_tag_value=$2
+	sed -i "/^%$section_tag\$/{:a;N;/\\n\$/!ba;s#$""#$section_tag_value\\n#}" $spec_name
+
+}
+spec_name=
+author_name="Put your name here"
+description="No description"
+email="nobody@novell.com"
+#check the argument
+if [ $# == 0 ];then
+	echo Missing argument
+	Usage
+	exit 2
+fi
+if [ -z "`echo $1|grep '^qa_'`" ];then
+	echo "The argument name should start with qa_ "
+	Usage
+	exit 2
+fi
+
+#argument is dir :
+if [ -d "$1" ];then
+	dirname=$1
+	dirname=${dirname%/}
+	tcf_name=$dirname.tcf
+	run_name=${dirname:3}"-run"
+	spec_name=$dirname.spec
+else
+	echo "$1 is not a directory/tar.bz2 "
+	Usage
+	exit 2
+fi
+if [ ! -f $tcf_name -o ! -f $run_name ];then
+	echo "Missing $tcf_name and/or $run_name"
+	exit 2
+fi
+#get opt form command line
+shift
+while getopts :d:a:e:l:v: opts
+do
+	case $opts in
+		d)	description=$OPTARG
+		;;
+		a)	author_name=$OPTARG
+		;;
+		e)	email=$OPTARG
+		;;
+		l)	changelog_value=$OPTARG
+		;;
+		h)	Usage
+			exit 2
+		;;
+		v)	version=${version:-$OPTARG}
+		;;
+		?)	Usage
+			exit 2
+		;;
+	esac
+done
+version=${version:-0.1}
+
+echo "Generating file $spec_name"
+#generate a template
+gen_template > $spec_name
+
+#modify the one line value
+line_modify Name "          $dirname"
+line_modify Version "       $version"
+line_modify Source2 "       $run_name"
+line_modify Summary "       $dirname"
+#append the value to section
+
+#update the date;
+changelog_date=`date +"* %a %b %d %Y - $email"`
+changelog_value=${changelog_value:-"Package (v.$version) created automatically using qa_sdk_spec_generator"}
+section_append changelog "$changelog_date"
+section_append changelog "- $changelog_value"
+
+#modify author
+section_append description "    Author : $author_name"
+
+
+#modify description
+section_append description "$description"
+section_append files "/usr/share/qa/tools/$run_name"
+
+#change the header info 
+sed -i "s/# spec file for package qa_sample/# spec file for package $dirname/" $spec_name
+echo "Generated spec file successfully"

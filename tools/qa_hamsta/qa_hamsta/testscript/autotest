@@ -1,0 +1,34 @@
+#!/bin/bash
+hn=`cat /etc/HOSTNAME`
+cache="/tmp/cache"
+ARCH=$HOSTTYPE
+if [ "$ARCH" != "" ]; then
+        case $ARCH in
+        i[3-9]86)  ARCH="i386";;
+        p*pc) ARCH="ppc";;
+        p*pc64) ARCH="ppc64";;
+	x86_64) ARCH="x86_64";;
+        esac
+else
+        echo "cannot determine architecture";
+        exit 1
+fi
+
+if ((`id -u`!=0))
+then
+    echo "you should be root to run this test"
+    exit 1
+fi
+
+>/tmp/autotest_$$
+rm -rf /usr/lib/autotest/results/autotest
+for i in $@;do
+	[ -d /usr/lib/autotest/tests/$i ] && cat /usr/lib/autotest/tests/$i/control >> /tmp/autotest_$$
+done
+/usr/lib/autotest/bin/autotest -t autotest /tmp/autotest_$$
+returnvalue=$?
+cp -ar /usr/lib/autotest/results/autotest /var/log/qa/
+rm -rf /etc/init.d/autotest
+rm -rf /usr/lib/autotest/results/autotest
+/usr/share/qa/tools/remote_qa_db_report.pl -c "autotest results on $hn-$ARCH"
+exit $returnvalue

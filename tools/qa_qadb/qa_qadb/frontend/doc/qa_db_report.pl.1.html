@@ -1,0 +1,134 @@
+<HTML>
+<BODY>
+<PRE>
+<!-- Manpage converted by man2html 3.0.1 -->
+
+</PRE>
+<H2>SYNOPSIS</H2><PRE>
+       <B>qa_db_report.pl</B> <B>-p</B> <I>product-release</I> <B>-[bCLDA]</B> <B>[-c</B> <I>comment</I> <B>]</B> <B>[-v</B> <I>&lt;n&gt;</I> <B>]</B> <B>[-a</B>
+       <I>arch</I> <B>]</B> <B>[-f</B> <I>path</I> <B>]</B> <B>[-m</B> <I>testhost</I> <B>]</B> <B>[-t</B> <I>type</I> <B>]</B>
+
+
+</PRE>
+<H2>DESCRIPTION</H2><PRE>
+       <B>qa_db_report.pl</B>   reads   CTCS2   result   directories   (default    in
+       /var/log/ctcs2),  stores  the results into QADB (server can be set with
+       <B>select_db.pl(1)</B> ), copies the logs  to  the  archive  using  <B>scp(1)</B>  on
+       <I>qainst.suse.de:/suse/rd-qa/Exports/Results</I>  ,  and  moves the processed
+       log to a subdirectory named <I>oldlogs/.</I>
+
+       The most of the options should have sane default values, but  you  need
+       to specify at least the product.
+
+
+
+
+</PRE>
+<H2>OPTIONS</H2><PRE>
+       <B>-a</B> <B>arch</B>
+              Here  you  can  specify  the  architecture.   Architecture  must
+              already exist in QADB, table architectures.  When  omitted,  the
+              script tries to auto-detect it.
+
+
+       <B>-A</B>     Do not copy the logs to the archive using SCP.
+
+
+       <B>-b</B>     Batch  processing  - not interactive, does not ask for confirma-
+              tions.  When <I>hwinfo</I> or <I>rpmlist</I> is missing, prints a warning  and
+              generates  it automatically, using current machine's data.  When
+              multiple submissions would be created due to multiple  different
+              RPM or hwinfo configurations, the script fails.
+
+              Batch  processing also fails, when you have no user/password set
+              in <B>.mysql_loc.rc(5)</B>
+
+
+       <B>-c</B> <B>comment</B>
+              Here you can specify the comment related to your  submission(s).
+
+
+
+       <B>-C</B>     Commits after every submitted testsuite.  By default, the script
+              commits at the end of the database work.  With this  switch,  it
+              commits after each testsuite is stored.  This makes the transac-
+              tions smaller (however MySQL should be able to handle with large
+              transactions  as  well).   You  also  can  see the data in QADB,
+              before the submit process is finished.
+
+              <B>NOTE</B> Submission type is set at the end of the whole submit  pro-
+              cess, so you cannot see it in QADB earlier.
+
+              When  the submit fails, the newly inserted data are deleted from
+
+
+       <B>-m</B> <B>testhost</B>
+              The machine you ran the tests on.  By default  hostname  of  the
+              current machine.
+
+
+       <B>-p</B> <B>product-release</B>
+              This  is  the only mandatory switch.  Product must already exist
+              in QADB, table products.  Release  will  be  created,  when  not
+              known in QADB.
+
+              Example : SLES-10-beta1 , SLES-9-SP4-RC1 , ...
+
+
+              Currently,  following  architectures  exist:  i586,  ia64,  ppc,
+              ppc64,   s390,   s390x,    x86_64,    xen0-i586,    xen0-x86_64,
+              xen0-x86_64-xenU-i586, xenU-i586, xenU-x86_64
+
+
+       <B>-t</B> <B>type</B>
+              Submission type.
+              <B>product</B>
+                     The  default  submission  type,  means  that  you  submit
+                     results from a product test.
+              <B>patch:&lt;md5sum&gt;</B>
+                     Testing     a     patch      with      given      md5sum.
+                     <I>/mounts/work/built/patchinfo</I> with details about the spec-
+                     ified patch  must  be  available,  otherwise  the  submit
+                     fails.
+              <B>kotd:&lt;release&gt;:&lt;version&gt;:&lt;branch&gt;</B>
+                     This one means that you submit results from Kernel of the
+                     day testing, with  given  kernel  release,  version,  and
+                     branch.
+
+
+       <B>-v</B> <B>&lt;n&gt;</B> Sets  the verbosity level.  Default value is 5, you can set fol-
+              lowing values:
+
+              0 : no messages at all
+              1 : critical errors
+              2 : errors
+              3 : warnings
+              4 : notices
+              5 : info
+              6 : details
+              7 : debug messages
+
+              All messages are sent to <B>STDERR.</B>
+
+
+
+       Vilem Marsik &lt;vmarsik@novell.com&gt;, using work of Patrick Kirsch
+
+
+
+</PRE>
+<H2>SEE ALSO</H2><PRE>
+       <B>select_db.pl(1)</B>, <B>mysql_loc.rc(5)</B>, <B>product.pl(1)</B>, <B>arch.pl(1)</B>,
+
+
+
+
+                                       1                 qa_db_report.pl(QADB)
+</PRE>
+<HR>
+<ADDRESS>
+Man(1) output converted with
+<a href="http://www.oac.uci.edu/indiv/ehood/man2html.html">man2html</a>
+</ADDRESS>
+</BODY>
+</HTML>

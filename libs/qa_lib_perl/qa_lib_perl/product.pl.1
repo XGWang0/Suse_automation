@@ -1,0 +1,42 @@
+.\" Process this file with
+.\" groff -man -Tascii product.pl.1
+.\"
+.TH "product.pl" "QADB" "1"
+.SH NAME
+product.pl \- guesses a product and release for QADB use
+.SH SYNOPSIS
+.B product.pl [-v] [-d]
+.SH DESCRIPTION
+.B product.pl
+guesses current machine's product and release, and outputs it in the format 
+.I <product>-<release>
+, suitable for
+.B qa_db_report.pl .
+The script was written to allow automatical QADB submissions without any user interaction.
+
+The product is guessed by reading the output of
+.I /etc/suse/release
+, 
+.I zypper -sl
+, and
+.I /var/lib/YaST2/install.inf .
+Candidate products / releases are checked against QADB via HTTP.
+Best matching product / release is printed to STDOUT.
+
+.SH OPTIONS
+.IP "\fB-v"
+Verbose mode.
+Prints a short summary of the detected product and release, and sends it to STDERR.
+.IP "\fB-d"
+Disables QADB use.
+By default, the script queries QADB for supported products and releases.
+When this flag is specified, only hardcoded (and possibly outdated) values are used instead.
+
+.SH AUTHOR
+Vilem Marsik <vmarsik@novell.com>
+
+.SH "SEE ALSO"
+.BR select_db.pl (1),
+.BR arch.pl (1)
+.BR location.pl (1)
+.BR remote_qa_db_report.pl (1),

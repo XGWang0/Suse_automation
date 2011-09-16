@@ -1,0 +1,227 @@
+#!/bin/bash
+
+# Modified by Lukas Lipavsky <llipavsky@suse.cz>
+# Thu Jun 10 08:49:43 CEST 2010
+# Add SKIPPED testcase support
+
+# run tests
+# first parameter is number of iterations. if it is zero
+# then loop forever until interrupted.  
+# loggable output & reporting information will go to stdout.
+# reporting information for end users will go to stderr.
+
+# start the clock
+if [ -z "$ELAPSEDTIME" ] ; then ELAPSEDTIME=0 ; fi
+# roll back virtual start so that computations work based
+# on the TOTAL amount of time the test has been run
+SECONDS=$ELAPSEDTIME
+
+# checks before start, initialization
+if [ -z "$2" ] ; then exit 1 ; fi
+
+timecalc_output=""
+failed=0
+succeed=0
+count=0
+interr=0
+skipped=0
+
+iterations=$1
+shift
+ttrun=$1
+shift
+
+# make sure we start in the right directory, if we've been
+# launched from somewhere else.
+
+t=`echo $0 | cut -c 1`
+if [ "$t" = "/" ] ; then
+        testpath=`dirname $0`
+#elif [ "$t" = "~" ] ; then
+#	echo "DEBUG: $0" > /tmp/arsch
+#	testpath=`dirname $0`
+#	echo "DEBUG: testpath = $testpath" >> /tmp/arsch
+else
+	p=`pwd`
+	testpath=`dirname $p/$0`
+	$ttrun="./$ttrun"
+fi
+ctcspath=/usr/lib/ctcs2/
+#echo "DEBUG: ctcspath = $ctcspath" >&2
+cd $testpath
+
+# Now we can load the library
+. $ctcspath/lib/sh/ctcslib.sh
+
+# color defns (that way we don't have to run a color program!)
+REDBLINK='\033[31m\033[1m'
+MAGBLINK='\033[35m'
+BLUEBLINK='\033[34m'
+RESET='\033[0m'
+
+function do_on_event {
+	if [ -z "$CTCS_ON_ERROR" ] ; then 
+		if [ -z "$CTCS_ON_EVENT" ] ; then
+			return
+		else
+		echo doing: $CTCS_ON_EVENT
+		eval $CTCS_ON_EVENT >>/dev/null 2>&1 &
+		unset CTCS_ON_EVENT
+		fi
+	else
+		echo doing: $CTCS_ON_ERROR
+		echo "Start the on error stuff";
+		eval $CTCS_ON_ERROR >>/dev/null 2>&1 &
+		unset CTCS_ON_ERROR
+	fi
+}
+
+function timecalc {
+	timecalc_output=""
+	seconds=$1
+	days=$[$seconds/$[60*60*24]]
+	if [ "$days" -gt 0 ] ; then 
+		timecalc_output="$timecalc_output""$days"
+		timecalc_output="$timecalc_output"d
+		seconds=$[$seconds - $days * 60 * 60 * 24]
+	fi
+	hours=$[$seconds/$[60*60]]
+	if [ "$hours" -gt 0 ] ; then
+		timecalc_output="$timecalc_output"$hours
+		timecalc_output="$timecalc_output"h
+		seconds=$[$seconds - $hours * 60 * 60]
+	fi
+	minutes=$[$seconds/60]
+	if [ "$minutes" -gt 0 ] ; then
+		timecalc_output="$timecalc_output"$minutes
+		timecalc_output="$timecalc_output"m
+		seconds=$[$seconds - $minutes * 60]
+	fi
+		timecalc_output="$timecalc_output"$seconds
+		timecalc_output="$timecalc_output"s
+}
+
+# this function on SIGINT or SIGEXIT -- trys to clean up child
+# processes
+function interrupt () {
+	trap interrupt EXIT
+	# USR1 is a deprecated termination signal.
+	trap interrupt SIGUSR1
+	trap interrupt SIGTERM
+	trap interrupt SIGINT
+	echo $failed fail $succeed succeed $count count $interr internal_error $skipped skipped
+	# this just grabs the process id and all children...
+#	for i in `pstree -p $$ | sed 's/[a-z\+\`\(\)\|\.\/\-]/ /g'` ; do {
+#	    if [ $i != $$ ] ; then {
+#		kill $i >> /dev/null 2>&1
+#	    } ; fi
+#	} ; done
+	kill_children
+	# untrap the exit before we exit :)
+	trap EXIT
+	exit
+}
+
+# Here we must insure that the interrupt lock file is not present before
+# we actually return results.  This solves a race condition, see comments
+# in "run" command.  Yet another reason to roll runtest into the main
+# program.
+function check_result () {
+	if [ -z "$interrupt_flag" ] ; then
+		return $1
+	fi
+	if [ -e "$interrupt_flag" ] ; then
+		echo we are being interrupted.  Shut down. >&2
+		interrupt
+	fi
+	return $1
+}
+
+
+trap interrupt EXIT
+trap interrupt SIGUSR1
+trap interrupt SIGTERM
+trap interrupt SIGINT
+
+if [ ! -z "$KEYVALUE" ] ; then {
+	key="$KEYVALUE"
+} ; else {
+	key="$ttrun"
+} ; fi
+
+#echo "DEBUG: ttrun = $ttrun" >&2
+
+if [ -x $ttrun-info ] ; then
+    params=`$ttrun-info $*`
+    if [ $? -ne 0 ] ; then
+	    #TODO add support for skip here as well!!!
+        failed=$[$failed + 1]
+	count=$[$count + 1]
+	xx=`date`
+	echo -e "$MAGBLINK$xx: $key $count/$iterations TEST INITIALIZATION ERROR$RESET" >&2
+	echo "$xx: $key $count/$iterations TEST INITIALIZATION ERROR"
+	do_on_event
+	exit 2
+    fi
+else
+    params="$*"
+fi
+
+while [ $iterations -lt 1 -o $count -lt $iterations ] ; do
+	$ttrun $params 2>&1
+	check_result $?
+	result=$?
+	xx=`date`
+#	now=`date +%s`
+	timecalc $SECONDS
+	et=$timecalc_output
+	if [ $result = 0 ] ; then
+		succeed=$[$succeed + 1]
+		count=$[$count + 1]
+		echo "$xx: $key success: on $count/$iterations after $et"
+		if [ "$RUNIN_VERBOSE" = "1" ] ; then
+			echo "$xx: $key success: on $count/$iterations after $et" >&2
+		fi
+	elif [ $result = 2 ] ; then
+	        interr=$[$interr + 1]
+		count=$[$count + 1]
+		echo -e "$MAGBLINK$xx: $key TEST INTERNAL ERROR (DEPRECATED RETURN VALUE - PLEASE REPORT): on $count/$iterations after $et$RESET" >&2
+		echo "$xx: $key TEST INTERNAL ERROR (DEPRECATED RETURN VALUE - PLEASE REPORT): on $count/$iterations after $et"
+		do_on_event
+		#exit 2 - we need cleanup
+		break
+	elif [ $result = 11 ] ; then
+	        interr=$[$interr + 1]
+		count=$[$count + 1]
+		echo -e "$MAGBLINK$xx: $key TEST INTERNAL ERROR: on $count/$iterations after $et$RESET" >&2
+		echo "$xx: $key TEST INTERNAL ERROR: on $count/$iterations after $et"
+		do_on_event
+		#exit 2 - we need cleanup
+		break
+	elif [ $result = 22 ] ; then
+	        skipped=$[$skipped + 1]
+		count=$[$count + 1]
+		echo -e "$BLUEBLINK$xx: $key SKIPPED: on $count/$iterations after $et$RESET" >&2
+		echo "$xx: $key SKIPPED: on $count/$iterations after $et"
+		do_on_event
+		#exit 2 - we need cleanup
+		break
+	elif [ $result = 255 ] ; then
+	        kill $$
+	else
+	        failed=$[$failed + 1]
+		count=$[$count + 1]
+		echo -e "$REDBLINK$xx: $key FAILED: on $count/$iterations after $et$RESET" >&2
+		echo "$xx: $key FAILED: on $count/$iterations after $et"
+		do_on_event
+	fi
+done
+
+
+if [ -x ./$ttrun-end ] ; then {
+	$ttrun-end $params 2>&1
+} ; fi
+
+# it was 2 in while-cycle above, so keeping 2 since it might be expected by caller (but imho it seems it is not)
+[ $result = 2 -o $result = 11 ] && exit 2
+

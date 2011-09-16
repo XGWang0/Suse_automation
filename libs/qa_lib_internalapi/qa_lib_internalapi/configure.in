@@ -1,0 +1,37 @@
+AC_PREREQ(2.59)
+AC_INIT(libqainternal, 0.2, [fseidel@suse.de mmrazik@suse.cz])
+AM_INIT_AUTOMAKE
+AC_CONFIG_SRCDIR([src/handlemanager.h])
+AC_CONFIG_HEADER([config.h])
+
+AC_DISABLE_STATIC
+
+# Checks for programs.
+AC_PROG_CC
+AC_PROG_LN_S
+AM_PROG_LIBTOOL
+
+# Checks for libraries.
+AC_CHECK_LIB([c], [fork])
+AC_CHECK_LIB([crypt], [crypt])
+AC_CHECK_LIB([qainternal], [qa_hello])
+
+# Checks for header files.
+AC_HEADER_DIRENT
+AC_HEADER_STDC
+AC_HEADER_SYS_WAIT
+AC_CHECK_HEADERS([assert.h dirent.h libgen.h signal.h fcntl.h stdlib.h string.h strings.h sys/vfs.h unistd.h])
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_HEADER_STDBOOL
+AC_C_CONST
+AC_TYPE_PID_T
+
+# Checks for library functions.
+AC_FUNC_CLOSEDIR_VOID
+AC_FUNC_FORK
+AC_FUNC_STAT
+AC_CHECK_FUNCS([mkdir strncasecmp strstr])
+
+AC_CONFIG_FILES([Makefile src/Makefile])
+AC_OUTPUT

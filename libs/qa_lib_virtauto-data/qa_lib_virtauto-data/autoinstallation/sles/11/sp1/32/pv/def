@@ -1,0 +1,353 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <bootloader>
+    <initrd_modules config:type="list">
+      <initrd_module>
+        <module>xenblk</module>
+      </initrd_module>
+      <initrd_module>
+        <module>processor</module>
+      </initrd_module>
+      <initrd_module>
+        <module>thermal</module>
+      </initrd_module>
+      <initrd_module>
+        <module>fan</module>
+      </initrd_module>
+      <initrd_module>
+        <module>jbd</module>
+      </initrd_module>
+      <initrd_module>
+        <module>ext3</module>
+      </initrd_module>
+    </initrd_modules>
+    <loader_type>grub</loader_type>
+    <sections config:type="list"/>
+  </bootloader>
+  <deploy_image>
+    <image_installation config:type="boolean">false</image_installation>
+  </deploy_image>
+  <firewall>
+    <FW_ALLOW_FW_BROADCAST_DMZ>no</FW_ALLOW_FW_BROADCAST_DMZ>
+    <FW_ALLOW_FW_BROADCAST_EXT>no</FW_ALLOW_FW_BROADCAST_EXT>
+    <FW_ALLOW_FW_BROADCAST_INT>no</FW_ALLOW_FW_BROADCAST_INT>
+    <FW_CONFIGURATIONS_DMZ></FW_CONFIGURATIONS_DMZ>
+    <FW_CONFIGURATIONS_EXT>sshd</FW_CONFIGURATIONS_EXT>
+    <FW_CONFIGURATIONS_INT></FW_CONFIGURATIONS_INT>
+    <FW_DEV_DMZ></FW_DEV_DMZ>
+    <FW_DEV_EXT>any eth0</FW_DEV_EXT>
+    <FW_DEV_INT></FW_DEV_INT>
+    <FW_FORWARD_ALWAYS_INOUT_DEV></FW_FORWARD_ALWAYS_INOUT_DEV>
+    <FW_FORWARD_MASQ></FW_FORWARD_MASQ>
+    <FW_IGNORE_FW_BROADCAST_DMZ>no</FW_IGNORE_FW_BROADCAST_DMZ>
+    <FW_IGNORE_FW_BROADCAST_EXT>yes</FW_IGNORE_FW_BROADCAST_EXT>
+    <FW_IGNORE_FW_BROADCAST_INT>no</FW_IGNORE_FW_BROADCAST_INT>
+    <FW_IPSEC_TRUST>no</FW_IPSEC_TRUST>
+    <FW_LOAD_MODULES>nf_conntrack_netbios_ns</FW_LOAD_MODULES>
+    <FW_LOG_ACCEPT_ALL>no</FW_LOG_ACCEPT_ALL>
+    <FW_LOG_ACCEPT_CRIT>yes</FW_LOG_ACCEPT_CRIT>
+    <FW_LOG_DROP_ALL>no</FW_LOG_DROP_ALL>
+    <FW_LOG_DROP_CRIT>yes</FW_LOG_DROP_CRIT>
+    <FW_MASQUERADE>no</FW_MASQUERADE>
+    <FW_PROTECT_FROM_INT>no</FW_PROTECT_FROM_INT>
+    <FW_ROUTE>no</FW_ROUTE>
+    <FW_SERVICES_ACCEPT_DMZ></FW_SERVICES_ACCEPT_DMZ>
+    <FW_SERVICES_ACCEPT_EXT></FW_SERVICES_ACCEPT_EXT>
+    <FW_SERVICES_ACCEPT_INT></FW_SERVICES_ACCEPT_INT>
+    <FW_SERVICES_ACCEPT_RELATED_DMZ></FW_SERVICES_ACCEPT_RELATED_DMZ>
+    <FW_SERVICES_ACCEPT_RELATED_EXT></FW_SERVICES_ACCEPT_RELATED_EXT>
+    <FW_SERVICES_ACCEPT_RELATED_INT></FW_SERVICES_ACCEPT_RELATED_INT>
+    <FW_SERVICES_DMZ_IP></FW_SERVICES_DMZ_IP>
+    <FW_SERVICES_DMZ_RPC></FW_SERVICES_DMZ_RPC>
+    <FW_SERVICES_DMZ_TCP></FW_SERVICES_DMZ_TCP>
+    <FW_SERVICES_DMZ_UDP></FW_SERVICES_DMZ_UDP>
+    <FW_SERVICES_EXT_IP></FW_SERVICES_EXT_IP>
+    <FW_SERVICES_EXT_RPC></FW_SERVICES_EXT_RPC>
+    <FW_SERVICES_EXT_TCP></FW_SERVICES_EXT_TCP>
+    <FW_SERVICES_EXT_UDP></FW_SERVICES_EXT_UDP>
+    <FW_SERVICES_INT_IP></FW_SERVICES_INT_IP>
+    <FW_SERVICES_INT_RPC></FW_SERVICES_INT_RPC>
+    <FW_SERVICES_INT_TCP></FW_SERVICES_INT_TCP>
+    <FW_SERVICES_INT_UDP></FW_SERVICES_INT_UDP>
+    <enable_firewall config:type="boolean">true</enable_firewall>
+    <start_firewall config:type="boolean">true</start_firewall>
+  </firewall>
+  <general>
+    <ask-list config:type="list"/>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+    <mouse>
+      <id>none</id>
+    </mouse>
+    <proposals config:type="list"/>
+    <signature-handling>
+      <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+      <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+      <accept_verification_failed config:type="boolean">false</accept_verification_failed>
+      <import_gpg_key config:type="boolean">true</import_gpg_key>
+    </signature-handling>
+  </general>
+  <host>
+    <hosts config:type="list">
+      <hosts_entry>
+        <host_address>127.0.0.1</host_address>
+        <names config:type="list">
+          <name>localhost</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>::1</host_address>
+        <names config:type="list">
+          <name>localhost ipv6-localhost ipv6-loopback</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>fe00::0</host_address>
+        <names config:type="list">
+          <name>ipv6-localnet</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>ff00::0</host_address>
+        <names config:type="list">
+          <name>ipv6-mcastprefix</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>ff02::1</host_address>
+        <names config:type="list">
+          <name>ipv6-allnodes</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>ff02::2</host_address>
+        <names config:type="list">
+          <name>ipv6-allrouters</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>ff02::3</host_address>
+        <names config:type="list">
+          <name>ipv6-allhosts</name>
+        </names>
+      </hosts_entry>
+    </hosts>
+  </host>
+  <iscsi-client>
+    <initiatorname></initiatorname>
+    <targets config:type="list"/>
+    <version>1.0</version>
+  </iscsi-client>
+  <kdump>
+    <add_crash_kernel config:type="boolean">false</add_crash_kernel>
+    <crash_kernel>128M-:64M@16M</crash_kernel>
+    <general>
+      <KDUMPTOOL_FLAGS></KDUMPTOOL_FLAGS>
+      <KDUMP_COMMANDLINE></KDUMP_COMMANDLINE>
+      <KDUMP_COMMANDLINE_APPEND></KDUMP_COMMANDLINE_APPEND>
+      <KDUMP_CONTINUE_ON_ERROR>false</KDUMP_CONTINUE_ON_ERROR>
+      <KDUMP_COPY_KERNEL>yes</KDUMP_COPY_KERNEL>
+      <KDUMP_DUMPFORMAT>compressed</KDUMP_DUMPFORMAT>
+      <KDUMP_DUMPLEVEL>0</KDUMP_DUMPLEVEL>
+      <KDUMP_FREE_DISK_SIZE>64</KDUMP_FREE_DISK_SIZE>
+      <KDUMP_IMMEDIATE_REBOOT>yes</KDUMP_IMMEDIATE_REBOOT>
+      <KDUMP_KEEP_OLD_DUMPS>5</KDUMP_KEEP_OLD_DUMPS>
+      <KDUMP_KERNELVER></KDUMP_KERNELVER>
+      <KDUMP_NETCONFIG>auto</KDUMP_NETCONFIG>
+      <KDUMP_NOTIFICATION_CC></KDUMP_NOTIFICATION_CC>
+      <KDUMP_NOTIFICATION_TO></KDUMP_NOTIFICATION_TO>
+      <KDUMP_POSTSCRIPT></KDUMP_POSTSCRIPT>
+      <KDUMP_PRESCRIPT></KDUMP_PRESCRIPT>
+      <KDUMP_REQUIRED_PROGRAMS></KDUMP_REQUIRED_PROGRAMS>
+      <KDUMP_SAVEDIR>file:///var/crash</KDUMP_SAVEDIR>
+      <KDUMP_SMTP_PASSWORD></KDUMP_SMTP_PASSWORD>
+      <KDUMP_SMTP_SERVER></KDUMP_SMTP_SERVER>
+      <KDUMP_SMTP_USER></KDUMP_SMTP_USER>
+      <KDUMP_TRANSFER></KDUMP_TRANSFER>
+      <KDUMP_VERBOSE>3</KDUMP_VERBOSE>
+      <KEXEC_OPTIONS></KEXEC_OPTIONS>
+    </general>
+  </kdump>
+  <keyboard>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language>
+    <language>en_US</language>
+    <languages></languages>
+  </language>
+  <ldap>
+    <base_config_dn></base_config_dn>
+    <bind_dn></bind_dn>
+    <create_ldap config:type="boolean">false</create_ldap>
+    <file_server config:type="boolean">false</file_server>
+    <ldap_domain>dc=example,dc=com</ldap_domain>
+    <ldap_server>127.0.0.1</ldap_server>
+    <ldap_tls config:type="boolean">true</ldap_tls>
+    <ldap_v2 config:type="boolean">false</ldap_v2>
+    <login_enabled config:type="boolean">true</login_enabled>
+    <member_attribute>member</member_attribute>
+    <pam_password>exop</pam_password>
+    <start_autofs config:type="boolean">false</start_autofs>
+    <start_ldap config:type="boolean">false</start_ldap>
+  </ldap>
+  <login_settings/>
+  <networking>
+    <dhcp_options>
+      <dhclient_client_id></dhclient_client_id>
+      <dhclient_hostname_option>AUTO</dhclient_hostname_option>
+    </dhcp_options>
+    <dns>
+      <dhcp_hostname config:type="boolean">true</dhcp_hostname>
+      <resolv_conf_policy>auto</resolv_conf_policy>
+    </dns>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp4</bootproto>
+        <device>eth0</device>
+        <startmode>auto</startmode>
+      </interface>
+    </interfaces>
+    <managed config:type="boolean">false</managed>
+    <routing>
+      <ip_forward config:type="boolean">false</ip_forward>
+    </routing>
+  </networking>
+  <nis>
+    <netconfig_policy>auto</netconfig_policy>
+    <nis_broadcast config:type="boolean">false</nis_broadcast>
+    <nis_broken_server config:type="boolean">false</nis_broken_server>
+    <nis_domain></nis_domain>
+    <nis_local_only config:type="boolean">false</nis_local_only>
+    <nis_options></nis_options>
+    <nis_other_domains config:type="list"/>
+    <nis_servers config:type="list"/>
+    <slp_domain/>
+    <start_autofs config:type="boolean">false</start_autofs>
+    <start_nis config:type="boolean">false</start_nis>
+  </nis>
+  <partitioning config:type="list">
+    <drive>
+      <initialize config:type="boolean">true</initialize>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">false</crypt_fs>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mount>swap</mount>
+          <mountby config:type="symbol">device</mountby>
+          <partition_id config:type="integer">130</partition_id>
+          <partition_nr config:type="integer">1</partition_nr>
+          <resize config:type="boolean">false</resize>
+          <size>auto</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">false</crypt_fs>
+          <filesystem config:type="symbol">ext3</filesystem>
+          <format config:type="boolean">true</format>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mount>/</mount>
+          <mountby config:type="symbol">device</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">2</partition_nr>
+          <resize config:type="boolean">false</resize>
+          <size>max</size>
+        </partition>
+      </partitions>
+      <pesize></pesize>
+      <type config:type="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <proxy>
+    <enabled config:type="boolean">false</enabled>
+    <ftp_proxy></ftp_proxy>
+    <http_proxy></http_proxy>
+    <https_proxy></https_proxy>
+    <no_proxy>localhost, 127.0.0.1</no_proxy>
+    <proxy_password></proxy_password>
+    <proxy_user></proxy_user>
+  </proxy>
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </yesno_messages>
+  </report>
+  <runlevel>
+    <default>5</default>
+  </runlevel>
+  <software>
+    <patterns config:type="list">
+      <pattern>Minimal</pattern>
+      <pattern>apparmor</pattern>
+      <pattern>base</pattern>
+      <pattern>documentation</pattern>
+      <pattern>gnome</pattern>
+      <pattern>print_server</pattern>
+      <pattern>x11</pattern>
+    </patterns>
+  </software>
+  <timezone>
+    <hwclock>UTC</hwclock>
+    <timezone>America/Denver</timezone>
+  </timezone>
+  <user_defaults>
+    <expire></expire>
+    <group>100</group>
+    <groups>video,dialout</groups>
+    <home>/home</home>
+    <inactive>-1</inactive>
+    <shell>/bin/bash</shell>
+    <skel>/etc/skel</skel>
+  </user_defaults>
+  <users config:type="list">
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <password_settings>
+        <expire></expire>
+        <flag></flag>
+        <inact></inact>
+        <max></max>
+        <min></min>
+        <warn></warn>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>$2a$05$6gNBMOc30aXABrbQyv5QvO5qT0OGlQuIQ4WO/vbKuxKfPOl1Eb/0y</user_password>
+      <username>root</username>
+    </user>
+  </users>
+  <x11>
+    <color_depth config:type="integer">24</color_depth>
+    <display_manager>gdm</display_manager>
+    <enable_3d config:type="boolean">false</enable_3d>
+    <resolution>800x600 (SVGA)</resolution>
+    <window_manager>gnome</window_manager>
+  </x11>
+</profile>

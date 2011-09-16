@@ -1,0 +1,110 @@
+diff -u strongwind/accessibles.py /usr/lib/python2.6/site-packages/strongwind/accessibles.py
+--- strongwind/accessibles.py	2010-09-08 16:03:56.000000000 +0800
++++ /usr/lib/python2.6/site-packages/strongwind/accessibles.py	2011-06-09 18:06:51.000000000 +0800
+@@ -666,6 +666,30 @@
+     def assertSelectedText(self, text, index=0):
+         assert utils.retryUntilTrue(lambda: self.getSelectedText(index) == text)
+ 
++    def clickItem(self, itemtype, itemname):
++        function = getattr(self, "find" + itemtype)
++        function(itemname).mouseClick(log=True)
++
++    def inputItem(self, itemtype, textdata):
++        function = getattr(self, "findAll" + itemtype)
++        texts = function(None)
++        for k, v in textdata.items():
++            texts[int(k)].enterText(v)
++
++    def selectCombobox(self, selectiondata):
++        comboboxs = self.findAllComboBoxs(None)
++        for k, v in selectiondata.items():
++            comboboxs[int(k)].select(v)
++
++    def assertobject(self, objecttype, objectname):
++        function = "find" + objecttype
++        self.findfunction = getattr(self, function)
++        assert self.findfunction(objectname)
++
++    def findNewItem(self, itemtype, itemname):
++        function = getattr(self.app, "find" + itemtype)
++        return self.__class__(function(itemname)._accessible)
++
+ class Desktop(Accessible):
+     pass
+ 
+@@ -752,7 +776,7 @@
+     def assertClosed(self):
+         'Raise an exception if the window is still open'
+ 
+-        procedurelogger.expectedResult('The %s disappears.' % self)
++        procedurelogger.expectedResult('The %s disappears.' % "application")
+ 
+         def closed():
+             try:
+@@ -1238,3 +1262,16 @@
+         self.styles.select(style, log=False)
+         self.sizes.select(size, log=False)
+         procedurelogger.expectedResult("The font '%s' with style '%s' on size '%s' is selected." % (family, style, size))
++
++def launchApp(exe, appname):
++    """
++    Launch Application and return object. Log an error and return None if 
++    something goes wrong
++    """
++    if exe=="" or appname=="":
++	print "You need to give both executable file (include path) and appilcation name (show in accerciser)"
++	raise NotImplementedError
++    args = [exe]
++    (app, subproc) = cache.launchApplication(args=args, name=appname, wait=config.LONG_DELAY) #set wait smaller if your network is good.
++    app.findFrame(name=None, logName=appname)
++    return app
+diff -u strongwind/config.py /usr/lib/python2.6/site-packages/strongwind/config.py
+--- strongwind/config.py	2010-09-08 16:03:56.000000000 +0800
++++ /usr/lib/python2.6/site-packages/strongwind/config.py	2011-06-09 18:06:51.000000000 +0800
+@@ -40,8 +40,8 @@
+ # these values are used throughout strongwind.  lower values will cause test
+ # scripts to complete sooner, but may result in random application crashes or
+ # random failed tests
+-SHORT_DELAY = 0.5
+-MEDIUM_DELAY = 4
++SHORT_DELAY = 1
++MEDIUM_DELAY = 3
+ LONG_DELAY = 10
+ 
+ # see resetTimeout() in watchdog.py
+diff -u strongwind/procedurelogger.py /usr/lib/python2.6/site-packages/strongwind/procedurelogger.py
+--- strongwind/procedurelogger.py	2010-09-08 16:03:56.000000000 +0800
++++ /usr/lib/python2.6/site-packages/strongwind/procedurelogger.py	2011-06-09 18:06:51.000000000 +0800
+@@ -43,14 +43,6 @@
+ import os
+ import sys
+ import time
+-
+-try:
+-    import yaml
+-    gotYaml = True
+-except ImportError:
+-    print 'Error importing yaml module; tags will not be parsed'
+-    gotYaml = False
+-
+ import atexit
+ import traceback
+ 
+@@ -70,7 +62,7 @@
+ import utils
+ import watchdog
+ 
+-
++gotYaml = False
+ _procedures = []
+ _actionBuffer = ''
+ _expectedResultBuffer = ''
+@@ -175,7 +167,7 @@
+                 if old.id != new.id:
+                     application = cache.getApplicationById(new.id)
+             except (LookupError, KeyError, pyatspi.ORBit.CORBA.COMM_FAILURE):
+-                application = cache.getApplicationById(new.id)
++                pass
+ 
+         #container
+         for x in newParents:

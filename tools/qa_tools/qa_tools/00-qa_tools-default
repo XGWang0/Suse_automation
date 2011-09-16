@@ -1,0 +1,39 @@
+#
+# This file contains default configuration for qa_tools
+#
+# Please never edit this file directly, if you want to change
+# anything, do it in a new file. (Files are read in alphabetical
+# order, values from earlier files are overwritten
+# 
+# Don't forget, all values names must be specified by
+# <variable name>=<variable value>
+#
+
+#
+# The address of the host, where qa_db_report is installed, this
+# is the host that results are sent to by remote_qa_db_report.pl
+#
+remote_qa_db_report_host="qadb.suse.de"
+remote_qa_db_report_user="rd-qa"
+
+#
+# TODO
+# Still need to convert reinstall.pl to this configuration schema!
+#
+
+# Which repository should be used for *next* installation 
+install_qa_repository="http://dist.suse.de/ibs/QA:/Head"
+
+# This packages should be installed additionaly during *next* installation
+# format (comma-separated list): "PKG1,PKG2,PKG3"
+install_additional_rpms=""
+
+# root password for *next* installation
+install_root_password="susetesting"
+
+# Test user that will be created during *next* installation
+install_testuser_login="testusr"
+install_testuser_password="susetesting"
+install_testuser_fullname="Test User"
+install_testuser_home="/home/testusr"
+

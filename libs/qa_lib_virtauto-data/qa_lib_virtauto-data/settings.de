@@ -1,0 +1,36 @@
+# Local settings (modify these)
+
+xen.user=root
+xen.pass=novell
+vm.user=root
+vm.pass=novell
+
+# Global settings (only modify these if you are running the entire suite of tests)
+
+xen.arch=64
+xen.base=amd
+xen.ip=
+team.key=putkeyhere
+
+# You can leave these as they are (for the Xen lab environment)
+
+netinfo.ip=
+netinfo.user=rd-qa
+netinfo.pass=
+http.ip=
+http.user=rd-qa
+http.pass=
+http.autoyast.local=/srv/www/htdocs/install/autoyast
+http.autoyast.web=install/autoyast
+pxe.ip=
+pxe.user=rd-qa
+pxe.pass=
+pxe.tftpdir=/srv/tftp
+dhcp.reserved.pool=151.155.146.41:151.155.146.42:151.155.146.43:151.155.146.44:151.155.146.45:151.155.146.51:151.155.146.52:151.155.146.53:151.155.146.54:151.155.146.55:151.155.146.61:151.155.146.62:151.155.146.63:151.155.146.64:151.155.146.65
+network.mask=255.255.252.0
+network.gateway=192.168.123.1
+network.nameserver=192.168.123.1
+network.network=192.168.123.0
+network.bcast=192.168.123.255
+network.domain=testvirt.net
+

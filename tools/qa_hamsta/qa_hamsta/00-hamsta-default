@@ -1,0 +1,16 @@
+#
+# This file contains default configuration for hamsta (client)
+#
+# Please never edit this file directly, if you want to change
+# anything, do it in a new file. (Files are read in alphabetical
+# order, values from earlier files are overwritten
+# 
+# Don't forget, all values names must be specified by
+# <variable name>=<variable value>
+#
+
+#
+# Verbosity 0..6
+#
+hamsta_slave_verbosity='5'
+

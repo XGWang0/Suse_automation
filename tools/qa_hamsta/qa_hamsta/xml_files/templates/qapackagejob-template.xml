@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<job>
+    <config>
+        <name>QA-packages test (TS_LIST_SHORT)</name>
+        <debuglevel>4</debuglevel>
+        <distributable>0</distributable>
+        <parallel>0</parallel>
+        <mail notify="1">llwang@novell.com</mail>        
+        <logdir>/tmp</logdir>
+        <description>QA-packages test, includes: TS_LIST.</description>
+        <rpm>qa_hamsta qa_tools qa_lib_perl TS_LIST</rpm>
+        <motd>Be careful, this computer is testing the following packages: TS_LIST!</motd>
+    </config>
+
+    <commands>
+        <worker>
+            <!-- Required -->
+            <command execution="forked">#!/bin/bash
+		    cd /usr/share/hamsta/testscript 
+		    ./customtest TS_LIST
+	    </command>
+            <!-- Optional -->
+            <directory>/</directory>
+            <timeout>300000</timeout>
+        </worker>
+    </commands>
+</job>

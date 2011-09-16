@@ -1,0 +1,53 @@
+--- strongwind/accessibles.py	2011-06-22 14:45:26.000000000 +0800
++++ /usr/lib/python2.6/site-packages/strongwind/accessibles.py	2011-06-22 14:48:33.000000000 +0800
+@@ -19,6 +19,7 @@
+ 
+ 'Define the base Accessible and widget-specific classes'
+ 
++import os
+ import re
+ from time import sleep
+ 
+@@ -101,7 +102,8 @@
+         elif attr == 'description':
+             return self._accessible.description
+         elif attr == 'parent':
+-            return self._promote(self._accessible.parent)
++            if self._accessible.getRoleName() != "application":
++                return self._promote(self._accessible.parent)
+         elif attr == 'role':
+             return self._accessible.getRole()
+         elif attr == 'roleName':
+@@ -1263,7 +1265,7 @@
+         self.sizes.select(size, log=False)
+         procedurelogger.expectedResult("The font '%s' with style '%s' on size '%s' is selected." % (family, style, size))
+ 
+-def launchApp(exe, appname):
++def launchApp(exe, appname, window='Frame'):
+     """
+     Launch Application and return object. Log an error and return None if 
+     something goes wrong
+@@ -1271,7 +1273,21 @@
+     if exe=="" or appname=="":
+ 	print "You need to give both executable file (include path) and appilcation name (show in accerciser)"
+ 	raise NotImplementedError
++    # First to kill the exist application.
++    # In some cases, if the application has been opend before doing launchApplication, then the second invoked application window would not been found. That will be useful when running a branch of tests in one process
++    os.system('killall -9 %s' % appname.lower())
++    sleep(config.SHORT_DELAY)
++
+     args = [exe]
+-    (app, subproc) = cache.launchApplication(args=args, name=appname, wait=config.LONG_DELAY) #set wait smaller if your network is good.
+-    app.findFrame(name=None, logName=appname)
++    
++    #set wait smaller if your network is good.
++    try:
++        (app, subproc) = cache.launchApplication(args=args, name=appname, wait=config.LONG_DELAY)
++        func = getattr(app, "find" + window)
++        func(name=None, logName=appname)
++    except errors.SearchError:
++        if app.childCount > 0:
++            app.getChildAtIndex(0).keyCombo('<Alt>F4')
++        func(name=None, logName=appname)
+     return app
++

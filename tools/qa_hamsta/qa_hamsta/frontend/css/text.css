@@ -1,0 +1,46 @@
+.text-large
+{
+	font-family: arial, verdana, sans-serif;
+	font-size: 1.33em;
+}
+.text-medium
+{
+	font-family: arial, verdana, sans-serif;
+	font-size: 1.13em;
+}
+.text-main
+{
+	font-family: arial, verdana, sans-serif;
+	font-size: 1em;
+}
+.text-small
+{
+	font-family: arial, verdana, sans-serif;
+	font-size: 0.8em;
+}
+.text-smaller
+{
+	font-family: arial, verdana, sans-serif;
+	font-size: 0.67em;
+}
+.center
+{
+	text-align: center;
+}
+.bold
+{
+	font-weight: bold;
+}
+.normal
+{
+	font-weight: normal;
+}
+.em
+{
+	font-style: italic;
+}
+.logs
+{
+	font-size: 0.8em;
+	font-family: arial, verdana, sans-serif;
+}

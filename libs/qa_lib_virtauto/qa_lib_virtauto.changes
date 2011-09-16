@@ -1,0 +1,114 @@
+-------------------------------------------------------------------
+Sun Sep  4 21:58:09 CEST 2011 - llipavsky@suse.cz
+
+- New, updated release from the automation team. Includes:
+- Improved virtual machine handling/QA cloud
+- Rename of QA packages
+- Upgrade support
+- Changed format od /etc/qa files
+- More teststsuites
+- Many bug fixes
+
+-------------------------------------------------------------------
+Tue Aug 16 20:32:38 GMT 2011 - llipavsky@suse.cz
+
+- Package rename: virtautolib -> qa_lib_virtauto
+
+-------------------------------------------------------------------
+Wed Jun  8 15:47:17 CEST 2011 - llipavsky@suse.cz
+
+- sources and settings for various locations are now in this package
+- properties are now splitted to two files: sources and settings
+- if no <S> (source/settings) file is specified, they are selected
+  in a following way:
+  if exist file /usr/share/qa/virtualization/data/<S>.local, it is used
+  elif exist file /usr/share/qa/virtualization/data/<S>.<location> it is used
+  else error is reported
+
+-------------------------------------------------------------------
+Tue Apr 19 14:34:28 CEST 2011 - llipavsky@suse.cz
+
+- add sled 11 sp1
+
+-------------------------------------------------------------------
+Wed Apr 13 13:27:00 MDT 2011 - dcollingridge@novell.com
+
+- New, updated release from the automation team. Includes:
+- Tftp/pxe directory name changes
+- Increase loop count time for VM to register
+- Various bug fixes
+
+-------------------------------------------------------------------
+Fri Apr  1 12:16:57 CEST 2011 - llipavsky@suse.cz
+
+- add correct handling of SIGINT (delete currently installed VM)
+
+-------------------------------------------------------------------
+Wed Mar 30 14:07:00 CEST 2011 - llipavsky@suse.cz
+
+- explicitly call login shell on netinfo ssh commands -> fix 
+  failuer on sles10sp4
+
+-------------------------------------------------------------------
+Mon Mar 28 16:48:42 CEST 2011 - llipavsky@suse.cz
+
+- add -C argument to vm-install (copy iso to tmp before install)
+
+-------------------------------------------------------------------
+Fri Mar 25 16:01:36 CET 2011 - llipavsky@suse.cz
+
+- Fix sle[sd]11SP* fv installation (eth renaming issue)
+
+-------------------------------------------------------------------
+Mon Dec 20 13:54:24 CET 2010 - llipavsky@suse.cz
+
+- change regexps to be sles10 compatible (oldbash)
+
+-------------------------------------------------------------------
+Thu Nov 18 16:33:41 CET 2010 - llipavsky@suse.cz
+
+- add (copy from sp3) installation profiles for sle[ds]10sp4
+
+-------------------------------------------------------------------
+Mon Oct 18 14:24:19 CEST 2010 - llipavsky@suse.cz
+
+- net install method now tries both ftp & http
+
+-------------------------------------------------------------------
+Tue Jul 20 14:43:57 CEST 2010 - llipavsky@suse.cz
+
+- version 0.1.0
+  - Change setting values, now http,pxe and netinfo servers are
+    separate
+  - does not read logs of dhcp directly, instead relies on netinfo
+    server - netinfo server provides scripts:
+    mac2ip, ip2mac
+    ip2host, host2ip
+    mac2host, host2mac
+    mac2pxefilename
+- Will not work without netinfo server!    
+
+-------------------------------------------------------------------
+Thu May 27 11:17:39 CEST 2010 - llipavsky@suse.cz
+
+- pull changes from continualauto -> r3907
+  - added sp2 and sp3 profiles for os11.
+  - added 11.3 install sources
+
+-------------------------------------------------------------------
+Thu May 27 11:04:40 CEST 2010 - llipavsky@suse.cz
+
+- Make installation script return internall error when there's no
+  installation source defined
+
+-------------------------------------------------------------------
+Thu May 13 09:19:19 CEST 2010 - llipavsky@suse.cz
+
+- added workaround to bnc#521222 - PXE boot fails for fully 
+  virtualized guests
+
+-------------------------------------------------------------------
+Tue Apr 27 15:47:19 CEST 2010 - llipavsky@suse.cz
+
+- Initial release - modifed version based on continualauto r3902
+

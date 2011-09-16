@@ -1,0 +1,7 @@
+#!/bin/bash
+
+version=`grep ^Version: *.spec | awk {'print $2'}`
+for i in qa_lib_internalapi qa_lib_internalapiperl qa_lib_internalapishell ; do
+	tar --exclude-vcs -cjf $i-$version.tar.bz2 $i
+done
+

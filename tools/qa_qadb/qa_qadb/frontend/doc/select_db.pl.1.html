@@ -1,0 +1,62 @@
+<HTML>
+<BODY>
+<PRE>
+<!-- Manpage converted by man2html 3.0.1 -->
+
+</PRE>
+<H2>SYNOPSIS</H2><PRE>
+       <B>select_db.pl</B> - lists known QADB targets
+       <B>select_db.pl</B> <I>&lt;n&gt;</I> - sets a QADB target
+
+
+
+</PRE>
+<H2>DESCRIPTION</H2><PRE>
+       Multiple  scripts from the <B>qa_tools</B> package need to access QADB (mostly
+       the script <B>qa_db_report.pl(1)</B> ).  This  script  allows  you  to  easily
+       select  which  QADB  instance  to  use.   You can select the production
+       database, or one of the test ones.
+
+       Running the script  without  an  argument  lists  the  predefined  QADB
+       instances.   When  the  predefined  instance is already selected, it is
+       marked with an asterisk (*).
+
+       Specifying a number <I>&lt;n&gt;</I> causes that you select the <I>&lt;n&gt;-th</I> database from
+       the  list.   The database is then used to store your data, and to a few
+       other minor purposes, like looking for known products.
+
+
+
+</PRE>
+<H2>DETAILS</H2><PRE>
+       During the listing, the script just scans the file <I>~/.mysql</I><B>_</B><I>loc.rc</I>  for
+       one of the hardcoded predefined database instances, and marks the found
+       one.
+
+       When <I>&lt;n&gt;</I> was specified, the script rewrites  the  file  <I>~/.mysql</I><B>_</B><I>loc.rc</I>
+       with the <I>&lt;n&gt;-th</I> predefined hardcoded instance details.
+
+
+
+</PRE>
+<H2>AUTHOR</H2><PRE>
+       Vilem Marsik &lt;vmarsik@novell.com&gt;
+
+
+
+</PRE>
+<H2>SEE ALSO</H2><PRE>
+       <B>qa_db_report(1)</B>, <B>product.pl(1)</B>
+
+
+
+
+                                       1                    select_db.pl(QADB)
+</PRE>
+<HR>
+<ADDRESS>
+Man(1) output converted with
+<a href="http://www.oac.uci.edu/indiv/ehood/man2html.html">man2html</a>
+</ADDRESS>
+</BODY>
+</HTML>

@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<job>
+    <config>
+	<name>Format abuild work space into ext3</name>
+        <debuglevel>4</debuglevel>
+        <distributable>0</distributable>
+        <parallel>0</parallel>
+        <mail notify="1">llwang@novell.com</mail>        
+        <logdir>/tmp</logdir>
+        <description>Format abuild work space into ext3</description>
+    </config>
+
+    <commands>
+        <worker>
+            <!-- Required -->
+            <command execution="forked">#!/bin/bash
+		    devname=`mount | grep abuild | awk {'print $1'}`
+		    umount /abuild
+		    mkfs.ext3 $devname
+		    sleep 5
+		    mount $devname /abuild
+	    </command>
+        </worker>
+    </commands>
+</job>

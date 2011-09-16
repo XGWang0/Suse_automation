@@ -1,0 +1,254 @@
+-------------------------------------------------------------------
+Sun Sep  4 21:52:02 CEST 2011 - llipavsky@suse.cz
+
+- New, updated release from the automation team. Includes:
+- Improved virtual machine handling/QA cloud
+- Rename of QA packages
+- Upgrade support
+- More teststsuites
+- Many bug fixes
+
+-------------------------------------------------------------------
+Fri Jun 17 10:35:00 MDT 2011 - dcollingridge@novell.com
+
+- New, updated release from the automation team. Includes:
+- Improved virtual machine handling/QA cloud (technical preview)
+- Reinstall pattern list customization
+- Multiple add-ons and reg-codes for reinstall
+- Many bug fixes
+
+-------------------------------------------------------------------
+Tue Jun 07 14:20:00 CEST 2011 - vmarsik@novell.com
+
+- moved KOTD code to a separate package kotd_test
+
+-------------------------------------------------------------------
+Thu May 12 16:40:55 CEST 2011 - vmarsik@novell.com
+
+- added KOTD test files
+
+-------------------------------------------------------------------
+Wed Apr 13 13:20:00 MDT 2011 - dcollingridge@novell.com
+
+- New, updated release from the automation team. Includes:
+- Test development now uses a test/development QADB server
+- Graphical desktop install option
+- Changed default autoyast password
+- Beginning script for KOTD testing
+- Various bug fixes
+
+-------------------------------------------------------------------
+Thu Jan 27 12:51:42 CET 2011 - llipavsky@suse.cz
+
+- Migrate to new QA configuration method (except for reinstall.pl
+  -> TODO)
+
+-------------------------------------------------------------------
+Fri Jan 21 17:16:04 CET 2011 - dcollingridge@novell.com
+
+- New, updated release from the automation team. Includes:
+- Support for a test QADB
+- Lots of bug fixes
+
+-------------------------------------------------------------------
+Thu Jan 13 10:06:07 CET 2011 - llipavsky@suse.cz
+
+- removed filtering of hwinfo in remote_qa_db_report.pl. Hwinfo 
+  will be filtered during result submission automatically
+
+-------------------------------------------------------------------
+Tue Dec 21 12:53:03 CET 2010 - dcollingridge@novell.com
+
+- Bug fixes from the automation team
+- Added nis support for German test hosts
+- Better abuild partition detection
+
+-------------------------------------------------------------------
+Thu Nov 18 15:43:02 CET 2010 - dcollingridge@novell.com
+
+- Lots of bug fixes from the automation team
+
+-------------------------------------------------------------------
+Wed Nov 10 16:27:01 CET 2010 - llipavsky@suse.cz
+
+- Added -P argument to remote_qa_db_report.pl -> allows to specify
+  inidvidual result directory - fix bnc#634310
+
+-------------------------------------------------------------------
+Tue Oct 19 21:36:35 CEST 2010 - vmarsik@suse.cz
+
+- fix bnc#647130 - cannot install SLES 10 SP4 i386 using hamsta
+- a little cleanup of the reinstall code
+
+-------------------------------------------------------------------
+Tue Oct 12 10:12:47 CEST 2010 - llipavsky@suse.cz
+
+- fix bnc#639508 - /usr/share/qa/tools/remote_qa_db_report.pl 
+  /var/log/qa/_REMOTE may not be deleted if script crash/terminated.
+
+-------------------------------------------------------------------
+Tue Aug 31 18:48:18 CEST 2010 - llipavsky@suse.cz
+
+- fix bnc#634310 - qa_db_remote not able to submit results 
+                   specified with -f
+- fix bnc#634312 - remote_qa_db_report not able to submit test 
+                   results specified with -F option
+
+-------------------------------------------------------------------
+Mon Aug 23 2010 vmarsik@suse.cz
+
+- moved functions.pm from qa_tools to qa_db_report.pl
+
+-------------------------------------------------------------------
+Thu Aug  5 14:24:54 CEST 2010 - llipavsky@suse.cz
+
+- add delete-logs (-R) support to remote_qa_db_report
+
+-------------------------------------------------------------------
+Wed Aug  4 14:55:29 CEST 2010 - llipavsky@suse.cz
+
+- bnc#628230 - test logs being moved to PATH/oldlogs althoug -L is 
+               specified
+             - fixed help
+             - will need full fix in option handling
+
+-------------------------------------------------------------------
+Fri Jul 23 17:34:58 CEST 2010 - llipavsky@suse.cz
+
+- version 0.54 - Multiple parsers support
+
+-------------------------------------------------------------------
+Tue Jun 29 15:22:15 CEST 2010 - llipavsky@suse.cz
+
+- fix bnc#617403 - remote submission of results by qa_tools 0.52 
+                   always uses proxy user
+
+-------------------------------------------------------------------
+Fri Jun 18 2010 dcollingridge@novell.com
+
+- New, updated release from the automation team. Includes:
+- Better partition handling
+- More autoyast customization
+- PPC install support added
+- Various bug fixes
+
+-------------------------------------------------------------------
+Tue Jun 01 2010 llipavsky@suse.cz
+
+- fix bnc#609800 - remote_qa_db_report.pl shows inconsistent behavior when 
+  combining the switches -L and -F
+
+-------------------------------------------------------------------
+Tue Jun 01 2010 vmarsik@novell.com
+
+- Perl libraries moved to new package qa_libperl
+- added manual for remote_qa_db_report.pl
+- some cleanup
+
+-------------------------------------------------------------------
+Fri Apr 23 2010 dcollingridge@novell.com
+
+- New, updated release from the automation team. Includes:
+- Better location detection
+- Remote submit machine destination changed
+
+-------------------------------------------------------------------
+Fri Mar 26 2010 vmarsik@novell.com
+
+- Fixed location detection for NUE
+- Fixed location detection code
+- Added location.pl to test that
+
+-------------------------------------------------------------------
+Thu Mar 25 2010 dcollingridge@novell.com
+
+- New, updated release from the automation team. Includes:
+- Updated dependencies
+- Better location detection
+- Devel repo inclusion
+- Additional options to reinstall.pl
+- Updated desktop install patterns
+- Lots of bug fixes
+
+-------------------------------------------------------------------
+Mon Mar 15 2010 llipavsky@suse.cz
+
+- fixed remote db report
+
+-------------------------------------------------------------------
+Fri Mar 12 2010 vmarsik@suse.cz
+
+- moved QADB reporting code to a new package qa_db_report
+
+-------------------------------------------------------------------
+Thu Mar 11 2010 llipavsky@suse.cz
+
+- bnc#560728 - qa_tools submisson script did not move logfiles 
+  to oldlogs dir.
+- bnc#560844 - the submission script (in qa_tools) should detect 
+  differing RPM configs
+- fixed calls of die_cleanly in qa_db_report.pl
+
+-------------------------------------------------------------------
+Tue Mar  9 2010 llipavsky@suse.cz
+
+- abstracted results reader -> will be possible
+  to have non-ctcs2 readers (OOP)
+- remote submit feature
+- bnc#560428 - QADB: qa_db_report.pl (qa_tools) 
+  requires impossibly consistent hwinfo
+
+-------------------------------------------------------------------
+Tue Feb 16 2010 dcollingridge@novell.com
+
+- New, updated release from the automation team. Includes:
+- using by-id instead of by-path for install partitioning
+- added desktop-base pattern for SLED 11+ installs
+- added sdk repo support
+- limited number of packages installed during installation
+- improved product detection
+- added support for ia64 installs
+- added location detection
+- bug fixes
+
+-------------------------------------------------------------------
+Fri Apr 11 2008 vmarsik@suse.cz
+
+- fixed a bug that broke SSHD configuration
+
+-------------------------------------------------------------------
+Thu Apr 10 2008 vmarsik@suse.cz
+
+- redirected output to the production QADB database
+
+-------------------------------------------------------------------
+Mon Apr 07 2008 vmarsik@suse.cz
+
+- new benchmark parser that parses dbench, bonnie, and siege results
+- fixes a bug with &warn() instead of warn()
+
+-------------------------------------------------------------------
+Fri Mar 14 2008 pkirsch@suse.de
+
+- added setupgrubfornfsinstall utility and added Requires openslp
+
+-------------------------------------------------------------------
+Tue Mar 04 2008 vmarsik@suse.cz
+
+- hacked to bypass FHS and build under Mbuild
+
+-------------------------------------------------------------------
+Mon Feb 04 2008 vmarsik@suse.cz
+
+- changed MySQL_loc.pm, so that MySQL user with empty password is possible
+
+-------------------------------------------------------------------
+Tue Jan 15 2008 vmarsik@suse.cz
+
+- fixed bugs
+- made output suitable for QADB
+
+-------------------------------------------------------------------
+Thu Jan 10 2008 vmarsik@suse.cz
+
+- created a new package

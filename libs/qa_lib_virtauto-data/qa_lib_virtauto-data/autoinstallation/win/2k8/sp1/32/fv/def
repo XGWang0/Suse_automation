@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<unattend xmlns="urn:schemas-microsoft-com:unattend">
+    <settings pass="windowsPE">
+        <component name="Microsoft-Windows-International-Core-WinPE" processorArchitecture="x86" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <SetupUILanguage>
+                <UILanguage>en-US</UILanguage>
+            </SetupUILanguage>
+            <InputLocale>0409:00000409</InputLocale>
+            <SystemLocale>en-US</SystemLocale>
+            <UILanguage>en-US</UILanguage>
+            <UserLocale>en-US</UserLocale>
+        </component>
+        <component name="Microsoft-Windows-Setup" processorArchitecture="x86" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <UserData>
+                <ProductKey>
+                    <Key>_____-_____-_____-_____-_____</Key>
+                    <WillShowUI>OnError</WillShowUI>
+                </ProductKey>
+                <AcceptEula>true</AcceptEula>
+                <FullName>NovellXen</FullName>
+                <Organization>Novell Xen</Organization>
+            </UserData>
+            <Display>
+                <ColorDepth>32</ColorDepth>
+                <HorizontalResolution>1024</HorizontalResolution>
+                <VerticalResolution>768</VerticalResolution>
+            </Display>
+            <DiskConfiguration>
+                <WillShowUI>OnError</WillShowUI>
+                <Disk>
+                    <DiskID>0</DiskID>
+                    <WillWipeDisk>true</WillWipeDisk>
+                    <CreatePartitions>
+                        <CreatePartition>
+                            <Order>1</Order>
+                            <Type>Primary</Type>
+                            <Size>15000</Size>
+                        </CreatePartition>
+                    </CreatePartitions>
+                    <ModifyPartitions>
+                        <ModifyPartition>
+                            <Order>1</Order>
+                            <PartitionID>1</PartitionID>
+                            <Letter>C</Letter>
+                            <Label>VOLUME1</Label>
+                            <Format>NTFS</Format>
+                            <Active>true</Active>
+                            <Extend>true</Extend>
+                        </ModifyPartition>
+                    </ModifyPartitions>
+                </Disk>
+            </DiskConfiguration>
+            <ImageInstall>
+                <OSImage>
+                    <InstallFrom>
+                        <MetaData wcm:action="add">
+                            <Key>/IMAGE/NAME</Key>
+                            <Value>Windows Longhorn SERVERDATACENTER</Value>
+                        </MetaData>
+                    </InstallFrom>
+                    <InstallToAvailablePartition>true</InstallToAvailablePartition>
+                    <WillShowUI>OnError</WillShowUI>
+                </OSImage>
+            </ImageInstall>
+        </component>
+    </settings>
+    <settings pass="specialize">
+        <component name="Microsoft-Windows-Security-Licensing-SLC-UX" processorArchitecture="x86" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <SkipAutoActivation>true</SkipAutoActivation>
+        </component>
+        <component name="Networking-MPSSVC-Svc" processorArchitecture="x86" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <PublicProfile_EnableFirewall>false</PublicProfile_EnableFirewall>
+        </component>
+    </settings>
+    <settings pass="oobeSystem">
+        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="x86" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <UserAccounts>
+                <AdministratorPassword>
+                    <Value>N0vell</Value>
+                    <PlainText>true</PlainText>
+                </AdministratorPassword>
+            </UserAccounts>
+            <AutoLogon>
+                <Password>
+                    <Value>N0vell</Value>
+                    <PlainText>true</PlainText>
+                </Password>
+                <Enabled>true</Enabled>
+                <LogonCount>2</LogonCount>
+                <Username>Administrator</Username>
+            </AutoLogon>
+            <Display>
+                <ColorDepth>32</ColorDepth>
+                <DPI>96</DPI>
+                <HorizontalResolution>1024</HorizontalResolution>
+                <VerticalResolution>768</VerticalResolution>
+            </Display>
+            <OOBE>
+                <HideEULAPage>true</HideEULAPage>
+                <NetworkLocation>Home</NetworkLocation>
+                <ProtectYourPC>1</ProtectYourPC>
+                <SkipMachineOOBE>true</SkipMachineOOBE>
+                <SkipUserOOBE>true</SkipUserOOBE>
+            </OOBE>
+            <TimeZone>Mountain Standard Time</TimeZone>
+            <FirstLogonCommands>
+                <SynchronousCommand wcm:action="add">
+                    <Order>1</Order>
+                    <CommandLine>ping 10.10.10.10</CommandLine>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <Order>2</Order>
+                    <CommandLine>ping 10.10.10.11</CommandLine>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <Order>3</Order>
+                    <CommandLine>ping 10.10.10.12</CommandLine>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <Order>4</Order>
+                    <CommandLine>regedit /s D:\2K8-SCREENSAVER.REG</CommandLine>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <Order>5</Order>
+                    <CommandLine>regedit /s D:\2K8-UPDATES.REG</CommandLine>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <Order>6</Order>
+                    <CommandLine>netsh firewall set opmode mode=ENABLE</CommandLine>
+                </SynchronousCommand>
+            </FirstLogonCommands>
+        </component>
+        <component name="Microsoft-Windows-International-Core" processorArchitecture="x86" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <InputLocale>0409:00000409</InputLocale>
+            <SystemLocale>en-US</SystemLocale>
+            <UILanguage>en-US</UILanguage>
+            <UserLocale>en-US</UserLocale>
+        </component>
+    </settings>
+    <cpi:offlineImage cpi:source="wim:c:/documents%20and%20settings/user/something/sources/install.wim#Windows Longhorn SERVERDATACENTER" xmlns:cpi="urn:schemas-microsoft-com:cpi" />
+</unattend>

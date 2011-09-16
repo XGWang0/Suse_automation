@@ -1,0 +1,21 @@
+-------------------------------------------------------------------
+Sun Sep  4 21:58:30 CEST 2011 - llipavsky@suse.cz
+
+- New, updated release from the automation team. Includes:
+- Improved virtual machine handling/QA cloud
+- Rename of QA packages
+- Upgrade support
+- Changed format od /etc/qa files
+- More teststsuites
+- Many bug fixes
+
+-------------------------------------------------------------------
+Tue Aug 16 20:40:26 GMT 2011 - llipavsky@suse.cz
+
+- Package rename: virtautolib-data -> qa_lib_virtauto-data
+
+-------------------------------------------------------------------
+Wed Jun  8 16:08:46 CEST 2011 - llipavsky@suse.cz
+
+- initial split of virtautolib to virtautolib and qa_lib_virtautolib-data
+

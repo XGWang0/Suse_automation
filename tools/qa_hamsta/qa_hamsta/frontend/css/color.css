@@ -1,0 +1,104 @@
+.text-white
+{
+	color: #ffffff;
+}
+.text-orange
+{
+	color: #e78f08;
+}
+.text-blue
+{
+	color: #455560;
+}
+.text-red
+{
+	color: #ff5555;
+}
+.text-light-gray
+{
+	color: #dedede;
+}
+.text-gray
+{
+	color: #c0c0c0;
+}
+.text-dark-gray
+{
+	color: #505050;
+}
+.required
+{
+	color: #FF0000;
+	font-weight: bold;
+	font-size: 18px;
+}
+.passed {
+        color: #22bb22;
+        font-weight: bold;
+}
+.failed {
+        color: #bb2222;
+        font-weight: bold;
+}
+.canceled {
+        color: #FFFF00;
+        font-style: italic;
+        font-weight: bold;
+}
+.queued {
+        color: #CC0000;
+        font-weight: bold;
+}
+.running {
+        color: #2222bb;
+        font-weight: bold;
+}
+.modified {
+        color: #FF0000;
+        padding-right: 7px;
+}
+
+table.list tr		{ background-color: #ddd; }
+table.list tr:hover	{ background-color: #bbb; }
+table.list tr.diff	{ background-color: #faa; }
+table.list tr.diff:hover	{ background-color: #f88; }
+table.list tr.search_result	{ background-color: #fd8; }
+table.list tr.search_result:hover	{ background-color: #fb6; }
+table.list tr.crashed_job	{ color: #f00; }
+
+.CRITICAL td, .CRITICAL				{ background-color: #f44; }
+tr.CRITICAL:hover td, span.CRITICAL:hover	{ background-color: #d22; }
+.ERROR td, span.ERROR				{ background-color: #faa; }
+tr.ERROR:hover td, span.ERROR:hover		{ background-color: #d88; }
+.WARNING td, .WARNING			 	{ background-color: #ff8; }
+tr.WARNING:hover td, span.WARNING:hover		{ background-color: #dd6; }
+.NOTICE td, .NOTICE				{ background-color: #fff; }
+tr.NOTICE:hover td, span.NOTICE:hover		{ background-color: #eee; }
+.INFO td, .INFO					{ background-color: #ddd; }
+tr.INFO:hover td, span.INFO:hover		{ background-color: #ccc; }
+.DETAIL td, .DETAIL				{ background-color: #bbb; }
+tr.DETAIL:hover td, span.DETAIL:hover		{ background-color: #aaa; }
+.DEBUG td, .DEBUG				{ background-color: #999; }
+tr.DEBUG:hover td, span.DEBUG:hover		{ background-color: #888; }
+.STDIN td, .STDIN				{ background-color: #88f; }
+tr.STDIN:hover td, span.STDIN:hover		{ background-color: #66c; }
+.STDOUT td, .STDOUT				{ background-color: #dfd; }
+tr.STDOUT:hover td, span.STDOUT:hover		{ background-color: #bdb; }
+.STDERR td, .STDERR				{ background-color: #ffd; }
+tr.STDERR:hover td, span.STDERR:hover		{ background-color: #ddb; }
+.RETURN td, .RETURN				{ background-color: #bbf; }
+tr.RETURN:hover td, span.RETURN:hover		{ background-color: #99d; }
+
+.RESERVE td, .RESERVE				{ background-color: #fbb; }
+tr.RESERVE:hover td, span.RESERVE:hover		{ background-color: #eaa; }
+.RELEASE td, .RELEASE				{ background-color: #bfb; }
+tr.RELEASE:hover td, span.RELEASE:hover		{ background-color: #aea; }
+.REINSTALL td, .REINSTALL			{ background-color: #bbf; }
+tr.REINSTALL:hover td, span.REINSTALL:hover	{ background-color: #aae; }
+.CONFIG td, .CONFIG				{ background-color: #ffb; }
+tr.CONFIG:hover td, span.CONFIG:hover		{ background-color: #eea; }
+.JOB_START td, .JOB_START			{ background-color: #bff; }
+tr.JOB_START:hover td, span.JOB_START:hover	{ background-color: #aee; }
+.JOB_FINISH td, .JOB_FINISH			{ background-color: #fbf; }
+tr.JOB_FINISH:hover td, span.JOB_FINISH:hover	{ background-color: #eae; }
+

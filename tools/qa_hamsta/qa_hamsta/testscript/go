@@ -1,0 +1,170 @@
+#!/bin/bash
+#   This stand alone script is used to report and submit result on the machines run by ldai's script
+#   Usage: ./$0 [mailaddr]
+logdir="/var/log/qa/ctcs2"
+prod=SLES
+product=sle10-sp3
+release=`egrep -o '[aA]lpha[1-9]|[bB]eta[1-9]|RC[1-9]' /etc/issue`
+fstype="`cat /etc/fstab | grep -w "/abuild" | awk -F' ' '{print $3}'`"
+release=`egrep -o '[aA]lpha[1-9]|[bB]eta[1-9]|RC[1-9]' /etc/issue`
+version=`egrep -o -w '\b[1-9][0-9]\b' /etc/issue`-`egrep -o -w 'SP[1-9]' /etc/issue`
+spnumber="$prod$version"
+[ -z $release ] && release="GMC"
+dbprod="$prod-$version-$release"
+cache="/tmp/cache"
+ARCH=$HOSTTYPE
+case $ARCH in
+        i[3-9]86)  ARCH="i386";;
+        p*pc) ARCH="ppc";;
+        p*pc64) ARCH="ppc64";;
+esac
+
+input="/tmp/regression_result.html"
+output="/tmp/regression_summary.txt"
+cache=/tmp/cache
+
+#Usage: report <log_path>
+report(){
+/usr/lib/ctcs2/tools/report.py $1/* > $input
+modulnumber=`grep -c "Results from" $input`
+echo -e "Packge Name\t\tFailed\tTotal" >> $output
+j=4
+s_f=0
+s_t=0
+for i in `grep -n "\/table" $input | cut -d ":" -f1`;do
+  if [ $i -gt $j ];then
+    awk "NR>=$j && NR<$i" $input > $cache
+    iname=`grep "Results from" $cache | cut -d '/' -f5`
+    iname=${iname#*qa_}
+    r_n=`printf "%-20s" ${iname%-2009*}`
+    r_f=`grep -c "FF6060" $cache`
+    r_t=`grep -c "FFFFFF" $cache`
+    echo -e "$r_n\t$r_f\t$r_t" >> $output
+    j=$i
+    ((s_f+=$r_f))
+    ((s_t+=$r_t))
+  fi
+done
+echo "------------------------------------" >> $output
+echo -e "Total: $modulnumber\t\t$s_f\t$s_t" >> $output
+}
+
+#Usage: add <weight>
+add(){                                                                                                          
+for i in $para;do                                                                                               
+  [ -z $1 ] || i=`echo $i*$1 | bc`                                                                              
+  result=`echo $result+$i | bc`                                                                                 
+done                                                                                                            
+}
+
+perf_analyze(){
+cp $logdir/bonnie-default*/bonnie-default .
+cp $logdir/dbench-default-v*/dbench-default .
+cp $logdir/dbench-syncIO-v*/dbench-syncIO .
+cp $logdir/lmbench*/lmbench .
+cp $logdir/netperf*/netperf-* .
+cp $logdir/reaim*/reaim .
+cp $logdir/tiobench*/tiobench .
+#lmbench report
+result=0       
+para=`grep $HOSTNAME lmbench | awk "NR>6 && NR<13" | awk {'print $7'}`
+add 10                                                                
+para=`grep $HOSTNAME lmbench | awk "NR>12 && NR<19" | awk {'print $7'}`
+add                                                                    
+echo -e "LMBENCH RESULT IS:\t\t$result (Smaller is better)"            
+#reaim test
+result=0
+para=`grep ^[1-9][0-9] reaim | grep -v ^200[0-9] | awk '{print $5}'`
+add
+echo -e "REAIM RESULT IS:\t\t$result (Bigger is better)"
+#tiobench test
+result=0
+kernel=`uname -r`
+para=`grep $kernel tiobench | awk "(NR>0 && NR<9) || (NR>16 && NR<25)" | awk {'print $5'}`
+add
+para=`grep $kernel tiobench | awk "(NR>8 && NR<13) || (NR>24 && NR<29)" | awk {'print $5'}`
+add 100
+para=`grep $kernel tiobench | awk "(NR>12 && NR<17) || (NR>28 && NR<33)" | awk {'print $5'}`
+add 5
+echo -e "TIOBENCH RESULT IS:\t\t$result (Bigger is better)"
+#bonnie-default test
+result=0
+para=`grep 'kB/s' bonnie-default | cut -d ":" -f2 | awk {'print $1'}`
+add
+echo -e "BONNIE RESULT IS:\t\t$result (Bigger is better)"
+#dbench-default-v test
+result=0
+para=`grep Throughput dbench-default | awk "(NR>0 && NR<9)" | awk {'print $2'}`
+add
+para=`grep Throughput dbench-default | awk "(NR>8 && NR<13)" | awk {'print $2'}`
+add 2
+para=`grep Throughput dbench-default | awk "(NR>12 && NR<21)" | awk {'print $2'}`
+add 10
+echo -e "DBENCH-DEFAULT-V RESULT IS:\t$result (Bigger is better)"
+#dbench-syncIO-v test
+result=0
+para=`grep Throughput dbench-syncIO | awk "(NR>0 && NR<4)" | awk {'print $2'}`
+add 3
+para=`grep Throughput dbench-syncIO | awk "(NR>3 && NR<19)" | awk {'print $2'}`
+add
+echo -e "DBENCH-SYNCIO-V RESULT IS:\t$result (Bigger is better)"
+#netperf test
+result=0
+para=`grep "^ 65536" netperf-tcp | awk {'print $5'}`
+add
+para=`grep "^ 65536" netperf-udp | awk {'print $6'}`
+add
+echo -e "NETPERF RESULT IS:\t\t$result (Bigger is better)"
+}
+
+#Main
+mkdir /var/log/qa/regressionlog
+mv $logdir/qa_* /var/log/qa/regressionlog
+uname -a > $output
+cat /etc/issue >> $output
+echo -e "\n===Regression Result===\n" >> $output
+report /var/log/qa/regressionlog
+echo -e "\n===Kernel Result===\n" >> $output
+report $logdir
+echo -e "\n===Performance Result===\nCurrent result
+-----------------------------------------" >> $output
+perf_analyze >> $output
+echo -e "\nEXT3 Sample result (quake17 XEN RC2)
+-----------------------------------------
+LMBENCH RESULT IS:              421.0000 (Smaller is better)
+REAIM RESULT IS:                42718.17 (Bigger is better)
+TIOBENCH RESULT IS:             1131.36 (Bigger is better)
+BONNIE RESULT IS:               3413027 (Bigger is better)
+DBENCH-DEFAULT-V RESULT IS:     4068.82400 (Bigger is better)
+DBENCH-SYNCIO-V RESULT IS:      98.55364 (Bigger is better)
+NETPERF RESULT IS:              3794.45 (Bigger is better)
+\nReiserfs Sample result (quake17 XEN Beta3)
+-----------------------------------------
+LMBENCH RESULT IS:              580.1000 (Smaller is better)
+REAIM RESULT IS:                7303.49 (Bigger is better)
+TIOBENCH RESULT IS:             1233.67 (Bigger is better)
+BONNIE RESULT IS:               3760075 (Bigger is better)
+DBENCH-DEFAULT-V RESULT IS:     7186.25520 (Bigger is better)
+DBENCH-SYNCIO-V RESULT IS:      33.404745 (Bigger is better)
+NETPERF RESULT IS:              3955.42 (Bigger is better)" >> $output
+#If given $1, send mail
+if [ ! -z "$1" ];then 
+  if [ `grep "relay.suse.de" /etc/postfix/main.cf | wc -l` -eq 0 ];then
+    echo "myhostname = `cat /etc/HOSTNAME`" >> /etc/postfix/main.cf
+    echo "relayhost = relay.suse.de" >> /etc/postfix/main.cf
+    rcpostfix restart > /dev/null
+    sleep 1
+  fi
+  mail -s "Test all results on $HOSTNAME `date +%D`" $1 < $output
+fi
+
+#Submit result
+mount langley.suse.de:/qalog /mnt
+qadir="/mnt/Results/ProductTests/$spnumber/$release/`uname -m`/`uname -n`"
+echo "Now I will submit regression results from $logdir to $qadir."
+/usr/share/qa/tools/qa_db_report.pl -n 1 -p $dbprod -t product -f /var/log/qa/regressionlog -c "regression results"
+su -m rd-qa -c "mkdir -p $qadir; cp -rp $logdir $qadir/regression"
+
+echo "Now I will submit kernel results from $logdir to $qadir."
+/usr/share/qa/tools/qa_db_report.pl -p $dbprod -t product -f $logdir -c "kernel result"
+umount /mnt

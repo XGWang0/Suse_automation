@@ -1,0 +1,30 @@
+body	{
+	background-color: white;
+	color: black;
+}
+
+.options	{
+	border: solid 1px #6484a4;
+	margin: 1.5em .4em 0 .4em;
+	padding: .3em;
+	background-color: #b8cce0;
+}
+
+.options h4	{
+	margin: 0 0 -0.5em 0;
+	position: relative;
+	top:-1em;
+	border: solid 1px gray;
+	padding-left:1em;
+	background-color: #ddd;
+	text-transform: capitalize;
+}
+
+.optgroup	{
+	float: left;
+	margin-bottom: 1em;
+}
+
+.rule	{
+	clear: both;
+}

@@ -1,0 +1,39 @@
+#!/bin/bash				
+source /usr/share/hamsta/testscript/config
+list=$@
+[ $# -lt 1 ] && echo "Usage: $0 <package list>" && exit 1
+
+if ((`id -u`!=0));then
+  echo "you should be root to run this test"
+  exit 1
+fi
+rm -rf $output 
+
+mkdir -p /abuild $logdir/
+#((`ls $logdir/ | wc -l`==0)) || (cd $logdir/../ && tar zcf Oldlog-`date +%F-%H-%M-%S`.tgz ctcs2 && rm -rf $logdir/*)
+
+returncode=0
+# Run test packages, Check package installation
+for suite in $list;do
+  suite=${suite#qa_}
+  if [ -f /usr/share/qa/tools/$suite-run ];then
+    /usr/share/qa/tools/$suite-run
+  elif [ -f /usr/lib/ctcs2/tools/$suite-run ];then
+	if [ "$suite"="newburn" ];then
+		cd /usr/lib/ctcs2
+		./tools/$suite-run
+   	else /usr/lib/ctcs2/tools/$suite-run	
+        fi
+  else
+    echo "$suite-run doesnot exist in /usr/share/qa/tools/ or /usr/lib/ctcs2/tools/. Maybe this package is not installed correctly"
+    ((returncode+=1))
+  fi
+done
+echo "Tests completed. summarizing and submitting..."
+
+# Check test result
+((returncode+=`find $logdir -name test_results -exec grep ^[1-9] {} \; | wc -l`))
+/usr/share/hamsta/testscript/report
+/usr/share/qa/tools/remote_qa_db_report.pl -b -c "QA packages test results on $hn-$ARCH"
+# The returncode means how many errors are met during testing
+exit $returncode

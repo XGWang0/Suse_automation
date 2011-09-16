@@ -1,0 +1,113 @@
+#!/bin/bash
+
+curl=curl
+ssh_enable="ssh=1 sshpassword=susetesting"
+vnc_enable="vnc=1 vncpassword=susetesting"
+
+printhelp()
+{
+	cmd=`basename $0`
+	echo "$cmd by Li Dongyang, based on setupgrubfornfsinstall"
+	echo
+	echo -e "Usage:\t$cmd <CML source> <autoyast XML>"
+	echo -e "  or :\t$cmd <CML source> [<cmdline arguments...>]"
+	echo
+	echo -e "Example:\t$cmd ftp://cml.suse.cz/netboot/find/openSUSE-11.0-RC3-DVD-ia64 http://bender.suse.cz/autoinst/autoinst_vulture.xml"
+	echo -e "\t(yet you perhaps would like to use IP addresses instead of hostnames...)"
+	echo
+	exit 1
+}
+
+if [ "$#" -lt 1 -o "$1" == "--help" ]
+then
+	printhelp
+fi
+
+insturl=$1
+shift
+arch=`uname -m`
+
+curlprobe()
+{
+	local url="$1"
+	$curl -o /dev/null -I -L -f -s "$url" || return 1
+}
+
+if [ $# -lt 2 ]
+then
+	hostip=`ifconfig eth0 | perl -ne 'print $1 if $_=~/addr:((\d{1,3}\.){3}\d{1,3})/'`
+	if [ $# -eq 1 ]
+	then
+		ay_xml=$1
+		shift
+		params="vga=normal autoyast=$ay_xml netdevice=eth0 netwait=10 $hostip install=$insturl"
+	else
+		params="vga=normal netdevice=eth0 netwait=10 $hostip install=$insturl"
+	fi
+else
+	params="$@"
+fi
+
+###add vnc and ssh tag to kernel parameter #######
+#params="$params $ssh_enable $vnc_enable"
+bootloaderconf=/boot/efi/efi/SuSE/elilo.conf
+imagedir='/boot/loader'
+TMPFILE=`mktemp -q /tmp/distinst.XXXXXX`
+if [ $? -ne 0 ]
+then
+	echo "$0: Cannot create temp file, exiting."
+	exit 1
+fi
+imagedir=`mktemp -d -q $imagedir-XXXXXX`
+if [ $? -ne 0 ]
+then
+	echo "$0: Cannot create temp directory, exiting"
+	exit 1
+fi
+mkdir -p "$imagedir"
+
+cleanup()
+{
+	[ -f $TMPFILE ] && rm $TMPFILE
+}
+trap cleanup EXIT
+
+imageurl="$insturl/boot/$arch"
+
+$curl -f -L -o "$imagedir"/image "$imageurl"/image
+
+if [ ! -e "$imagedir"/image ]
+then
+	echo "Could not download image from '$insturl' to '$imagedir'"
+	exit 1
+fi
+
+mount -o loop ${imagedir}/image /mnt
+cp /mnt/efi/boot/initrd `dirname $bootloaderconf`
+cp /mnt/efi/boot/linux `dirname $bootloaderconf`
+umount /mnt
+
+# extract the product part from the URL, ugly but seems to work
+title=`echo $insturl | sed -e 's/\//\n/g' | grep -v '\..\+\.' | awk '{ print length, $0 }' | sort -gr | cut -d\  -f2 | head -n1`
+count=`grep "label = Installation" $bootloaderconf | grep -c "$title"`
+if [ $count -gt 0 ]
+then
+    title="$title ($((count+1)))"
+fi
+
+echo "" >> $bootloaderconf
+echo "image = linux" >> $bootloaderconf
+echo "    label = Installation-$title" >> $bootloaderconf
+echo "    append = \"$params\"" >> $bootloaderconf
+echo "    description = Reinstall" >> $bootloaderconf
+echo "    initrd = initrd" >> $bootloaderconf
+cat $bootloaderconf | grep root -m 1 >> $bootloaderconf
+sync
+
+# start the installation with reboot
+sed "s/^default.*$/default = Installation-$title/" $bootloaderconf > $TMPFILE
+cp -v $TMPFILE $bootloaderconf	# workaround, instead of using perl
+echo "edited bootloader config"
+
+echo "done."
+

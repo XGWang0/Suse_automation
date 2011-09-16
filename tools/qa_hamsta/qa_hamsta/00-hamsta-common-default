@@ -1,0 +1,33 @@
+#
+# This file contains default configuration for hamsta-common
+# (shared between all hamsta packages)
+#
+# Please never edit this file directly, if you want to change
+# anything, do it in a new file. (Files are read in alphabetical
+# order, values from earlier files are overwritten
+# 
+# Don't forget, all values names must be specified by
+# <variable name>=<variable value>
+#
+
+#
+# Multicast configuration
+#
+
+# IMPORTANT:
+# This is a multicast address hamsta master listens on. 
+# However, if hamsta master is not reachable on the client via
+# its multicast address, the value of hamsta_multicast_address
+# can be set to the (real) master's IP of on *client*!. Client 
+# will than connect directly. This can be used when multicast is
+# not routed from client to server and it is not possible/desired
+# to setup multicast-forwarder
+hamsta_multicast_address='239.192.10.10'
+
+hamsta_multicast_port='2000'
+
+#
+# Which port on client is used by master for connection
+#
+hamsta_client_port='2222'
+

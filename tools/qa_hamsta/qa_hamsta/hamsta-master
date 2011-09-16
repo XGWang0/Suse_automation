@@ -1,0 +1,46 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:       hamsta-master
+# Required-Start: $network $remote_fs
+# Required-Stop:  $network $remote_fs
+# Default-Start:  2 3 4 5
+# Default-Stop:
+# Short-Description: Hamsta Master
+# Description: Hamsta master server process. 
+### END INIT INFO
+
+. /etc/rc.status
+rc_reset
+
+PIDFILE='/var/run/hamsta-master.pid'
+
+case "$1" in
+    start)
+        ps aux | grep "SCREEN -S hamsta-master" | grep -v grep > /dev/null
+        [ $? == 0 ] && exit
+        echo -n "Starting Hamsta Master"
+        /usr/sbin/starthamstamaster
+	rc_status -v
+        ;;
+    stop)
+        echo -n "Shutting down Hamsta Master"
+	killall master.pl
+	rc_status -v
+        ;;
+    restart|reload)
+        $0 stop
+	sleep 5
+        $0 start
+	rc_status
+        ;;
+    status)
+        echo -n "Checking for service Hamsta Master"
+        /sbin/checkproc master.pl
+        rc_status -v
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|status}"
+        exit 1
+        ;;
+esac
+

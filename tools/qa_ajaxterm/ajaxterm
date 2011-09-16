@@ -1,0 +1,17 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          qa_ajaxterm
+# Required-Start:    $network
+# Required-Stop:     $network
+# Default-Start:     3 5
+# Default-Stop:      0 1 2 4 6
+# Short-Description: vncd
+# Description: vnc server daemon
+### END INIT INFO
+
+case $1 in
+  "start") /usr/lib/ajaxterm/ajaxterm.py -d > /dev/null 2>&1;;
+  "stop") kill `ps aux | grep ajaxterm.py | awk {'print $2'}` > /dev/null 2>&1;;
+  "restart") /etc/init.d/ajaxterm stop;/etc/init.d/ajaxterm start;;
+  *) echo "unknown command, please use $0 <start|stop|restart>";;
+esac

@@ -1,0 +1,50 @@
+#
+# This file contains default configuration for qa_db_report
+#
+# Please never edit this file directly, if you want to change
+# anything, do it in a new file. (Files are read in alphabetical
+# order, values from earlier files are overwritten
+# 
+# Don't forget, all values names must be specified by
+# <variable name>=<variable value>
+#
+
+#
+# The address of QADB DB server
+#
+qa_db_report_sql_host="qadb.suse.de"
+
+#
+# MySQL port
+#
+qa_db_report_sql_port="3306"
+
+#
+# The QADB database name on QADB DB server
+#
+qa_db_report_sql_db="qadb"
+
+#
+# QADB DB user name
+# 
+qa_db_report_sql_user="hamsta-default"
+
+#
+# QADB DB password
+#
+qa_db_report_sql_pwd=""
+
+#
+# Log archive - where to store the submitted logs
+#
+log_archive_host="qadb.suse.de"
+log_archive_login="rd-qa"
+log_archive_root_path="/suse/rd-qa/Export/Results"
+log_archive_wwwroot="http://w3.suse.de/~rd-qa/Results"
+
+#
+# Log reviewer
+#
+qa_db_report_log_reviewer="vmarsik@suse.cz"
+
+

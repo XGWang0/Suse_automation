@@ -1,0 +1,104 @@
+-------------------------------------------------------------------
+Sun Sep  4 21:55:36 CEST 2011 - llipavsky@suse.cz
+
+- New, updated release from the automation team. Includes:
+- Improved virtual machine handling/QA cloud
+- Rename of QA packages
+- Upgrade support
+- Changed format od /etc/qa files
+- More teststsuites
+- Many bug fixes
+
+-------------------------------------------------------------------
+Tue Aug 16 23:50:51 CEST 2011 - llipavsky@suse.cz
+
+- Package rename: libqainternal -> qa_lib_internalapi
+
+-------------------------------------------------------------------
+Fri Nov 19 11:54:39 CET 2010 - llipavsky@suse.cz
+
+- Fix bnc#546877 - libqainternal - changePassword does not work on 
+  SLES9
+
+-------------------------------------------------------------------
+Thu Jun 10 10:10:53 CEST 2010 - llipavsky@suse.cz
+
+- Support for skip testcase
+
+-------------------------------------------------------------------
+Wed Mar  3 15:41:55 CET 2010 - llipavsky@suse.cz
+
+- fixed errors in perlbinding 
+
+-------------------------------------------------------------------
+Fri Jul 17 15:54:06 CEST 2009 - llipavsky@suse.cz
+
+- Fixed bugs:
++ bnc#521928 - libqainternal - shell binding uses aliases instead 
+               of function
++ bnc#521990 - libqainternal - shell binding - incorrect group 
+               used in addUser function
++ bnc#521930 - libqainternal - does not build for several products
+               in IBS
+
+-------------------------------------------------------------------
+Mon Dec 11 11:25:11 CET 2006 - mmrazik@suse.cz
+
+- fixed strncat compiler warning
+
+-------------------------------------------------------------------
+Fri Sep  1 17:34:09 CEST 2006 - mmrazik@suse.cz
+
+- man pages added
+- removeFromGroup, changePassword functions added
+- addUser has a new (optional) parameter - main group
+- printError/printInfo/etc aliases added
+- backup is now stored in a per-process unique file
+
+-------------------------------------------------------------------
+Tue Aug 22 15:35:00 CEST 2006 - mmrazik@suse.cz
+
+- build errors fixed 
+
+-------------------------------------------------------------------
+Tue Aug 22 15:25:37 CEST 2006 - mmrazik@suse.cz
+
+- code cleanup
+
+-------------------------------------------------------------------
+Tue Aug 15 23:56:03 CEST 2006 - mmrazik@suse.cz
+
+- copy/removeConfig takes care of directories
+- printMessage added to API
+- homes are created in /tmp/home (addUser)
+- perlbinding addapted
+- minor fixes in shell API (synced with C)
+
+-------------------------------------------------------------------
+Thu Aug 09 07:29:41 CEST 2006 - mmrazik@suse.cz
+
+- some minor fixes in documentation
+- shell binding added
+- some minor code cleanup
+
+-------------------------------------------------------------------
+Tue Jul 25 17:42:39 CEST 2006 - mmrazik@suse.cz
+
+- doxygen documentation added
+- some minor code cleanup
+
+-------------------------------------------------------------------
+Wed Jan 25 21:37:41 CET 2006 - mls@suse.de
+
+- converted neededforbuild to BuildRequires
+
+-------------------------------------------------------------------
+Thu Nov 17 17:16:02 CET 2005 - fseidel@suse.de
+
+- specfile fixes
+
+-------------------------------------------------------------------
+Wed Nov 16 11:29:39 CET 2005 - fseidel@suse.de
+
+- initial release
+

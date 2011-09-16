@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<job>
+    <config>
+        <name>LTP-RUN</name>
+        <debuglevel>4</debuglevel>
+        <distributable>0</distributable>
+	<logdir>/tmp</logdir>
+	<rpm>hamsta ltp-ctcs2-glue</rpm>
+    </config>
+
+    <commands>
+    <worker>
+	    <!-- Pre -->
+	    <command execution="forked">#!/bin/bash
+		echo Running LTP in Screen
+		screen -S ltp-hamsta -L -d -m /bin/bash -c '/usr/lib/ctcs2/tools/ltp-run'
+		sleep 1
+		while screen -ls | grep ltp-hamsta > /dev/null ; do sleep 1; done
+		echo Done
+           </command>
+
+	   <directory>/var/log/qa/ctcs2</directory>
+     </worker>
+    </commands>
+</job>

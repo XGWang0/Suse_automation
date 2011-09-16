@@ -1,0 +1,25 @@
+-------------------------------------------------------------------
+Sun Sep  4 21:53:10 CEST 2011 - llipavsky@suse.cz
+
+- New, updated release from the automation team. Includes:
+- Improved virtual machine handling/QA cloud
+- Rename of QA packages
+- Upgrade support
+- More teststsuites
+- Many bug fixes
+
+-------------------------------------------------------------------
+Wed Aug 23 11:44:03 GMT 2011 - llipavsky@suse.cz
+
+- Package rename: qa_lib_use-devel-servers -> qa_conf_unstable
+
+-------------------------------------------------------------------
+Tue Aug 16 21:15:03 GMT 2011 - llipavsky@suse.cz
+
+- Package rename: qa-use-devel-servers -> qa_lib_use-devel-servers
+
+-------------------------------------------------------------------
+Mon Jan 24 16:06:23 CET 2011 - llipavsky@suse.cz
+
+- Initial release
+

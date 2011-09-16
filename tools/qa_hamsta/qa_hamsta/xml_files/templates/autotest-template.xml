@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<job>
+    <config>
+        <name>Autotest (AT_LIST_SHORT)</name>
+        <debuglevel>4</debuglevel>
+        <distributable>0</distributable>
+        <parallel>0</parallel>
+        <mail notify="1">llwang@novell.com</mail>        
+        <logdir>/tmp</logdir>
+        <description>Autotest tests, includes: AT_LIST.</description>
+        <rpm>qa_hamsta qa_tools qa_lib_perl qa_test_autotest qa_lib_ctcs2</rpm>
+        <motd>Be careful, this computer is running the following qa_test_autotest tests: AT_LIST!</motd>
+    </config>
+
+    <commands>
+        <worker>
+            <!-- Required -->
+            <command execution="forked">#!/bin/bash
+		    cd /usr/share/hamsta/testscript 
+		    ./autotest AT_LIST
+	    </command>
+            <!-- Optional -->
+            <directory>/</directory>
+            <timeout>300000</timeout>
+        </worker>
+    </commands>
+</job>

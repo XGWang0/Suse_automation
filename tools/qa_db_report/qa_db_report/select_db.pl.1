@@ -1,0 +1,53 @@
+.\" Process this file with
+.\" groff -man -Tascii select_db.pl.1
+.\"
+.TH "select_db.pl" "QADB" "1"
+.SH NAME
+select_db.pl \- selects QADB to submit results
+.SH SYNOPSIS
+.B select\_db.pl
+- lists known QADB targets
+.br
+.B select\_db.pl
+.I <n>
+- sets a QADB target
+
+.SH DESCRIPTION
+Multiple scripts from the 
+.B qa_tools
+package need to access QADB (mostly the script
+.BR qa_db_report.pl (1)
+).
+This script allows you to easily select which QADB instance to use.
+You can select the production database, or one of the test ones.
+
+Running the script without an argument lists the predefined QADB instances.
+When the predefined instance is already selected, it is marked with an asterisk (*).
+
+Specifying a number
+.I <n>
+causes that you select the
+.I <n>-th
+database from the list.
+The database is then used to store your data, and to a few other minor purposes, like looking for known products.
+
+.SH DETAILS
+During the listing, the script just scans the file
+.I ~/.mysql_loc.rc
+for one of the hardcoded predefined database instances, and marks the found one.
+
+When
+.I <n>
+was specified, the script rewrites the file
+.I ~/.mysql_loc.rc
+with the
+.I <n>-th
+predefined hardcoded instance details.
+
+.SH AUTHOR
+Vilem Marsik <vmarsik@novell.com>
+
+.SH SEE ALSO
+.BR qa_db_report (1), 
+.BR product.pl (1)
+

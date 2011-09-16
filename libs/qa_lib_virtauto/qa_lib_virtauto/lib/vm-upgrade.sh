@@ -1,0 +1,130 @@
+#!/bin/bash
+
+#===============================
+#=== Virtual Machine Upgrade ===
+#===============================
+
+### Usage: vm-upgrade.sh repoURL autoyastfile VMName
+
+export LANG=C
+
+function usage() {
+    cmd=`basename $0`
+    echo "Usage:\t$cmd repoURL autoyastfile VMName"
+    echo "Example:\t$cmd ftp://cml.suse.cz/netboot/find/openSUSE-11.0-RC3-DVD-x86_64 http://bender.suse.cz/autoinst/autoinst_vulture.xml VM_SLES11SP1-pv"
+    exit 1
+}
+
+function curlprobe() {
+    local url="$1"
+    $curl -o /dev/null -I -L -f -s "$url" || return 1
+}
+
+if [ "$#" -lt 3 -o "$1" == "--help" ]
+then
+    usage
+fi
+
+curl=curl
+ssh_enable="ssh=1 sshpassword=susetesting"
+vnc_enable="vnc=1 vncpassword=susetesting"
+
+insturl=$1
+ayfile=$2
+vmname=$3 # Either domUName or domUID works fine
+
+# Get domUIP
+domUmac=`virsh dumpxml sles11132kvm | awk -F"'" '/mac address/ {print $2;exit}'`
+sshNoPass="sshpass -e ssh -o StrictHostKeyChecking=no"
+getSettings="./get-settings.sh"
+netinfoIP=`$getSettings netinfo.ip`
+netinfoUser=`$getSettings netinfo.user`
+netinfoPasswd=`$getSettings netinfo.pass > /dev/null 2>&1`
+domUIP=`export SSHPASS=$pass; $sshNoPass $netinfoUser@$netinfoIP "mac2ip $domUMac"`
+
+# Get vm-user vm-pass
+vmuser=`$getSettings vm.user`
+vmpasswd=`$getSettings vm.pass > /dev/null 2>&1`
+
+# Get domUCPUArch
+dumUCPUArch=`export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP 'uname -m'`
+
+# Set grub parameters
+params="vga=normal autoyast=$ay_xml netdevice=eth0 netwait=10 $domUIP install=$insturl"
+
+# Set kernel params
+bootloaderconf=/boot/grub/menu.lst
+grubpartition=`export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP 'awk "/^root/ {print $2;exit}" < /etc/grub.conf'`
+if [ -z "$grubpartition" ]
+then
+	tmpres=`export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP 'head -1 /etc/grub.conf'`
+	grubpartition=`echo -n $tmpres | awk -F'(' '{print $2}'`
+	grubpartition="(${grubpartition"
+fi
+imagedir='/boot/loader'
+TMPFILE=`export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP 'mktemp -q /tmp/distinst.XXXXXX'`
+if [ $? -ne 0 ]
+then
+    echo "$0: Cannot create temp file, exiting."
+    exit 1
+fi
+imagedir=`export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP 'mktemp -d -q $imagedir-XXXXXX'`
+if [ $? -ne 0 ]
+then
+    echo "$0: Cannot create temp directory, exiting"
+    exit 1
+fi
+export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP 'mkdir -p "$imagedir"'
+
+cleanup()
+{
+    [ -f $TMPFILE ] && rm $TMPFILE
+}
+trap cleanup EXIT
+
+for DIR in "boot/$arch/loader" "boot/loader" "boot/i386/loader" "boot/i586/loader"
+do
+    if curlprobe "$insturl/$DIR/linux"
+    then
+        kernelurl="$insturl/boot/$arch/loader/linux"
+        initrdurl="$insturl/boot/$arch/loader/initrd"
+        break
+    fi
+done
+
+export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP '$curl -f -L -o "$imagedir"/linux "$kernelurl"'
+export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP '$curl -f -L -o "$imagedir"/initrd "$initrdurl"'
+
+ret1=`export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP 'ls "$imagedir"/linux; echo $?'`
+ret2=`export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP 'ls "$imagedir"/initrd; echo $?'`
+if [ $ret1 -ne 0 -o $ret2 -ne 0 ]
+then
+    echo "Could not download image/initrd from '$insturl' to '$imagedir'"
+    exit 1
+fi
+
+# extract the product part from the URL, ugly but seems to work
+title=`echo $insturl | sed -e 's/\//\n/g' | grep -v '\..\+\.' | awk '{ print length, $0 }' | sort -gr | cut -d\  -f2 | head -n1`
+count=`export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP 'grep "title Installation" $bootloaderconf | grep -c "$title"'`
+if [ $count -gt 0 ]
+then
+    title="$title ($((count+1)))"
+fi
+export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP 'echo "" >> $bootloaderconf'
+export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP 'echo "title Installation $title" >> $bootloaderconf'
+export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP 'echo "    kernel $grubpartition$imagedir/linux $params" >> $bootloaderconf'
+export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP 'echo "    initrd $grubpartition$imagedir/initrd" >> $bootloaderconf'
+export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP sync
+
+# start the installation with reboot
+item=`export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP "grep title -c $bootloaderconf"`
+item=$((item-1)) # the new config is written and then its counted
+if [ `export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP "grep '^default' $bootloaderconf | wc -l"` -gt 0 ];then
+    export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP sed  -i "s/^default.*$/default $item/" $bootloaderconf
+else # SLMS creates menu.lst without 'default'
+    export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP sed -i "1idefault $item" $bootloaderconf
+fi
+echo "edited menu.lst"
+echo "done."
+
+

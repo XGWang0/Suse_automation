@@ -1,0 +1,50 @@
+#!/bin/bash
+
+SUBMODULE=""
+PART="$1"
+[ -z "$PART" ] || SUBMODULE="${PART}_"
+
+# needed if we re-source this file - cleanup before reading it again
+if [ ! -z "$full_qa_config" ] ; then
+	for var in `echo "$full_qa_config" | sed 's/=.*//'` ; do
+		unset $var
+	done
+fi
+
+# read all configs in correct order
+set > /tmp/$$.before # read all variables before we processed qa config
+for file in /etc/qa/*
+do
+	if [ -f "$file" -a -r "$file" ]
+	then
+		# do not source rpmsave files
+		echo "$file" | grep -q '\.rpmsave$' || source "$file"
+	fi
+done
+unset file
+
+[ -r ~/.qarc ] && source ~/.qarc
+
+set > /tmp/$$.after # read all variables after we processed qa config
+
+full_qa_config=`diff /tmp/$$.before /tmp/$$.after | grep "^>" | sed 's/^> //' | grep -v "^_=\|PIPESTATUS"`
+
+rm /tmp/$$.after /tmp/$$.before
+
+#
+# Helper functions
+#
+
+# Dump all config
+function dump_qa_config
+{
+	echo "$full_qa_config" | grep "^$SUBMODULE" | sed s/^$SUBMODULE// | sed "s/='\(.*\)'$/=\1/"
+}
+
+# Get one specific config value
+function get_qa_config
+{
+	# This needs the variable to be exported (which is done by var function)
+	eval echo \$$SUBMODULE$1 
+}
+

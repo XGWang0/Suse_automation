@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile SYSTEM "/usr/share/autoinstall/dtd/profile.dtd">
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <configure>
+    <firewall>
+      <start_firewall config:type="boolean">false</start_firewall>
+      <start_firewall config:type="boolean">false</start_firewall>
+    </firewall>
+    <runlevel>
+      <services config:type="list">
+        <service>
+          <service_name>nfs</service_name>
+          <service_status>enable</service_status>
+        </service>
+        <service>
+          <service_name>portmap</service_name>
+          <service_status>enable</service_status>
+        </service>
+        <service>
+          <service_name>hamsta</service_name>
+          <service_status>enable</service_status>
+        </service>
+      </services>
+    </runlevel>
+  </configure>
+  <install>
+    <general>
+      <clock>
+        <hwclock>UTC</hwclock>
+        <timezone>Europe/Prague</timezone>
+      </clock>
+      <keyboard>
+        <keymap>english-us</keymap>
+      </keyboard>
+      <language>en_US</language>
+      <mode>
+        <confirm config:type="boolean">false</confirm>
+      </mode>
+      <signature-handling>
+        <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+        <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+        <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+        <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+        <accept_verification_failed config:type="boolean">false</accept_verification_failed>
+        <import_gpg_key config:type="boolean">true</import_gpg_key>
+      </signature-handling>
+    </general>
+    <report>
+      <errors>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">120</timeout>
+      </errors>
+      <messages>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">30</timeout>
+      </messages>
+      <warnings>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">30</timeout>
+      </warnings>
+      <yesno_messages>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">120</timeout>
+      </yesno_messages>
+    </report>
+  </install>
+</profile>

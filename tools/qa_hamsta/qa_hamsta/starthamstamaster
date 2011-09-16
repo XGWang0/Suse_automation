@@ -1,0 +1,34 @@
+#!/bin/sh
+
+#verify the database status
+DB_type=
+DB_host=
+DB_name=
+DB_user=
+DB_passwd=
+
+#get the DB information
+
+db_host_name=`grep "PDO_" /srv/www/htdocs/hamsta/config.php |sed '/^\s*#/d'|awk -F'[,) (]' '/DATABASE/{gsub(/\"/,"");print $4}'`
+DB_type=${db_host_name%%:*}
+DB_host=${db_host_name##*host=}
+DB_host=${DB_host%%;*}
+DB_name=${db_host_name##*dbname=}
+DB_user=`grep "PDO_USER" /srv/www/htdocs/hamsta/config.php |sed '/^\s*#/d'|awk -F'[,) (]' '{gsub(/\"/,"");print $4}'`
+DB_passwd=`grep "PDO_PASSWORD" /srv/www/htdocs/hamsta/config.php |sed '/^\s*#/d'|awk -F'[,) (]' '{gsub(/\"/,"");printf $4}'`
+
+if [ "$DB_type" == "mysql" ];then
+	if [ "$DB_passwd" == "" ];then
+		passwd_arg=""
+	else
+		passwd_arg="-p$DB_passwd"
+	fi 
+	mysql -u $DB_user -h $DB_host $passwd_arg -e "use hamsta_db;"
+	if [ $? != 0 ];then
+	echo "Database error,please check the database config"
+	exit 1
+	fi
+fi
+
+screen -S hamsta-master -l -d -m /bin/bash -c 'cd /usr/share/hamsta/master; ./master.pl'
+

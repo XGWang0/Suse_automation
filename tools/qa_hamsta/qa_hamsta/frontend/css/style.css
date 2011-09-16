@@ -1,0 +1,161 @@
+table.sort th
+{
+	text-align: right;
+	padding: 3px;
+	color: #000000;
+	font-weight: normal;
+}
+
+table.sort td
+{
+	padding: 2px;
+}
+
+table.list th
+{
+	text-align: center;
+	background-color: #e78f08;
+	padding: 1px;
+	color: #ffffff;
+}
+
+table.list td
+{
+	padding: 2px;
+}
+
+table.list tr
+{
+    text-align:left;
+}
+
+table.shrank tbody {
+        overflow: auto;
+        overflow-x:hidden;
+        height: 25em;
+}
+
+table.shrank td:last-child { 
+	padding-right: 18px; 
+}
+
+th>a>img { border: none; }
+
+td.module_part_head {
+    background-color:#bbb;
+    font-weight:bold;
+    padding-top:5pt;
+    padding-bottom:5pt;
+}
+
+td
+{
+	vertical-align: top;
+	padding: 1px;
+}
+
+h1
+{
+	font-size: 100%;
+	color: #000000;
+	padding: 2px;
+}
+
+h2 {
+    font-size:120%;
+    font-weight:bold;
+}
+
+a {
+    color:#00a;
+}
+
+.file_list a:link, .file_list a:visited { font-size:small;}
+.file_list td { padding-left:1em; padding-right:1em; }
+
+.failmessage
+{
+    color: #333333;
+    padding: 5px;
+    border: 1px solid red;
+    background: #dddddd;
+    margin: 10px;
+    width: 325px;
+    text-align: center;
+}
+.successmessage
+{
+    color: #333333;
+    padding: 5px;
+    border: 1px solid green;
+    background: #dddddd;
+    margin: 10px;
+    width: 300px;
+    text-align: center;
+}
+.failmessage-big
+{
+    color: #333333;
+    padding: 5px;
+    border: 1px solid red;
+    background: #dddddd;
+    margin: 10px;
+    width: 825px;
+    text-align: left;
+}
+.successmessage-big
+{
+    color: #333333;
+    padding: 5px;
+    border: 1px solid green;
+    background: #dddddd;
+    margin: 10px;
+    width: 800px;
+    text-align: left;
+}
+
+#message{
+    background-color: #00E0FF;
+}
+.btrefresh {
+	        background: #F2F2F2;
+		border-bottom: #444444 1px solid;
+		border-left: 1px solid #444444;
+		border-right: 1px solid #444444;
+		border-top: 1px solid #444444;
+		color: #333333;
+		font-family: arial, verdana, sans-serif;
+}
+input[type="submit"] { cursor:move; }
+.tbrefresh {
+		background: #F1F1F1;
+		font-size: 1em;
+		font-family: arial, verdana, sans-serif;
+}
+
+div.vhost_details { 
+	border: solid black;
+	border-width: 1px 0 1px 0;
+	padding: .2em;
+	margin: 1em;
+}
+
+div.vhost_details div { 
+	display: inline; 
+}
+
+
+div.vhost_details div span:first-child { 
+	font-weight: bold;
+	margin-left: 1em;
+}
+
+div.vhost_details div span:first-child:after { 
+	content: ':';
+}
+
+div.vhost table {
+	margin-left: 5em;
+	margin-top: 1em;
+	margin-bottom: 1em;
+}

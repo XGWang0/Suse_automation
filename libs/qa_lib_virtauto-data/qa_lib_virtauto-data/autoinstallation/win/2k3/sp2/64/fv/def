@@ -1,0 +1,56 @@
+[Data]
+AutoPartition=1
+MSDosInitiated=0
+UnattendedInstall="Yes"
+AutomaticUpdates="Yes"
+
+[Unattended]
+UnattendedMode=FullUnattended
+OemSkipEula="Yes"
+OemPreinstall="Yes"
+TargetPath=\WINDOWS
+FileSystem=ConvertNTFS
+Repartition="Yes"
+ExtendOemPartition=1
+
+[GuiUnattended]
+AdminPassword="novell"
+EncryptedAdminPassword="No"
+AutoLogon="Yes"
+OEMSkipRegional=1
+TimeZone=10
+OemSkipWelcome=1
+
+[UserData]
+ProductKey="_____-_____-_____-_____-_____"
+FullName="XenGroup"
+OrgName="Novell"
+ComputerName=*
+
+[Display]
+Xresolution=800
+YResolution=600
+
+[LicenseFilePrintData]
+AutoMode=PerServer
+AutoUsers=5
+
+[Identification]
+JoinWorkgroup=WORKGROUP
+
+[Networking]
+InstallDefaultComponents="Yes"
+
+[WindowsFirewall]
+Profiles=WindowsFirewall.TurnOffFirewall
+
+[WindowsFirewall.TurnOffFirewall]
+Mode=0
+
+[GuiRunOnce]
+"ping 10.10.10.10"
+"ping 10.10.10.11"
+"ping 10.10.10.12"
+"regedit /S D:\2K3-UPDATES.REG"
+"regedit /S D:\2K3-SCREENSAVER.REG"
+"netsh firewall set opmode mode=ENABLE"

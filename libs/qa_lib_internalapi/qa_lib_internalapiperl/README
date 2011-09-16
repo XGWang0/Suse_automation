@@ -1,0 +1,33 @@
+this is the perl-binding subset for the rd-qa internal testscript-api
+libqainternal (which has to be installed for this to work)
+
+
+Compile & Install
+=================
+To compile this u need the swig-framework installed.
+First a 
+"make -f Makefile.swig" and
+"make -f Makefile.swig install" (as root)
+will produce and install the needed wrappers written in c.
+
+Afterwards the typical perl-version of those are needed:
+"perl Makefile.PL", 
+"make" and
+"make install" (as root)
+
+
+
+
+USAGE
+=====
+Just use the libqainternal-perlbinding via
+"use libqainternalperl;"
+
+and later on via libqainternalperl::.... exactly as in the original
+c-library
+the only little difference: when using functions with output via
+arguments (the _out arguments) you have to use reference arguments
+
+As an example you should use the included demo_use_perl.pl 
+program.
+

@@ -1,0 +1,43 @@
+/*
+  PURPOSE:
+  ========
+  - The purpose of this file is to have common CSS declarations that can be used between tools.
+  - The reason for this is because of the many conficting declarations between Hamsta and QADB.
+  - Eventually, we will do a full merge of the CSS declarations between the two tools/libraries
+    and then this file can go away.
+
+  TOC:
+  ====
+  0. global settings
+*/
+
+
+/* 0. global settings */
+.message	{
+	padding: 10px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	width: 750px;
+	text-align: left;
+	font-weight: bolder;
+	border-width: 1px;
+	border-style: solid;
+}
+
+.message img.close	{
+	float: right;
+	margin-top: -6px;
+	margin-left: -6px;
+	height: 16px;
+}
+
+.error	{
+	color: #222;
+	border-color: red;
+	background-color: #fee;
+}
+.success	{
+	color: #222;
+	border-color: green;
+	background-color: #efe;
+}

@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<job>
+    <roles>
+        <role id="0" name="server" num_min="1" num_max="1"/>
+        <role id="1" name="client" num_min="1"/>
+    </roles>
+    <config>
+        <name>qa_ha_ocfs2</name>
+        <debuglevel>4</debuglevel>
+        <distributable>0</distributable>
+        <mail notify="0">vpelcak@suse.cz</mail>        
+        <description>HA cluster setup multimachine job</description>
+        <logdir>/tmp</logdir>
+    </config>
+    <commands>
+     <worker>
+            <!-- Pre -->
+            <command execution="forked" role_id="0">#!/bin/bash
+                zypper in -y qa_test_hacluster
+                /usr/share/qa/qa_test_hacluster/ocfs2_conf_runner.sh -f /ocfs2 -o /dev/disk/by-path/ip-10.20.138.1:3260-iscsi-iqn.2010-11.suse.qa:1d1fc26d-1bf8-47be-b67c-c7bcdb676508-lun-1-part1
+            </command>
+            <command execution="forked" role_id="1">#!/bin/bash
+                #zypper in -y qa_test_hacluster
+                mkdir /ocfs2
+           </command>
+	   <directory>/var/log/qa/ctcs2</directory>
+     </worker>
+    </commands>
+</job>

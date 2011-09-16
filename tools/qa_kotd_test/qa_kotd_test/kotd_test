@@ -1,0 +1,47 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:       kotd_test
+# Required-Start: $network
+# Required-Stop:  $network
+# Default-Start:  2 3 4 5
+# Default-Stop:
+# Short-Description: KOTD test controller
+# Description: Daemon that polls KOTD repositories, installs new kernels and reboots
+### END INIT INFO
+
+. /etc/rc.status
+rc_reset
+
+PIDFILE='/var/run/kotd_test.pid'
+NAME="KOTD test controller"
+
+case "$1" in
+    start)
+        ps aux | grep "kotd_test.pl" | grep -v grep > /dev/null
+        [ $? == 0 ] && exit
+        echo -n "Starting $NAME"
+	screen -S kotd_test -l -d -m /usr/share/qa/tools/kotd_test.pl loop
+	rc_status -v
+        ;;
+    stop)
+        echo -n "Shutting down $NAME"
+	killall kotd_test.pl
+	rc_status -v
+        ;;
+    restart|reload)
+        $0 stop
+	sleep 5
+        $0 start
+	rc_status
+        ;;
+    status)
+        echo -n "Checking for service $NAME"
+        /sbin/checkproc kotd_test.pl
+        rc_status -v
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|status}"
+        exit 1
+        ;;
+esac
+

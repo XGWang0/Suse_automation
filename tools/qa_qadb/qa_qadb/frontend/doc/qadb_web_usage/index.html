@@ -1,0 +1,590 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Using the QADB web frontend</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<style type="text/css">
+body            {
+	background-color:#eee;
+	color:#000;
+	counter-reset:cchapter;
+}
+h2:before       {
+	content: counter(cchapter) ". ";
+	counter-increment:cchapter;
+}
+
+h2      { counter-reset:ssection; }
+h3:before       {
+	content: counter(cchapter) "." counter(ssection) " ";
+	counter-increment:ssection;
+}
+h3	{ counter-reset:ssubsection; }
+h4:before	{
+	content: counter(cchapter) "." counter(ssection) "." counter(ssubsection) " ";
+	counter-increment:ssubsection;
+}
+h2,h3,h4,h5,h6	{
+	margin-top:3em;
+	clear: both;
+}
+table       {
+	border-spacing:0;
+	margin-top: 1em;
+	empty-cells: hide;
+	font-size: 90%;
+}
+th,td   {
+    border: solid 1px black;
+    padding: 2px 4px 2px 4px;
+    }
+th      { background-color: #ccc; }
+td      { 
+	background-color: #fff; 
+	text-align: center;
+}
+ul li      { list-style-type: square; }
+
+hr      { margin: 3em 0 2em 0; }
+.bordered { border: dashed 2px; }
+
+.failed, .r			{ background-color:#eaa; }
+.interr, .wr			{ background-color:#eae; }
+.succ, .i			{ background-color:#aea; }
+.wi				{ background-color:#acc; }
+.m				{ background-color:#eea; }
+.na				{ background-color:#ccc; color: #666; }
+
+img.image-left    { border: dashed 2px; float: left; margin: 0 2em 2em 0; }
+table.table-left  { float: left; margin: 0 2em 2em 0; }
+div.clearer       { clear: both; }
+
+</style>
+</head>
+<body>
+
+<h1>Using the QADB web frontend</h1>
+
+
+<img src="preview.png" alt="funny QADB picture"/>
+
+<ol>
+	<li><a href="#features">Feature overview</a></li>
+	<li><a href="#concepts">Basic concepts</a></li>
+	<li><a href="#interface">User interface</a></li>
+</ol>
+
+
+
+
+<h2><a name="features">Feature overview</a></h2>
+
+<p>
+The main function of the QADB web frontend is viewing test result data.
+It has a multitude of functions:
+</p>
+<ul>
+	<li>searching the results using <b>11+ criteria</b></li>
+	<li>comprehensive <b>submission detail view</b> -  RPM configuration, hwinfo, and included testsuites</li>
+	<li>displaying of individual <b>results</b></li>
+	<li><b>regression analysis</b></li>
+	<li><b>color highlight</b> of failed tests, improvements, and regressions</li>
+	<li>special <b>CSS for printing</b></li>
+	<li>lists can be sorted by one click without reloading</li>
+	<li>associating waivers with known broken testcases</li>
+	<li>benchmark reports and graphs</li>
+	<li>basic administration</li>
+</ul>
+
+<h2><a name="concepts">Basic concepts</a></h2>
+
+<h3>System overview and terminology</h3>
+<img src="qadb_schema.png" alt="QADB schema" class="bordered"/>
+
+<p>
+A <b>TCF file</b> is a file that describes how to run the test.
+It uses the CTCS2 syntax.
+</p>
+
+<p>
+<b>CTCS2</b> is a QA framework that runs tests, stores result logs, and collects system information.
+</p>
+
+<p>
+<b>qa_db_report.pl</b> is a script that puts the CTCS2 logs into QADB.
+</p>
+
+<p>
+<b>QADB</b> is the QA DataBase, it holds the parsed test and benchmark data.
+</p>
+
+<p>
+<b>QADB web frontend</b> is used to view, analyse, and manipulate the results stored in QADB.
+</p>
+
+<h3>Submissions, testsuites, testcases</h3>
+
+<img src="entities.png" alt="entities schema" class="bordered"/>
+
+<p>
+Each individual test is called a <b>testcase</b>.
+</p>
+
+<p>
+<b>Results</b> stored for each testcase include information about how many times the testcase ran, whether it succedded, failed, or had internal errors, and what benchmark data it produced (if any).
+</p>
+
+<p>
+<b>Benchmark data</b>, if produced, are attached to the results.
+</p>
+
+<p>
+Each testcase can produce multiple <b>benchmark numbers</b>.
+They are associated with <b>benchmark parts</b>, a textual annotation describing the meaning of the data.
+</p>
+
+<p>
+A <b>testsuite</b> (also called <b>TCF</b>) is a set of individual testcases.
+</p>
+
+<p>
+A <b>TCF group</b> is a record of a single run of a testsuite (a TCF file) on a specific machine.
+It can contain zero or more results, and is part of a submission.
+A date of the run and a link to the result logs are attached to every TCF group.
+</p>
+
+<p>
+A <b>submission</b> is produced every time a user submits testing data related to one machine.
+It holds details about product, release, architecture, hwinfo, rpm list, and others, and zero or more TCF groups.
+</p>
+
+<p>
+A submission can be of following <b>submission types</b>: a <b>product test</b>, a <b>kernel of the day (KOTD) test</b>, or a <b>maintenance test</b>.
+</p>
+
+
+<h3>Waivers</h3>
+<p>
+A <b>waiver</b> is a record about a <b>testcase known to be broken</b>.
+It can apply to all platforms, or just to some (when the testcase is broken only on these platforms).
+The regression tool uses this information to supress regression reports on known broken tests.
+</p>
+
+<p>
+A waiver consists of two parts : <b>waiver main record</b> with the problem description, and zero or more <b>waiver details</b> with information about product, release, and architecture (optional), plus info whether the testcase is broken or works OK on that configuration.
+</p>
+
+
+<h2><a name="interface">User interface</a></h2>
+<p>
+Here follows a brief description of the user interface pages.
+</p>
+
+<h3>Getting access</h3>
+<p>
+Currently you need a MySQL login for that.
+Ask Vilem Marsik or someone from the QA team to do so.
+</p>
+<p>
+New users are added by the following command:
+</p>
+<code>GRANT SELECT,INSERT,UPDATE,DELETE ON qadb.* TO &lt;username&gt;@'%' IDENTIFIED BY '&lt;password&gt;';</code>
+
+<h3>Layout and common controls</h3>
+<p>
+A page on the frontend usually consists of the following elements:
+</p>
+<a href="layout.png"><img src="layout.png" alt="screenshot of QADB web interface" height="220" width="280" class="image-left"/></a>
+<ol>
+	<li>The <b>main menu</b> allows access to all the various pages and tools of the frontend.</li>
+	<li><b>Card tabs</b> switch between different parts of the page</li>
+	<li>A <b>search form</b></li>
+	<li>A <b>search submit button</b> that initiates a new search</li>
+	<li>A <b>results table</b> showing the results of the last search.
+	<ul>
+		<li>the icon in the upper left corner can shrink large tables to 25 rows <em>(currently only works in Firefox</em></li>
+		<li>black column headers are clickable - click to sort the results by this column</li>
+	</ul></li>
+</ol>
+
+
+<h3>The home page</h3>
+<p>
+This is the front page of the QADB web frontend.
+It contains three important elements:
+</p>
+<a href="home.png"><img src="home.png" alt="home page" height="225" width="190" class="image-left"/></a>
+<ol>
+	<li>The <b>username</b> (if the user is logged in)</li>
+	<li>Some <b>statistics</b> about the contents of the database</li>
+	<li>(only if logged in) A link that rebuilds the benchmark statistics table (this can take a long time)</li>
+</ol>
+
+<h4><a name="bench_stats">Benchmark statistics table</a></h4>
+<p>
+<em>(Most users will not need this functionality.)</em>
+</p>
+<p>
+The <b>benchmark statistics table</b> shows what testsuites and testcases
+contain benchmark data, so that the viewer can easily find them.
+</p>
+<p>
+The statistics are cached in a separate database table for faster access.
+The cache can be rebuilt as needed using the "rebuild" link (requires a login).
+</p>
+<p>
+(<b>Note:</b> The rebuild always rescans the whole data and so can be very time consuming.
+If you created a new benchmark, it is recommended to import its results first and then start a rebuild.)
+</p>
+
+<h3>Results</h3>
+<p>
+This page shows the results of individual tests.
+This page can be accessed directly using the submission ID (this displays <em>all</em> submission data), or through the submission list (which also allows to filter the data by testsuite).
+</p>
+<a href="results.png"><img class="image-left" src="results.png" alt="the results screen" height="358" width="478"/></a>
+
+<p>
+Page elements:
+</p>
+<ol>
+	<li>the <b>search form</b> (enter a <b>submission ID</b> to directly inspect that submission) </li>
+	<li><b>submission details</b> with basic testhost info</li>
+	<li><b>list of results</b></li>
+</ol>
+<p>
+Failed tests are highlighted in red color; pink highlight marks tests that terminated due to an internal error.
+</p>
+<p>
+The <b>waiver column</b> contains information about a waiver related to the particular test, and a button that allows to edit the waiver, or add a new one.
+(See the <b>waiver</b> section for more details.)
+</p>
+
+<h3>Submissions</h3>
+<p>
+This page has multiple sections and provides the following functionality (see following sections for details):
+</p>
+<ul>
+	<li>search for submissions</li>
+	<li>search for TCF records (testsuite runs) and testcase runs</li>
+	<li>search for benchmark data</li>
+	<li>view testsuites run in a submission</li>
+	<li>view submission's RPM list and hwinfo (when provided)</li>
+	<li>edit submission's active flag, comment, and assign a related submission</li>
+	<li>delete some submission's testsuites, or delete the whole submission</li>
+</ul>
+
+<h4>Search form</h4>
+<p>
+The search form has three tabs allowing for searching in <b>submissions</b>, <b>TCFs</b> and <b>benchmarks</b>.
+(Some fields in the form will change according to what tab is selected, but in all three modes it allows to search for a product, release, architecture, host, tester, date, activity flag, comment, or submission ID.
+</p>
+<a href="submissions1.png"><img class="image-left" src="submissions1.png" alt="submissions search form" height="164" width="246"/></a>
+
+<ul>
+<li>
+<b>submissions</b> search: you search for submissions, and you can specify one of the submission types - KOTD, product testing, maintenance testing, and ANY (combination of the three ones).
+If you leave the field to 'just submissions', the system won't care about the submission type, displays them all, but without the type details.
+</li>
+
+<li>
+<b>TCFs</b> search: you search for a TCF record, which is a run of a TCF file (usually a testsuite) on a test machine.
+A submission can have multiple testsuites, in which case you will see one submission ID on multiple rows.
+When you click on the tcfID in the result table, you will see its result list.
+</li>
+
+<li>
+<b>benchmarks</b> search: searches tests with attached benchmark results (see <a href="#bench_stats">benchmark statistics table</a>). See also <a href="#bench_search">benchmark search</a>.
+</li>
+
+</ul>
+
+<h4>The result table</h4>
+
+<p>
+After submitting the form, the result table appears:
+</p>
+<a href="submissions2.png"><img class="bordered" src="submissions2.png" alt="submission list" height="68" width="364"/></a>
+<p>
+Click on a submissionID to view submission's details.
+</p>
+
+<h3>Submission details</h3>
+<p>
+This page shows information about a submission.
+</p>
+<a href="submissions3.png"><img class="image-left" src="submissions3.png" alt="submission details" height="210" width="395"/></a>
+<p>
+Elements on this page:
+</p>
+<ol>
+	<li>details about the test system</li>
+	<li>buttons to list all results, see hwinfo, and see RPM listing</li>
+	<li>buttons for field editing and for deleting the whole submission</li>
+	<li>testsuite listing</li>
+	<li>button for deleting a testsuite from the submission</li>
+	<li>button for editing the <tt>logs_url</tt> field</li>
+</ol>
+
+<h4>Editing the submission</h4>
+<p>
+This form allows to edit a submission.
+It is opened by clicking the 'Edit...' button in the submission information page.
+</p>
+<a href="submissions4.png"><img class="image-left" src="submissions4.png" alt="editing submission" height="261" width="424"/></a>
+<p>
+Following fields are available for editing:
+</p>
+<ul>
+	<li>activity flag</li>
+	<li>comment</li>
+	<li>submissionID of a related submission (must be either empty, or contain a submissionID of already existing submission, otherwise the form cannot be submitted)</li>
+</ul>
+
+<h3><a name="bench_search">Benchmark search</a></h3>
+<p>
+<em>(Benchmark search is now integrated with the submissions search.)</em>
+</p>
+<p>
+This form is located under the tab <b>benchmarks</b> on the <b>submissions</b> page.
+A set of submission search criteria can be specified, plus a benchmark testsuite.
+</p>
+
+<p>
+After submitting, an additional form appears, allowing to specify how the benchmark report should be generated:
+</p>
+<a href="benchmarks1.png"><img class="image-left" src="benchmarks1.png" alt="benchmark select" height="116" width="472"/></a>
+<ul>
+	<li><b>checkboxes</b> in the result table: only the checked testsuites are displayed</li>
+	<li><b>group by</b> combo: the fields used to split data into different graph series</li>
+	<li><b>graph width, graph height</b></li>
+	<li><b>legend pos</b>: position of the legend box <em>(change this if it interferes with your graphs)</em></li>
+	<li><b>font size</b>: smallest(1) to largest(5)</li>
+</ul>
+<p>
+After submitting, the benchmark report is generated.
+</p>
+
+<h3>The benchmark report</h3>
+<p>
+A benchmark report consists of tables and graphs.
+</p>
+
+<h4>Benchmark tables</h4>
+<a href="benchmarks2.png"><img src="benchmarks2.png" alt="benchmark table" width="298" height="147" class="image-left"/></a>
+<p>
+Elements in the table:
+</p>
+<ol>
+	<li>the 'group by' value</li>
+	<li>X-axis values</li>
+	<li>Y-axis values including graph color</li>
+	<li>individual test results</li>
+	<li>average and standard deviation</li>
+</ol>
+
+<h4>Benchmark graphs</h4>
+<a href="benchmarks3.png"><img class="image-left" src="benchmarks3.png" alt="benchmark graph" height="300" width="409"/></a>
+<p>
+Elements in the graph:
+</p>
+<ul>
+	<li>individual results are drawn as points</li>
+	<li>averages are linked with a line</li>
+	<li>deviation is drawn as 'I'-shapes</li>
+</ul>
+
+<h4>Multiple graphs per benchmark</h4>
+<p>
+Usually, the report contains one table and graph for each benchmark.
+Some benchmarks can produce multiple tables/graphs, when having multiple <b>bench parts</b> that differ in their middle section.
+</p>
+<p>
+The <b>bench parts</b> describe the meaning of various numeric values from the benchmarks.
+They are semicolon-separated list of key/value pairs, except for the last item that is the name of numeric units.
+First pair describes the X-axis, additional pairs are translated into table/graph pairs with the given values.
+</p>
+<p>
+EXAMPLE: 
+dbench uses following part series by default:
+</p>
+<pre>
+processes=1;sync=0;MB/s
+processes=2;sync=0;MB/s
+...
+processes=500;sync=0;MB/s
+</pre>
+<p>
+When ran with synchronization, following parts are used:
+</p>
+<pre>
+processes=1;sync=1;MB/s
+processes=2;sync=1;MB/s
+...
+processes=500;sync=1;MB/s
+</pre>
+<p>
+When mixing the data into one set, two graphs are obtained:
+</p>
+<ol>
+	<li>graph for 'sync=0', with 'processes=1'...'processes=500' on the X-axis</li>
+	<li>graph for 'sync=1', with the same X-axis</li>
+</ol>
+
+
+<h3>Regressions</h3>
+<p>
+The regression tool compares two submissions, and looks for improvements and regressions in their test results.
+</p>
+<a href="regressions.png"><img class="image-left" src="regressions.png" alt="regression tool" height="364" width="348"/></a>
+<p>
+The elements on the page:
+</p>
+<ol>
+	<li>the search form - enter two submission IDs</li>
+	<li>details of the old / reference submission</li>
+	<li>details of the new / candidate submission</li>
+	<li>listing of testcases that behave differently</li>
+	<li>buttons to create / view waiver records</li>
+</ol>
+<p>
+Entries are color coded: regressions are <b>red</b>, weak regressions are <b>light red</b>, improvements are <b>green</b>, weak improvements are <b>cyan</b>.
+Testcases with a waiver are printed in bold.
+</p>
+<p>
+(There is a waiver button for every testcase, allowing for viewing, editing, or adding a waiver.)
+</p>
+
+<h4>The algorithm for evaluating improvements/regressions</h4>
+<p>
+The algorithm first compares results from the same testcases, computing the result according to the following table:
+</p>
+<table class="table-left">
+<tbody>
+	<tr><th rowspan="2" colspan="2"></th><th colspan="4">Candidate</th></tr>
+	<tr><th class="interr">IntErr</th><th class="succ">Succeeded</th><th class="failed">Failed</th><th class="m">missing</th></tr>
+	<tr><th rowspan="4">Reference</th><th class="interr">IntErr</th><td class="na">not shown</td><td class="wi">Weak Improvement</td><td class="wr">Weak Regression</td><td class="m" rowspan="3">missing</td></tr>
+	<tr><th class="succ">Succeeded</th><td class="wr">Weak Regression</td><td class="na">not shown</td><td class="r">Regression</td></tr>
+	<tr><th class="failed">Failed</th><td class="wr">Weak Regression</td><td class="i">Improvement</td><td class="na">not shown</td></tr>
+	<tr><th class="m">missing</th><td class="m" colspan="3">missing</td><td class="na">not shown</td></tr>
+</tbody>
+</table>
+
+<div class="clearer"></div>
+
+<p>
+If a waiver is present for some of the testcases, the result is adjusted as shown in the following table.
+Generally, for tests that are known to be broken, the results are completely hidden;
+for tests that are possibly broken, the improvement/regression result is weakened.
+</p>
+<table class="table-left">
+<tbody>
+	<tr><th rowspan="2"></th><th colspan="10">Waivers</th></tr>
+	<tr><th>0</th><th>WRC0</th><th>W</th><th>WC0</th><th>WR0</th><th>WR1</th><th>WC1</th><th>WRC1</th><th>WR1C0</th><th>WR0C1</th></tr>
+	<tr><th class="wi">WI</th><td class="wi" colspan="6">WI</td><td rowspan="5" colspan="4" class="na">not shown</td></tr>
+	<tr><th class="i">I</th><td class="i" colspan="2">I</td><td class="wi" colspan="4">WI</td></tr>
+	<tr><th class="wr">WR</th><td class="wr" colspan="6">WR</td></tr>
+	<tr><th class="r">R</th><td class="r" colspan="2">R</td><td class="wr" colspan="4">WR</td></tr>
+	<tr><th class="m">M</th><td class="m" colspan="6">M</td></tr>
+</tbody>
+</table>
+<p>
+<b>States: WI</b> - weak improvement, <b>I</b> - improvement, <b>WR</b> - regression, <b>R</b> - regression, <b>M</b> - missing
+</p>
+<p>
+<b>Waivers:</b><br/>
+<b>0</b> - no waiver for that testcase<br/>
+<b>W</b> - waiver for testcase exists, but neither system matches details (nonexact match)<br/>
+<b>WC0</b> - waiver with exact match for candidate, type 'no problem'<br/>
+<b>WC1</b> - waiver with exact match for candidate, type 'problem'<br/>
+<b>WR0</b> - waiver with exact match for candidate, type 'no problem'<br/>
+<b>WR1</b> - waiver with exact match for reference, type 'problem'<br/>
+<b>WRC0</b> - waiver with exact match for both candidate and reference, both are of type 'no problem'<br/>
+<b>WRC1</b> - waiver with exact match for both candidate and reference, both are of type 'problem'<br/>
+<b>WR1C0</b> - waiver with exact match for both candidate and reference, reference is 'problem', candidate is 'no problem'<br/>
+<b>WR0C1</b> - waiver with exact match for both candidate and reference, reference is 'no problem', candidate is 'problem'<br/>
+</p>
+<p>
+An <b>exact match</b> means that all testcase, product, release, and architecture match exactly.
+</p>
+
+<h3>The main waiver page</h3>
+<p>
+The main waiver page allows for searching, viewing, editing, or deleteting main waiver records.
+</p>
+<a href="waiver1.png"><img class="image-left" src="waiver1.png" alt="waiver search form" height="131" width="292"/></a>
+<p>
+The page elements:
+</p>
+<ol>
+	<li>the search form</li>
+	<li>found waivers</li>
+	<li>buttons to edit/delete the waiver</li>
+</ol>
+
+<h3>Waiver detail list</h3>
+<p>
+The waiver detail list allows to view, edit, add or delete details related to a main waiver record.
+</p>
+<a href="waiver2.png"><img class="image-left" src="waiver2.png" alt="waiver detail list" height="184" width="291"/></a>
+<p>
+The elements on the page:
+</p>
+<ol>
+	<li>overview of the main waiver record</li>
+	<li>list of related details</li>
+	<li>buttons to edit / delete the details</li>
+	<li>button to add new detail</li>
+</ol>
+<p>
+Clicking on the waiverID shows the detail page for the waiver.
+</p>
+
+<h3>Editing waiver detail</h3>
+<p>
+This form is used to create a new waiver detail, or to edit an existing one.
+(An overview of the main waiver record is placed on the bottom for easier orientation.)
+</p>
+<a href="waiver3.png"><img src="waiver3.png" alt="editing waiver detail" class="bordered" height="134" width="304"/></a>
+
+<h3>Searching waiver details</h3>
+<p>
+This form allows to search for waiver details without knowing the master waiver record.
+</p>
+<a href="waiver4.png"><img class="image-left" src="waiver4.png" alt="searching waiver detail" height="197" width="320"/></a>
+<p>
+Form elements:
+</p>
+<ol>
+	<li>search form</li>
+	<li>listing of found details</li>
+	<li>buttons to edit/delete the details</li>
+</ol>
+<p>
+(Clicking on the waiver_tcID number allows to show/edit the detail.
+Clicking on the waiverID number brings on the master waiver page.)
+</p>
+
+<h3>QADB board</h3>
+<p>
+QADB has a simple board system.
+Here you can read and write news, messages to QADB users, problems, or wishes about new features.
+</p>
+<a href="board1.png"><img src="board1.png" alt="QADB board" width="317" height="312" class="image-left"/></a>
+<ol>
+	<li>editor box</li>
+	<li>submit button</li>
+	<li>board topics - last updates first</li>
+	<li>buttons to edit or delete the post</li>
+</ol>
+
+
+<div class="clearer"></div>
+
+<p>
+<img src="http://www.w3.org/Icons/valid-xhtml10-blue" alt="Valid XHTML 1.0 Transitional" height="31" width="88" />
+</p>
+
+
+</body>
+</html>

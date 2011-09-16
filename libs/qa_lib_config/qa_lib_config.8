@@ -1,0 +1,59 @@
+." Manpage for qa_lib_config.
+." Contact David Mulder <dmulder@novell.com> to correct errors or typos.
+.TH man 8 "11 Jul 2011" "1.0" "qa_lib_config man page"
+.SH NAME
+qa_lib_config
+.SH SYNOPSIS
+Configuration system used by QA packages.
+.SH TYPE
+lib
+.SH DESCRIPTION
+Contains shell and perl binding for working with qa configuraiton /etc/qa.
+.br
+All (except for web frontends - since they do not have access to /etc) our tools now use package qa_lib_config to read its configuration.
+.br
+All QA tools now store their configuration in /etc/qa. This directory contain many different files, files are read in alphabetical order, the latter overwrite the former. If some configuration values need to be modified by the user, it is reccomended that new values are added into the file 99-local.conf or custom confuguration rpm is created. Each user can also have his own ~/.qarc which is read after all above!
+.br
+The format of the files is very simple the config value is defined as
+.br
+varname='value'
+.br
+To access the config in bash code, source /usr/share/qa/lib/config [module] and use function get_qa_config(<var name>). It is reccommended to always source with module argumetn, even when it is empty (source /usr/share/qa/lib/config ''), since otherwise environment $1 is passed to sourced file, which may lead to unexpected failures! See http://fixunix.com/help/10524-curious-bash-source-behaviour-comments.html for details)
+.br
+To acces it in perl, just do 
+.br
+use qaconfig;
+.br
+and you can access the config values via %qaconf hash:
+.br
+$qaconf{<var name>}
+.br
+To access variables with common prefix (hamsta_master_XYZ for example), hash of values can be obtained by get_qa_config() function (result will contain varialble XYZ, not hamsta_master_XYZ):
+.br
+use qaconfig qw(get_qa_config);
+.br
+%config_module = get_qa_config("prefix");
+.SH README
+None.
+.SH OPTIONS
+None.
+.SH WHAT IT DOES
+None.
+.SH COMMON PROBLEMS
+None.
+.SH WARNINGS
+None.
+.SH SEE ALSO
+None.
+.SH BUGS
+No known bugs.
+.SH DISTRIBUTION
+None.
+.SH LICENSE
+None.
+.SH UPSTREAM
+None.
+.SH AUTHOR
+Lukas Lipavsky <llipavsky@suse.cz>
+.SH MAINTAINER
+Lukas Lipavsky <llipavsky@suse.cz>

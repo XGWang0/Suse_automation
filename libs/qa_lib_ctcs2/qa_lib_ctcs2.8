@@ -1,0 +1,41 @@
+." Manpage for qa_lib_ctcs2.
+." Contact David Mulder <dmulder@novell.com> to correct errors or typos.
+.TH man 8 "11 Jul 2011" "1.0" "qa_lib_ctcs2 man page"
+.SH NAME
+ctcs2
+.SH SYNOPSIS
+/usr/lib/ctcs2/tools/run [-t] <testsuite.tcf>
+.SH TYPE
+tool
+.SH DESCRIPTION
+CTCS2 is our primary test runner for automated tests. It is the engine by which most of our automated tests are run and initial results generated. Tests launched via Hamsta are executed using CTCS2.
+.br
+It was based on upstream project, however now it is a completely different tool.
+.SH README
+None. 
+.SH OPTIONS
+.B \-t
+.br
+.B \--timestamp Switch on logging timestamps to file timestamp_log in log directory.
+.SH WHAT IT DOES
+The CTCS2 framework executes all tests according to provided TCF (test control file) file.
+.br
+Results are stored in /var/log/qa/ctcs2/<testsuite>-<timestamp> if run as root, or in $HOME/var-log-qa/ctcs2/<testsuite>-<timestamp> if run as non-root. If env. variable TESTS_LOGDIR is set, results are stored in $TESTS_LOGDIR/ctcs2/<testsuite>-<timestamp>.
+.SH COMMON PROBLEMS
+None.
+.SH WARNINGS
+None.
+.SH SEE ALSO
+None.
+.SH BUGS
+No known bugs.
+.SH DISTRIBUTION
+Internal (partially). Lots of our own code. Absolutely provide this.
+.SH LICENSE
+License: GPL v2; GPL v2 or later. Spec file license: GPL v2 or later. Upstream project is originally from VA Linux Systems, however, we have changed so much of it that it would be impossible to contribute back to the original project; rather, we'd have to release it as a new one.
+.SH UPSTREAM
+http://
+.SH AUTHOR
+Jason T. Collins <jcollins@valinux.com>
+.SH MAINTAINER
+Lukas Lipavsky <LLipavsky@novell.com>

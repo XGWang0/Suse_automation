@@ -1,0 +1,127 @@
+#!/bin/bash
+
+curl=curl
+ssh_enable="ssh=1 sshpassword=susetesting"
+vnc_enable="vnc=1 vncpassword=susetesting"
+
+printhelp()
+{
+	cmd=`basename $0`
+	echo "$cmd by vmarsik, based on setupgrubfornfsinstall"
+	echo
+	echo -e "Usage:\t$cmd <CML source> <autoyast XML>"
+	echo -e "  or :\t$cmd <CML source> [<cmdline arguments...>]"
+	echo
+	echo -e "Example:\t$cmd ftp://cml.suse.cz/netboot/find/openSUSE-11.0-RC3-DVD-x86_64 http://bender.suse.cz/autoinst/autoinst_vulture.xml"
+	echo -e "\t(yet you perhaps would like to use IP addresses instead of hostnames...)"
+	echo
+	exit 1
+}
+
+if [ "$#" -lt 1 -o "$1" == "--help" ]
+then
+	printhelp
+fi
+
+insturl=$1
+shift
+arch=`uname -m`
+
+curlprobe()
+{
+	local url="$1"
+	$curl -o /dev/null -I -L -f -s "$url" || return 1
+}
+
+if [ $# -lt 2 ]
+then
+	hostip=`ifconfig eth0 | perl -ne 'print $1 if $_=~/addr:((\d{1,3}\.){3}\d{1,3})/'`
+	if [ $# -eq 1 ]
+	then
+		ay_xml=$1
+		shift
+		params="vga=normal autoyast=$ay_xml netdevice=eth0 netwait=10 $hostip install=$insturl"
+	else
+		params="vga=normal netdevice=eth0 netwait=10 $hostip install=$insturl"
+	fi
+else
+	params="$@"
+fi
+
+###add vnc and ssh tag to kernel parameter #######
+#params="$params $ssh_enable $vnc_enable"
+bootloaderconf=/boot/grub/menu.lst
+grubpartition=`awk '/^root/ {print $2;exit}' < /etc/grub.conf`
+if [ -z "$grubpartition" ]
+then
+	grubpartition=`perl -ne 'print "$1\n" if $_=~/setup.+(\(hd\d+,\d+\))/' /etc/grub.conf | head -n 1`
+fi
+imagedir='/boot/loader'
+TMPFILE=`mktemp -q /tmp/distinst.XXXXXX`
+if [ $? -ne 0 ]
+then
+	echo "$0: Cannot create temp file, exiting."
+	exit 1
+fi
+imagedir=`mktemp -d -q $imagedir-XXXXXX`
+if [ $? -ne 0 ]
+then
+	echo "$0: Cannot create temp directory, exiting"
+	exit 1
+fi
+mkdir -p "$imagedir"
+
+cleanup()
+{
+	[ -f $TMPFILE ] && rm $TMPFILE
+}
+trap cleanup EXIT
+
+case $insturl in
+        *i386*) arch="i386";;
+        *i586*) arch="i386";;
+        *x86_64*) arch="x86_64";;
+esac
+
+for DIR in "boot/$arch/loader" "boot/loader" "boot/i386/loader" "boot/i586/loader"
+do
+	if curlprobe "$insturl/$DIR/linux"
+	then
+		kernelurl="$insturl/boot/$arch/loader/linux"
+		initrdurl="$insturl/boot/$arch/loader/initrd"
+		break
+	fi
+done
+
+$curl -f -L -o "$imagedir"/linux "$kernelurl"
+$curl -f -L -o "$imagedir"/initrd "$initrdurl"
+
+if [ ! -e "$imagedir"/linux -o ! -e "$imagedir"/initrd ]
+then
+	echo "Could not download image/initrd from '$insturl' to '$imagedir'"
+	exit 1
+fi
+
+# extract the product part from the URL, ugly but seems to work
+title=`echo $insturl | sed -e 's/\//\n/g' | grep -v '\..\+\.' | awk '{ print length, $0 }' | sort -gr | cut -d\  -f2 | head -n1`
+count=`grep "title Installation" $bootloaderconf | grep -c "$title"`
+if [ $count -gt 0 ]
+then
+	title="$title ($((count+1)))"
+fi
+echo "" >> $bootloaderconf
+echo "title Installation $title" >> $bootloaderconf
+echo "    kernel $grubpartition$imagedir/linux $params" >> $bootloaderconf
+echo "    initrd $grubpartition$imagedir/initrd" >> $bootloaderconf
+sync
+
+# start the installation with reboot
+item=`grep title -c $bootloaderconf`
+item=$((item-1)) # the new config is written and then its counted
+if [ `grep '^default' $bootloaderconf | wc -l` -gt 0 ];then
+    sed  -i "s/^default.*$/default $item/" $bootloaderconf
+else # SLMS creates menu.lst without 'default'
+    sed -i "1idefault $item" $bootloaderconf
+fi
+echo "edited menu.lst"
+echo "done."

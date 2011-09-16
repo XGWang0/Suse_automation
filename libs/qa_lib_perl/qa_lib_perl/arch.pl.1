@@ -1,0 +1,28 @@
+.\" Process this file with
+.\" groff -man -Tascii arch.pl.1
+.\"
+.TH "arch.pl" "1"
+.SH NAME
+arch.pl \- guesses machine's architecture
+.SH SYNOPSIS
+.B arch.pl
+.SH DESCRIPTION
+.B arch.pl guesses machine's location.
+The location is based on the output of
+.I uname -m
+
+If running under Xen,
+.I xen0-
+is prefixed in the case of Dom0,
+.I xenU-
+in the case of DomU.
+
+All i386, i486, i586, and i686 are reported as i586.
+
+.SH AUTHOR
+Vilem Marsik <vmarsik@novell.com>
+
+.SH "SEE ALSO"
+.BR location.pl (1)
+.BR product.pl (1)
+.BR remote_qa_db_report.pl

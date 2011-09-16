@@ -1,0 +1,347 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <bootloader>
+    <device_map config:type="list">
+      <device_map_entry>
+        <firmware>hd0</firmware>
+        <linux>/dev/hda</linux>
+      </device_map_entry>
+    </device_map>
+    <global>
+      <activate>true</activate>
+      <boot_root>true</boot_root>
+      <default>Linux</default>
+      <generic_mbr>true</generic_mbr>
+      <gfxmenu>/boot/message</gfxmenu>
+      <lines_cache_id>2</lines_cache_id>
+      <timeout config:type="integer">8</timeout>
+    </global>
+    <initrd_modules config:type="list">
+      <initrd_module>
+        <module>piix</module>
+      </initrd_module>
+      <initrd_module>
+        <module>processor</module>
+      </initrd_module>
+      <initrd_module>
+        <module>thermal</module>
+      </initrd_module>
+      <initrd_module>
+        <module>fan</module>
+      </initrd_module>
+      <initrd_module>
+        <module>xen-vbd</module>
+      </initrd_module>
+      <initrd_module>
+        <module>xen-vnif</module>
+      </initrd_module>
+      <initrd_module>
+        <module>reiserfs</module>
+      </initrd_module>
+      <initrd_module>
+        <module>edd</module>
+      </initrd_module>
+    </initrd_modules>
+    <loader_type>grub</loader_type>
+    <sections config:type="list">
+      <section>
+        <append>resume=/dev/hda1 hda=noprobe splash=silent showopts</append>
+        <image>/boot/vmlinuz</image>
+        <initial>1</initial>
+        <initrd>/boot/initrd</initrd>
+        <kernel>/boot/vmlinuz</kernel>
+        <lines_cache_id>0</lines_cache_id>
+        <name>Linux</name>
+        <original_name>linux</original_name>
+        <root>/dev/hda2</root>
+        <type>image</type>
+        <vga>0x314</vga>
+        <vgamode>0x314</vgamode>
+      </section>
+      <section>
+        <append>showopts ide=nodma apm=off acpi=off noresume hda=noprobe edd=off 3</append>
+        <image>/boot/vmlinuz</image>
+        <initrd>/boot/initrd</initrd>
+        <kernel>/boot/vmlinuz</kernel>
+        <lines_cache_id>1</lines_cache_id>
+        <name>Failsafe</name>
+        <original_name>failsafe</original_name>
+        <root>/dev/hda2</root>
+        <type>image</type>
+        <vga>normal</vga>
+        <vgamode>normal</vgamode>
+      </section>
+    </sections>
+  </bootloader>
+  <firewall>
+    <FW_ALLOW_FW_BROADCAST_DMZ>no</FW_ALLOW_FW_BROADCAST_DMZ>
+    <FW_ALLOW_FW_BROADCAST_EXT>no</FW_ALLOW_FW_BROADCAST_EXT>
+    <FW_ALLOW_FW_BROADCAST_INT>no</FW_ALLOW_FW_BROADCAST_INT>
+    <FW_DEV_DMZ></FW_DEV_DMZ>
+    <FW_DEV_EXT>any eth-bus-none-vif-0</FW_DEV_EXT>
+    <FW_DEV_INT></FW_DEV_INT>
+    <FW_FORWARD_ALWAYS_INOUT_DEV></FW_FORWARD_ALWAYS_INOUT_DEV>
+    <FW_FORWARD_MASQ></FW_FORWARD_MASQ>
+    <FW_IGNORE_FW_BROADCAST_DMZ>no</FW_IGNORE_FW_BROADCAST_DMZ>
+    <FW_IGNORE_FW_BROADCAST_EXT>yes</FW_IGNORE_FW_BROADCAST_EXT>
+    <FW_IGNORE_FW_BROADCAST_INT>no</FW_IGNORE_FW_BROADCAST_INT>
+    <FW_IPSEC_TRUST>no</FW_IPSEC_TRUST>
+    <FW_LOG_ACCEPT_ALL>no</FW_LOG_ACCEPT_ALL>
+    <FW_LOG_ACCEPT_CRIT>yes</FW_LOG_ACCEPT_CRIT>
+    <FW_LOG_DROP_ALL>no</FW_LOG_DROP_ALL>
+    <FW_LOG_DROP_CRIT>yes</FW_LOG_DROP_CRIT>
+    <FW_MASQUERADE>no</FW_MASQUERADE>
+    <FW_PROTECT_FROM_INT>no</FW_PROTECT_FROM_INT>
+    <FW_ROUTE>no</FW_ROUTE>
+    <FW_SERVICES_ACCEPT_DMZ></FW_SERVICES_ACCEPT_DMZ>
+    <FW_SERVICES_ACCEPT_EXT></FW_SERVICES_ACCEPT_EXT>
+    <FW_SERVICES_ACCEPT_INT></FW_SERVICES_ACCEPT_INT>
+    <FW_SERVICES_DMZ_IP></FW_SERVICES_DMZ_IP>
+    <FW_SERVICES_DMZ_RPC></FW_SERVICES_DMZ_RPC>
+    <FW_SERVICES_DMZ_TCP></FW_SERVICES_DMZ_TCP>
+    <FW_SERVICES_DMZ_UDP></FW_SERVICES_DMZ_UDP>
+    <FW_SERVICES_EXT_IP></FW_SERVICES_EXT_IP>
+    <FW_SERVICES_EXT_RPC></FW_SERVICES_EXT_RPC>
+    <FW_SERVICES_EXT_TCP>ssh</FW_SERVICES_EXT_TCP>
+    <FW_SERVICES_EXT_UDP></FW_SERVICES_EXT_UDP>
+    <FW_SERVICES_INT_IP></FW_SERVICES_INT_IP>
+    <FW_SERVICES_INT_RPC></FW_SERVICES_INT_RPC>
+    <FW_SERVICES_INT_TCP></FW_SERVICES_INT_TCP>
+    <FW_SERVICES_INT_UDP></FW_SERVICES_INT_UDP>
+    <enable_firewall config:type="boolean">true</enable_firewall>
+    <start_firewall config:type="boolean">true</start_firewall>
+  </firewall>
+  <general>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+    <mouse>
+      <id>none</id>
+    </mouse>
+    <signature-handling>
+      <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+      <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+      <accept_verification_failed config:type="boolean">false</accept_verification_failed>
+      <import_gpg_key config:type="boolean">true</import_gpg_key>
+    </signature-handling>
+  </general>
+  <host>
+    <hosts config:type="list">
+      <hosts_entry>
+        <host_address>127.0.0.1</host_address>
+        <names config:type="list">
+          <name>localhost</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>127.0.0.2</host_address>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>::1</host_address>
+        <names config:type="list">
+          <name>localhost ipv6-localhost ipv6-loopback</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>fe00::0</host_address>
+        <names config:type="list">
+          <name>ipv6-localnet</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>ff00::0</host_address>
+        <names config:type="list">
+          <name>ipv6-mcastprefix</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>ff02::1</host_address>
+        <names config:type="list">
+          <name>ipv6-allnodes</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>ff02::2</host_address>
+        <names config:type="list">
+          <name>ipv6-allrouters</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>ff02::3</host_address>
+        <names config:type="list">
+          <name>ipv6-allhosts</name>
+        </names>
+      </hosts_entry>
+    </hosts>
+  </host>
+  <keyboard>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language>
+    <language>en_US</language>
+    <languages></languages>
+  </language>
+  <ldap>
+    <base_config_dn></base_config_dn>
+    <bind_dn></bind_dn>
+    <create_ldap config:type="boolean">false</create_ldap>
+    <file_server config:type="boolean">false</file_server>
+    <ldap_domain></ldap_domain>
+    <ldap_server></ldap_server>
+    <ldap_tls config:type="boolean">false</ldap_tls>
+    <ldap_v2 config:type="boolean">false</ldap_v2>
+    <member_attribute></member_attribute>
+    <nss_base_group></nss_base_group>
+    <nss_base_passwd></nss_base_passwd>
+    <nss_base_shadow></nss_base_shadow>
+    <pam_password></pam_password>
+    <start_autofs config:type="boolean">false</start_autofs>
+    <start_ldap config:type="boolean">false</start_ldap>
+  </ldap>
+  <networking>
+    <dhcp_options>
+      <dhclient_additional_options></dhclient_additional_options>
+      <dhclient_client_id></dhclient_client_id>
+      <dhclient_hostname_option>AUTO</dhclient_hostname_option>
+    </dhcp_options>
+    <dns>
+      <dhcp_hostname config:type="boolean">true</dhcp_hostname>
+      <dhcp_resolv config:type="boolean">true</dhcp_resolv>
+    </dns>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <device>eth-bus-none-vif-0</device>
+        <name>Xen Virtual Ethernet Card 0</name>
+        <startmode>auto</startmode>
+        <usercontrol>no</usercontrol>
+      </interface>
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <name>Realtek RTL-8139/8139C/8139C+</name>
+        <startmode>auto</startmode>
+        <usercontrol>no</usercontrol>
+      </interface>
+    </interfaces>
+    <managed config:type="boolean">false</managed>
+    <modules config:type="list">
+      <module_entry>
+        <device>bus-none-vif-0</device>
+        <module>xen-vnif</module>
+        <options></options>
+      </module_entry>
+      <module_entry>
+        <device>bus-pci-0000:00:04.0</device>
+        <module>8139cp</module>
+        <options></options>
+      </module_entry>
+      <module_entry>
+        <device>static-printer</device>
+        <module>lp</module>
+        <options></options>
+      </module_entry>
+    </modules>
+    <routing>
+      <ip_forward config:type="boolean">false</ip_forward>
+    </routing>
+  </networking>
+  <nis>
+    <nis_broadcast config:type="boolean">false</nis_broadcast>
+    <nis_broken_server config:type="boolean">false</nis_broken_server>
+    <nis_by_dhcp config:type="boolean">false</nis_by_dhcp>
+    <nis_domain></nis_domain>
+    <nis_local_only config:type="boolean">false</nis_local_only>
+    <nis_options></nis_options>
+    <nis_other_domains config:type="list">
+      <nis_other_domain>
+        <nis_broadcast config:type="boolean">true</nis_broadcast>
+        <nis_servers config:type="list"/>
+      </nis_other_domain>
+    </nis_other_domains>
+    <nis_servers config:type="list"/>
+    <start_autofs config:type="boolean">false</start_autofs>
+    <start_nis config:type="boolean">false</start_nis>
+  </nis>
+  <partitioning config:type="list">
+    <drive>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </yesno_messages>
+  </report>
+  <runlevel>
+    <default>5</default>
+  </runlevel>
+  <software>
+    <patterns config:type="list">
+      <pattern>32bit</pattern>
+      <pattern>apparmor</pattern>
+      <pattern>desktop-gnome-laptop-32bit</pattern>
+      <pattern>x11-32bit</pattern>
+      <pattern>desktop-gnome</pattern>
+      <pattern>x11</pattern>
+      <pattern>documentation</pattern>
+      <pattern>desktop-base</pattern>
+      <pattern>desktop-gnome-32bit</pattern>
+      <pattern>documentation-32bit</pattern>
+      <pattern>apparmor-32bit</pattern>
+      <pattern>desktop-base-32bit</pattern>
+    </patterns>
+  </software>
+  <timezone>
+    <hwclock>UTC</hwclock>
+    <timezone>US/Mountain</timezone>
+  </timezone>
+  <user_defaults>
+    <expire></expire>
+    <group>100</group>
+    <groups>video,dialout</groups>
+    <home>/home</home>
+    <inactive>-1</inactive>
+    <shell>/bin/bash</shell>
+    <skel>/etc/skel</skel>
+  </user_defaults>
+  <users config:type="list">
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <password_settings>
+        <expire></expire>
+        <flag></flag>
+        <inact></inact>
+        <max></max>
+        <min></min>
+        <warn></warn>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>$2a$05$AOfuikzEutbk7mqrnLU79us21InB/tPLynQ4lgfReGCKX2Y32Dps.</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>

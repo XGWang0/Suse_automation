@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<job>
+    <config>
+        <name>DefaultXENGrub</name>
+        <debuglevel>4</debuglevel>
+        <distributable>0</distributable>
+        <parallel>0</parallel>
+        <mail notify="1"></mail>
+	<rpm>qa_hamsta qa_tools qa_lib_perl </rpm>
+        <logdir>/tmp</logdir>
+        <description>Add XEN kernel for default grub boot</description>
+        <motd>[Custom job]: </motd>
+    </config>
+
+    <commands>
+        <worker>
+            <!-- Required -->
+            <command execution="forked">
+#!/bin/bash
+res=$((`grep vmlinuz /boot/grub/menu.lst | grep -n xen | awk -F":" '{print $1}'`-1));
+sed -i "s/default ./default $res/" /boot/grub/menu.lst;
+reboot;
+</command>
+            <!-- Optional -->
+            <directory>/</directory>
+            <timeout>300000</timeout>
+        </worker>
+    </commands>
+</job>

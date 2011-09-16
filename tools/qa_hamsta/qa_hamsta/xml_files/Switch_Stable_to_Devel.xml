@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<job>
+    <config>
+        <name>Switch from QA:Head to QA:Head:Devel</name>
+        <debuglevel>4</debuglevel>
+        <distributable>0</distributable>
+        <parallel>0</parallel>
+        <mail notify="1"></mail>
+        <logdir>/tmp</logdir>
+        <rpm>qa_hamsta zypper</rpm>
+        <description>If machine is running QA:Head, than it is switched to QA:Head:Devel. This job always fails since the hamsta is restarted in the last step! See job output to check whether it was successful.</description>
+    </config>
+
+    <commands>
+        <worker>
+            <!-- Required -->
+	    <command execution="forked"> 
+#!/bin/bash
+
+export LANG=C
+repourl=`zypper lr -u | grep QA: | awk -F '|' '{ print $NF; }'`
+if echo $repourl | grep -q 'QA:/Head/' ; then
+	echo "QA:Head repository detected... switching to QA:Head:Devel"
+	reponum=`zypper lr -u | grep QA: | awk -F '|' '{ print $1; }'`
+	newrepourl=`echo $repourl | sed 's,/QA:/Head/,/QA:/Head:/Devel/,'`
+	packages=`zypper search -i -r $reponum | awk -F\| '{ print $2; }' | grep -v 'Name' | grep -v '^ *$' | grep -v 'qa_lib_use-devel-servers'`
+	zypper rr $reponum
+	zypper ar -f $newrepourl QArepo
+	rpm -e --nodeps $packages
+	zypper in -y $packages qa_conf_unstable
+	echo "Completed successfully! (hamsta will now be restarted which will make the job fail - it is expected!)"
+	rchamsta restart
+else
+	echo "QA:Head:Devel repository is already used... nothing to do"
+fi
+	    </command>
+            <!-- Optional -->
+            <directory>/</directory>
+            <timeout>1800</timeout>
+        </worker>
+    </commands>
+</job>

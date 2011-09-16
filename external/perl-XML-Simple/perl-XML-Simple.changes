@@ -1,0 +1,132 @@
+-------------------------------------------------------------------
+Mon Oct  8 09:30:54 CEST 2007 - anicka@suse.cz
+
+- update to 2.18
+  * Non-unique key attribute values now trigger a warning (or a fatal
+    error in strict mode) rather than silently discarding data
+  * Added parse_string(), parse_file() and parse_fh() methods
+  * Added default_config_file(), and build_simple_tree() hook methods
+  * Tweak to implementation of exporting
+  * Documented hook methods
+  * Fixed test suite race condition
+
+-------------------------------------------------------------------
+Mon Jul 16 17:14:14 CEST 2007 - anicka@suse.cz
+
+- remove expat from dependencies 
+
+-------------------------------------------------------------------
+Wed Dec 13 12:20:35 CET 2006 - anicka@suse.cz
+
+- update to 2.16
+ * Added test/fix for bad GroupTags option
+ * Added new_hashref() hook method
+ * refactored cache save/restore methods for easier overriding
+
+-------------------------------------------------------------------
+Thu Oct  5 11:41:16 CEST 2006 - anicka@suse.cz
+
+- update to 2.15
+  * Makefile.PL changes: reject known-bad PurePerl and RTF parser 
+    modules; default to XML::SAX::Expat if no parser installed
+  * allow '.' characters in variable names
+  * fix output of undefs in arrayrefs with SuppressEmpty
+  * tidy up code and docs around lexical filehandle 
+    passed to OutputFile
+  * reduce memory usage by passing XML strings by reference
+
+-------------------------------------------------------------------
+Wed Jan 25 21:40:04 CET 2006 - mls@suse.de
+
+- converted neededforbuild to BuildRequires
+
+-------------------------------------------------------------------
+Mon Aug  1 13:34:04 CEST 2005 - mjancar@suse.cz
+
+- update to 2.14
+
+-------------------------------------------------------------------
+Thu Aug 19 14:01:14 CEST 2004 - mjancar@suse.cz
+
+- update to 2.12
+
+-------------------------------------------------------------------
+Thu Feb 26 17:37:12 CET 2004 - mjancar@suse.cz
+
+- update to 2.09
+
+-------------------------------------------------------------------
+Sun Jan 11 10:54:41 CET 2004 - adrian@suse.de
+
+- build as user
+
+-------------------------------------------------------------------
+Fri Aug 22 16:04:45 CEST 2003 - mjancar@suse.cz
+
+- require the perl version we build with
+
+-------------------------------------------------------------------
+Thu Aug 07 16:44:05 CEST 2003 - mjancar@suse.cz
+
+- fix tests that depend on certain order of entries
+  in a hash (it is random in perl 5.8.1)
+
+-------------------------------------------------------------------
+Thu Jul 24 14:51:48 CEST 2003 - mjancar@suse.cz
+
+- update to 2.08
+
+-------------------------------------------------------------------
+Thu Jul 17 14:41:42 CEST 2003 - mjancar@suse.cz
+
+- adapt to perl-5.8.1
+- use %perl_process_packlist
+
+-------------------------------------------------------------------
+Wed Jun 18 09:04:26 CEST 2003 - coolo@suse.de
+
+- package directories
+
+-------------------------------------------------------------------
+Mon Jun 16 18:23:09 CEST 2003 - mjancar@suse.cz
+
+- don't package MANIFEST
+
+-------------------------------------------------------------------
+Mon May 19 11:32:53 CEST 2003 - ro@suse.de
+
+- remove perllocal.pod
+
+-------------------------------------------------------------------
+Tue Apr 29 12:38:05 CEST 2003 - mjancar@suse.cz
+
+- update to version 2.03
+
+-------------------------------------------------------------------
+Fri Dec 27 20:08:02 CET 2002 - prehak@suse.cz
+
+- updated to version 2.02
+
+-------------------------------------------------------------------
+Mon Jul 29 12:42:41 CEST 2002 - mls@suse.de
+
+- Fixed neededforbuild for perl-5.8.0
+
+-------------------------------------------------------------------
+Tue Jul  2 17:40:06 MEST 2002 - mls@suse.de
+
+- remove race in .packlist generation
+
+-------------------------------------------------------------------
+Tue Jul  2 17:09:12 MEST 2002 - garloff@suse.de
+
+- Update to 1.08: (rerelease of 1.06 with minor bugfixes)
+  * searchpath set to current dir if not set
+  * obsolete 'convert' script removed from dist
+
+-------------------------------------------------------------------
+Thu Jan 17 00:55:53 MET 2002 - garloff@suse.de
+
+- Creation of package perl-XML-Simple (1.06)
+  (needed by InterMezzo)
+

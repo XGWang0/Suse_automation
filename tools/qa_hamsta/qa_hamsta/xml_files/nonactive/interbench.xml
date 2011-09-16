@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<job>
+    <config>
+        <name>interbench</name>
+        <debuglevel>4</debuglevel>
+        <distributable>0</distributable>
+        <mail notify="0">vmarsik@suse.cz</mail>        
+	<description>Interbench interactivity benchmark</description>
+	<logdir>/tmp</logdir>
+	<rpm>hamsta interbench-ctcs2-glue</rpm>
+    </config>
+
+    <commands>
+    <worker>
+	    <!-- Pre -->
+	    <command execution="forked">#!/bin/bash
+		echo Running Interbench in Screen
+		screen -S interbench-hamsta -L -d -m /bin/bash -c '/usr/share/qa/tools/interbench-run'
+		sleep 1
+		while screen -ls | grep interbench-hamsta > /dev/null ; do sleep 1; done
+		echo Done
+           </command>
+
+	   <directory>/var/log/qa/ctcs2</directory>
+     </worker>
+    </commands>
+</job>
