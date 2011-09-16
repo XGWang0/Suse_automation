@@ -173,11 +173,8 @@ if (request_str("proceed")) {
 		if (count($errors)==0)
 			header("Location: index.php");
 	}
-	echo "<div class=\"failmessage\" style=\"text-align: left;\">The following errors were returned:";
-	echo "<ul>";
-	echo "<li>" . implode("</li><li>", $errors) . "</li>";
-	echo "</ul>";
-	echo "</div>";
+	$_SESSION['message'] = implode("\n", $errors);
+	$_SESSION['mtype'] = "fail";
 }
 $html_title = "Reinstall";
 ?>
