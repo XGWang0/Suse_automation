@@ -1,6 +1,10 @@
 #!/bin/bash
 
+[ -r ../../PROJECT/config ] && source ../../PROJECT/config
+
 version=`grep ^Version: *.spec | awk {'print $2'}`
+version=${version//@@VERSION@@/$VERSION} # from PROJECT/config
+
 for i in qa_lib_internalapi qa_lib_internalapiperl qa_lib_internalapishell ; do
 	rm $i-$version.tar.bz2
 done
