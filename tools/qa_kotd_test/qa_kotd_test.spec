@@ -16,7 +16,7 @@ Name:           qa_kotd_test
 License:        GPL v2 or later
 Group:          SUSE internal
 AutoReqProv:    on
-Version:        2.2.0
+Version:        @@VERSION@@
 Release:        0
 Summary:        QA KOTD test controller
 #Url:          http://qa.suse.de/hamsta

@@ -22,7 +22,7 @@ Name:           qa_lib_ctcs2
 License:        GPL v2 or later
 Group:          Development/Tools/Other
 AutoReqProv:    on
-Version:        2.2.0
+Version:        @@VERSION@@
 Release:        0
 Summary:        Cerberus Test Control System
 Url:            http://

@@ -6,7 +6,7 @@ Name:           qa_setvncserver
 License:        GPL v2 or later
 Group:          SuSE internal
 AutoReqProv:    on
-Version:        2.2.0
+Version:        @@VERSION@@
 Release:        0
 Summary:        set vnc server on SUT, so we can access from hamsta front end
 Url:            http://antony.lesuisse.org/software/ajaxterm/

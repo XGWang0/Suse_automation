@@ -6,7 +6,7 @@
 # norootforbuild
 
 Name:           qa_sdk_spec_generator
-Version:	2.2.0
+Version:	@@VERSION@@
 Release:	0
 Summary:	"generate a .spec file"
 Group:		SUSE internal

@@ -16,7 +16,7 @@ Name:           qa_lib_keys
 License:        GPL v2 or later
 Group:          SUSE internal
 AutoReqProv:    on
-Version:        2.2.0
+Version:        @@VERSION@@
 Release:        0
 Summary:        rd-qa access keys
 #Url:          http://qa.suse.de/hamsta

@@ -21,7 +21,7 @@ Name:           qa_hamsta
 License:        GPL v2 or later
 Group:          System/Management
 AutoReqProv:    on
-Version:        2.2.0
+Version:        @@VERSION@@
 Release:        0
 Summary:        HArdware Maintenance, Setup & Test Automation
 Url:            http://qa.suse.de/hamsta

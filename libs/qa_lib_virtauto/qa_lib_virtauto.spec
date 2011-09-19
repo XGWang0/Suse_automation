@@ -13,7 +13,7 @@ Requires:       xen-tools
 Requires:	vm-install
 %endif
 AutoReqProv:    on
-Version:        2.2.0
+Version:        @@VERSION@@
 Release:        0
 Source:         %name-%version.tar.bz2
 Source1:	qa_lib_virtauto.8
