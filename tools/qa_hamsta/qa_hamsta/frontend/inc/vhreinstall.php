@@ -82,7 +82,7 @@ if (request_str("proceed")) {
         }
     } elseif ($virtualization_method == "kvm") {
         if (preg_match('/[SsLlEe]{3}.-11-[SsPp]{2}[234]/',$producturl)) {
-            $additionalrpms .= "kvm";
+            $additionalrpms .= " kvm";
         }
     } else {
 	# Report error.
