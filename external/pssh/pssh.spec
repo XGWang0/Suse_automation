@@ -32,7 +32,10 @@ Parallel SSH library to be used in custom applications.
 %install
 python setup.py install --prefix=%{_prefix} --root=%{buildroot}
 install -m 755 -d $RPM_BUILD_ROOT%{_mandir}
-mv $RPM_BUILD_ROOT%{_prefix}/man/man1 $RPM_BUILD_ROOT%{_mandir}
+if [ -d $RPM_BUILD_ROOT%{_prefix}/man/man1 ]
+then
+	mv $RPM_BUILD_ROOT%{_prefix}/man/man1 $RPM_BUILD_ROOT%{_mandir}
+fi
 gzip $RPM_BUILD_ROOT%{_mandir}/man1/*
 
 %files
