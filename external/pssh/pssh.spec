@@ -36,16 +36,10 @@ Parallel SSH library to be used in custom applications.
 
 %install
 python setup.py install --prefix=%{_prefix} --root=%{buildroot}
-ls -l %{buildroot}%{_prefix}
 if [ -d %{buildroot}%{_prefix}/man/man1 ]
 then
-	echo "moving"
 	install -m 755 -d %{buildroot}%{_mandir}
 	mv %{buildroot}%{_prefix}/man/man1 %{buildroot}%{_mandir}
-else
-	echo "not moving"
-	find %{buildroot}/usr/man/man1
-	find %{buildroot}%{_mandir}
 fi
 gzip %{buildroot}%{_mandir}/man1/pssh*
 
