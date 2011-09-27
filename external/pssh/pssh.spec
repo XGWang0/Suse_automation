@@ -1,3 +1,8 @@
+# norootforbuild
+
+%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+%{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
+
 Name:		pssh
 Version:	2.2.2
 Release:	1
@@ -18,7 +23,7 @@ Included are pssh, pscp, prsync, pnuke, and pslurp.
 
 %package python-psshlib
 Summary:        Parallel SSH library for Python
-Group:          Development/Python
+Group:          Development/Languages/Python
 Version:        %{version}
 
 %description python-psshlib
@@ -31,12 +36,18 @@ Parallel SSH library to be used in custom applications.
 
 %install
 python setup.py install --prefix=%{_prefix} --root=%{buildroot}
-install -m 755 -d $RPM_BUILD_ROOT%{_mandir}
-if [ -d $RPM_BUILD_ROOT%{_prefix}/man/man1 ]
+ls -l %{buildroot}%{_prefix}
+if [ -d %{buildroot}%{_prefix}/man/man1 ]
 then
-	mv $RPM_BUILD_ROOT%{_prefix}/man/man1 $RPM_BUILD_ROOT%{_mandir}
+	echo "moving"
+	install -m 755 -d %{buildroot}%{_mandir}
+	mv %{buildroot}%{_prefix}/man/man1 %{buildroot}%{_mandir}
+else
+	echo "not moving"
+	find %{buildroot}/usr/man/man1
+	find %{buildroot}%{_mandir}
 fi
-gzip $RPM_BUILD_ROOT%{_mandir}/man1/pssh.1
+gzip %{buildroot}%{_mandir}/man1/pssh*
 
 %files
 %defattr(-,root,root)
@@ -44,6 +55,7 @@ gzip $RPM_BUILD_ROOT%{_mandir}/man1/pssh.1
 %{_mandir}/man1/*
 
 %files python-psshlib
+%defattr(-,root,root)
 %{python_sitelib}/*
 
 %changelog
