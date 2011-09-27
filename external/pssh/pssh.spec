@@ -36,7 +36,7 @@ if [ -d $RPM_BUILD_ROOT%{_prefix}/man/man1 ]
 then
 	mv $RPM_BUILD_ROOT%{_prefix}/man/man1 $RPM_BUILD_ROOT%{_mandir}
 fi
-gzip $RPM_BUILD_ROOT%{_mandir}/man1/*
+gzip $RPM_BUILD_ROOT%{_mandir}/man1/pssh.1
 
 %files
 %defattr(-,root,root)
