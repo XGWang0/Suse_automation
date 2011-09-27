@@ -37,7 +37,7 @@ our $installoptions = $opts{'o'};
 our $userprofile = $opts{'u'};
 our $additionalrpms = $opts{'r'};
 our $additionalpatterns = $opts{'t'};
-our $defaultboot = undef;
+our $defaultboot = '';
 our $setupfordesktoptest = defined $opts{'D'};
 our $virttype = $opts{'V'};
 our $virtdisksize = $opts{'d'};
@@ -75,6 +75,7 @@ $ENV{'LC_ALL'}='en_US';
 
 # this must be parsed for custom profile as well (need the info for vm-install)
 my ($to_type, $to_version, $to_subversion, $to_arch) = &parse_source_url( $source ) or die "Cannot understand your URL";
+our $arch = $to_arch; # since $arch is used in make_modfile and others
 
 if ( $userprofile ){
     $ay_xml = $userprofile;
