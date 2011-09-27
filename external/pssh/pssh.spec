@@ -7,7 +7,7 @@ Summary:	Parallel SSH tools
 Source:		%{name}-%{version}.tar.bz2
 URL:		http://code.google.com/p/parallel-ssh
 Requires:	python openssh python-psshlib=%{version}-%{release}
-BuildRequires:	python
+BuildRequires:	python python-setuptools
 BuildArch:	noarch
 
 %description
