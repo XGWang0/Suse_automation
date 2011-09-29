@@ -11,9 +11,10 @@ Group:		Productivity/Networking/SSH
 Summary:	Parallel SSH tools
 Source:		%{name}-%{version}.tar.bz2
 URL:		http://code.google.com/p/parallel-ssh
-Requires:	python openssh python-psshlib=%{version}-%{release}
+Requires:	python openssh pssh-python=%{version}-%{release}
 BuildRequires:	python python-setuptools
-BuildArch:	noarch
+#BuildArch:	noarch
+BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
 %description
 Authors: Brent N. Chun, Andrew McNabb
@@ -21,12 +22,12 @@ Parallel SSH
 PSSH provides parallel versions of OpenSSH and related tools. 
 Included are pssh, pscp, prsync, pnuke, and pslurp.
 
-%package python-psshlib
+%package python
 Summary:        Parallel SSH library for Python
 Group:          Development/Languages/Python
 Version:        %{version}
 
-%description python-psshlib
+%description python
 Parallel SSH library to be used in custom applications.
 
 %prep
@@ -48,7 +49,7 @@ gzip %{buildroot}%{_mandir}/man1/pssh*
 %{_bindir}/*
 %{_mandir}/man1/*
 
-%files python-psshlib
+%files python
 %defattr(-,root,root)
 %{python_sitelib}/*
 
