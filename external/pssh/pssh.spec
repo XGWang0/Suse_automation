@@ -11,7 +11,7 @@ Group:		Productivity/Networking/SSH
 Summary:	Parallel SSH tools
 Source:		%{name}-%{version}.tar.bz2
 URL:		http://code.google.com/p/parallel-ssh
-Requires:	python openssh pssh-python=%{version}-%{release}
+Requires:	python openssh pssh-python
 BuildRequires:	python python-setuptools
 #BuildArch:	noarch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
