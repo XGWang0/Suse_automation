@@ -21,7 +21,8 @@ Release:        0
 Summary:        QADB submit code
 #Url:          http://qa.suse.de/hamsta
 Source0:        %{name}-%{version}.tar.bz2
-Source1:	qa_db_report.8
+Source1:	%{name}.8
+Source2:	%{name}-rpmlintrc
 #Patch:        %{name}-%{version}.patch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Requires:       perl perl-DBD-mysql qa_tools qa_libperl

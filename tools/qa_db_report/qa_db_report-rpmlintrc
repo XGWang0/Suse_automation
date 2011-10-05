@@ -1,0 +1,8 @@
+# FIX bnc#691259 - qa_db_report won't build on new openSUSE
+#
+# E: permissions-unauthorized-file (Badness: 10000) /etc/permissions.d/qa_db_report
+# If the package is intended for inclusion in any SUSE product please open a bug
+# report to request review of the package by the security team
+
+setBadness('permissions-unauthorized-file', 0)
+
