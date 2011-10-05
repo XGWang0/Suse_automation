@@ -375,14 +375,14 @@ while( my $parser = readdir RESULTS) {
 			# insert rpmlist
 			if( $rpmlist_path )	{
 				&TRANSACTION(qw(rpmConfig softwareConfig rpms rpm_basenames rpm_versions));
-				my $configID = $rpmlist_path ? $dst->rpmlist_put($rpmlist_path) : undef;
+				$configID = $rpmlist_path ? $dst->rpmlist_put($rpmlist_path) : undef;
 				&TRANSACTION_END;
 			}
 
 			# insert hwinfo
 			if( $hwinfo_path )	{
 				&TRANSACTION('hwinfo');
-				my $hwinfoID = $hwinfo_path ? $dst->hwinfo_put($hwinfo_path) : undef;
+				$hwinfoID = $hwinfo_path ? $dst->hwinfo_put($hwinfo_path) : undef;
 				&TRANSACTION_END;
 			}
 			
