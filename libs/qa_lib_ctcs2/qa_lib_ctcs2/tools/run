@@ -619,7 +619,7 @@ sub report {
 	print sectotime($timers{gtime}) ."\n";
 	color("reset");
 
-       	foreach $key (keys %test_results) {
+       	foreach $key (sort keys %test_results) {
 		$fail = @{$test_results{$key}}[0];
 		$attempt = @{$test_results{$key}}[2];
 		$succeed = @{$test_results{$key}}[1];
