@@ -1,10 +1,10 @@
-START /usr/lib/ctcs2/tools/libmicro-bench-run
-START /usr/share/qa/tools/tiobench-bench-run
+START /usr/share/qa/tools/test_libmicro-run
+START /usr/share/qa/tools/test_tiobench-run
 CHECKFORNEW
-START /usr/share/qa/tools/lmbench-run
+START /usr/share/qa/tools/test_lmbench-run
 CHECKFORNEW
-RUN cp /usr/lib/ctcs2/tools/ltp-run /usr/lib/ctcs2/tools/ltp-run-light
-RUN sed -i 's/$AIO_TESTS //' /usr/lib/ctcs2/tools/ltp-run-light
-START /usr/lib/ctcs2/tools/ltp-run-light
+RUN cp /usr/lib/ctcs2/tools/test_ltp-run /usr/lib/ctcs2/tools/test_ltp-run-light
+RUN sed -i 's/$AIO_TESTS //' /usr/lib/ctcs2/tools/test_ltp-run-light
+START /usr/lib/ctcs2/tools/test_ltp-run-light
 SUBMIT
 

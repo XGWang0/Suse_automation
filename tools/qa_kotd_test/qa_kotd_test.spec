@@ -24,7 +24,12 @@ Source:         %{name}-%{version}.tar.bz2
 Source1:	%name.8
 #Patch:        %{name}-%{version}.patch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+%if 0%{?sles_version} == 9
+Requires:       perl qa_tools qa_libperl qa-config qa_lmbench_test qa_tiobench_test qa_ltp_test qa_libmicro_test
+%else
 Requires:       perl qa_tools qa_libperl qa-config
+Recommends:	qa_lmbench_test qa_tiobench_test qa_ltp_test qa_libmicro_test
+%endif
 Provides:	kotd_test
 Obsoletes:	kotd_test
 BuildArch:      noarch
