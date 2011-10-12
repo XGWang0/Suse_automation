@@ -16,7 +16,7 @@ require "install_functions.pl";
 
 our (%opts,$source,$ay_xml,$profile_url_base);
 $Getopt::Std::STANDARD_HELP_VERSION=1;
-getopts('p:f:s:o:O:u:r:t:S:R:C:z:b:V:UD',\%opts);
+getopts('p:f:s:o:O:u:r:t:S:R:C:z:b:V:P:UD',\%opts);
 if (defined $opts{'p'} and length $opts{'p'} > 3) {
 	$source = $opts{'p'}; 
 } else { 
@@ -34,8 +34,9 @@ if (defined $opts{'p'} and length $opts{'p'} > 3) {
 		"					[ -z <root_partition> (where to install root system) ]\n" .
 		"					[ -b <MBR|root> (where to install bootloader) ]\n" .
 		"					[ -V <xen|kvm> ] #Virtualization Host Type\n" .
+		"					[ -P <root partition size> ] # Repartition entire disk\n".
 		"					[ -U # Configure the system to upgrade\n". 
-		"					[ -D # Configure the system to run desktop tests\n"; 
+		"					[ -D # Configure the system to run desktop tests\n";
 }
 
 our $installoptions = $opts{'o'};
@@ -46,6 +47,7 @@ our $userprofile = $opts{'u'};
 our $rootfstype = $opts{'f'} ? $opts{'f'} : 'ext3';
 our $defaultboot = $opts{'b'} ? $opts{'b'} : '';
 our $setupfordesktoptest = defined $opts{'D'};
+our $repartitiondisk = $opts{'P'};
 our $root_pt = $opts{'z'};
 
 ### Update options ###

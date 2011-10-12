@@ -24,7 +24,12 @@ Source:         %{name}-%{version}.tar.bz2
 Source1:	%name.8
 #Patch:        %{name}-%{version}.patch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+%if 0%{?sles_version} == 9
+Requires:       perl qa_tools qa_libperl qa-config qa_lmbench_test qa_tiobench_test qa_ltp_test qa_libmicro_test
+%else
 Requires:       perl qa_tools qa_libperl qa-config
+Recommends:	qa_lmbench_test qa_tiobench_test qa_ltp_test qa_libmicro_test
+%endif
 Provides:	kotd_test
 Obsoletes:	kotd_test
 BuildArch:      noarch
@@ -56,7 +61,7 @@ Authors:
 install -m 755 -d $RPM_BUILD_ROOT%{bindir}
 install -m 755 -d $RPM_BUILD_ROOT%{libdir}
 install -m 755 -d $RPM_BUILD_ROOT%{mandir}/man8
-install -m 755 -d $RPM_BUILD_ROOT%{confdir}/kotd
+install -m 755 -d $RPM_BUILD_ROOT%{confdir}
 install -m 755 -d $RPM_BUILD_ROOT%{_sysconfdir}/init.d
 install -m 755 -d $RPM_BUILD_ROOT%{_sbindir}
 install -m 755 -d $RPM_BUILD_ROOT%{kotddir}
@@ -64,7 +69,7 @@ gzip -9 *.8
 cp --target-directory=$RPM_BUILD_ROOT%{bindir} *.pl
 echo ${version} > $RPM_BUILD_ROOT%{libdir}/kotd_test.version
 cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man8 *.8.gz
-cp --target-directory=$RPM_BUILD_ROOT%{confdir}/kotd 25-kotd
+cp --target-directory=$RPM_BUILD_ROOT%{confdir} 25-kotd
 cp --target-directory=$RPM_BUILD_ROOT%{_sysconfdir}/init.d kotd_test
 ln -s %{_sysconfdir}/init.d/kotd_test $RPM_BUILD_ROOT%{_sbindir}/rckotd_test
 cp --target-directory=$RPM_BUILD_ROOT%{kotddir} kerneltest/test
