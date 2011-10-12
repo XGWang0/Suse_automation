@@ -67,6 +67,7 @@ if (request_str("proceed")) {
 	$pattern_list = $_POST["patterns"];
 	$rootfstype = request_str("rootfstype");
 	$defaultboot = request_str("defaultboot");
+	$repartitiondisk = request_str("repartitiondisk");
 	$setxen = request_str("xen");
 	$validation = request_str("startvalidation");
 	$email = request_str("mailto");
@@ -136,6 +137,8 @@ if (request_str("proceed")) {
 			$args .= " -t $additionalpatterns";
 		if ($defaultboot)
 			$args .= " -b $defaultboot";
+		if ($repartitiondisk)
+			$args .= " -P $repartitiondisk";
 		if ($ptargs)
 			$args .= " -z $ptargs";
 		if ($update == "update-smt" and $smturl != "")

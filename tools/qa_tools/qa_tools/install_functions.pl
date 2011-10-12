@@ -95,12 +95,18 @@ sub read_partitions
 {
 	my ($new_type,$new_version,$new_subversion,$new_libsata,$arch,$root_pt)=@_;
 	my $swappart=`cat /proc/swaps | tail -n 1 | cut -f1 -d' '`;
+	my $swapsize = `cat /proc/swaps | tail -n 1 |awk {'print \$3'}`;
 	my $rootpart=`df /|tail -n1 | cut -f1 -d' '`;
 	$rootpart=$root_pt if($root_pt);
 	my $abuildpart=`df | grep "abuild" |tail -n1 | cut -f1 -d' '`;
+	my $abuildsize = `df -h |grep "abuild" |tail -n1 |awk {'print \$2'} | cut -f1 -d'M'`;
 	my $bootpart;
+	my $bootsize = `df -h |grep "/boot/efi" |tail -n1 |awk {'print \$2'} | cut -f1 -d'M'`;
 	my $abuildid;
 	my $abuildnum;
+	chomp($swapsize);
+	chomp($abuildsize);
+	chomp($bootsize);
 	if ($arch eq 'ppc64' or $arch eq 'ppc') {
 		$bootpart="/dev/" . `ls -l \$(grep ^boot /etc/lilo.conf | cut -d \" \" -f3) \| awk -F/ {'print \$NF'}`;
 	} else {
@@ -112,7 +118,7 @@ sub read_partitions
 	}
 	my ($swapid,$swapnum) = &disk_stats($swappart,$new_libsata);
 	my ($bootid,$bootnum) = &disk_stats($bootpart,$new_libsata);
-	return ($rootid,$rootnum,$swapid,$swapnum,$bootid,$bootnum,$abuildid,$abuildnum);
+	return ($rootid,$rootnum,$swapid,$swapnum,$bootid,$bootnum,$bootsize,$abuildid,$abuildnum,$abuildsize,$swapsize);
 	# TODO: check for undefined results
 }
 
@@ -215,7 +221,7 @@ sub make_modfile
 	my ($source,$url_addon,$new_type,$new_version,$new_subversion,$new_libsata,$patterns,$packages,$defaultboot,$install_update,$virtHostType,$newvm)=@_;
 # put it all into one function,
 # would return (undef,undef) if the partition does not exist
-	my ($rootid,$rootnum,$swapid,$swapnum,$bootid,$bootnum,$abuildid,$abuildnum) = &read_partitions($new_type,$new_version,$new_subversion,$new_libsata,$arch,$root_pt)  unless (defined($virtHostType) and $virtHostType ne "") or ($newvm);
+	my ($rootid,$rootnum,$swapid,$swapnum,$bootid,$bootnum,$bootsize,$abuildid,$abuildnum,$abuildsize,$swapsize) = &read_partitions($new_type,$new_version,$new_subversion,$new_libsata,$arch,$root_pt)  unless (defined($virtHostType) and $virtHostType ne "") or ($newvm);
 	my $pdversion = &get_buildservice_repo($new_type, $new_version, $new_subversion);
 	my $bsurl = "";
 	$bsurl = $pdversion if $newvm;
@@ -290,26 +296,46 @@ EOF
 			$drives->{$abuildid}->{$abuildnum}='/abuild' if defined $abuildid;
 			$drives->{$bootid}->{$bootnum}='/boot/efi' if defined $bootid and $arch eq 'ia64';
 			$drives->{$bootid}->{$bootnum}='NULL' if defined $bootid and ($arch eq 'ppc64' or $arch eq 'ppc');
-	
-			my %fs = ( '/'=>$rootfstype, 'swap'=>'swap', '/boot/efi'=>'vfat', 'NULL' => 'ext3');
-			my %format = ( '/'=>'true', 'swap'=>'false', '/boot/efi'=>'true', 'NULL' => 'false' );
+			$disksize = `fdisk -l |grep "\$drive" |grep MB |awk {'print \$3'} | cut -f1 -d' '`;
+			chmod($disksize);
+			$abuildsize = 0 if !$abuildid;
+			$bootsize = 0 if !$bootid;
+			$sizepercent = $repartitiondisk*0.01;
+			$swapsize = int($swapsize/1024);
+			$rootusesize = int(($disksize - $abuildsize - $bootsize - $swapsize)*$sizepercent);
+
+			my %fs = ( '/'=>$rootfstype, 'swap'=>'swap', '/boot/efi'=>'vfat', '/abuild'=>'ext3', 'NULL' => 'ext3');
+			my %format = ( '/'=>'true', 'swap'=>'false', '/boot/efi'=>'true', '/abuild'=>'true','NULL' => 'false' );
+			my %size = ( '/'=>$rootusesize, 'swap'=>$swapsize, '/boot/efi'=>$bootsize, '/abuild'=>$abuildsize,'NULL' => 'auto' );
 	
 			print $f "  <partitioning config:type=\"list\">\n";
 			foreach my $drive ( keys %{$drives} ) {
 				print $f "   <drive>\n";
 				print $f "	<device>$drive</device>\n";
-				print $f "	<use>".(join ',', keys %{$drives->{$drive}} )."</use>\n";
+				if ( $repartitiondisk ) {
+					print $f "	<initialize config:type=\"boolean\">true</initialize>\n";
+				} else {
+					print $f "	<use>".(join ',', keys %{$drives->{$drive}} )."</use>\n";
+				}
 				print $f "	<partitions config:type=\"list\">\n";
 				foreach my $num ( keys %{$drives->{$drive}} ) {
 					my $mnt=$drives->{$drive}->{$num};
 					print $f "	 <partition>\n";
 					print $f "	  <filesystem config:type=\"symbol\">".$fs{$mnt}."</filesystem>\n";
-					print $f "	  <create config:type=\"boolean\">false</create>\n";
-					print $f "	  <format config:type=\"boolean\">".$format{$mnt}."</format>\n";
+					if ( $repartitiondisk ) {
+						print $f "	  <create config:type=\"boolean\">true</create>\n";
+						print $f "	  <format config:type=\"boolean\">true</format>\n";
+					} else {
+						print $f "	  <create config:type=\"boolean\">false</create>\n";
+						print $f "	  <format config:type=\"boolean\">".$format{$mnt}."</format>\n";
+					}
 					if ($mnt eq 'NULL') {
 						print $f "	  <partition_id config:type=\"integer\">65</partition_id>\n"; #PPC pre-boot partition
 					} else {
 						print $f "	  <mount>$mnt</mount>\n";
+					}
+					if ( $repartitiondisk ) {
+						print $f "	  <size>".$size{$mnt}."mb</size>\n";
 					}
 					print $f "	  <partition_nr config:type=\"integer\">$num</partition_nr>\n";
 					print $f "	 </partition>\n";
@@ -359,11 +385,17 @@ EOF
 	
 	unless ($opts{'U'}) { # do not change bootloader in upgrade
 		unless ($virtHostType) { ## non-VH
+			my $bootpartition = `df /boot |tail -n1 |awk {'print \$6'}`;
+			chomp($bootpartition);
 			# if $defaultboot is set to 'root', we do not generate anything here, just use bootloader in root with active flag
 			if( $defaultboot ne 'root' ) {
 				print $f "  <bootloader>\n";
-				print $f "	<global>\n";
-				print $f "	  <boot_mbr>true</boot_mbr>\n" if( $defaultboot =~ /^MBR$/i ); # bootloader in MBR
+				print $f "    <global>\n";
+				if ($defaultboot =~ /^MBR$/i) {
+					print $f "	<boot_mbr>true</boot_mbr>\n";
+				} elsif ($repartitiondisk and $bootpartition eq "\/") {
+					print $f "	<boot_mbr>true</boot_mbr>\n";
+				}
 				if ($arch eq 'ppc64' or $arch eq 'ppc') {
 					my $bootpart = `fdisk -l | grep "PPC PReP Boot" | cut -d " " -f1`;
 					print $f "	<activate>true</activate>\n";
@@ -382,12 +414,17 @@ EOF
 		#			print $f "  <loader_type>elilo</loader_type>\n";
 				} else {
 					print $f "	<activate>false</activate>\n";
+					if ($bootpartition ne "\/") {
+						print $f "	<boot_boot>true</boot_boot>\n";
+					} else {
+						print $f "	<boot_root>true</boot_root>\n";
+					}
 					print $f "	<boot_root>true</boot_root>\n";
 					print $f "	<boot_extended>false</boot_extended>\n";
 					print $f "	<generic_mbr>false</generic_mbr>\n";
 					print $f "	<timeout config:type=\"integer\">5</timeout>\n";
-					print $f "  </global>\n";
-					print $f "  <loader_type>grub</loader_type>\n";
+					print $f "    </global>\n";
+					print $f "    <loader_type>grub</loader_type>\n";
 				}
 				print $f "  </bootloader>\n";
 			}
