@@ -86,6 +86,9 @@ my $filename="test_results";
 # for concluding mail notification
 my $reviewer=$qaconf{qa_db_report_log_reviewer};
 
+# for mail domain
+my $maildomain=$qaconf{mail_domain};
+
 # directory for remote results
 my $remote_results_dir = '/var/log/qa-remote-results';
 
@@ -560,10 +563,10 @@ foreach my $dir (keys %destdirs)
 
 
 # send mail notificaiton
-&log(LOG_INFO, "Sending mail notifications to $reviewer and ".$args{'tester'}."\@novell.com");
+&log(LOG_INFO, "Sending mail notifications to $reviewer and ".$args{'tester'}."\@$maildomain");
 my $msg="Hi,\n\nsubmission(s) $submissions from ".$args{'tester'}." is waiting for your review.\nThe following result files have been submitted:\n\n".join("\n",keys %destdirs)."\n\nHave fun.\n";
 my $msubject="[submission(s) $submissions] ".$args{'product'}."-".$args{'release'}."-".$args{'arch'}." for ".$args{'host'}." needs review";
-&mail('root@'.$args{'host'},$reviewer,$args{'tester'}.'@novell.com',$msubject,$msg);
+&mail('root@'.$args{'host'},$reviewer,$args{'tester'}."\@$maildomain",$msubject,$msg);
 
 # finished
 &log(LOG_INFO, "All done - results were submitted with following submission ID(s):\n" . join("\n" , map { "ID $_: ".$qaconf{qadb_wwwroot}."/submission.php?submissionID=$_" } values %submissions));
