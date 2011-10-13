@@ -4,6 +4,8 @@ xen.user=root
 xen.pass=novell
 vm.user=root
 vm.pass=novell
+migratee.user=root
+migratee.pass=novell
 
 # Global settings (only modify these if you are running the entire suite of tests)
 

@@ -4,6 +4,8 @@ xen.user=root
 xen.pass=novell
 vm.user=root
 vm.pass=novell
+migratee.user=root
+migratee.pass=novell
 
 # Global settings (only modify these if you are running the entire suite of tests)
 
@@ -32,4 +34,3 @@ network.nameserver=10.20.136.1
 network.network=10.20.136.0
 network.bcast=10.20.143.255
 network.domain=qa.suse.cz
-

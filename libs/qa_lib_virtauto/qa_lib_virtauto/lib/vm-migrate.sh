@@ -47,8 +47,8 @@ fi
 sshNoPass="sshpass -e ssh -o StrictHostKeyChecking=no"
 #getSettings="./get-settings.sh -s ${propsFile}"
 getSettings="./get-settings.sh"
-migrateeUser=`$getSettings migrateeUser`
-migrateePass=`$getSettings migrateePass`
+migrateeUser=`$getSettings migratee.user`
+migrateePass=`$getSettings migratee.pass`
 
 # Check firewall status
 echo "Checking the firewall status..."
