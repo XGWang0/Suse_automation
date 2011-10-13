@@ -103,6 +103,6 @@ done
 %attr(0755,root,root) %{_sysconfdir}/init.d/kotd_test
 %attr(0755,root,root) %{_sbindir}/rckotd_test
 %config(noreplace) %{kotddir}/test
-%config(noreplace) %{confdir}/kotd/25-kotd
+%config(noreplace) %{confdir}/25-kotd
 
 %changelog

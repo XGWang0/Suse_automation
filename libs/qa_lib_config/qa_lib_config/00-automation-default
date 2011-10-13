@@ -1,0 +1,15 @@
+#
+# This file contains default configuration for qa_lib_config
+#
+# Please never edit this file directly, if you want to change
+# anything, do it in a new file. (Files are read in alphabetical
+# order, values from earlier files are overwritten
+# 
+# Don't forget, all values names must be specified by
+# <variable name>=<variable value>
+#
+
+#
+# Give default mail domain to send email
+mail_domain="suse.com"
+
