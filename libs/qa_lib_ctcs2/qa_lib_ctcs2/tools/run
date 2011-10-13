@@ -717,6 +717,7 @@ sub report {
 		}
 	}
 	color("reset");
+	print "\n";
 }
 
 sub init_environment {
