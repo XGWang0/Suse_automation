@@ -17,7 +17,7 @@ Release:        1
 Requires:       perl
 AutoReqProv:    on
 Group:          Development/Libraries/Perl
-License:        Other uncritical OpenSource License
+License:        Artistic License; GPL v2 or later
 Url:            http://search.cpan.org/~aristotle/Proc-Fork-0.61/lib/Proc/Fork.pm
 Summary:        A Perl Module Proc::Fork - Simple, intuitive interface to the fork() system call
 Source:         Proc-Fork-%{version}.tar.bz2
