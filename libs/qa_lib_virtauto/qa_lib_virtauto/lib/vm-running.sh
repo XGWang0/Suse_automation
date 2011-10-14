@@ -14,8 +14,6 @@ if [ $# -ne 2 ] && [ $# -ne 3 ]
 then
 	echo "ERROR - Usage: $0 <xenHostIp> <machineName> [settingsFilePath]"
 	echo "ERROR - Usage: $0 <xenHostIp> <machineName> [settingsFilePath]" >&2
-	echo "ERROR - $0 151.155.190.26 sles-10-sp1-32-all-def-146-1"
-	echo "ERROR - $0 151.155.190.26 sles-10-sp1-32-all-def-146-1" >&2
 	exit 1
 fi
 

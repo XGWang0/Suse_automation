@@ -13,8 +13,6 @@ if [ $# -ne 3 ] && [ $# -ne 4 ]
 then
 	echo "ERROR - Usage: $0 <machineIp> <machineName> <machineNameFirstPart> [settingsFilePath]"
 	echo "ERROR - Usage: $0 <machineIp> <machineName> <machineNameFirstPart> [settingsFilePath]" >&2
-	echo "ERROR - $0 151.155.146.1 this-is-my-vm sles-10-sp1-32-all-def-146-1"
-	echo "ERROR - $0 151.155.146.1 this-is-my-vm sles-10-sp1-32-all-def-146-1" >&2
 	exit 1
 fi
 if [ $# -eq 4 ]

@@ -26,8 +26,6 @@ if [ $# -ne 5 ] && [ $# -ne 6 ]
 then
 	echo "Usage: $0 <xenHostIp> <hypervisor> <machineName> <machineNameFirstPart> <machineIp> [settingsFilePath]"
 	echo "Usage: $0 <xenHostIp> <hypervisor> <machineName> <machineNameFirstPart> <machineIp> [settingsFilePath]" >&2
-	echo "$0 151.155.190.26 xen this-is-my-vm sles-10-sp1-32-all-def 151.155.146.1"
-	echo "$0 151.155.190.26 xen this-is-my-vm sles-10-sp1-32-all-def 151.155.146.1" >&2
 	exit 1
 fi
 if [ $# -eq 6 ]
