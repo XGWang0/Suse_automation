@@ -74,8 +74,6 @@ if [ $# -ne 7 ] && [ $# -ne 8 ]
 then
 	echo "Usage: $0 <xenHostIp> <machineName> <machineNameFirstPart> <machineIp> <machineMac> <isDHCP> <installId> [settingsFilePath]"
 	echo "Usage: $0 <xenHostIp> <machineName> <machineNameFirstPart> <machineIp> <machineMac> <isDHCP> <installId> [settingsFilePath]" >&2
-	echo "$0 151.155.190.26 this-is-my-vm sles-10-sp1-32-all-def-146-1 151.155.146.1 00:1e:3d:ff:46:01 yes 0"
-	echo "$0 151.155.190.26 this-is-my-vm sles-10-sp1-32-all-def-146-1 151.155.146.1 00:1e:3d:ff:46:01 yes 0" >&2
 	exit 1
 fi
 
