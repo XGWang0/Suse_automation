@@ -100,6 +100,8 @@ sub parse_cmd() {
 #        case /^group_del/			{ &delete_group($sock_handle, $cmd); }
 #        case /^send job group/		{ &send_job_to_group($sock_handle, $cmd); }
         case /^send job ip/			{ &send_job_to_host($sock_handle, $cmd); }
+        case /^send qa_package_job ip/			{ &send_qa_package_job_to_host($sock_handle, $cmd); }
+        case /^send xen set ip/			{ &send_xen_set_to_host($sock_handle, $cmd); }
         case /^send reinstall ip/		{ &send_re_job_to_host($sock_handle, $cmd); }
         case /^send one line cmd ip/		{ &send_line_job_to_host($sock_handle, $cmd); }
         case /^send job anywhere/	{ $cmd =~ s/anywhere/ip none/; &send_job_to_host($sock_handle, $cmd); }
@@ -136,6 +138,8 @@ sub cmd_help() {
     print "\t 'group del host <group> <IP>' : removes <IP> from the group, no wildcards (atm.) \n";
     print "\t 'send job group <group> <file>' : submits the job to all members in the group  \n";
     print "\t 'send job ip <IP> <file>' : submits the job to the IP  \n";
+    print "\t 'send qa_package_job ip <IP> <PACKAGE NAME> <Email> <Tag>' : submits the job to the IP  \n";
+    print "\t 'send xen set ip <IP> <Tag>' : submits the job to the IP  \n";
     print "\t 'send reinstall ip <IP> <Reinstall_repo> <Email> <Tag> ' : submits the reinstall job to the IP  \n";
     print "\t 'send one line cmd ip <IP> <cmd> <Email> <Tag>' : submits the one line job to the IP (replace space with # in cmd)  \n";
     print "\n end of help \n";
@@ -427,7 +431,8 @@ sub send_re_job_to_host () {
     (my @cmd_line) = split / /,$cmd;
     my $reinstall_tag = $cmd_line[-1];
     my $reinstall_email = $cmd_line[-2];
-    my $reinstall_url = $cmd_line[-3]; 
+    my $reinstall_opt = $cmd_line[-3]; 
+    $reinstall_opt =~ s/#/ /g;
     my $host = $cmd_line[-4]; 
 
     #my $ref_backbone = &read_latest_backbone();
@@ -460,10 +465,11 @@ sub send_re_job_to_host () {
     #modify the reinstall xml file
     open(my $template_re,"/usr/share/hamsta/xml_files/templates/reinstall-template.xml") or ( print $sock_handle "can open reinstall template\n" && return);
     my $cmd_reinstall_xml="/tmp/command_line_reinstall_$reinstall_tag.xml";
-    open(my $template_tmp,">","$cmd_reinstall_xml") or ( print $sock_handle "can write reinstall template\n" && return);
+    open(my $template_tmp,">","$cmd_reinstall_xml") or ( print $sock_handle "can not write reinstall template\n" && return);
     while(<$template_re>){
-	s#REPOURL#$reinstall_tag $reinstall_url #g;
-	s#ARGS#-p $reinstall_url #g;
+	s#reinstall from REPOURL#$reinstall_tag reinstall with option: $reinstall_opt#;
+	s#Reinstalls the machine from REPOURL#The reinstall opt is $reinstall_opt #g;
+	s#ARGS# $reinstall_opt #g;
 	s#llwang\@novell.com#$reinstall_email#;
 	print $template_tmp $_;
     }
@@ -544,7 +550,7 @@ sub send_line_job_to_host () {
     open(my $c_step1,"/usr/share/hamsta/xml_files/templates/customjob-template1.xml") or ( print $sock_handle "can open custom job step1 template\n" && return);
     open(my $c_step2,"/usr/share/hamsta/xml_files/templates/customjob-template2.xml") or ( print $sock_handle "can open custom job step2  template\n" && return);
     my $one_line_xml="/tmp/one_line_job_$ol_tag.xml";
-    open(my $template_tmp,">","$one_line_xml") or ( print $sock_handle "can write custom job template\n" && return);
+    open(my $template_tmp,">","$one_line_xml") or ( print $sock_handle "can not write custom job template\n" && return);
  
     while(<$c_step1>){
 
@@ -596,6 +602,173 @@ sub send_line_job_to_host () {
 
 
 }
+
+sub send_xen_set_to_host () {
+    my $sock_handle = shift @_;
+    my $cmd = shift @_ ;
+
+    &log(LOG_NOTICE, "cmd = $cmd");
+    (my @cmd_line) = split / /,$cmd;
+    my $xen_set_tag = $cmd_line[-1];
+    my $host = $cmd_line[-2]; 
+
+    #my $ref_backbone = &read_latest_backbone();
+
+    unless ($host eq "none") {
+        #while ((my $key, my $value) = each %{$ref_backbone->{'active'}}){ 
+        #    my $tmp = $value->{'ip'};
+        #    $tmp =~ s/ //g;
+        #    $legal_ip{$tmp} = $key;
+        #}
+        my @tmp_hosts = &machine_search('fields'=>['ip'], 'return'=>'vector');
+        &log(LOG_DETAIL, "MASTER:: IPs ARE ".join(',',@tmp_hosts));
+        my %legal_ip = map {$_=>$_} @tmp_hosts;
+
+        # convert hostname => IP address
+	unless( $host =~ /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/ )
+        {
+            my @hostinfo = gethostbyname($host);
+            $host = join( '.', unpack( "C4", $hostinfo[4] )) if( @hostinfo > 4 );
+        }
+
+        # checks
+        if (not exists($legal_ip{"$host"})) { 
+            &log(LOG_WARNING, "$host is not active, maybe IP address misspelled"); 
+            print $sock_handle "$host is not active, maybe IP address misspelled\n"; 
+            return; 
+        }
+    }
+
+    #modify the custom xml file
+    open(my $xen_set,"/usr/share/hamsta/xml_files/set_xen_default.xml") or ( print $sock_handle "can open set xen xml file\n" && return);
+    my $xen_set_xml="/tmp/xen_set_$xen_set_tag.xml";
+    open(my $template_tmp,">","$xen_set_xml") or ( print $sock_handle "can not write set xen template\n" && return);
+ 
+    while(<$xen_set>){
+
+	s#DefaultXENGrub#set xen with tag $xen_set_tag  #;
+	print $template_tmp $_;
+	
+    }
+    close $xen_set;
+    close $template_tmp;
+
+
+    
+    if (not (-e $xen_set_xml)) {
+        &log(LOG_ERR, "file $xen_set_xml does not exist"); 
+        print $sock_handle "file $xen_set_xml does not exist\n"; 
+        return;
+    }
+
+    my $ref = &parse_xml($sock_handle, $xen_set_xml);
+    return if( not defined $ref );
+    # set the default values 
+
+    &TRANSACTION( 'job' );
+    my $job_id = &job_insert(
+        $ref->{'config'}->{'name'}->{'content'}, # short_name
+        $xen_set_xml, # xml_file
+        $ref->{'config'}->{'description'}->{'content'} || '', # description
+        $ref->{'config'}->{'mail'}->{'content'} || $host, # job_owner
+        $ref->{'config'}->{'logdir'}->{'content'}, # slave directory
+        JS_NEW, # job_status_id
+        $host ne "none" ? $host : undef # aimed_host
+    );
+    &TRANSACTION_END;
+
+    &log(LOG_INFO,"MASTER::FUNCTIONS xen set Job send to scheduler, at $host internal id: $job_id");
+    print $sock_handle "MASTER::FUNCTIONS xen set Job send to scheduler, at $host internal id: $job_id\n";
+
+
+}
+sub send_qa_package_job_to_host () {
+    my $sock_handle = shift @_;
+    my $cmd = shift @_ ;
+
+    &log(LOG_NOTICE, "cmd = $cmd");
+    (my @cmd_line) = split / /,$cmd;
+    #qa package test . qpt 
+    my $qpt_tag = $cmd_line[-1];
+    my $qpt_email = $cmd_line[-2]; 
+    my $qpt_name = $cmd_line[-3]; 
+    $qpt_name =~ s/#/ /g;
+    my $host = $cmd_line[-4]; 
+
+    #my $ref_backbone = &read_latest_backbone();
+
+    unless ($host eq "none") {
+        #while ((my $key, my $value) = each %{$ref_backbone->{'active'}}){ 
+        #    my $tmp = $value->{'ip'};
+        #    $tmp =~ s/ //g;
+        #    $legal_ip{$tmp} = $key;
+        #}
+        my @tmp_hosts = &machine_search('fields'=>['ip'], 'return'=>'vector');
+        &log(LOG_DETAIL, "MASTER:: IPs ARE ".join(',',@tmp_hosts));
+        my %legal_ip = map {$_=>$_} @tmp_hosts;
+
+        # convert hostname => IP address
+	unless( $host =~ /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/ )
+        {
+            my @hostinfo = gethostbyname($host);
+            $host = join( '.', unpack( "C4", $hostinfo[4] )) if( @hostinfo > 4 );
+        }
+
+        # checks
+        if (not exists($legal_ip{"$host"})) { 
+            &log(LOG_WARNING, "$host is not active, maybe IP address misspelled"); 
+            print $sock_handle "$host is not active, maybe IP address misspelled\n"; 
+            return; 
+        }
+    }
+
+    #modify the custom xml file
+    open(my $qpt_template,"/usr/share/hamsta/xml_files/templates/qapackagejob-template.xml") or ( print $sock_handle "can open QA package job template\n" && return);
+    my $qpt_xml="/tmp/qpt_$qpt_tag.xml";
+    open(my $template_tmp,">","$qpt_xml") or ( print $sock_handle "can not write custom job template\n" && return);
+ 
+    while(<$qpt_template>){
+
+	s#TS_LIST_SHORT#QA package job : $qpt_name with tag $qpt_tag  #;
+	s#DEBUGLEVEL#4#;
+	s#llwang\@novell\.com#$qpt_email#;
+	s#TS_LIST#$qpt_name#;
+	print $template_tmp $_;
+	
+    }
+    close $qpt_template;
+    close $template_tmp;
+
+
+    
+    if (not (-e $qpt_xml)) {
+        &log(LOG_ERR, "file $qpt_xml does not exist"); 
+        print $sock_handle "file $qpt_xml does not exist\n"; 
+        return;
+    }
+
+    my $ref = &parse_xml($sock_handle, $qpt_xml);
+    return if( not defined $ref );
+    # set the default values 
+
+    &TRANSACTION( 'job' );
+    my $job_id = &job_insert(
+        $ref->{'config'}->{'name'}->{'content'}, # short_name
+        $qpt_xml, # xml_file
+        $ref->{'config'}->{'description'}->{'content'} || '', # description
+        $ref->{'config'}->{'mail'}->{'content'} || $host, # job_owner
+        $ref->{'config'}->{'logdir'}->{'content'}, # slave directory
+        JS_NEW, # job_status_id
+        $host ne "none" ? $host : undef # aimed_host
+    );
+    &TRANSACTION_END;
+
+    &log(LOG_INFO,"MASTER::FUNCTIONS cmdline QA package Job send to scheduler, at $host internal id: $job_id");
+    print $sock_handle "MASTER::FUNCTIONS cmdline QA package Job send to scheduler, at $host internal id: $job_id\n";
+
+
+}
+
 
 sub send_job_to_group() {
 

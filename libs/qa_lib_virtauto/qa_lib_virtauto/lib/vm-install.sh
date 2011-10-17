@@ -1590,25 +1590,31 @@ then
 	then
 		if [ "$architecture" == "64" ]
 		then
-			additionalInstallSource="ftp:\/\/xen100.virt.lab.novell.com\/install\/oes2fcs\/x86_64"
+			InstSource=`$getSource source.ftp.oes-2-fcs-64 | sed 's/\//\\\//g'`
+			additionalInstallSource="$InstSource"
 		else
-			additionalInstallSource="ftp:\/\/xen100.virt.lab.novell.com\/install\/oes2fcs\/i386"
+			InstSource=`$getSource source.ftp.oes-2-fcs-32 | sed 's/\//\\\//g'`
+			additionalInstallSource="$InstSource"
 		fi
 	elif [ "$servicePack" == "sp1" ]
 	then
 		if [ "$architecture" == "64" ]
 		then
-			additionalInstallSource="ftp:\/\/xen100.virt.lab.novell.com\/install\/oes2sp1\/x86_64"
+			InstSource=`$getSource source.ftp.oes-2-sp1-64 | sed 's/\//\\\//g'`
+			additionalInstallSource="$InstSource"
 		else
-			additionalInstallSource="ftp:\/\/xen100.virt.lab.novell.com\/install\/oes2sp1\/i386"
+			InstSource=`$getSource source.ftp.oes-2-sp1-32 | sed 's/\//\\\//g'`
+			additionalInstallSource="$InstSource"
 		fi
     elif [ "$servicePack" == "sp2" ]
 	then
 		if [ "$architecture" == "64" ]
 		then
-			additionalInstallSource="ftp:\/\/xen100.virt.lab.novell.com\/install\/oes2sp2\/x86_64"
+			InstSource=`$getSource source.ftp.oes-2-sp2-64 | sed 's/\//\\\//g'`
+			additionalInstallSource="$InstSource"
 		else
-			additionalInstallSource="ftp:\/\/xen100.virt.lab.novell.com\/install\/oes2sp2\/i386"
+			InstSource=`$getSource source.ftp.oes-2-sp2-32 | sed 's/\//\\\//g'`
+			additionalInstallSource="$InstSource"
 		fi
 	fi
 

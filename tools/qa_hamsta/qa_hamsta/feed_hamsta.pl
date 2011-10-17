@@ -14,6 +14,9 @@ use Encode;
 
 use IO::Socket::INET;
 
+#to get result from hamsta
+use LWP::Simple;
+
 $0 =~ m/([^\/]*)$/;
 my $progname = $1;
 
@@ -54,6 +57,7 @@ EOF
 
 my $opt_help            = 0;
 my $opt_version         = 0;
+my $opt_w		= 0;
 
 my $opt_command         = "";
 my $opt_print_active    = 0;
@@ -65,6 +69,7 @@ my $opt_group           = "";
 unless (GetOptions(
            'help'               =>  \$opt_help,
            'version|v'          =>  \$opt_version,
+           'wait|w'             =>  \$opt_w,
            'debug|d=i'          =>  \$debug,
            'command|c=s'        =>  \$opt_command,
            'job|j=s'            =>  \$opt_job,
@@ -116,8 +121,40 @@ if ($@ || !$sock) {
 # Ignore the welcome message and wait for the prompt
 &send_command('');
 
+#catch the jop id
+my $job_id="";
 if ($opt_command) {
-    print &send_command($opt_command."\n");
+    $job_id=&send_command($opt_command."\n");
+    print $job_id;
+
+    # if -w then wait for the job result
+    if($opt_w) {
+
+	exit 0 unless($job_id=~/internal id/);
+
+	$job_id =~ s/.*internal id:.//;	
+	$job_id =~ s/[^d]$//g;
+	my $url="http://$opt_master/hamsta/index.php?go=job_details&id=$job_id";
+	my $result_job="";
+	while($result_job eq "running" or $result_job eq "queued" or $result_job eq "") {
+		my $content = get $url;
+		my @content = split /\n/,$content;
+		for(my $i=0;$i<@content;$i++){
+			
+			if($content[$i] =~ />Status</){
+				$i++;
+				$result_job = $content[$i];
+				$result_job =~ s/.*<td>//;
+				$result_job =~ s/<\/td>.*//;
+				#print $result_job,"\n";
+				last;
+			}
+		}
+		sleep 3;
+	}
+	exit 0 if($result_job=~"passed");
+	exit 1 if($result_job!~"passed");
+	}
 }
 
 if ($opt_print_active) {

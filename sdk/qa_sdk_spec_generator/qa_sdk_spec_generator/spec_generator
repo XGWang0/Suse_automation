@@ -4,7 +4,7 @@
 function Usage(){
 cat <<EOF
 Usage: $0 qa_<package_name> 
-Usage: $0 qa_<package_name> -a "arths" -e "arths@novell.com" -l "nothing for new" -d "just for the new feature"
+Usage: $0 qa_<package_name> -a <user> -e <user>@<maildomain> -l "nothing for new" -d "just for the new feature"
 Details:
 $0 generates a qa_<package_name>.spec with information which is provided by qa_<packages> 
 	The local dir should have 3 parts:

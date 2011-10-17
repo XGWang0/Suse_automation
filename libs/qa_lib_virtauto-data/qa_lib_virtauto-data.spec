@@ -20,8 +20,8 @@ Data for for virtualization automation library
 
 Authors:
 --------
-    Dan Collingridge <dcollingridge@novell.com>
-    Lukas Lipavsky   <llipavsky@suse.cz>
+    Dan Collingridge <dcollingridge@suse.com>
+    Lukas Lipavsky   <llipavsky@suse.com>
 
 %prep
 %setup -n %{name}
