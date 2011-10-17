@@ -26,8 +26,8 @@ QA library for virtualization automation
 
 Authors:
 --------
-    Dan Collingridge <dcollingridge@novell.com>
-    Lukas Lipavsky   <llipavsky@suse.cz>
+    Dan Collingridge <dcollingridge@suse.com>
+    Lukas Lipavsky   <llipavsky@suse.com>
 
 %prep
 %setup -n %{name}
