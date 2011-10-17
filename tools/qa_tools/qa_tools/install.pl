@@ -16,7 +16,7 @@ require "install_functions.pl";
 
 our (%opts,$source,$ay_xml,$profile_url_base);
 $Getopt::Std::STANDARD_HELP_VERSION=1;
-getopts('p:f:s:o:O:u:r:t:S:R:C:z:b:V:P:UD',\%opts);
+getopts('p:f:s:o:O:u:r:t:S:R:C:z:b:V:P:UDB',\%opts);
 if (defined $opts{'p'} and length $opts{'p'} > 3) {
 	$source = $opts{'p'}; 
 } else { 
@@ -36,6 +36,7 @@ if (defined $opts{'p'} and length $opts{'p'} > 3) {
 		"					[ -V <xen|kvm> ] #Virtualization Host Type\n" .
 		"					[ -P <root partition size> ] # Repartition entire disk\n".
 		"					[ -U # Configure the system to upgrade\n". 
+		"					[ -B # Configure the system network interface to bridge\n".
 		"					[ -D # Configure the system to run desktop tests\n";
 }
 
@@ -47,6 +48,7 @@ our $userprofile = $opts{'u'};
 our $rootfstype = $opts{'f'} ? $opts{'f'} : 'ext3';
 our $defaultboot = $opts{'b'} ? $opts{'b'} : '';
 our $setupfordesktoptest = defined $opts{'D'};
+our $setup_bridge = defined $opts{'B'};
 our $repartitiondisk = $opts{'P'};
 our $root_pt = $opts{'z'};
 

@@ -717,15 +717,7 @@ $postcmd
 		}
 		print $f "	</dns>\n";
 		print $f "	<interfaces config:type=\"list\">\n";
-		unless ( $virtHostType ) { ## non-VH & VM
-			for (my $i=0;$i<`ifconfig | grep eth | wc -l`;$i++) {
-				print $f "	  <interface>
-				<bootproto>dhcp</bootproto>
-				<device>eth$i</device>
-				<startmode>onboot</startmode>
-			  </interface>\n" if `ifconfig eth$i | grep inet`;
-			}
-		} else { ## VH
+		if ($virtHostType || $setup_bridge) { ## VH
 			for (my $i=0;$i<`ifconfig | grep eth | wc -l`;$i++) {
 				print $f "	  <interface>
 				<bootproto>dhcp4</bootproto>
@@ -737,7 +729,15 @@ $postcmd
 				<startmode>auto</startmode>
 			  </interface>\n";
 			}
-		}
+		} else { ## non-VH & VM
+			for (my $i=0;$i<`ifconfig | grep eth | wc -l`;$i++) {
+				print $f "	  <interface>
+				<bootproto>dhcp</bootproto>
+				<device>eth$i</device>
+				<startmode>onboot</startmode>
+			  </interface>\n" if `ifconfig eth$i | grep inet`;
+			}
+		} 
 		print $f "	</interfaces>\n";
 		print $f "  </networking>\n";
 		my $location = &get_location or die "Unknown location (Prague|Nuernberg|Beijing|Provo)";
