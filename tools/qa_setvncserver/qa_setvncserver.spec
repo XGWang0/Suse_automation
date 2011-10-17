@@ -10,13 +10,12 @@ Version:        @@VERSION@@
 Release:        0
 Summary:        set vnc server on SUT, so we can access from hamsta front end
 Url:            http://antony.lesuisse.org/software/ajaxterm/
-Source0: 	passwdofvnc
-Source1: 	vncd
-Source2:	qa_setvncserver.8
+Source0: 	vncd
+Source1:	qa_setvncserver.8
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Provides:	setvncserver
 Obsoletes:	setvncserver
-Requires:       tightvnc zlib xorg-x11-driver-video
+Requires:       tightvnc zlib xorg-x11-driver-video qa_tools
 BuildArch:      noarch
 
 %description
@@ -28,16 +27,14 @@ Authors:
 
 %install
 install -m 755 -d $RPM_BUILD_ROOT/usr/share/man/man8
-install -m 644 %{S:2} $RPM_BUILD_ROOT/usr/share/man/man8
+install -m 644 %{S:1} $RPM_BUILD_ROOT/usr/share/man/man8
 gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
 mkdir -p $RPM_BUILD_ROOT/tmp
-cp %SOURCE0 %SOURCE1 $RPM_BUILD_ROOT/tmp
+cp %SOURCE0 $RPM_BUILD_ROOT/tmp
 
 %post
 mkdir -p /root/.vnc
-mv /tmp/passwdofvnc /root/.vnc/passwd
 mv /tmp/vncd /etc/init.d/vncd
-chmod 600 /root/.vnc/passwd
 chmod 755 /etc/init.d/vncd
 echo "xrdb \$HOME/.Xresources
 xsetroot -solid grey
@@ -47,6 +44,8 @@ echo 'DISPLAYMANAGER_AUTOLOGIN="root"
 DISPLAYMANAGER_PASSWORD_LESS_LOGIN="yes"' >> /etc/sysconfig/displaymanager
 echo "localhost" > /etc/X0.hosts
 chmod 755 /root/.vnc/xstartup
+touch /root/.vnc/passwd
+chmod 600 /root/.vnc/passwd
 /sbin/insserv -f /etc/init.d/vncd
 
 %clean
