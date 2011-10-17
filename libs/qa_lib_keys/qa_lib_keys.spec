@@ -30,10 +30,11 @@ BuildArch:      noarch
 PreReq:         coreutils
 
 %description
-Changes SSH fingerprint and installs SSH access keys. Install only
-on test systems.
-
-
+Access package - install on test systems only
+- changes SSH fingerprint (same after reinstall)
+- installs SSH access keys
+- switches off StrictHostKeyChecking
+- switches off SuSEfirewall
 
 Authors:
 --------
@@ -61,6 +62,7 @@ cp --target-directory=$RPM_BUILD_ROOT%{fhsdir} id_dsa id_dsa.pub known_hosts add
 rm -rf $RPM_BUILD_ROOT
 
 %post
+# back up old SSH server keys, unless already done
 if [ -d %{sshconfdir} ]
 then
   if [ ! -d %{sshconfdir}/bak ]
@@ -69,9 +71,11 @@ then
     find %{sshconfdir} -type f -regex '.*\(key\|moduli\).*' ! -regex '.*bak.*' -exec mv -t %{sshconfdir}/bak {} \;
   fi
 fi
+# install SSH server keys from the package
 mkdir -p %{sshdir}
 mkdir -p %{sshconfdir}
 cp --target-directory=%{sshconfdir} %{fhsdir}/ssh/*
+# install root's authorized_keys
 if [ -f %{sshdir}/authorized_keys ]
 then
     cat %{fhsdir}/id_dsa.pub >> %{sshdir}/authorized_keys
@@ -79,11 +83,21 @@ else
     cp %{fhsdir}/id_dsa.pub %{sshdir}/authorized_keys
 fi
 cat %{fhsdir}/added_keys >> %{sshdir}/authorized_keys
+# install root's keys
 cp --target-directory=%{sshdir} %{fhsdir}/id_dsa %{fhsdir}/id_dsa.pub %{fhsdir}/known_hosts 
 if [ -x /etc/init.d/sshd ]
 then
     /etc/init.d/sshd try-restart
 fi
+# switch off StrictHostKeyChecking
+FILE=/etc/ssh/ssh_config
+if grep '#\?\([ \t]\+\)StrictHostKeyChecking' $FILE >/dev/null 2>/dev/null
+then
+	sed -i 's/#\?\([ \t]\+\)\(StrictHostKeyChecking\)\(.\+\)/\1\2 no/' $FILE
+else
+	echo "StrictHostKeyChecking no" >> $FILE
+fi
+# shut down firewall
 if [ -x /etc/init.d/SuSEfirewall2_init ]
 then
     /etc/init.d/SuSEfirewall2_init stop || true
@@ -114,6 +128,8 @@ echo "Your system has been hacked successfuly."
 %attr(0644,root,root) %{fhsdir}/known_hosts
 
 %changelog
+* Mon Oct 17 2011 - vmarsik@suse.cz
+- added switching off StrictHostKeyChecking
 * Sun Sep 04 2011 - llipavsky@suse.cz
 - New, updated release from the automation team. Includes:
 - Improved virtual machine handling/QA cloud
