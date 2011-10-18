@@ -5,7 +5,7 @@
         <debuglevel>4</debuglevel>
         <distributable>0</distributable>
         <parallel>0</parallel>
-        <mail notify="1">ldai@novell.com, jwang1@novell.com, csxia@novell.com</mail>
+        <mail notify="1"></mail>
 	<rpm>qa_hamsta qa_tools qa_lib_perl qa_test_fs_stress qa_test_ftpload qa_test_lmbench qa_test_memeat qa_test_memtester qa_test_netperf qa_test_newburn qa_test_sysbench qa_test_autotest</rpm>
         <logdir>/tmp</logdir>
         <description>SLES10-SP4 kernel test</description>

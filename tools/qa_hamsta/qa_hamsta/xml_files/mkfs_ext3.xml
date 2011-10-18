@@ -5,7 +5,7 @@
         <debuglevel>4</debuglevel>
         <distributable>0</distributable>
         <parallel>0</parallel>
-        <mail notify="1">llwang@novell.com</mail>        
+        <mail notify="1"></mail>        
         <logdir>/tmp</logdir>
         <description>Format abuild work space into ext3</description>
     </config>

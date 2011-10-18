@@ -5,7 +5,7 @@
         <debuglevel>4</debuglevel>
         <distributable>0</distributable>
         <parallel>0</parallel>
-        <mail notify="1">cachen@novell.com</mail>
+        <mail notify="1"></mail>
         <logdir>/tmp</logdir>
         <rpm>qa_hamsta qa_lib_strongwind qa_lib_ctcs2 qa_test_tomboy qa_test_evince qa_test_firefox qa_test_f-spot qa_test_gnome</rpm>
         <description>For all available Desktop UI Automation regression test.</description>

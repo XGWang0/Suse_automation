@@ -5,7 +5,7 @@
         <debuglevel>4</debuglevel>
         <distributable>0</distributable>
         <parallel>0</parallel>
-        <mail notify="1">llipavsky@novell.com</mail>
+        <mail notify="1"></mail>
         <logdir>/tmp</logdir>
         <rpm>qa_hamsta qa_tools qa_lib_perl qa_lib_virtauto</rpm>
         <description>Installs new virtualmachine from REPOURL</description>

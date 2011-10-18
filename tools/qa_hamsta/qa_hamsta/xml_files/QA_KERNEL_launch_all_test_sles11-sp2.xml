@@ -5,7 +5,7 @@
         <debuglevel>4</debuglevel>
         <distributable>0</distributable>
         <parallel>0</parallel>
-        <mail notify="1">ldai@novell.com, jwang1@novell.com, csxia@novell.com</mail>
+        <mail notify="1"></mail>
 	<rpm>qa_hamsta qa_tools</rpm>
         <logdir>/tmp</logdir>
         <description>SLES11-SP2 QA kernel test</description>
