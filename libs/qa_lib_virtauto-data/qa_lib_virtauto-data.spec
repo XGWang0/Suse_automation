@@ -15,7 +15,7 @@ Obsoletes:	virtautolib-data
 BuildArchitectures: noarch
 
 %description
-Data for for virtualization automation library
+Data for virtualization automation library
 
 
 Authors:
