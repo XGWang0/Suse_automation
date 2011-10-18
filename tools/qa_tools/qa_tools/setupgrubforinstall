@@ -1,8 +1,6 @@
 #!/bin/bash
 
 curl=curl
-ssh_enable="ssh=1 sshpassword=susetesting"
-vnc_enable="vnc=1 vncpassword=susetesting"
 
 printhelp()
 {
