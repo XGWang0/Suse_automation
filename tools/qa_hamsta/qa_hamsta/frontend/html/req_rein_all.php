@@ -51,7 +51,7 @@
   </tr>
   <tr>
         <td>Additional RPMs (optional): </td>
-        <td><input type="text" name="additionalrpms" size="70" value="<?php if(isset($_POST["additionalrpms"])){echo $_POST["additionalrpms"];} ?>" /></td>
+        <td><input type="text" name="additionalrpms" size="70" value="<?php if(isset($_POST["additionalrpms"])){echo $_POST["additionalrpms"];} else echo ARLIST;?>" /></td>
   </tr>
   <tr>
         <td>Installation options (optional): </td>

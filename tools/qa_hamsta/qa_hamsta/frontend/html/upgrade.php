@@ -123,7 +123,7 @@ function upmethod(myvar)
   </tr>
   <tr>
 	<td>Additional RPMs (optional): </td>
-	<td><input type="text" name="additionalrpms" size="70" value="<?php if(isset($_POST["additionalrpms"])){echo $_POST["additionalrpms"];} ?>" /></td>
+	<td><input type="text" name="additionalrpms" size="70" value="<?php if(isset($_POST["additionalrpms"])){echo $_POST["additionalrpms"];} else ARLIST;?>" /></td>
   </tr>
   <tr>
 	<td>Install Updates for OS?</td>
