@@ -140,10 +140,14 @@ if (request_str("proceed")) {
 		}
 		# Check if a validation test is needed
 		if ($validation) {
-			$validationfile = "/tmp/validation_$rand.xml";
-			system("cp ".XML_VALIDATION." $validationfile");
-			system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $validationfile");
-			$machine->send_job($validationfile) or $errors['validationjob']=$machine->get_hostname().": ".$machine->errmsg;
+			$validationfiles = split (" ", XML_VALIDATION);
+			foreach ( $validationfiles as &$validationfile ) {
+				$randfile= "/tmp/validation_$rand.xml";
+				system("cp $validationfile $randfile");
+				$validationfile = $randfile;
+				system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $validationfile");
+				$machine->send_job($validationfile) or $errors['validationjob']=$machine->get_hostname().": ".$machine->errmsg;
+			}
 		}
 
 		if (empty($error)) {
