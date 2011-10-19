@@ -204,7 +204,6 @@ sub process_request {
                     &log(LOG_ERROR, $@);
                 }
                 &log(LOG_NOTICE, "[$ip_addr] Sent machine stats.");
-                $sent_stats = time;
             } elsif ($incoming =~ /^ping$/) {
                 print $sock "pong\n" ;	
             } else {

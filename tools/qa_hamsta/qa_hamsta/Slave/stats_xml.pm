@@ -29,12 +29,12 @@ sub get_stats_xml() {
 		my @vms = ();
 		my $vmline = `/usr/share/hamsta/Slave/get_vms.sh`;
 		chomp $vmline;
-		for my $pair in split(/;/, $vmline) {
+		for my $pair (split(/;/, $vmline)) {
 			my ($mac, $vmtype) = split (/_/, $pair);
 			my %vm = ( 'type' => $vmtype, 'mac' => $mac );
 			push @vms, \%vm;
 		}
-		$result{'vms'} = \%vms;
+		$result{'vms'} = \@vms;
 	}
 
 	# Convert to XML string and write to debugging file

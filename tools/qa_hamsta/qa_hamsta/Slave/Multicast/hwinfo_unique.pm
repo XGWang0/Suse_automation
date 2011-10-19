@@ -118,7 +118,7 @@ sub unique_id () {
 # Returns a string that describes this slave and can be used for display
 # For now, this is a uname output including the hostname
 sub get_slave_description() {
-    my $stats_version = @_[0];
+    my $stats_version = $_[0];
     my $desc = `hostname|cut -d. -f1`;
     chomp $desc;
     my $kernelnum = `/bin/uname -r`;
