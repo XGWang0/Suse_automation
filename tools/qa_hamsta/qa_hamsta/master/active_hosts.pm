@@ -18,6 +18,10 @@ require qaconfig;
 require sql;
 our $dbc;
 
+# Ggost is Vm (reported from VH), which is not yet controlled by hamsta, so is not created in machines table
+my %ghosts_by_mac;
+my %ghosts_by_vh;
+
 # Master->active_hosts()
 #
 # This sub periodicly (while(1)) checks if 
@@ -81,38 +85,76 @@ sub active_hosts() {
 				my $line;
 				if (defined($selector_host->{$sock})) {
 					# All sockets which are defined in $selector_hosts belong
-					# to a hwinfo query. So we got a hwinfo response here.
+					# to a info query. So we got a info response here.
 					&log(LOG_DEBUG,"Received a multicast from socked IN selector_host");
+					
+					my $host = $selector_host->{$sock};
+					my $what = $host->{'query'}->{'now'};
+					
 					$sock->recv($line, 65536);
 					if (!defined($line) || ($line eq "")) {
 						if (eof($sock)) {
-							delete $selector_host->{$sock}->{'hwinfo'};
+							delete $host->{$what};
 							delete $selector_host->{$sock};
 							$selector->remove($sock);
 							$sock->close;
+
+
+							$host->{'query'}->{'now'} = undef;
+							$what = shift @{$host->{'query'}->{'queue'}};
+							if ($what) {
+								# start next query
+								eval {
+									my $sock = &query_info($host, $what);
+									if( $sock )	{
+										$selector->add($sock);
+										$selector_host->{$sock} = $host;
+										$host->{'query'}->{'now'} = $what;
+									}
+								};
+								&log(LOG_ERR, "ACTIVE_MCAST Error during call of query_info($what): $@") if ($@);
+							} 
 						}
 						next;
 					}
-					# Add the received line to the hwinfo attribute of the
-					# host. </perldata> signals the end of the hwinfo
+					# Add the received line to the info attribute of the
+					# host. </perldata> signals the end of the info
 					# response (URL encoded!)
-					$selector_host->{$sock}->{'hwinfo'} .= $line;
+					$host->{$what} .= $line;
 					if ($line =~/%3C%2Fperldata%3E/i) {
-						# complete hwinfo
-						&log(LOG_INFO,"Got complete hwinfo for ".
-								$selector_host->{$sock}->{'hostname'});
+						# complete info
+						&log(LOG_INFO,"Got complete $what for ".$host->{'hostname'});
 						eval {
-							process_hwinfo_response($selector_host->{$sock});
+							if ($what eq 'hwinfo' ) {
+								&process_hwinfo_response($host);
+							
+							}elsif ($what eq 'stats' ) {
+								&process_stats_response($host);
+							}
+							
 						};
 						if ($@) {
-							&log(LOG_ERR,"ACTIVE_MCAST In ".
-									$selector_host->{$sock}->{'hwinfo_time'}.
-									"_hwinfo -- Error processing hwinfo: $@");
+							&log(LOG_ERR,"ACTIVE_MCAST -- Error processing $what: $@");
 						}
-						delete $selector_host->{$sock}->{'hwinfo'};
+						delete $host->{$what}; 
 						delete $selector_host->{$sock};
 						$selector->remove($sock);
 						$sock->close;
+						
+						$host->{'query'}->{'now'} = undef;
+						$what = shift @{$host->{'query'}->{'queue'}};
+						if ($what) {
+							# start next query
+							eval {
+								my $sock = &query_info($host, $what);
+								if( $sock )	{
+									$selector->add($sock);
+									$selector_host->{$sock} = $host;
+									$host->{'query'}->{'now'} = $what;
+								}
+							};
+							&log(LOG_ERR, "ACTIVE_MCAST Error during call of query_info($what): $@") if ($@);
+						} 
 					}
 
 				} elsif (fileno($sock) == fileno($mcast_sock)) {
@@ -122,22 +164,31 @@ sub active_hosts() {
 					my $host = &decode_mcast_message($line);
 					&log(LOG_DEBUG,"MCAST: $line");
 					&log(LOG_INFO,"MCAST: $host->{'hostname'}");
-					if (&process_mcast($thread_shared, $host)) {
-						eval {
-							my $sock = &query_hwinfo($host);
-							if( $sock )	{
-								$selector->add($sock);
-								$selector_host->{$sock} = $host;
-							}
-						};
-						&log(LOG_ERR, "ACTIVE_MCAST Error during call of query_hwinfo: $@") if ($@);
+					
+					for my $info ( &process_mcast($thread_shared, $host) ) {
+						if ($host->{'query'}->{'now'}) {
+							# something is being queried already, add this request to the queue
+							push @{$host->{'query'}->{'queue'}}, $info;
+							&log(LOG_DEBUG,"MCAST: query for $info was added to the queue, since now querying ".$host->{'query'}->{'now'}.".");
+						} else {
+							# nothing is being queried now - start the query
+							eval {
+								my $sock = &query_info($host, $info);
+								if( $sock )	{
+									$selector->add($sock);
+									$selector_host->{$sock} = $host;
+									$host->{'query'}->{'now'} = $info;
+								}
+							};
+							&log(LOG_ERR, "ACTIVE_MCAST Error during call of query_info($info): $@") if ($@);
+						}
 					}
 
 				} else {
 					# A line is received that is neither a mcast message nor 
 					# is it sent by a host in $select_host - this should never
 					# happen.
-					&log(LOG_ERR, "Got hwinfo data without request!");
+					&log(LOG_ERR, "Got hwinfo or stats data without request!");
 				}
 			} # end of foreach
 		} # end of while @ready
@@ -172,16 +223,20 @@ sub decode_mcast_message {
 		$hash->{'notify'} = $notify;
 
 		if (defined($hash->{'description'})) {
-			($hash->{'hostname'}, $hash->{'kernel'}, my $arch, my $vms, my @rest) = split / /, $hash->{'description'}; 
+			($hash->{'hostname'}, $hash->{'kernel'}, my $arch, my $stats_version, my @rest) = split / /, $hash->{'description'}; 
 
-			# for backward compatibility
-			unless ($vms eq '-' or $vms =~ /^[\w]+#([0-9A-F]{2}(:[0-9A-F]{2}){5}_[\w]+;?)*$/ ) {
-				$hash->{'description'} = join ' ', $hash->{'hostname'}, $hash->{'kernel'}, $arch, '-', $vms, @rest;
-				($hash->{'hostname'}, $hash->{'kernel'}, $arch, $vms, @rest) = split / /, $hash->{'description'};
+			if ($stats_version =~ /^[0-9]+$/) {
+				$hash->{'stats_version'} = $stats_version;
+			} else {
+				# for backward compatibility DEPRECATED
+				unless ($stats_version eq '-' or $stats_version =~ /^[\w]+#([0-9A-F]{2}(:[0-9A-F]{2}){5}_[\w]+;?)*$/ ) {
+					# for backward backward compatibility
+					$hash->{'description'} = join ' ', $hash->{'hostname'}, $hash->{'kernel'}, $arch, '-', $stats_version, @rest;
+					($hash->{'hostname'}, $hash->{'kernel'}, $arch, $stats_version, @rest) = split / /, $hash->{'description'};
+				}
+
+				($hash->{'vh'}, $hash->{'vms'}) = split('#', $stats_version) unless $stats_version eq '-';
 			}
-
-
-			($hash->{'vh'}, $hash->{'vms'}) = split('#', $vms) unless $vms eq '-';
 			undef @rest;
 		}
 	}
@@ -201,18 +256,21 @@ sub decode_mcast_message {
 # $thread_shared    Hash containing all active hosts
 # $host             Host information from the mcast
 #
-# Returns:          1 if hwinfo has to be triggered, 0 if the host has
+# Returns:          (hwinfo_changed, stats_changed)
+#                   1 if hwinfo/stats has to be triggered, 0 if the host has
 #                   already been active and the configuration is
 #                   unchanged.
 #
 sub process_mcast() {
-	# TODO
 	my $thread_shared = shift;
 	my $host = shift;
 	my $hwinfo_changed = 0;
+	my $stats_changed = 0;
 	my $unique_id = $host->{'id'};
 	my $hostname = $host->{'hostname'};
+	my $new_machine = 0;
 
+	# FIXME TRANSACTION?
 	my $machine_id = &machine_get_by_unique_id($unique_id);
 #	my $machine_id = $dbc->enum_get_id('machine',$host->{'hostname'});
 	if(!$machine_id && exists($thread_shared->{$unique_id}))	{
@@ -220,7 +278,9 @@ sub process_mcast() {
 	}
 	if (!$machine_id) {
 		# There's no unique_id record matched in mysql DB. New machine!
+		$new_machine = 1;
 		$hwinfo_changed = 1;
+		$stats_changed = 1 if defined $host->{'stats_version'}; # condition is for backward compatibility with hamsta prior 2.2.0
 		&log(LOG_NOTICE, "ACTIVE_MCAST: new slave $host->{'hostname'} IP:$host->{'ip'} with ID: $unique_id"); 
 		$thread_shared->{$unique_id} = $host; 
 		$thread_shared->{$unique_id}->{'hwinfo'} = "";
@@ -253,40 +313,82 @@ sub process_mcast() {
 
 	$thread_shared->{$unique_id}->{'now'} = time;
 	
-	# TODO: following section needs redesign:
-	# - too many unnecessary DB writes on every multicast
-	# - the VM info should be hold in $thread_shared->{$unique_id}
-	# - no need to set machine role / VM info every 15s
-
 	&TRANSACTION( 'machine' );
 	&machine_set_status( $machine_id, MS_UP );
 	
-	# FIXME: this belongs to somewhere else!
-	# we run it on every multicast, which is not good
-	my($role, $type) = &machine_get_role_type($machine_id);
-	if ($host->{'vh'}) {
-		# this is a virtual host
-		&machine_update_role_type($machine_id, 'VH', $host->{'vh'}) unless $role eq 'VH';
-	} else {
-		# VH reinstalled to SUT - set VH back to SUT hw (vm cannot become VH, so we know it was hw)
-		&machine_update_role_type($machine_id, 'SUT', 'hw') if $role and $role eq 'VH';
+	if (defined $host->{'stats_version'}) {
+
+		# host has been upgraded to 2.2.0 (from version that did not use stats)
+		# or machine has appeared after master restart
+		$thread_shared->{$unique_id}->{'stats_version'} = -1 if not defined $thread_shared->{$unique_id}->{'stats_version'};
+
+		# Did stats changed?
+		if ( $thread_shared->{$unique_id}->{'stats_version'} < $host->{'stats_version'}) {
+			$stats_changed = 1;
+			$thread_shared->{$unique_id}->{'stats_version'} = $host->{'stats_version'};
+		}	
+		
+	} elsif ($machine_id) {
+
+		# For backward compatibility only! DEPRECATED
+		#
+		# FIXME: this belongs to somewhere else!
+		# we run it on every multicast, which is not good
+		my($role, $type) = &machine_get_role_type($machine_id);
+		if ($host->{'vh'}) {
+			# this is a virtual host
+			&machine_update_role_type($machine_id, 'VH', $host->{'vh'}) unless $role eq 'VH' and $host->{'vh'} eq $type;
+		} else {
+			# VH reinstalled to SUT - set VH back to SUT hw (vm cannot become VH, so we know it was hw)
+			&machine_update_role_type($machine_id, 'SUT', 'hw') if $role and $role eq 'VH';
+
+#			# If there were any VM ghosts adsigned to (in past) VH, remove them - not VH anymore
+#			if (exists $ghosts_by_vh{$machine_id}) {
+#				for my $g (@{$ghosts_by_vh{$machine_id}}) {
+#					delete $ghosts_by_mac{$g->{'mac'}};
+#				}
+#				delete $ghosts_by_vh{$machine_id};
+#			}
+
+			# TODO check and delete? VMs in DB
+		}
+
+		# update virtual machines
+		if ($host->{'vms'}) {
+			my %vmtypes;
+#			my %macs;
+#			my @known_macs;
+
+			for (split(';', $host->{'vms'})) {
+				my ($mac, $type) = split '_', $_;
+				push @{$vmtypes{$type}}, $mac;
+#				$macs{$mac} = $type;
+			}
+			for (keys %vmtypes) {
+				my $type = $_;
+				&machine_update_vhids($machine_id, "vm/".$host->{'vh'}."/$type", @{$vmtypes{$type}});
+			}
+
+#			# create ghosts
+#			@known_macs = &machine_get_known_unique_ids(keys %macs);
+#			$ghosts_by_vh{$machine_id} = [];
+#			for my $ghostmac (grep!${{map{$_,1}@known_macs}}{$_},keys %macs) {
+#				next if $ghosts_by_mac{$ghostmac};
+#				my $ghost = { 'mac' => $ghostmac, 'vh' => $machine_id, 'type' => "vm/".$host->{'vh'}."/".$macs{$ghostmac}};
+#				$ghosts_by_mac{$ghostmac} = $ghost;
+#				push @{$ghosts_by_vh{$machine_id}}, $ghost;
+#			}
+		}
 	}
 
-	# update virtual machines
-	if ($host->{'vms'}) {
-		my %vmtypes;
-		for (split(';', $host->{'vms'})) {
-			my ($mac, $type) = split '_', $_;
-			push @{$vmtypes{$type}}, $mac;
-		}
-		for (keys %vmtypes) {
-			my $type = $_;
-			&machine_update_vhids($machine_id, "vm/".$host->{'vh'}."/$type", @{$vmtypes{$type}});
-		}
-	}
+	
+
 	&TRANSACTION_END;
 
-	return $hwinfo_changed;
+	my @result = ();
+	push @result, 'hwinfo' if $hwinfo_changed;
+	push @result, 'stats' if $stats_changed;
+	return @result;
 }
 
 # check_host_timeouts($thread_shared)
@@ -333,24 +435,29 @@ sub check_host_timeouts($) {
 }
 
 
-# Master->query_hwinfo(host)
+# Master->query_info(host)
 #
 # Send special command to slave which is answered with XML-based hwinfo 
 # response. Furthermore send the master time to the slave for time 
 # synchronisation.
 # 
-# $host             Hash representing the host to which the hwinfo query is to
-#                   be sent. If $host->{'hwinfo_fresh'} is defined, a fresh 
-#                   hwinfo is queried from the slave (it must not answer 
-#                   "already sent") and $host->{'hwinfo_fresh'} is deleted.
+# $host             Hash representing the host to which the info query is to
+#                   be sent. If $host->{'hwinfo_fresh'} is defined and $what is 
+#                   set to hwinfo, a fresh hwinfo is queried from the slave 
+#                   (it must not answer "already sent") and 
+#                   $host->{'hwinfo_fresh'} is deleted.
+#
+# $what             What should be queried. Fossible values are:
+#                   - hwinfo
+#                   - stats
 #
 # Return:           Open socket from which the client response can be read or
 #                   undef if an error occurred.
 # 
-sub query_hwinfo () {
-	my $host = shift @_;
+sub query_info () {
+	my ($host, $what) = @_;
 
-	&log(LOG_DETAIL, "ACTIVE_MCAST_THREADS_EACH: Starting hwinfo query");
+	&log(LOG_DETAIL, "ACTIVE_MCAST_THREADS_EACH: Starting $what query");
 
 
 # Open a socket to the slave. It is important to open the socket in
@@ -366,13 +473,13 @@ sub query_hwinfo () {
 			); # &log(LOG_ERR, "Can't bind : $@");
 	if ($!) {
 		&log( ($! =~/illeg/ ? LOG_WARNING : LOG_ERR),
-				'QUERY_HWINFO '.$host->{'hostname'}." : $!" );
+				"QUERY_INFO($what) ".$host->{'hostname'}." : $!" );
 	}
 
 	# Set non-blocking flag
 	my $flags;
 	if (!$sock || !($flags = fcntl($sock, F_GETFL, 0))) {
-		&log(LOG_WARNING, "QUERY_HWINFO: Could not connect to slave, aborting hwinfo request");
+		&log(LOG_WARNING, "QUERY_INFO($what): Could not connect to slave, aborting $what request");
 		if ($sock) {
 			$sock->close;
 		}
@@ -392,21 +499,20 @@ sub query_hwinfo () {
 
 	$time_utc = join ' ', @temp;
 
-	&log(LOG_DETAIL, "QUERY_HWINFO: time $time_utc send to $host->{'ip'}");
+	&log(LOG_DETAIL, "QUERY_INFO($what): time $time_utc send to $host->{'ip'}");
 	$sock->send("set_time:$time_utc\n");
 
 
 	# Send request for hwinfo 
 	# If the field hwinfo_fresh is set, require the slave to send a new hwinfo
-	if (defined($host->{'hwinfo_fresh'})) {
-		&log(LOG_INFO, "QUERY_HWINFO: send fresh hwinfo query to  $host->{'ip'}");
+	if ($what eq 'hwinfo' and defined($host->{'hwinfo_fresh'})) {
+		&log(LOG_INFO, "QUERY_INFO($what): send fresh hwinfo query to  $host->{'ip'}");
 		$sock->send("get_hwinfo fresh\n");
 		delete $host->{'hwinfo_fresh'};
 	} else {
-		&log(LOG_INFO, "QUERY_HWINFO: send hwinfo query to  $host->{'ip'}");
-		$sock->send("get_hwinfo\n");
+		&log(LOG_INFO, "QUERY_INFO($what): send $what query to  $host->{'ip'}");
+		$sock->send("get_$what\n");
 	}
-
 
 	return ($sock);
 }
@@ -465,5 +571,94 @@ sub process_hwinfo_response($) {
 	}
 }
 
+# Master->process_stats_response()
+#
+# used collecting and integration new/knwon slaves
+# it calls the stats query and sets the database (table machine),
+# it logs some special information
+#
+sub process_stats_response($) {
+	my $host = shift;
+
+	# If stats has been sent, process it
+	if ($host->{'stats'}) {
+		$host->{'stats'} = uri_unescape($host->{'stats'});
+
+		# return the perl data structure from xml
+		my $dump = new XML::Dumper;
+		my $stats_hash = $dump->xml2pl($host->{'stats'});
+		undef $dump;
+
+		# Update the DB
+		my $unique_id = $host->{'id'};
+
+		&TRANSACTION( 'machine' );
+		my $machine_id = &machine_get_by_unique_id($unique_id);
+		my($role, $type) = &machine_get_role_type($machine_id);
+		if($stats_hash->{'role'} eq 'VH') {
+			&machine_update_role_type($machine_id, $stats_hash->{'role'}, $stats_hash->{'type'}) unless $role eq $stats_hash->{'role'} and $type eq $stats_hash->{'type'};
+
+			my %vmtypes;
+			my %macs;
+			my @known_macs;
+
+			# make sure we have empty lists for fv and pv
+			$vmtypes{'fv'} = ();
+			$vmtypes{'pv'} = ();
+			for my $vm (@{$stats_hash->{'vms'}}) {
+				push @{$vmtypes{$vm->{'type'}}}, $vm->{'mac'};
+				$macs{$vm->{'mac'}} = $vm->{'type'};
+			}
+			for (keys %vmtypes) {
+				my $type = $_;
+				&machine_update_vhids($machine_id, "vm/".$stats_hash->{'type'}."/$type", @{$vmtypes{$type}});
+			}
+
+			# create ghosts
+			@known_macs = &machine_get_known_unique_ids(keys %macs);
+			$ghosts_by_vh{$machine_id} = [];
+			for my $ghostmac (grep!${{map{$_,1}@known_macs}}{$_},keys %macs) {
+				next if $ghosts_by_mac{$ghostmac};
+				my $ghost = { 'mac' => $ghostmac, 'vh' => $machine_id, 'type' => "vm/".$host->{'vh'}."/".$macs{$ghostmac}};
+				$ghosts_by_mac{$ghostmac} = $ghost;
+				push @{$ghosts_by_vh{$machine_id}}, $ghost;
+			}
+
+
+		} elsif ($role ne $stats_hash->{'role'}) {
+			# VH -> SUT conversion
+			# set to default non-VH, we know it is type=hw, since VM couldn't become VH
+			&machine_update_role_type($machine_id, $stats_hash->{'role'}, 'hw');
+
+			# If there were any VM ghosts adsigned to (in past) VH, remove them - not VH anymore
+			if (exists $ghosts_by_vh{$machine_id}) {
+				for my $g (@{$ghosts_by_vh{$machine_id}}) {
+					delete $ghosts_by_mac{$g->{'mac'}};
+				}
+				delete $ghosts_by_vh{$machine_id};
+			}
+
+			# TODO check and delete? VMs in DB
+		} elsif ($role eq 'SUT' and exists $ghosts_by_mac{$unique_id}) {
+			# This is SUT and it is also a ghost 
+			# -> Therefore it must be newly created virtual machine!!!
+			# We set it's type and VH to values from ghosts and remove it 
+			# from ghosts, so this will never trigger again
+			my $ghost = $ghosts_by_mac{$unique_id};
+			&machine_update_vhids($ghost->{'vh'}, $ghost->{'type'}, $ghost->{'mac'});
+			
+			# delete it from ghosts			
+			delete $ghosts_by_mac{$unique_id};
+			my $index = 0;
+			$index++ until $ghosts_by_vh{$ghost->{'vh'}}->[$index]->{'mac'} eq $ghost->{'mac'};
+			splice(@{$ghosts_by_vh{$ghost->{'vh'}}}, $index, 1);
+			delete $ghosts_by_vh{$ghost->{'vh'}} unless @{$ghosts_by_vh{$ghost->{'vh'}}}; # No more ghosts for this VH
+		}
+
+		&TRANSACTION_END;
+
+		undef $stats_hash;
+	}
+}
 
 1;

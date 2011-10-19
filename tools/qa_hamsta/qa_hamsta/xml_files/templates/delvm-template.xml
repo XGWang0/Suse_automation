@@ -26,7 +26,7 @@ for i in `virsh list --all | grep -v '^$' | tac | head -n -2 | grep -v 'Domain-0
 	if virsh dumpxml $i | xpath /domain/devices/interface/mac/@address 2> /dev/null | grep -iq 'MACADDR' ; then
 		./vm-gone.sh 127.0.0.1 $hypervisor $i "OSSPEC" "IPADDR"
 		ret=$?;
-		rm -f /tmp/hamsta_virtual_machines;
+		touch /var/lib/hamsta/stats_changed ;
 		exit $ret;
 	fi
 done;
