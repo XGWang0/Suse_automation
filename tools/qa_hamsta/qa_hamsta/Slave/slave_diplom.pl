@@ -45,6 +45,7 @@ use log;
 $log::loginfo='slave_diplom';
 
 use Slave::hwinfo_xml;
+use Slave::stats_xml;
 
 use Slave::Multicast::mcast;
 use Slave::functions;
@@ -175,6 +176,12 @@ sub run_slave_server() {
 #	already sent on <timestamp>" to indicate that nothing has
 #	changed since the last query.
 #
+# * get_stats
+#       Returns a hash containing the stats of (Virtualization) host, 
+#       serialized in XML. If machine is not virtualization host,
+#       only limited information is returned. If machine is VH, also
+#       list of VMs is returned.
+#
 # * ping
 #	Returns the String "pong"
 #
@@ -212,6 +219,14 @@ sub process_request {
                 }
                 &log(LOG_NOTICE, "[$ip_addr] Sent hwinfo.");
                 $sent_hwinfo = time;
+            } elsif ($incoming =~ /^get_stats$/) {
+                eval { 
+                    print $sock uri_escape(&get_stats_xml());
+                };
+                if ($@) {
+                    &log(LOG_ERROR, $@);
+                }
+                &log(LOG_NOTICE, "[$ip_addr] Sent machine stats.");
             } elsif ($incoming =~ /^ping$/) {
                 print $sock "pong\n" ;	
             } else {

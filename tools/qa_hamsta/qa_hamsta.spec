@@ -240,6 +240,7 @@ install -m 755 -d $RPM_BUILD_ROOT%{confdir}
 cp --target-directory=$RPM_BUILD_ROOT%{confdir} 00-hamsta-common-default 00-hamsta-default 00-hamsta-master-default 00-hamsta-multicast-forward-default
 rm -rf `find $RPM_BUILD_ROOT -name .svn`
 mkdir -p $RPM_BUILD_ROOT/var/log/hamsta/master
+mkdir -p $RPM_BUILD_ROOT/var/lib/hamsta
 
 
 %clean
@@ -322,6 +323,7 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %{_sysconfdir}/init.d/hamsta
 %{_sbindir}/rchamsta
 %{confdir}/00-hamsta-default
+%dir /var/lib/hamsta
 
 %files master  
 %defattr(-, root, root)

@@ -40,7 +40,7 @@ define ("XML_DIR", "/usr/share/hamsta/xml_files" );
 define ("XML_WEB_DIR", "/xml_files" );
 define ("XML_MULTIMACHINE_DIR", XML_DIR."/multimachine");
 define ("XML_MULTIMACHINE_WEB_DIR", XML_WEB_DIR."/multimachine");
-define ("XML_VALIDATION", "/usr/share/hamsta/xml_files/Validation_test.xml" );
+define ("XML_VALIDATION", "/usr/share/hamsta/xml_files/Validation_test.xml /usr/share/hamsta/xml_files/QA_KERNEL_launch_all_test_sles11-sp2.xml" );
 
 # Please modify following lines according to your local. This is used for reinstall repo/sdk url drop down list
 

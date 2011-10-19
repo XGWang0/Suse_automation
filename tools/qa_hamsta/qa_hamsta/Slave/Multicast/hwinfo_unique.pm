@@ -141,6 +141,7 @@ sub unique_id () {
 # Returns a string that describes this slave and can be used for display
 # For now, this is a uname output including the hostname
 sub get_slave_description() {
+    my $stats_version = $_[0];
     my $desc = `hostname|cut -d. -f1`;
     chomp $desc;
     my $kernelnum = `/bin/uname -r`;
@@ -162,22 +163,7 @@ sub get_slave_description() {
             $arch = "i586";
         }
     }
-    $desc = $desc." ".$arch;
-
-    my $vms;
-    if ( -r "/usr/share/hamsta/.VH" ) {
-        # I am virtualization host!
-        # FIXME UGLY UGLY UGLY (also in newvm and other vm-related tools)
-        unless ( -r '/tmp/hamsta_virtual_machines' ) {
-        	system "/usr/share/hamsta/Slave/get_vms.sh > /tmp/hamsta_virtual_machines";
-        }
-        my $type = `cat /usr/share/hamsta/.VH`;
-        chomp $type;
-        $vms=`cat /tmp/hamsta_virtual_machines`;
-        chomp $vms;
-        $vms = "$type#$vms";
-    }
-    $desc .= $vms ? " $vms" : ' -';
+    $desc = $desc." ".$arch." ".$stats_version;
 
     my @release = `cat /etc/SuSE-release`;
     foreach (@release) {

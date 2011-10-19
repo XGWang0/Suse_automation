@@ -83,8 +83,10 @@ sub run() {
 	# set TTL to make the packet pass the first router
 	$sock->mcast_ttl(2);
 
+	my $stats_version = 0;
+	unlink '/var/lib/hamsta/stats_changed'; # Initial stats will be queried, no need to change now
 	while (1) {
-		my $slave_ip;
+	    my $slave_ip;
 
 	    my $message = 
 			# An ID (hopefully) unique to this configuration (from hwinfo_unique.pm)
@@ -92,7 +94,7 @@ sub run() {
 
 			# Description of this slave to display, e.g. uname output 
 			# (from hwinfo_unique.pm)	
-			&get_slave_description()."\n".
+			&get_slave_description($stats_version)."\n".
 
 			# IP address of this slave (from hwinfo_unique.pm)	
 			($slave_ip = &get_slave_ip($Slave::multicast_address))."\n".
@@ -121,6 +123,8 @@ sub run() {
 	    &log(LOG_DEBUG, "MCAST: identifier send $message");
 	} continue {
 	    sleep 10;
+	    # Increase stats version if somethying changed
+	    $stats_version++ if unlink '/var/lib/hamsta/stats_changed';
 	}
 
 } 

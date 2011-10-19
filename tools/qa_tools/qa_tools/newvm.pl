@@ -159,8 +159,8 @@ $cmdline .= " -D $virtdisktype" if defined $virtdisktype;
 print $cmdline . "\n";
 my $ret = system($cmdline);
 
-# this will let hamsta know that it should regenerate the list it sends in description
-# FIXME UGLY UGLY UGLY
-system ("rm -f /tmp/hamsta_virtual_machines");
+# this will let hamsta know that it should increase stats version -> master will then query 
+# this host for changes
+system ("touch /var/lib/hamsta/stats_changed");
 exit $ret;
 
