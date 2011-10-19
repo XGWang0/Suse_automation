@@ -34,3 +34,5 @@ network.nameserver=10.20.136.1
 network.network=10.20.136.0
 network.bcast=10.20.143.255
 network.domain=qa.suse.cz
+MOUNT1.addr=fallback.suse.cz
+MOUNT2.addr=bender.suse.cz

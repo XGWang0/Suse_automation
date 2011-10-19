@@ -35,3 +35,5 @@ network.nameserver=147.2.136.75
 network.network=147.2.207.0
 network.bcast=147.2.207.255
 network.domain=bj.lab.novell.com
+MOUNT1.addr=147.2.207.208
+MOUNT2.addr=147.2.207.242
