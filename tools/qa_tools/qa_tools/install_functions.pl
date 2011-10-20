@@ -770,13 +770,13 @@ $postcmd
 			print $f	"	<nis_broadcast config:type=\"boolean\">false</nis_broadcast>\n";
 			print $f	"	<nis_broken_server config:type=\"boolean\">false</nis_broken_server>\n";
 			print $f	"	<nis_by_dhcp config:type=\"boolean\">true</nis_by_dhcp>\n";
-			print $f	"	<nis_domain>suse.de</nis_domain>\n";
+			print $f	"	<nis_domain>".$qaconf{nis_domain}."</nis_domain>\n";
 			print $f	"	<nis_local_only config:type=\"boolean\">false</nis_local_only>\n";
 			print $f	"	<nis_options></nis_options>\n";
 			print $f	"	<nis_other_domains config:type=\"list\">\n";
 			print $f	"	  <nis_other_domain>\n";
 			print $f	"		<nis_broadcast config:type=\"boolean\">false</nis_broadcast>\n";
-			print $f	"		<nis_domain>suse.de</nis_domain>\n";
+			print $f	"		<nis_domain>".$qaconf{nis_domain}."</nis_domain>\n";
 			print $f	"		<nis_servers config:type=\"list\">\n";
 			foreach my $server_ip (@nis_server_list) {
 				print $f "<nis_server>".$server_ip."</nis_server>\n";
