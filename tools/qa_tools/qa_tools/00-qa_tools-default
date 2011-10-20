@@ -61,3 +61,6 @@ install_testuser_password="susetesting"
 install_testuser_fullname="Test User"
 install_testuser_home="/home/testusr"
 
+# Set NIS domain
+nis_domain="suse.de"
+
