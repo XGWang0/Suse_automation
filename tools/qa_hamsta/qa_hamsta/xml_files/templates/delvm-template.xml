@@ -18,7 +18,7 @@
             <command execution="forked">
 #!/bin/bash
 
-hypervisor="`cat /usr/share/hamsta/.VH | head -n 1`"
+hypervisor="`cat /var/lib/hamsta/VH | head -n 1`"
 
 cd /usr/share/qa/virtautolib/lib
 

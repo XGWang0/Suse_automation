@@ -596,7 +596,7 @@ EOF
 				<filename>yyz_set_virthost</filename>
 				<interpreter>shell</interpreter>
 				<source>
-				  echo $virtHostType > /usr/share/hamsta/.VH;
+				  echo $virtHostType > /var/lib/hamsta/VH;
 				</source>
 			  </script>";  # Set this host as virtualization host of correct type
 	

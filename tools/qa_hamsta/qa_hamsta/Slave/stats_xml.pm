@@ -45,10 +45,10 @@ sub get_stats_xml() {
 
 	# Iterate through all modules
 	my %result = ();
-	$result{'role'} = -r '/usr/share/hamsta/.VH' ? 'VH' : 'SUT';
+	$result{'role'} = -r '/var/lib/hamsta/VH' ? 'VH' : 'SUT';
 
 	if ($result{'role'} eq 'VH') {
-		$result{'type'} = `cat /usr/share/hamsta/.VH`;
+		$result{'type'} = `cat /var/lib/hamsta/VH`;
 		chomp $result{'type'};
 		my @vms = ();
 		my $vmline = `/usr/share/hamsta/Slave/get_vms.sh`;
