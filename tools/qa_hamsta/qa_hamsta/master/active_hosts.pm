@@ -365,23 +365,11 @@ sub process_mcast() {
 		} else {
 			# VH reinstalled to SUT - set VH back to SUT hw (vm cannot become VH, so we know it was hw)
 			&machine_update_role_type($machine_id, 'SUT', 'hw') if $role and $role eq 'VH';
-
-#			# If there were any VM ghosts adsigned to (in past) VH, remove them - not VH anymore
-#			if (exists $ghosts_by_vh{$machine_id}) {
-#				for my $g (@{$ghosts_by_vh{$machine_id}}) {
-#					delete $ghosts_by_mac{$g->{'mac'}};
-#				}
-#				delete $ghosts_by_vh{$machine_id};
-#			}
-
-			# TODO check and delete? VMs in DB
 		}
 
 		# update virtual machines
 		if ($host->{'vms'}) {
 			my %vmtypes;
-#			my %macs;
-#			my @known_macs;
 
 			for (split(';', $host->{'vms'})) {
 				my ($mac, $type) = split '_', $_;
@@ -393,15 +381,6 @@ sub process_mcast() {
 				&machine_update_vhids($machine_id, "vm/".$host->{'vh'}."/$type", @{$vmtypes{$type}});
 			}
 
-#			# create ghosts
-#			@known_macs = &machine_get_known_unique_ids(keys %macs);
-#			$ghosts_by_vh{$machine_id} = [];
-#			for my $ghostmac (grep!${{map{$_,1}@known_macs}}{$_},keys %macs) {
-#				next if $ghosts_by_mac{$ghostmac};
-#				my $ghost = { 'mac' => $ghostmac, 'vh' => $machine_id, 'type' => "vm/".$host->{'vh'}."/".$macs{$ghostmac}};
-#				$ghosts_by_mac{$ghostmac} = $ghost;
-#				push @{$ghosts_by_vh{$machine_id}}, $ghost;
-#			}
 		}
 	}
 
@@ -624,7 +603,6 @@ sub process_stats_response($) {
 
 			my %vmtypes;
 			my %macs;
-			my @known_macs;
 
 			# make sure we have empty lists for fv and pv
 			$vmtypes{'fv'} = ();
@@ -638,16 +616,34 @@ sub process_stats_response($) {
 				&machine_update_vhids($machine_id, "vm/".$stats_hash->{'type'}."/$type", @{$vmtypes{$type}});
 			}
 
-			# create ghosts
-			@known_macs = &machine_get_known_unique_ids(keys %macs);
-			$ghosts_by_vh{$machine_id} = [];
-			for my $ghostmac (grep!${{map{$_,1}@known_macs}}{$_},keys %macs) {
-				next if $ghosts_by_mac{$ghostmac};
-				my $ghost = { 'mac' => $ghostmac, 'vh' => $machine_id, 'type' => "vm/".$host->{'vh'}."/".$macs{$ghostmac}};
-				$ghosts_by_mac{$ghostmac} = $ghost;
-				push @{$ghosts_by_vh{$machine_id}}, $ghost;
+
+			# Delete ghosts that no longer exist and create new
+			my @assigned_macs = &machine_get_known_unique_ids(keys %macs);
+			my @unassigned_macs = grep!${{map{$_,1}@assigned_macs}}{$_},keys %macs; #TODO CHECKME
+			my @ghosts = ();
+			
+			# process already known ghosts
+			for my $ghost (@{$ghosts_by_vh{$machine_id}}) {
+				if (grep { $_ eq $ghost->{'mac'}} @unassigned_macs) {
+					# keep it - and we already have it in %ghosts_by_mac
+					push @ghosts, $ghost;
+				} else {
+					# delete it from %ghosts_by_mac and do not add it to new @ghosts
+					delete $ghosts_by_mac{$ghost->{'mac'}};
+				}
 			}
 
+			# now add new if any
+			for my $ghostmac (@unassigned_macs) {
+				next if $ghosts_by_mac{$ghostmac};
+				my $ghost = { 'mac' => $ghostmac, 'vh' => $machine_id, 'type' => "vm/".$stats_hash->{'type'}."/".$macs{$ghostmac}};
+                                $ghosts_by_mac{$ghostmac} = $ghost;
+				push @ghosts, $ghost;
+			}
+
+			# replace in hash
+			$ghosts_by_vh{$machine_id} = \@ghosts;
+			&log(LOG_DEBUG, $host->{'hostname'}." has following ghosts:\n".join("\n", map {$_->{'mac'}." ".$_->{'type'}} @ghosts));
 
 		} elsif ($role ne $stats_hash->{'role'}) {
 			# VH -> SUT conversion
@@ -677,6 +673,7 @@ sub process_stats_response($) {
 			$index++ until $ghosts_by_vh{$ghost->{'vh'}}->[$index]->{'mac'} eq $ghost->{'mac'};
 			splice(@{$ghosts_by_vh{$ghost->{'vh'}}}, $index, 1);
 			delete $ghosts_by_vh{$ghost->{'vh'}} unless @{$ghosts_by_vh{$ghost->{'vh'}}}; # No more ghosts for this VH
+			&log(LOG_DEBUG, $host->{'hostname'}." has been constructed from ghost as virtual machine" );
 		}
 
 		&TRANSACTION_END;
