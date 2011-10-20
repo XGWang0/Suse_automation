@@ -9,7 +9,7 @@ AutoReqProv:    on
 Version:        @@VERSION@@
 Release:        0
 Summary:        set vnc server on SUT, so we can access from hamsta front end
-Url:            http://antony.lesuisse.org/software/ajaxterm/
+Url:            
 Source0: 	vncd
 Source1:	qa_setvncserver.8
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
