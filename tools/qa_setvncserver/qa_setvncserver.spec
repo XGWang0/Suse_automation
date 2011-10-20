@@ -54,7 +54,6 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root)
 /usr/share/man/man8/qa_setvncserver.8.gz
-/tmp/passwdofvnc
 /tmp/vncd
 
 %changelog
