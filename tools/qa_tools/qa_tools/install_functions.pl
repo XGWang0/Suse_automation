@@ -467,8 +467,16 @@ EOF
 		print $f "	  <registration_data>
 		<email>$ncc_email</email>";
 		foreach my $rcode (split(/,/, $ncc_code)) {
-			$rcode =~ /^.*-([^-]+)-[^-]+$/;
-			my $prname = lc $1;
+			my $prname = "";
+			# Possible regi-codes could be: WORKFORCEID@PRV-EXT-SLES-XXXXXXXXXX
+			# or sles10XXXXXXXX
+			if ($rcode =~ /^.+(-.+){3}.+$/) {
+				$rcode =~ /^.*-([^-]+)-[^-]+$/;
+				$prname = lc $1;
+			} else {
+				$rcode =~ /^([a-zA-Z]+)\d+.+$/;
+				$prname = lc $1;
+			}
 			print $f "		<regcode-$prname>$rcode</regcode-$prname>";
 		}
 		print $f "	  </registration_data>\n";
