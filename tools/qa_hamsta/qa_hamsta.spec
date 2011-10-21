@@ -315,7 +315,6 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %files
 %defattr(-, root, root)
 /usr/share/man/man8/%name.8.gz
-%{destdir}/COPYING
 %{destdir}/testscript
 %{destdir}/Slave
 %dir /usr/share/hamsta/
@@ -329,7 +328,6 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %defattr(-, root, root)
 %{_sysconfdir}/init.d/hamsta-master  
 /usr/sbin/starthamstamaster  
-%{destdir}/COPYING  
 %{destdir}/master  
 %{destdir}/db
 %attr(755,root,root) %{destdir}/db/create_db.sh
@@ -344,14 +342,12 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %defattr(-, root, root)
 %{destdir}/command_frontend.pl
 %{destdir}/feed_hamsta.pl
-%{destdir}/COPYING  
 %dir %{destdir}
 
 %files frontend
 %defattr(-, root, root)
 %{webdir}
 %attr(-,wwwrun,www) %{webdir}/profiles
-%{destdir}/COPYING  
 %config(noreplace) %{webdir}/config.php
 %dir %{destdir}
 
@@ -359,7 +355,6 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %defattr(-, root, root)
 %{_sysconfdir}/init.d/hamsta-multicast-forward
 %{destdir}/hamsta-multicast-forward.pl
-%{destdir}/COPYING  
 %dir %{destdir}
 %{_sbindir}/rchamsta-multicast-forward
 %{confdir}/00-hamsta-multicast-forward-default
