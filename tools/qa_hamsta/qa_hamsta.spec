@@ -231,7 +231,7 @@ mkdir -p $RPM_BUILD_ROOT%{webdir}
 cp -a -r --target-directory=$RPM_BUILD_ROOT%{webdir} frontend/*
 ln -s %{destdir}/xml_files $RPM_BUILD_ROOT%{xml_link}
 install -m 755 -d $RPM_BUILD_ROOT%{destdir}
-cp -a -r --target-directory=$RPM_BUILD_ROOT%{destdir} Slave command_frontend.pl feed_hamsta.pl master testscript xml_files db COPYING hamsta-multicast-forward.pl 
+cp -a -r --target-directory=$RPM_BUILD_ROOT%{destdir} Slave command_frontend.pl feed_hamsta.pl master testscript xml_files db hamsta-multicast-forward.pl 
 #find $RPM_BUILD_ROOT%{destdir}/xml_files -name '*.xml' -exec chown wwwrun:www {} \;
 #find $RPM_BUILD_ROOT%{destdir} -type d -exec chown wwwrun:www {} \; -exec chmod 1777 {} \;
 #install -m 1777 -d %{webdir}/profiles
