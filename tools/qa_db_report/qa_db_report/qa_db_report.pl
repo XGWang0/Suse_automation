@@ -488,6 +488,7 @@ while( my $parser = readdir RESULTS) {
 			}
 	
 			# statistics
+			$dst->tests_stat_update($testsuiteID,$testcaseID,($bench_pairs ? 1:0));
 			&log(LOG_DETAIL,"Test $tc_name, resultsID $resultsID: count ".$res->{times_run}.", fail ".$res->{failed}.", succ ".$res->{succeeded}.", fail ".$res->{failed}.", interr ".$res->{int_errors}.", skipped ".$res->{skipped}.", time ".$res->{test_time}.", bench pairs $bench_pairs ");
 			@stat_testsuite=&add_stat([@stat_testsuite],[1,$res->{times_run}, $res->{succeeded}, 
 												$res->{failed}, $res->{int_errors}, $res->{skipped},

@@ -239,5 +239,17 @@ sub testcase_get_id_or_insert_with_rel_url # testcase_name, relative_url
 	return $id;
 }
 
+sub tests_stat_update # testsuiteID, testcaseID, is_bench
+{
+	my ($self, $testsuiteID, $testcaseID, $is_bench) = @_;
+	my $bench = $self->scalar_query('SELECT is_bench FROM tests WHERE testsuiteID=? AND testcaseID=?', $testsuiteID, $testcaseID );
+	if( !defined $bench )	{
+		return $self->insert_query('INSERT INTO tests(testsuiteID,testcaseID,is_bench) VALUES(?,?,?)', $testsuiteID, $testcaseID, $is_bench);
+	} elsif( !$bench and $is_bench )	{
+		return $self->update_query('UPDATE tests SET is_bench=1 WHERE testsuiteID=? AND testcaseID=?', $testsuiteID, $testcaseID);
+	}
+	1;
+}
+
 1;
 # EOF

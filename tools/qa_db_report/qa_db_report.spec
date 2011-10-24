@@ -92,6 +92,7 @@ install -m 755 -d $RPM_BUILD_ROOT%{permdir}
 gzip -9 *.1 *.5
 cp -r --target-directory=$RPM_BUILD_ROOT%{libdir} qadb.pm bench_parsers.pm functions.pm
 cp --target-directory=$RPM_BUILD_ROOT%{bindir} qa_db_report.pl
+cp --target-directory=$RPM_BUILD_ROOT%{bindir} fix_qadb_stat.pl
 cp --target-directory=$RPM_BUILD_ROOT%{bindir} select_db.pl
 echo ${version} > $RPM_BUILD_ROOT%{libdir}/.version
 cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man1 *.1.gz
@@ -115,6 +116,7 @@ rm -rf $RPM_BUILD_ROOT
 %{mandir}/man1/*
 %{mandir}/man5/*
 %attr(0755,root,root) %{bindir}/qa_db_report.pl
+%attr(0755,root,root) %{bindir}/fix_qadb_stat.pl
 %attr(0755,root,root) %{bindir}/select_db.pl
 %{libdir}/qadb.pm
 %{libdir}/functions.pm
