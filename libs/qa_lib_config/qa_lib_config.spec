@@ -31,7 +31,7 @@
 # norootforbuild
 
 Name:           qa_lib_config
-License:		SUSE Proprietary
+License:        SUSE Proprietary
 Group:		QA Automation
 AutoReqProv:    on
 Version:        @@VERSION@@
