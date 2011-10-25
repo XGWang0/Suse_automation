@@ -22,8 +22,8 @@
 # ****************************************************************************
 #
 
-START /usr/share/qa/tools/test_libmicro-run
-START /usr/share/qa/tools/test_tiobench-run
+START /usr/share/qa/tools/test_libmicro-bench-run
+START /usr/share/qa/tools/test_tiobench-bench-run
 CHECKFORNEW
 START /usr/share/qa/tools/test_lmbench-run
 CHECKFORNEW
