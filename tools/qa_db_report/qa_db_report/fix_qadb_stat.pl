@@ -46,7 +46,7 @@ foreach my $row (@$data)	{
 
 foreach my $testsuiteID ( sort {$a<=>$b} keys %suites )	{
 	foreach my $testcaseID ( sort {$a<=>$b} keys %{$suites{$testsuiteID}}	)	{
-		my $is_bench = $suites{$testsuiteID}->{$testcaseID};
+		my $is_bench = ($suites{$testsuiteID}->{$testcaseID} ? 1:0);
 		print "$testsuiteID, $testcaseID, $is_bench ... ";
 		my $ret = $dst->insert_query("INSERT INTO tests(testsuiteID,testcaseID,is_bench) VALUES(?,?,?)",$testsuiteID,$testcaseID,$is_bench);
 		die "Query failed" unless defined $ret;
