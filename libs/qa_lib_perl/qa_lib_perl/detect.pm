@@ -262,6 +262,7 @@ sub get_zypper_urls
 		chomp $url;
 		$url =~ s/^\s+//;
 		$url =~ s/\s+$//;
+		$url =~ s/%/%%/g;
 		push @ret,$url unless $url =~ /^URI$/;
 	}
 #	@urls = grep {!/inst.internal|(?:dist|repos|download)\.suse\.de/} @urls;
