@@ -172,7 +172,7 @@ sub get_location
 # Only use this directly if you really know what you're doing!!!
 sub detect_location
 {
-	my $loc =`/usr/share/qa/tools/qa/location_detect_impl.pl`;
+	my $loc =`/usr/share/qa/tools/location_detect_impl.pl`;
 	chomp $loc;
 	$loc = undef unless $loc;
 
