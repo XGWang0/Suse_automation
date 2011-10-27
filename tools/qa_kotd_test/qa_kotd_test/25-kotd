@@ -109,7 +109,10 @@
 
 
 # repository URL with kernel commit builds
-# default: http://dist.suse.de/kerneltest
+# must be a protocol supported by CURL
+# Kernel commit repo is at http://dist.suse.de/kerneltest/
+# KOTD repo (unsupported) is at http://download.opensuse.org/repositories/Kernel:
+# Build monitor (unsupported) is at http://kerncvs.suse.de/kernel-overview/
 # cmdline option: -u
 
 #kotd_kcmt_url="http://dist.suse.de/kerneltest"
