@@ -24,10 +24,6 @@
 #
 
 
-# Kernel commit repo is at http://dist.suse.de/kerneltest/
-# KOTD repo (unsupported) is at http://download.opensuse.org/repositories/Kernel:
-# Build monitor (unsupported) is at http://kerncvs.suse.de/kernel-overview/
-
 BEGIN {
 # extend the include path to get our modules found
 	push @INC,"/usr/share/qa/lib",'.';
@@ -74,7 +70,7 @@ our @cmdline_opts = (
 ['vardir',	'r', 'directory to store status files',		 "/var/lib/qa/kerneltest"],
 ['sleep',	's', 'how many seconds to sleep before first command',		       60],
 ['tester',	't', 'tester name for QADB submit',			   'kotd-default'],
-['kcmt_url',	'u', 'kernel commit repo URL',		 'http://dist.suse.de/kerneltest'],
+['kcmt_url',	'u', 'kernel commit repo URL',					       ''],
 ['loglevel',	'v', 'log verbosity (0..6)',				       LOG_DETAIL],
 ['nocommands',	'C', 'do not process queued commands ?',				0],
 ['noqadb',	'Q', 'do not report to QADB ?',						0],
