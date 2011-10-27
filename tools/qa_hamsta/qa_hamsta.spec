@@ -72,7 +72,7 @@ Authors:
 
 
 %package master  
-License:        GPL v2 or later  
+License:        SUSE Proprietary  
 Summary:        HArdware Maintenance, Setup & Test Automation  
 Group:          System/Management  
 %if 0%{?sles_version} == 9
@@ -103,7 +103,7 @@ Authors:
             Leon Wang      <llwang@novell.com>
 
 %package frontend
-License:        GPL v2 or later  
+License:        SUSE Proprietary  
 Summary:        HArdware Maintenance, Setup & Test Automation  
 Group:          System/Management  
 %if 0%{?sles_version} == 9
@@ -134,7 +134,7 @@ Authors:
             Leon Wang      <llwang@novell.com>
 
 %package cmdline
-License:        GPL v2 or later  
+License:        SUSE Proprietary  
 Summary:        HArdware Maintenance, Setup & Test Automation  
 Group:          System/Management  
 Requires:       perl perl-Term-ReadPassword perl-TermReadKey perl-TermReadLine-Gnu hamsta-common
@@ -157,7 +157,7 @@ Authors:
             Patrick Kirsch <pkirsch@suse.de>
 
 %package multicast-forward
-License:	GPL v2 or later
+License:	SUSE Proprietary
 Summary:	Hamsta UDP multicast forwarder
 Group:		System/Management
 Requires:	perl perl-IO-Socket-Multicast screen hamsta-common
@@ -175,7 +175,7 @@ Authors:
 	Vilem Marsik	<vmarsik@suse.cz>
 
 %package jobs
-License:	GPL v2 or later
+License:	SUSE Proprietary
 Summary:        HArdware Maintenance, Setup & Test Automation  
 Group:          System/Management
 Provides:	hamsta-jobs
@@ -190,7 +190,7 @@ but then it sends a LOCAL path to the master. This won't work if master
 and frontend run on different machines. Need to fix that.
 
 %package common
-License:	GPL v2 or later
+License:	SUSE Proprietary
 Summary:        HArdware Maintenance, Setup & Test Automation  
 Group:          System/Management
 Requires:	qa-config
