@@ -106,7 +106,7 @@ cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man1 *.1.gz
 cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man8 *.8.gz
 cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man8 %{S:1}
 gzip -9 $RPM_BUILD_ROOT%{mandir}/man8/%{name}.8
-cp --target-directory=$RPM_BUILD_ROOT%{confdir} 00-qa_tools-default
+cp --target-directory=$RPM_BUILD_ROOT%{confdir} 00-qa_tools-default 00-qa_tools-default.*
 cp -r profiles/* $RPM_BUILD_ROOT%{profiledir}
 
 %clean

@@ -99,10 +99,6 @@ our $domainname=`domainname`;
 chomp $domainname;
 $domainname = 'site' if ($domainname eq '');
 
-### FIXME
-### simpy add nis server list here, this server list should be detected automatically from 
-### DHCP answer 
-our @nis_server_list = ("149.44.160.146","10.10.0.1","149.44.160.1");
 $ENV{'LC_ALL'}='en_US';
 
 # from_type: opensuse|sles
@@ -116,7 +112,7 @@ if ( $userprofile ) {
 	$ay_xml = $userprofile;
 } else {
 # location: cz|de|cn|us
-	my $location = &get_location or die "Unknown location (Prague|Nuernberg|Beijing|Provo)";
+	my $location = &get_location or die "Unknown location";
 	print "Location: $location\n";
 
 	die "Cannot identify current distro" unless $from_type and $from_version;
@@ -131,10 +127,7 @@ if ( $userprofile ) {
 	print "Reinstalling to:\n", &stats( $to_type, $to_version, $to_subversion, $to_arch );
 
 	#Location deteted. Define SDK source and autoinstall profile location
-	my %nfs_servers = ( 'cz'=>'10.20.1.229', 'us'=>'10.20.1.229', 'de'=>'10.10.3.155', 'cn'=>'147.2.207.242' );
-	my $nfs_dir = ( $location eq 'cn' ? '/mirror_a' : '/srv/hamsta' );
-	$profile_url_base = 'http://'.$nfs_servers{$location}.'/autoinst';
-	&command( 'mount '.$nfs_servers{$location}.":$nfs_dir $mountpoint -o nolock" );
+	&command( 'mount '.$qaconf{install_profile_nfs_server}.":".$qaconf{install_profile_nfs_dir}." $mountpoint -o nolock" );
 
 	my $to_libsata = &has_libsata( $to_type, $to_version, $to_subversion, $to_arch );
 	my $packages = &get_packages( $to_type, $to_version, $to_subversion, $to_arch, $additionalrpms, $patterns, $setupfordesktoptest);

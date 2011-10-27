@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Oct 27 15:39:14 CEST 2011 - llipavsky@suse.cz
+
+- add location specific configuration for installation
+
+-------------------------------------------------------------------
 Sun Sep  4 21:52:02 CEST 2011 - llipavsky@suse.cz
 
 - New, updated release from the automation team. Includes:
