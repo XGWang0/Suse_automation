@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Oct 26 16:38:10 CEST 2011 - llipavsky@suse.cz
+
+- Add support for location-based config files
+
+-------------------------------------------------------------------
 Sun Sep  4 21:55:02 CEST 2011 - llipavsky@suse.cz
 
 - New, updated release from the automation team. Includes:

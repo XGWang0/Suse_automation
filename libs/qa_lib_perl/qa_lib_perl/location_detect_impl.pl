@@ -1,3 +1,5 @@
+#!/usr/bin/perl
+
 # ****************************************************************************
 # Copyright © 2011 Unpublished Work of SUSE. All Rights Reserved.
 # 
@@ -22,21 +24,45 @@
 # ****************************************************************************
 #
 
-set ip [ lindex $argv 0 ]
-if { $ip == "" } { exit 2 }
-set timeout 3
+use strict;
+use warnings;
 
-spawn ssh $ip
-
-expect {
-        "Are you sure you want to continue connecting (yes/no)?" { send "yes\012" }
-        -re "Last login:" { exit 0 }
-        timeout { exit 2 }
+BEGIN {
+	push @INC,"/usr/share/qa/lib",'.';
 }
 
+# gets the system location (cz|de|cn|us) from ifconfig output
+# returns: cz|de|cn|us
+# Only use this directly if you really know what you're doing!!
+# NORMALLY, you want to use location.pl
+my $loc = undef;
 
-expect { 
-        -re "Last login:" { exit 0 }
-        timeout { exit 2 }
+open IFCONFIG, "/sbin/ifconfig |" or die "Cannot run ifconfig: $!";
+while( my $row=<IFCONFIG> )
+{
+#		print $row;
+	if( $row =~ /inet addr:(\d+)\.(\d+)\./ )
+	{
+		if( $1==10 )
+		{
+			if( $2==10 or $2==11 or $2==0 )
+			{   $loc='de'; }
+			elsif( $2==20 )
+			{   $loc='cz'; }
+		}
+		elsif( $1==147 ) 
+		{   $loc='cn'; }
+		elsif( $1==137 or $1==151 ) 
+		{   $loc='us'; }
+	}
+}
+close IFCONFIG;
+
+my $ret=0;
+if ($loc) {
+	print "$loc\n";
+} else {
+	$ret=1;
 }
 
+exit $ret;
