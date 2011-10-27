@@ -12,7 +12,7 @@
 # norootforbuild
 
 Name:           qa_ajaxterm
-License:        GPL v2 or later
+License:        GPL v2 or later; LGPL v2.1
 Group:          SuSE internal
 AutoReqProv:    on
 Version:        0.10

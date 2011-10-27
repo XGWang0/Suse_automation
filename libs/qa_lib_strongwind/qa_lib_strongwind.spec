@@ -14,7 +14,7 @@
 #
 
 Name:           qa_lib_strongwind
-License:        GPL v2 or later
+License:        GPL v2
 Group:          System/Packages
 Summary:        Desktop automation test framework
 Provides:	strongwind

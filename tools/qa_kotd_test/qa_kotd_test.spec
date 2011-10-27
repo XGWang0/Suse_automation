@@ -33,7 +33,7 @@
 BuildRequires:  coreutils
 
 Name:           qa_kotd_test
-License:		SUSE Proprietary
+License:        SUSE Proprietary
 Group:          SUSE internal
 AutoReqProv:    on
 Version:        @@VERSION@@

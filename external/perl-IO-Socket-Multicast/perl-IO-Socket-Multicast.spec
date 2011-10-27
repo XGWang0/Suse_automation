@@ -13,7 +13,7 @@ Release:        1
 Requires:       perl
 AutoReqProv:    on
 Group:          Development/Libraries/Perl
-License:		Artistic; GPL v2 or later
+License:        Artistic or GPL v1 or later
 Url:            http://search.cpan.org/~lds/IO-Socket-Multicast-1.05/Multicast.pm
 Summary:        A Perl Module IO::Socket::Multicast - Send and receive multicast messages.
 Source:         IO-Socket-Multicast-%{version}.tar.bz2
