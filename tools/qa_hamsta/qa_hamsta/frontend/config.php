@@ -61,7 +61,7 @@ define ("SDK_INDEX_URL", "http://147.2.207.242/repo-index/cn.sdk.json");
 #define ("SDK_INDEX_URL", "http://147.2.207.242/repo-index/de.json");
 
 # Validation test machine and URL setting, must use **IP address** in vmlist value.
-$vmlist=array("i386"=>"147.2.207.49", "x86_64"=>"147.2.207.119", "ia64"=>"N/A", "s390x"=>"N/A", "ppc64"=>"N/A", "x86-xen"=>"147.2.207.44", "x86_64-xen"=>"147.2.207.151"); 
+$vmlist=array("i386"=>"147.2.207.197", "x86_64"=>"147.2.207.192", "ia64"=>"N/A", "s390x"=>"N/A", "ppc64"=>"N/A", "x86-xen"=>"147.2.207.147", "x86_64-xen"=>"147.2.207.180"); 
 
 # Hidden fields
 # select 0+ from: 'hostname','status_string','used_by','usage','group','product','architecture','architecture_capable','kernel','cpu_numbers','memory_size','disk_size','cpu_vendor','affiliation','ip_address','maintainer_string','notes','unique_id','serialconsole','powerswitch','role','type','vh'
