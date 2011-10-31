@@ -324,7 +324,7 @@ EOF
 			chmod($disksize);
 			$abuildsize = 0 if !$abuildid;
 			$bootsize = 0 if !$bootid;
-			$sizepercent = $repartitiondisk*0.01;
+			$sizepercent = $repartitiondisk ? $repartitiondisk*0.01 : 1;
 			$swapsize = int($swapsize/1024);
 			$rootusesize = int(($disksize - $abuildsize - $bootsize - $swapsize)*$sizepercent);
 
