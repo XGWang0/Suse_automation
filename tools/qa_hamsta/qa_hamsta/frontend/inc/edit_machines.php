@@ -70,7 +70,7 @@
 		if ($expires == '0') {
 			$errors['expires'] = "Expires cannot be 0.";
 		}
-		if (!isset($expires) && !is_numeric($expires)) {
+		if ($expires != '' && !is_numeric($expires)) {
 			$errors['expires_num'] = "Expires must be numeric.";
 		}
 		if (count($errors) == 0) {
