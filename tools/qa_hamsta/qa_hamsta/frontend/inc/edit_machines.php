@@ -70,8 +70,8 @@
 		if ($expires == '0') {
 			$errors['expires'] = "Expires cannot be 0.";
 		}
-		if (!is_numeric($expires)) {
-			$errors['expires'] = "Expires must be numeric.";
+		if (!isset($expires) && !is_numeric($expires)) {
+			$errors['expires_num'] = "Expires must be numeric.";
 		}
 		if (count($errors) == 0) {
 		foreach ($allmachines as $machine_id) {
