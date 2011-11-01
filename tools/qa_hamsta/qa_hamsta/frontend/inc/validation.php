@@ -61,7 +61,7 @@
 			}
 			$email = request_str("mailto");
 			$sdkurl = request_str("sdk_producturl");
-			$repourl=$baseurl;
+			$repourl=$baseurl."/".$vm."/DVD1";
 			system("wget -o /dev/null -O /dev/null $repourl/media.1/media", $ret);
 			$args = "-p $repourl";
 			if ($sdkurl) {
