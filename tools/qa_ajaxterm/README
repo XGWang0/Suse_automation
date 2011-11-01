@@ -17,5 +17,5 @@ Integration with HAMSTA
 ProxyPass /qa_ajaxterm/ http://localhost:8022/
 ProxyPassReverse /qa_ajaxterm/ http://localhost:8022/
 
-3. About enable vnc. As mentioned after ajaxterm installation, you need to copy /usr/lib/qa_ajaxterm/ajaxterm-vnc to SUTs that have gnome desktop installed. Then just run it to enable vnc. The first time it will require setting a password, recommand to set it as "novell".
+3. About enable vnc. As mentioned after ajaxterm installation, you need to copy /usr/lib/qa_ajaxterm/ajaxterm-vnc to SUTs that have gnome desktop installed. Then just run it to enable vnc. The first time it will require setting a password, recommend to set it as "susetesting".
 
