@@ -31,7 +31,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 	return require("index.php");
 }
 ?>
-<form action="index.php?go=machines" method="post" name="machine_list">
+<form action="index.php?go=machines" method="post" name="machine_list" onSubmit="return checkcheckbox(this)">
 <table class="list text-main" id="machines">
   <thead>
 	<tr>
