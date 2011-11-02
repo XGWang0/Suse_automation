@@ -64,38 +64,33 @@
 		$errors = array();
 
 		# Check the expires, used_by and usage fields
-		$input = request_array('expires');
-		foreach ($input as $value)
+		$expires_all = array_combine($allmachines, request_array('expires'));
+		$used_by_all = array_combine($allmachines, request_array('used_by'));
+		$usage_all = array_combine($allmachines, request_array('usage'));
+		foreach ($allmachines as $machine_id)
 		{
-			$expires = $value;
+			$machine = Machine::get_by_id($machine_id);
+			$name = $machine->get_hostname();
+			$expires = $expires_all[$machine_id];
+			$used_by = $used_by_all[$machine_id];
+			$usage = $usage_all[$machine_id];
+			if ($expires != '' && $used_by == '')
+			{
+				$errors['usedby_'.$machine_id] = $name.": Expires cannot be set without Used by set.";
+			}
+			if ($usage != '' && $used_by == '')
+			{
+				$errors['usage_'.$machine_id] = $name.": Usage cannot be set without Used by set.";
+			}
+			if ($expires == '0')
+			{
+				$errors['expires_'.$machine_id] = $name.": Expires cannot be 0.";
+			}
+			if ($expires != '' && !is_numeric($expires))
+			{
+				$errors['expires_num_'.$machine_id] = $name.": Expires must be numeric.";
+			}
 		}
-		$input = request_array('used_by');
-		foreach ($input as $value)
-		{
-			$used_by = $value;
-		}
-		$input = request_array('usage');
-		foreach ($input as $value)
-		{
-			$usage = $value;
-		}
-		if ($expires != '' && $used_by == '')
-		{
-			$errors['usedby'] = "Expires cannot be set without Used by set.";
-		}
-		if ($usage != '' && $used_by == '')
-		{
-			$errors['usage'] = "Usage cannot be set without Used by set.";
-		}
-		if ($expires == '0')
-		{
-			$errors['expires'] = "Expires cannot be 0.";
-		}
-		if ($expires != '' && !is_numeric($expires))
-		{
-			$errors['expires_num'] = "Expires must be numeric.";
-		}
-		
 		# If there are no errors, we go ahead and edit the machines
 		if (count($errors) == 0)
 		{
