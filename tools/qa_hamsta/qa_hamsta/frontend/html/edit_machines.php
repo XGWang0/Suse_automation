@@ -34,7 +34,7 @@
 	# We are going to output all fields and data for the machines, so first we collect it
 	$table = array();
 	$tableHeadings = array("Name", "*Status", "Used By", "Usage", "Usage Expires (days)", "Maintainer", "Affiliation", "Notes", "Power Switch", "Serial Console", "Console Device", "Console Speed", "Enable Console", "Default Install Options");
-    $show_column = array("used_by", "usage", "expires", "maintainer_string", "affiliation", "anomaly", "powerswitch", "serialconsole");
+	$show_column = array("used_by", "usage", "expires", "maintainer_string", "affiliation", "anomaly", "powerswitch", "serialconsole");
 	$machineCounter = 0;
 	foreach ($machines as $machine) {
 
@@ -42,21 +42,13 @@
 		$column = array();
 
 		# Hostname/ID
-		$input = request_array('hostname');
-		foreach ($input as $value) {
-			$hostname = $value;
-		}
-		if (!isset($hostname)) {
-			$hostname = $machine->get_hostname();
-		}
+		$hostname = $machine->get_hostname();
 		$column[] = "<a href=\"index.php?go=machine_details&amp;id=" . $machine->get_id() . "\" tabindex=" . $counterAddValue++ . ">" . $hostname . "</a>" .
 			"<input type=\"hidden\" name=\"a_machines[]\" value=\"" . $machine->get_id() . "\" />";
 
 		# Status
-		$input = request_array('is_busy');
-		foreach ($input as $value) {
-			$is_busy = (int)$value;
-		}
+		$is_busys = $_REQUEST['is_busy'];
+		$is_busy = (int)$is_busys[$machine->get_id()];
 		if (!isset($is_busy)) {
 			$is_busy = $machine->is_busy();
 		}
@@ -76,7 +68,8 @@
 		# Common columns (configurable)
 		foreach ($show_column as $item) {
 			$getstring = "get_".$item;
-			$input = request_array($item);
+			$item_list = $_REQUEST[$item];
+			$valuer = $item_list[$machine->get_id()];
 			foreach ($input as $value) {
 				$valuer = $value;
 			}
@@ -89,40 +82,32 @@
 		}
 
 		# Console device
-		$input = request_array('consoledevice');
-		foreach ($input as $value) {
-			$consoledevice = $value;
-		}
+		$consoledevices = $_REQUEST['consoledevice'];
+		$consoledevice = $consoledevices[$machine->get_id()];
 		if (!isset($consoledevice)) {
 			$consoledevice = $machine->get_consoledevice();
 		}
 		$column[] = "<input name=\"consoledevice[" . $machine->get_id() . "]\" id=\"consoledevice" . $machine->get_id() . "\" value=\"" . $consoledevice . "\"style=\"width: 200px;\" tabindex=" . $counterAddValue++ . " onkeyup=\"update_def_inst_opt(" . $machine->get_id() . ");\">";
 
 		# Console speed
-		$input = request_array('consolespeed');
-		foreach ($input as $value) {
-			$consolespeed = $value;
-		}
+		$consolespeeds = $_REQUEST['consolespeed'];
+		$consolespeed = $consolespeeds[$machine->get_id()];
 		if (!isset($consolespeed)) {
 			$consolespeed = $machine->get_consolespeed();
 		}
 		$column[] = "<input name=\"consolespeed[" . $machine->get_id() . "]\" id=\"consolespeed" . $machine->get_id() . "\" value=\"" . $consolespeed . "\"style=\"width: 200px;\" tabindex=" . $counterAddValue++ . " onkeyup=\"update_def_inst_opt(" . $machine->get_id() . ");\">";
 
 		# Enable console
-		$input = request_array('consolesetdefault');
-		foreach ($input as $value) {
-			$consolesetdefault = $value;
-		}
+		$consolesetdefaults = $_REQUEST['consolesetdefault'];
+		$consolesetdefault = $consolesetdefaults[$machine->get_id()];
 		if (!isset($consolesetdefault)) {
 			$consolesetdefault = $machine->get_consolesetdefault();
 		}
 		$column[] = "<input name=\"consolesetdefault[" . $machine->get_id() . "]\" id=\"consolesetdefault" . $machine->get_id() . "\" value=\"enable_console\" type=\"checkbox\"" . ($consolesetdefault == "1" ? " checked=\"checked\"" : "") . " tabindex=" . $counterAddValue++ . " onclick=\"update_def_inst_opt(" . $machine->get_id() . ");\">";
 
 		# Default install options
-		$input = request_array('def_inst_opt');
-		foreach ($input as $value) {
-			$def_inst_opt = $value;
-		}
+		$def_inst_opts = $_REQUEST['def_inst_opt'];
+		$def_inst_opt = $def_inst_opts[$machine->get_id()];
 		if (!isset($def_inst_opt)) {
 			$def_inst_opt = $machine->get_def_inst_opt();
 		}
