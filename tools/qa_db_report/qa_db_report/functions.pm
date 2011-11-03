@@ -75,6 +75,7 @@ our @EXPORT_OK;
 
 our $batchmode=0;
 my %benchmarks=(
+	'openssl_bench(_z)?' => 'parse_openssl',
 	'dbench[-_]\w[\w\d]*' => 'parse_dbench',
 	'bonnie-default' => 'parse_bonnie',
 	'tiobench' => 'parse_tiobench',
