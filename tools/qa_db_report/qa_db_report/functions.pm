@@ -192,7 +192,7 @@ sub mail # $from, $to, $cc, $subject, $text
 
 	($to, $cc) = ($cc, '') unless $to; # No primary reviewer defined
 
-	unless ($to) {
+	if ($to) {
 		return !system("echo -e \"$text\" | mail -s \"$subject\" -c \"$cc\" -r \"$from\" $to");
 	} else {
 		&log(LOG_NOTICE,"No mail sent since both To and CC are empty.");
