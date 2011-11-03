@@ -1,5 +1,5 @@
 # ****************************************************************************
-# Copyright © 2011 Unpublished Work of SUSE. All Rights Reserved.
+# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
 # 
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -190,7 +190,15 @@ sub scp	# srcdir, destdir
 sub mail # $from, $to, $cc, $subject, $text
 {
 	my ($from,$to,$cc,$subject,$text)=@_;
-	return !system("echo -e \"$text\" | mail -s \"$subject\" -c \"$cc\" -r \"$from\" $to");
+
+	($to, $cc) = ($cc, '') unless $to; # No primary reviewer defined
+
+	if ($to) {
+		return !system("echo -e \"$text\" | mail -s \"$subject\" -c \"$cc\" -r \"$from\" $to");
+	} else {
+		&log(LOG_NOTICE,"No mail sent since both To and CC are empty.");
+		return 1;
+	}
 }
 
 

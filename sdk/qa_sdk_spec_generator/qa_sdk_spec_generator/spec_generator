@@ -36,7 +36,7 @@ cat <<'eof'
 # norootforbuild
 
 Name:           qa_sample
-License:        GPL v2 or later
+License:        Enter License Here
 Group:          OpenSUSE
 AutoReqProv:    on
 Version:        0.1

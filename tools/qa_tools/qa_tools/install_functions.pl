@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # ****************************************************************************
-# Copyright © 2011 Unpublished Work of SUSE. All Rights Reserved.
+# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
 # 
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -222,7 +222,7 @@ sub install_profile
 	my $xml_out = "$mountpoint/autoinst/autoinst_$hostname.xml";
 	$xml_out = "$mountpoint/autoinst/autoinst_$suffix.xml" if $suffix;
 	&command( "$tooldir/modify_xml.pl -m '$modfile' '$profile' '$xml_out'" );
-	return "$profile_url_base/autoinst_$hostname.xml";
+	return $qaconf{install_profile_url_base}."/autoinst_$hostname.xml";
 }
 
 sub install_profile_newvm
@@ -236,7 +236,7 @@ sub install_profile_newvm
 	# FIXME: temporal hack - will be fixed when merged with reinstall.pl code
 	my $cmd="sed -i '" . 's/<dhcp_hostname config:type="boolean">false<\/dhcp_hostname>/<dhcp_hostname config:type="boolean">true<\/dhcp_hostname>/' . "' '$xml_out'";
 	&command($cmd);
-	return "$profile_url_base/autoinst_${hostname}_vm_$$.xml";
+	return $qaconf{install_profile_url_base}."/autoinst_${hostname}_vm_$$.xml";
 }
 
 # creates a modification file for AutoYaST
@@ -324,7 +324,7 @@ EOF
 			chmod($disksize);
 			$abuildsize = 0 if !$abuildid;
 			$bootsize = 0 if !$bootid;
-			$sizepercent = $repartitiondisk*0.01;
+			$sizepercent = $repartitiondisk ? $repartitiondisk*0.01 : 1;
 			$swapsize = int($swapsize/1024);
 			$rootusesize = int(($disksize - $abuildsize - $bootsize - $swapsize)*$sizepercent);
 
@@ -773,7 +773,7 @@ $postcmd
 		print $f "	</interfaces>\n";
 		print $f "  </networking>\n";
 		my $location = &get_location or die "Unknown location (Prague|Nuernberg|Beijing|Provo)";
-		if ($location eq 'de') {
+		if ($qaconf{nis_domain}) {
 			print $f	"  <nis>\n";
 			print $f	"	<nis_broadcast config:type=\"boolean\">false</nis_broadcast>\n";
 			print $f	"	<nis_broken_server config:type=\"boolean\">false</nis_broken_server>\n";
@@ -786,7 +786,7 @@ $postcmd
 			print $f	"		<nis_broadcast config:type=\"boolean\">false</nis_broadcast>\n";
 			print $f	"		<nis_domain>".$qaconf{nis_domain}."</nis_domain>\n";
 			print $f	"		<nis_servers config:type=\"list\">\n";
-			foreach my $server_ip (@nis_server_list) {
+			foreach my $server_ip (split(/ /, $qaconf{nis_server_list})) {
 				print $f "<nis_server>".$server_ip."</nis_server>\n";
 			}
 			print $f	"		</nis_servers>\n";

@@ -3,7 +3,7 @@ Summary: noninteractive ssh password provider
 Name: sshpass
 Version: 1.04
 Release: 1
-License: GPL
+License: GPL v2 or later
 Vendor: Lingnu Open Source Consulting Ltd.
 Group: System Environment/Libraries
 Source0:  %{name}-%{version}.tar.bz2

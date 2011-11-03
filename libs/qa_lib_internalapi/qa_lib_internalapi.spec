@@ -12,7 +12,7 @@
 
 Name:           qa_lib_internalapi
 BuildRequires:  doxygen libpng swig
-License:        No license agreement found in package
+License:        SUSE Proprietary, GPL v2 or later
 Group:          SuSE internal
 Autoreqprov:    on
 Version:        @@VERSION@@

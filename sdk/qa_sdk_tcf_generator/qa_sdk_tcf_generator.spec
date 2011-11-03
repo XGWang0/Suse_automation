@@ -10,7 +10,7 @@ Version:	@@VERSION@@
 Release:	0
 Summary:	"find executable script ,convert to tcf format"
 Group:		SUSE internal
-License:	GPL v2 or later
+License:	SUSE Proprietary
 #PreReq:
 Provides:	Novell
 #BuildRequires:

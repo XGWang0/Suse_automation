@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright © 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -31,7 +31,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 	return require("index.php");
 }
 ?>
-<form action="index.php?go=machines" method="post" name="machine_list">
+<form action="index.php?go=machines" method="post" name="machine_list" onSubmit="return checkcheckbox(this)">
 <table class="list text-main" id="machines">
   <thead>
 	<tr>
