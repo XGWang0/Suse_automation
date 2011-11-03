@@ -701,7 +701,7 @@ class Machine {
 					return round($days);
 				else
 					return ceil($days);
-			} else if ($remaining < 0 && $expires != '') {
+			} else if ($remaining < 0 && $expires > 0) { #Check if remaining is negative, then expired, but if expires is also negative, then error.
 				$this->set_used_by('');
 				$this->set_usage('');
 				$this->set_expires(NULL);
@@ -738,10 +738,11 @@ class Machine {
 	 * @return void
 	 */
 	function set_expires($days) {
-		if ($days != NULL) {
+		if ($days != 0 && is_numeric($days)) {
 			$this->set_reserved(date('Y/m/d H:i:s'));
 			$days_sql = 'DATE_ADD(NOW(), INTERVAL :days DAY)';
 		} else {
+			$days = NULL;
 			$days_sql = ':days';
 		}
 		$stmt = get_pdo()->prepare('UPDATE machine SET `expires` = '.$days_sql.' WHERE machine_id = :id');
