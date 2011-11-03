@@ -14,7 +14,7 @@
     <device_map config:type="list">
       <device_map_entry>
         <firmware>hd0</firmware>
-        <linux>/dev/sda</linux>
+        <linux>/dev/hda</linux>
       </device_map_entry>
     </device_map>
     <global>
@@ -63,14 +63,14 @@
     <loader_type>grub</loader_type>
     <sections config:type="list">
       <section>
-        <append>resume=/dev/sda1 splash=silent showopts</append>
+        <append>resume=/dev/hda1 splash=silent showopts</append>
         <image>/boot/vmlinuz</image>
         <initial>1</initial>
         <initrd>/boot/initrd</initrd>
         <lines_cache_id>0</lines_cache_id>
         <name>SUSE Linux Enterprise Server 11 SP1</name>
         <original_name>linux</original_name>
-        <root>/dev/sda2</root>
+        <root>/dev/hda2</root>
         <type>image</type>
       </section>
       <section>
@@ -316,6 +316,7 @@
       <pattern>apparmor</pattern>
       <pattern>base</pattern>
       <pattern>gnome</pattern>
+      <pattern>novell-yast2</pattern>
       <pattern>x11</pattern>
     </patterns>
   </software>

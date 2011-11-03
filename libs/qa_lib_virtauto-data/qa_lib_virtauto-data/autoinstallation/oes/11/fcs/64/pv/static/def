@@ -962,6 +962,7 @@
       <pattern>base</pattern>
       <pattern>documentation</pattern>
       <pattern>gnome</pattern>
+      <pattern>novell-yast2</pattern>
       <pattern>lamp_server</pattern>
       <pattern>print_server</pattern>
       <pattern>x11</pattern>

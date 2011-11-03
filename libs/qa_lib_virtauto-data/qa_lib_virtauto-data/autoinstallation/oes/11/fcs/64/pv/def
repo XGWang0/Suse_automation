@@ -63,14 +63,14 @@
     <loader_type>grub</loader_type>
     <sections config:type="list">
       <section>
-        <append>resume=/dev/sda1 splash=silent showopts</append>
+        <append>resume=/dev/xvda1 splash=silent showopts</append>
         <image>/boot/vmlinuz</image>
         <initial>1</initial>
         <initrd>/boot/initrd</initrd>
         <lines_cache_id>0</lines_cache_id>
         <name>SUSE Linux Enterprise Server 11 SP1</name>
         <original_name>linux</original_name>
-        <root>/dev/sda2</root>
+        <root>/dev/xvda2</root>
         <type>image</type>
       </section>
       <section>
@@ -80,7 +80,7 @@
         <lines_cache_id>1</lines_cache_id>
         <name>Failsafe -- SUSE Linux Enterprise Server 11 SP1 - 2.6.32.12-0.7</name>
         <original_name>failsafe</original_name>
-        <root>/dev/sda2</root>
+        <root>/dev/xvda2</root>
         <type>image</type>
       </section>
     </sections>
@@ -344,6 +344,7 @@
       <pattern>apparmor</pattern>
       <pattern>base</pattern>
       <pattern>gnome</pattern>
+      <pattern>novell-yast2</pattern>
       <pattern>x11</pattern>
     </patterns>
   </software>
