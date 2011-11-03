@@ -38,7 +38,6 @@ BEGIN {
     $VERSION = sprintf "%d.%02d", q$Revision: 1.1 $ =~ /(\d+)/g;
     @ISA         = qw(Exporter);
     @EXPORT      = qw(
-        &parse_openssl
         &parse_dbench
         &parse_bonnie
         &parse_siege
@@ -52,6 +51,7 @@ BEGIN {
         &parse_tiobench
         &parse_kernbench
 	&parse_hazard
+        &parse_openssl
     );
     %EXPORT_TAGS = ( );
     @EXPORT_OK   = ();
@@ -69,43 +69,6 @@ our %part_id = ();
 # returns: array ( $key1, $number1, $key2, $number2, ... )
 # key conventions: semicolon-separated strings, 
 #  first one is used to make X axis and should start with a number for line graphs
-
-sub parse_openssl
-{
-    my ($file)=@_;
-    my @results=();
-
-    my ($size, $test, $frame, $val, $optype);
-    while( my $row=<$file> )      {
-        if ($row =~ /Doing (.+?)('s)?\W+for (\d+)s: (\d+) (.+?)\W+/) {
-            ($test,$frame,$val)=($1,$3,$4);
-            $test =~ s/[ '()-]+/ /g;
-            if ($test =~ /(\d+) (\w+)? (\w+)? (\w+)?/) {
-                $test="$4";
-                $size="$1";
-                $optype="$3";
-                $optype =~ s/(private|sign)/signs/;
-                $optype =~ s/(public|verify)/verifs/;
-            } elsif ($test =~ /(\d+) (\w+)? (\w+)?/) {
-                $test="$3";
-                $size="$1";
-                $optype="ops";
-            }
-            $test =~ s/\W+/_/g;
-
-            push @results, "keysize:$size;algorithm:$test;$optype/s";
-            push @results, sprintf "%.2f", $val/$frame;
-        } elsif ($row =~ /^Doing (.+?)('s)?\W+for (\d+)s on (\d+) size blocks: (\d+)/) {
-            ($test,$frame,$size,$val)=($1,$3,$4,$5);
-            $test =~ s/[ '()-]+/_/g;
-
-            push @results, "blocksize:$size;algorithm:$test;kB/s";
-            push @results, sprintf "%.2f", ($val/$frame*$size)/1024;
-        }
-    }
-
-    return @results;
-}
 
 
 sub parse_dbench
@@ -573,5 +536,44 @@ sub parse_hazard
 	close $logfile;
 	return @hazard_b_result;
 }
+
+sub parse_openssl
+{
+    my ($file)=@_;
+    my @results=();
+
+    my ($size, $test, $frame, $val, $optype);
+    while( my $row=<$file> )      {
+        if ($row =~ /Doing (.+?)('s)?\W+for (\d+)s: (\d+) (.+?)\W+/) {
+            ($test,$frame,$val)=($1,$3,$4);
+            $test =~ s/[ '()-]+/ /g;
+            if ($test =~ /(\d+) (\w+)? (\w+)? (\w+)?/) {
+                $test="$4";
+                $size="$1";
+                $optype="$3";
+                $optype =~ s/(private|sign)/signs/;
+                $optype =~ s/(public|verify)/verifs/;
+            } elsif ($test =~ /(\d+) (\w+)? (\w+)?/) {
+                $test="$3";
+                $size="$1";
+                $optype="ops";
+            }
+            $test =~ s/\W+/_/g;
+
+            push @results, "keysize:$size;algorithm:$test;$optype/s";
+            push @results, sprintf "%.2f", $val/$frame;
+        } elsif ($row =~ /^Doing (.+?)('s)?\W+for (\d+)s on (\d+) size blocks: (\d+)/) {
+            ($test,$frame,$size,$val)=($1,$3,$4,$5);
+            $test =~ s/[ '()-]+/_/g;
+
+            push @results, "blocksize:$size;algorithm:$test;kB/s";
+            push @results, sprintf "%.2f", ($val/$frame*$size)/1024;
+        }
+    }
+
+    return @results;
+}
+
+
 1;
 
