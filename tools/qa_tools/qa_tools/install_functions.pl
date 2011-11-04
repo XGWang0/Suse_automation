@@ -322,6 +322,7 @@ EOF
 			$drives->{$bootid}->{$bootnum}='NULL' if defined $bootid and ($arch eq 'ppc64' or $arch eq 'ppc');
 			$sizeunit = `fdisk -l |grep "\$drive" |grep Disk |awk {'print \$4'} | cut -f1 -d','`;
 			$disksize = `fdisk -l |grep "\$drive" |grep Disk |awk {'print \$3'} | cut -f1 -d'\n'`;
+			chomp($sizeunit);
 			chomp($disksize);
 			if ( substr($sizeunit, 0, 2) =~ /GB/ ) {
 				$disksize = int($disksize*1024);
