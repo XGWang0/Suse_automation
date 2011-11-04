@@ -75,6 +75,7 @@
 				$autoyastfile = "/tmp/reinstall_$rand.xml";
 				$validationfiles = split (" ", XML_VALIDATION);
 				foreach ( $validationfiles as &$validationfile ) {
+					$rand = rand();
 					$randfile= "/tmp/validation_$rand.xml";
 					system("cp $validationfile $randfile");
 					system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $randfile");
