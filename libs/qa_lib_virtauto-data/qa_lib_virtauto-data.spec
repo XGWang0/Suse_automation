@@ -29,7 +29,7 @@ License:        SUSE Proprietary
 Group:          SuSE internal
 Summary:        (rd-)qa package for virtualization automation - data package
 AutoReqProv:    on
-Version:        @@VERSION@@_110905
+Version:        @@VERSION@@_111103
 Release:        0
 Source:         %name-%version.tar.bz2
 Source1:	qa_lib_virtauto-data.8
