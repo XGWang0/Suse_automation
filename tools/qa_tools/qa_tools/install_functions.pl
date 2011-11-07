@@ -123,9 +123,9 @@ sub read_partitions
 	my $rootpart=`df /|tail -n1 | cut -f1 -d' '`;
 	$rootpart=$root_pt if($root_pt);
 	my $abuildpart=`df | grep "abuild" |tail -n1 | cut -f1 -d' '`;
-	my $abuildsize = `df -h |grep "abuild" |tail -n1 |awk {'print \$2'} | cut -f1 -d'M'`;
+	my $abuildsize=`df -m |grep "abuild" |tail -n1 |awk {'print \$2'} | cut -f1 -d' '`;
 	my $bootpart;
-	my $bootsize = `df -h |grep "/boot/efi" |tail -n1 |awk {'print \$2'} | cut -f1 -d'M'`;
+	my $bootsize = `df -m |grep "/boot/efi" |tail -n1 |awk {'print \$2'} | cut -f1 -d' '`;
 	my $abuildid;
 	my $abuildnum;
 	chomp($swapsize);
@@ -320,8 +320,13 @@ EOF
 			$drives->{$abuildid}->{$abuildnum}='/abuild' if defined $abuildid;
 			$drives->{$bootid}->{$bootnum}='/boot/efi' if defined $bootid and $arch eq 'ia64';
 			$drives->{$bootid}->{$bootnum}='NULL' if defined $bootid and ($arch eq 'ppc64' or $arch eq 'ppc');
-			$disksize = `fdisk -l |grep "\$drive" |grep MB |awk {'print \$3'} | cut -f1 -d' '`;
-			chmod($disksize);
+			$sizeunit = `fdisk -l |grep "\$drive" |grep Disk |awk {'print \$4'} | cut -f1 -d','`;
+			$disksize = `fdisk -l |grep "\$drive" |grep Disk |awk {'print \$3'} | cut -f1 -d'\n'`;
+			chomp($sizeunit);
+			chomp($disksize);
+			if ( substr($sizeunit, 0, 2) =~ /GB/ ) {
+				$disksize = int($disksize*1024);
+			}
 			$abuildsize = 0 if !$abuildid;
 			$bootsize = 0 if !$bootid;
 			$sizepercent = $repartitiondisk ? $repartitiondisk*0.01 : 1;

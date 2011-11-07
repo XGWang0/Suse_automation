@@ -193,6 +193,7 @@ if (request_str("proceed")) {
 			if ($validation) {
 				$validationfiles = split (" ", XML_VALIDATION);
 				foreach ( $validationfiles as &$validationfile ) {
+					$rand = rand();
 					$randfile= "/tmp/validation_$rand.xml";
 					system("cp $validationfile $randfile");
 					$validationfile = $randfile;

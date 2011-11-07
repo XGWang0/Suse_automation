@@ -75,6 +75,7 @@
 				$autoyastfile = "/tmp/reinstall_$rand.xml";
 				$validationfiles = split (" ", XML_VALIDATION);
 				foreach ( $validationfiles as &$validationfile ) {
+					$rand = rand();
 					$randfile= "/tmp/validation_$rand.xml";
 					system("cp $validationfile $randfile");
 					system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $randfile");
@@ -97,7 +98,7 @@
 					if (!$machine->send_job("/usr/share/hamsta/xml_files/set_xen_default.xml"))
 						$error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
 				}
-				foreach ( $validationfiles as $validationfile ) {
+				foreach ( $validationfiles as &$validationfile ) {
 					if ($machine->send_job($validationfile)) {
 						Log::create($machine->get_id(), $machine->get_used_by(), 'JOB_START', "has started the automated build validation for this machine (install + tests)");
 					} else {
