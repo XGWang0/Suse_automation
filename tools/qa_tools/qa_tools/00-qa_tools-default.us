@@ -48,4 +48,4 @@ install_profile_nfs_server="10.20.1.229"
 install_profile_nfs_dir="/srv/hamsta"
 
 # From where to get the autoinstallation profile
-install_profile_url_base="10.20.1.229/autoinst"
+install_profile_url_base="http://10.20.1.229/autoinst"
