@@ -475,8 +475,9 @@ sub die_cleanly
 	my $self=shift;
 	&log(LOG_CRIT,@_) if @_;
 	$self->{'stat'}->finish() if $self->{'stat'};
-	if( $self->{'dbh'} && $delete_on_failure )
+	if( $self->{'dbh'} && $delete_on_failure && !$self->{'dying'} )
 	{
+		$self->{'dying'}=1;
 		$self->rollback();
 		$cleanup_callback->($self) if $cleanup_callback;
 		$self->enum_undo_all_inserts();
