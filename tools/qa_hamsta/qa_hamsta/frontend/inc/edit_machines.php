@@ -49,7 +49,6 @@
 			$machine->set_expires(NULL);
 			$machine->set_reserved(NULL);
 			$machine->set_usage("");
-			$machine->set_consolesetdefault(0);
 			Log::create($machine->get_id(), $machine->get_used_by(), 'RELEASE', "has unreserved this machine");
 		}
 		$go = "machines";

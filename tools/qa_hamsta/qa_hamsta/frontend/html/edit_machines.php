@@ -47,8 +47,8 @@
 			"<input type=\"hidden\" name=\"a_machines[]\" value=\"" . $machine->get_id() . "\" />";
 
 		# Status
-		$is_busys = $_REQUEST['is_busy'];
-		$is_busy = (int)$is_busys[$machine->get_id()];
+		$is_busys = $_REQUEST['busy'];
+		$is_busy = $is_busys[$machine->get_id()];
 		if (!isset($is_busy)) {
 			$is_busy = $machine->is_busy();
 		}
@@ -97,16 +97,23 @@
 		}
 		$column[] = "<input name=\"consolespeed[" . $machine->get_id() . "]\" id=\"consolespeed" . $machine->get_id() . "\" value=\"" . $consolespeed . "\"style=\"width: 200px;\" tabindex=" . $counterAddValue++ . " onkeyup=\"update_def_inst_opt(" . $machine->get_id() . ");\">";
 
-		# Enable console
-		$consolesetdefaults = $_REQUEST['consolesetdefault'];
-		$consolesetdefault = $consolesetdefaults[$machine->get_id()];
-		if (!isset($consolesetdefault)) {
+		# Enable console (careful, checkboxes that aren't checked don't show up as isset in PHP)
+		if (isset($_POST['submit'])) { # They submitted the form, so we use if they checked it or not
+			$consolesetdefaults = $_REQUEST['consolesetdefault'];
+			$consolesetdefault = $consolesetdefaults[$machine->get_id()];
+
+			# If they actually checked the form, otherwise just leave it empty
+			if ($consolesetdefault == "enable_console") {
+				$consolesetdefault = "1";
+			}
+		}
+		else { # They did not submit the form, so we use what was in the database
 			$consolesetdefault = $machine->get_consolesetdefault();
 		}
 		$column[] = "<input name=\"consolesetdefault[" . $machine->get_id() . "]\" id=\"consolesetdefault" . $machine->get_id() . "\" value=\"enable_console\" type=\"checkbox\"" . ($consolesetdefault == "1" ? " checked=\"checked\"" : "") . " tabindex=" . $counterAddValue++ . " onclick=\"update_def_inst_opt(" . $machine->get_id() . ");\">";
 
 		# Default install options
-		$def_inst_opts = $_REQUEST['def_inst_opt'];
+		$def_inst_opts = $_REQUEST['default_options'];
 		$def_inst_opt = $def_inst_opts[$machine->get_id()];
 		if (!isset($def_inst_opt)) {
 			$def_inst_opt = $machine->get_def_inst_opt();
