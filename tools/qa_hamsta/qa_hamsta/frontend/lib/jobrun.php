@@ -294,7 +294,10 @@ class JobRun {
 	 * @return string XML result file returned by the slave
 	 */
 	function get_return_xml_content() {
-		return file_get_contents($this->fields["return_xml"]);
+		if( $this->fields["return_xml"] )
+			return file_get_contents($this->fields["return_xml"]);
+		else
+			return null;
 	}
 
 	/**
