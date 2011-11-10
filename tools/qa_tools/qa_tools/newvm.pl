@@ -146,10 +146,9 @@ $cmdline .= " -x $maxmem" if defined $maxmem;
 $cmdline .= " -d $virtdisksize" if defined $virtdisksize;
 $cmdline .= " -D $virtdisktype" if defined $virtdisktype;
 print $cmdline . "\n";
-my $ret = system($cmdline);
-
+my $ret = system("$cmdline");
+$ret = $ret >> 8;
 # this will let hamsta know that it should increase stats version -> master will then query 
 # this host for changes
 system ("touch /var/lib/hamsta/stats_changed");
 exit $ret;
-
