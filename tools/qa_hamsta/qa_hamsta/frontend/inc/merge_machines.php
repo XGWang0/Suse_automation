@@ -41,6 +41,7 @@ if( count($ids)<2 )	{
 }
 
 sort($ids,SORT_NUMERIC);
+$ids = array_reverse($ids);
 
 # 's' means a string type with concatenation possible (e.g. comments)
 # 'S' means a string type with one-of selection (e.g. MAC address)

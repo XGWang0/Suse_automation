@@ -89,7 +89,7 @@ foreach( array_keys($vals) as $key )	{
 
 			# print the options
 			foreach( $enum as $k=>$v )	{
-				$selected = (!is_array($ret) && $k==$ret ? 'selected="yes"' : '');
+				$selected = ((!is_array($ret) && $k==$ret) || (is_array($ret) && $k==$vals[$key][0]) ? 'selected="yes"' : '');
 				printf('<option value="%s"%s>%s</option>',htmlspecialchars($k),$selected,htmlspecialchars($v));
 			}
 		}
