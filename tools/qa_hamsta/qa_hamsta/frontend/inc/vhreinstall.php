@@ -46,31 +46,28 @@ foreach($machines as $m) {
 	$m->get_children();
 }
 
-### Figure out, check, and set the installation options ###
-$installoptions = request_str("installoptions");
-$installoptions_warning = "";
-
-# If the install options are empty, we use the ones from the DB
-if($installoptions == "") {
-	# If we only have one machine, we just use those options
-	if(count($machines) == 1) {
-		$installoptions = $machines[0]->get_def_inst_opt();
-	} else { # Otherwise, we see if options are different between the machines
-		# Loop through all machines included in this reinstall request
-		foreach($machines as $machine) {
-			# Set the initial value if it hasn't been set yet
-			if($installoptions == "") {
-				$installoptions = $machine->get_def_inst_opt();
-			}
-			# If the options for this machine are different from any of the others, we can't use them
-			if($machine->get_def_inst_opt() != $installoptions) {
-				$installoptions_warning = "Warning: Default installation options cannot be displayed since you selected multiple machines with different default options";
-				$installoptions = "";
-				break;
-			}
+# If we only have one machine, we just use those options
+if(count($machines) == 1) {
+	$installoptions = $machines[0]->get_def_inst_opt();
+} else { # Otherwise, we see if options are different between the machines
+	# Loop through all machines included in this reinstall request
+	foreach($machines as $machine) {
+		# Set the initial value if it hasn't been set yet
+		if($installoptions == "") {
+			$installoptions = $machine->get_def_inst_opt();
+		}
+		# If the options for this machine are different from any of the others, we can't use them
+		if($machine->get_def_inst_opt() != $installoptions) {
+			$installoptions_warning = "Warning: Default installation options cannot be displayed since you selected multiple machines with different default options";
+			$installoptions = "";
+			break;
 		}
 	}
 }
+
+### Figure out, check, and set the installation options ###
+$installoptions = request_str("installoptions"); // set install options as vhinstall page's
+$installoptions_warning = "";
 
 $resend_job=request_str("xml_file_name");
 if (request_str("proceed")) {

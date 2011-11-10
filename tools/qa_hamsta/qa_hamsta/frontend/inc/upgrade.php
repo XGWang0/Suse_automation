@@ -45,7 +45,7 @@ foreach($machines as $m) {
 	$m->get_children();
 }
 
-# If the install options are empty, we use the ones from the DB, else we see if options are different between machines. If different, don't use them
+# If install options are set in the DB, they will show up in upgrade page, else use what user set in upgrade page even it's empty.
 $installoptions_warning="";
 if (!isset($installoptions) or $installoptions=="") {
 	$firstoptions = $machines[0]->get_def_inst_opt();
