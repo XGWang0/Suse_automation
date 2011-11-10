@@ -117,6 +117,7 @@ tsRegister();
   <option value="upgrade">upgrade to higher</option> 
 <!--   <option value="create_autobuild">Add to Autobuild</option> -->
 <!--   <option value="delete_autobuild">Remove from Autobuild</option> -->
+  <option value="merge_machines">Merge machines(experimental)</option>
   <option value="delete">Delete</option>
 </select>
 <input type="submit" value="Go">

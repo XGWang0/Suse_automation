@@ -89,6 +89,13 @@ table.list tr.diff:hover	{ background-color: #f88; }
 table.list tr.search_result	{ background-color: #fd8; }
 table.list tr.search_result:hover	{ background-color: #fb6; }
 table.list tr.crashed_job	{ color: #f00; }
+table.list tr.small th { background-color:#aaa; }
+table.list tr.small:hover th { background-color:#888; }
+table.list tr.disabled th { background-color:#00a; }
+table.list tr.disabled:hover th { background-color:#008; }
+tr.small, tr.small input, tr.small select { font-size:50%; }
+tr.disabled, tr.disabled input, tr.disabled select { font-size:50%; }
+tr.small { color: #666; }
 
 .CRITICAL td, .CRITICAL				{ background-color: #f44; }
 tr.CRITICAL:hover td, span.CRITICAL:hover	{ background-color: #d22; }

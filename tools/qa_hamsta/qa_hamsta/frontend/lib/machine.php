@@ -559,7 +559,7 @@ class Machine {
 	 * @return string xml_file and short_name of the last ran jobs
 	 */
 	function get_previous_jobs() {
-		$stmt = get_pdo()->prepare('select xml_file, short_name from jobs, jobs_on_machine, machine where jobs.id = jobs_on_machine.job_id and jobs_on_machine.machine_id = machine.id and machine.name = :name order by jobs_on_machine.job_id desc limit 3;');
+		$stmt = get_pdo()->prepare('select xml_file, short_name from job JOIN job_on_machine USING(job_id) JOIN machine USING(machine_id) WHERE machine.name = :name order by job_on_machine.job_id desc limit 3;');
 		$stmt->bindParam(':name', $this->fields["name"]);
 		
 		$stmt->execute();
@@ -923,6 +923,10 @@ class Machine {
 		$busy = $stmt->fetchColumn();
 		$stmt->closeCursor();
 		return $busy;
+	}
+	
+	function get_busy()	{
+		return is_busy();
 	}
 	
 	/**
@@ -1392,6 +1396,111 @@ class Machine {
 		}
 
 		return $result;
+	}
+
+	function merge_other_machine($other_id)	{
+		$tables = array('group_machine','log','job_on_machine','config');
+		$ret = true;
+		foreach( $tables as $table )	{
+			if( !($stmt = get_pdo()->prepare("UPDATE IGNORE $table SET machine_id=:new_id WHERE machine_id=:old_id")))	{
+				continue;
+			}
+			$stmt->bindParam(':new_id',$this->fields['machine_id']);
+			$stmt->bindParam(':old_id',$other_id);
+			$ret = $ret && $stmt->execute();
+		}
+		return $ret;
+	}
+
+	/* generic getters/setters */
+
+	/* 'i'=> int/tinyint, 's'=>varchar/text, 'd'=>date/timestamp, array=>enum, other strings: values from that table */
+	static $field_types = array(
+		'machine_id'=>'i',
+		'unique_id'=>'s',
+		'name'=>'s',
+		'arch_id'=>'arch',
+		'maintainer_id'=>'s',
+		'ip'=>'s',
+		'product_id'=>'product',
+		'product_arch_id'=>'arch',
+		'release_id'=>'release',
+		'kernel'=>'s',
+		'description'=>'s',
+		'last_used'=>'s',
+		'machine_status_id'=>'machine_status',
+		'affiliation'=>'s',
+		'usage'=>'s',
+		'usedby'=>'s',
+		'anomaly'=>'s',
+		'serialconsole'=>'s',
+		'powerswitch'=>'s',
+		'busy'=>'i',
+		'consoledevice'=>'s',
+		'consolespeed'=>'s',
+		'consolesetdefault'=>'i',
+		'default_option'=>'s',
+		'role'=>array('SUT','VH'),
+		'type'=>'s',
+		'vh_id'=>'machine',
+		'reserved'=>'d',
+		'expires'=>'d'
+	);
+
+	function get($field)	{
+		if( !isset(self::$field_types[$field]) )
+			return null;
+		if( !($stmt = get_pdo()->prepare("SELECT `$field` FROM machine WHERE machine_id=:id")) )
+			return null;
+		$stmt->bindParam(':id',$this->fields['machine_id']);
+		$stmt->execute();
+		$row = $stmt->fetch(PDO::FETCH_ASSOC);
+		return $row ? $row[$field] : null;
+	}
+
+	function set($field,$value)	{
+		$type = self::$field_types[$field];
+		if( !isset($type) )
+			return null;
+		if( !($stmt = get_pdo()->prepare("UPDATE machine SET `$field`=:val WHERE machine_id=:id")) )
+			return null;
+		if( strlen($type)>1 && strlen($value)==0 )
+			$value=null;
+		$stmt->bindParam(':val',$value);
+		$stmt->bindParam(':id',$this->fields['machine_id']);
+		$this->fields[$field]=$value;
+		return $stmt->execute();
+	}
+
+	static function enumerate($field,$values=null)	{
+		if( !isset(self::$field_types[$field]) )
+			return null;
+		$table = self::$field_types[$field];
+		if( strlen($table)<=1 )
+			return null;
+		if( is_array($table) )
+			return $table;
+		$id = $table . '_id';
+		$sql = "SELECT DISTINCT `$id`,`$table` FROM `$table`";
+		if( is_array($values) )	{
+			if( count($values)>0 )	{
+				for( $i=0; $i<count($values); $i++ )
+					$values[$i] = get_pdo()->quote($values[$i]);
+				$sql .= " WHERE `$id` IN (" . implode(',',$values) . ')';
+			}
+		}
+		else if( isset($values) )
+			$sql .= " WHERE `$id`=" . get_pdo()->quote($values);
+		if( !($stmt=get_pdo()->prepare($sql)) )
+			return null;
+		$stmt->execute();
+		$ret = array();
+		while( $row = $stmt->fetch(PDO::FETCH_ASSOC) )
+			$ret[$row[$id]] = $row[$table];
+		if( !isset($values) || is_array($values) )
+			return $ret;
+		else
+			return (isset($ret[$values]) ? $ret[$values] : null );
 	}
 }
 

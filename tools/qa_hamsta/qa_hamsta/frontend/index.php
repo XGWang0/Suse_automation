@@ -91,7 +91,8 @@ $pages = array(
     "vhreinstall",
     "newvm",
     "del_virtual_machines",
-    "upgrade"
+    "upgrade",
+    "merge_machines"
 );
 
 if (!in_array($go, $pages)) {

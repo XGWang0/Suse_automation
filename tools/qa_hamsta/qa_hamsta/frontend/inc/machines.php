@@ -57,6 +57,10 @@
 			$go = "send_job";
 			return require("inc/send_job.php");
 
+		case "merge_machines":
+			$go = "merge_machines";
+			return require("inc/merge_machines.php");
+
 	   case "reinstall":
 			$go = "reinstall";
 			return require("inc/reinstall.php");
