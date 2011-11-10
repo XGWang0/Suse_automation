@@ -924,7 +924,7 @@ class Machine {
 		$stmt->closeCursor();
 		return $busy;
 	}
-	
+
 	function get_busy()	{
 		return is_busy();
 	}
@@ -1398,6 +1398,16 @@ class Machine {
 		return $result;
 	}
 
+	/**
+	 * merge_other_machines
+	 *
+	 * Steals related information from other machine. The caller should delete the machine after.
+	 *
+	 * @param int $other_id machine_id of the other machine
+	 *
+	 * @access public
+	 * @return bool true if the operation succeeded
+	 */
 	function merge_other_machine($other_id)	{
 		$tables = array('group_machine','log','job_on_machine','config');
 		$ret = true;
@@ -1414,7 +1424,8 @@ class Machine {
 
 	/* generic getters/setters */
 
-	/* 'i'=> int/tinyint, 's'=>varchar/text, 'd'=>date/timestamp, array=>enum, other strings: values from that table */
+	# list of DB fields with types
+	# 'i'=> int/tinyint, 's'=>varchar/text, 'd'=>date/timestamp, array=>enum, other strings: values from that table 
 	static $field_types = array(
 		'machine_id'=>'i',
 		'unique_id'=>'s',
@@ -1447,6 +1458,16 @@ class Machine {
 		'expires'=>'d'
 	);
 
+	/**
+	 * get
+	 *
+	 * Generic getter function
+	 *
+	 * @param string $field Name of the field to get, as in the DB.
+	 *
+	 * @access public
+	 * @return string the value of the field, or null if NULL/error/unknown field
+	 */
 	function get($field)	{
 		if( !isset(self::$field_types[$field]) )
 			return null;
@@ -1458,6 +1479,17 @@ class Machine {
 		return $row ? $row[$field] : null;
 	}
 
+	/**
+	 * set
+	 *
+	 * Generic setter function
+	 *
+	 * @param string $field Name of the field to set, as in the DB.
+	 * @param string $value Value to be set here (caller responsible for proper value).
+	 *
+	 * @access public
+	 * @return bool true if the update succeeds
+	 */
 	function set($field,$value)	{
 		$type = self::$field_types[$field];
 		if( !isset($type) )
@@ -1472,6 +1504,18 @@ class Machine {
 		return $stmt->execute();
 	}
 
+	/**
+	 * enumerte
+	 *
+	 * Reads enum values. This can be used to list all combinations, its matching subset,
+	 * 	or just a single value.
+	 *
+	 * @access public
+	 * @param string $field Name of the field to enumerate (must have the proper type)
+	 * @param mixed $values Null to return all possibilities, ID (scalar) to return single name,
+	 * 	array of IDs to return a matching subset
+	 * @return mixed the matching name for a scalar $values, array (matching) IDs=>names otherwise.
+	 */
 	static function enumerate($field,$values=null)	{
 		if( !isset(self::$field_types[$field]) )
 			return null;
@@ -1479,24 +1523,26 @@ class Machine {
 		if( strlen($table)<=1 )
 			return null;
 		if( is_array($table) )
-			return $table;
-		$id = $table . '_id';
-		$sql = "SELECT DISTINCT `$id`,`$table` FROM `$table`";
-		if( is_array($values) )	{
-			if( count($values)>0 )	{
-				for( $i=0; $i<count($values); $i++ )
-					$values[$i] = get_pdo()->quote($values[$i]);
-				$sql .= " WHERE `$id` IN (" . implode(',',$values) . ')';
+			$ret=$table;
+		else	{
+			$id = $table . '_id';
+			$sql = "SELECT DISTINCT `$id`,`$table` FROM `$table`";
+			if( is_array($values) )	{
+				if( count($values)>0 )	{
+					for( $i=0; $i<count($values); $i++ )
+						$values[$i] = get_pdo()->quote($values[$i]);
+					$sql .= " WHERE `$id` IN (" . implode(',',$values) . ')';
+				}
 			}
+			else if( isset($values) )
+				$sql .= " WHERE `$id`=" . get_pdo()->quote($values);
+			if( !($stmt=get_pdo()->prepare($sql)) )
+				return null;
+			$stmt->execute();
+			$ret = array();
+			while( $row = $stmt->fetch(PDO::FETCH_ASSOC) )
+				$ret[$row[$id]] = $row[$table];
 		}
-		else if( isset($values) )
-			$sql .= " WHERE `$id`=" . get_pdo()->quote($values);
-		if( !($stmt=get_pdo()->prepare($sql)) )
-			return null;
-		$stmt->execute();
-		$ret = array();
-		while( $row = $stmt->fetch(PDO::FETCH_ASSOC) )
-			$ret[$row[$id]] = $row[$table];
 		if( !isset($values) || is_array($values) )
 			return $ret;
 		else
