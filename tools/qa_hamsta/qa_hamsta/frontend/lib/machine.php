@@ -543,7 +543,7 @@ class Machine {
 		$stmt->bindParam(':status_id', $this->fields["machine_status_id"]);
 		$stmt->execute();
 		$mstatus = $stmt->fetchColumn();
-		switch($this->is_busy()):
+		switch($this->is_restrict()):
 			case 1: $mstatus .= "/ job running"; break;
 			case 2: $mstatus .= "/ not accept job"; break;
 			case 3: $mstatus .= "/ reinstall deny"; break;
@@ -924,9 +924,27 @@ class Machine {
 		$stmt->closeCursor();
 		return $busy;
 	}
+	/**
+	 * is_restrict
+	 * 
+	 * @access public
+	 * @return boolean true if a job has restricting on the machine; false otherwise 
+	 */
+	function is_restrict() {
+		$stmt = get_pdo()->prepare('SELECT restrict_status FROM machine WHERE machine_id = :id');
+		$stmt->bindParam(':id', $this->fields["id"]);
+		$stmt->execute();
+		
+		$restrict = $stmt->fetchColumn();
+		$stmt->closeCursor();
+		return $restrict;
+	}
 
 	function get_busy()	{
 		return is_busy();
+	}
+	function get_restrict()	{
+		return is_restrict();
 	}
 	
 	/**
@@ -934,7 +952,7 @@ class Machine {
 	 *
 	 * Sets the busy flag of the machine
 	 * 
-	 * @param int $busy 0 for free, 1 for job running, 2 for manually blocked, 3 for Preliminary (Hardware), 4 for Outdated (also Blocked)
+	 * @param int $busy 0 for free, 1 for job running.
 	 * @access public
 	 * @return void
 	 */
@@ -942,6 +960,21 @@ class Machine {
 		$stmt = get_pdo()->prepare('UPDATE machine SET busy = :busy WHERE machine_id = :id');
 		$stmt->bindParam(':id', $this->fields["id"]);
 		$stmt->bindParam(':busy', $busy);
+		$stmt->execute();
+	}
+	/**
+	 * set_restrict
+	 *
+	 * Sets the restrict flag of the machine
+	 * 
+	 * @param int $busy 0 for free, 2 for manually blocked, 3 for Preliminary (Hardware), 4 for Outdated (also Blocked)
+	 * @access public
+	 * @return void
+	 */
+	function set_busy($restrict)  {
+		$stmt = get_pdo()->prepare('UPDATE machine SET restrict_status = :restrict WHERE machine_id = :id');
+		$stmt->bindParam(':id', $this->fields["id"]);
+		$stmt->bindParam(':restrict', $restrict);
 		$stmt->execute();
 	}
 	
@@ -957,9 +990,6 @@ class Machine {
 	 * @return void
 	 */
 	function update_busy()  {
-		if ($this->is_busy() == 2) {
-			return;
-		}
 
 		if ($this->count_running_jobs()) {
 			$this->set_busy(1);

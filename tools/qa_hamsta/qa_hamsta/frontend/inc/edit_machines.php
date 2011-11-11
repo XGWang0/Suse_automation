@@ -30,7 +30,7 @@
 	 * Gets all selected machines and updates their status if requested.
 	 */
 
-	$edit_fields = array('used_by', 'expires', 'usage','busy','maintainer_string','anomaly','powerswitch','serialconsole','consoledevice','consolespeed','consolesetdefault','affiliation');
+	$edit_fields = array('used_by', 'expires', 'usage','restrict','maintainer_string','anomaly','powerswitch','serialconsole','consoledevice','consolespeed','consolesetdefault','affiliation');
 	$allmachines = request_array("a_machines");
 
 	if (!defined('HAMSTA_FRONTEND'))
