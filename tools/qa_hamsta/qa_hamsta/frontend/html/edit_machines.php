@@ -47,19 +47,23 @@
 			"<input type=\"hidden\" name=\"a_machines[]\" value=\"" . $machine->get_id() . "\" />";
 
 		# Status
-		$is_restricts = $_REQUEST['restrict'];
-		$is_restrict = $is_restricts[$machine->get_id()];
-		if (!isset($is_restrict)) {
-			$is_busy = $machine->is_restrict();
+		$is_busys = $_REQUEST['busy'];
+		$is_busy = $is_busys[$machine->get_id()];
+		if (!isset($is_busy)) {
+			$is_busy = $machine->is_busy();
 		}
-		
-		$column[] = "<select name=\"restrict[" . $machine->get_id() . "]\" style=\"width: 200px;\" tabindex=" . $counterAddValue++ . ">" .
-			"<option value=\"0\"" . ($is_restrict == 0 ? " selected=\"selected\"" : "") . ">Accepting jobs</option>" .
-			"<option value=\"2\"" . ($is_restrict == 2 ? " selected=\"selected\"" : "") . ">Not accepting jobs</option>" .
-			"<option value=\"3\"" . ($is_restrict == 3 ? " selected=\"selected\"" : "") . ">Reinstall deny</option>" .
-			"<option value=\"4\"" . ($is_restrict == 4 ? " selected=\"selected\"" : "") . ">Outdated (Blocked)</option>" .
-		"</select>";
-		
+		if($is_busy == 1) {
+			$column[] = "<select name=\"busy[" . $machine->get_id() . "]\" style=\"width: 200px;\" tabindex=" . $counterAddValue++ . ">" .
+				"<option value=\"1\" selected=\"selected\">Job running</option>" .
+			"</select>";
+		} else {
+			$column[] = "<select name=\"busy[" . $machine->get_id() . "]\" style=\"width: 200px;\" tabindex=" . $counterAddValue++ . ">" .
+				"<option value=\"0\"" . ($is_busy == 0 ? " selected=\"selected\"" : "") . ">Accepting jobs</option>" .
+				"<option value=\"2\"" . ($is_busy == 2 ? " selected=\"selected\"" : "") . ">Not accepting jobs</option>" .
+				"<option value=\"3\"" . ($is_busy == 3 ? " selected=\"selected\"" : "") . ">Reinstall deny</option>" .
+				"<option value=\"4\"" . ($is_busy == 4 ? " selected=\"selected\"" : "") . ">Outdated (Blocked)</option>" .
+			"</select>";
+		}
 		
 		# Common columns (configurable)
 		foreach ($show_column as $item) {

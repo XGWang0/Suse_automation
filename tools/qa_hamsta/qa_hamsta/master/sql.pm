@@ -77,19 +77,12 @@ sub machine_get_by_ip($) # IP address
 sub machine_get_ip($) # machine_id
 {	return $dbc->scalar_query('SELECT ip FROM machine WHERE machine_id=?',$_[0]);	}
 
-# 0 = free, 1 = busy .
+# 0 = free, 1 = busy, 2 = blocked manually)
 sub machine_get_busy($) # machine_id
 {	return $dbc->scalar_query('SELECT busy FROM machine WHERE machine_id=?',$_[0]);	}
 
 sub machine_set_busy($$) # machine_id, busy
 {	return $dbc->update_query('UPDATE machine SET busy=?, last_used=NOW() WHERE machine_id=?',$_[1],$_[0]);	}
-
-# 0 = Accepting jobs ,2 = Not accepting jobs , 3 = Reinstall deny , 4 = Out date.
-sub machine_get_restrict($) # machine_id
-{	return $dbc->scalar_query('SELECT restrict_status FROM machine WHERE machine_id=?',$_[0]);	}
-
-sub machine_set_restrict($$) # machine_id, busy
-{	return $dbc->update_query('UPDATE machine SET restrict_status=?, last_used=NOW() WHERE machine_id=?',$_[1],$_[0]);	}
 
 sub machine_set_all_unknown()
 {	return $dbc->update_query('UPDATE machine SET machine_status_id=6');	}

@@ -32,7 +32,7 @@
     }
 	$blockedMachines = array();
 	foreach ($machines as $machine) {
-		if (($machine->is_restrict() == 2) || ($machine->is_restrict() == 4)) {
+		if (($machine->is_busy() == 2) || ($machine->is_busy() == 4)) {
 			$blockedMachines[] = $machine->get_hostname();
 		}
 	}

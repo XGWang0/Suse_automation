@@ -34,7 +34,7 @@
 	$virtualMachines = array();
 	$hasChildren = array();
 	foreach ($machines as $machine) {
-		if (($machine->is_restrict() > 1)) {
+		if (($machine->is_busy() > 1)) {
 			$blockedMachines[] = $machine->get_hostname();
 		}
 		if(preg_match ('/^vm\//', $machine->get_type())) {
