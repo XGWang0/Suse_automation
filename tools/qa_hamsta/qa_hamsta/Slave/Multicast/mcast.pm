@@ -1,3 +1,26 @@
+# ****************************************************************************
+# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
+
 # This module is used for the announcement of this slave to the master
 # and of changes to the hardware configuration of this slave.
 # It continuously sends messages to the master through the multicast
@@ -60,8 +83,10 @@ sub run() {
 	# set TTL to make the packet pass the first router
 	$sock->mcast_ttl(2);
 
+	my $stats_version = 0;
+	unlink '/var/lib/hamsta/stats_changed'; # Initial stats will be queried, no need to change now
 	while (1) {
-		my $slave_ip;
+	    my $slave_ip;
 
 	    my $message = 
 			# An ID (hopefully) unique to this configuration (from hwinfo_unique.pm)
@@ -69,7 +94,7 @@ sub run() {
 
 			# Description of this slave to display, e.g. uname output 
 			# (from hwinfo_unique.pm)	
-			&get_slave_description()."\n".
+			&get_slave_description($stats_version)."\n".
 
 			# IP address of this slave (from hwinfo_unique.pm)	
 			($slave_ip = &get_slave_ip($Slave::multicast_address))."\n".
@@ -98,6 +123,8 @@ sub run() {
 	    &log(LOG_DEBUG, "MCAST: identifier send $message");
 	} continue {
 	    sleep 10;
+	    # Increase stats version if somethying changed
+	    $stats_version++ if unlink '/var/lib/hamsta/stats_changed';
 	}
 
 } 

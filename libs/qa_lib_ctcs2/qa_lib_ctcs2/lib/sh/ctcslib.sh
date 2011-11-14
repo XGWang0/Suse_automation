@@ -41,10 +41,3 @@ function kill_children () {
 	return $no_children
 }
 
-runcmd () {
-	if [ "$1" = "localhost" ] ; then
-		$2
-	else
-		ssh $1 $2
-	fi
-}

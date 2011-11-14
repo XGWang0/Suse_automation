@@ -1,4 +1,27 @@
 #!/usr/bin/perl -w
+# ****************************************************************************
+# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
+
 
 # Rewrite of /suse/rd-qa/bin/qa_db_report
 # Design goal: entire submission from within just one
@@ -85,6 +108,9 @@ our $VERSION='1.1';
 my $filename="test_results";
 # for concluding mail notification
 my $reviewer=$qaconf{qa_db_report_log_reviewer};
+
+# for mail domain
+my $maildomain=$qaconf{mail_domain};
 
 # directory for remote results
 my $remote_results_dir = '/var/log/qa-remote-results';
@@ -375,14 +401,14 @@ while( my $parser = readdir RESULTS) {
 			# insert rpmlist
 			if( $rpmlist_path )	{
 				&TRANSACTION(qw(rpmConfig softwareConfig rpms rpm_basenames rpm_versions));
-				my $configID = $rpmlist_path ? $dst->rpmlist_put($rpmlist_path) : undef;
+				$configID = $rpmlist_path ? $dst->rpmlist_put($rpmlist_path) : undef;
 				&TRANSACTION_END;
 			}
 
 			# insert hwinfo
 			if( $hwinfo_path )	{
 				&TRANSACTION('hwinfo');
-				my $hwinfoID = $hwinfo_path ? $dst->hwinfo_put($hwinfo_path) : undef;
+				$hwinfoID = $hwinfo_path ? $dst->hwinfo_put($hwinfo_path) : undef;
 				&TRANSACTION_END;
 			}
 			
@@ -462,6 +488,9 @@ while( my $parser = readdir RESULTS) {
 			}
 	
 			# statistics
+			&TRANSACTION('tests');
+			$dst->tests_stat_update($testsuiteID,$tcID,($bench_pairs ? 1:0)); # TODO: undo if fail
+			&TRANSACTION_END;
 			&log(LOG_DETAIL,"Test $tc_name, resultsID $resultsID: count ".$res->{times_run}.", fail ".$res->{failed}.", succ ".$res->{succeeded}.", fail ".$res->{failed}.", interr ".$res->{int_errors}.", skipped ".$res->{skipped}.", time ".$res->{test_time}.", bench pairs $bench_pairs ");
 			@stat_testsuite=&add_stat([@stat_testsuite],[1,$res->{times_run}, $res->{succeeded}, 
 												$res->{failed}, $res->{int_errors}, $res->{skipped},
@@ -560,10 +589,10 @@ foreach my $dir (keys %destdirs)
 
 
 # send mail notificaiton
-&log(LOG_INFO, "Sending mail notifications to $reviewer and ".$args{'tester'}."\@novell.com");
+&log(LOG_INFO, "Sending mail notifications to $reviewer and ".$args{'tester'}."\@$maildomain");
 my $msg="Hi,\n\nsubmission(s) $submissions from ".$args{'tester'}." is waiting for your review.\nThe following result files have been submitted:\n\n".join("\n",keys %destdirs)."\n\nHave fun.\n";
 my $msubject="[submission(s) $submissions] ".$args{'product'}."-".$args{'release'}."-".$args{'arch'}." for ".$args{'host'}." needs review";
-&mail('root@'.$args{'host'},$reviewer,$args{'tester'}.'@novell.com',$msubject,$msg);
+&mail('root@'.$args{'host'},$reviewer,$args{'tester'}."\@$maildomain",$msubject,$msg);
 
 # finished
 &log(LOG_INFO, "All done - results were submitted with following submission ID(s):\n" . join("\n" , map { "ID $_: ".$qaconf{qadb_wwwroot}."/submission.php?submissionID=$_" } values %submissions));
@@ -657,3 +686,4 @@ sub TRANSACTION	{
 sub TRANSACTION_END	{
 	$dst->TRANSACTION_END(@_);
 }
+

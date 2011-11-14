@@ -1,10 +1,11 @@
 #!/bin/bash
 #8/24/2010
 #generate a spec file.
+
 function Usage(){
 cat <<EOF
 Usage: $0 qa_<package_name> 
-Usage: $0 qa_<package_name> -a "arths" -e "arths@novell.com" -l "nothing for new" -d "just for the new feature"
+Usage: $0 qa_<package_name> -a <user> -e <user>@<maildomain> -l "nothing for new" -d "just for the new feature"
 Details:
 $0 generates a qa_<package_name>.spec with information which is provided by qa_<packages> 
 	The local dir should have 3 parts:
@@ -35,7 +36,7 @@ cat <<'eof'
 # norootforbuild
 
 Name:           qa_sample
-License:        GPL v2 or later
+License:        Enter License Here
 Group:          OpenSUSE
 AutoReqProv:    on
 Version:        0.1
@@ -179,3 +180,4 @@ section_append files "/usr/share/qa/tools/$run_name"
 #change the header info 
 sed -i "s/# spec file for package qa_sample/# spec file for package $dirname/" $spec_name
 echo "Generated spec file successfully"
+

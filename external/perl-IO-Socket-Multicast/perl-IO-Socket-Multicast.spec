@@ -1,10 +1,6 @@
 #
 # spec file for package perl-IO-Socket-Multicast (Version 1.05)
 #
-# Copyright (c) 2008 SUSE LINUX Products GmbH, Nuernberg, Germany.
-# This file and all modifications and additions to the pristine
-# package are under the same license as the package itself.
-#
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
@@ -17,7 +13,7 @@ Release:        1
 Requires:       perl
 AutoReqProv:    on
 Group:          Development/Libraries/Perl
-License:        Artistic License; GPL v2 or later
+License:        Artistic or GPL v1 or later
 Url:            http://search.cpan.org/~lds/IO-Socket-Multicast-1.05/Multicast.pm
 Summary:        A Perl Module IO::Socket::Multicast - Send and receive multicast messages.
 Source:         IO-Socket-Multicast-%{version}.tar.bz2
@@ -86,3 +82,5 @@ rm -rf $RPM_BUILD_ROOT
   see http://lists.opensuse.org/opensuse-packaging/2010-11/msg00221.html
 * Mon Feb 26 2007 pkirsch@suse.de
 - initial package
+
+

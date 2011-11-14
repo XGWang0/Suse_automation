@@ -1,5 +1,27 @@
 <?php
-
+/* ****************************************************************************
+  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  
+  THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+  CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+  RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+  THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+  THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+  TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+  PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+  PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+  AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+  LIABILITY.
+  
+  SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+  WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+  AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+  LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+  OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+  WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+  ****************************************************************************
+ */
 
 define ("MS_UP", 1);
 define ("MS_DOWN", 2);
@@ -537,7 +559,7 @@ class Machine {
 	 * @return string xml_file and short_name of the last ran jobs
 	 */
 	function get_previous_jobs() {
-		$stmt = get_pdo()->prepare('select xml_file, short_name from jobs, jobs_on_machine, machine where jobs.id = jobs_on_machine.job_id and jobs_on_machine.machine_id = machine.id and machine.name = :name order by jobs_on_machine.job_id desc limit 3;');
+		$stmt = get_pdo()->prepare('select xml_file, short_name from job JOIN job_on_machine USING(job_id) JOIN machine USING(machine_id) WHERE machine.name = :name order by job_on_machine.job_id desc limit 3;');
 		$stmt->bindParam(':name', $this->fields["name"]);
 		
 		$stmt->execute();
@@ -679,11 +701,11 @@ class Machine {
 					return round($days);
 				else
 					return ceil($days);
-			} else if ($remaining < 0 && date('Y/m/d H:i:s', $expires) != '-0001/11/30 00:00:00') {
+			} else if ($remaining < 0 && $expires > 0) { #Check if remaining is negative, then expired, but if expires is also negative, then error.
 				$this->set_used_by('');
 				$this->set_usage('');
-				$this->set_expires('0000-00-00 00:00:00');
-				$this->set_reserved('0000-00-00 00:00:00');
+				$this->set_expires(NULL);
+				$this->set_reserved(NULL);
 				return NULL;
 			} else {
 				return NULL;
@@ -716,11 +738,12 @@ class Machine {
 	 * @return void
 	 */
 	function set_expires($days) {
-		if ($days == '') {
+		if ($days != 0 && is_numeric($days)) {
 			$this->set_reserved(date('Y/m/d H:i:s'));
-			$days_sql = ':days';
-		} else {
 			$days_sql = 'DATE_ADD(NOW(), INTERVAL :days DAY)';
+		} else {
+			$days = NULL;
+			$days_sql = ':days';
 		}
 		$stmt = get_pdo()->prepare('UPDATE machine SET `expires` = '.$days_sql.' WHERE machine_id = :id');
 		$stmt->bindParam(':id', $this->fields["id"]);
@@ -737,11 +760,7 @@ class Machine {
 	function get_reserved() {
 		if( isset($this->fields["reserved"]) ) {
 			$date = date('Y/m/d H:i:s', strtotime($this->fields["reserved"]));
-			if ($date != '-0001/11/30 00:00:00') {
-				return date('Y/m/d', strtotime($date));
-			} else {
-				return NULL;
-			}
+			return date('Y/m/d', strtotime($date));
 		} else {
 			return NULL;
 		}
@@ -904,6 +923,10 @@ class Machine {
 		$busy = $stmt->fetchColumn();
 		$stmt->closeCursor();
 		return $busy;
+	}
+
+	function get_busy()	{
+		return is_busy();
 	}
 	
 	/**
@@ -1373,6 +1396,157 @@ class Machine {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * merge_other_machines
+	 *
+	 * Steals related information from other machine. The caller should delete the machine after.
+	 *
+	 * @param int $other_id machine_id of the other machine
+	 *
+	 * @access public
+	 * @return bool true if the operation succeeded
+	 */
+	function merge_other_machine($other_id)	{
+		$tables = array('group_machine','log','job_on_machine','config');
+		$ret = true;
+		foreach( $tables as $table )	{
+			if( !($stmt = get_pdo()->prepare("UPDATE IGNORE $table SET machine_id=:new_id WHERE machine_id=:old_id")))	{
+				continue;
+			}
+			$stmt->bindParam(':new_id',$this->fields['machine_id']);
+			$stmt->bindParam(':old_id',$other_id);
+			$ret = $ret && $stmt->execute();
+		}
+		return $ret;
+	}
+
+	/* generic getters/setters */
+
+	# list of DB fields with types
+	# 'i'=> int/tinyint, 's'=>varchar/text, 'd'=>date/timestamp, array=>enum, other strings: values from that table 
+	static $field_types = array(
+		'machine_id'=>'i',
+		'unique_id'=>'s',
+		'name'=>'s',
+		'arch_id'=>'arch',
+		'maintainer_id'=>'s',
+		'ip'=>'s',
+		'product_id'=>'product',
+		'product_arch_id'=>'arch',
+		'release_id'=>'release',
+		'kernel'=>'s',
+		'description'=>'s',
+		'last_used'=>'s',
+		'machine_status_id'=>'machine_status',
+		'affiliation'=>'s',
+		'usage'=>'s',
+		'usedby'=>'s',
+		'anomaly'=>'s',
+		'serialconsole'=>'s',
+		'powerswitch'=>'s',
+		'busy'=>'i',
+		'consoledevice'=>'s',
+		'consolespeed'=>'s',
+		'consolesetdefault'=>'i',
+		'default_option'=>'s',
+		'role'=>array('SUT','VH'),
+		'type'=>'s',
+		'vh_id'=>'machine',
+		'reserved'=>'d',
+		'expires'=>'d'
+	);
+
+	/**
+	 * get
+	 *
+	 * Generic getter function
+	 *
+	 * @param string $field Name of the field to get, as in the DB.
+	 *
+	 * @access public
+	 * @return string the value of the field, or null if NULL/error/unknown field
+	 */
+	function get($field)	{
+		if( !isset(self::$field_types[$field]) )
+			return null;
+		if( !($stmt = get_pdo()->prepare("SELECT `$field` FROM machine WHERE machine_id=:id")) )
+			return null;
+		$stmt->bindParam(':id',$this->fields['machine_id']);
+		$stmt->execute();
+		$row = $stmt->fetch(PDO::FETCH_ASSOC);
+		return $row ? $row[$field] : null;
+	}
+
+	/**
+	 * set
+	 *
+	 * Generic setter function
+	 *
+	 * @param string $field Name of the field to set, as in the DB.
+	 * @param string $value Value to be set here (caller responsible for proper value).
+	 *
+	 * @access public
+	 * @return bool true if the update succeeds
+	 */
+	function set($field,$value)	{
+		$type = self::$field_types[$field];
+		if( !isset($type) )
+			return null;
+		if( !($stmt = get_pdo()->prepare("UPDATE machine SET `$field`=:val WHERE machine_id=:id")) )
+			return null;
+		if( strlen($type)>1 && strlen($value)==0 )
+			$value=null;
+		$stmt->bindParam(':val',$value);
+		$stmt->bindParam(':id',$this->fields['machine_id']);
+		$this->fields[$field]=$value;
+		return $stmt->execute();
+	}
+
+	/**
+	 * enumerte
+	 *
+	 * Reads enum values. This can be used to list all combinations, its matching subset,
+	 * 	or just a single value.
+	 *
+	 * @access public
+	 * @param string $field Name of the field to enumerate (must have the proper type)
+	 * @param mixed $values Null to return all possibilities, ID (scalar) to return single name,
+	 * 	array of IDs to return a matching subset
+	 * @return mixed the matching name for a scalar $values, array (matching) IDs=>names otherwise.
+	 */
+	static function enumerate($field,$values=null)	{
+		if( !isset(self::$field_types[$field]) )
+			return null;
+		$table = self::$field_types[$field];
+		if( strlen($table)<=1 )
+			return null;
+		if( is_array($table) )
+			$ret=$table;
+		else	{
+			$id = $table . '_id';
+			$sql = "SELECT DISTINCT `$id`,`$table` FROM `$table`";
+			if( is_array($values) )	{
+				if( count($values)>0 )	{
+					for( $i=0; $i<count($values); $i++ )
+						$values[$i] = get_pdo()->quote($values[$i]);
+					$sql .= " WHERE `$id` IN (" . implode(',',$values) . ')';
+				}
+			}
+			else if( isset($values) )
+				$sql .= " WHERE `$id`=" . get_pdo()->quote($values);
+			if( !($stmt=get_pdo()->prepare($sql)) )
+				return null;
+			$stmt->execute();
+			$ret = array();
+			while( $row = $stmt->fetch(PDO::FETCH_ASSOC) )
+				$ret[$row[$id]] = $row[$table];
+		}
+		if( !isset($values) || is_array($values) )
+			return $ret;
+		else
+			return (isset($ret[$values]) ? $ret[$values] : null );
 	}
 }
 

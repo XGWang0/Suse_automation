@@ -1,4 +1,28 @@
 <?php
+/* ****************************************************************************
+  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  
+  THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+  CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+  RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+  THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+  THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+  TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+  PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+  PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+  AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+  LIABILITY.
+  
+  SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+  WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+  AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+  LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+  OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+  WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+  ****************************************************************************
+ */
+
 /**
  * Logic of the vhreinstall page 
  */
@@ -22,34 +46,30 @@ foreach($machines as $m) {
 	$m->get_children();
 }
 
-### Figure out, check, and set the installation options ###
-$installoptions = request_str("installoptions");
 $installoptions_warning = "";
 
-# If the install options are empty, we use the ones from the DB
-if($installoptions == "") {
-	# If we only have one machine, we just use those options
-	if(count($machines) == 1) {
-		$installoptions = $machines[0]->get_def_inst_opt();
-	} else { # Otherwise, we see if options are different between the machines
-		# Loop through all machines included in this reinstall request
-		foreach($machines as $machine) {
-			# Set the initial value if it hasn't been set yet
-			if($installoptions == "") {
-				$installoptions = $machine->get_def_inst_opt();
-			}
-			# If the options for this machine are different from any of the others, we can't use them
-			if($machine->get_def_inst_opt() != $installoptions) {
-				$installoptions_warning = "Warning: Default installation options cannot be displayed since you selected multiple machines with different default options";
-				$installoptions = "";
-				break;
-			}
+# If we only have one machine, we just use those options
+if(count($machines) == 1) {
+	$installoptions = $machines[0]->get_def_inst_opt();
+} else { # Otherwise, we see if options are different between the machines
+	# Loop through all machines included in this reinstall request
+	foreach($machines as $machine) {
+		# Set the initial value if it hasn't been set yet
+		if($installoptions == "") {
+			$installoptions = $machine->get_def_inst_opt();
+		}
+		# If the options for this machine are different from any of the others, we can't use them
+		if($machine->get_def_inst_opt() != $installoptions) {
+			$installoptions_warning = "Warning: Default installation options cannot be displayed since you selected multiple machines with different default options";
+			$installoptions = "";
+			break;
 		}
 	}
 }
 
 $resend_job=request_str("xml_file_name");
 if (request_str("proceed")) {
+    $installoptions = request_str("installoptions"); # use options listed in webpage
     $smturl = request_str("update-smt-url");
     # Check for errors
     $errors = array();
@@ -82,7 +102,7 @@ if (request_str("proceed")) {
         }
     } elseif ($virtualization_method == "kvm") {
         if (preg_match('/[SsLlEe]{3}.-11-[SsPp]{2}[234]/',$producturl)) {
-            $additionalrpms .= "kvm";
+            $additionalrpms .= " kvm";
         }
     } else {
 	# Report error.

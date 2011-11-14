@@ -1,9 +1,29 @@
+# ****************************************************************************
+# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
+#
+
 #
 # spec file for package qa_tools (Version 0.48)
-#
-# Copyright (c) 2008 SUSE LINUX Products GmbH, Nuernberg, Germany.
-# This file and all modifications and additions to the pristine
-# package are under the same license as the package itself.
 #
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
@@ -13,10 +33,10 @@
 BuildRequires:  coreutils
 
 Name:           qa_tools
-License:        GPL v2 or later
+License:        SUSE Proprietary
 Group:          SUSE internal
 AutoReqProv:    on
-Version:        2.1.0
+Version:        @@VERSION@@
 Release:        0
 Summary:        rd-qa internal package for test systems
 #Url:          http://qa.suse.de/hamsta
@@ -86,7 +106,7 @@ cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man1 *.1.gz
 cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man8 *.8.gz
 cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man8 %{S:1}
 gzip -9 $RPM_BUILD_ROOT%{mandir}/man8/%{name}.8
-cp --target-directory=$RPM_BUILD_ROOT%{confdir} 00-qa_tools-default
+cp --target-directory=$RPM_BUILD_ROOT%{confdir} 00-qa_tools-default 00-qa_tools-default.*
 cp -r profiles/* $RPM_BUILD_ROOT%{profiledir}
 
 %clean
@@ -122,3 +142,4 @@ echo "Your system has been hacked successfuly."
 %{confdir}
 
 %changelog
+

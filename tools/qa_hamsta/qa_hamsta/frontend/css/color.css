@@ -1,3 +1,27 @@
+/* ****************************************************************************
+  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  
+  THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+  CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+  RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+  THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+  THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+  TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+  PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+  PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+  AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+  LIABILITY.
+  
+  SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+  WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+  AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+  LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+  OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+  WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+  ****************************************************************************
+ */
+
 .text-white
 {
 	color: #ffffff;
@@ -65,6 +89,13 @@ table.list tr.diff:hover	{ background-color: #f88; }
 table.list tr.search_result	{ background-color: #fd8; }
 table.list tr.search_result:hover	{ background-color: #fb6; }
 table.list tr.crashed_job	{ color: #f00; }
+table.list tr.small th { background-color:#aaa; }
+table.list tr.small:hover th { background-color:#888; }
+table.list tr.disabled th { background-color:#00a; }
+table.list tr.disabled:hover th { background-color:#008; }
+tr.small, tr.small input, tr.small select { font-size:50%; }
+tr.disabled, tr.disabled input, tr.disabled select { font-size:50%; }
+tr.small { color: #666; }
 
 .CRITICAL td, .CRITICAL				{ background-color: #f44; }
 tr.CRITICAL:hover td, span.CRITICAL:hover	{ background-color: #d22; }

@@ -14,7 +14,7 @@
 #
 
 Name:           qa_lib_strongwind
-License:        GPL v2 or later
+License:        GPL v2
 Group:          System/Packages
 Summary:        Desktop automation test framework
 Provides:	strongwind
@@ -24,7 +24,7 @@ BuildRequires:  python
 AutoReqProv:    on
 URL:            http://git.gnome.org/browse/qa_lib_strongwind
 Version:        1.0
-Release:        1
+Release:        2
 Source0:        strongwind-%version.tar.bz2
 Source1:	qa_lib_strongwind.8
 Patch0:         opsqa.patch

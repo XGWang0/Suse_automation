@@ -49,8 +49,8 @@ sub fdisk_type {
 	# partitioning types.  so check with fdisk.
 
 	if (!(`LANG=C fdisk -l 2>/dev/null | grep "valid partition"` =~ /doesn.t contain a valid partition table/)) {
-	system("fdisk -l >/dev/null 2>&1");
-        if ($? == 0) {
+		system("LANG=C fdisk -l >/dev/null 2>&1");
+		if ($? == 0) {
 			return "fdisk";
 		}
 	}
@@ -72,7 +72,17 @@ sub get_partition_of {
 	my $disk = shift;
 	my $partition_number = shift;
 
-	#Funky RAID
+
+	# The order of these cases matter.  Put more general regexp matches
+	# at the end.
+	# Some of the cases aren't as general as they could be, because
+	# I'm paranoid.
+
+	#Other RAID
+	if ($disk =~ /ida\/c\d+d\d+$/) {
+		return $disk . "p" . $partition_number ;
+	}
+	#DAC960 RAID
 	if ($disk =~ /rd\/c\d+d\d+$/) {
 		return $disk . "p" . $partition_number ;
 	}
@@ -100,6 +110,10 @@ sub get_disk_of {
 	my $partition = shift;
 	# Funky RAID style
 	if ($partition =~ /(^.*?rd\/c\d+d\d+)p\d+/) {
+		return $1;
+	}
+	# Other RAID style
+	if ($partition =~ /(^.*?ida\/c\d+d\d+)p\d+/) {
 		return $1;
 	}
 	# Darwin/BSD style
@@ -179,7 +193,7 @@ sub get_partition_info_pdisk {
 	}
 	close PDISK;
 	if ( !defined ($id)) {
-		if ($debug_fpdisk) {
+		if ($fpdisk_debug) {
 			warn("Unable to find partition information for $partition");
 		}
 		return;
@@ -227,7 +241,7 @@ sub get_disk_info_fdisk {
 			($heads, $sectors, $cylinders) = ($1, $2, $3);
 		}
 		if (/^Units = cylinders of (\d+) \* (\d+)/) {
-			($cylsize, $blocksize) = ($1, $2, $3)
+			($cylsize, $blocksize) = ($1, $2)
 		}
 		if (/^\/dev\//) {
 			++$partitions;
@@ -287,9 +301,9 @@ sub get_disk_info {
 	if($type eq "fdisk") {
 		return(get_disk_info_fdisk($disk));
 	} elsif ($type eq "pdisk-linux") {
-		return(get_disk_info_pdisk($disk,"pdisk -l $disk 2>&1|"));
+		return(get_disk_info_pdisk($disk,"LANG=C pdisk -l $disk 2>&1|"));
 	} else {
-		return(get_disk_info_pdisk($disk,"pdisk $disk -dump 2>&1|"));
+		return(get_disk_info_pdisk($disk,"LANG=C pdisk $disk -dump 2>&1|"));
 	}
 }
 

@@ -1,4 +1,27 @@
 #!/usr/bin/perl -w
+# ****************************************************************************
+# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
+
 # vim: set et ts=4 sw=4 ai si:
 #
 # feed_hamsta -- command line interface for the hamsta master
@@ -13,6 +36,9 @@ use sigtrap qw(die untrapped normal-signals ABRT QUIT);
 use Encode;
 
 use IO::Socket::INET;
+
+#to get result from hamsta
+use LWP::Simple;
 
 $0 =~ m/([^\/]*)$/;
 my $progname = $1;
@@ -54,6 +80,7 @@ EOF
 
 my $opt_help            = 0;
 my $opt_version         = 0;
+my $opt_w		= 0;
 
 my $opt_command         = "";
 my $opt_print_active    = 0;
@@ -65,6 +92,7 @@ my $opt_group           = "";
 unless (GetOptions(
            'help'               =>  \$opt_help,
            'version|v'          =>  \$opt_version,
+           'wait|w'             =>  \$opt_w,
            'debug|d=i'          =>  \$debug,
            'command|c=s'        =>  \$opt_command,
            'job|j=s'            =>  \$opt_job,
@@ -116,8 +144,40 @@ if ($@ || !$sock) {
 # Ignore the welcome message and wait for the prompt
 &send_command('');
 
+#catch the jop id
+my $job_id="";
 if ($opt_command) {
-    print &send_command($opt_command."\n");
+    $job_id=&send_command($opt_command."\n");
+    print $job_id;
+
+    # if -w then wait for the job result
+    if($opt_w) {
+
+	exit 0 unless($job_id=~/internal id/);
+
+	$job_id =~ s/.*internal id:.//;	
+	$job_id =~ s/[^d]$//g;
+	my $url="http://$opt_master/hamsta/index.php?go=job_details&id=$job_id";
+	my $result_job="";
+	while($result_job eq "running" or $result_job eq "queued" or $result_job eq "") {
+		my $content = get $url;
+		my @content = split /\n/,$content;
+		for(my $i=0;$i<@content;$i++){
+			
+			if($content[$i] =~ />Status</){
+				$i++;
+				$result_job = $content[$i];
+				$result_job =~ s/.*<td>//;
+				$result_job =~ s/<\/td>.*//;
+				#print $result_job,"\n";
+				last;
+			}
+		}
+		sleep 3;
+	}
+	exit 0 if($result_job=~"passed");
+	exit 1 if($result_job!~"passed");
+	}
 }
 
 if ($opt_print_active) {
@@ -181,3 +241,4 @@ sub send_command() {
 
     return $result;
 }
+

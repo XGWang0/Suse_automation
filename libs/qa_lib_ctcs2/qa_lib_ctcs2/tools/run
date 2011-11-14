@@ -619,7 +619,7 @@ sub report {
 	print sectotime($timers{gtime}) ."\n";
 	color("reset");
 
-       	foreach $key (keys %test_results) {
+       	foreach $key (sort keys %test_results) {
 		$fail = @{$test_results{$key}}[0];
 		$attempt = @{$test_results{$key}}[2];
 		$succeed = @{$test_results{$key}}[1];
@@ -717,6 +717,7 @@ sub report {
 		}
 	}
 	color("reset");
+	print "\n";
 }
 
 sub init_environment {
@@ -865,14 +866,17 @@ sub save_state {
 	# fixme
 	my $tmp = $environment{"save_directory"}."/rpmlist";
 	
-	# If you change this, you must also change it in results.pm in qa_tools!!!
-	system ( "rpm -qa --qf \"%{NAME} %{VERSION}-%{RELEASE}\n\" | sort > $tmp " ); 
+	unless( system('which rpm >/dev/null 2>/dev/null' ) )	{
+		# If we have RPM, we collect RPM list for further processing.
+		# Please do not change the format, it is used by other tools in the chain as well.
+		system ( "rpm -qa --qf \"%{NAME} %{VERSION}-%{RELEASE}\n\" | sort > $tmp " ); 
+	}
 
-	$tmp = $environment{"save_directory"}."/hwinfo";
-
-	# No longer needed to process/filter hwinfo here, it gets processed by 
-	# qa_db_report.pl automatically
-	system ( "/usr/sbin/hwinfo --all > $tmp ");
+	if( -x '/usr/sbin/hwinfo' )	{
+		# If we have hwinfo, we collect its results for further processing.
+		$tmp = $environment{"save_directory"}."/hwinfo";
+		system ( "/usr/sbin/hwinfo --all > $tmp ");
+	}
 
 	# Create "done" file which contain time of completion
 	`date --utc +'%y-%m-%d %H:%M:%S UTC' > "$environment{"save_directory"}/done"`

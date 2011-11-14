@@ -1,10 +1,6 @@
 #
 # spec file for package perl-XML-Dumper (Version 0.81)
 #
-# Copyright (c) 2008 SUSE LINUX Products GmbH, Nuernberg, Germany.
-# This file and all modifications and additions to the pristine
-# package are under the same license as the package itself.
-#
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
@@ -18,7 +14,7 @@ Requires:       perl perl-XML-Parser
 BuildRequires:  perl-XML-Parser
 AutoReqProv:    on
 Group:          Development/Libraries/Perl
-License:        Artistic License; GPL v2 or later
+License:        Artistic; GPL v1 or later
 Url:            http://search.cpan.org/~mikewong/XML-Dumper-0.81/Dumper.pm
 Summary:        A Perl Module XML::Dumper - Perl module for dumping Perl objects from/to XML
 Source:         XML-Dumper-%{version}.tar.bz2
@@ -86,3 +82,5 @@ rm -rf $RPM_BUILD_ROOT
   see http://lists.opensuse.org/opensuse-packaging/2010-11/msg00221.html
 * Mon Feb 26 2007 pkirsch@suse.de
 - initial package
+
+

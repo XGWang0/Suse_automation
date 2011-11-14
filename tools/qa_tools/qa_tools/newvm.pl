@@ -1,4 +1,28 @@
 #!/usr/bin/perl -w
+# ****************************************************************************
+# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
+#
+
 
 BEGIN {
 # extend the include path to get our modules found
@@ -62,10 +86,6 @@ our $tooldir = '/usr/share/qa/tools';
 our $profiledir = '/usr/share/qa/profiles';
 our $mountpoint = '/mnt';
 
-### FIXME
-### simpy add nis server list here, this server list should be detected automatically from 
-### DHCP answer 
-our @nis_server_list = ("149.44.160.146","10.10.0.1","149.44.160.1");
 $ENV{'LC_ALL'}='en_US';
 
 # from_type: opensuse|sles
@@ -81,7 +101,7 @@ if ( $userprofile ){
     $ay_xml = $userprofile;
 } else {
 # location: cz|de|cn|us
-    my $location = &get_location or die "Unknown location (Prague|Nuernberg|Beijing|Provo)";
+    my $location = &get_location or die "Unknown location";
     print "Location: $location\n";
 
 #    die "Cannot identify current distro" unless $from_type and $from_version;
@@ -94,14 +114,7 @@ if ( $userprofile ){
     print "Installing to:\n", &stats( $to_type, $to_version, $to_subversion, $to_arch );
 
 #Location deteted. Define SDK source and autoinstall profile location
-    if( $location eq 'cz' or $location eq 'de' or $location eq 'us' )
-    { $profile_url_base = 'http://10.20.1.229/autoinst';
-        `mount 10.20.1.229:/srv/hamsta $mountpoint -o nolock;`
-    }
-    elsif( $location eq 'cn' )
-    { $profile_url_base = 'http://147.2.207.242/autoinst';
-        `mount 147.2.207.242:/mirror_a $mountpoint -o nolock;`
-    }
+    &command( 'mount '.$qaconf{install_profile_nfs_server}.":".$qaconf{install_profile_nfs_dir}." $mountpoint -o nolock" );
     
     my $to_libsata = undef;&has_libsata( $to_type, $to_version, $to_subversion, $to_arch );
     my $patterns = &get_patterns( $to_type, $to_version, $to_subversion );
@@ -133,9 +146,9 @@ $cmdline .= " -x $maxmem" if defined $maxmem;
 $cmdline .= " -d $virtdisksize" if defined $virtdisksize;
 $cmdline .= " -D $virtdisktype" if defined $virtdisktype;
 print $cmdline . "\n";
-my $ret = system($cmdline);
-
-# this will let hamsta know that it should regenerate the list it sends in description
-# FIXME UGLY UGLY UGLY
-system ("rm -f /tmp/hamsta_virtual_machines");
+my $ret = system("$cmdline");
+$ret = $ret >> 8;
+# this will let hamsta know that it should increase stats version -> master will then query 
+# this host for changes
+system ("touch /var/lib/hamsta/stats_changed");
 exit $ret;

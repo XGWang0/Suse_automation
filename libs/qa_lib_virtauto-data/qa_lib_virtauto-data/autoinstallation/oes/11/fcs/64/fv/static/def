@@ -14,7 +14,7 @@
     <device_map config:type="list">
       <device_map_entry>
         <firmware>hd0</firmware>
-        <linux>/dev/xvda</linux>
+        <linux>/dev/hda</linux>
       </device_map_entry>
     </device_map>
     <global>
@@ -63,14 +63,14 @@
     <loader_type>grub</loader_type>
     <sections config:type="list">
       <section>
-        <append>resume=/dev/xvda1 splash=silent showopts</append>
+        <append>resume=/dev/hda1 splash=silent showopts</append>
         <image>/boot/vmlinuz</image>
         <initial>1</initial>
         <initrd>/boot/initrd</initrd>
         <lines_cache_id>0</lines_cache_id>
         <name>SUSE Linux Enterprise Server 11 SP1</name>
         <original_name>linux</original_name>
-        <root>/dev/xvda2</root>
+        <root>/dev/hda2</root>
         <type>image</type>
       </section>
       <section>
@@ -80,7 +80,7 @@
         <lines_cache_id>1</lines_cache_id>
         <name>Failsafe -- SUSE Linux Enterprise Server 11 SP1 - 2.6.32.12-0.7</name>
         <original_name>failsafe</original_name>
-        <root>/dev/xvda2</root>
+        <root>/dev/hda2</root>
         <type>image</type>
       </section>
     </sections>
@@ -535,7 +535,7 @@
   </oes-ldap>
   <partitioning config:type="list">
     <drive>
-      <device>/dev/xvda</device>
+      <device>/dev/hda</device>
       <initialize config:type="boolean">true</initialize>
       <partitions config:type="list">
         <partition>
@@ -962,6 +962,7 @@
       <pattern>base</pattern>
       <pattern>documentation</pattern>
       <pattern>gnome</pattern>
+      <pattern>novell-yast2</pattern>
       <pattern>lamp_server</pattern>
       <pattern>print_server</pattern>
       <pattern>x11</pattern>

@@ -1,94 +1,121 @@
+# ****************************************************************************
+# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
+#
+
 # configuration for automated KOTD tests
 
 # architecture : x86 | x86_64 | ...
 # default: autodetected by `uname -m`
 # cmdline option: -a
 
-#arch="x86_64"
+#kotd_arch="x86_64"
 
 
 # branch : master | SLES10_SP4_BRANCH | ...
 # default: master
 # cmdline option: -b
 
-#branch="master"
+#kotd_branch="master"
 
 
 # run as daemon ? 0 | 1
 # default: 0
 # cmdline option: -d
 
-#daemon="0"
+#kotd_daemon="0"
 
 
 # use the *-base-*.rpm file ?
 # default: true for SLE-11, false otherwise
 # cmdline option: -e
 
-#use_base="0"
+#kotd_use_base="0"
 
 
 # flavor: default | debug | vanilla | ...
 # default: default
 # cmdline option: -f
 
-#flavor="default"
+#kotd_flavor="default"
 
 
 # repository poll interval in secs
 # default: 60
 # cmdline option: -i
 
-#poll_int="60"
+#kotd_poll_int="60"
 
 
 # log file
 # default: /var/log/qa_kerneltest.log
 # cmdline option: -l
 
-#logfile="/var/log/qa_kerneltest.log"
+#kotd_logfile="/var/log/qa_kerneltest.log"
 
 
 # maximal number of kernels kept installed
 # default: 3
 # cmdline option: -m
 
-#max_kernels="3"
+#kotd_max_kernels="3"
 
 
 # product for QADB submit
 # default: autodetected by `/usr/share/qa/tools/product.pl`
 # cmdline option: -p
 
-#qadb_product="SLES-10-SP4"
+#kotd_qadb_product="SLES-10-SP4"
 
 
 # directory with control files
 # default: /var/lib/kerneltest
 # cmdline option: -r
 
-#vardir="/var/lib/kerneltest"
+#kotd_vardir="/var/lib/kerneltest"
 
 
 # how many seconfs to sleep before first command
 # default: 60
 # cmdline option: -s
 
-#sleep="60"
+#kotd_sleep="60"
 
 
 # tester name for QADB submit
 # default: kotd-default
 # cmdline option: -t
 
-#tester="kotd-default"
+#kotd_tester="kotd-default"
 
 
 # repository URL with kernel commit builds
-# default: http://dist.suse.de/kerneltest
+# must be a protocol supported by CURL
+# Kernel commit repo is at http://dist.suse.de/kerneltest/
+# KOTD repo (unsupported) is at http://download.opensuse.org/repositories/Kernel:
+# Build monitor (unsupported) is at http://kerncvs.suse.de/kernel-overview/
 # cmdline option: -u
 
-#kcmt_url="http://dist.suse.de/kerneltest"
+#kotd_kcmt_url="http://dist.suse.de/kerneltest"
 
 
 # loglevel
@@ -102,7 +129,7 @@
 #	LOG_DEBUG       => 6,
 # cmdline option: -v
 
-#loglevel="5"
+#kotd_loglevel="5"
 
 
 
@@ -111,18 +138,18 @@
 # default: 0
 # cmdline option: -C
 
-#nocommands="0"
+#kotd_nocommands="0"
 
 
 # disable QADB reports ?
 # default: 0
 # cmdline option: -Q
 
-#noqadb="0"
+#kotd_noqadb="0"
 
 
 # disable rebooting ?
 # default: 0
 # cmdline option: -R
 
-#noreboot="0"
+#kotd_noreboot="0"

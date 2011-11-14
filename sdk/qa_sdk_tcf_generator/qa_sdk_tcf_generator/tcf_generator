@@ -1,24 +1,7 @@
 #!/bin/bash
-#===============================================================================
-#
-#                 SUSE/Novell confidential Testscript
-#           Only for internal use, no distribution allowed
-#
-#
-#
-#           FILE: tcf_generator (to be changed) 
-#        VERSION: 0.1
-#        LICENSE: GPL2 
-#
-#        CREATED: 2010-08-20
-#        REVISED: 2010-08-20
-#
-#    DESCRIPTION: "looking up the dir/ tgz and find out the executale script .convert to a tcf format"
-#   REQUIREMENTS: ""
-#          USAGE: ./$FILE -h
-#
-#===============================================================================
-
+# CREATED: 2010-08-20
+# REVISED: 2010-08-20
+# DESCRIPTION: Looks in the dir/tgz and finds out the executale scripts. Creates a TCF file based on them.
 
 function Usage()
 {
@@ -43,7 +26,6 @@ exit 2;
 function gen_package-run()
 {
 cat <<'eof'
-#!/bin/bash
 
 CTCS2_DIR=/usr/lib/ctcs2
 TCF_DIR=/usr/share/qa/tcf
@@ -298,3 +280,4 @@ sed -i "\$s/\$/$TCF/" $run_name
 chmod a+x $run_name
 echo generate package-run succeed
 exit 0
+

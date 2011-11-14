@@ -1,4 +1,28 @@
 <?php
+/* ****************************************************************************
+  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  
+  THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+  CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+  RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+  THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+  THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+  TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+  PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+  PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+  AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+  LIABILITY.
+  
+  SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+  WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+  AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+  LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+  OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+  WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+  ****************************************************************************
+ */
+
 /**
  * Logic of the reinstall page 
  */
@@ -67,6 +91,7 @@ if (request_str("proceed")) {
 	$pattern_list = $_POST["patterns"];
 	$rootfstype = request_str("rootfstype");
 	$defaultboot = request_str("defaultboot");
+	$repartitiondisk = request_str("repartitiondisk");
 	$setxen = request_str("xen");
 	$validation = request_str("startvalidation");
 	$email = request_str("mailto");
@@ -136,6 +161,8 @@ if (request_str("proceed")) {
 			$args .= " -t $additionalpatterns";
 		if ($defaultboot)
 			$args .= " -b $defaultboot";
+		if ($repartitiondisk)
+			$args .= " -P $repartitiondisk";
 		if ($ptargs)
 			$args .= " -z $ptargs";
 		if ($update == "update-smt" and $smturl != "")
@@ -164,20 +191,24 @@ if (request_str("proceed")) {
 			if ($setupfordesktop == "yes")  # Needs reboot so accesible technologies starts correctly (bnc#710624)
 				$machine->send_job("/usr/share/hamsta/xml_files/reboot.xml") or $errors['setxenjob']=$machine->get_hostname().": ".$machine->errmsg;
 			if ($validation) {
-				$validationfile = "/tmp/validation_$rand.xml";
-				system("cp ".XML_VALIDATION." $validationfile");
-				system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $validationfile");
-				$machine->send_job($validationfile) or $errors['validationjob']=$machine->get_hostname().": ".$machine->errmsg;
+				$validationfiles = split (" ", XML_VALIDATION);
+				foreach ( $validationfiles as &$validationfile ) {
+					$rand = rand();
+					$randfile= "/tmp/validation_$rand.xml";
+					system("cp $validationfile $randfile");
+					$validationfile = $randfile;
+                                        system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $validationfile");
+                                        $machine->send_job($validationfile) or $errors['validationjob']=$machine->get_hostname().": ".$machine->errmsg;
+                                }
+
 			}
 		}
 		if (count($errors)==0)
 			header("Location: index.php");
+	} else {
+		$_SESSION['message'] = implode("\n", $errors);
+		$_SESSION['mtype'] = "fail";
 	}
-	echo "<div class=\"failmessage\" style=\"text-align: left;\">The following errors were returned:";
-	echo "<ul>";
-	echo "<li>" . implode("</li><li>", $errors) . "</li>";
-	echo "</ul>";
-	echo "</div>";
 }
 $html_title = "Reinstall";
 ?>

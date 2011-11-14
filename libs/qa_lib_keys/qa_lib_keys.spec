@@ -1,9 +1,29 @@
+# ****************************************************************************
+# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
+#
+
 #
 # spec file for package qa_tools (Version 0.34)
-#
-# Copyright (c) 2008 SUSE LINUX Products GmbH, Nuernberg, Germany.
-# This file and all modifications and additions to the pristine
-# package are under the same license as the package itself.
 #
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
@@ -13,10 +33,10 @@
 #BuildRequires:  coreutils
 
 Name:           qa_lib_keys
-License:        GPL v2 or later
+License:        SUSE Proprietary
 Group:          SUSE internal
 AutoReqProv:    on
-Version:        2.1.0
+Version:        @@VERSION@@
 Release:        0
 Summary:        rd-qa access keys
 #Url:          http://qa.suse.de/hamsta
@@ -30,10 +50,11 @@ BuildArch:      noarch
 PreReq:         coreutils
 
 %description
-Changes SSH fingerprint and installs SSH access keys. Install only
-on test systems.
-
-
+Access package - install on test systems only
+- changes SSH fingerprint (same after reinstall)
+- installs SSH access keys
+- switches off StrictHostKeyChecking
+- switches off SuSEfirewall
 
 Authors:
 --------
@@ -61,6 +82,7 @@ cp --target-directory=$RPM_BUILD_ROOT%{fhsdir} id_dsa id_dsa.pub known_hosts add
 rm -rf $RPM_BUILD_ROOT
 
 %post
+# back up old SSH server keys, unless already done
 if [ -d %{sshconfdir} ]
 then
   if [ ! -d %{sshconfdir}/bak ]
@@ -69,9 +91,11 @@ then
     find %{sshconfdir} -type f -regex '.*\(key\|moduli\).*' ! -regex '.*bak.*' -exec mv -t %{sshconfdir}/bak {} \;
   fi
 fi
+# install SSH server keys from the package
 mkdir -p %{sshdir}
 mkdir -p %{sshconfdir}
 cp --target-directory=%{sshconfdir} %{fhsdir}/ssh/*
+# install root's authorized_keys
 if [ -f %{sshdir}/authorized_keys ]
 then
     cat %{fhsdir}/id_dsa.pub >> %{sshdir}/authorized_keys
@@ -79,11 +103,21 @@ else
     cp %{fhsdir}/id_dsa.pub %{sshdir}/authorized_keys
 fi
 cat %{fhsdir}/added_keys >> %{sshdir}/authorized_keys
+# install root's keys
 cp --target-directory=%{sshdir} %{fhsdir}/id_dsa %{fhsdir}/id_dsa.pub %{fhsdir}/known_hosts 
 if [ -x /etc/init.d/sshd ]
 then
     /etc/init.d/sshd try-restart
 fi
+# switch off StrictHostKeyChecking
+FILE=/etc/ssh/ssh_config
+if grep '#\?\([ \t]\+\)StrictHostKeyChecking' $FILE >/dev/null 2>/dev/null
+then
+	sed -i 's/#\?\([ \t]\+\)\(StrictHostKeyChecking\)\(.\+\)/\1\2 no/' $FILE
+else
+	echo "StrictHostKeyChecking no" >> $FILE
+fi
+# shut down firewall
 if [ -x /etc/init.d/SuSEfirewall2_init ]
 then
     /etc/init.d/SuSEfirewall2_init stop || true
@@ -114,6 +148,18 @@ echo "Your system has been hacked successfuly."
 %attr(0644,root,root) %{fhsdir}/known_hosts
 
 %changelog
+* Mon Nov 14 2011 - llipavsky@suse.cz
+- New 2.2 release from QA Automation team, includes:
+- Automated stage testing
+- Repartitioning support during reinstall
+- Possible to leave some space unparditioned during reinstall
+- Added "default additional RPMs to hamsta frontend"
+- Optimized hamsta mutlticast format
+- Mutliple build-validation jobs
+- Code cleanup
+- Bugfixes
+* Mon Oct 17 2011 - vmarsik@suse.cz
+- added switching off StrictHostKeyChecking
 * Sun Sep 04 2011 - llipavsky@suse.cz
 - New, updated release from the automation team. Includes:
 - Improved virtual machine handling/QA cloud
@@ -147,3 +193,4 @@ echo "Your system has been hacked successfuly."
 - made output suitable for QADB
 * Thu Jan 10 2008 vmarsik@suse.cz
 - created a new package
+

@@ -1,11 +1,40 @@
 <?php
+/* ****************************************************************************
+  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  
+  THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+  CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+  RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+  THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+  THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+  TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+  PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+  PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+  AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+  LIABILITY.
+  
+  SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+  WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+  AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+  LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+  OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+  WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+  ****************************************************************************
+ */
 
 	# Keep this structure (for now), especially the " -- " between the feature title and description
 	$latestFeatures = array(
+			"2.2.0" => array(
+				'14 November 2011 -- Repartitioning support -- during reinstall (with an option to leave some space unpartitioned).',
+				'14 November 2011 -- Default additional RPMs -- It is now possible to define list of RPMs (in hamsta frontend config), that will be prepopulated on reinstall page.',
+				'14 November 2011 -- Optimized multicast -- HAMSTA multicast format has been optimized to contain less data.',
+				'14 November 2011 -- Chained build validation -- It is possible now to define more than just one build validation job, and these jobs will be run sequentially.'
+			),
 			"2.1.0" => array(
 				'4 September 2011 -- Hamsta Virtual Machine Integration (QA Cloud) -- Hamsta can now track and manage virtual machine hosts as well as the VMs installed on those hosts, including basic VM installs (now officially supported).',
 				'4 September 2011 -- Renam of QA packages -- Almost all  QA packages were renamed. New naming corresponds to the role of the package.',
-				'4 September 2011 --- Upgrade support -- HAMSTA now supports automated upgrade of machines to SLES11-SP2',
+				'4 September 2011 -- Upgrade support -- HAMSTA now supports automated upgrade of machines to SLES11-SP2',
 				'4 September 2011 --  Changed format of configuration files -- Format of /etc/qa files has changed, it is now more user friendly and is easier to parse.',
 				'4 September 2011 -- More teststsuites -- More testsuites were added to automation, including HA and more Autotest testsuites.'
 			),

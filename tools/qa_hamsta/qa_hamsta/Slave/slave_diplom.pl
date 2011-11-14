@@ -1,4 +1,27 @@
 #!/usr/bin/perl -w 
+# ****************************************************************************
+# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
+
 # This is the Slave Network interface.
 # 
 package Slave;
@@ -22,6 +45,7 @@ use log;
 $log::loginfo='slave_diplom';
 
 use Slave::hwinfo_xml;
+use Slave::stats_xml;
 
 use Slave::Multicast::mcast;
 use Slave::functions;
@@ -152,6 +176,12 @@ sub run_slave_server() {
 #	already sent on <timestamp>" to indicate that nothing has
 #	changed since the last query.
 #
+# * get_stats
+#       Returns a hash containing the stats of (Virtualization) host, 
+#       serialized in XML. If machine is not virtualization host,
+#       only limited information is returned. If machine is VH, also
+#       list of VMs is returned.
+#
 # * ping
 #	Returns the String "pong"
 #
@@ -189,6 +219,14 @@ sub process_request {
                 }
                 &log(LOG_NOTICE, "[$ip_addr] Sent hwinfo.");
                 $sent_hwinfo = time;
+            } elsif ($incoming =~ /^get_stats$/) {
+                eval { 
+                    print $sock uri_escape(&get_stats_xml());
+                };
+                if ($@) {
+                    &log(LOG_ERROR, $@);
+                }
+                &log(LOG_NOTICE, "[$ip_addr] Sent machine stats.");
             } elsif ($incoming =~ /^ping$/) {
                 print $sock "pong\n" ;	
             } else {
@@ -276,3 +314,4 @@ sub deconstruct() {
 
 
 1;
+

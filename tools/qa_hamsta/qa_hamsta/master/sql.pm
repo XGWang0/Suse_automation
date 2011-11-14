@@ -1,3 +1,27 @@
+# ****************************************************************************
+# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
+#
+
 package Master;
 
 
@@ -75,6 +99,14 @@ sub machine_get_ipname($) # machine_id
 sub machine_get_role_type($) # machine_id
 {   return $dbc->row_query('SELECT role,type FROM machine WHERE machine_id=?',$_[0]); }
 
+sub machine_get_known_unique_ids(@) # list of mac addresses
+{
+	my @unique_ids = @_;
+	my $fmt = join ',', map { '?' } @unique_ids;
+
+	return @unique_ids ? $dbc->vector_query("SELECT unique_id FROM machine WHERE unique_id in ($fmt)", @unique_ids) : ();
+}
+
 sub machine_search
 {
 	my %args = (
@@ -124,14 +156,18 @@ sub busy_machines_without_jobs()	{
 sub machine_update_vhids($$@) # machine_id_of_VH, type, unique_id_list
 {
 	my ($vh_id, $type, @unique_ids) = @_;
-	my $fmt = join ',', map { '?' } @unique_ids;
+	my $result;
 
-	return 
-		# remove guests of given type that are not here anymore
-		$dbc->update_query("UPDATE machine SET vh_id=NULL WHERE vh_id=? AND type=? AND unique_id NOT IN ($fmt)", $vh_id, $type, @unique_ids) 
-	+ 
-		# add guests to the host that were reported in the last message
-		$dbc->update_query("UPDATE machine SET vh_id=?, type=? where unique_id IN ($fmt)", $vh_id, $type, @unique_ids);
+	my $fmt = join ',', map { '?' } @unique_ids;
+	my $cond = @unique_ids ? " AND unique_id NOT IN ($fmt)" : '';
+
+	# remove guests of given type that are not here anymore
+	$result = $dbc->update_query("UPDATE machine SET vh_id=NULL WHERE vh_id=? AND type=?$cond", $vh_id, $type, @unique_ids);
+	
+	# add guests to the host that were reported in the last message
+	$result += $dbc->update_query("UPDATE machine SET vh_id=?, type=? where unique_id IN ($fmt)", $vh_id, $type, @unique_ids) if @unique_ids;
+	
+	return $result
 }
 
 ### job functions

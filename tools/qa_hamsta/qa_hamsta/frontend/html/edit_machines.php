@@ -1,4 +1,28 @@
 <?php
+/* ****************************************************************************
+  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  
+  THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+  CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+  RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+  THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+  THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+  TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+  PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+  PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+  AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+  LIABILITY.
+  
+  SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+  WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+  AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+  LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+  OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+  WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+  ****************************************************************************
+ */
+
 	/**
 	 * Contents of the <tt>edit_machines</tt> page 
 	 */
@@ -10,7 +34,7 @@
 	# We are going to output all fields and data for the machines, so first we collect it
 	$table = array();
 	$tableHeadings = array("Name", "*Status", "Used By", "Usage", "Usage Expires (days)", "Maintainer", "Affiliation", "Notes", "Power Switch", "Serial Console", "Console Device", "Console Speed", "Enable Console", "Default Install Options");
-    $show_column = array("used_by", "usage", "expires", "maintainer_string", "affiliation", "anomaly", "powerswitch", "serialconsole");
+	$show_column = array("used_by", "usage", "expires", "maintainer_string", "affiliation", "anomaly", "powerswitch", "serialconsole");
 	$machineCounter = 0;
 	foreach ($machines as $machine) {
 
@@ -18,21 +42,13 @@
 		$column = array();
 
 		# Hostname/ID
-		$input = request_array('hostname');
-		foreach ($input as $value) {
-			$hostname = $value;
-		}
-		if (!isset($hostname)) {
-			$hostname = $machine->get_hostname();
-		}
+		$hostname = $machine->get_hostname();
 		$column[] = "<a href=\"index.php?go=machine_details&amp;id=" . $machine->get_id() . "\" tabindex=" . $counterAddValue++ . ">" . $hostname . "</a>" .
 			"<input type=\"hidden\" name=\"a_machines[]\" value=\"" . $machine->get_id() . "\" />";
 
 		# Status
-		$input = request_array('is_busy');
-		foreach ($input as $value) {
-			$is_busy = (int)$value;
-		}
+		$is_busys = $_REQUEST['busy'];
+		$is_busy = $is_busys[$machine->get_id()];
 		if (!isset($is_busy)) {
 			$is_busy = $machine->is_busy();
 		}
@@ -52,7 +68,8 @@
 		# Common columns (configurable)
 		foreach ($show_column as $item) {
 			$getstring = "get_".$item;
-			$input = request_array($item);
+			$item_list = $_REQUEST[$item];
+			$valuer = $item_list[$machine->get_id()];
 			foreach ($input as $value) {
 				$valuer = $value;
 			}
@@ -65,40 +82,39 @@
 		}
 
 		# Console device
-		$input = request_array('consoledevice');
-		foreach ($input as $value) {
-			$consoledevice = $value;
-		}
+		$consoledevices = $_REQUEST['consoledevice'];
+		$consoledevice = $consoledevices[$machine->get_id()];
 		if (!isset($consoledevice)) {
 			$consoledevice = $machine->get_consoledevice();
 		}
 		$column[] = "<input name=\"consoledevice[" . $machine->get_id() . "]\" id=\"consoledevice" . $machine->get_id() . "\" value=\"" . $consoledevice . "\"style=\"width: 200px;\" tabindex=" . $counterAddValue++ . " onkeyup=\"update_def_inst_opt(" . $machine->get_id() . ");\">";
 
 		# Console speed
-		$input = request_array('consolespeed');
-		foreach ($input as $value) {
-			$consolespeed = $value;
-		}
+		$consolespeeds = $_REQUEST['consolespeed'];
+		$consolespeed = $consolespeeds[$machine->get_id()];
 		if (!isset($consolespeed)) {
 			$consolespeed = $machine->get_consolespeed();
 		}
 		$column[] = "<input name=\"consolespeed[" . $machine->get_id() . "]\" id=\"consolespeed" . $machine->get_id() . "\" value=\"" . $consolespeed . "\"style=\"width: 200px;\" tabindex=" . $counterAddValue++ . " onkeyup=\"update_def_inst_opt(" . $machine->get_id() . ");\">";
 
-		# Enable console
-		$input = request_array('consolesetdefault');
-		foreach ($input as $value) {
-			$consolesetdefault = $value;
+		# Enable console (careful, checkboxes that aren't checked don't show up as isset in PHP)
+		if (isset($_POST['submit'])) { # They submitted the form, so we use if they checked it or not
+			$consolesetdefaults = $_REQUEST['consolesetdefault'];
+			$consolesetdefault = $consolesetdefaults[$machine->get_id()];
+
+			# If they actually checked the form, otherwise just leave it empty
+			if ($consolesetdefault == "enable_console") {
+				$consolesetdefault = "1";
+			}
 		}
-		if (!isset($consolesetdefault)) {
+		else { # They did not submit the form, so we use what was in the database
 			$consolesetdefault = $machine->get_consolesetdefault();
 		}
 		$column[] = "<input name=\"consolesetdefault[" . $machine->get_id() . "]\" id=\"consolesetdefault" . $machine->get_id() . "\" value=\"enable_console\" type=\"checkbox\"" . ($consolesetdefault == "1" ? " checked=\"checked\"" : "") . " tabindex=" . $counterAddValue++ . " onclick=\"update_def_inst_opt(" . $machine->get_id() . ");\">";
 
 		# Default install options
-		$input = request_array('def_inst_opt');
-		foreach ($input as $value) {
-			$def_inst_opt = $value;
-		}
+		$def_inst_opts = $_REQUEST['default_options'];
+		$def_inst_opt = $def_inst_opts[$machine->get_id()];
 		if (!isset($def_inst_opt)) {
 			$def_inst_opt = $machine->get_def_inst_opt();
 		}

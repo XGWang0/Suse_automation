@@ -1,16 +1,28 @@
 #!BuildIgnore: post-build-checks
-#
-# Copyright (c) 2008 SUSE LINUX Products GmbH, Nuernberg, Germany.
-#
-# All modifications and additions to the file contributed by third parties
-# remain the property of their copyright owners, unless otherwise agreed
-# upon. The license for this file, and modifications and additions to the
-# file, is the same license as for the pristine package itself (unless the
-# license for the pristine package is not an Open Source License, in which
-# case the license is the MIT License). An "Open Source License" is a
-# license that conforms to the Open Source Definition (Version 1.9)
-# published by the Open Source Initiative.
+# ****************************************************************************
+# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
 
+#
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
@@ -18,10 +30,10 @@
 
 BuildRequires:  coreutils
 Name:           qa_hamsta
-License:        GPL v2 or later
+License:        SUSE Proprietary
 Group:          System/Management
 AutoReqProv:    on
-Version:        2.1.0
+Version:        @@VERSION@@
 Release:        0
 Summary:        HArdware Maintenance, Setup & Test Automation
 Url:            http://qa.suse.de/hamsta
@@ -60,7 +72,7 @@ Authors:
 
 
 %package master  
-License:        GPL v2 or later  
+License:        SUSE Proprietary  
 Summary:        HArdware Maintenance, Setup & Test Automation  
 Group:          System/Management  
 %if 0%{?sles_version} == 9
@@ -91,7 +103,7 @@ Authors:
             Leon Wang      <llwang@novell.com>
 
 %package frontend
-License:        GPL v2 or later  
+License:        SUSE Proprietary  
 Summary:        HArdware Maintenance, Setup & Test Automation  
 Group:          System/Management  
 %if 0%{?sles_version} == 9
@@ -122,7 +134,7 @@ Authors:
             Leon Wang      <llwang@novell.com>
 
 %package cmdline
-License:        GPL v2 or later  
+License:        SUSE Proprietary  
 Summary:        HArdware Maintenance, Setup & Test Automation  
 Group:          System/Management  
 Requires:       perl perl-Term-ReadPassword perl-TermReadKey perl-TermReadLine-Gnu hamsta-common
@@ -145,7 +157,7 @@ Authors:
             Patrick Kirsch <pkirsch@suse.de>
 
 %package multicast-forward
-License:	GPL v2 or later
+License:	SUSE Proprietary
 Summary:	Hamsta UDP multicast forwarder
 Group:		System/Management
 Requires:	perl perl-IO-Socket-Multicast screen hamsta-common
@@ -163,7 +175,7 @@ Authors:
 	Vilem Marsik	<vmarsik@suse.cz>
 
 %package jobs
-License:	GPL v2 or later
+License:	SUSE Proprietary
 Summary:        HArdware Maintenance, Setup & Test Automation  
 Group:          System/Management
 Provides:	hamsta-jobs
@@ -178,7 +190,7 @@ but then it sends a LOCAL path to the master. This won't work if master
 and frontend run on different machines. Need to fix that.
 
 %package common
-License:	GPL v2 or later
+License:	SUSE Proprietary
 Summary:        HArdware Maintenance, Setup & Test Automation  
 Group:          System/Management
 Requires:	qa-config
@@ -219,7 +231,7 @@ mkdir -p $RPM_BUILD_ROOT%{webdir}
 cp -a -r --target-directory=$RPM_BUILD_ROOT%{webdir} frontend/*
 ln -s %{destdir}/xml_files $RPM_BUILD_ROOT%{xml_link}
 install -m 755 -d $RPM_BUILD_ROOT%{destdir}
-cp -a -r --target-directory=$RPM_BUILD_ROOT%{destdir} Slave command_frontend.pl feed_hamsta.pl master testscript xml_files db COPYING hamsta-multicast-forward.pl 
+cp -a -r --target-directory=$RPM_BUILD_ROOT%{destdir} Slave command_frontend.pl feed_hamsta.pl master testscript xml_files db hamsta-multicast-forward.pl 
 #find $RPM_BUILD_ROOT%{destdir}/xml_files -name '*.xml' -exec chown wwwrun:www {} \;
 #find $RPM_BUILD_ROOT%{destdir} -type d -exec chown wwwrun:www {} \; -exec chmod 1777 {} \;
 #install -m 1777 -d %{webdir}/profiles
@@ -228,6 +240,7 @@ install -m 755 -d $RPM_BUILD_ROOT%{confdir}
 cp --target-directory=$RPM_BUILD_ROOT%{confdir} 00-hamsta-common-default 00-hamsta-default 00-hamsta-master-default 00-hamsta-multicast-forward-default
 rm -rf `find $RPM_BUILD_ROOT -name .svn`
 mkdir -p $RPM_BUILD_ROOT/var/log/hamsta/master
+mkdir -p $RPM_BUILD_ROOT/var/lib/hamsta
 
 
 %clean
@@ -302,7 +315,6 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %files
 %defattr(-, root, root)
 /usr/share/man/man8/%name.8.gz
-%{destdir}/COPYING
 %{destdir}/testscript
 %{destdir}/Slave
 %dir /usr/share/hamsta/
@@ -310,12 +322,12 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %{_sysconfdir}/init.d/hamsta
 %{_sbindir}/rchamsta
 %{confdir}/00-hamsta-default
+%dir /var/lib/hamsta
 
 %files master  
 %defattr(-, root, root)
 %{_sysconfdir}/init.d/hamsta-master  
 /usr/sbin/starthamstamaster  
-%{destdir}/COPYING  
 %{destdir}/master  
 %{destdir}/db
 %attr(755,root,root) %{destdir}/db/create_db.sh
@@ -330,14 +342,12 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %defattr(-, root, root)
 %{destdir}/command_frontend.pl
 %{destdir}/feed_hamsta.pl
-%{destdir}/COPYING  
 %dir %{destdir}
 
 %files frontend
 %defattr(-, root, root)
 %{webdir}
 %attr(-,wwwrun,www) %{webdir}/profiles
-%{destdir}/COPYING  
 %config(noreplace) %{webdir}/config.php
 %dir %{destdir}
 
@@ -345,7 +355,6 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %defattr(-, root, root)
 %{_sysconfdir}/init.d/hamsta-multicast-forward
 %{destdir}/hamsta-multicast-forward.pl
-%{destdir}/COPYING  
 %dir %{destdir}
 %{_sbindir}/rchamsta-multicast-forward
 %{confdir}/00-hamsta-multicast-forward-default
@@ -369,6 +378,16 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %{confdir}/00-hamsta-common-default
 
 %changelog
+* Mon Nov 14 2011 - llipavsky@suse.cz
+- New 2.2 release from QA Automation team, includes:
+- Automated stage testing
+- Repartitioning support during reinstall
+- Possible to leave some space unparditioned during reinstall
+- Added "default additional RPMs to hamsta frontend"
+- Optimized hamsta mutlticast format
+- Mutliple build-validation jobs
+- Code cleanup
+- Bugfixes
 * Sun Sep 04 2011 - llipavsky@suse.cz
 - New, updated release from the automation team. Includes:
 - Improved virtual machine handling/QA cloud
@@ -528,3 +547,4 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 - added initscripts
 * Tue Nov 13 2007 vmarsik@suse.cz
 - created an RPM
+

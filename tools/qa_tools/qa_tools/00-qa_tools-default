@@ -1,3 +1,27 @@
+# ****************************************************************************
+# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
+#
+
 #
 # This file contains default configuration for qa_tools
 #
@@ -16,11 +40,6 @@
 remote_qa_db_report_host="qadb.suse.de"
 remote_qa_db_report_user="rd-qa"
 
-#
-# TODO
-# Still need to convert reinstall.pl to this configuration schema!
-#
-
 # Which repository should be used for *next* installation 
 install_qa_repository="http://dist.suse.de/ibs/QA:/Head"
 
@@ -37,3 +56,22 @@ install_testuser_password="susetesting"
 install_testuser_fullname="Test User"
 install_testuser_home="/home/testusr"
 
+#
+# Following configuration is location specific and is usually futher altered in location-specific config files
+
+# Set NIS domain
+nis_domain=""
+
+# FIXME
+# simpy add nis server list here, this server list should be detected automatically from 
+# DHCP answer 
+# Format: space separated list
+nis_server_list=""
+
+# Where to put autinstallation profile
+install_profile_nfs_server=""
+# directory in nfs server where to put autoinstallation profile
+install_profile_nfs_dir=""
+
+# From where to get the autoinstallation profile
+install_profile_url_base=""

@@ -1,3 +1,26 @@
+# ****************************************************************************
+# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
+
 package bench_parsers;
 # This package contains benchmark parsers.
 # This should change in the future, and individual parsers should go to the ctcs2 stubs, making this library obsolete.
@@ -28,6 +51,7 @@ BEGIN {
         &parse_tiobench
         &parse_kernbench
 	&parse_hazard
+        &parse_openssl
     );
     %EXPORT_TAGS = ( );
     @EXPORT_OK   = ();
@@ -45,6 +69,7 @@ our %part_id = ();
 # returns: array ( $key1, $number1, $key2, $number2, ... )
 # key conventions: semicolon-separated strings, 
 #  first one is used to make X axis and should start with a number for line graphs
+
 
 sub parse_dbench
 {
@@ -511,5 +536,44 @@ sub parse_hazard
 	close $logfile;
 	return @hazard_b_result;
 }
+
+sub parse_openssl
+{
+    my ($file)=@_;
+    my @results=();
+
+    my ($size, $test, $frame, $val, $optype);
+    while( my $row=<$file> )      {
+        if ($row =~ /Doing (.+?)('s)?\W+for (\d+)s: (\d+) (.+?)\W+/) {
+            ($test,$frame,$val)=($1,$3,$4);
+            $test =~ s/[ '()-]+/ /g;
+            if ($test =~ /(\d+) (\w+)? (\w+)? (\w+)?/) {
+                $test="$4";
+                $size="$1";
+                $optype="$3";
+                $optype =~ s/(private|sign)/signs/;
+                $optype =~ s/(public|verify)/verifs/;
+            } elsif ($test =~ /(\d+) (\w+)? (\w+)?/) {
+                $test="$3";
+                $size="$1";
+                $optype="ops";
+            }
+            $test =~ s/\W+/_/g;
+
+            push @results, "keysize:$size;algorithm:$test;$optype/s";
+            push @results, sprintf "%.2f", $val/$frame;
+        } elsif ($row =~ /^Doing (.+?)('s)?\W+for (\d+)s on (\d+) size blocks: (\d+)/) {
+            ($test,$frame,$size,$val)=($1,$3,$4,$5);
+            $test =~ s/[ '()-]+/_/g;
+
+            push @results, "blocksize:$size;algorithm:$test;kB/s";
+            push @results, sprintf "%.2f", ($val/$frame*$size)/1024;
+        }
+    }
+
+    return @results;
+}
+
+
 1;
 

@@ -1,10 +1,6 @@
 #
 # spec file for package perl-XML-Simple (Version 2.18)
 #
-# Copyright (c) 2007 SUSE LINUX Products GmbH, Nuernberg, Germany.
-# This file and all modifications and additions to the pristine
-# package are under the same license as the package itself.
-#
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
@@ -18,7 +14,7 @@ Requires:       perl-XML-Parser
 Requires:       perl
 AutoReqProv:    on
 Group:          Development/Libraries/Perl
-License:        Artistic License
+License:		Artistic
 Url:            http://cpan.org/modules/by-module/XML/
 Summary:        Easy API to read/write XML (Perl module)
 Source:         XML-Simple-%{version}.tar.bz2
@@ -143,3 +139,5 @@ rm -rf $RPM_BUILD_ROOT
 * Thu Jan 17 2002 - garloff@suse.de
 - Creation of package perl-XML-Simple (1.06)
   (needed by InterMezzo)
+
+

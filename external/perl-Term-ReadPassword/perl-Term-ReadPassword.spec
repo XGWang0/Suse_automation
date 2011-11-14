@@ -1,10 +1,6 @@
 #
 # spec file for package perl-Term-ReadPassword (Version 0.11)
 #
-# Copyright (c) 2008 SUSE LINUX Products GmbH, Nuernberg, Germany.
-# This file and all modifications and additions to the pristine
-# package are under the same license as the package itself.
-#
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
@@ -17,7 +13,7 @@ Release:        2
 Requires:       perl
 AutoReqProv:    on
 Group:          Development/Libraries/Perl
-License:        Artistic License
+License:        Artistic; GPL v1 or later
 Url:            http://cpan.org/modules/by-module/Term/
 Summary:        Term::ReadPassword - Asking the user for a password
 Source:         Term-ReadPassword-%{version}.tar.bz2
@@ -85,3 +81,5 @@ rm -rf $RPM_BUILD_ROOT
   see http://lists.opensuse.org/opensuse-packaging/2010-11/msg00221.html
 * Thu Mar 13 2008 anicka@suse.cz
 - package created (version 0.11)
+
+

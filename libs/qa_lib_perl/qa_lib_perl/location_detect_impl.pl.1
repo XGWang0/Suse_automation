@@ -1,0 +1,22 @@
+.\" Process this file with
+.\" groff -man -Tascii arch.pl.1
+.\"
+.TH "location_detect_impl.pl" "1"
+.SH NAME
+location_detect_impl.pl \- guesses machine's location
+.SH SYNOPSIS
+.B location_detect_impl.pl
+.SH DESCRIPTION
+.B location_detect_impl.pl guesses machine's location.
+The location is based on the output of 
+.I ifconfig
+
+This code is for internal use only, in general, you should use 
+.I location.pl 
+instead.
+
+.SH AUTHOR
+Lukas Lipavsky <llipavsky@suse.com>
+
+.SH "SEE ALSO"
+.BR location.pl (1)

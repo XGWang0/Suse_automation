@@ -1,35 +1,27 @@
 #!/bin/bash
-
-SUBMODULE=""
-PART="$1"
-[ -z "$PART" ] || SUBMODULE="${PART}_"
-
-# needed if we re-source this file - cleanup before reading it again
-if [ ! -z "$full_qa_config" ] ; then
-	for var in `echo "$full_qa_config" | sed 's/=.*//'` ; do
-		unset $var
-	done
-fi
-
-# read all configs in correct order
-set > /tmp/$$.before # read all variables before we processed qa config
-for file in /etc/qa/*
-do
-	if [ -f "$file" -a -r "$file" ]
-	then
-		# do not source rpmsave files
-		echo "$file" | grep -q '\.rpmsave$' || source "$file"
-	fi
-done
-unset file
-
-[ -r ~/.qarc ] && source ~/.qarc
-
-set > /tmp/$$.after # read all variables after we processed qa config
-
-full_qa_config=`diff /tmp/$$.before /tmp/$$.after | grep "^>" | sed 's/^> //' | grep -v "^_=\|PIPESTATUS"`
-
-rm /tmp/$$.after /tmp/$$.before
+# ****************************************************************************
+# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
+#
 
 #
 # Helper functions
@@ -48,3 +40,56 @@ function get_qa_config
 	eval echo \$$SUBMODULE$1 
 }
 
+# The code starts here
+
+SUBMODULE=""
+PART="$1"
+[ -z "$PART" ] || SUBMODULE="${PART}_"
+
+# needed if we re-source this file - cleanup before reading it again
+if [ ! -z "$full_qa_config" ] ; then
+	for var in `echo "$full_qa_config" | sed 's/=.*//'` ; do
+		unset $var
+	done
+fi
+
+# read all configs in correct order
+set > /tmp/$$.before # read all variables before we processed qa config
+for file in /etc/qa/*
+do
+	# skip (invalid/all)location files
+	if [ -z "$location_qa_config" ] && echo $file | grep -q '\.' ; then
+		# Dots are allowed only in location-specific configurations
+		# but we are reaading only globals now
+		continue
+	elif echo $file | grep -q '\.' && echo $file | grep -vq "\.$location_qa_config$" ; then
+		# It is location faile but for different location
+		continue
+	fi
+
+	# seems to be ok to read it (if it is readable)
+	if [ -f "$file" -a -r "$file" ]
+	then
+		# do not source rpmsave files
+		echo "$file" | grep -q '\.rpmsave$' || source "$file"
+	fi
+done
+unset file
+
+[ -r ~/.qarc ] && source ~/.qarc
+
+set > /tmp/$$.after # read all variables after we processed qa config
+
+full_qa_config=`diff /tmp/$$.before /tmp/$$.after | grep "^>" | sed 's/^> //' | grep -v "^_=\|PIPESTATUS"`
+
+rm /tmp/$$.after /tmp/$$.before
+
+
+# Now try the location specific things unelss we already did so befere (recursion of sourcing)
+if [ -z "$location_qa_config" ] ; then
+	location_qa_config="$location"  # read from config files!
+	[ -z "$location_qa_config" -a -x '/usr/share/qa/tools/location_detect_impl.pl' ] && location_qa_config="`/usr/share/qa/tools/location_detect_impl.pl`"
+
+	# ok we have defined location, re-read it all again and now do it correctly
+	[ -z "$location_qa_config" ] || source /usr/share/qa/lib/config "$PART"
+fi	

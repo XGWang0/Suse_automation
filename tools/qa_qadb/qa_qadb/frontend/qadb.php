@@ -480,16 +480,6 @@ function tcf_get_url($tcfID)
 function testcases_get_relative_url($testcaseID)
 {	return scalar_query('SELECT relative_url FROM testcases WHERE testcaseID=?','i',$testcaseID);	}
 
-/**  updates table tests; 
-  * NOTE: takes quite a long time, causes a lot of DB load
-  **/
-function update_test_statistics()
-{
-	update_query('DELETE FROM tests');
-	$res=update_query('INSERT INTO tests( testsuiteID, testcaseID ) SELECT DISTINCT g.testsuiteID AS testsuiteID, r.testcaseID AS testcaseID FROM results r	JOIN tcf_group g USING ( tcfID ) ;');
-	update_query('update tests t set is_bench=exists( select * from results r join bench_data b using(resultsID) where r.testcaseID=t.testcaseID)');
-	return $res;
-}
 
 /** Creates or finds current user's numerical ID in the table 'testers' */
 function get_userID()
