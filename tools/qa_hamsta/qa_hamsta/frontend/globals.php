@@ -26,7 +26,10 @@
 	# Keep this structure (for now), especially the " -- " between the feature title and description
 	$latestFeatures = array(
 			"2.2.0" => array(
-				'5 September 2011 -- To be done'
+				'14 November 2011 -- Repartitioning support -- during reinstall (with an option to leave some space unpartitioned).',
+				'14 November 2011 -- Default additional RPMs -- It is now possible to define list of RPMs (in hamsta frontend config), that will be prepopulated on reinstall page.',
+				'14 November 2011 -- Optimized multicast -- HAMSTA multicast format has been optimized to contain less data.',
+				'14 November 2011 -- Chained build validation -- It is possible now to define more than just one build validation job, and these jobs will be run sequentially.'
 			),
 			"2.1.0" => array(
 				'4 September 2011 -- Hamsta Virtual Machine Integration (QA Cloud) -- Hamsta can now track and manage virtual machine hosts as well as the VMs installed on those hosts, including basic VM installs (now officially supported).',

@@ -16,7 +16,7 @@ License:        GPL v2 or later; LGPL v2.1
 Group:          SuSE internal
 AutoReqProv:    on
 Version:        0.10
-Release:        8
+Release:        9
 Summary:        ajax based ssh client, include vncserver setup script
 Url:            http://antony.lesuisse.org/software/ajaxterm/
 Source0:        ajaxterm-%version.tar.bz2
@@ -74,6 +74,16 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) /etc/init.d/ajaxterm
 
 %changelog
+* Mon Nov 14 2011 - llipavsky@suse.cz
+- New 2.2 release from QA Automation team, includes:
+- Automated stage testing
+- Repartitioning support during reinstall
+- Possible to leave some space unparditioned during reinstall
+- Added "default additional RPMs to hamsta frontend"
+- Optimized hamsta mutlticast format
+- Mutliple build-validation jobs
+- Code cleanup
+- Bugfixes
 * Tue Aug 16 2011 - llipavsky@suse.cz
 - Package rename: ajaxterm -> qa_ajaxterm
 * Fri Aug 13 2010 llipavsky@suse.cz

@@ -1,4 +1,17 @@
 -------------------------------------------------------------------
+Mon Nov 14 11:13:37 CET 2011 - llipavsky@suse.cz
+
+- New 2.2 release from QA Automation team, includes:
+- Automated stage testing
+- Repartitioning support during reinstall
+- Possible to leave some space unparditioned during reinstall
+- Added "default additional RPMs to hamsta frontend"
+- Optimized hamsta mutlticast format
+- Mutliple build-validation jobs 
+- Code cleanup
+- Bugfixes 
+
+-------------------------------------------------------------------
 Thu Oct 27 15:39:14 CEST 2011 - llipavsky@suse.cz
 
 - add location specific configuration for installation
