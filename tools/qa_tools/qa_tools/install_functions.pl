@@ -413,7 +413,7 @@ EOF
 	}
 	
 	unless ($opts{'U'}) { # do not change bootloader in upgrade
-		unless ($virtHostType) { ## non-VH
+		unless ($virtHostType or $newvm) { ## non-VH or VM
 			my $bootpartition = `df /boot |tail -n1 |awk {'print \$6'}`;
 			chomp($bootpartition);
 			# if $defaultboot is set to 'root', we do not generate anything here, just use bootloader in root with active flag
