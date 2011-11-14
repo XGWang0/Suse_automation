@@ -118,7 +118,7 @@ if ( $userprofile ){
     
     my $to_libsata = undef;&has_libsata( $to_type, $to_version, $to_subversion, $to_arch );
     my $patterns = &get_patterns( $to_type, $to_version, $to_subversion );
-    my $packages = &get_packages( $to_type, $to_version, $to_subversion, $additionalrpms, $patterns, $setupfordesktoptest );
+    my $packages = &get_packages( $to_type, $to_version, $to_subversion, $to_arch, $additionalrpms, $patterns );
     my $profile = &get_profile( $to_type, $to_version, $to_subversion );
     my $modfile = &make_modfile( $source, $url_sdk, $to_type, $to_version, $to_subversion, $to_libsata, $patterns, $packages, $defaultboot, $install_update, undef, $virttype);
     $ay_xml = &install_profile_newvm( $profile, $modfile );
