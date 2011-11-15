@@ -148,6 +148,16 @@ echo "Your system has been hacked successfuly."
 %attr(0644,root,root) %{fhsdir}/known_hosts
 
 %changelog
+* Mon Nov 14 2011 - llipavsky@suse.cz
+- New 2.2 release from QA Automation team, includes:
+- Automated stage testing
+- Repartitioning support during reinstall
+- Possible to leave some space unparditioned during reinstall
+- Added "default additional RPMs to hamsta frontend"
+- Optimized hamsta mutlticast format
+- Mutliple build-validation jobs
+- Code cleanup
+- Bugfixes
 * Mon Oct 17 2011 - vmarsik@suse.cz
 - added switching off StrictHostKeyChecking
 * Sun Sep 04 2011 - llipavsky@suse.cz

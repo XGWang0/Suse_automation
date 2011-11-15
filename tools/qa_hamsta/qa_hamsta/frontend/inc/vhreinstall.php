@@ -46,6 +46,8 @@ foreach($machines as $m) {
 	$m->get_children();
 }
 
+$installoptions_warning = "";
+
 # If we only have one machine, we just use those options
 if(count($machines) == 1) {
 	$installoptions = $machines[0]->get_def_inst_opt();
@@ -65,12 +67,9 @@ if(count($machines) == 1) {
 	}
 }
 
-### Figure out, check, and set the installation options ###
-$installoptions = request_str("installoptions"); // set install options as vhinstall page's
-$installoptions_warning = "";
-
 $resend_job=request_str("xml_file_name");
 if (request_str("proceed")) {
+    $installoptions = request_str("installoptions"); # use options listed in webpage
     $smturl = request_str("update-smt-url");
     # Check for errors
     $errors = array();

@@ -43,6 +43,16 @@ rm -rf $RPM_BUILD_ROOT
 /usr/local/bin
 
 %changelog
+* Mon Nov 14 2011 - llipavsky@suse.cz
+- New 2.2 release from QA Automation team, includes:
+- Automated stage testing
+- Repartitioning support during reinstall
+- Possible to leave some space unparditioned during reinstall
+- Added "default additional RPMs to hamsta frontend"
+- Optimized hamsta mutlticast format
+- Mutliple build-validation jobs
+- Code cleanup
+- Bugfixes
 * Sun Sep 04 2011 - llipavsky@suse.cz
 - New, updated release from the automation team. Includes:
 - Improved virtual machine handling/QA cloud
