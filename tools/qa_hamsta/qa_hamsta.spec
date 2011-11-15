@@ -365,12 +365,10 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %defattr(755,wwwrun,www)
 %dir %{destdir}/xml_files  
 %dir %{destdir}/xml_files/templates
-%dir %{destdir}/xml_files/nonactive
 %dir %{destdir}/xml_files/multimachine
 %attr(644,wwwrun,www) %{destdir}/xml_files/*.xml
 %attr(644,wwwrun,www) %{destdir}/xml_files/templates/*.xml
 %attr(644,wwwrun,www) %{destdir}/xml_files/multimachine/*.xml
-%attr(644,wwwrun,www) %{destdir}/xml_files/nonactive/*.xml
 
 %files common
 %defattr(-, root, root)
