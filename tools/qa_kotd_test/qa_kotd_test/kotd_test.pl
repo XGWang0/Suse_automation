@@ -34,6 +34,8 @@ use log;
 use qaconfig qw(get_qa_config);
 use detect;
 use Getopt::Std;
+use IPC::Open3;
+use IO::Select;
 
 use constant {
 	CMD_SURVIVE => 0,
@@ -330,6 +332,47 @@ sub command($$) # $die, $cmd
 	my $ret = system $cmd;
 	die "Command '$cmd' failed with code $ret" if $die and $ret>0;
 	&log(LOG_ERROR, "Command '$cmd' failed with code $ret") if $ret>0;
+	return $ret;
+}
+
+# runs a command, logs its STDOUT/STDERR 
+sub command_log # $die, command + arguments ...
+{
+	my $die = shift;
+	my $pid = open3('<&STDIN',*OUT,*ERR, '-');
+	if( $pid==0 )	{
+		if( @_ > 1 )	{
+			exec @_;
+			die "Cannot exec command: $!";
+		}
+		else	{
+			system @_;
+			exit $?;
+		}
+	}
+	my $selector = IO::Select->new();
+	$selector->add(*OUT,*ERR);
+
+	while($selector->count() > 0)	{
+		my @handles = $selector->can_read();
+		foreach my $fh (@handles)	{
+			my $line = <$fh>;
+			unless( defined $line )	{
+				$selector->remove($fh);
+				next;
+			}
+			if( fileno($fh) == fileno(ERR) )	{
+				&log(LOG_STDERR, $line);
+			} else {
+				&log(LOG_STDOUT, $line);
+			}
+		}
+	}
+	my $ret = waitpid($pid,0) >> 8;
+#	&log(LOG_RETURN, $ret);
+	die "Command '".join(' ',@_)."' failed with code $ret" if $die and $ret>0;
+	&log(LOG_ERROR, "Command '".join(' ',@_)."' failed with code $ret") if $ret>0;
+	return $ret;
 }
 
 # prints an error message, dies optionally
@@ -668,7 +711,7 @@ sub qa_db_report($) # $comment
 	my $options="-b -p $conf{'qadb_product'} -t \"$type\"";
 	$options .= " -T $conf{'tester'}" if $conf{'tester'};
 	$options .= " -c \"$comment\"" if $comment;
-	&command(CMD_DIE,"/usr/share/qa/tools/remote_qa_db_report.pl $options");
+	&command_log(CMD_DIE,"/usr/share/qa/tools/remote_qa_db_report.pl $options");
 }
 
 
