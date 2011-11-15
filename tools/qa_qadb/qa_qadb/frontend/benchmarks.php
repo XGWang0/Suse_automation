@@ -77,7 +77,7 @@ else
 
 # 7. set up the main data
 
-$from     = 'bench_parts p JOIN bench_data d USING(partID) JOIN results r USING(resultsID) JOIN tcf_group tg USING(tcfID) JOIN submissions s USING(submissionID) JOIN testsuites t USING(testsuiteID) JOIN products pr USING(productID) JOIN releases rel USING(releaseID) JOIN hosts h USING(hostID)';
+$from     = 'bench_parts p JOIN bench_data d USING(partID) JOIN results r USING(resultsID) JOIN tcf_group tg USING(tcfID) JOIN submissions s USING(submissionID) JOIN testsuites t USING(testsuiteID) JOIN products pr USING(productID) JOIN releases rel USING(releaseID) JOIN hosts h USING(hostID) JOIN testcases tc USING(testcaseID)';
 $where    = '1';
 $where   .= ' AND tg.tcfID IN ('.join(',',$tests).')';
 

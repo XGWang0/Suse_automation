@@ -13,7 +13,13 @@ $group_by = array(
 	array( 2, 'testsuite, host', 't.testsuite,h.host' ),
 	array( 3, 'testsuite, submissionID', 't.testsuite,s.submissionID' ),
 	array( 4, 'product, release, submissionID, comment', 'pr.product,rel.release,s.submissionID,s.comment' ),
-	array( 5, 'tcfID', 'tg.tcfID' ),
+	array(  5, 'testcase, testsuite, host, product, release', 'tc.testcase,t.testsuite,h.host,pr.product,rel.release' ),
+	array(  6, 'testcase, testsuite, host, product', 'tc.testcase,t.testsuite,h.host,pr.product' ),
+	array(  7, 'testcase, testsuite, host', 'tc.testcase,t.testsuite,h.host' ),
+	array(  8, 'testcase, testsuite, submissionID', 'tc.testcase,t.testsuite,s.submissionID' ),
+
+	array(  9, 'testcase', 'tg.tcfID' ),
+	array( 10, 'testcase, tcfID', 'tc.testcase,tg.tcfID' ),
 );
 
 ?>
