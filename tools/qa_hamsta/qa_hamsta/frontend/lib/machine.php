@@ -543,12 +543,9 @@ class Machine {
 		$stmt->bindParam(':status_id', $this->fields["machine_status_id"]);
 		$stmt->execute();
 		$mstatus = $stmt->fetchColumn();
-		switch($this->is_busy()):
-			case 1: $mstatus .= "/ job running"; break;
-			case 2: $mstatus .= "/ not accept job"; break;
-			case 3: $mstatus .= "/ reinstall deny"; break;
-			case 4: $mstatus .= "/ outdated (blocked)"; break;
-		endswitch;
+		if($this->is_busy()) {
+			$mstatus .= "/ job running";
+		}
 		return $mstatus;
 	}
 	
@@ -934,7 +931,7 @@ class Machine {
 	 *
 	 * Sets the busy flag of the machine
 	 * 
-	 * @param int $busy 0 for free, 1 for job running, 2 for manually blocked, 3 for Preliminary (Hardware), 4 for Outdated (also Blocked)
+	 * @param int $busy 0 for free, 1 for job running
 	 * @access public
 	 * @return void
 	 */
@@ -957,15 +954,44 @@ class Machine {
 	 * @return void
 	 */
 	function update_busy()  {
-		if ($this->is_busy() == 2) {
-			return;
-		}
 
 		if ($this->count_running_jobs()) {
 			$this->set_busy(1);
 		} else {
 			$this->set_busy(0);
 		}
+	}
+	/**
+	 * has_perm 
+	 * 
+	 * @access public
+	 * @return boolean true if a job is has perm_str on the machine; false otherwise 
+	 */
+	function has_perm($perm_str) {
+		$stmt = get_pdo()->prepare('SELECT FIND_IN_SET(:perm_str,perm) FROM machine WHERE machine_id = :id');
+		$stmt->bindParam(':id', $this->fields["id"]);
+		$stmt->bindParam(':perm_str', $perm_str);
+		$stmt->execute();
+		
+		$perm = $stmt->fetchColumn();
+		$stmt->closeCursor();
+		return $perm;
+	}
+
+	/**
+	 * set_perm
+	 *
+	 * Sets the perm flag of the machine
+	 * 
+	 * @param str $perm_str : job,install,partition,boot
+	 * @access public
+	 * @return void
+	 */
+	function set_perm($perm_str)  {
+		$stmt = get_pdo()->prepare('UPDATE machine SET perm = :perm WHERE machine_id = :id');
+		$stmt->bindParam(':id', $this->fields["id"]);
+		$stmt->bindParam(':perm', $perm_str);
+		$stmt->execute();
 	}
 
 
