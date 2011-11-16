@@ -1474,9 +1474,12 @@ class Machine {
 	 * @return bool true if succeeded
 	 */
 	function purge_config_history()	{
-		if( !($stmt = get_pdo()->prepare("DELETE FROM `config` WHERE machine_id=:id AND timestamp_last_active<>(SELECT MAX(timestamp_last_active) FROM `config` WHERE machine_id=:id)")) )
+		if( !($config = $this->get_current_configuration()) )
+			return false;
+		if( !($stmt = get_pdo()->prepare("DELETE FROM `config` WHERE machine_id=:id AND config_id<>:cid")) )
 			return null;
 		$stmt->bindParam(':id',$this->fields['machine_id']);
+		$stmt->bindParam(':cid',$config->get_id());
 		return $stmt->execute();
 	}
 

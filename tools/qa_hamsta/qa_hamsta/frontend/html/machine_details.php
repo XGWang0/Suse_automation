@@ -108,7 +108,8 @@ if (!defined('HAMSTA_FRONTEND')) {
 
 	<?php
 		if (count($active_jobs) < 10):
-		foreach ($machine->get_jobs_by_active(0, 10 - count($active_jobs)) as $job):
+		$nonactive_jobs = $machine->get_jobs_by_active(0, 10 - count($active_jobs));
+		foreach ($nonactive_jobs as $job):
 	?>
 		<tr>
 			<td><a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>"><?php echo($job->get_id()); ?></a></td>
@@ -126,9 +127,11 @@ if (!defined('HAMSTA_FRONTEND')) {
 </table>
 
 <a href="index.php?go=jobruns&amp;machine=<?php echo($machine->get_id()); ?>" class="text-small">Show complete list</a>
-<p><a href="index.php?go=machine_purge&amp;id=<?php echo $machine->get_id(); ?>&amp;purge=job">Purge job history</a></p>
-
-
+<?php 
+	if( (count($active_jobs) + count($nonactive_jobs)) > 0 )	{
+		echo '<p><a href="index.php?go=machine_purge&amp;id=' . $machine->get_id() . '&amp;purge=job">Purge job history</a></p>' . "\n";
+	}
+?>
 <?php if($configuration->get_id() == $machine->get_current_configuration()->get_id()): ?>
 	<h2 class="text-medium text-blue bold">Current configuration</h2>
 <?php else: ?>
@@ -164,7 +167,8 @@ if (!defined('HAMSTA_FRONTEND')) {
 		<th>First online</th>
 		<th>Last used</th>
 	</tr>
-	<?php foreach ($machine->get_configurations() as $configuration): ?>
+	<?php	$configs=$machine->get_configurations(); 
+		foreach ($configs as $configuration): ?>
 		<tr>
 			<td>
 				<input type="radio" name="config1" value="<?php echo($configuration->get_id()); ?>">
@@ -178,9 +182,11 @@ if (!defined('HAMSTA_FRONTEND')) {
 </table>
 <input type="submit" value="Compare">
 </form>
-<p><a href="index.php?go=machine_purge&amp;id=<?php echo $machine->get_id(); ?>&amp;purge=config">Purge configuration history</a></p>
 <?php
 
+	if( count($configs) > 1 ) {
+		echo '<p><a href="index.php?go=machine_purge&amp;id=' . $machine->get_id() . '&amp;purge=config">Purge configuration history</a></p>' . "\n";
+	}
 	echo "<h2 class=\"text-medium text-blue bold\">Action history</h2>";
 
 	if($machine_logs_number == 0) {
