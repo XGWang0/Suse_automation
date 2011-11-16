@@ -68,6 +68,8 @@ if( $machine )	{
 			$_SESSION['mtype'] = 'error';
 		}
 	}
+	header( "Location: index.php?go=machine_details&id=" . $machine->get_id() );
+	exit();
 }
 else	{
 	$_SESSION['message'] = ( $id ? "No machine with that ID : $id" : "ID not specified" );
