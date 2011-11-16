@@ -41,7 +41,7 @@ Release:        0
 Summary:        QA KOTD test controller
 #Url:          http://qa.suse.de/hamsta
 Source:         %{name}-%{version}.tar.bz2
-Source1:	%name.8
+Source1:	%{name}.8
 #Patch:        %{name}-%{version}.patch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 %if 0%{?sles_version} == 9
