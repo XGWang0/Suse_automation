@@ -179,6 +179,7 @@ function bench_list_testsuites($limit=null)
   *   8 submissions + TCF
   *   9 bench search
   *  10 submissions + TCF + testcases
+  *  11 summaries
   * $attrs['only_id']: 
   *   0 for full details
   *   1 for IDs only 
@@ -243,7 +244,8 @@ function search_submissions_results($mode, $attrs, &$transl=null, &$pager=null)
 	$sel1=array( 
 /* subms */  array('s.submission_date','s.hostID','s.testerID','s.archID','s.productID','s.releaseID','s.active','s.related','s.comment','s.configID','s.hwinfoID','s.type'),
 /* rslts */  array('g.tcfID','g.testsuiteID','r.testcaseID','t.testcase','r.succeeded','r.failed','r.internal_error','r.skipped','r.times_run','r.test_time','w.waiverID','t.relative_url'),
-/* suite */  array()
+/* suite */  array(),
+/* sums  */  array('SUM(r.testcases) as testcases','SUM(r.succeeded) as succeeded','SUM(r.failed) as failed','SUM(r.internal_error) as internal_error','SUM(r.skipped) as skipped','SUM(r.times_run) as times_run','SUM(r.test_time) as test_time')
 	);
 	# $sel2[ $i_next ] -- appends for full details
 	$sel2=array( 
