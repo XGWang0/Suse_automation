@@ -33,11 +33,11 @@
 
 	# We are going to output all fields and data for the machines, so first we collect it
 	$table = array();
-	$tableHeadings = array("Name", "*Status", "Used By", "Usage", "Usage Expires (days)", "Maintainer", "Affiliation", "Notes", "Power Switch", "Serial Console", "Console Device", "Console Speed", "Enable Console", "Default Install Options");
+	$tableHeadings = array("Name", "*Perm", "Used By", "Usage", "Usage Expires (days)", "Maintainer", "Affiliation", "Notes", "Power Switch", "Serial Console", "Console Device", "Console Speed", "Enable Console", "Default Install Options");
 	$show_column = array("used_by", "usage", "expires", "maintainer_string", "affiliation", "anomaly", "powerswitch", "serialconsole");
 	$machineCounter = 0;
 	foreach ($machines as $machine) {
-
+		$machine_id = $machine->get_id();
 		$counterAddValue = $machineCounter*count($tableHeadings) + 1;
 		$column = array();
 
@@ -46,24 +46,12 @@
 		$column[] = "<a href=\"index.php?go=machine_details&amp;id=" . $machine->get_id() . "\" tabindex=" . $counterAddValue++ . ">" . $hostname . "</a>" .
 			"<input type=\"hidden\" name=\"a_machines[]\" value=\"" . $machine->get_id() . "\" />";
 
-		# Status
-		$is_busys = $_REQUEST['busy'];
-		$is_busy = $is_busys[$machine->get_id()];
-		if (!isset($is_busy)) {
-			$is_busy = $machine->is_busy();
-		}
-		if($is_busy == 1) {
-			$column[] = "<select name=\"busy[" . $machine->get_id() . "]\" style=\"width: 200px;\" tabindex=" . $counterAddValue++ . ">" .
-				"<option value=\"1\" selected=\"selected\">Job running</option>" .
-			"</select>";
-		} else {
-			$column[] = "<select name=\"busy[" . $machine->get_id() . "]\" style=\"width: 200px;\" tabindex=" . $counterAddValue++ . ">" .
-				"<option value=\"0\"" . ($is_busy == 0 ? " selected=\"selected\"" : "") . ">Accepting jobs</option>" .
-				"<option value=\"2\"" . ($is_busy == 2 ? " selected=\"selected\"" : "") . ">Not accepting jobs</option>" .
-				"<option value=\"3\"" . ($is_busy == 3 ? " selected=\"selected\"" : "") . ">Reinstall deny</option>" .
-				"<option value=\"4\"" . ($is_busy == 4 ? " selected=\"selected\"" : "") . ">Outdated (Blocked)</option>" .
-			"</select>";
-		}
+		# Perms
+
+		$column[] = "<input type=\"checkbox\" name=\"perm_" . $machine_id . "[]\" " . ($machine->has_perm("job")?" checked=\"checked\"" : "") . " value=\"job\" >job" .
+			"<input type=\"checkbox\" name=\"perm_" . $machine_id . "[]\" " . ($machine->has_perm("install")?" checked=\"checked\"":"") . " value=\"install\" >install".
+			"<input type=\"checkbox\" name=\"perm_" . $machine_id . "[]\" " . ($machine->has_perm("partition")?" checked=\"checked\"":"") . " value=\"partition\"  >partition".
+			"<input type=\"checkbox\" name=\"perm_" . $machine_id . "[]\" " . ($machine->has_perm("boot")?" checked=\"checked\"" : "") . " value=\"boot\"  >boot";
 		
 		# Common columns (configurable)
 		foreach ($show_column as $item) {

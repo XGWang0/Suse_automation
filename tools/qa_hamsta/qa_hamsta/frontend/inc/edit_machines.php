@@ -30,7 +30,7 @@
 	 * Gets all selected machines and updates their status if requested.
 	 */
 
-	$edit_fields = array('used_by', 'expires', 'usage','busy','maintainer_string','anomaly','powerswitch','serialconsole','consoledevice','consolespeed','consolesetdefault','affiliation');
+	$edit_fields = array('used_by', 'usage','busy','maintainer_string','anomaly','powerswitch','serialconsole','consoledevice','consolespeed','consolesetdefault','affiliation');
 	$allmachines = request_array("a_machines");
 
 	if (!defined('HAMSTA_FRONTEND'))
@@ -97,6 +97,15 @@
 			{
 				$machine = Machine::get_by_id($machine_id);
 				$machine->set_consolesetdefault(0);
+				#update perm here
+				$perms = request_array("perm_".$machine_id);
+				$perm_str="";
+				foreach ( $perms as $perm )
+				{
+					$perm_str = $perm_str . ",$perm";
+				}	
+				preg_replace("^.","",$perm_str);
+				$machine->set_perm($perm_str);
 			}
 			foreach ( $edit_fields as $row)
 			{
