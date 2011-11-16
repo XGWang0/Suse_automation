@@ -126,6 +126,8 @@ if (!defined('HAMSTA_FRONTEND')) {
 </table>
 
 <a href="index.php?go=jobruns&amp;machine=<?php echo($machine->get_id()); ?>" class="text-small">Show complete list</a>
+<p><a href="index.php?go=machine_purge&amp;id=<?php echo $machine->get_id(); ?>&amp;purge=job">Purge job history</a></p>
+
 
 <?php if($configuration->get_id() == $machine->get_current_configuration()->get_id()): ?>
 	<h2 class="text-medium text-blue bold">Current configuration</h2>
@@ -176,7 +178,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 </table>
 <input type="submit" value="Compare">
 </form>
-
+<p><a href="index.php?go=machine_purge&amp;id=<?php echo $machine->get_id(); ?>&amp;purge=config">Purge configuration history</a></p>
 <?php
 
 	echo "<h2 class=\"text-medium text-blue bold\">Action history</h2>";
@@ -210,6 +212,8 @@ if (!defined('HAMSTA_FRONTEND')) {
 		if($machine_logs_number == 20) {
 			echo "<span class=\"text-small\">Only the last 20 entries are shown,</span> <a href=\"index.php?go=action_history&amp;id=" . $machine->get_id() . "\" class=\"text-small\">click here to see the complete list</a>.";
 		}
+		echo '<p><a href="index.php?go=machine_purge&amp;id=' . $machine->get_id() . '&amp;purge=log">Purge log history</a></p>' . "\n";
+
 	}
 
 ?>

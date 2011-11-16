@@ -1424,6 +1424,7 @@ class Machine {
 		return $result;
 	}
 
+	private static $related_tables = array('group_machine','log','job_on_machine','config');
 	/**
 	 * merge_other_machines
 	 *
@@ -1435,9 +1436,8 @@ class Machine {
 	 * @return bool true if the operation succeeded
 	 */
 	function merge_other_machine($other_id)	{
-		$tables = array('group_machine','log','job_on_machine','config');
 		$ret = true;
-		foreach( $tables as $table )	{
+		foreach( self::$related_tables as $table )	{
 			if( !($stmt = get_pdo()->prepare("UPDATE IGNORE $table SET machine_id=:new_id WHERE machine_id=:old_id")))	{
 				continue;
 			}
@@ -1446,6 +1446,77 @@ class Machine {
 			$ret = $ret && $stmt->execute();
 		}
 		return $ret;
+	}
+
+
+	/**
+	 * _purge
+	 * Purges one sort of the related records - hwinfo history, logs, jobs, or groups.
+	 *
+	 * @param string $table (group_machine|log|job_on_machine|config)
+	 * @access protected
+	 * @return bool true if succeeded
+	 */
+	protected function _purge($table)	{
+		if( !array_search($table,self::$related_tables) )
+			return false;
+		if( !($stmt = get_pdo()->prepare("DELETE FROM `$table` WHERE machine_id=:id")) )
+			return false;
+		$stmt->bindParam(':id',$this->fields['machine_id']);
+		return $stmt->execute();
+	}
+
+	/**
+	 * purge_config_history()
+	 * Purges machine's hwinfo history
+	 *
+	 * @access public
+	 * @return bool true if succeeded
+	 */
+	function purge_config_history()	{
+		if( !($stmt = get_pdo()->prepare("DELETE FROM `config` WHERE machine_id=:id AND timestamp_last_active<>(SELECT MAX(timestamp_last_active) FROM `config` WHERE machine_id=:id)")) )
+			return null;
+		$stmt->bindParam(':id',$this->fields['machine_id']);
+		return $stmt->execute();
+	}
+
+	/**
+	 * purge_group_membership()
+	 * Purges machine's group memberships
+	 *
+	 * @access public
+	 * @return bool true if succeeded
+	 */
+	function purge_group_membership() {
+		return $this->_purge('group_machine');
+	}
+
+	/**
+	 * purge_job_history()
+	 * Purges machine's job history
+	 *
+	 * @access public
+	 * @return bool true if succeeded
+	 */
+	function purge_job_history() {
+		if( !$this->_purge('job_on_machine') )
+			return false;
+		# TODO: this should be removed after one job on multiple machines correctly implemented
+		if( !($stmt = get_pdo()->prepare("DELETE FROM `job` WHERE NOT EXISTS( SELECT * FROM job_on_machine WHERE job_on_machine.job_id=job.job_id )")) )
+			return true;
+		$stmt->execute();
+		return true;
+	}
+
+	/**
+	 * purge_log()
+	 * Purges machine's logs
+	 *
+	 * @access public
+	 * @return bool true if succeeded
+	 */
+	function purge_log() {
+		return $this->_purge('log');
 	}
 
 	/* generic getters/setters */

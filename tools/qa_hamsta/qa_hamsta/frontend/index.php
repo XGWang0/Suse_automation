@@ -62,6 +62,7 @@ $pages = array(
     "edit_machines",
     "del_machines",
     "machine_details",
+    "machine_purge",
     "action_history",
     "module_details",
     "validation",
