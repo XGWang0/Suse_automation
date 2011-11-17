@@ -41,6 +41,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 	</tr>
 <?php
 	foreach ($fields_list as $key=>$value) {
+		$arr_res = array();
 		$fstring = "get_".$key;
 		$valuer = $machine->$fstring();
 		if (is_array($valuer)) { #get_group will return an array
