@@ -25,9 +25,6 @@
 
 	# Keep this structure (for now), especially the " -- " between the feature title and description
 	$latestFeatures = array(
-			"2.3.0" => array(
-				'15 November 2011 -- To Be Done -- Next wonderful feature.'
-			),
 			"2.2.0" => array(
 				'14 November 2011 -- Repartitioning support -- during reinstall (with an option to leave some space unpartitioned).',
 				'14 November 2011 -- Default additional RPMs -- It is now possible to define list of RPMs (in hamsta frontend config), that will be prepopulated on reinstall page.',

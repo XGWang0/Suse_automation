@@ -89,7 +89,7 @@ sub schedule_jobs() {
         if ($machine_id) {
             my $busy_status = &machine_get_busy($machine_id);
 	    my $machine_status_id = &machine_get_status($machine_id);
-            if( !$busy_status && &machine_has_perm($machine_id,'job') && ( $job_file !~ /reinstall/ || &machine_has_perm($machine_id,'install') ) ) {
+            if ( $machine_status_id == 1 and ($busy_status == 0 or ($busy_status ==3 and $job_file !~ /reinstall/)) ) {
                 &TRANSACTION( 'machine', 'job_on_machine', 'job' );
                 &machine_set_busy($machine_id,1);
                 &job_on_machine_start($job_on_machine_id);
@@ -100,7 +100,7 @@ sub schedule_jobs() {
                     system("/usr/bin/perl process_job.pl ".$job->[2]);
                     if( &sql_get_connection() )	{
 			&TRANSACTION( 'machine' );
-                        &machine_set_busy($machine_id,0);
+                        &machine_set_busy($machine_id,$busy_status);
 			&TRANSACTION_END;
                     }
                     exit;

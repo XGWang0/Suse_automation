@@ -35,7 +35,7 @@
 	$paravirtnotsupported = array();
 	$fullvirtnotsupported = array();
 	foreach ($machines as $machine) {
-		if ($machine->is_busy()) {
+		if (($machine->is_busy() > 1)) {
 			$blockedMachines[] = $machine->get_hostname();
 		}
 		if ($machine->get_role() != 'VH') {

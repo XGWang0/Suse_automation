@@ -84,9 +84,6 @@ sub machine_get_busy($) # machine_id
 sub machine_set_busy($$) # machine_id, busy
 {	return $dbc->update_query('UPDATE machine SET busy=?, last_used=NOW() WHERE machine_id=?',$_[1],$_[0]);	}
 
-sub machine_has_perm($$) # machine_id, perm_str
-{    return $dbc->scalar_query('SELECT FIND_IN_SET(?,perm) FROM machine WHERE machine_id=?',$_[1],$_[0]);    }
-
 sub machine_set_all_unknown()
 {	return $dbc->update_query('UPDATE machine SET machine_status_id=6');	}
 
