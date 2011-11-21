@@ -198,7 +198,7 @@ class Machine {
 			$stmt = get_pdo()->prepare('select .group.group from .group,group_machine where .group.group_id=group_machine.group_id and group_machine.machine_id=:machineid');
 			$stmt->bindParam(':machineid', $this->fields["id"]);
 			$stmt->execute();
-        	return $stmt->fetchColumn(); }
+        	return $stmt->fetchAll(); }
     	else
     		return NULL;
     }

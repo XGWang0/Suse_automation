@@ -41,11 +41,24 @@ if (!defined('HAMSTA_FRONTEND')) {
 	</tr>
 <?php
 	foreach ($fields_list as $key=>$value) {
+		$arr_res = array();
 		$fstring = "get_".$key;
 		$valuer = $machine->$fstring();
-		echo ("<tr><td>$value</td><td>$valuer</td><td>");
-		if ($valuer != NULL && method_exists('MachineSearch',"filter_$key"))
-			echo("<a href=index.php?go=machines&amp;".$key."=".urlencode($valuer).">Search</a>");
+		if (is_array($valuer)) { #get_group will return an array
+			foreach ($valuer as $tmparr) 
+				$arr_res[] = $tmparr[0];
+			echo ("<tr><td>$value</td><td>");
+			foreach ($arr_res as $res)
+				echo "$res ";
+			echo ("</td><td>");
+			if(method_exists('MachineSearch',"filter_$key"))
+				foreach ($arr_res as $res)
+					echo ("<a href=index.php?go=machines&amp;".$key."=".urlencode($res).">Search_".$res."</a> ");
+		} else {
+			echo ("<tr><td>$value</td><td>$valuer</td><td>");
+			if ($valuer != NULL && method_exists('MachineSearch',"filter_$key"))
+				echo("<a href=index.php?go=machines&amp;".$key."=".urlencode($valuer).">Search</a>")
+		}
 		echo "</td></tr>";
 	}
 ?>
