@@ -37,21 +37,22 @@
 	$show_column = array("used_by", "usage", "expires", "maintainer_string", "affiliation", "anomaly", "powerswitch", "serialconsole");
 	$machineCounter = 0;
 	foreach ($machines as $machine) {
+
 		$machine_id = $machine->get_id();
 		$counterAddValue = $machineCounter*count($tableHeadings) + 1;
 		$column = array();
 
 		# Hostname/ID
 		$hostname = $machine->get_hostname();
-		$column[] = "<a href=\"index.php?go=machine_details&amp;id=" . $machine->get_id() . "\" tabindex=" . $counterAddValue++ . ">" . $hostname . "</a>" .
-			"<input type=\"hidden\" name=\"a_machines[]\" value=\"" . $machine->get_id() . "\" />";
+		$column[] = "<a href=\"index.php?go=machine_details&amp;id=" . $machine_id . "\" tabindex=" . $counterAddValue++ . ">" . $hostname . "</a>" .
+			"<input type=\"hidden\" name=\"a_machines[]\" value=\"" . $machine_id . "\" />";
 
-		# Perms
+		# Perm
+                $column[] = "<input type=\"checkbox\" name=\"perm_" . $machine_id . "[]\" " . ($machine->has_perm("job")?" checked=\"checked\"" : "") . " value=\"job\" >job" .
+                        "<input type=\"checkbox\" name=\"perm_" . $machine_id . "[]\" " . ($machine->has_perm("install")?" checked=\"checked\"":"") . " value=\"install\" >install".
+                        "<input type=\"checkbox\" name=\"perm_" . $machine_id . "[]\" " . ($machine->has_perm("partition")?" checked=\"checked\"":"") . " value=\"partition\"  >partition".
+                        "<input type=\"checkbox\" name=\"perm_" . $machine_id . "[]\" " . ($machine->has_perm("boot")?" checked=\"checked\"" : "") . " value=\"boot\"  >boot";
 
-		$column[] = "<input type=\"checkbox\" name=\"perm_" . $machine_id . "[]\" " . ($machine->has_perm("job")?" checked=\"checked\"" : "") . " value=\"job\" >job" .
-			"<input type=\"checkbox\" name=\"perm_" . $machine_id . "[]\" " . ($machine->has_perm("install")?" checked=\"checked\"":"") . " value=\"install\" >install".
-			"<input type=\"checkbox\" name=\"perm_" . $machine_id . "[]\" " . ($machine->has_perm("partition")?" checked=\"checked\"":"") . " value=\"partition\"  >partition".
-			"<input type=\"checkbox\" name=\"perm_" . $machine_id . "[]\" " . ($machine->has_perm("boot")?" checked=\"checked\"" : "") . " value=\"boot\"  >boot";
 		
 		# Common columns (configurable)
 		foreach ($show_column as $item) {
