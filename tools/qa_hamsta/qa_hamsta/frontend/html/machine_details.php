@@ -57,7 +57,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 		} else {
 			echo ("<tr><td>$value</td><td>$valuer</td><td>");
 			if ($valuer != NULL && method_exists('MachineSearch',"filter_$key"))
-				echo("<a href=index.php?go=machines&amp;".$key."=".urlencode($valuer).">Search</a>")
+				echo("<a href=index.php?go=machines&amp;".$key."=".urlencode($valuer).">Search</a>");
 		}
 		echo "</td></tr>";
 	}
