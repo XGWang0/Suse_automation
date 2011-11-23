@@ -327,9 +327,10 @@ sub process_mcast() {
 			&machine_update_hostnameip($unique_id, $host->{'hostname'}, $host->{'ip'});
 			&TRANSACTION_END;
 		}
-		&TRANSACTION( 'config' );
-		&config_touch($thread_shared->{$unique_id}->{'cid'});
-		&TRANSACTION_END;
+#		following code won't work, because $thread_shared->{$unique_id}->{'cid'} not defined
+#		&TRANSACTION( 'config' );
+#		&config_touch($thread_shared->{$unique_id}->{'cid'});
+#		&TRANSACTION_END;
 
 		$thread_shared->{$unique_id}->{'hostname'} = $host->{'hostname'};
 		$thread_shared->{$unique_id}->{'ip'} = $host->{'ip'};
@@ -383,9 +384,6 @@ sub process_mcast() {
 
 		}
 	}
-
-	
-
 	&TRANSACTION_END;
 
 	my @result = ();
@@ -522,7 +520,7 @@ sub query_info () {
 
 # Master->process_hwinfo_response()
 #
-# used collecting and integration new/knwon slaves
+# used collecting and integration new/known slaves
 # it calls the hwinfo query and sets the database (table machine),
 # it logs some special information
 #

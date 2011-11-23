@@ -38,6 +38,7 @@ use base 'db_common';
 
 %db_common::enums = (
 	'arch'			=>	[ 'arch_id', 'arch' ],
+	'cpu_vendor'		=>	[ 'cpu_vendor_id', 'cpu_vendor' ],
 	'group'			=>	[ 'group_id', 'group' ],
 	'job_status'		=>	[ 'job_status_id', 'job_status' ],
 	'machine'		=>	[ 'machine_id', 'name' ],
@@ -129,11 +130,15 @@ sub machine_search
 		$dbc->matrix_query(@args))));
 }
 
-sub machine_insert($$$$$$$) # unique_id, arch_id, hostname, IP, description, kernel, machine_status_id
-{	return $dbc->insert_query('INSERT INTO machine (unique_id,arch_id,name,ip,description,kernel,machine_status_id) VALUES(?,?,?,?,?,?,?)',@_);	}
+sub machine_insert($$$$$$$$$$$) # unique_id, arch_id, hostname, IP, description, kernel, cpu_nr, cpu_vendor_id, memsize, disksize, machine_status_id
+{	return $dbc->insert_query('INSERT INTO machine (unique_id,arch_id,name,ip,description,kernel,cpu_nr,cpu_vendor_id,memsize,disksize,machine_status_id) VALUES(?,?,?,?,?,?,?,?,?,?,?)',@_);	}
 
-sub machine_update($$$$$$$) # machine_id, unique_id, arch_id, hostname, IP, description, kernel, machine_status_id
-{	return $dbc->update_query('UPDATE machine SET unique_id=?,arch_id=?,name=?,ip=?,description=?,kernel=?,machine_status_id=? WHERE machine_id=?',@_[1,2,3,4,5,6,7,0]);	}
+sub machine_update($$$$$$$$$$$) # machine_id, unique_id, arch_id, hostname, IP, description, kernel, cpu_nr, cpu_vendor_id, memsize, disksize, machine_status_id
+{	
+	my $machine_id = shift;
+	return $dbc->update_query('UPDATE machine SET unique_id=?,arch_id=?,name=?,ip=?,description=?,kernel=?,cpu_nr=?,cpu_vendor_id=?,memsize=?,disksize=?,machine_status_id=? WHERE machine_id=?',@_,$machine_id);
+}
+
 
 sub machine_update_hostnameip($$$) # unique_id, hostname, IP
 {   return $dbc->update_query('UPDATE machine SET name=?,ip=? WHERE unique_id=?',@_[1,2,0]);    }

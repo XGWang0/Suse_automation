@@ -68,16 +68,40 @@ sub create_sql_backbone() {
 	my $machine = shift;
 	my $hwinfo = shift;
 
+	# parse main HWinfo fields
+	# CPU number
+	my $cpu_nr = 0+@{$hwinfo->{'cpu'}};
+
+	# CPU vendor detection, see http://en.wikipedia.org/wiki/CPUID for known strings
+	my $cpu_vendor = '';
+	$cpu_vendor = $1 if $hwinfo->{'cpu'}->[0]->{'Vendor'} =~ /(Intel|AMD|Centaur|Cyrix|Transmeta|TM|NSC|NexGen|Rise|SiS|UMC|VIA|Vortex)/;
+	$cpu_vendor =~ s/TM/Transmeta/;
+
+	# memory size
+	my $memsize = $hwinfo->{'memory'}->[0]->{'Memory Size'};
+
+	# disk size
+	my @disks=();
+	foreach my $disk( @{$hwinfo->{'disk'}} )	{
+		push @disks, (($1*$2)>>30) if $disk->{'Size'} =~ /(\d+) sectors a (\d+) bytes/;
+	}
+	my $disksize = join(" + ", map { $_."G" } @disks);
+
 # If there is already a entry for the machine (compare by hostname) use 
 # that and just set its status to up. Otherwise create a new entry.
 # Update the record if something changed.
 
 	# create a new machine record, or update existing one
 
-	&TRANSACTION( 'machine', 'arch', 'product', 'release');
+	&TRANSACTION( 'machine', 'arch', 'cpu_vendor', 'product', 'release');
 	my $machine_id = &machine_search('unique_id'=>$machine->{'id'});
 	my $arch_id = $dbc->enum_get_id_or_insert('arch',$machine->{'arch'});
-	my @args = ( $unique_id, $arch_id, (map {$machine->{$_}} qw(hostname ip description kernel)), MS_UP );
+	my $cpu_vendor_id = $dbc->enum_get_id_or_insert('cpu_vendor',$cpu_vendor);
+	my @args = ( 
+		$unique_id, $arch_id, 
+		(map {$machine->{$_}} qw(hostname ip description kernel)), 
+		$cpu_nr, $cpu_vendor_id, $memsize, $disksize, 
+		MS_UP );
 	
 	if (!$machine_id) {
 		$machine_id = &machine_insert( @args );
