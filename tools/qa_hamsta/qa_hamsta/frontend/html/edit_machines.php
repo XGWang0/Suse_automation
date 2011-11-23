@@ -57,7 +57,7 @@
 		# Common columns (configurable)
 		foreach ($show_column as $item) {
 			$getstring = "get_".$item;
-			$item_list = $_REQUEST[$item];
+			$item_list = request_array($item);
 			$valuer = $item_list[$machine->get_id()];
 			foreach ($input as $value) {
 				$valuer = $value;
@@ -71,7 +71,7 @@
 		}
 
 		# Console device
-		$consoledevices = $_REQUEST['consoledevice'];
+		$consoledevices = request_array('consoledevice');
 		$consoledevice = $consoledevices[$machine->get_id()];
 		if (!isset($consoledevice)) {
 			$consoledevice = $machine->get_consoledevice();
@@ -79,7 +79,7 @@
 		$column[] = "<input name=\"consoledevice[" . $machine->get_id() . "]\" id=\"consoledevice" . $machine->get_id() . "\" value=\"" . $consoledevice . "\"style=\"width: 200px;\" tabindex=" . $counterAddValue++ . " onkeyup=\"update_def_inst_opt(" . $machine->get_id() . ");\">";
 
 		# Console speed
-		$consolespeeds = $_REQUEST['consolespeed'];
+		$consolespeeds = request_array('consolespeed');
 		$consolespeed = $consolespeeds[$machine->get_id()];
 		if (!isset($consolespeed)) {
 			$consolespeed = $machine->get_consolespeed();
@@ -88,7 +88,7 @@
 
 		# Enable console (careful, checkboxes that aren't checked don't show up as isset in PHP)
 		if (isset($_POST['submit'])) { # They submitted the form, so we use if they checked it or not
-			$consolesetdefaults = $_REQUEST['consolesetdefault'];
+			$consolesetdefaults = request_array('consolesetdefault');
 			$consolesetdefault = $consolesetdefaults[$machine->get_id()];
 
 			# If they actually checked the form, otherwise just leave it empty
@@ -102,7 +102,7 @@
 		$column[] = "<input name=\"consolesetdefault[" . $machine->get_id() . "]\" id=\"consolesetdefault" . $machine->get_id() . "\" value=\"enable_console\" type=\"checkbox\"" . ($consolesetdefault == "1" ? " checked=\"checked\"" : "") . " tabindex=" . $counterAddValue++ . " onclick=\"update_def_inst_opt(" . $machine->get_id() . ");\">";
 
 		# Default install options
-		$def_inst_opts = $_REQUEST['default_options'];
+		$def_inst_opts = request_array('default_options');
 		$def_inst_opt = $def_inst_opts[$machine->get_id()];
 		if (!isset($def_inst_opt)) {
 			$def_inst_opt = $machine->get_def_inst_opt();
