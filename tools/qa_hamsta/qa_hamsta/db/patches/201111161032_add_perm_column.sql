@@ -25,3 +25,4 @@
 
 ALTER TABLE `machine` ADD COLUMN `perm` SET('job','install','partition','boot')
 NOT NULL DEFAULT 'job,install,partition,boot' AFTER `busy`;
+

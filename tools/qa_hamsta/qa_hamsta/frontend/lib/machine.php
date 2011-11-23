@@ -931,7 +931,7 @@ class Machine {
 	 *
 	 * Sets the busy flag of the machine
 	 * 
-	 * @param int $busy 0 for free, 1 for job running
+	 * @param int $busy 0 for free, 1 for job running.
 	 * @access public
 	 * @return void
 	 */
@@ -961,38 +961,39 @@ class Machine {
 			$this->set_busy(0);
 		}
 	}
-	/**
-	 * has_perm 
-	 * 
-	 * @access public
-	 * @return boolean true if a job is has perm_str on the machine; false otherwise 
-	 */
-	function has_perm($perm_str) {
-		$stmt = get_pdo()->prepare('SELECT FIND_IN_SET(:perm_str,perm) FROM machine WHERE machine_id = :id');
-		$stmt->bindParam(':id', $this->fields["id"]);
-		$stmt->bindParam(':perm_str', $perm_str);
-		$stmt->execute();
-		
-		$perm = $stmt->fetchColumn();
-		$stmt->closeCursor();
-		return $perm;
-	}
 
-	/**
-	 * set_perm
-	 *
-	 * Sets the perm flag of the machine
-	 * 
-	 * @param str $perm_str : job,install,partition,boot
-	 * @access public
-	 * @return void
-	 */
-	function set_perm($perm_str)  {
-		$stmt = get_pdo()->prepare('UPDATE machine SET perm = :perm WHERE machine_id = :id');
-		$stmt->bindParam(':id', $this->fields["id"]);
-		$stmt->bindParam(':perm', $perm_str);
-		$stmt->execute();
-	}
+        /**
+         * has_perm 
+         * 
+         * @access public
+         * @return boolean true if a job is has perm_str on the machine; false otherwise 
+         */
+        function has_perm($perm_str) {
+                $stmt = get_pdo()->prepare('SELECT FIND_IN_SET(:perm_str,perm) FROM machine WHERE machine_id = :id');
+                $stmt->bindParam(':id', $this->fields["id"]);
+                $stmt->bindParam(':perm_str', $perm_str);
+                $stmt->execute();
+
+                $perm = $stmt->fetchColumn();
+                $stmt->closeCursor();
+                return $perm;
+        }
+
+        /**
+         * set_perm
+         *
+         * Sets the perm flag of the machine
+         * 
+         * @param str $perm_str : job,install,partition,boot
+         * @access public
+         * @return void
+         */
+        function set_perm($perm_str)  {
+                $stmt = get_pdo()->prepare('UPDATE machine SET perm = :perm WHERE machine_id = :id');
+                $stmt->bindParam(':id', $this->fields["id"]);
+                $stmt->bindParam(':perm', $perm_str);
+                $stmt->execute();
+        }
 
 
 	/**
