@@ -286,33 +286,22 @@ class Machine {
 	 * @return latest hardware element info value of this machine
 	 */
 	function get_cpu_numbers() {
-		return count(explode("\n", $this->get_hwelement("cpu", "Model")));
+		return( isset($this->fields['cpu_nr']) ? $this->fields['cpu_nr'] : NULL );
 	}
 	function get_memory_size() {
-                $memory = $this->get_hwelement("memory", "Memory Size");
-                return $memory;
+		return( isset($this->fields['memsize']) ? $this->fields['memsize'] : NULL );
 	}
 	function get_disk_size() {
-		$disks = explode("\n", $this->get_hwelement("disk", "Size"));
-		$ret = "";
-		foreach ($disks as $disk) {
-			$infos = explode(" ", $disk);
-			$size = explode(".", $infos[0]*$infos[3]/1024/1024/1024);
-			if ($size[0] != 0) {
-				$ret .= $size[0] . "G  ";
-			}
-		}
-		return $ret;
+		return( isset($this->fields['disksize']) ? $this->fields['disksize'] : NULL );
 	}
 	function get_cpu_vendor() {
-		$vendors = explode("\n", $this->get_hwelement("cpu", "Vendor"));
-		if (preg_match("/AMD/i", $vendors[0])) {
-			return "AMD";
-		} elseif (preg_match("/Intel/i", $vendors[0])) {
-			return "Intel";
-		} else {
-			return $vendors[0];
-		}
+		if( !isset($this->fields['cpu_vendor_id']) )
+			return NULL;
+		if( !($stmt = get_pdo()->prepare('SELECT cpu_vendor FROM cpu_vendor WHERE cpu_vendor_id=:id')) )
+			return NULL;
+		$stmt->bindParam(':id',$this->fields['cpu_vendor_id']);
+		$stmt->execute();
+		return $stmt->fetchColumn();
 	}
 	function get_vmusedmemory() {
 		$memory = $this->get_hwelement("vmusedmemory", "VMUsedMemory");

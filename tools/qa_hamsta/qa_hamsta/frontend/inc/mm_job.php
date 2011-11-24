@@ -50,10 +50,10 @@ $email = request_str('mailto');
 # If everything is OK, it is sent, otherwise it is printed, 
 #   so that the user can fill in data/correct them.
 $formdata=''; 
-$error='';
+$errors = array();
 
 if( request_str('submit') && !is_readable($filename) )
-	$error = "<p>Cannot read file '$filename'</p>";
+	$errors[] = "Cannot read file '$filename'";
 else if( request_str('submit') )
 {
 	$xml = simplexml_load_file( $filename );
@@ -99,11 +99,11 @@ else if( request_str('submit') )
 			# validate - num_min
 			$cnt = count($data);
 			if( $num_min && $cnt<$num_min )
-				$error .= "<p>Too few machines in role $id '$name' ($cnt < $num_min)</p>\n";
+				$errors[] = "Too few machines in role $id '$name' ($cnt < $num_min)";
 
 			# validate - num_max
 			if( $num_max && $cnt>$num_max )
-				$error .= "<p>Too many machines in role $id '$name' ($cnt > $num_max)</p>\n";
+				$errors[] = "Too many machines in role $id '$name' ($cnt > $num_max)";
 
 			# map machines to roles
 			foreach( $data as $machine_id )
@@ -117,7 +117,7 @@ else if( request_str('submit') )
 
 				# validate - machine to max 1 role
 				if( isset($assigned[$machine_id]) )
-					$error .= "<p>Machine '$hostname' assigned to multiple roles</p>\n";
+					$errors[] = "Machine '$hostname' assigned to multiple roles";
 
 				# fill the mapping
 				$assigned[$machine_id] = $id;
@@ -138,7 +138,7 @@ else if( request_str('submit') )
 	}
 
 	# no submit until all OK
-	if( $error || !request_str('submit') )
+	if( count($errors) != 0 || !request_str('submit') )
 		$send=0;
 	
 	if( $send )
@@ -156,21 +156,26 @@ else if( request_str('submit') )
 		{
 			$machine = Machine::get_by_id($machine_id);
 			if( !$machine )	{
-				$error .= "<p>No such machine_id : $machine_id</p>\n";
+				$errors[] = "No such machine_id : $machine_id";
 				continue;
 			}
 
-			if(!$machine->send_job($path)) {
+			if($machine->send_job($path)) {
 				Log::create($machine->get_id(), $machine->get_used_by(), 'JOB_START', "has sent a \"multi-machine\" job including this machine (Job name: \"" . htmlspecialchars(basename($filename)) . "\")");
 			} else {
-				$error .= '<p>' . $machine->get_hostname() . ': ' . $machine->errmsg . "</p>\n";
+				$errors[] = $machine->get_hostname() . ': ' . $machine->errmsg;
 			}
 		}
-		if (empty($error)) 
+		if (count($errors) == 0)
 			header("Location: index.php");
 	}
 }
 $html_title = "Multi-machine job details";
+
+if (count($errors) != 0) {
+	$_SESSION['message'] = implode("\n", $errors);
+	$_SESSION['mtype'] = "fail";
+}
 
 # replace with tblib/tblib_common.php/hash_get()
 function get_val($hash,$key,$default)

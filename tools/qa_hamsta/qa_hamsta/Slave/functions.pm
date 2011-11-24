@@ -54,7 +54,8 @@ sub command
 	my $cmd=$_[0];
 	&log(LOG_INFO,$cmd."\n");
 	my $ret = system $cmd;
-	warn "Command '$cmd' failed with code $ret\n" if $ret>0;
+	&log(LOG_ERROR,"Command '$cmd' failed with code $ret") if $ret>0;
+	return $ret;
 }
 
 # installs missing RPMs using zypper
@@ -75,8 +76,8 @@ sub install_rpms # $upgrade_flag, @basenames
 		else # error
 		{	die "RPM failed with exitcode $ret: $!";	}
 	}
-    &command('zypper -n install -l '.join(' ',@install)) if @install;
-    &command('zypper -n install -l '.join(' ',@upgrade)) if @upgrade; # Since zypper install can update package as well, and it can do better on SLES10
+	return &command('zypper -n install -l '.join(' ',@install,@upgrade)) if @install or @upgrade;
+	# Since zypper install can update package as well, and it can do better on SLES10
 }
 
 # returns $pid and PIDs of all its subprocesses
