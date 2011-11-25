@@ -19,7 +19,7 @@
 
 BuildRequires:  coreutils
 Name:           qa_lib_tblib
-License:        GPL v2 or later
+License:        LGPL v2.1 or later
 Group:          System/Management
 AutoReqProv:    on
 Version:        @@VERSION@@

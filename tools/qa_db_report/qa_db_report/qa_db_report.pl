@@ -375,6 +375,7 @@ while( my $parser = readdir RESULTS) {
 		# find rpmlist+hwinfo, count MD5s, make submission hash key
 		my $rpmlist_path = $the_parser->rpmlist($tcf);
 		&log(LOG_DEBUG, "Got RPMlist path %s",$rpmlist_path);
+		&rpmlist_remove_kernel($rpmlist_path) if -w $rpmlist_path and $args{'type'}=~/^kotd/;
 		my $hwinfo_path  = $the_parser->hwinfo($tcf);
 		&log(LOG_DEBUG, "Got hwinfo path %s",$hwinfo_path);
 		&filter_hwinfo_file($hwinfo_path) or $dst->die_cleanly("Cannot filter hwinfo $hwinfo_path - insufficient rights?");
@@ -596,6 +597,7 @@ my $msubject="[submission(s) $submissions] ".$args{'product'}."-".$args{'release
 
 # finished
 &log(LOG_INFO, "All done - results were submitted with following submission ID(s):\n" . join("\n" , map { "ID $_: ".$qaconf{qadb_wwwroot}."/submission.php?submissionID=$_" } values %submissions));
+return 0;
 
 
 sub add_stat # \stat1, \stat2
@@ -677,6 +679,12 @@ sub get_patch_details # md5sum
 	my @released_rpms = split /,/, `grep '^PACKAGE: ' $p/patchinfo | cut -d' ' -f2-`;
 	&log(LOG_CRIT,"Could not read packages from $p/patchinfo") unless @released_rpms;
 	return ($patchID,@released_rpms);
+}
+
+sub rpmlist_remove_kernel($) { # path
+	my $file = shift;
+	&log(LOG_DETAIL, "Removing kernel RPMs from list in '%s'", $file);
+	system( "sed -i '/^kernel-/d' '".$file."'");
 }
 
 sub TRANSACTION	{
