@@ -33,3 +33,7 @@
 
 # root password for *next* installation
 install_root_password="novell"
+
+# This packages should be installed additionaly during *next* installation
+# # format (comma-separated list): "PKG1,PKG2,PKG3"
+install_additional_rpms="qa_conf_virtteam"
