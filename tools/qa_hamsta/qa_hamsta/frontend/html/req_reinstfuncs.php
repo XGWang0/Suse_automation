@@ -33,6 +33,10 @@ var old_repo_arch = "<?php if(isset($_POST["repo_archs"])){echo $_POST["repo_arc
 var old_sdk_product = "<?php if(isset($_POST["sdk_products"])){echo $_POST["sdk_products"];}?>";
 var old_sdk_arch = "<?php if(isset($_POST["sdk_archs"])){echo $_POST["sdk_archs"];}?>";
 
+// sdkid & sdkrcodeid
+var sdkid = 1
+var sdkrcodeid = 1;
+
 // Iterate $data and insert all options to select box $id
 var insert_options = function (id, data, old_selected){
 	$(id).empty();
@@ -150,7 +154,13 @@ var get_sdk_urls = function (){
 };
 
 var anotherrepo = function (){
-    $('#additional_repo').append('<input type="text" name="addon_url[]" size="70" /> &emsp;Registration Code:&nbsp;<input type="text" name="rcode[]" size="20" /> &emsp;<button type="button" onclick="anotherrepo()"> + </button>');
+    sdkid += 1;
+    $('#additional_repo').append('SDK #'+ sdkid  +': <input type="text" name="addon_url[]" size="70" /> &emsp;<button type="button" onclick="anotherrepo()"> + </button><br />');
+}
+
+var anotherrcode = function (){
+    sdkrcodeid += 1;
+    $('#additional_rcode').append('Registration Code for SDK repo #' + sdkrcodeid  + ': <input type="text" name="rcode[]" size="20" /><input type="button" onclick="anotherrcode('+ sdkrcodeid +')" value="+" /><br />');
 }
 
 var anotherdisk = function (){

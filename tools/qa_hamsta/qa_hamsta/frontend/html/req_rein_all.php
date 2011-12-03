@@ -36,7 +36,6 @@
 	<td></td>
 	<td>
 	  <input type="text" name="repo_producturl" id="repo_producturl" size="70" value="<?php if(isset($_POST["repo_producturl"])){echo $_POST["repo_producturl"];} ?>" title="required: url" onchange="alert('WARNING!\n\nIf you change the \'Installation repo URL\' manually then the \'Available patterns\' shown on this page may not reflect the actual product you are installing. The installation itself may work just fine, however, it is likely that you will not end up with the right set of patterns.\n\nWhile we support editing the installation URL manually, it is not advised to do so (rather, you should use the pre-populated installation URLs in the dropdown boxes).\n\nIf you insist on modifying the URL by hand, your safest bet is to de-select all of the \'Available patterns\' below and then install the patterns that you want after the installation completes.\n\n(Note: This will be fixed in our next release).');" /><span class="required">*</span>
-	  &nbsp;&nbsp;Registration Code:&nbsp;<input type="text" name="rcode[]" id="rcode_product" size="20" value="<?php if(isset($_POST["rcode"][0])){echo $_POST["rcode"][0];} ?>"/>
 	</td>
   </tr>
   <tr>
@@ -50,9 +49,8 @@
   <tr>
 	<td></td>
 	<td>
-	  <input type="text" name="addon_url[]" id="sdk_producturl" size="70" value="<?php if(isset($_POST["sdk_producturl"])){echo $_POST["sdk_producturl"];} ?>" />
-	  &emsp;Registration Code:&nbsp;<input type="text" name="rcode[]" id="rcode_sdk" size="20" value="<?php if(isset($_POST["rcode_product"][1])){echo $_POST["rcode_product"][1];} ?>"/>
-	  &emsp;<button type="button" onclick="anotherrepo()"> + </button>
+	  SDK #1: <input type="text" name="addon_url[]" id="sdk_producturl" size="70" value="<?php if(isset($_POST["sdk_producturl"])){echo $_POST["sdk_producturl"];} ?>" />
+	  &emsp;<button type="button" onclick='anotherrepo()'> + </button>
 	  <div id="additional_repo"></div>
 	</td>
   </tr>
@@ -107,7 +105,14 @@
         print "<div id=\"updateoptions-reg\" class=\"text-small\" style=\"margin: 5px; padding: 5px; border: 1px solid red; display: " . ((isset($_POST['startupdate']) and $_POST['startupdate'] == "update-reg") ? "block" : "none") . ";\">" .
         "Registration Email: <input type=\"text\" name=\"update-reg-email\" value=\"";
         if (isset($_POST["update-reg-email"])) echo $_POST["update-reg-email"];
-        print "\" /></div>";
+        print "\" /> <br />\n";
+	print "Registration Code for main product: <input type=\"text\" name=\"rcode[]\" id=\"rcode_product\" size=\"20\" value=\"";
+		if(isset($_POST["rcode"][0])){echo $_POST["rcode"][0];} 
+		print "\">\n<br />";
+		print "Registration Code for SDK repo #1: <input type=\"text\" name=\"rcode[]\" id=\"rcode_product\" size=\"20\" value=\"";
+		if(isset($_POST["rcode"][1])){echo $_POST["rcode"][1];}
+		print "\" /><input type=\"button\" onclick=\"anotherrcode()\" value=\"+\" /><br />";
+		print "<div id=\"additional_rcode\"></div></div>";
 ?>
     </td>
   </tr>

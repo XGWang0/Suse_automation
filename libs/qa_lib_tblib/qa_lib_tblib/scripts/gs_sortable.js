@@ -1,6 +1,10 @@
-// Copyright 2007 - 2010 Gennadiy Shvets
-// The program is distributed under the terms of the GNU General
-// Public License 3.0
+// Copyright 2007 - 2011 Gennadiy Shvets
+// The program is licensed to SUSE and Huawei companies under the
+// terms of the GNU Lesser General Public License 3.0
+//
+// Full text of the license:
+//	http://www.allmyscripts.com/Table_Sort/lgpl.txt
+//	http://www.gnu.org/licenses/lgpl-3.0.txt
 //
 // See http://www.allmyscripts.com/Table_Sort/index.html for usage details.
 
