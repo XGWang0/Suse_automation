@@ -44,7 +44,7 @@ Source3:	qa_hamsta.8
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 %if 0%{?sles_version} == 9
-Requires:       perl perl-Net-Server perl-URI perl-XML-Dumper perl-IO-Socket-Multicast perl-Proc-Fork perl-XML-Simple hamsta-cmdline screen qa_tools qa_libperl
+Requires:       perl perl-Net-Server perl-URI perl-XML-Dumper perl-IO-Socket-Multicast perl-Proc-Fork perl-XML-Simple qa_tools qa_libperl hamsta-common hamsta-cmdline screen 
 %else
 Requires:       perl perl-Net-Server perl-URI perl-XML-Dumper perl-IO-Socket-Multicast perl-Proc-Fork perl-XML-Simple qa_tools qa_libperl hamsta-common
 Recommends:	hamsta-cmdline screen
@@ -106,10 +106,8 @@ Authors:
 License:        SUSE Proprietary  
 Summary:        HArdware Maintenance, Setup & Test Automation  
 Group:          System/Management  
+Requires:       mod_php_any httpd php-pdo php-mysql hamsta-jobs tblib ajaxterm jquery
 %if 0%{?sles_version} == 9
-Requires:       mod_php_any httpd php-pdo php-mysql hamsta-jobs tblib ajaxterm
-%else
-Requires:       mod_php_any httpd php-pdo php-mysql hamsta-jobs tblib ajaxterm
 Recommends:	mysql
 %endif
 Provides:	hamsta-frontend
