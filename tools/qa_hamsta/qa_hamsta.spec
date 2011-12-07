@@ -258,9 +258,6 @@ echo "To update the existing database to the newest version,"
 echo "run 'cd %destdir/db; ./update_db.sh'."
 echo 'IMPORTANT: you need to add "wwwrun  ALL = (root) NOPASSWD: /usr/bin/ssh" to /etc/sudoers for AutoPXE to work'
 echo "=================== I M P O R T A N T ======================="
-# liston all interfaces
-sed -i 's/net.ipv4.conf.all.rp_filter.*/net.ipv4.conf.all.rp_filter = 0/' /etc/sysctl.conf
-sysctl -q -p 
 
 %post frontend
 sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
