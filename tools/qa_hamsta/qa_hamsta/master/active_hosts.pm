@@ -74,18 +74,47 @@ sub active_hosts() {
 			Proto       => 'udp',
 			LocalPort   => $qaconf{hamsta_multicast_port},
 			);
-	eval {
-		$mcast_sock->mcast_add($qaconf{hamsta_multicast_address}) 
-	};
-	if ($@) {
-		&log(LOG_CRIT,"MASTER_MULTICAST: Bind to multicast address ".
-				$qaconf{hamsta_multicast_address}.':'.$qaconf{hamsta_multicast_port}.": $!\n" );
+
+	#try to map IP address with network interface name
+
+	if($qaconf{hamsta_multicast_dev}) {
+		open(my $_tmp_ifo,"/sbin/ifconfig|") || &log(LOG_CRIT,"MASTER_MULTICAST: Can not find IP address ");
+		my @if_output = <$_tmp_ifo>;
+		close $_tmp_ifo;
+		foreach my $if_dev (split /,/,$qaconf{hamsta_multicast_dev}) {
+			my $net_addr;
+			for(my $i=0;$i<@if_output;$i++){
+				if($if_output[$i] =~ /^$if_dev/){
+				$if_output[++$i] =~ /inet addr:([^\s]+)\s/ ;	
+				$net_addr = $1 ;
+				last ;
+
+				}
+			}
+
+			eval {
+				$mcast_sock->mcast_add($qaconf{hamsta_multicast_address},$net_addr) 
+			};
+			if ($@) {
+				&log(LOG_CRIT,"MASTER_MULTICAST: Bind to multicast address $if_dev:$net_addr ".
+						$qaconf{hamsta_multicast_address}.':'.$qaconf{hamsta_multicast_port}.": $!\n" );
+			}
+
+		}
+	}else {
+		eval {
+                                $mcast_sock->mcast_add($qaconf{hamsta_multicast_address})
+                        };
+			if ($@) {
+                                &log(LOG_CRIT,"MASTER_MULTICAST: Bind to multicast address ".
+                                                $qaconf{hamsta_multicast_address}.':'.$qaconf{hamsta_multicast_port}.": $!\n" );
+                        }
+
 	}
 
-	my $flags = fcntl($mcast_sock, F_GETFL, 0);
-	fcntl($mcast_sock, F_SETFL, $flags | O_NONBLOCK);
-	$selector->add($mcast_sock);
-
+        my $flags = fcntl($mcast_sock, F_GETFL, 0);
+        fcntl($mcast_sock, F_SETFL, $flags | O_NONBLOCK);
+        $selector->add($mcast_sock);
 	# Set machines to unknown. This was only done in destructor, but there 
 	# it sometimes failed, e.g. due to lost DB connection, resulting in 
 	# non-existing machines being still up. Fixed by vmarsik.

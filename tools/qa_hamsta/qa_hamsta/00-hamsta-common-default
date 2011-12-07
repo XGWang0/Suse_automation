@@ -49,6 +49,10 @@ hamsta_multicast_address='239.192.10.10'
 
 hamsta_multicast_port='2000'
 
+#specify the network interface name
+#eg. eth0,em1  separate with ','
+hamsta_multicast_dev=''
+
 #
 # Which port on client is used by master for connection
 #
