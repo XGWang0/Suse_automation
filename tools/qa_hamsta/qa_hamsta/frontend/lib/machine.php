@@ -311,6 +311,33 @@ class Machine {
 		$avaivmdisk = $this->get_hwelement("avaivmdisk","AvaiVMDisk");
 		return $avaivmdisk;
 	}
+	function get_tools_version() {
+		$tools_version = $this->get_hwelement("tools_version", "ToolsVersion");
+		return $tools_version;
+	}
+
+	/**
+	 * get_tools_out_of_date
+	 *
+	 * @access public
+	 * @return bool which indicates whether the client is a major version out of date
+	 * 	with the master.
+	 */
+	function get_tools_out_of_date() {
+		$client_tools_version = explode(".", $this->get_tools_version());
+		$server_tools_version = explode("-", htmlspecialchars(`rpm -q qa_hamsta-master`));
+		$server_tools_version = explode(".", $server_tools_version[2]);
+
+		if ($client_tools_version[0] < $server_tools_version[0]) {
+			return true;
+		} else if ($client_tools_version[0] == $server_tools_version[0] && $client_tools_version[1] < $server_tools_version[1]) {
+			return true;
+		} else if ($client_tools_version[0] == $server_tools_version[0] && $client_tools_version[1] == $server_tools_version[1] && $client_tools_version[2] < $server_tools_version[2]) {
+			return true;
+		}
+		return false;
+	}
+
 	/**
 	 * get_last_used 
 	 * 
