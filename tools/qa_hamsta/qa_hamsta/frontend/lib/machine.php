@@ -315,6 +315,10 @@ class Machine {
 		$tools_version = $this->get_hwelement("tools_version", "ToolsVersion");
 		return $tools_version;
 	}
+	function get_devel_tools() {
+		$devel_tools = $this->get_hwelement("devel_tools", "DevelTools");
+		return $devel_tools;
+	}
 
 	/**
 	 * get_tools_out_of_date
