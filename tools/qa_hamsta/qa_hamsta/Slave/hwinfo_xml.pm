@@ -41,7 +41,7 @@ require 'Slave/config_slave';
 my  $dumper = new XML::Dumper;
 
 #my @modules = ('bios', 'block', 'bluetooth', 'braille', 'bridge', 'camera', 'cdrom', 'chipcard', 'cpu', 'disk', 'dsl', 'dvb', 'floppy', 'framebuffer', 'gfxcard', 'hub', 'ide', 'isapnp', 'isdn',  'pcmcia', 'joystick', 'keyboard', 'memory', 'modem', 'monitor', 'mouse', 'netcard', 'network', 'partition', 'pci', 'pppoe', 'printer', 'scanner', 'scsi', 'smp', 'sound', 'storage-ctrl', 'sys', 'tape', 'tv', 'usb', 'usb-ctrl', 'vbe', 'wlan', 'zip');
-my @modules = ('bios', 'bridge', 'cpu', 'disk', 'gfxcard', 'ide', 'memory', 'network', 'partition', 'scsi', 'smp', 'storage-ctrl', 'sys', 'swap', 'system_partition');
+my @modules = ('bios', 'bridge', 'cpu', 'disk', 'gfxcard', 'ide', 'memory', 'network', 'partition', 'scsi', 'smp', 'storage-ctrl', 'sys', 'swap', 'system_partition', 'tools_version', 'devel_tools');
 
 my $ret;
 $ret = system("which virsh > /dev/null 2>&1");
@@ -137,6 +137,26 @@ sub get_hwinfo_module($) {
 		}
 		$memory = sprintf('%.1f', $memory).' GB';
 		$module->{'Memory Size'} = $memory;
+		push @result, $module;
+		return \@result;
+	}
+
+	if($module_name eq 'tools_version'){
+		my $module = {};
+		$module->{'Description'} = "tools version";
+		$module->{'ToolsVersion'} = `cat /usr/share/hamsta/Slave/.version`;
+		push @result, $module;
+		return \@result;
+	}
+
+	if($module_name eq 'devel_tools'){
+		my $module = {};
+		$module->{'Description'} = "devel tools";
+		if (`zypper lr -u | grep http://dist.suse.de/ibs/QA:/Head:/Devel`) {
+			$module->{'DevelTools'} = 1;
+		} else {
+			$module->{'DevelTools'} = 0;
+		}
 		push @result, $module;
 		return \@result;
 	}

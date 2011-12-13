@@ -84,7 +84,7 @@
 	$d_fields = request_array("d_fields");
 	$display_fields = ( count($d_fields) ? $d_fields :	# user-selected fields
 	( isset($display_fields) ? $display_fields : # fields from config 
-	array("status_string", "used_by", "usage", "expires_formated", "product", "architecture_capable", "kernel", "type")
+	array("used_by", "usage", "expires_formated", "product", "architecture_capable", "kernel", "type")
 	));
 	$a_machines = request_array("a_machines");
 
