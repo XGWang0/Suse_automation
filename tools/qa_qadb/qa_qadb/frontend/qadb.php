@@ -594,11 +594,8 @@ $glob_dest=array(
 #	array("bench/search.php", 'Benchmarks'), 
 #	array(" "," "), 
 	array( array(
-		array("http://qadb.suse.de/hamsta/", "De"),
-		array("http://hamsta.qa.suse.cz/hamsta/", "Cz"),
-		array("http://151.155.248.99/hamsta/","Us"),
-		array("http://147.2.207.30/hamsta/index.php","Cn"),
-		), 'Hamsta'),
+		array("http://hamsta_url","Hamsta"),
+		), ''),
 	array("doc.php","Docs")); 
 
 /** logs into DB, checks user, prints header, prints navigation bar */
