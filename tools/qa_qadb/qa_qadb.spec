@@ -31,7 +31,7 @@ Source1:	%name.8
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 PreReq:         coreutils
-Requires:       mod_php_any httpd php-pdo tblib php-gd mysql mysql-client php-bz2
+Requires:       mod_php_any httpd php-pdo tblib php-gd mysql mysql-client php-bz2 phplot
 Provides:	qadb
 Obsoletes:	qadb
 

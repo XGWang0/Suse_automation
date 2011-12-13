@@ -33,7 +33,7 @@ BuildArch:      noarch
 PreReq:         coreutils
 Provides:	tblib
 Obsoletes:	tblib
-Requires:       mod_php_any httpd php-pdo php-mysql gs_sortable
+Requires:       mod_php_any httpd php-pdo php-mysql gs_sortable epoch
 
 %description
 TBlib web frontend library. Works with PHP and MySQL.

@@ -63,8 +63,8 @@ function html_header($args=null)
 	# Calendar support part 1
 	if( $args['calendar'] )
 	{
-		$args['script'][]='epoch/epoch_classes.js';
-		$args['css_screen'][]='epoch/epoch_styles.css';
+		$args['script'][]='/epoch/epoch_classes.js';
+		$args['css_screen'][]='/epoch/epoch_styles.css';
 	}
 
 	# DOCTYPE, header start
