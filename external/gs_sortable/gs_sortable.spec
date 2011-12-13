@@ -31,8 +31,6 @@ Source1:	%{name}.8
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 PreReq:         coreutils
-Provides:	%{name}
-Obsoletes:	%{name}
 
 %description
 Client-side Javascript tool that sorts HTML tables on click.
