@@ -1,5 +1,5 @@
 #
-# spec file for package gs_sortable
+# spec file for package phplot
 #
 # Copyright (c) 2008 SUSE LINUX Products GmbH, Nuernberg, Germany.
 #
@@ -18,14 +18,14 @@
 # norootforbuild
 
 BuildRequires:  coreutils
-Name:           gs_sortable
-License:        GPL v2 only, X11/MIT
+Name:           phplot
+License:        LGPL v2.1 or later
 Group:          Development/Sources
 AutoReqProv:    on
-Version:        1.8
+Version:        5.0.5
 Release:        0
-Summary:        gs_sortable.js table sort script
-Url:            http://www.allmyscripts.com/Table_Sort/index.html
+Summary:        PHPlot graph library
+Url:            http://phplot.sourceforge.net/
 Source:         %{name}-%{version}.tar.bz2
 Source1:	%{name}.8
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -33,14 +33,16 @@ BuildArch:      noarch
 PreReq:         coreutils
 
 %description
-Client-side Javascript tool that sorts HTML tables on click.
+PHPlot graph library.
 
 
 Authors:
 --------
-	2007 - 2011 Gennadiy Shvets
+	L J Bayuk - maintainer, manual
+	Miguel de Benito - developer, maintainer
+	Afan Ottenheimer - original developer
 
-%define webdir /srv/www/htdocs/scripts
+%define webdir /srv/www/htdocs/%{name}
 %define mandir /usr/share/man/man8
 
 
@@ -54,7 +56,7 @@ install -m 755 -d $RPM_BUILD_ROOT%{mandir}
 install -m 755 -d $RPM_BUILD_ROOT%{webdir}
 install -m 644 %{S:1} $RPM_BUILD_ROOT%{mandir}
 gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
-install -m 644 *.js $RPM_BUILD_ROOT%{webdir}
+cp -rL --target-directory=$RPM_BUILD_ROOT%{webdir} *
 rm -rf `find $RPM_BUILD_ROOT -name .svn`
 
 %clean
@@ -64,9 +66,8 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-, root, root)
 /usr/share/man/man8/%{name}.8.gz
-%dir %{webdir}
-%{webdir}/*
+%{webdir}
 
 %changelog
-* Tue Dec 6 2011 - vmarsik@suse.cz
-- split from tblib
+* Tue Dec 13 2011 - vmarsik@suse.cz
+- split from qadb
