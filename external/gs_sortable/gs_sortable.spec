@@ -26,13 +26,11 @@ Version:        1.8
 Release:        0
 Summary:        gs_sortable.js table sort script
 Url:            http://www.allmyscripts.com/Table_Sort/index.html
-Source:         %{name}.js
+Source:         %{name}-%{version}.tar.bz2
 Source1:	%{name}.8
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 PreReq:         coreutils
-Provides:	%{name}
-Obsoletes:	%{name}
 
 %description
 Client-side Javascript tool that sorts HTML tables on click.

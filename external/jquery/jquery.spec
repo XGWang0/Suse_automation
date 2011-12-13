@@ -26,13 +26,11 @@ Version:        1.7
 Release:        0
 Summary:        jQuery Javascript tool 
 Url:            http://jquery.com
-Source:         %{name}-%{version}.js
+Source:         %{name}-%{version}.tar.bz2
 Source1:	%{name}.8
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 PreReq:         coreutils
-Provides:	%{name}
-Obsoletes:	%{name}
 
 %description
 jQuery Javascript library.
