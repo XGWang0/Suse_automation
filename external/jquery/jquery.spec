@@ -41,21 +41,21 @@ Authors:
 	John Resig
 
 %define webdir /srv/www/htdocs/scripts
+%define mandir /usr/share/man/man8
 
 
 %prep
+%setup -q -n %{name}
 
 %build
 
 %install
-install -m 755 -d $RPM_BUILD_ROOT/usr/share/man/man8
-install -m 644 %{S:1} $RPM_BUILD_ROOT/usr/share/man/man8
-gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
+install -m 755 -d $RPM_BUILD_ROOT%{mandir}
 install -m 755 -d $RPM_BUILD_ROOT%{webdir}
-cp -L --target-directory=$RPM_BUILD_ROOT%{webdir} %{S:0}
+install -m 644 %{S:1} $RPM_BUILD_ROOT%{mandir}
+gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
+install -m 644 *.js $RPM_BUILD_ROOT%{webdir}
 rm -rf `find $RPM_BUILD_ROOT -name .svn`
-cd $RPM_BUILD_ROOT%{webdir}
-ln -s %{name}-%{version}.js %{name}.js
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -64,7 +64,8 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-, root, root)
 /usr/share/man/man8/%{name}.8.gz
-%{webdir}
+%dir %{webdir}
+%{webdir}/*
 
 %changelog
 * Tue Dec 6 2011 - vmarsik@suse.cz
