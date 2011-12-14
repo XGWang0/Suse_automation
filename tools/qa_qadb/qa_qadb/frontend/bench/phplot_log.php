@@ -4,7 +4,7 @@
  * PHPlot fix / extension by Vilem Marsik (vmarsik at suse dot cz)
  */
 
-require_once('/phplot/phplot_data.php');
+require_once($_SERVER['DOCUMENT_ROOT'].'/phplot/phplot_data.php');
 
 class PHPlot_log extends PHPlot_Data
 {

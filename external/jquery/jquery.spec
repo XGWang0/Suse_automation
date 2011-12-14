@@ -56,6 +56,8 @@ install -m 644 %{S:1} $RPM_BUILD_ROOT%{mandir}
 gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
 install -m 644 *.js $RPM_BUILD_ROOT%{webdir}
 rm -rf `find $RPM_BUILD_ROOT -name .svn`
+cd $RPM_BUILD_ROOT%{webdir}
+ln -s %{name}-%{version}.js %{name}.js
 
 %clean
 rm -rf $RPM_BUILD_ROOT
