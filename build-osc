@@ -6,7 +6,7 @@ source shared.sh
 
 assert_command osc
 
-[ $# -ne 1 ] && echo "Usage: $0 <package>" && exit
+[ $# -ne 1 ] && echo "Usage: $0 <package>" && exit 1
 [ ! -d "$1" ] && echo "Error: $1 is not a directory." && exit 1
 
 package="`basename "$1"`"
