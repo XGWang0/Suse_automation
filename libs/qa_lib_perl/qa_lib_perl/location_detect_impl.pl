@@ -31,32 +31,12 @@ BEGIN {
 	push @INC,"/usr/share/qa/lib",'.';
 }
 
-# gets the system location (cz|de|cn|us) from ifconfig output
-# returns: cz|de|cn|us
+# returns: string identifying location
 # Only use this directly if you really know what you're doing!!
 # NORMALLY, you want to use location.pl
 my $loc = undef;
 
-open IFCONFIG, "/sbin/ifconfig |" or die "Cannot run ifconfig: $!";
-while( my $row=<IFCONFIG> )
-{
-#		print $row;
-	if( $row =~ /inet addr:(\d+)\.(\d+)\./ )
-	{
-		if( $1==10 )
-		{
-			if( $2==10 or $2==11 or $2==0 )
-			{   $loc='de'; }
-			elsif( $2==20 )
-			{   $loc='cz'; }
-		}
-		elsif( $1==147 ) 
-		{   $loc='cn'; }
-		elsif( $1==137 or $1==151 ) 
-		{   $loc='us'; }
-	}
-}
-close IFCONFIG;
+# TODO: insert your implementation here
 
 my $ret=0;
 if ($loc) {
