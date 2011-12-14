@@ -68,6 +68,6 @@ log_archive_wwwroot="http://w3.suse.de/~rd-qa/Results"
 #
 # Log reviewer
 #
-qa_db_report_log_reviewer="vmarsik@suse.cz"
+qa_db_report_log_reviewer=""
 
 
