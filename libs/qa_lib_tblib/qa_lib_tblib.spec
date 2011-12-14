@@ -33,7 +33,7 @@ BuildArch:      noarch
 PreReq:         coreutils
 Provides:	tblib
 Obsoletes:	tblib
-Requires:       mod_php_any httpd php-pdo php-mysql
+Requires:       mod_php_any httpd php-pdo php-mysql gs_sortable epoch
 
 %description
 TBlib web frontend library. Works with PHP and MySQL.
@@ -70,7 +70,6 @@ gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
 install -m 755 -d $RPM_BUILD_ROOT%{webdir}
 cp -a --target-directory=$RPM_BUILD_ROOT%{webdir} *.php
 cp -a -r --target-directory=$RPM_BUILD_ROOT%{webdir} doc
-cp -a -r --target-directory=$RPM_BUILD_ROOT%{webdir} scripts
 cp -a -r --target-directory=$RPM_BUILD_ROOT%{webdir} icons
 cp -a -r --target-directory=$RPM_BUILD_ROOT%{webdir} css
 rm -rf `find $RPM_BUILD_ROOT -name .svn`

@@ -41,8 +41,8 @@
 	<link href="css/color.css" rel="stylesheet" type="text/css">
     <link rel="icon" type="image/png" href="/hamsta/icon.png">
     <script language="JavaScript" src="js/commfuncs.js" type="text/javascript"></script>
-    <script language="JavaScript" src="/tblib/scripts/gs_sortable.js" type="text/javascript"></script>
-    <script language="JavaScript" src="/tblib/scripts/jquery-1.6.1.js" type="text/javascript"></script>
+    <script language="JavaScript" src="/scripts/gs_sortable.js" type="text/javascript"></script>
+    <script language="JavaScript" src="/scripts/jquery.js" type="text/javascript"></script>
     <?php if (!empty($html_refresh_uri)): ?>
         <meta http-equiv="refresh" content="<?php echo($html_refresh_interval.";".$html_refresh_uri); ?>">
     <?php endif; ?>
