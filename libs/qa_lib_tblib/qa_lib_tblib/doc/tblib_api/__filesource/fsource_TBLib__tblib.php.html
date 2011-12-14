@@ -68,11 +68,27 @@
 <li><div class="src-line"><a name="a55"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-key">return&nbsp;</span><span class="src-var">$table</span><span class="src-sym">;</span></div></li>
 <li><div class="src-line"><a name="a56"></a><span class="src-sym">}</span></div></li>
 <li><div class="src-line"><a name="a57"></a>&nbsp;</div></li>
-<li><div class="src-line"><a name="a58"></a><span class="src-php">?&gt;</span></div></li>
+<li><div class="src-line"><a name="a58"></a><span class="src-doc">/**</span></div></li>
+<li><div class="src-line"><a name="a59"></a><span class="src-doc">&nbsp;&nbsp;*&nbsp;Like&nbsp;update_result(),&nbsp;but&nbsp;also&nbsp;closes&nbsp;transaction&nbsp;with&nbsp;commit&nbsp;(on&nbsp;success)&nbsp;or&nbsp;rollback&nbsp;(on&nbsp;failure).</span></div></li>
+<li><div class="src-line"><a name="a60"></a><span class="src-doc">&nbsp;&nbsp;*&nbsp;</span><span class="src-doc-coretag">@param&nbsp;</span><span class="src-doc-type">int&nbsp;</span><span class="src-doc-var">$n&nbsp;</span><span class="src-doc">return&nbsp;value&nbsp;of&nbsp;the&nbsp;update&nbsp;operation</span></div></li>
+<li><div class="src-line"><a name="a61"></a><span class="src-doc">&nbsp;&nbsp;*&nbsp;</span><span class="src-doc-coretag">@param&nbsp;</span><span class="src-doc-type">bool&nbsp;</span><span class="src-doc-var">$is_insert&nbsp;</span><span class="src-doc">true&nbsp;for&nbsp;insert&nbsp;-&nbsp;will&nbsp;consider&nbsp;$n&nbsp;as&nbsp;new&nbsp;ID</span></div></li>
+<li><div class="src-line"><a name="a62"></a><span class="src-doc">&nbsp;&nbsp;***/</span></div></li>
+<li><div class="src-line"><a name="a63"></a><span class="src-key">function&nbsp;</span><a href="../TBLib/_tblib.php.html#functionupdate_result_commit">update_result_commit</a><span class="src-sym">(</span><span class="src-var">$n</span><span class="src-sym">,</span><span class="src-var">$is_insert</span>=<span class="src-id">false</span><span class="src-sym">,</span><span class="src-var">$msg</span>=<span class="src-id">null</span><span class="src-sym">)</span></div></li>
+<li><div class="src-line"><a name="a64"></a><span class="src-sym">{</span></div></li>
+<li><div class="src-line"><a name="a65"></a>&nbsp;&nbsp;&nbsp;&nbsp;<a href="../TBLib/_tblib_html.php.html#functionupdate_result">update_result</a><span class="src-sym">(</span><span class="src-var">$n</span><span class="src-sym">,</span><span class="src-var">$is_insert</span><span class="src-sym">,</span><span class="src-var">$msg</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a66"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-key">if</span><span class="src-sym">(&nbsp;</span><span class="src-var">$n</span>&lt;<span class="src-num">0&nbsp;</span><span class="src-sym">)</span></div></li>
+<li><div class="src-line"><a name="a67"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="../TBLib/_tblib_db.php.html#functionrollback">rollback</a><span class="src-sym">(</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a68"></a>&nbsp;&nbsp;&nbsp;&nbsp;<span class="src-key">else</span></div></li>
+<li><div class="src-line"><a name="a69"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="../TBLib/_tblib_db.php.html#functioncommit">commit</a><span class="src-sym">(</span><span class="src-sym">)</span><span class="src-sym">;</span></div></li>
+<li><div class="src-line"><a name="a70"></a><span class="src-sym">}</span></div></li>
+<li><div class="src-line"><a name="a71"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a72"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a73"></a>&nbsp;</div></li>
+<li><div class="src-line"><a name="a74"></a><span class="src-php">?&gt;</span></div></li>
 </ol></div>
 </div>
 	<p class="notes" id="credit">
-		Documentation generated on Wed, 04 Aug 2010 17:04:57 +0200 by <a href="http://www.phpdoc.org" target="_blank">phpDocumentor 1.4.2</a>
+		Documentation generated on Tue, 13 Dec 2011 19:45:37 +0100 by <a href="http://www.phpdoc.org" target="_blank">phpDocumentor 1.4.2</a>
 	</p>
 	</body>
 </html>
