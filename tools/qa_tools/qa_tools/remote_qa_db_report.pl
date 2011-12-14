@@ -265,7 +265,7 @@ unless( $nomove )
 			`for i in $dirlist ; do [ "\$i" == "oldlogs" ] || ( mkdir -p "$savedir/\$(dirname "\$i")" && mv "\$i" "$savedir/\$(dirname "\$i")" ) ; done`;
 		} else {
 			# all parsers, no need create subdir, aleready have a right structure
-			`for i in * ; do [ "\$i" == "oldlogs" ] || for j in "\$i"/* ; do mkdir -p "$savedir/\$i"; mv "\$j" "$savedir/\$i" ; done ; done`;
+			`for i in * ; do [ "\$i" == "oldlogs" ] || for j in "\$i"/* ; do [ -e "\$j" ] && ( mkdir -p "$savedir/\$i"; mv "\$j" "$savedir/\$i" ) ; done ; done`;
 		}
 	} else {
 		&log(LOG_ERR,"Unable to move Logs to target: $savedir. Not moving logs to oldlogs.\n");
