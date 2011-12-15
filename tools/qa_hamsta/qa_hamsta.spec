@@ -107,7 +107,7 @@ License:        SUSE Proprietary
 Summary:        HArdware Maintenance, Setup & Test Automation  
 Group:          System/Management  
 Requires:       mod_php_any httpd php-pdo php-mysql hamsta-jobs tblib ajaxterm jquery
-%if 0%{?sles_version} == 9
+%if 0%{?sles_version} > 9
 Recommends:	mysql
 %endif
 Provides:	hamsta-frontend
