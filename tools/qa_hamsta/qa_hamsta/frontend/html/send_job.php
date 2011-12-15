@@ -214,9 +214,6 @@ QA-packages Jobs are used to launch various test suites on your System Under Tes
           echo "<td style=\"padding: 5px;\">" .
               "<input name=testsuite[] type=checkbox value=$value title=\"check one at least\"/>" .
               "$value " .
-              "<a href=\"http://qa.suse.de/automation/qa-packages?package=" . urlencode($value) . "#" . urlencode($value) . "\" target=\"_blank\">" .
-                  "<img src=\"images/icon-info.png\" alt=\"Click for information\" title=\"Click for information\" width=\"15\" border=\"0\" />" .
-              "</a>" .
           "</td>";
           if ($i%6==5) {echo "</tr>";}
 	  if ($i==count($arr)) {echo "end</tr>";}
