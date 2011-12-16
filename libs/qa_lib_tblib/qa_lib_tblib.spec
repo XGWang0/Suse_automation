@@ -19,7 +19,7 @@
 
 BuildRequires:  coreutils
 Name:           qa_lib_tblib
-License:        LGPL v2.1 or later
+License:        SUSE Proprietary
 Group:          System/Management
 AutoReqProv:    on
 Version:        @@VERSION@@
