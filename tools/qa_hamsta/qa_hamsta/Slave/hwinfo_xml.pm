@@ -41,7 +41,7 @@ require 'Slave/config_slave';
 my  $dumper = new XML::Dumper;
 
 #my @modules = ('bios', 'block', 'bluetooth', 'braille', 'bridge', 'camera', 'cdrom', 'chipcard', 'cpu', 'disk', 'dsl', 'dvb', 'floppy', 'framebuffer', 'gfxcard', 'hub', 'ide', 'isapnp', 'isdn',  'pcmcia', 'joystick', 'keyboard', 'memory', 'modem', 'monitor', 'mouse', 'netcard', 'network', 'partition', 'pci', 'pppoe', 'printer', 'scanner', 'scsi', 'smp', 'sound', 'storage-ctrl', 'sys', 'tape', 'tv', 'usb', 'usb-ctrl', 'vbe', 'wlan', 'zip');
-my @modules = ('bios', 'bridge', 'cpu', 'disk', 'gfxcard', 'ide', 'memory', 'network', 'partition', 'scsi', 'smp', 'storage-ctrl', 'sys', 'swap', 'system_partition', 'tools_version', 'devel_tools');
+my @modules = ('bios', 'bridge', 'cpu', 'disk', 'gfxcard', 'ide', 'memory', 'network', 'partition', 'scsi', 'smp', 'storage-ctrl', 'sys', 'swap', 'system_partition', 'tools_version', 'devel_tools', 'rpm_list');
 
 my $ret;
 $ret = system("which virsh > /dev/null 2>&1");
@@ -157,6 +157,14 @@ sub get_hwinfo_module($) {
 		} else {
 			$module->{'DevelTools'} = 0;
 		}
+		push @result, $module;
+		return \@result;
+	}
+
+	if($module_name eq 'rpm_list'){
+		my $module = {};
+		$module->{'Description'} = "rpm list";
+		$module->{'RPMList'} = `rpm -qa --qf \"%{NAME} %{VERSION}-%{RELEASE}\n\" | sort`;
 		push @result, $module;
 		return \@result;
 	}
