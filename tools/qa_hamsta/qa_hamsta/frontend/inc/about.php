@@ -34,6 +34,4 @@
 
     $html_title = "About Hamsta";
 
-	$hamstaVersion = htmlspecialchars(`rpm -q qa_hamsta-master`);
-
 ?>

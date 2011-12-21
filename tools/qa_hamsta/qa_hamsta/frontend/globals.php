@@ -155,4 +155,6 @@
  );
 
 $virtdisktypes = array("def", "file", "tap:aio", "tap:qcow", "tap:qcow2");
+
+$hamstaVersion = htmlspecialchars(`rpm -q qa_hamsta-master`);
 ?>

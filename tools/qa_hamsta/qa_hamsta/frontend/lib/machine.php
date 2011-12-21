@@ -329,7 +329,7 @@ class Machine {
 	 */
 	function get_tools_out_of_date() {
 		$client_tools_version = explode(".", $this->get_tools_version());
-		$server_tools_version = explode("-", htmlspecialchars(`rpm -q qa_hamsta-master`));
+		$server_tools_version = explode("-", $GLOBALS['hamstaVersion']);
 		$server_tools_version = explode(".", $server_tools_version[2]);
 
 		if ($client_tools_version[0] < $server_tools_version[0]) {

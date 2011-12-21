@@ -59,7 +59,7 @@
 			<img src="images/header.png" class="caption" alt="OPS QA Automation" title="Click to return to the main page" />
 			<img src="images/hamsta.png" class="hamsta" alt="Hamsta" title="Hamsta" />
 		</a>
-		<div class="version text-main text-white bold"><em>v2.3.0</em></div>
+		<div class="version text-main text-white bold"><em>v<?php $version = explode("-", $hamstaVersion); echo($version[2]); ?></em></div>
 	</div>
 
 	<div id="header-links" class="text-medium bold">
