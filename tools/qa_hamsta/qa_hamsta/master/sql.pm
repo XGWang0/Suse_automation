@@ -156,7 +156,7 @@ sub machine_list_free()
 {	return $dbc->vector_query("SELECT machine_id FROM machine WHERE busy=0 AND machine_status_id=1 ORDER BY (ISNULL(usedby) OR usedby='') DESC, RAND()");	}
 
 sub busy_machines_without_jobs()	{
-	return $dbc->vector_query("SELECT machine_id FROM machine WHERE busy=1 AND NOT EXISTS(SELECT * FROM job_on_machine WHERE machine.machine_id=job_on_machine.machine_id AND job_status_id=2)");
+	return $dbc->vector_query("SELECT machine_id FROM machine WHERE busy=1 AND NOT EXISTS(SELECT * FROM job_on_machine WHERE machine.machine_id=job_on_machine.machine_id AND (job_status_id=2 OR job_status_id=6))");
 }
 
 ### virtual machines functions
@@ -185,6 +185,9 @@ sub job_set_status($$) # job_id, job_status_id
     $dbc->update_query('UPDATE job_on_machine SET job_status_id=? WHERE job_id=?',$_[1],$_[0]);
     return $dbc->update_query('UPDATE job SET job_status_id=? WHERE job_id=?',$_[1],$_[0]);
 }
+
+sub job_get_status($) # job_id
+{	return $dbc->scalar_query('SELECT job_status_id FROM job_on_machine WHERE job_id=?',$_[0]);	}
 
 sub job_get_aimed_host($) # job_id
 {	return $dbc->scalar_query('SELECT aimed_host FROM job WHERE job_id=?',$_[0]);	}
@@ -227,11 +230,14 @@ sub job_on_machine_get_by_job_id($) # job_id
 sub job_on_machine_get_by_status($) # status_id
 {	return $dbc->matrix_query('SELECT job_on_machine_id,machine_id,job_id FROM job_on_machine WHERE job_status_id=?',$_[0]);	}
 
+sub job_on_machine_get_by_machineid_status($$) # machine_id status_id
+{	return $dbc->vector_query('SELECT machine_id FROM job_on_machine WHERE machine_id=? AND job_status_id=?',$_[0],$_[1]);	}
+
 sub job_on_machine_start($) # job_on_machine_id
 {	return $dbc->update_query('UPDATE job_on_machine SET start=NOW(), job_status_id=2 WHERE job_on_machine_id=?',$_[0]);	}
 
 sub job_on_machine_stop($) # job_on_machine_id
-{	return $dbc->update_query('UPDATE job_on_machine SET stop=NOW(), job_status_id=3 WHERE job_on_machine_id=?',$_[0]);	}
+{	return $dbc->update_query('UPDATE job_on_machine SET stop=NOW(), job_status_id=4 WHERE job_on_machine_id=?',$_[0]);	}
 
 sub job_on_machine_stop_all($) # machine_id
 {	return $dbc->update_query('UPDATE job_on_machine SET stop=NOW(), job_status_id=3 WHERE machine_id=?',$_[0]);	}

@@ -196,6 +196,8 @@ sub run_slave_server() {
 
 sub process_request {
     my ($sock,$ip_addr) = @_;
+    #Send Establish sync
+    print $sock "\n";
     eval {
 
         STDOUT->autoflush(1);

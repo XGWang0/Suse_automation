@@ -49,6 +49,7 @@ use constant {
     JS_PASSED => 3,
     JS_FAILED => 4,
     JS_CANCELED => 5,
+    JS_CONNECTING => 6,
 };
 
 require qaconfig;

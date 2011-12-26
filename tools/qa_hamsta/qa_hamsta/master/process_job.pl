@@ -88,7 +88,7 @@ sub process_job($) {
 
 	# Send the job to the slave
 	my $sock;
-	($sock, $log::loglevel) = &send_job($ip, $job_file);
+	($sock, $log::loglevel) = &send_job($ip, $job_file,$job_id);
 	if (not defined($sock)) {
 		&log(LOG_ERR,"PROCESS_JOB: process_job: Could not open socket. Job failed.");
 
@@ -207,8 +207,9 @@ sub process_job($) {
 
 	# Mark the job as finished
 	&TRANSACTION( 'job_on_machine', 'job' );
+	my $job_old_stauts = &job_get_status($job_id);
 	&job_on_machine_stop($job_on_machine_id);
-	&job_set_status($job_id,$status);
+	&job_set_status($job_id,$status) if $job_old_stauts == 2;
 	&TRANSACTION_END;
 
 	# send e-mail that the job has finished
@@ -271,9 +272,10 @@ sub process_job($) {
 #				   $sock is the opened socket for the slave response.
 #				   $loglevel is the debuglevel for the job specified in the
 #				   XML job description.
-sub send_job($$) {
+sub send_job($$$) {
 	my $ip = shift;
 	my $job_file = shift;
+	my $job_id = shift;
 
 # Open a socket to the slave
 	my $sock = IO::Socket::INET->new(
@@ -286,6 +288,11 @@ sub send_job($$) {
 		&log(LOG_NOTICE, "PROCESS_JOB: send_job $!");
 		return (undef, $loglevel);
 	}
+ 	#Establish ack , SUT will send a Establish sync (blank-space) once the accept() method succeed.
+ 	my $sync_rev=<$sock>;
+ 	&TRANSACTION( 'job_on_machine', 'job' );
+ 	&job_set_status($job_id,JS_RUNNING);
+ 	&TRANSACTION_END;
 
 # Pass the XML job description to the slave
 	open (FH,'<',"$job_file");
