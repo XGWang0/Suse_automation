@@ -84,6 +84,7 @@ echo %{version} > %{webdir}/.version
 %defattr(-, root, root)
 /usr/share/man/man8/qa_lib_tblib.8.gz
 %{webdir}
+%doc COPYING
 
 %changelog
 * Mon Nov 14 2011 - llipavsky@suse.cz

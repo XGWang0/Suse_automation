@@ -75,6 +75,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-, root, root)
 /usr/share/man/man8/qa_lib_virtauto.8.gz
 /usr/share/qa
+%doc COPYING
 
 %changelog
 

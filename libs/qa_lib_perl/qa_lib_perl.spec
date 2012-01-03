@@ -111,6 +111,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0755,root,root) %{libdir}/utils/*
 %{libdir}/*
 %{confdir}
+%doc COPYING
 
 %changelog
 * Mon Nov 14 2011 - llipavsky@suse.cz

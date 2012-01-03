@@ -138,6 +138,7 @@ ldconfig
 %else
 %attr(0755,root,root) /usr/share/qa/qa_internalapi/sh/change_password.sh
 %endif
+%doc COPYING
 
 %files perlbinding
 %defattr(-,root,root)

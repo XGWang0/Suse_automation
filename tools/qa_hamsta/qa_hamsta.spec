@@ -321,6 +321,7 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %{_sbindir}/rchamsta
 %{confdir}/00-hamsta-default
 %dir /var/lib/hamsta
+%doc COPYING
 
 %files master  
 %defattr(-, root, root)

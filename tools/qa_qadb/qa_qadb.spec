@@ -86,6 +86,7 @@ echo "=================== I M P O R T A N T ======================="
 %attr(755,root,root) %{destdir}/db/update_db.sh
 %config(noreplace) %{webdir}/myconnect.inc.php
 %attr(-,wwwrun,www) %{webdir}/output
+%doc COPYING
 
 %changelog
 * Mon Nov 14 2011 - llipavsky@suse.cz

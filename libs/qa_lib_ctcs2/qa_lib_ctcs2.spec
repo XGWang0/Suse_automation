@@ -151,6 +151,7 @@ mkdir -p $RPM_BUILD_ROOT/var/log/qa/ctcs2
 #/usr/lib/ctcs2/lib/perl/*
 #/usr/lib/ctcs2/bin/*
 %attr(755,root,root) /usr/lib/ctcs2/tools/report.py
+%doc COPYING
 
 %changelog
 * Tue Jun 29 2010 vmarsik@suse.cz

@@ -124,6 +124,7 @@ done
 %attr(0755,root,root) %{_sbindir}/rckotd_test
 %config(noreplace) %{kotddir}/test
 %config(noreplace) %{confdir}/25-kotd
+%doc COPYING
 
 %changelog
 

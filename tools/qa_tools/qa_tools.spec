@@ -140,6 +140,7 @@ echo "Your system has been hacked successfuly."
 %{fhsdir}/.vimrc
 %{profiledir}/*
 %{confdir}
+%doc COPYING
 
 %changelog
 

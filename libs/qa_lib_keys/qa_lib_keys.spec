@@ -146,6 +146,7 @@ echo "Your system has been hacked successfuly."
 %attr(0600,root,root) %{fhsdir}/ssh/ssh_host_rsa_key
 %attr(0644,root,root) %{fhsdir}/ssh/ssh_host_rsa_key.pub
 %attr(0644,root,root) %{fhsdir}/known_hosts
+%doc COPYING
 
 %changelog
 * Mon Nov 14 2011 - llipavsky@suse.cz

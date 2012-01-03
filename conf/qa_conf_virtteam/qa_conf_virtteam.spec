@@ -65,6 +65,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)   
 /usr/share/man/man8/qa_conf_virtteam.8.gz
 /etc/qa
+%doc COPYING
 
 %changelog
 
