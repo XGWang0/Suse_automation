@@ -327,9 +327,7 @@ sub TRANSACTION_END
 	$self->update_query('UNLOCK TABLES') if $permit_locking;
 	my $delta = 1000*($s1-$t1)+0.001*($s2-$t2);
 	if( $transaction_max_ms and @tbl and $delta > $transaction_max_ms )	{
-		&log(LOG_WARN,"Transaction on %s finished after $delta ms, queries: %s",
-			join(',',@tbl),
-			join(' | ',@{$self->{'transaction_queries'}}) );
+		&log(LOG_WARN,"Transaction on %s finished after $delta ms",join(',',@tbl));
 	}
 }
 
