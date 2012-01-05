@@ -101,6 +101,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 		<th>Name</th>
 		<th>Started</th>
 		<th>Stopped</th>
+		<th>Finish</th>
 	</tr>
 	</thead>
 
@@ -116,6 +117,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 			<td><?php echo($job->get_name()); ?></td>
 			<td><?php echo($job->get_started()); ?></td>
 			<td><?php echo($job->get_stopped()); ?></td>
+			<td><a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;finished_job=1" class="text-main">set</a></td>
 		</tr>
 	<?php endforeach; ?>
 
