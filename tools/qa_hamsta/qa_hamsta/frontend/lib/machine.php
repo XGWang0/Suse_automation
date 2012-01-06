@@ -1283,7 +1283,7 @@ class Machine {
 					if (($count++) > 3) {
 						fclose(Machine::$master_socket);
 						Machine::$master_socket = null;
-						$this->errmsg = "Giving up after 3 empty reads from master";
+						Machine::$errmsg = "Giving up after 3 empty reads from master";
 						return null;
 					}
 					sleep(1);
