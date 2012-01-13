@@ -48,10 +48,9 @@ binmode(STDOUT, ":utf8");
 
 my $debug = 0;
 
-my $cvs_id = '$Id: feed_hamsta.pl 1586 2006-12-22 11:39:17Z kwolf $';
-my $cvs_date = '$Date: 2006-12-22 12:39:17 +0100 (Fri, 22 Dec 2006) $';
-$cvs_id =~ /^\$[[:alpha:]]+: [^ ]+ ([^ ]+ [^ ]+ [^ ]+) ([^ ]+ )?[^ ]+ \$$/;
-my $version = $1;
+#correspond with version of hamsta.
+my $version = "2.3";
+
 
 #my $tmpfile = "/tmp/$progname.$$";
 #END { unlink($tmpfile); }
@@ -64,14 +63,32 @@ $progname version $version
 $progname [OPTIONS] <master>[:<port>]
 
 Options:
-    -c|--command <command>  send the given command to the master and print 
-                            the returned message
+    -t|--jobtype <jobtype>  set the job type(number):
+			    1 pre-define 
+			    2 qa_package
+			    3 autotest
+			    3 mult_machine
+			    4 command_line 
+			    5 reinstall
+    -n|--testname <testname> set test name for the job work with -t option 
+                            (only for pre-define,qa_package,autotest)
+                            seperate by ',' for qa_package&autotest job
+    -l|--listcases	    print the support test case name for each jobtype
+			    work with -t option
+    -r|--roles		    for mult-machine jobs , set roles number
+       --role_hosts	    Assign SUT to roles "r0:host1,host2;r1:host3,host4"
+       --role_commands      Assign command to roles "r_0#command0%r_1#command1"
+
+    -u|--re_url		    set resintall url
+       --re_sdk		    set reinstall sdk
+       --pattern	    set install pattern
+       --rpms		    set extra rpm packages
+
+    -x|--cmd		    set cmd for jobtype command_line
+    -m|--mail		    set emaill address for job result
     -p|--print-active       print all active machines
-    -j|--job <filename>     send a job to the client specified by the -h or
-                            -g option (<filename> is not local but on the
-                            master)
-    -h|--host <ip>          set the target host for -j
-    -g|--group <name>       set the target host group for -j
+    -h|--host <ip>          set the target SUT for test
+    -g|--group <name>       set the target host group for test
     -v|--version            print program version
     -d|--debug <level>      set debugging level (defaults to $debug)
        --help               print this help message
@@ -88,6 +105,24 @@ my $opt_job             = "";
 my $opt_host            = "";
 my $opt_group           = "";
 
+#Job Type : 1)pre-define ; 2)qa_package ; 3)mult_machine ;4)command_line ;5)reinstall
+my $opt_jobtype		= 0;
+my $opt_testname 	= "";
+my $opt_listcases	= 0;
+#option for mult-machine job
+my $opt_roles		= 0;
+my $opt_role_hosts	= "";
+my $opt_role_commands   = "";
+#option for re-install job
+my $opt_re_url		= "";
+my $opt_re_sdk		= "";
+my $opt_re_pattern	= "";
+my $opt_re_rpms		= "";
+#option for cmd 
+my $opt_cmd		= "";
+my $opt_mail		= "";
+
+
 # parse command line options
 unless (GetOptions(
            'help'               =>  \$opt_help,
@@ -99,6 +134,19 @@ unless (GetOptions(
            'host|h=s'           =>  \$opt_host,
            'group|g=s'          =>  \$opt_group,
            'print-active|p'     =>  \$opt_print_active,
+	   'jobtype|t=i'	=>  \$opt_jobtype,
+	   'testname|n=s'	=>  \$opt_testname,
+	   'listcases|l'	=>  \$opt_listcases,
+	   'rolse|r=i'		=>  \$opt_roles,
+	   'role_hosts=s'	=>  \$opt_role_hosts,
+	   'role_commands'	=>  \$opt_role_commands,
+	   're_url|u=s'		=>  \$opt_re_url,
+	   're_sdk=s'		=>  \$opt_re_sdk,
+	   'pattern=s'		=>  \$opt_re_pattern,
+	   'rpms=s'		=>  \$opt_re_rpms,
+	   'cmd|x=s'		=>  \$opt_cmd,
+	   'mail|m=s'		=>  \$opt_mail,
+	   
           )) {
   &usage ();
   exit 1;
@@ -114,6 +162,8 @@ if ($opt_help) {
   exit 0;
 }
 
+
+
 if ($#ARGV != 0) {
   print "Please specify the master to connect to.\n\n";
   &usage ();
@@ -126,7 +176,7 @@ my $opt_master_port;
 ($opt_master, $opt_master_port) = split(/:/, $ARGV[0]);
 $opt_master_port = 18431 unless $opt_master_port;
 
-print "Connecting to master $opt_master on $opt_master_port\n";
+print "Connecting to master $opt_master on $opt_master_port\n\n";
     
 my $sock;
 eval {
@@ -144,48 +194,125 @@ if ($@ || !$sock) {
 # Ignore the welcome message and wait for the prompt
 &send_command('');
 
-#catch the jop id
 my $job_id="";
-if ($opt_command) {
-    $job_id=&send_command($opt_command."\n");
-    print $job_id;
-
-    # if -w then wait for the job result
-    if($opt_w) {
-
-	exit 0 unless($job_id=~/internal id/);
-
-	$job_id =~ s/.*internal id:.//;	
-	$job_id =~ s/[^d]$//g;
-	my $url="http://$opt_master/hamsta/index.php?go=job_details&id=$job_id";
-	my $result_job="";
-	while($result_job eq "running" or $result_job eq "queued" or $result_job eq "") {
-		my $content = get $url;
-		my @content = split /\n/,$content;
-		for(my $i=0;$i<@content;$i++){
-			
-			if($content[$i] =~ />Status</){
-				$i++;
-				$result_job = $content[$i];
-				$result_job =~ s/.*<td>//;
-				$result_job =~ s/<\/td>.*//;
-				#print $result_job,"\n";
-				last;
-			}
-		}
-		sleep 3;
-	}
-	exit 0 if($result_job=~"passed");
-	exit 1 if($result_job!~"passed");
-	}
-}
 
 if ($opt_print_active) {
     print &send_command("print active\n");
+    exit 0;
 }
 
+#send cmd directly 
+if ($opt_command){
+  (print "require host name/ip \n" and exit 1) unless($opt_host);  
+  $job_id=&send_command($opt_command."\n");
+  print $job_id;
+}
+
+if ($opt_cmd){
+  $opt_cmd =~ s/ /#/g;
+  (print "require host name/ip \n" and exit 1) unless($opt_host);
+  my $cmd = "send one line cmd ip $opt_host $opt_cmd $opt_mail";
+  $job_id=&send_command($cmd."\n");
+  print $job_id; 
+  exit 0;
+}
+
+
+
+#check the jobtype
+
+if (! $opt_jobtype) {
+  print "please specify a jobtype\n";
+  print "more help use --help\n";
+  exit 1;
+}  
+
+#list testcases 
+if ($opt_listcases) {
+  my $command="list jobtype $opt_jobtype \n";
+  my $cases=&send_command("$command");
+  print $cases;
+  exit 0;
+}
+
+
+
+if($opt_jobtype==1){
+  #send pre_define job
+  (print "require testcase name \n" and exit 1) unless($opt_testname);  
+  (print "require host name/ip \n" and exit 1) unless($opt_host);  
+  my $cmd = "send qa_predefine_job $opt_host $opt_testname $opt_mail";
+  $job_id=&send_command($cmd."\n");
+  print $job_id;
+
+}elsif($opt_jobtype==2){
+  #send QA package job
+  (print "require testcase name \n" and exit 1) unless($opt_testname);  
+  (print "require host name/ip \n" and exit 1) unless($opt_host);  
+  $opt_testname =~ s/,/#/g;
+  my $cmd = "send qa_package_job ip $opt_host $opt_testname $opt_mail ";
+  $job_id=&send_command($cmd."\n");
+  print $job_id;
+
+}elsif($opt_jobtype==3){
+  #send Autotest job
+  (print "require testcase name \n" and exit 1) unless($opt_testname);  
+  (print "require host name/ip \n" and exit 1) unless($opt_host);  
+  $opt_testname =~ s/,/#/g;
+  my $cmd = "send autotest_job ip $opt_host $opt_testname $opt_mail ";
+  $job_id=&send_command($cmd."\n");
+  print $job_id;
+
+}elsif($opt_jobtype==4){
+  #send mult-machine job
+
+}elsif($opt_jobtype==5){
+  #send reinstall job
+  (print "require host name/ip \n" and exit 1) unless($opt_host);  
+  (print "require install REPO \n" and exit 1) unless($opt_re_url);  
+  my $installopt="-p#$opt_re_url#";
+  $installopt.="-s#$opt_re_sdk#" if($opt_re_sdk);
+  $installopt.="-r#$opt_re_rpms#" if($opt_re_rpms);
+  $installopt.="-t#$opt_re_pattern#" if($opt_re_pattern);
+  my $cmd = "send reinstall ip $opt_host $installopt $opt_mail";
+  $job_id=&send_command($cmd."\n");
+  print $job_id;
+
+
+}else{
+
+print "jobtype not supporte\n";
+
+}
+
+# if -w then wait for the job result
+if($opt_w) {
+  exit 0 unless($job_id=~/internal id/);
+  $job_id =~ s/.*internal id:.//s;	
+  $job_id =~ s/[^d]$//g;
+  my $url="http://$opt_master/hamsta/index.php?go=job_details&id=$job_id";
+  my $result_job="";
+  while($result_job eq "running" or $result_job eq "queued" or $result_job eq "" or $result_job eq "connecting") {
+    my $content = get $url;
+    my @content = split /\n/,$content;
+    for(my $i=0;$i<@content;$i++){
+      if($content[$i] =~ />Status</){
+        $i++;
+        $result_job = $content[$i];
+        $result_job =~ s/.*<td>//;
+        $result_job =~ s/<\/td>.*//;
+        last;
+      }
+    }
+    sleep 5;
+  }
+    exit 0 if($result_job=~"passed");
+    exit 1 if($result_job!~"passed");
+}
+
+
 if ($opt_job) {
-    if ($opt_host && $opt_group) {
+    if ($opt_host and $opt_group) {
         print "Please specify either a host or a group of hosts, not both.\n\n";
         exit 1;
     }
@@ -233,7 +360,7 @@ sub send_command() {
             $line = "";
         }
 
-        print "Recv " if ($_ eq "\n") && ($debug > 1);
+        print "Recv " if ($_ eq "\n") and ($debug > 1);
         
         last if ($line =~ /\$>/);
     }
