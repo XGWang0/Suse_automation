@@ -39,6 +39,8 @@ use Slave::Job::Logger;
 use Slave::Job::Notification;
 use Slave::functions;
 
+use Slave::functions qw(@file_array);
+
 BEGIN { push @INC, '.', '/usr/share/hamsta', '/usr/share/qa/lib'; }
 use log;
 
@@ -111,6 +113,10 @@ sub destroy {
     # Clean up /etc/motd
     if (defined($self->{'motd_id'})) {
         $self->clear_motd();
+    }
+
+    foreach my $file (@file_array){
+        unlink $file if -f $file;
     }
     
     return $self->get_xml_log();

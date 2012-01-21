@@ -83,4 +83,118 @@
 			print("$where : ");
 		printf("%f us<br/>\n",1000000*($now-$prof_begin));
 	}
+
+# get random string, <len> is the length of the string
+function genRandomString($len)
+{
+	$chars = array(
+			"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",
+			"l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v",
+			"w", "x", "y", "z", "A", "B", "C", "D", "E", "F", "G",
+			"H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R",
+			"S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2",
+			"3", "4", "5", "6", "7", "8", "9"
+		      );
+	$charsLen = count($chars) - 1;
+
+	shuffle($chars);
+
+	$output = "";
+	for ($i=0; $i<$len; $i++)
+	{
+		$output .= $chars[mt_rand(0, $charsLen)];
+	}
+
+	return (string)$output;
+}
+
+
+
+# solve the user input command lines
+function trim_parameter($parameter)
+{
+	$parameterSplit = explode("\n", $parameter);
+	$parameterContent = "";
+
+	$firstline = true;
+
+	foreach($parameterSplit as $singleParameter)
+	{
+		// delete the empty lines
+		$lineContent = trim($singleParameter, "\r\n\t ");
+		if(empty($lineContent))
+			continue;
+
+		$parameterContent .= $lineContent . ',';
+	}
+
+	substr($parameterContent, 0, -1);
+
+	return (string)$parameterContent;
+}
+
+function get_parameter_table($hash, $prefix)
+{
+	$table_data = "<table class=\"sort text-main\"\">\n";
+
+	foreach($hash as $param)
+	{
+		$type = trim($param['type']);
+		$name = trim($param['name']);
+		$label = trim($param['label']);
+		$default = trim($param['default']);
+
+		$content = $param['content'];
+		$optlist = $param['option'];
+
+		# show all of the input form
+		if($type == "string") # for string parameter
+		{
+			$table_data .= "<tr>\n";
+			$table_data .= "<th valign=\"top\">$label:</th>\n";
+			$varname = "$prefix" . "$name";
+
+			$table_data .= "<td><input type=\"text\" size=\"20\" name=\"$varname\" value=\"$default\"></td>\n";
+			$table_data .= "</tr>\n";
+		}
+		elseif($type == "enum") # for enumation parameter
+		{
+			$table_data .= "<tr>\n";
+			$table_data .= "<th valign=\"top\">$label: </th>\n";
+			$varname = "$prefix" . "$name";
+			$table_data .= "<td><select name=\"$varname\">\n";
+
+			foreach ($optlist as $option)
+			{
+				$optlabel = $option['label'];
+				$optvalue = $option['value'];
+
+				if( trim($optlabel) == trim($default) )
+					$table_data .= "<option value=\"$optvalue\" selected>$optlabel</option>\n";
+				else
+					$table_data .= "<option value=\"$optvalue\">$optlabel</option>\n";
+
+			}
+
+			$table_data .= "</td></tr>\n";
+		}
+		elseif($type == "textarea")  # for textarea parameter
+		{
+			$table_data .= "<tr>\n";
+			$table_data .= "<th valign=\"top\">$label: </th>\n";
+			$content = preg_replace('/\t/', ' ', $content);
+			$content = preg_replace('/ (?= )/', '', trim($content));
+			$varname = "$prefix" . "$name";
+			$table_data .= "<td><textarea cols=\"20\" rows=\"5\"  name=\"$varname\">$content</textarea></td>\n";
+			$table_data .= "</tr>\n";
+		}
+		else    # you can define other type of parameters here
+			continue;
+
+	}
+	$table_data .=  "</table>\n";
+
+	return $table_data;
+}
+
 ?>

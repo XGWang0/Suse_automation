@@ -44,10 +44,8 @@ preserve_request($vars_preserve);
 print $formdata; 
 
 ?>
-<br/><br/>
-<input type="submit" name="submit" value="Start multi-machine job"/>
-</form>
 
+</form>
 <?php
 
 function preserve_request($vars)

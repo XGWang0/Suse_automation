@@ -75,6 +75,9 @@ else if( request_str('submit') )
 	$role_map=array();
 	
 	# form HTML
+
+	# left div
+	$formdata .= "<div class=\"text-main\" style=\"float: left; width: 35%\">";
 	$formdata .= "<div class=\"text-main\"> Job <spam class=\"text-medium bold\" title=\"$test_description\">$test_name</spam> will be run on below SUT.</div>";
 	
 	foreach( $roles as $id=>$vals )
@@ -137,6 +140,80 @@ else if( request_str('submit') )
 				)." machine(s).";
 	}
 
+	$formdata .= "<div style=\"margin-left: 20px; margin-top: 50px;\">";
+	$formdata .= "<input type=\"submit\" name=\"submit\" align=\"right\" value=\"Start multi-machine job\"/>";
+	$formdata .= "</div>";
+
+	$formdata .= '</div>'; # close of left div
+
+	if(isset($xml->parameters->parameter)){
+
+		$parameter_hash = array();
+
+		# right div
+		$formdata .= "<div class=\"text-main\" style=\"float: left; width: 45%; margin-left: 10px; margin-top: 0px;\">";
+		$formdata .= "<div class=\"text-main\">Edit <spam class=\"text-medium bold\">Additial Parameters</spam> in the below form.</div>";
+		$formdata .= "<div class=inputblock>\n<h2>for all of SUT</h2>\n</div>";
+
+		# div of table
+		$formdata .= "<div style=\"margin-top: 10px; padding: 10px 10px 20px 5px; border: 1px solid #cdcdcd\">";
+		//$formdata .= "<table class=\"sort text-main\"\">";
+
+		$param_map = array();
+		$param_id = 0;
+		foreach( $xml->parameters->parameter as $parameter )
+		{
+			$paramname = trim($parameter['name']);
+			$paramtype = trim($parameter['type']);
+			$paramdeft = trim($parameter['default']);
+			$paramlabl = trim($parameter['label']);
+
+			//print "name ==>> $paramname type ==>> $paramtype default ==>> $paramdeft label ==>> $paramlabl <br />";
+
+			if($paramname == "" || $paramtype == "")
+				continue;
+			// parameter name must be composed by number, letter or '_'"
+			if(!preg_match( "/^[0-9a-zA-Z_]+$/", $paramname))
+				continue;
+
+			// ensure one name can only be defined once
+			if(isset($parameter_hash[$paramname]))
+				continue;
+			else
+				$parameter_hash[$paramname] = "";
+
+			$optlist = array();
+			$opt_id = 0;
+			$count = count($parameter->option);
+			$options = $parameter->option;
+			for($i=0; $i<$count; $i++)
+			{
+				$opt = $options[$i];
+				$optvalue = trim($opt['value']);
+				$optlabel = $opt[$i];
+
+				$optlist[$opt_id++] = array('value'=>$optvalue, 'label'=>$optlabel);
+			}
+
+			if($opt_id == 0)
+				$paramcont = $parameter;
+
+			if($paramlabl == "")
+				$paramlabl = $paramname;
+
+			$param_map[$param_id++] = array( 'name'=>$paramname, 'type'=>$paramtype,
+					'default'=>$paramdeft, 'label'=>$paramlabl, 'content'=>$paramcont,
+					'option'=>$optlist );
+		}
+
+		// get the parameter table
+		$parameter_table = get_parameter_table($param_map, "");
+		$formdata .= $parameter_table;
+
+		$formdata .= '</div></div>';
+		$formdata .= "<div style=\"clear: left;\">&nbsp;</div>\n";
+	}
+
 	# no submit until all OK
 	if( count($errors) != 0 || !request_str('submit') )
 		$send=0;
@@ -146,9 +223,51 @@ else if( request_str('submit') )
 		# modify the XML
 		$xml->config->mail = $email;
 		roles_assign( $xml, $role_map );
+		
+		if(isset($xml->parameters->parameter))
+		{
+			$paracount =  count($xml->parameters->parameter);
+			// get all of the parameters
+			foreach( $xml->parameters->parameter as $parameter )
+			{
+				/* old code for deleting no need attribute, but I don't wanna delete it now, just keep them
+				$i = 0;
+				foreach($parameter->attributes() as $key=>$val)
+					$atthash[$i++] = $key;
+				
+				foreach($atthash as $att)
+				{
+					if($att == "name")
+						continue;
+					unset($parameter[$att]);
+				}
+				*/
 
-		# write the file
+				// remove all of the old child nodes
+				$parachild = dom_import_simplexml($parameter);
+				while ($parachild->firstChild) {
+					$parachild->removeChild($parachild->firstChild);
+				}				 
+				
+				// add value child node to parameter
+				$paraname = trim($parameter['name']);
+				$paravalue = $_POST[$paraname];
+				if(trim($parameter['type']) == "textarea")
+				{
+					$paravalue = trim_parameter($paravalue);
+
+				}
+
+				$node = $parachild->ownerDocument;
+				$parachild->appendChild($node->createCDATASection($paravalue));
+			}
+		}
+
+		# write the file, modify the file name, because the XML is modified, if not, maybe it will be override by other job
 		$path = '/tmp/' . basename($filename);
+		$path = substr($path, 0, -4);
+		$path .= "_" . genRandomString(10) . ".xml";
+
 		$xml->asXML($path);
 
 		# send job

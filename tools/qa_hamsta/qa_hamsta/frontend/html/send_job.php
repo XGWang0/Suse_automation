@@ -45,6 +45,20 @@
 	} else {
 
 ?>
+
+<script>
+
+$(document).ready(function(){
+	for(i=0; i<99; i++)
+		$('#div_' + i).hide();
+		});
+
+function showParamConts(n)
+{
+	$('#div_' + n).slideToggle("slow");
+}
+</script>
+
 <span class="text-main">(<span class="required">*</span>) required field(s)</span>
 <h2 class="text-medium text-blue bold">Pre-defined Jobs</h2>
 <p class="text-main">
@@ -63,14 +77,14 @@ Pre-defined jobs are configuration tasks or test runs that have been pre-defined
     endforeach;
 ?>
 </p>
+<div id="predifined" class="text-main">
 <table id="jobs" class="text-main">
-    <thead>
 	<tr>
 	    <th>&nbsp;</th>
 	    <th>Job XML</th>
 	    <th>Controls</th>
 	</tr>
-    </thead>
+    
     <?php
 # see XML_DIR and XML_WEB_DIR in config.php
     $dir=XML_DIR;
@@ -78,31 +92,101 @@ Pre-defined jobs are configuration tasks or test runs that have been pre-defined
     {
         if($handle = opendir($dir))
         {
+	    $sortcount = 0;  # at first, I wanna use the XML file name, but failed, I have to sort the XML and use the sort number.
             while(($file = readdir($handle)) !== false)
             {
+	    	$param_map = array();
                 if($file != "." && $file != ".." && substr($file,-4)=='.xml')
                 {
+					$filebasename = substr($file, 0, -4);
+
 					$jobdoc = new DOMDocument();
 					$jobdoc->load( "$dir/$file" );
 					$jobxmlnodes = $jobdoc->getElementsByTagName( "job" );
+
 					foreach ( $jobxmlnodes as $xmlnode ) {
 						$name = $xmlnode->getElementsByTagName( "name" );
 						$jobname = $name->item(0)->nodeValue;
 						$description = $xmlnode->getElementsByTagName( "description" );
 						$jobdescription = $description->item(0)->nodeValue;
 					}
+					
+					$paramnodes = $jobdoc->getElementsByTagName( "parameter" );
+					$param_id = 0;
+					foreach ( $paramnodes as $parameter )
+					{
+						$paramname = trim($parameter->getAttribute('name'));
+						$paramtype = trim($parameter->getAttribute('type'));
+						$paramdeft = trim($parameter->getAttribute('default'));
+						$paramlabl = trim($parameter->getAttribute('label'));
+
+						if($paramname == "" || $paramtype == "")
+							continue;
+
+						// parameter name must be composed by number, letter or '_'"
+						if(!preg_match( "/^[0-9a-zA-Z_]+$/", $paramname))
+							continue;
+						
+						$optnodes = $parameter->getElementsByTagName('option');
+						
+						$optlist = array();
+						$opt_id = 0;
+						foreach ($optnodes as $opt)
+						{
+							$optvalue = trim($opt->getAttribute('value'));
+							$optlabel = $opt->nodeValue;
+
+							$optlist[$opt_id++] = array('value'=>$optvalue, 'label'=>$optlabel);
+						}
+
+						if($opt_id == 0)
+							$paramcont = $parameter->nodeValue;
+
+						if($paramlabl == "")
+							$paramlabl = $paramname;
+
+						$param_map[$param_id++] = array( 'name'=>$paramname, 'type'=>$paramtype,
+							'default'=>$paramdeft, 'label'=>$paramlabl, 'content'=>$paramcont,
+							'option'=>$optlist );
+					}
+
+					$count = count($param_map);
+					
                     echo "    <tr class=\"file_list\">\n";
-		    echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"pre-defined job:$file\">\n";
+		    //echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"pre-defined job:$file\" onclick=\"showParamConts('$filebasename')\">\n";
+		    echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"pre-defined job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
                     echo "        <td title=\"$jobdescription\">$jobname</td>\n";
                     echo "        <td class=\"viewXml\"><a href=\"".XML_WEB_DIR."/$file\" target=\"_blank\" title=\"view $file\">(view)</a></td>\n";
-                    echo "    </tr>\n";
+                    echo "    </tr class=\"file_list\">\n";
+                    echo "    <tr>\n";
+		    echo "        <td colspan=\"3\">\n";
+		    if( $count > 0 )
+		    {
+
+		    	echo "        <div style=\"margin-left: 40px; margin-top: 2px; padding: 2px 2px 10px 2px; border: 1px solid #cdcdcd\" id=\"div_$sortcount\">\n";
+			echo "            <div class=\"text-main\" style=\"padding: 5px 5px 5px 5px\"><b>Edit parameters in the below form.</b></div>\n";
+			
+			// get the parameter table
+			$prefix_name = $filebasename . "_";
+			$parameter_table = get_parameter_table($param_map, $prefix_name);
+
+			echo $parameter_table;
+			echo "        </div>\n";
+		    }
+
+		    echo "        </td>\n";
+		    echo "    </tr>\n";
+
+		    $sortcount++;
                 }
             }
             closedir($handle);
         }
     }
+
     ?>
 </table>
+</div>
 <br/>
 <span class="text-main"><b>Email address: </b></span>
 <input type="text" name="mailto" title="optional: send mail if address is given"/>
@@ -112,10 +196,8 @@ Pre-defined jobs are configuration tasks or test runs that have been pre-defined
 <input type="submit" name="submit" value="Send pre-defined job(s)">
 </form>
 <script type="text/javascript">
-<!--
-var TSort_Data = new Array ('jobs', '','s','' );
-tsRegister();
--->
+//var TSort_Data = new Array ('jobs', '','','' );
+//tsRegister();
 </script>
 
 

@@ -38,6 +38,7 @@
     $resend_job=request_str("xml_file_name");
     $filenames =request_array("filename");
 
+
 	if (request_str("submit")) {
 
 		$email = request_str("mailto");
@@ -47,7 +48,48 @@
 			$jobbasename = basename($jobfile);
 			system("cp $jobfile /tmp/");
 			system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' /tmp/$jobbasename");
-			array_push ($jobfilenames, "/tmp/$jobbasename");
+				
+			$filebasename = substr($jobbasename, 0, -4);
+			$xml = simplexml_load_file( "/tmp/$jobbasename" );
+
+			if(isset($xml->parameters->parameter))
+			{
+				$paracount = count($xml->parameters->parameter);
+
+				// get all of the parameters
+				foreach( $xml->parameters->parameter as $parameter )
+				{
+					// remove all of the old child nodes
+					$parachild = dom_import_simplexml($parameter);
+					while ($parachild->firstChild) {
+						$parachild->removeChild($parachild->firstChild);
+					}
+
+					// add value child node to parameter
+					$paraname = trim($parameter['name']);
+					$paratype = trim($parameter['type']);
+
+					if($paraname == "" || $paratype == "")
+						continue;
+
+					$paravalue = request_str($filebasename . "_" . $paraname);
+					if(trim($parameter['type']) == "textarea")
+					{
+						$paravalue = trim_parameter($paravalue);
+					}
+
+					$node = $parachild->ownerDocument;
+					$parachild->appendChild($node->createCDATASection($paravalue));
+				}
+			}
+			
+			$path = "/tmp/" . $filebasename . "_" . genRandomString(10) . ".xml";
+			$xml->asXML($path);
+
+			if(file_exists("/tmp/$jobbasename"))
+				unlink("/tmp/$jobbasename");
+
+			array_push ($jobfilenames, $path);
 		}
 
 		foreach ($machines as $machine) {
@@ -64,4 +106,5 @@
 		}
 	}
     $html_title = "Send job";
+
 ?>

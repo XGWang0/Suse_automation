@@ -45,6 +45,7 @@ BEGIN {
 	%EXPORT_TAGS	= ();
 	@EXPORT_OK	= qw(
 		@force_array
+		@file_array
 	);
 }
 
@@ -102,8 +103,10 @@ sub get_process_tree	# $pid
 	return @ret;
 }
 
-our @force_array = qw(rpm attachment worker logger monitor role machine);
+our @force_array = qw(rpm attachment worker logger monitor role machine parameter);
 our %force_array = map {$_=>1} @force_array;
+our @file_array = ();
+
 
 # get_slave_ip() : string
 # Returns the IP address of this slave
@@ -153,7 +156,13 @@ sub read_xml($$) # filename, map_roles
 	}
 
 	if( $map_roles )
-	{	$role_id = &get_role_id( $ret );	}
+	{	
+		$role_id = &get_role_id( $ret );
+		&get_parameters($ret)
+	}
+	
+	# do not use any more
+	delete($ret->{'parameters'});
 
 	$ret = &process_xml( $ret, $role_id, 'job' );
 	return $ret;
@@ -183,6 +192,36 @@ sub get_role_id($) # XML_tree
 		$ENV{'ROLE_'.$role_id.'_NAME'} = join(',', @role_dns);
 	}
 	return $my_role;
+}
+
+sub get_parameters($)
+{
+	my $xml = shift;
+	
+	foreach my $parameter (@{$xml->{'parameters'}->{'parameter'}})
+	{
+		my $param_name = $parameter->{'name'};
+		my $param_file_flag = $parameter->{'file'};
+
+		if( defined($param_file_flag) &&( ($param_file_flag == 1) || ($param_file_flag == "true")) )
+		{
+			my ($fh, $file_name) = File::Temp::tempfile();
+			if($fh)
+			{
+				print $fh, $parameter->{'content'};
+				close($fh);
+				
+				push(@file_array, $file_name);
+			}
+			else{
+				&log(LOG_ERROR, "Can not open tempfile for $param_name");
+			}
+		}
+		else{
+			$ENV{'param_' . $param_name} = $parameter->{'content'};
+		}
+	}
+
 }
 
 # Omits elements that are assigned to another role_id.
