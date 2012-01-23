@@ -34,6 +34,7 @@ use strict;
 use warnings;
 use Getopt::Std;
 use qaconfig;
+use install_functions;
 
 our (%opts,$source,$ay_xml,$profile_url_base);
 $Getopt::Std::STANDARD_HELP_VERSION=1;
@@ -75,7 +76,6 @@ our $smt_server = $opts{'S'};
 our $ncc_email = $opts{'R'};
 our $ncc_code = $opts{'C'};
 
-require "install_functions.pl";
 
 if(($smt_server and $ncc_email and $ncc_code) or ($ncc_email and !$ncc_code) or (!$ncc_email and $ncc_code))
 {
@@ -117,11 +117,11 @@ if ( $userprofile ){
     &command( 'mount '.$qaconf{install_profile_nfs_server}.":".$qaconf{install_profile_nfs_dir}." $mountpoint -o nolock" );
     
     my $to_libsata = undef;&has_libsata( $to_type, $to_version, $to_subversion, $to_arch );
-    my $patterns = &get_patterns( $to_type, $to_version, $to_subversion );
-    my $packages = &get_packages( $to_type, $to_version, $to_subversion, $to_arch, $additionalrpms, $patterns );
-    my $profile = &get_profile( $to_type, $to_version, $to_subversion );
-    my $modfile = &make_modfile( $source, $url_sdk, $to_type, $to_version, $to_subversion, $to_libsata, $patterns, $packages, $defaultboot, $install_update, undef, $virttype);
-    $ay_xml = &install_profile_newvm( $profile, $modfile );
+    my $patterns = &get_patterns( $to_type, $to_version, $to_subversion, $additionalpatterns );
+    my $packages = &get_packages( $to_type, $to_version, $to_subversion, $to_arch, $additionalrpms, $patterns, undef, undef );
+    my $profile = &get_profile( $to_type, $to_version, $to_subversion, $profiledir );
+    my $modfile = &make_modfile( $source, $url_sdk, $to_type, $to_version, $to_subversion, $to_libsata, $patterns, $packages, $defaultboot, $install_update, undef, $virttype, $arch, undef, undef, undef, undef, undef, $smt_server, $ncc_email, $ncc_code, $setupfordesktoptest, undef, undef, undef);
+    $ay_xml = &install_profile_newvm( $profile, $modfile, $mountpoint, $tooldir );
     &command( "umount $mountpoint" );
 }
 print "***\nResult profile is $ay_xml\n***\n";
