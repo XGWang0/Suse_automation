@@ -194,7 +194,7 @@ sub get_patterns ### Used by newvm only
 sub get_packages
 {
 	my ($to_type,$to_version,$to_subversion,$to_arch,$additionalrpms,$patterns,$virtHostType,$setupfordesktoptest) = @_;
-	my $ret='qa_tools,qa_hamsta,autoyast2,vim,mc,iputils,less,screen,lsof,pciutils,tcpdump,telnet,zip,yast2-runlevel,SuSEfirewall2,curl,wget,perl,openssh';
+	my $ret='qa_tools,qa_keys,qa_hamsta,autoyast2,vim,mc,iputils,less,screen,lsof,pciutils,tcpdump,telnet,zip,yast2-runlevel,SuSEfirewall2,curl,wget,perl,openssh';
 	if( $to_type eq 'opensuse' or $to_type eq 'sled') {
 		$ret .= ',nfs-client';	
 	} else {	
