@@ -23,6 +23,36 @@
 # ****************************************************************************
 #
 
+package install_functions;
+use strict;
+use warnings;
+use qaconfig;
+
+BEGIN	{
+	push @INC, '/usr/share/qa/lib', '.';
+	use Exporter();
+	our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
+	@ISA	= qw(Exporter);
+	@EXPORT	= qw(
+		&stats
+		&parse_source_url
+		&command
+		&patch_file
+		&has_libsata
+		&disk_stats
+		&read_partitions
+		&get_patterns
+		&get_packages
+		&get_profile
+		&get_buildservice_repo
+		&install_profile
+		&install_profile_newvm
+		&make_modfile
+	);
+	%EXPORT_TAGS	= ();
+	@EXPORT_OK	= ();
+}
+our @EXPORT_OK;
 
 use File::Basename;
 
@@ -148,7 +178,7 @@ sub read_partitions
 
 sub get_patterns ### Used by newvm only
 {
-	my ($to_type,$to_version,$to_subversion) = @_;
+	my ($to_type,$to_version,$to_subversion,$additionalpatterns) = @_;
 	my $ret = "base";
 	$ret .= ",$additionalpatterns" if (defined $additionalpatterns);
 	if($to_type eq 'sled') {
@@ -163,14 +193,14 @@ sub get_patterns ### Used by newvm only
 
 sub get_packages
 {
-	my ($to_type,$to_version,$to_subversion,$to_arch,$additionalrpms,$patterns) = @_;
+	my ($to_type,$to_version,$to_subversion,$to_arch,$additionalrpms,$patterns,$virtHostType,$setupfordesktoptest) = @_;
 	my $ret='qa_tools,qa_hamsta,autoyast2,vim,mc,iputils,less,screen,lsof,pciutils,tcpdump,telnet,zip,yast2-runlevel,SuSEfirewall2,curl,wget,perl,openssh';
 	if( $to_type eq 'opensuse' or $to_type eq 'sled') {
 		$ret .= ',nfs-client';	
 	} else {	
 		$ret .= ',nfs-utils';	
 	}
-	if(defined ($virtHostType) and $virtHostType ne "") {
+	if( $virtHostType )	{
 		$ret .= ",libvirt,libvirt-python,xen-libs,vm-install,virt-manager,virt-viewer";
 		$ret .= ($virtHostType eq 'xen') ? ",xen,xen-tools,kernel-xen" : ",kvm"; 
 	}	
@@ -183,7 +213,7 @@ sub get_packages
 
 sub get_profile
 {
-	my ($to_type,$to_version,$to_subversion) = @_;
+	my ($to_type,$to_version,$to_subversion,$profiledir) = @_;
 	return "$profiledir/sles9.xml" if $to_version<10;
 	return "$profiledir/default.xml";
 }
@@ -218,7 +248,7 @@ sub get_buildservice_repo
 # returns URL to the result
 sub install_profile
 {
-	my ($profile,$modfile, $suffix) = @_;  # suffix is optional
+	my ($profile,$modfile, $suffix, $mountpoint, $hostname, $tooldir) = @_;  # suffix is optional
 	my $xml_out = "$mountpoint/autoinst/autoinst_$hostname.xml";
 	$xml_out = "$mountpoint/autoinst/autoinst_$suffix.xml" if $suffix;
 	&command( "$tooldir/modify_xml.pl -m '$modfile' '$profile' '$xml_out'" );
@@ -227,7 +257,7 @@ sub install_profile
 
 sub install_profile_newvm
 {
-	my ($profile,$modfile) = @_;
+	my ($profile,$modfile,$mountpoint,$tooldir) = @_;
 	my $hostname = `hostname`;
 	chomp $hostname;
 	my $xml_out = "$mountpoint/autoinst/autoinst_${hostname}_vm_$$.xml";
@@ -242,14 +272,14 @@ sub install_profile_newvm
 # creates a modification file for AutoYaST
 sub make_modfile
 {
-	my ($source,$url_addon,$new_type,$new_version,$new_subversion,$new_libsata,$patterns,$packages,$defaultboot,$install_update,$virtHostType,$newvm)=@_;
+	my ($source,$url_addon,$new_type,$new_version,$new_subversion,$new_libsata,$patterns,$packages,$defaultboot,$install_update,$virtHostType,$newvm,$arch,$root_pt,$opensuse_update,$upgrade,$repartitiondisk,$rootfstype,$smt_server,$ncc_email,$ncc_code,$setupfordesktoptest,$hostname,$domainname,$setup_bridge)=@_;
 # put it all into one function,
 # would return (undef,undef) if the partition does not exist
-	my ($rootid,$rootnum,$swapid,$swapnum,$bootid,$bootnum,$bootsize,$abuildid,$abuildnum,$abuildsize,$swapsize) = &read_partitions($new_type,$new_version,$new_subversion,$new_libsata,$arch,$root_pt)  unless (defined($virtHostType) and $virtHostType ne "") or ($newvm);
+	my ($rootid,$rootnum,$swapid,$swapnum,$bootid,$bootnum,$bootsize,$abuildid,$abuildnum,$abuildsize,$swapsize) = &read_partitions($new_type,$new_version,$new_subversion,$new_libsata,$arch,$root_pt)  unless $virtHostType or $newvm;
 	my $pdversion = &get_buildservice_repo($new_type, $new_version, $new_subversion);
 	my $bsurl = "";
 	$bsurl = $pdversion if $newvm;
-	my %usls=();
+	my %urls=();
 	my $QA_repo=$qaconf{install_qa_repository};
 	my $testusr = $qaconf{install_testuser_login};
 	my $testpass = $qaconf{install_testuser_password};
@@ -311,17 +341,17 @@ EOF
 	</add_on_products>
 	</add-on>
 EOF
-	unless ($opts{'U'}) { #partitioning unless upgrade
+	unless ($upgrade) { #partitioning unless upgrade
 		## non-VH, custom partitions
 		unless ($virtHostType or $newvm) {
-			my %drives=();
+			my $drives={};
 			$drives->{$rootid}->{$rootnum}='/' if defined $rootid;
 			$drives->{$swapid}->{$swapnum}='swap' if defined $swapid;
 			$drives->{$abuildid}->{$abuildnum}='/abuild' if defined $abuildid;
 			$drives->{$bootid}->{$bootnum}='/boot/efi' if defined $bootid and $arch eq 'ia64';
 			$drives->{$bootid}->{$bootnum}='NULL' if defined $bootid and ($arch eq 'ppc64' or $arch eq 'ppc');
-			$sizeunit = `fdisk -l |grep "\$drive" |grep Disk |awk {'print \$4'} | cut -f1 -d','`;
-			$disksize = `fdisk -l |grep "\$drive" |grep Disk |awk {'print \$3'} | cut -f1 -d'\n'`;
+			my $sizeunit = `fdisk -l |grep "\$drive" |grep Disk |awk {'print \$4'} | cut -f1 -d','`;
+			my $disksize = `fdisk -l |grep "\$drive" |grep Disk |awk {'print \$3'} | cut -f1 -d'\n'`;
 			chomp($sizeunit);
 			chomp($disksize);
 			if ( substr($sizeunit, 0, 2) =~ /GB/ ) {
@@ -329,9 +359,9 @@ EOF
 			}
 			$abuildsize = 0 if !$abuildid;
 			$bootsize = 0 if !$bootid;
-			$sizepercent = $repartitiondisk ? $repartitiondisk*0.01 : 1;
+			my $sizepercent = $repartitiondisk ? $repartitiondisk*0.01 : 1;
 			$swapsize = int($swapsize/1024);
-			$rootusesize = int(($disksize - $abuildsize - $bootsize - $swapsize)*$sizepercent);
+			my $rootusesize = int(($disksize - $abuildsize - $bootsize - $swapsize)*$sizepercent);
 
 			my %fs = ( '/'=>$rootfstype, 'swap'=>'swap', '/boot/efi'=>'vfat', '/abuild'=>'ext3', 'NULL' => 'ext3');
 			my %format = ( '/'=>'true', 'swap'=>'false', '/boot/efi'=>'true', '/abuild'=>'true','NULL' => 'false' );
@@ -405,14 +435,14 @@ EOF
 		print $f "  </software>\n";
 	}
 
-	if ($opts{'U'}) { # Upgrade with autoyast
+	if ($upgrade) { # Upgrade with autoyast
 		print $f "  <upgrade>\n";
 		print $f "	  <only_installed_packages config:type=\"boolean\">false</only_installed_packages>\n";
 		print $f "	  <stop_on_solver_conflict config:type=\"boolean\">true</stop_on_solver_conflict>\n";
 		print $f "  </upgrade>\n";
 	}
 	
-	unless ($opts{'U'}) { # do not change bootloader in upgrade
+	unless ($upgrade) { # do not change bootloader in upgrade
 		unless ($virtHostType or $newvm) { ## non-VH or VM
 			my $bootpartition = `df /boot |tail -n1 |awk {'print \$6'}`;
 			chomp($bootpartition);
@@ -535,7 +565,7 @@ EOF
 	  </script>";
 	}
 	
-	unless ($opts{U}) {
+	unless ($upgrade) {
 		if ( $setupfordesktoptest ) { # Autoun asistive technologies and xhost + on gdm login
 			print $f "      <script>
 			<filename>zzz_setup_4_desktop_tests</filename>
@@ -640,7 +670,7 @@ EOF
 	print $f "	  </init-scripts>\n";
 	
 	# For upgrade, replace bootloader with original one before the installation
-	if ($opts{U}) {
+	if ($upgrade) {
 		my ($bootpart, $bootparttype, $bootpath, $boothpathrel, $postcmd);
 
 		if($arch =~ /^ppc(64)?$/) {
@@ -659,7 +689,7 @@ EOF
 
 		# Get boot partition, its type and rel path
 		my $p=$bootpath;
-		$bootpathrel='';
+		my $bootpathrel='';
 		my $found=0;
 		my @mount=split /\n/, `export LANG=C ; mount`;
 		until($found) {
@@ -712,7 +742,7 @@ $postcmd
 
 	print $f "	</scripts>"; # End of the scripts section
 
-	unless ($opts{U}) {	
+	unless ($upgrade) {	
 		my $dm;
 		my $rl;
 		# Assign display manager in /etc/sysconfig/displaymanager
@@ -754,27 +784,35 @@ $postcmd
 		}
 		print $f "	</dns>\n";
 		print $f "	<interfaces config:type=\"list\">\n";
-		if ($virtHostType || $setup_bridge) { ## VH
-			for (my $i=0;$i<`ifconfig | grep eth | wc -l`;$i++) {
-				print $f "	  <interface>
+		foreach my $if ( glob "/sys/class/net/*" )	{
+			next unless $if =~ /(eth(\d+))/;
+			my ($dev,$num) = ($1,$2);
+			my $mac = `cat $if/address`;
+			chomp $mac;
+			my $ip = $1 if `ip -4 -o addr show $dev` =~ /inet ([\d\.]+)/;
+			my $dev2 = "eth-id-$mac"; # fix spontaneous renaming
+			if( $virtHostType || $setup_bridge )	{ # VH
+				print $f <<EOF;
+			<interface>
 				<bootproto>dhcp4</bootproto>
 				<bridge>yes</bridge>
 				<bridge_forwarddelay>0</bridge_forwarddelay>
-				<bridge_ports>eth$i</bridge_ports>
+				<bridge_ports>$dev2</bridge_ports>
 				<bridge_stp>off</bridge_stp>
-				<device>br$i</device>
+				<device>br$num</device>
 				<startmode>auto</startmode>
-			  </interface>\n";
-			}
-		} else { ## non-VH & VM
-			for (my $i=0;$i<`ifconfig | grep eth | wc -l`;$i++) {
-				print $f "	  <interface>
+			</interface>
+EOF
+			} elsif($ip) { # phys + VM
+				print $f <<EOF;
+			<interface>
 				<bootproto>dhcp</bootproto>
-				<device>eth$i</device>
+				<device>$dev2</device>
 				<startmode>onboot</startmode>
-			  </interface>\n" if `ifconfig eth$i | grep inet`;
+			</interface>
+EOF
 			}
-		} 
+		}
 		print $f "	</interfaces>\n";
 		print $f "  </networking>\n";
 		my $location = &get_location or die "Unknown location (Prague|Nuernberg|Beijing|Provo)";

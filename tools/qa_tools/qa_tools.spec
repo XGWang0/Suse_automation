@@ -98,9 +98,8 @@ cp --target-directory=$RPM_BUILD_ROOT%{bindir} setupIA64liloforinstall
 cp --target-directory=$RPM_BUILD_ROOT%{bindir} setupPPCliloforinstall
 cp --target-directory=$RPM_BUILD_ROOT%{bindir} setupgrubforinstall
 cp --target-directory=$RPM_BUILD_ROOT%{bindir} *.pl
-rm $RPM_BUILD_ROOT%{bindir}/install_functions.pl
 echo ${version} > $RPM_BUILD_ROOT%{libdir}/qa_tools.version
-cp --target-directory=$RPM_BUILD_ROOT%{libdir} install_functions.pl
+cp --target-directory=$RPM_BUILD_ROOT%{libdir} install_functions.pm
 cp vimrc $RPM_BUILD_ROOT%{fhsdir}/.vimrc
 cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man1 *.1.gz
 cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man8 *.8.gz

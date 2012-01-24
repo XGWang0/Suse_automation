@@ -143,6 +143,7 @@ unless ($args{'host'})
 	$args{'host'}=`hostname`;
 	chomp $args{'host'};
 }
+$args{'host'}=$1 if $args{'host'} =~ /^([^\.]+)\./;
 
 $Getopt::Std::STANDARD_HELP_VERSION=1;
 

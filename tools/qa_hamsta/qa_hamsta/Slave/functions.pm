@@ -65,7 +65,7 @@ sub install_rpms # $upgrade_flag, @basenames
 {
 	my ($to_install,$to_upgrade)=@_;
 	my %upgrade_flag = map {$_=>1} @$to_upgrade;
-	my (@install,@upgrade);
+	my (@install,@upgrade,@suites);
 	foreach my $rpm( @$to_install, @$to_upgrade )
 	{
 		my $ret=(system("rpm -q '$rpm' > /dev/null"))>>8;
@@ -76,8 +76,12 @@ sub install_rpms # $upgrade_flag, @basenames
 		else # error
 		{	die "RPM failed with exitcode $ret: $!";	}
 	}
-	return &command('zypper -n install -l '.join(' ',@install,@upgrade)) if @install or @upgrade;
-	# Since zypper install can update package as well, and it can do better on SLES10
+	@suites=split / /,@install[0] if @install;
+	@suites=(@suites, split / /,@upgrade[0]) if @upgrade; # Since zypper install can update package as well, and it can do better on SLES10
+
+	foreach my $suite(@suites) {
+		&command("zypper -n install -l $suite");
+	}
 }
 
 # returns $pid and PIDs of all its subprocesses
