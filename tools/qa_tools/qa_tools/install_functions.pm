@@ -784,25 +784,32 @@ $postcmd
 		}
 		print $f "	</dns>\n";
 		print $f "	<interfaces config:type=\"list\">\n";
-		if ($virtHostType || $setup_bridge) { ## VH
-			for (my $i=0;$i<`ifconfig | grep eth | wc -l`;$i++) {
-				print $f "	  <interface>
+		foreach my $if ( glob "/sys/class/net/*" )	{
+			next unless $if =~ /(eth(\d+))/;
+			my ($dev,$num) = ($1,$2);
+			my $mac = `cat $if/address`;
+			my $ip = $1 if `ip -4 -o addr show $dev` =~ /inet ([\d\.]+)/;
+			my $dev2 = "eth-id-$mac"; # fix spontaneous renaming
+			if( $virtHostType || $setup_bridge )	{ # VH
+				print $f <<EOF;
+			<interface>
 				<bootproto>dhcp4</bootproto>
 				<bridge>yes</bridge>
 				<bridge_forwarddelay>0</bridge_forwarddelay>
-				<bridge_ports>eth$i</bridge_ports>
+				<bridge_ports>$dev2</bridge_ports>
 				<bridge_stp>off</bridge_stp>
-				<device>br$i</device>
+				<device>br$num</device>
 				<startmode>auto</startmode>
-			  </interface>\n";
-			}
-		} else { ## non-VH & VM
-			for (my $i=0;$i<`ifconfig | grep eth | wc -l`;$i++) {
-				print $f "	  <interface>
+			</interface>
+EOF
+			} elsif($ip) { # phys + VM
+				print $f <<EOF;
+			<interface>
 				<bootproto>dhcp</bootproto>
-				<device>eth$i</device>
+				<device>$dev2</device>
 				<startmode>onboot</startmode>
-			  </interface>\n" if `ifconfig eth$i | grep inet`;
+			</interface>\n"
+EOF
 			}
 		} 
 		print $f "	</interfaces>\n";
