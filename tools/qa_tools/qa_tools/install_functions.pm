@@ -815,7 +815,6 @@ EOF
 		}
 		print $f "	</interfaces>\n";
 		print $f "  </networking>\n";
-		my $location = &get_location or die "Unknown location (Prague|Nuernberg|Beijing|Provo)";
 		if ($qaconf{nis_domain}) {
 			print $f	"  <nis>\n";
 			print $f	"	<nis_broadcast config:type=\"boolean\">false</nis_broadcast>\n";
