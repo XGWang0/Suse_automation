@@ -788,6 +788,7 @@ $postcmd
 			next unless $if =~ /(eth(\d+))/;
 			my ($dev,$num) = ($1,$2);
 			my $mac = `cat $if/address`;
+			chomp $mac;
 			my $ip = $1 if `ip -4 -o addr show $dev` =~ /inet ([\d\.]+)/;
 			my $dev2 = "eth-id-$mac"; # fix spontaneous renaming
 			if( $virtHostType || $setup_bridge )	{ # VH
@@ -808,10 +809,10 @@ EOF
 				<bootproto>dhcp</bootproto>
 				<device>$dev2</device>
 				<startmode>onboot</startmode>
-			</interface>\n"
+			</interface>
 EOF
 			}
-		} 
+		}
 		print $f "	</interfaces>\n";
 		print $f "  </networking>\n";
 		my $location = &get_location or die "Unknown location (Prague|Nuernberg|Beijing|Provo)";
