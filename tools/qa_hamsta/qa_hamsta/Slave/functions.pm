@@ -75,8 +75,8 @@ sub install_rpms # $upgrade_flag, @basenames
 		else # error
 		{	die "RPM failed with exitcode $ret: $!";	}
 	}
-	@suites=split / /,@install[0] if @install;
-	@suites=(@suites, split / /,@upgrade[0]) if @upgrade; # Since zypper install can update package as well, and it can do better on SLES10
+	@suites=@install if @install;
+	@suites=(@suites, @upgrade) if @upgrade; # Since zypper install can update package as well, and it can do better on SLES10
 	
 	foreach my $suite(@suites) {
 		&command("zypper -n install -l $suite");
