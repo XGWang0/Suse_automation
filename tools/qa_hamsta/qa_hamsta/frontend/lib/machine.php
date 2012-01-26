@@ -804,6 +804,11 @@ class Machine {
 	 * @return string Product that the machine is running
 	 */
 	function get_product() {
+		$stmt = get_pdo()->prepare('SELECT product FROM product WHERE product_id=:product_id');
+		$stmt->bindParam(':product_id',$this->fields['product_id']);
+		$stmt->execute();
+		return $stmt->fetchColumn();
+/*
 		$product = $this->fields["description"];
 		
 		$product = str_replace("SUSE", ";SUSE", $product);
@@ -820,7 +825,7 @@ class Machine {
 		//print_r($arr);
 		return  nl2br($arr[0]);
 	}
-		if (ereg("^([A-Za-z0-9.-]+);([A-Za-z0-9.]+)(\(([A-Za-z0-9_-]+)\))?VERSION=", $product, $reg)) {
+		if (ereg("^([A-Za-z0-9.\-]+);([A-Za-z0-9.]+)(\(([A-Za-z0-9_\-]+)\))?VERSION=", $product, $reg)) {
 			ereg("PATCHLEVEL=([0-9]+)", $product, $sp);
 			$sp[0] = str_replace("PATCHLEVEL=", "SP",$sp[0]);
 			if( $sp[0] )
@@ -832,7 +837,7 @@ class Machine {
 		}
 
 		return nl2br($product);
-		//return nl2br($this->fields["description"]);
+		//return nl2br($this->fields["description"]);*/
 	}
 	
 	/**
