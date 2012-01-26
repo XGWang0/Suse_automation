@@ -847,6 +847,11 @@ class Machine {
 	 * @return string Kernel version the machine is running
 	 */
 	function get_kernel() {
+		if( isset($this->fields['kernel']) )
+			return $this->fields['kernel'];
+		else
+			return NULL;
+/*			
 		$product = $this->fields["description"];
 		
 		$product = str_replace("SUSE", ";SUSE", $product);
@@ -855,10 +860,11 @@ class Machine {
 		$product = str_replace(";SUSELinuxEnterpriseDesktop", ";SLED", $product);
 	$product = str_replace("SLESforSAPApplications", ";SLES4SAP", $product);
 
-		if (ereg("^([A-Za-z0-9.-]+);([A-Za-z0-9.]+)(\(([A-Za-z0-9_-]+)\))?VERSION=", $product, $reg)) {
+		if (ereg("^([A-Za-z0-9.\-]+);([A-Za-z0-9.]+)(\(([A-Za-z0-9_\-]+)\))?VERSION=", $product, $reg)) {
 			return $reg[1];
 		}
 		return "see product";
+*/
 	}
 
 	
