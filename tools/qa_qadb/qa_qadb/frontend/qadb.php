@@ -363,8 +363,18 @@ function regression_differences($attrs,&$pager=null)
 	
 	# ugly hack: the first two columns are separated so that we can order by index 2, the others not
 	$sel=array("c.testcaseID","testcase",
-		"GROUP_CONCAT(sr.testsuite) AS r_testsuites, SUM(r.succeeded) AS r_succ, SUM(r.failed) AS r_fail, SUM(r.internal_error) AS r_interr, SUM(r.skipped) AS r_skip, (CASE WHEN r.failed>0 THEN 'f' WHEN r.internal_error>0 THEN 'i' WHEN r.skipped>0 THEN 'S' WHEN r.succeeded>0 THEN 's' ELSE 'i' END) AS r_state,
-		GROUP_CONCAT(sc.testsuite) AS c_testsuites, SUM(c.succeeded) AS c_succ, SUM(c.failed) AS c_fail, SUM(c.internal_error) AS c_interr, SUM(c.skipped) AS c_skip, (CASE WHEN c.failed>0 THEN 'f' WHEN c.internal_error>0 THEN 'i' WHEN c.skipped>0 THEN 'S' WHEN c.succeeded>0 THEN 's' ELSE 'i' END) AS c_state,
+		"GROUP_CONCAT(CASE WHEN tr.logs_url IS NULL THEN sr.testsuite ELSE CONCAT('<a href=\"',tr.logs_url,'/',relative_url,'\">',sr.testsuite,'</a>') END) AS r_testsuites, 
+			SUM(r.succeeded) AS r_succ, 
+			SUM(r.failed) AS r_fail, 
+			SUM(r.internal_error) AS r_interr, 
+			SUM(r.skipped) AS r_skip, 
+			(CASE WHEN r.failed>0 THEN 'f' WHEN r.internal_error>0 THEN 'i' WHEN r.skipped>0 THEN 'S' WHEN r.succeeded>0 THEN 's' ELSE 'i' END) AS r_state,
+		 GROUP_CONCAT(CASE WHEN tc.logs_url IS NULL THEN sc.testsuite ELSE CONCAT('<a href=\"',tc.logs_url,'/',relative_url,'\">',sc.testsuite,'</a>') END) AS c_testsuites, 
+		 	SUM(c.succeeded) AS c_succ, 
+		 	SUM(c.failed) AS c_fail, 
+			SUM(c.internal_error) AS c_interr, 
+			SUM(c.skipped) AS c_skip, 
+			(CASE WHEN c.failed>0 THEN 'f' WHEN c.internal_error>0 THEN 'i' WHEN c.skipped>0 THEN 'S' WHEN c.succeeded>0 THEN 's' ELSE 'i' END) AS c_state,
 		waiverID
 	");
 	$from="results c JOIN tcf_group tc USING(tcfID) JOIN testsuites sc USING(testsuiteID) JOIN testcases ss USING(testcaseID), results r JOIN tcf_group tr USING(tcfID) JOIN testsuites sr USING(testsuiteID) LEFT OUTER JOIN waiver_data USING(testcaseID)";

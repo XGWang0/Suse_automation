@@ -34,8 +34,7 @@ use strict;
 use warnings;
 use Getopt::Std;
 use qaconfig;
-
-require "install_functions.pl";
+use install_functions;
 
 
 our (%opts,$source,$ay_xml,$profile_url_base);
@@ -81,6 +80,7 @@ our $smt_server = $opts{'S'};
 our $ncc_email = $opts{'R'};
 our $ncc_code = $opts{'C'};
 our $opensuse_update = $opts{'O'};
+our $upgrade = $opts{'U'};
 
 ### Virt-Host option ###
 our $virtHostType = $opts{'V'};
@@ -130,17 +130,12 @@ if ( $userprofile ) {
 	&command( 'mount '.$qaconf{install_profile_nfs_server}.":".$qaconf{install_profile_nfs_dir}." $mountpoint -o nolock" );
 
 	my $to_libsata = &has_libsata( $to_type, $to_version, $to_subversion, $to_arch );
-	my $packages = &get_packages( $to_type, $to_version, $to_subversion, $to_arch, $additionalrpms, $patterns, $setupfordesktoptest);
-	my $profile = &get_profile( $to_type, $to_version, $to_subversion );
+	my $packages = &get_packages( $to_type, $to_version, $to_subversion, $to_arch, $additionalrpms, $patterns, $virtHostType, $setupfordesktoptest);
+	my $profile = &get_profile( $to_type, $to_version, $to_subversion, $profiledir );
 	
-	my $modfile;
-	if ( defined($virtHostType) and $virtHostType ne "" ) {
-		$modfile = &make_modfile( $source, $url_addon, $to_type, $to_version, $to_subversion, $to_libsata, $patterns, $packages, $defaultboot, $install_update, $virtHostType, undef);
-	} else {
-		$modfile = &make_modfile( $source, $url_addon, $to_type, $to_version, $to_subversion, $to_libsata, $patterns, $packages, $defaultboot, $install_update, undef, undef);
-	}
+	my $modfile = &make_modfile( $source, $url_addon, $to_type, $to_version, $to_subversion, $to_libsata, $patterns, $packages, $defaultboot, $install_update, $virtHostType, undef, $arch, $root_pt, $opensuse_update, $upgrade, $repartitiondisk, $rootfstype, $smt_server, $ncc_email, $ncc_code, $setupfordesktoptest, $hostname, $domainname, $setup_bridge);
 
-	$ay_xml = &install_profile( $profile, $modfile );
+	$ay_xml = &install_profile( $profile, $modfile, undef, $mountpoint, $hostname, $tooldir );
 	&command( "umount $mountpoint" );
 }
 
