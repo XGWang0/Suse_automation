@@ -133,11 +133,12 @@ function trim_parameter($parameter)
 	return (string)$parameterContent;
 }
 
+# get paramter table from the paramters hash table, parameter maybe named begin with '$prefix'
 function get_parameter_table($hash, $prefix)
 {
 	$table_data = "<table class=\"sort text-main\"\">\n";
 
-	foreach($hash as $param)
+	foreach( $hash as $param )
 	{
 		$type = trim($param['type']);
 		$name = trim($param['name']);
