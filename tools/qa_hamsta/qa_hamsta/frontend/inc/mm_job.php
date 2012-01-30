@@ -190,9 +190,8 @@ else if( request_str('submit') )
 			{
 				$opt = $options[$i];
 				$optvalue = trim($opt['value']);
-				$optlabel = $opt[$i];
 
-				$optlist[$opt_id++] = array('value'=>$optvalue, 'label'=>$optlabel);
+				$optlist[$opt_id++] = array('value'=>$optvalue, 'label'=>$opt);
 			}
 
 			if($opt_id == 0)
