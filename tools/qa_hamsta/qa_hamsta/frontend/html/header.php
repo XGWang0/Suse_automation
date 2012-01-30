@@ -60,6 +60,7 @@
 			<img src="images/hamsta.png" class="hamsta" alt="Hamsta" title="Hamsta" />
 		</a>
 		<div class="version text-main text-white bold"><em>v<?php $version = explode("-", $hamstaVersion); echo($version[2]); ?></em></div>
+		<div style="float: right" class="navibar"><a class="text-main text-white" href="index.php?go=install_client">Install Client</a></div>
 	</div>
 
 	<div id="header-links" class="text-medium bold">
