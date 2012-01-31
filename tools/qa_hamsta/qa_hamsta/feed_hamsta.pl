@@ -67,17 +67,15 @@ Options:
 			    1 pre-define 
 			    2 qa_package
 			    3 autotest
-			    3 mult_machine
-			    4 command_line 
+			    4 mult_machine
 			    5 reinstall
     -n|--testname <testname> set test name for the job work with -t option 
                             (only for pre-define,qa_package,autotest)
                             seperate by ',' for qa_package&autotest job
     -l|--listcases	    print the support test case name for each jobtype
 			    work with -t option
-    -r|--roles		    for mult-machine jobs , set roles number
-       --role_hosts	    Assign SUT to roles "r0:host1,host2;r1:host3,host4"
-       --role_commands      Assign command to roles "r_0#command0%r_1#command1"
+    -r|--roles		    for mult-machine jobs , set roles number and host
+                 	    Assign SUT to roles "r0:host1,host2;r1:host3,host4"
 
     -u|--re_url		    set resintall url
        --re_sdk		    set reinstall sdk
@@ -105,14 +103,12 @@ my $opt_job             = "";
 my $opt_host            = "";
 my $opt_group           = "";
 
-#Job Type : 1)pre-define ; 2)qa_package ; 3)mult_machine ;4)command_line ;5)reinstall
+#Job Type : 1)pre-define ; 2)qa_package ; 3)autotest ;4)mult_machine ;5)reinstall
 my $opt_jobtype		= 0;
 my $opt_testname 	= "";
 my $opt_listcases	= 0;
 #option for mult-machine job
-my $opt_roles		= 0;
-my $opt_role_hosts	= "";
-my $opt_role_commands   = "";
+my $opt_roles		= "";
 #option for re-install job
 my $opt_re_url		= "";
 my $opt_re_sdk		= "";
@@ -137,9 +133,7 @@ unless (GetOptions(
 	   'jobtype|t=i'	=>  \$opt_jobtype,
 	   'testname|n=s'	=>  \$opt_testname,
 	   'listcases|l'	=>  \$opt_listcases,
-	   'rolse|r=i'		=>  \$opt_roles,
-	   'role_hosts=s'	=>  \$opt_role_hosts,
-	   'role_commands'	=>  \$opt_role_commands,
+	   'roles|r=s'		=>  \$opt_roles,
 	   're_url|u=s'		=>  \$opt_re_url,
 	   're_sdk=s'		=>  \$opt_re_sdk,
 	   'pattern=s'		=>  \$opt_re_pattern,
@@ -265,6 +259,14 @@ if($opt_jobtype==1){
 
 }elsif($opt_jobtype==4){
   #send mult-machine job
+  (print "require host roles \n" and exit 1) unless($opt_roles);
+  my @roles = split /;/ ,$opt_roles;
+  my $roles = grep(/r\d+:/,@roles);
+  (print "roles do not match \n" and exit 1) unless(scalar(@roles) == $roles);
+  $opt_roles =~ s/\s+//g;
+  my $cmd = "send multi_job $opt_testname $opt_roles $opt_mail ";
+  $job_id=&send_command($cmd."\n");
+  print $job_id;
 
 }elsif($opt_jobtype==5){
   #send reinstall job

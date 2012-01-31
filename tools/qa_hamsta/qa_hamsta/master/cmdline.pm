@@ -127,6 +127,7 @@ sub parse_cmd() {
         case /^send qa_predefine_job/			{ &send_predefine_job_to_host($sock_handle, $cmd); }
         case /^send qa_package_job ip/			{ &send_qa_package_job_to_host($sock_handle, $cmd); }
         case /^send autotest_job ip/			{ &send_autotest_job_to_host($sock_handle, $cmd); }
+        case /^send multi_job /			{ &send_multi_job_to_host($sock_handle, $cmd); }
         case /^send xen set ip/			{ &send_xen_set_to_host($sock_handle, $cmd); }
         case /^send reinstall ip/		{ &send_re_job_to_host($sock_handle, $cmd); }
         case /^send one line cmd ip/		{ &send_line_job_to_host($sock_handle, $cmd); }
@@ -392,11 +393,12 @@ sub list_testcases() {
     #1 for pre-define
     #2 for qa_package
     #3 for autotest.
+    #4 for multi_machie.
     my $jobtype = shift @_;
     my @jobtype = split /\s+/,$jobtype;
     $jobtype=$jobtype[2];
     
-    if($jobtype !~ /^[1-3]$/) {
+    if($jobtype !~ /^[1-4]$/) {
       print $sock_handle "not support for the type * $jobtype *\n";
       return;
     }
@@ -449,6 +451,21 @@ sub list_testcases() {
 
     }
 	
+   if($jobtype==4) {
+    #for multi-machine job
+    print $sock_handle "----Multi_machine job list----\n";
+    my @mulcases=glob("/usr/share/hamsta/xml_files/multimachine/*.xml");
+    map { 
+      open my $rfh,"$_" || ($return.="$_ can't open\n");
+      my @xml_cont = <$rfh>;
+      close $rfh;
+      my $roles = grep(/role id=/ ,@xml_cont);
+      s/\.xml//;s/.*\///;
+      $return.=$_."(roles number): $roles\n" } @mulcases;
+    print $sock_handle $return;
+    return;
+    } 
+    
 
 
 }
@@ -554,6 +571,95 @@ sub send_autotest_job_to_host() {
 
 
 }
+
+sub send_multi_job_to_host () {
+
+    my $sock_handle = shift @_;
+    my $cmd = shift @_ ;
+
+    &log(LOG_NOTICE, "cmd = $cmd");
+    (my @cmd_line) = split / /,$cmd;
+    my $mul_email = ""; 
+    $mul_email = $cmd_line[4] if(@cmd_line >= 5);
+    my $mul_name = $cmd_line[2]; 
+    my $parser = $cmd_line[3]; 
+    my @hosts;
+    my @roles = split /;/,$parser;
+
+    #get all host
+    map { 
+      my $h =$_;
+      $h =~ s/.*://;
+      my @tmphosts = split /,/,$h;
+      map { push @hosts,$_; } @tmphosts;
+    } @roles;
+
+    #check host live
+    for my $host (@hosts) {
+      if( not &check_host($host)){   
+        &log(LOG_WARNING, "$host is not active, maybe IP address misspelled"); 
+        print $sock_handle "$host is not active, maybe IP address misspelled\n"; 
+        return; 
+      } 
+    }
+
+    print $sock_handle "Multi_machine job:$mul_name \n";
+
+    my $mfile="/usr/share/hamsta/xml_files/multimachine/".$mul_name.".xml";
+    my $v=time;
+    my $mul_xml="/tmp/command_line_mul_$v.xml";
+   
+    #modify xml file , add role to machine.
+    my $machine =  qq#<machine name="x" ip="y"/>#;
+    my %machine;
+    for my $sub_role (@roles) {
+      my @r = split /:/,$sub_role;
+      $r[0] =~ s/r//;
+      #get role number:
+      my $rn = $r[0];
+      my @rhosts = split /,/,$r[1];
+      #get role host ip
+      my @rips;
+      map { push @rips,&nitoi($_) } @rhosts;
+      
+      $machine{$rn}="";
+      foreach(@rips){
+        my $tp=$machine;
+        my $hostname=&machine_search('fields'=>['name'],'ip'=>$_);       
+        $tp =~ s/y/$_/;
+        $tp =~ s/x/$hostname/;
+        $machine{$rn}.=$tp;
+      }  
+    }
+    
+    open my $m_ori,$mfile || (print $sock_handle "can open Multi-machine xml file\n" and return);
+    open my $m_tmp,'>',$mul_xml || (print $sock_handle "can open Multi-machine xml file\n" and return);
+    while(<$m_ori>){
+      if(/role id=\"(\d)/){
+      chomp;
+      $_.=$machine{$1} ;
+      $_=~s#/##;
+      $_.="</role>\n";
+      }
+      print $m_tmp $_;
+    }
+    close $m_tmp;
+    close $m_ori;
+
+    
+
+    my $ref = &parse_xml($sock_handle, $mul_xml);
+    return if( not defined $ref );
+    # set the default values 
+    for my $host (@hosts) {
+      my $job_sid = &transation($ref,$host,$mul_xml);
+      &log(LOG_INFO,"MASTER::FUNCTIONS cmdline Multi_Machine Job $mul_name send to scheduler, at $host internal id: $job_sid");
+      print $sock_handle "MASTER::FUNCTIONS cmdline Multi_Machine Job $mul_name send to scheduler, at $host internal id: $job_sid\n";
+    }
+    return;
+
+}
+
 sub send_job_to_host () {
     my $sock_handle = shift @_;
     my $cmd = shift @_ ;
@@ -896,4 +1002,13 @@ sub transation(){
     return $job_id;
 }
 
+sub nitoi(){
+    my $host = shift;
+    unless( $host =~ /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/ )
+    {
+      my @hostinfo = gethostbyname($host); 
+      $host = join( '.', unpack( "C4", $hostinfo[4] )) if( @hostinfo > 4 );
+    }
+    return $host;
+}
 1;
