@@ -51,38 +51,9 @@
 				
 			$filebasename = substr($jobbasename, 0, -4);
 			$xml = simplexml_load_file( "/tmp/$jobbasename" );
-
-			if(isset($xml->parameters->parameter))
-			{
-				$paracount = count($xml->parameters->parameter);
-
-				// get all of the parameters
-				foreach( $xml->parameters->parameter as $parameter )
-				{
-					// remove all of the old child nodes
-					$parachild = dom_import_simplexml($parameter);
-					while ($parachild->firstChild) {
-						$parachild->removeChild($parachild->firstChild);
-					}
-
-					// add value child node to parameter
-					$paraname = trim($parameter['name']);
-					$paratype = trim($parameter['type']);
-
-					if($paraname == "" || $paratype == "")
-						continue;
-
-					$paravalue = request_str($filebasename . "_" . $paraname);
-					if(trim($parameter['type']) == "textarea")
-					{
-						$paravalue = trim_parameter($paravalue);
-					}
-
-					$node = $parachild->ownerDocument;
-					$parachild->appendChild($node->createCDATASection($paravalue));
-				}
-			}
 			
+			parameters_assign($xml, $filebasename . "_" );
+
 			$path = "/tmp/" . $filebasename . "_" . genRandomString(10) . ".xml";
 			$xml->asXML($path);
 

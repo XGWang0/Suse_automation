@@ -51,7 +51,7 @@
 $(document).ready(function(){
 	for(i=0; i<99; i++)
 		$('#div_' + i).hide();
-		});
+});
 
 function showParamConts(n)
 {
@@ -77,7 +77,7 @@ Pre-defined jobs are configuration tasks or test runs that have been pre-defined
     endforeach;
 ?>
 </p>
-<div id="predifined" class="text-main">
+<div id="predefined" class="text-main">
 <table id="jobs" class="text-main">
 	<tr>
 	    <th>&nbsp;</th>
@@ -95,65 +95,19 @@ Pre-defined jobs are configuration tasks or test runs that have been pre-defined
 	    $sortcount = 0;  # at first, I wanna use the XML file name, but failed, I have to sort the XML and use the sort number.
             while(($file = readdir($handle)) !== false)
             {
-	    	$param_map = array();
                 if($file != "." && $file != ".." && substr($file,-4)=='.xml')
-                {
-					$filebasename = substr($file, 0, -4);
+		{
+			$filebasename = substr($file, 0, -4);
 
-					$jobdoc = new DOMDocument();
-					$jobdoc->load( "$dir/$file" );
-					$jobxmlnodes = $jobdoc->getElementsByTagName( "job" );
+			$xml = simplexml_load_file( "$dir/$file" );
+			$jobname = $xml->config->name;
+			$jobdescription = $xml->config->description;
 
-					foreach ( $jobxmlnodes as $xmlnode ) {
-						$name = $xmlnode->getElementsByTagName( "name" );
-						$jobname = $name->item(0)->nodeValue;
-						$description = $xmlnode->getElementsByTagName( "description" );
-						$jobdescription = $description->item(0)->nodeValue;
-					}
-					
-					$paramnodes = $jobdoc->getElementsByTagName( "parameter" );
-					$param_id = 0;
-					foreach ( $paramnodes as $parameter )
-					{
-						$paramname = trim($parameter->getAttribute('name'));
-						$paramtype = trim($parameter->getAttribute('type'));
-						$paramdeft = trim($parameter->getAttribute('default'));
-						$paramlabl = trim($parameter->getAttribute('label'));
-
-						if($paramname == "" || $paramtype == "")
-							continue;
-
-						// parameter name must be composed by number, letter or '_'"
-						if(!preg_match( "/^[0-9a-zA-Z_]+$/", $paramname))
-							continue;
-						
-						$optnodes = $parameter->getElementsByTagName('option');
-						
-						$optlist = array();
-						$opt_id = 0;
-						foreach ($optnodes as $opt)
-						{
-							$optvalue = trim($opt->getAttribute('value'));
-							$optlabel = $opt->nodeValue;
-
-							$optlist[$opt_id++] = array('value'=>$optvalue, 'label'=>$optlabel);
-						}
-
-						if($opt_id == 0)
-							$paramcont = $parameter->nodeValue;
-
-						if($paramlabl == "")
-							$paramlabl = $paramname;
-
-						$param_map[$param_id++] = array( 'name'=>$paramname, 'type'=>$paramtype,
-							'default'=>$paramdeft, 'label'=>$paramlabl, 'content'=>$paramcont,
-							'option'=>$optlist );
-					}
-
-					$count = count($param_map);
+			$param_map = get_parameter_maps($xml);
+			$count = count($param_map);
 					
                     echo "    <tr class=\"file_list\">\n";
-		    //echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"pre-defined job:$file\" onclick=\"showParamConts('$filebasename')\">\n";
+		    # echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"pre-defined job:$file\" onclick=\"showParamConts('$filebasename')\">\n";
 		    echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"pre-defined job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
                     echo "        <td title=\"$jobdescription\">$jobname</td>\n";
                     echo "        <td class=\"viewXml\"><a href=\"".XML_WEB_DIR."/$file\" target=\"_blank\" title=\"view $file\">(view)</a></td>\n";
@@ -164,9 +118,9 @@ Pre-defined jobs are configuration tasks or test runs that have been pre-defined
 		    {
 
 		    	echo "        <div style=\"margin-left: 40px; margin-top: 2px; padding: 2px 2px 10px 2px; border: 1px solid #cdcdcd\" id=\"div_$sortcount\">\n";
-			echo "            <div class=\"text-main\" style=\"padding: 5px 5px 5px 5px\"><b>Edit parameters in the below form.</b></div>\n";
+			echo "            <div class=\"text-main\" style=\"padding: 5px 5px 5px 5px\"><b>Edit parameters in the form below.</b></div>\n";
 			
-			// get the parameter table
+			# get the parameter table
 			$prefix_name = $filebasename . "_";
 			$parameter_table = get_parameter_table($param_map, $prefix_name);
 
