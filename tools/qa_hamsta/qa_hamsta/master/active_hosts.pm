@@ -119,7 +119,7 @@ sub active_hosts() {
 	# it sometimes failed, e.g. due to lost DB connection, resulting in 
 	# non-existing machines being still up. Fixed by vmarsik.
 
-	&TRANSACTION( 'machine' );
+	&TRANSACTION( 'machine','job_on_machine','job' );
 	&machine_set_all_unknown();
 	&TRANSACTION_END;
 
