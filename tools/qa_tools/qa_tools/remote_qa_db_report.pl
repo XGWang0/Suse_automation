@@ -180,7 +180,7 @@ if ($product eq '') {
 if( $kernel eq '' )
 {	push @ARGV, '-k', &get_kernel_version();	}
 
-my $rfile="$host-$time.tar.bz2";
+my $rfile="$host-$time.tar.gz";
 
 # process path argument
 if($argf_index)
@@ -232,9 +232,9 @@ my $tmpfile="/tmp/$rfile";
 my $base=`basename $dir`;
 chdir $dir or die "Cannot chdir to $dir: $!";
 if ($tcflist) {
-	system "tar cf - ".(join ' ', map {(/ / ? '"'.$_.'"' : $_)} split(/,/, $tcflist))." | bzip2 -f > \"$tmpfile\"" and die "Cannot create archive.";
+	system "tar cf - ".(join ' ', map {(/ / ? '"'.$_.'"' : $_)} split(/,/, $tcflist))." | gzip -f > \"$tmpfile\"" and die "Cannot create archive.";
 } else {
-	system "ls | grep -v '^oldlogs\$' | xargs tar cf - | bzip2 -f > \"$tmpfile\"" and die "Cannot create archive.";
+	system "ls | grep -v '^oldlogs\$' | xargs tar cf - | gzip -f > \"$tmpfile\"" and die "Cannot create archive.";
 }
 &log(LOG_INFO,"Copying files over network");
 system "scp \"$tmpfile\" $ruser\@$rhost:$rbase/" and die "Cannot SCP";

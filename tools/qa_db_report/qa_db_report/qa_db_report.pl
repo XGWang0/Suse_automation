@@ -279,11 +279,23 @@ unless ($args{'release'}) {
 	"arch:".$args{'arch'}."\n"
 );
 
-# if logs are in tar.bz2., extract to remote logs dir
-if ( $args{'resultpath'} =~ /\.tar\.bz2$/ ) {
+# if logs are in tarball., extract to remote logs dir
+if ( $args{'resultpath'} =~ /\.tar\.gz$/ ) {
+	my $tarball = $args{'resultpath'};
+	chomp (my $dir = `basename "$args{'resultpath'}" .tar.gz`);
+	&log_add_output( path=>"/var/log/qa-remote-results/$dir.log", gzip=>1, level=>LOG_DEBUG );
+	$args{'resultpath'} = "$remote_results_dir/$dir";
+	mkdir $args{'resultpath'};
+	system "tar xzf \"$tarball\" -C \"". $args{'resultpath'}.'"' and die "Cannot extract archive.";
+
+	unlink $tarball if $delete; 
+	# we don't want to store the results here.
+	$delete_result_path=1;
+} elsif ( $args{'resultpath'} =~ /\.tar\.bz2$/ ) {
+	# if logs are in tar.bz2., extract to remote logs dir
 	my $tarball = $args{'resultpath'};
 	chomp (my $dir = `basename "$args{'resultpath'}" .tar.bz2`);
-	&log_add_output( path=>"/var/log/qa-remote-results/$dir.log", gzip=>1, level=>LOG_DEBUG );
+	&log_add_output( path=>"/var/log/qa-remote-results/$dir.log", bzip2=>1, level=>LOG_DEBUG );
 	$args{'resultpath'} = "$remote_results_dir/$dir";
 	mkdir $args{'resultpath'};
 	system "tar xjf \"$tarball\" -C \"". $args{'resultpath'}.'"' and die "Cannot extract archive.";
