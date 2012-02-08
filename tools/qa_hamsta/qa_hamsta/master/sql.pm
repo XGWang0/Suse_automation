@@ -133,13 +133,13 @@ sub machine_search
 		$dbc->matrix_query(@args))));
 }
 
-sub machine_insert($$$$$$$$$$$) # unique_id, arch_id, hostname, IP, description, kernel, cpu_nr, cpu_vendor_id, memsize, disksize, machine_status_id
-{	return $dbc->insert_query('INSERT INTO machine (unique_id,arch_id,name,ip,description,kernel,cpu_nr,cpu_vendor_id,memsize,disksize,machine_status_id) VALUES(?,?,?,?,?,?,?,?,?,?,?)',@_);	}
+sub machine_insert($$$$$$$$$$$$) # unique_id, arch_id, hostname, IP, description, kernel, rpm_list, cpu_nr, cpu_vendor_id, memsize, disksize, machine_status_id
+{	return $dbc->insert_query('INSERT INTO machine (unique_id,arch_id,name,ip,description,kernel,rpm_list,cpu_nr,cpu_vendor_id,memsize,disksize,machine_status_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',@_);	}
 
-sub machine_update($$$$$$$$$$$) # machine_id, unique_id, arch_id, hostname, IP, description, kernel, cpu_nr, cpu_vendor_id, memsize, disksize, machine_status_id
+sub machine_update($$$$$$$$$$$$$) # machine_id, unique_id, arch_id, hostname, IP, description, kernel, rpm_list, cpu_nr, cpu_vendor_id, memsize, disksize, machine_status_id
 {	
 	my $machine_id = shift;
-	return $dbc->update_query('UPDATE machine SET unique_id=?,arch_id=?,name=?,ip=?,description=?,kernel=?,cpu_nr=?,cpu_vendor_id=?,memsize=?,disksize=?,machine_status_id=? WHERE machine_id=?',@_,$machine_id);
+	return $dbc->update_query('UPDATE machine SET unique_id=?,arch_id=?,name=?,ip=?,description=?,kernel=?,rpm_list=?,cpu_nr=?,cpu_vendor_id=?,memsize=?,disksize=?,machine_status_id=? WHERE machine_id=?',@_,$machine_id);
 }
 
 
