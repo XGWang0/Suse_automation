@@ -36,7 +36,7 @@
 #
 # The url address of root ofQADB Webserver
 #
-qadb_wwwroot="http://qadb.suse.de/qadb"
+qadb_wwwroot="http://qadb.ext.suse.de/qadb"
 
 #
 # The location of the current system. If it is kept empty, 
