@@ -357,7 +357,7 @@ class Machine {
 		foreach (array_unique($GLOBALS['packageVersions']) as $package) {
 			$package_data = explode(" ", $package);
 			if (sizeof($package_data) == 2) {
-				if ($rpm_list[$package_data[0]] != NULL && $rpm_list[$package_data[0]] != $package_data[1]) {
+				if (array_key_exists($package_data[0], $rpm_list) && $rpm_list[$package_data[0]] != $package_data[1]) {
 					$old_packages[] = $package_data[0].' '.$rpm_list[$package_data[0]];
 				}
 			}
