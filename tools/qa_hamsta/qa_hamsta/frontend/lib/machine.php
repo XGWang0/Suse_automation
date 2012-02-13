@@ -354,10 +354,11 @@ class Machine {
 		}
 		
 		$old_packages = array();
+		$tools_packages = array("qa_conf_unstable", "qa_db_report", "qa_hamsta", "qa_hamsta-cmdline", "qa_hamsta-common", "qa_hamsta-frontend", "qa_hamsta-jobs", "qa_hamsta-master", "qa_hamsta-multicast-forward", "qa_kotd_test", "qa_lib_config", "qa_lib_ctcs2", "qa_lib_internalapi", "qa_lib_internalapi-perlbinding", "qa_lib_keys", "qa_lib_perl", "qa_lib_tblib", "qa_lib_virtauto", "qa_lib_virtauto-data", "qa_qadb", "qa_setvncserver", "qa_tools");
 		foreach (array_unique($GLOBALS['packageVersions']) as $package) {
 			$package_data = explode(" ", $package);
 			if (sizeof($package_data) == 2) {
-				if (array_key_exists($package_data[0], $rpm_list) && $rpm_list[$package_data[0]] != $package_data[1]) {
+				if (in_array($package_data[0], $tools_packages) && array_key_exists($package_data[0], $rpm_list) && $rpm_list[$package_data[0]] != $package_data[1]) {
 					$old_packages[] = $package_data[0].' '.$rpm_list[$package_data[0]];
 				}
 			}
