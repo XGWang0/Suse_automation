@@ -96,7 +96,7 @@ my %benchmarks=(
 
 sub is_bench	# 
 {
-	my $exp='^('.join('|',keys %benchmarks).')';
+	my $exp='^('.join('|',keys %benchmarks).')$';
 	return $1 if $_[0] =~ $exp;
 	return undef;
 }
