@@ -248,7 +248,10 @@ sub get_disk_info_fdisk {
 		if (/^\s*(\d+) heads, (\d+) sectors[^\,]*, (\d+) cylinders/) {
 			($heads, $sectors, $cylinders) = ($1, $2, $3);
 		}
-		if (/^Units = cylinders of (\d+) \* (\d+)/) {
+		if (/^Units = sectors of (\d+) \* (\d+)/) {
+			$cylsize = $1 * $heads * $sectors;
+			$blocksize = $2;
+		} elsif (/^Units = cylinders of (\d+) \* (\d+)/) {
 			($cylsize, $blocksize) = ($1, $2)
 		}
 		if (/^\/dev\//) {
