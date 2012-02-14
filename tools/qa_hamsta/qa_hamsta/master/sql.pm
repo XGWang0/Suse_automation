@@ -88,8 +88,11 @@ sub machine_set_busy($$) # machine_id, busy
 sub machine_has_perm($$) # machine_id, perm_str
 {    return $dbc->scalar_query('SELECT FIND_IN_SET(?,perm) FROM machine WHERE machine_id=?',$_[1],$_[0]);    }
 
-sub machine_set_all_unknown()
-{	return $dbc->update_query('UPDATE machine SET machine_status_id=6');	}
+sub machine_set_all_unknown(){
+     $dbc->update_query('UPDATE job_on_machine SET job_status_id=4 WHERE job_status_id=6');
+     $dbc->update_query('UPDATE job SET job_status_id=4 WHERE job_status_id=6');
+     $dbc->update_query('UPDATE machine SET machine_status_id=6');
+}
 
 sub machine_get_ip_hostname($) # machine_id
 {	return $dbc->row_query('SELECT ip,name FROM machine WHERE machine_id=?',$_[0]);	}
@@ -130,13 +133,13 @@ sub machine_search
 		$dbc->matrix_query(@args))));
 }
 
-sub machine_insert($$$$$$$$$$$) # unique_id, arch_id, hostname, IP, description, kernel, cpu_nr, cpu_vendor_id, memsize, disksize, machine_status_id
-{	return $dbc->insert_query('INSERT INTO machine (unique_id,arch_id,name,ip,description,kernel,cpu_nr,cpu_vendor_id,memsize,disksize,machine_status_id) VALUES(?,?,?,?,?,?,?,?,?,?,?)',@_);	}
+sub machine_insert($$$$$$$$$$$$) # unique_id, arch_id, hostname, IP, description, kernel, rpm_list, cpu_nr, cpu_vendor_id, memsize, disksize, machine_status_id
+{	return $dbc->insert_query('INSERT INTO machine (unique_id,arch_id,name,ip,description,kernel,rpm_list,cpu_nr,cpu_vendor_id,memsize,disksize,machine_status_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',@_);	}
 
-sub machine_update($$$$$$$$$$$) # machine_id, unique_id, arch_id, hostname, IP, description, kernel, cpu_nr, cpu_vendor_id, memsize, disksize, machine_status_id
+sub machine_update($$$$$$$$$$$$$) # machine_id, unique_id, arch_id, hostname, IP, description, kernel, rpm_list, cpu_nr, cpu_vendor_id, memsize, disksize, machine_status_id
 {	
 	my $machine_id = shift;
-	return $dbc->update_query('UPDATE machine SET unique_id=?,arch_id=?,name=?,ip=?,description=?,kernel=?,cpu_nr=?,cpu_vendor_id=?,memsize=?,disksize=?,machine_status_id=? WHERE machine_id=?',@_,$machine_id);
+	return $dbc->update_query('UPDATE machine SET unique_id=?,arch_id=?,name=?,ip=?,description=?,kernel=?,rpm_list=?,cpu_nr=?,cpu_vendor_id=?,memsize=?,disksize=?,machine_status_id=? WHERE machine_id=?',@_,$machine_id);
 }
 
 

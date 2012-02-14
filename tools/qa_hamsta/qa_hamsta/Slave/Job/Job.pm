@@ -37,9 +37,7 @@ use Slave::Job::Worker;
 use Slave::Job::Monitor;
 use Slave::Job::Logger;
 use Slave::Job::Notification;
-use Slave::functions;
-
-use Slave::functions qw(@file_array);
+use Slave::functions qw(:DEFAULT @file_array);
 
 BEGIN { push @INC, '.', '/usr/share/hamsta', '/usr/share/qa/lib'; }
 use log;

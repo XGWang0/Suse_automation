@@ -111,7 +111,7 @@ sub unique_id () {
 
     # MAC address workaround (for machines with exact duplicate HW, etc)
     &log(LOG_DEBUG, "  MAC");
-    my @data = `/sbin/ifconfig -a | grep HWaddr | awk '{print \$NF;}'`;
+    my @data = `/sbin/ifconfig -a | grep HWaddr | awk '{print \$NF;}' | sort`;
     foreach my $i (@data)
     {
         $i =~ s/\s+$//;

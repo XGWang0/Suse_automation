@@ -208,14 +208,14 @@ sub get_parameters($)
 		my $param_name = $parameter->{'name'};
 		my $param_file_flag = $parameter->{'file'};
 
-		if( defined($param_file_flag) &&( ($param_file_flag == 1) || ($param_file_flag == "true")) )
+		if( defined($param_file_flag) && (($param_file_flag == 1) || ($param_file_flag == "true")) )
 		{
 			my ($fh, $file_name) = File::Temp::tempfile();
 			if($fh)
 			{
-				print $fh, $parameter->{'content'};
+				print $fh $parameter->{'content'};
 				close($fh);
-				
+				$ENV{'param_' . $param_name} = $file_name;
 				push(@file_array, $file_name);
 			}
 			else{

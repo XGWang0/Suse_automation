@@ -88,6 +88,9 @@ sub create_sql_backbone() {
 	}
 	my $disksize = join(" + ", map { $_."G" } @disks);
 
+	# rpm list
+	my $rpm_list = $hwinfo->{'rpm_list'}->[0]->{'RPMList'};
+
 # If there is already a entry for the machine (compare by hostname) use 
 # that and just set its status to up. Otherwise create a new entry.
 # Update the record if something changed.
@@ -101,7 +104,7 @@ sub create_sql_backbone() {
 	my @args = ( 
 		$unique_id, $arch_id, 
 		(map {$machine->{$_}} qw(hostname ip description kernel)), 
-		$cpu_nr, $cpu_vendor_id, $memsize, $disksize, 
+		$rpm_list, $cpu_nr, $cpu_vendor_id, $memsize, $disksize, 
 		MS_UP );
 	
 	if (!$machine_id) {

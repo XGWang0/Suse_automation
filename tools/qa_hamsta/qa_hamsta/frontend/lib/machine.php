@@ -311,35 +311,63 @@ class Machine {
 		$avaivmdisk = $this->get_hwelement("avaivmdisk","AvaiVMDisk");
 		return $avaivmdisk;
 	}
-	function get_tools_version() {
-		$tools_version = $this->get_hwelement("tools_version", "ToolsVersion");
-		return $tools_version;
-	}
+
+	/**
+	 * get_devel_tools()
+	 *
+	 * @access public
+	 * @return int(bool) indicating whether client is running devel tools.
+	 */
 	function get_devel_tools() {
 		$devel_tools = $this->get_hwelement("devel_tools", "DevelTools");
 		return $devel_tools;
+	}
+
+	/*
+	 * get_rpm_list()
+	 *
+	 * @access public
+	 * @return string list of client installed packages.
+	 */
+	function get_rpm_list() {
+		$stmt = get_pdo()->prepare('SELECT rpm_list FROM machine WHERE machine_id = :id');
+		$stmt->bindParam(':id',$this->fields['machine_id']);
+		$stmt->execute();
+		return $stmt->fetchColumn();
 	}
 
 	/**
 	 * get_tools_out_of_date
 	 *
 	 * @access public
-	 * @return bool which indicates whether the client is a major version out of date
-	 * 	with the master.
+	 * @return array containing list of outdated packages.
+	 * @return bool false if no packages were outdated.
 	 */
 	function get_tools_out_of_date() {
-		$client_tools_version = explode(".", $this->get_tools_version());
-		$server_tools_version = explode("-", $GLOBALS['hamstaVersion']);
-		$server_tools_version = explode(".", $server_tools_version[2]);
-
-		if ($client_tools_version[0] < $server_tools_version[0]) {
-			return true;
-		} else if ($client_tools_version[0] == $server_tools_version[0] && $client_tools_version[1] < $server_tools_version[1]) {
-			return true;
-		} else if ($client_tools_version[0] == $server_tools_version[0] && $client_tools_version[1] == $server_tools_version[1] && $client_tools_version[2] < $server_tools_version[2]) {
-			return true;
+		$rpm_str = $this->get_rpm_list();
+		$rpm_list = array();
+		foreach (explode("\n", $rpm_str) as $rpm) {
+			$rpm_vals = explode(" ", $rpm);
+			if (sizeof($rpm_vals) == 2) {
+				$rpm_list[$rpm_vals[0]] = $rpm_vals[1];
+			}
 		}
-		return false;
+		
+		$old_packages = array();
+		$tools_packages = array("qa_conf_unstable", "qa_db_report", "qa_hamsta", "qa_hamsta-cmdline", "qa_hamsta-common", "qa_hamsta-frontend", "qa_hamsta-jobs", "qa_hamsta-master", "qa_hamsta-multicast-forward", "qa_kotd_test", "qa_lib_config", "qa_lib_ctcs2", "qa_lib_internalapi", "qa_lib_internalapi-perlbinding", "qa_lib_keys", "qa_lib_perl", "qa_lib_tblib", "qa_lib_virtauto", "qa_lib_virtauto-data", "qa_qadb", "qa_setvncserver", "qa_tools");
+		foreach (array_unique($GLOBALS['packageVersions']) as $package) {
+			$package_data = explode(" ", $package);
+			if (sizeof($package_data) == 2) {
+				if (in_array($package_data[0], $tools_packages) && array_key_exists($package_data[0], $rpm_list) && $rpm_list[$package_data[0]] != $package_data[1]) {
+					$old_packages[] = $package_data[0].' '.$rpm_list[$package_data[0]];
+				}
+			}
+		}
+
+		if ($old_packages)
+			return $old_packages;
+		else
+			return false;
 	}
 
 	/**
@@ -1587,7 +1615,8 @@ class Machine {
 		'type'=>'s',
 		'vh_id'=>'machine',
 		'reserved'=>'d',
-		'expires'=>'d'
+		'expires'=>'d',
+		'rpm_list'=>'s'
 	);
 
 	/**

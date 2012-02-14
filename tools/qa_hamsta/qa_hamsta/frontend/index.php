@@ -52,6 +52,7 @@ require("lib/configuration.php");
 require("lib/group.php");
 require("lib/roles.php");
 require("lib/Utilfunc.php");
+require("lib/parameters.php");
 
 require_once("../tblib/tblib.php");
 
