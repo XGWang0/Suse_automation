@@ -34,19 +34,12 @@ BEGIN	{
 	our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
 	@ISA	= qw(Exporter);
 	@EXPORT	= qw(
-		&stats
 		&parse_source_url
 		&command
 		&patch_file
-		&has_libsata
-		&disk_stats
-		&read_partitions
 		&get_patterns
 		&get_packages
 		&get_profile
-		&get_buildservice_repo
-		&install_profile
-		&install_profile_newvm
 		&make_modfile
 	);
 	%EXPORT_TAGS	= ();
@@ -55,15 +48,6 @@ BEGIN	{
 our @EXPORT_OK;
 
 use File::Basename;
-
-# formats distro info
-sub stats
-{
-	my ($type,$version,$subversion,$arch)=@_;
-	my $out="  type\t\t$type\n  version\t$version\n  subversion\t$subversion\n";
-	$out .= "  arch\t\t$arch\n" if $arch;
-	return $out;
-}
 
 # gets distro info from the install URL
 sub parse_source_url
@@ -86,7 +70,8 @@ sub parse_source_url
 		$arch = lc $1;
 		$arch =~ s/-/_/g;
 	}
-	return ($type, $ver, $sub, $arch);
+	return ($type, $ver, $sub, $arch) if wantarray;
+	return { type=>$type, version=>$ver, subversion=>$sub, arch=>$arch };
 }
 
 # runs a command
@@ -112,7 +97,7 @@ sub patch_file
 }
 
 # returns true if the products maps IDE discs to /dev/sd\w
-sub has_libsata
+sub _has_libsata
 {
 	my ($type,$version,$subversion,$arch)=@_;
 	return 1 if `hwinfo --disk | grep VMware`;
@@ -145,13 +130,14 @@ sub disk_stats
 }
 
 # reads root and swap partition info
-sub read_partitions
+sub _read_partitions
 {
-	my ($new_type,$new_version,$new_subversion,$new_libsata,$arch,$root_pt)=@_;
+	my $args=shift;
+	my $libsata=&_has_libsata(map {$args->{$_}} qw(to_type to_version to_subversion to_arch));
 	my $swappart=`cat /proc/swaps | tail -n 1 | cut -f1 -d' '`;
 	my $swapsize = `cat /proc/swaps | tail -n 1 |awk {'print \$3'}`;
 	my $rootpart=`df /|tail -n1 | cut -f1 -d' '`;
-	$rootpart=$root_pt if($root_pt);
+	$rootpart=$args->{'root_pt'} if($args->{'root_pt'});
 	my $abuildpart=`df | grep "abuild" |tail -n1 | cut -f1 -d' '`;
 	my $abuildsize=`df -m |grep "abuild" |tail -n1 |awk {'print \$2'} | cut -f1 -d' '`;
 	my $bootpart;
@@ -161,75 +147,84 @@ sub read_partitions
 	chomp($swapsize);
 	chomp($abuildsize);
 	chomp($bootsize);
-	if ($arch eq 'ppc64' or $arch eq 'ppc') {
+	if ($args->{'to_arch'} eq 'ppc64' or $args->{'to_arch'} eq 'ppc') {
 		$bootpart="/dev/" . `ls -l \$(grep ^boot /etc/lilo.conf | cut -d \" \" -f3) \| awk -F/ {'print \$NF'}`;
 	} else {
 		$bootpart=`df /boot/efi 2>/dev/null | tail -n1 | cut -f1 -d' '`;
 	}
-	my ($rootid,$rootnum) = &disk_stats($rootpart,$new_libsata);
+	my ($rootid,$rootnum) = &disk_stats($rootpart,$libsata);
 	if ($abuildpart) {
-		($abuildid,$abuildnum) = &disk_stats($abuildpart,$new_libsata);
+		($abuildid,$abuildnum) = &disk_stats($abuildpart,$libsata);
 	}
-	my ($swapid,$swapnum) = &disk_stats($swappart,$new_libsata);
-	my ($bootid,$bootnum) = &disk_stats($bootpart,$new_libsata);
+	my ($swapid,$swapnum) = &disk_stats($swappart,$libsata);
+	my ($bootid,$bootnum) = &disk_stats($bootpart,$libsata);
 	return ($rootid,$rootnum,$swapid,$swapnum,$bootid,$bootnum,$bootsize,$abuildid,$abuildnum,$abuildsize,$swapsize);
 	# TODO: check for undefined results
+	# TODO: sanitize output, maybe integrate into _print_profile_partitions
 }
 
-sub get_patterns ### Used by newvm only
+# detects patterns
+sub get_patterns 
 {
-	my ($to_type,$to_version,$to_subversion,$additionalpatterns) = @_;
-	my $ret = "base";
-	$ret .= ",$additionalpatterns" if (defined $additionalpatterns);
-	if($to_type eq 'sled') {
+	my $args = shift;
+	my $ret = 'base';
+	if( !defined $args->{'patterns'} )	{
+		# case 1: patterns not set, return detected
+	} elsif( $args->{'patterns'} =~ s/^\+// )	{
+		# FIXME: it won't come here because of Getopt::Long, reconfiguring needed
+		# case 2: patterns preceeded by '+', append them to detected
+		$ret .= ",".$args->{'patterns'};
+	} else	{
+		# case 3: patterns set without '+', use instead of detected
+		return $args->{'patterns'};
+	}
+	if($args->{'to_type'} eq 'sled') { 
+		# this won't work for older SLEDs, but does anyone really use them?
 		$ret =~ s/(^|,)base($|,)/$1desktop-base$2/g;
 		$ret =~ s/(^|,)kde($|,)/$1desktop-kde$2/g;
 		$ret =~ s/(^|,)gnome($|,)/$1desktop-gnome$2/g;
 	}
-	my %hash;
-	$hash{$_}++ foreach (split(',',$ret));
-	return join(',', (sort keys %hash));
+	$args->{'patterns'} = join(',', sort split(',',$ret));
+	return $args->{'patterns'};
 }
 
 sub get_packages
 {
-	my ($to_type,$to_version,$to_subversion,$to_arch,$additionalrpms,$patterns,$virtHostType,$setupfordesktoptest) = @_;
+	my $args = shift;
 	my $ret='qa_tools,qa_hamsta,autoyast2,vim,mc,iputils,less,screen,lsof,pciutils,tcpdump,telnet,zip,yast2-runlevel,SuSEfirewall2,curl,wget,perl,openssh';
-	if( $to_type eq 'opensuse' or $to_type eq 'sled') {
+	if( $args->{'to_type'} eq 'opensuse' or $args->{'to_type'} eq 'sled') {
 		$ret .= ',nfs-client';	
 	} else {	
 		$ret .= ',nfs-utils';	
 	}
-	if( $virtHostType )	{
+	if( $args->{'virthosttype'} )	{
 		$ret .= ",libvirt,libvirt-python,xen-libs,vm-install,virt-manager,virt-viewer";
-		$ret .= ($virtHostType eq 'xen') ? ",xen,xen-tools,kernel-xen" : ",kvm"; 
+		$ret .= ($args->{'virthosttype'} eq 'xen') ? ",xen,xen-tools,kernel-xen" : ",kvm"; 
 	}	
 	#$ret .= ",pam-modules-64bit,resmgr-64bit" if $to_arch eq 'ppc64'; #BZ706671
-	$ret .= ",qa_setvncserver" if ($patterns =~ /gnome/ or $patterns =~ /kde/);
-	$ret .= ",atk-devel,at-spi,gconf2" if $setupfordesktoptest;
-	$ret .= ",$additionalrpms" if (defined $additionalrpms);
-	return $ret;
+	$ret .= ",qa_setvncserver" if ($args->{'patterns'} =~ /gnome|kde/ );
+	$ret .= ",atk-devel,at-spi,gconf2" if $args->{'setupfordesktoptest'};
+	$ret .= ",".$args->{'additionalrpms'} if (defined $args->{'additionalrpms'});
+	$ret .= ','.$qaconf{install_additional_rpms}  if $qaconf{install_additional_rpms};
+	$args->{'packages'} = $ret;
 }
 
 sub get_profile
 {
-	my ($to_type,$to_version,$to_subversion,$profiledir) = @_;
-	return "$profiledir/sles9.xml" if $to_version<10;
-	return "$profiledir/default.xml";
+	my $args = shift;
+	my $profiledir = shift;
+	return "$profiledir/".($args->{'to_version'} < 10 ? 'sles9' : 'default').'.xml'; 
 }
 
-sub get_buildservice_repo
+sub _get_buildservice_repo
 {
 # TODO
 # SLES_9, SLE_10_SP1_Head, SLE_10_SP2_Head, SLE_Factory, openSUSE_11.0, openSUSE_Factory
 	my ($type,$version,$subversion) = @_;
 	if( $type eq 'opensuse' ) {
-		return 'openSUSE_11.0' if $version==11 and $subversion==0;
-		return 'openSUSE_11.1' if $version==11 and $subversion==1;
-		return 'openSUSE_11.2' if $version==11 and $subversion==2;
-		return 'openSUSE_11.3' if $version==11 and $subversion==3;
-		return 'openSUSE_11.4' if $version==11 and $subversion==4;
-		return 'openSUSE_Factory' if $version>=11;
+		return "openSUSE_11.4" if $version==11 and $subversion==4;
+		return "openSUSE_12.1" if $version==12 and $subversion==1;
+		return 'openSUSE_Factory';
 	} else {
 		return 'SLES_9' if $version==9;
 		return 'SLE_10_SP1_Head' if $version==10 and $subversion<=1;
@@ -244,42 +239,14 @@ sub get_buildservice_repo
 	return undef;
 }
 
-# modifies the profile and stores the result on a NFS share on bender
-# returns URL to the result
-sub install_profile
-{
-	my ($profile,$modfile, $suffix, $mountpoint, $hostname, $tooldir) = @_;  # suffix is optional
-	my $xml_out = "$mountpoint/autoinst/autoinst_$hostname.xml";
-	$xml_out = "$mountpoint/autoinst/autoinst_$suffix.xml" if $suffix;
-	&command( "$tooldir/modify_xml.pl -m '$modfile' '$profile' '$xml_out'" );
-	return $qaconf{install_profile_url_base}."/autoinst_$hostname.xml";
-}
-
-sub install_profile_newvm
-{
-	my ($profile,$modfile,$mountpoint,$tooldir) = @_;
-	my $hostname = `hostname`;
-	chomp $hostname;
-	my $xml_out = "$mountpoint/autoinst/autoinst_${hostname}_vm_$$.xml";
-	&command( "$tooldir/modify_xml.pl -m '$modfile' '$profile' '$xml_out'" );
-
-	# FIXME: temporal hack - will be fixed when merged with reinstall.pl code
-	my $cmd="sed -i '" . 's/<dhcp_hostname config:type="boolean">false<\/dhcp_hostname>/<dhcp_hostname config:type="boolean">true<\/dhcp_hostname>/' . "' '$xml_out'";
-	&command($cmd);
-	return $qaconf{install_profile_url_base}."/autoinst_${hostname}_vm_$$.xml";
-}
-
 # creates a modification file for AutoYaST
 sub make_modfile
 {
-	my ($source,$url_addon,$new_type,$new_version,$new_subversion,$new_libsata,$patterns,$packages,$defaultboot,$install_update,$virtHostType,$newvm,$arch,$root_pt,$opensuse_update,$upgrade,$repartitiondisk,$rootfstype,$smt_server,$ncc_email,$ncc_code,$setupfordesktoptest,$hostname,$domainname,$setup_bridge)=@_;
+	my $args=shift;
+	my $patterns = &get_patterns($args);
+	my $packages = &get_packages($args);
 # put it all into one function,
 # would return (undef,undef) if the partition does not exist
-	my ($rootid,$rootnum,$swapid,$swapnum,$bootid,$bootnum,$bootsize,$abuildid,$abuildnum,$abuildsize,$swapsize) = &read_partitions($new_type,$new_version,$new_subversion,$new_libsata,$arch,$root_pt)  unless $virtHostType or $newvm;
-	my $pdversion = &get_buildservice_repo($new_type, $new_version, $new_subversion);
-	my $bsurl = "";
-	$bsurl = $pdversion if $newvm;
-	my %urls=();
 	my $QA_repo=$qaconf{install_qa_repository};
 	my $testusr = $qaconf{install_testuser_login};
 	my $testpass = $qaconf{install_testuser_password};
@@ -287,28 +254,22 @@ sub make_modfile
 	my $testhome = $qaconf{install_testuser_home};
 	my $rootpass = $qaconf{install_root_password};
 
-	$packages .= ','.$qaconf{install_additional_rpms}  if $qaconf{install_additional_rpms};
 
-	if ($bsurl) { ## for newvm use only
-		$urls{'QArepo'}="$QA_repo/$bsurl";
-		$urls{'SDK'}=$url_addon if defined $url_addon;
-	}
-
-	my @urls=($QA_repo."/".$pdversion);
-	if ($url_addon) { 
-		foreach my $aurl(split(/,/, $url_addon)) {
-			push @urls, $aurl;
-		}
-	}
-
+	# open modfile
 	my $modfile="/tmp/modfile_$$.xml";
 	open my $f, ">$modfile" or die "Cannot create patch file '$modfile' : $!";
+
+	# header
 	print $f '<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">'."\n";
-	print $f " <install>\n" if $new_version<10;
+	print $f " <install>\n" if $args->{'to_version'}<10;
+
+	# addon/SDK/... URLs
 	print $f <<EOF;
 	<add-on>
 		<add_on_products config:type="list">
 EOF
+	my @urls=($QA_repo."/".&_get_buildservice_repo($args->{'to_type'}, $args->{'to_version'}, $args->{'to_subversion'}));
+	push @urls, split(/,/,$args->{'url_addon'}) if $args->{'url_addon'};
 	foreach my $url(@urls) {
 		print $f <<EOF;
 			<listentry>
@@ -324,9 +285,9 @@ EOF
 			</listentry>
 EOF
 	}
-	if ( $opensuse_update ) {
-		my $opensuse_update_url = "http://download.opensuse.org/update/$new_version\.$new_subversion\/";
-		my $opensuse_update_name = "$new_version\.$new_subversion update";
+	if ( $args->{'opensuse_update'} ) {
+		my $opensuse_update_url = "http://download.opensuse.org/update/".$args->{'to_version'}.'.'.$args->{'to_subversion'}.'/';
+		my $opensuse_update_name = $args->{'to_version'}.'.'.$args->{'to_subversion'}." update";
 		print $f <<EOF;
 		<listentry>
 			<media_url>$opensuse_update_url</media_url>
@@ -341,83 +302,12 @@ EOF
 	</add_on_products>
 	</add-on>
 EOF
-	unless ($upgrade) { #partitioning unless upgrade
-		## non-VH, custom partitions
-		unless ($virtHostType or $newvm) {
-			my $drives={};
-			$drives->{$rootid}->{$rootnum}='/' if defined $rootid;
-			$drives->{$swapid}->{$swapnum}='swap' if defined $swapid;
-			$drives->{$abuildid}->{$abuildnum}='/abuild' if defined $abuildid;
-			$drives->{$bootid}->{$bootnum}='/boot/efi' if defined $bootid and $arch eq 'ia64';
-			$drives->{$bootid}->{$bootnum}='NULL' if defined $bootid and ($arch eq 'ppc64' or $arch eq 'ppc');
-			my $sizeunit = `fdisk -l |grep "\$drive" |grep Disk |awk {'print \$4'} | cut -f1 -d','`;
-			my $disksize = `fdisk -l |grep "\$drive" |grep Disk |awk {'print \$3'} | cut -f1 -d'\n'`;
-			chomp($sizeunit);
-			chomp($disksize);
-			if ( substr($sizeunit, 0, 2) =~ /GB/ ) {
-				$disksize = int($disksize*1024);
-			}
-			$abuildsize = 0 if !$abuildid;
-			$bootsize = 0 if !$bootid;
-			my $sizepercent = $repartitiondisk ? $repartitiondisk*0.01 : 1;
-			$swapsize = int($swapsize/1024);
-			my $rootusesize = int(($disksize - $abuildsize - $bootsize - $swapsize)*$sizepercent);
+	# partitions
+	&_print_profile_partitions($args,$f);
 
-			my %fs = ( '/'=>$rootfstype, 'swap'=>'swap', '/boot/efi'=>'vfat', '/abuild'=>'ext3', 'NULL' => 'ext3');
-			my %format = ( '/'=>'true', 'swap'=>'false', '/boot/efi'=>'true', '/abuild'=>'true','NULL' => 'false' );
-			my %size = ( '/'=>$rootusesize, 'swap'=>$swapsize, '/boot/efi'=>$bootsize, '/abuild'=>$abuildsize,'NULL' => 'auto' );
-	
-			print $f "  <partitioning config:type=\"list\">\n";
-			foreach my $drive ( keys %{$drives} ) {
-				print $f "   <drive>\n";
-				print $f "	<device>$drive</device>\n";
-				if ( $repartitiondisk ) {
-					print $f "	<initialize config:type=\"boolean\">true</initialize>\n";
-				} else {
-					print $f "	<use>".(join ',', keys %{$drives->{$drive}} )."</use>\n";
-				}
-				print $f "	<partitions config:type=\"list\">\n";
-				foreach my $num ( keys %{$drives->{$drive}} ) {
-					my $mnt=$drives->{$drive}->{$num};
-					print $f "	 <partition>\n";
-					print $f "	  <filesystem config:type=\"symbol\">".$fs{$mnt}."</filesystem>\n";
-					if ( $repartitiondisk ) {
-						print $f "	  <create config:type=\"boolean\">true</create>\n";
-						print $f "	  <format config:type=\"boolean\">true</format>\n";
-					} else {
-						print $f "	  <create config:type=\"boolean\">false</create>\n";
-						print $f "	  <format config:type=\"boolean\">".$format{$mnt}."</format>\n";
-					}
-					if ($mnt eq 'NULL') {
-						print $f "	  <partition_id config:type=\"integer\">65</partition_id>\n"; #PPC pre-boot partition
-					} else {
-						print $f "	  <mount>$mnt</mount>\n";
-					}
-					if ( $repartitiondisk ) {
-						print $f "	  <size>".$size{$mnt}."mb</size>\n";
-					}
-					print $f "	  <partition_nr config:type=\"integer\">$num</partition_nr>\n";
-					print $f "	 </partition>\n";
-				}
-				print $f "	</partitions>\n";
-				print $f "   </drive>\n";
-			}
-			print $f "  </partitioning>\n";
-		} else { ## VH or newvm
-		print $f <<EOF;
-	  <partitioning config:type="list">
-		<drive>
-		  <use>all</use>
-		</drive>
-	  </partitioning>
-EOF
-		}
-	}
-
+	# patterns / packages
 	my $pat='pattern';
 	my $pats='patterns';
-	my $updatetag='suse_register';
-	$updatetag = "customer_center" if $new_version<11;
 # TODO: since when it is patterns and not RPM groups ?
 	if( $patterns or $packages ) {
 		print $f "  <software>\n";
@@ -431,77 +321,35 @@ EOF
 			print $f map {'	  <package>'.$_."</package>\n"} split(/,/,$packages);
 			print $f "	</packages>\n";
 		}
-		print $f "	  <do_online_update config:type=\"boolean\">true</do_online_update>" if $install_update;
+		print $f "	  <do_online_update config:type=\"boolean\">true</do_online_update>" if $args->{'install_update'};
 		print $f "  </software>\n";
 	}
 
-	if ($upgrade) { # Upgrade with autoyast
+	# upgrade
+	if ($args->{'upgrade'}) { # Upgrade with autoyast
 		print $f "  <upgrade>\n";
 		print $f "	  <only_installed_packages config:type=\"boolean\">false</only_installed_packages>\n";
 		print $f "	  <stop_on_solver_conflict config:type=\"boolean\">true</stop_on_solver_conflict>\n";
 		print $f "  </upgrade>\n";
 	}
 	
-	unless ($upgrade) { # do not change bootloader in upgrade
-		unless ($virtHostType or $newvm) { ## non-VH or VM
-			my $bootpartition = `df /boot |tail -n1 |awk {'print \$6'}`;
-			chomp($bootpartition);
-			# if $defaultboot is set to 'root', we do not generate anything here, just use bootloader in root with active flag
-			if( $defaultboot ne 'root' ) {
-				print $f "  <bootloader>\n";
-				print $f "    <global>\n";
-				if ($defaultboot =~ /^MBR$/i) {
-					print $f "	<boot_mbr>true</boot_mbr>\n";
-				} elsif ($repartitiondisk and $bootpartition eq "\/") {
-					print $f "	<boot_mbr>true</boot_mbr>\n";
-				}
-				if ($arch eq 'ppc64' or $arch eq 'ppc') {
-					my $bootpart = `fdisk -l | grep "PPC PReP Boot" | cut -d " " -f1`;
-					print $f "	<activate>true</activate>\n";
-					print $f "	<boot_chrp_custom>$bootpart</boot_chrp_custom>\n";
-					print $f "	<timeout config:type=\"integer\">5</timeout>\n";
-					print $f "  </global>\n";
-					print $f "  <loader_type>ppc</loader_type>\n";
-				} elsif ($arch eq 'ia64') {
-		###  Do nothing here, see BZ687740
-		#			print $f "	<boot_efilabel>SUSE Linux</boot_efilabel>\n";
-		#			print $f "	<default>linux</default>\n";
-		#			print $f "	<prompt>true</prompt>\n";
-		#			print $f "	<relocatable>true</relocatable>\n";
-		#			print $f "	<timeout config:type=\"integer\">5</timeout>\n";
-					print $f "  </global>\n";
-		#			print $f "  <loader_type>elilo</loader_type>\n";
-				} else {
-					print $f "	<activate>false</activate>\n";
-					if ($bootpartition ne "\/") {
-						print $f "	<boot_boot>true</boot_boot>\n";
-					} else {
-						print $f "	<boot_root>true</boot_root>\n";
-					}
-					print $f "	<boot_root>true</boot_root>\n";
-					print $f "	<boot_extended>false</boot_extended>\n";
-					print $f "	<generic_mbr>false</generic_mbr>\n";
-					print $f "	<timeout config:type=\"integer\">5</timeout>\n";
-					print $f "    </global>\n";
-					print $f "    <loader_type>grub</loader_type>\n";
-				}
-				print $f "  </bootloader>\n";
-			}
-		}
-	}
+	# bootloader
+	&_print_profile_bootloader( $args, $f );
 
 	# Start registration info
-	if ( $install_update and $new_type ne "opensuse" ) {
+	my $updatetag='suse_register';
+	$updatetag = "customer_center" if $args->{'to_version'}<11;
+	if ( $args->{'install_update'} and $args->{'to_type'} ne "opensuse" ) {
 		print $f "	<$updatetag>
 	  <do_registration config:type=\"boolean\">true</do_registration>
 	  <register_regularly config:type=\"boolean\">false</register_regularly>\n";
 	}
 
 	# Register NCC without SMT
-	if ( $install_update and $ncc_email and $ncc_code and $new_type ne "opensuse" ) {
-		print $f "	  <registration_data>
-		<email>$ncc_email</email>";
-		foreach my $rcode (split(/,/, $ncc_code)) {
+	if ( $args->{'install_update'} and $args->{'ncc_email'} and $args->{'ncc_code'} and $args->{'to_type'} ne "opensuse" ) {
+		print $f "\t  <registration_data>\n";
+		print $f "\t    <email>".$args->{'ncc_email'}."</email>\n";
+		foreach my $rcode (split(/,/, $args->{'ncc_code'})) {
 			my $prname = "";
 			# Possible regi-codes could be: WORKFORCEID@PRV-EXT-SLES-XXXXXXXXXX
 			# or sles10XXXXXXXX
@@ -518,10 +366,10 @@ EOF
 	}
 
 	# Register NCC from https://secure-www.novell.com/center/regsvc, we just update from local SMT server here.
-	print $f "	<reg_server>$smt_server</reg_server>\n" if ( $install_update and $smt_server and $new_type ne "opensuse" );
+	print $f "	<reg_server>$args->{'smt_server'}</reg_server>\n" if ( $args->{'install_update'} and $args->{'smt_server'} and $args->{'to_type'} ne "opensuse" );
 
 	# Finish registration info
-	if ( $install_update and $new_type ne "opensuse" ) {
+	if ( $args->{'install_update'} and $args->{'to_type'} ne "opensuse" ) {
 		print $f "	  <submit_hwdata config:type=\"boolean\">true</submit_hwdata>
 	  <submit_optional config:type=\"boolean\">true</submit_optional>
 	</$updatetag>";
@@ -552,7 +400,7 @@ EOF
 	  </script>";
 	}
 
-	if ( $install_update and $new_type ne "opensuse" ) { # This is work around for consistent reboot after upgrade
+	if ( $args->{'install_update'} and $args->{'to_type'} ne "opensuse" ) { # This is work around for consistent reboot after upgrade
 		print $f "	  <script>
 		<filename>yyy_for_updates</filename>
 		<interpreter>shell</interpreter>
@@ -565,8 +413,8 @@ EOF
 	  </script>";
 	}
 	
-	unless ($upgrade) {
-		if ( $setupfordesktoptest ) { # Autoun asistive technologies and xhost + on gdm login
+	unless ($args->{'upgrade'}) {
+		if ( $args->{'setupfordesktoptest'} ) { # Autoun asistive technologies and xhost + on gdm login
 			print $f "      <script>
 			<filename>zzz_setup_4_desktop_tests</filename>
 			<interpreter>shell</interpreter>
@@ -634,12 +482,12 @@ EOF
 	          </source> 
 	        </script>";
 	
-		if ( $virtHostType ) { ## VH
+		if ( $args->{'virthosttype'} ) { ## VH
 			print $f "	<script>
 				<filename>yyz_set_virthost</filename>
 				<interpreter>shell</interpreter>
 				<source>
-				  echo $virtHostType > /var/lib/hamsta/VH;
+				  echo $args->{'virthosttype'} > /var/lib/hamsta/VH;
 				</source>
 			  </script>";  # Set this host as virtualization host of correct type
 	
@@ -651,7 +499,7 @@ EOF
 				  ]]>
 				</source>
 			  </script>";
-			if ( $virtHostType eq 'kvm' ) {
+			if ( $args->{'virthosttype'} eq 'kvm' ) {
 			#FIXME: better detect and die if not supported
 			my $module = system("grep -q 'vmx' /proc/cpuinfo") == 0 ? "kvm-intel" : "kvm-amd";
 				print $f "	<script>
@@ -670,21 +518,21 @@ EOF
 	print $f "	  </init-scripts>\n";
 	
 	# For upgrade, replace bootloader with original one before the installation
-	if ($upgrade) {
+	if ($args->{'upgrade'}) {
 		my ($bootpart, $bootparttype, $bootpath, $boothpathrel, $postcmd);
 
-		if($arch =~ /^ppc(64)?$/) {
+		if($args->{'to_arch'} =~ /^ppc(64)?$/) {
 			$bootpath = '/etc/lilo.conf';
 			$postcmd = '/sbin/lilo';
-		} elsif ($arch eq 'ia64') {
+		} elsif ($args->{'to_arch'} eq 'ia64') {
 			$bootpath = '/boot/efi/efi/SuSE/elilo.conf';
 			$postcmd = ''; #nothing needed
-		} elsif ($arch =~ /^(i[356]86)|(x86_64)$/) {
+		} elsif ($args->{'to_arch'} =~ /^(i[356]86)|(x86_64)$/) {
 			$bootpath = '/boot/grub/menu.lst';
 			$postcmd = ''; # nothing needed
 		} else {
 			# We should never reach this line!
-			die "ERROR: Architecture $arch is not supported for upgrade!";
+			die "ERROR: Architecture $args->{'to_arch'} is not supported for upgrade!";
 		}
 
 		# Get boot partition, its type and rel path
@@ -742,7 +590,7 @@ $postcmd
 
 	print $f "	</scripts>"; # End of the scripts section
 
-	unless ($upgrade) {	
+	unless ($args->{'upgrade'}) {	
 		my $dm;
 		my $rl;
 		# Assign display manager in /etc/sysconfig/displaymanager
@@ -774,13 +622,14 @@ $postcmd
 		</runlevel>\n";
 	
 		print $f "  <networking>\n";
+		my $dhcp_hostname = ( $args->{'virttype'} ? 'true' : 'false' );
 		print $f "    <dns>
-				<dhcp_hostname config:type=\"boolean\">false</dhcp_hostname>
+				<dhcp_hostname config:type=\"boolean\">$dhcp_hostname</dhcp_hostname>
 				<resolv_conf_policy>auto</resolv_conf_policy>\n";
 
-		if (!$newvm) { ## no need for VM
-			print $f "	  <hostname>$hostname</hostname>\n";
-			print $f "	  <domain>$domainname</domain>\n";
+		if (!$args->{'newvm'}) { ## no need for VM
+			print $f "	  <hostname>".$args->{'hostname'}."</hostname>\n";
+			print $f "	  <domain>".$args->{'domainname'}."</domain>\n";
 		}
 		print $f "	</dns>\n";
 		print $f "	<interfaces config:type=\"list\">\n";
@@ -791,7 +640,7 @@ $postcmd
 			chomp $mac;
 			my $ip = $1 if `ip -4 -o addr show $dev` =~ /inet ([\d\.]+)/;
 			my $dev2 = "eth-id-$mac"; # fix spontaneous renaming
-			if( $virtHostType || $setup_bridge )	{ # VH
+			if( $args->{'virthosttype'} || $args->{'setup_bridge'} )	{ # VH
 				print $f <<EOF;
 			<interface>
 				<bootproto>dhcp4</bootproto>
@@ -893,10 +742,138 @@ EOF
 EOF
 	}
 	
-	print $f " </install>\n" if $new_version<10;
+	print $f " </install>\n" if $args->{'to_version'}<10;
 	print $f "</profile>\n";
 	close $f;
 	return $modfile;
+}
+
+sub _print_profile_partitions
+{
+	my ($args, $f) = @_;
+	unless ($args->{'upgrade'}) { #partitioning unless upgrade
+		## non-VH, custom partitions
+		unless ($args->{'virthosttype'} or $args->{'newvm'}) {
+			my ($rootid,$rootnum,$swapid,$swapnum,$bootid,$bootnum,$bootsize,$abuildid,$abuildnum,$abuildsize,$swapsize) = &_read_partitions($args);
+			my $drives={};
+			$drives->{$rootid}->{$rootnum}='/' if defined $rootid;
+			$drives->{$swapid}->{$swapnum}='swap' if defined $swapid;
+			$drives->{$abuildid}->{$abuildnum}='/abuild' if defined $abuildid;
+			$drives->{$bootid}->{$bootnum}='/boot/efi' if defined $bootid and $args->{'to_arch'} eq 'ia64';
+			$drives->{$bootid}->{$bootnum}='NULL' if defined $bootid and ($args->{'to_arch'} eq 'ppc64' or $args->{'to_arch'} eq 'ppc');
+			my $sizeunit = `fdisk -l |grep "\$drive" |grep Disk |awk {'print \$4'} | cut -f1 -d','`;
+			my $disksize = `fdisk -l |grep "\$drive" |grep Disk |awk {'print \$3'} | cut -f1 -d'\n'`;
+			chomp($sizeunit);
+			chomp($disksize);
+			if ( substr($sizeunit, 0, 2) =~ /GB/ ) {
+				$disksize = int($disksize*1024);
+			}
+			$abuildsize = 0 if !$abuildid;
+			$bootsize = 0 if !$bootid;
+			my $sizepercent = $args->{'repartitiondisk'} ? $args->{'repartitiondisk'}*0.01 : 1;
+			$swapsize = int($swapsize/1024);
+			my $rootusesize = int(($disksize - $abuildsize - $bootsize - $swapsize)*$sizepercent);
+
+			my %fs = ( '/'=>$args->{'rootfstype'}, 'swap'=>'swap', '/boot/efi'=>'vfat', '/abuild'=>'ext3', 'NULL' => 'ext3');
+			my %format = ( '/'=>'true', 'swap'=>'false', '/boot/efi'=>'true', '/abuild'=>'true','NULL' => 'false' );
+			my %size = ( '/'=>$rootusesize, 'swap'=>$swapsize, '/boot/efi'=>$bootsize, '/abuild'=>$abuildsize,'NULL' => 'auto' );
+	
+			print $f "  <partitioning config:type=\"list\">\n";
+			foreach my $drive ( keys %{$drives} ) {
+				print $f "   <drive>\n";
+				print $f "	<device>$drive</device>\n";
+				if ( $args->{'repartitiondisk'} ) {
+					print $f "	<initialize config:type=\"boolean\">true</initialize>\n";
+				} else {
+					print $f "	<use>".(join ',', keys %{$drives->{$drive}} )."</use>\n";
+				}
+				print $f "	<partitions config:type=\"list\">\n";
+				foreach my $num ( keys %{$drives->{$drive}} ) {
+					my $mnt=$drives->{$drive}->{$num};
+					print $f "	 <partition>\n";
+					print $f "	  <filesystem config:type=\"symbol\">".$fs{$mnt}."</filesystem>\n";
+					if ( $args->{'repartitiondisk'} ) {
+						print $f "	  <create config:type=\"boolean\">true</create>\n";
+						print $f "	  <format config:type=\"boolean\">true</format>\n";
+					} else {
+						print $f "	  <create config:type=\"boolean\">false</create>\n";
+						print $f "	  <format config:type=\"boolean\">".$format{$mnt}."</format>\n";
+					}
+					if ($mnt eq 'NULL') {
+						print $f "	  <partition_id config:type=\"integer\">65</partition_id>\n"; #PPC pre-boot partition
+					} else {
+						print $f "	  <mount>$mnt</mount>\n";
+					}
+					if ( $args->{'repartitiondisk'} ) {
+						print $f "	  <size>".$size{$mnt}."mb</size>\n";
+					}
+					# when repartitioning and 4 partitions in use, force creating an extended partition
+					print $f "	  <partition_nr config:type=\"integer\">".(($args->{'repartitiondisk'} and $num>=4) ? $num+1 : $num)."</partition_nr>\n";
+					print $f "	 </partition>\n";
+				}
+				print $f "	</partitions>\n";
+				print $f "   </drive>\n";
+			}
+			print $f "  </partitioning>\n";
+		} else { ## VH or newvm
+		print $f <<EOF;
+	  <partitioning config:type="list">
+		<drive>
+		  <use>all</use>
+		</drive>
+	  </partitioning>
+EOF
+		}
+	}
+}
+
+sub _print_profile_bootloader
+{
+	my ($args,$f) = @_;
+	unless ($args->{'upgrade'}) { # do not change bootloader in upgrade
+		unless ($args->{'virthosttype'} or $args->{'newvm'}) { ## non-VH or VM
+			my $bootpartition = `df /boot |tail -n1 |awk {'print \$6'}`;
+			chomp($bootpartition);
+			# if $args->{'defaultboot'} is set to 'root', we do not generate anything here, just use bootloader in root with active flag
+			if( $args->{'defaultboot'} ne 'root' ) {
+				print $f "  <bootloader>\n";
+				print $f "    <global>\n";
+				if ($args->{'defaultboot'} =~ /^MBR$/i or $args->{'repartitiondisk'}) {
+					print $f "	<boot_mbr>true</boot_mbr>\n";
+				}
+				if ($args->{'to_arch'} eq 'ppc64' or $args->{'to_arch'} eq 'ppc') {
+					my $bootpart = `fdisk -l | grep "PPC PReP Boot" | cut -d " " -f1`;
+					print $f "	<activate>true</activate>\n";
+					print $f "	<boot_chrp_custom>$bootpart</boot_chrp_custom>\n";
+					print $f "	<timeout config:type=\"integer\">5</timeout>\n";
+					print $f "  </global>\n";
+					print $f "  <loader_type>ppc</loader_type>\n";
+				} elsif ($args->{'to_arch'} eq 'ia64') {
+		###  Do nothing here, see BZ687740
+		#			print $f "	<boot_efilabel>SUSE Linux</boot_efilabel>\n";
+		#			print $f "	<default>linux</default>\n";
+		#			print $f "	<prompt>true</prompt>\n";
+		#			print $f "	<relocatable>true</relocatable>\n";
+		#			print $f "	<timeout config:type=\"integer\">5</timeout>\n";
+					print $f "  </global>\n";
+		#			print $f "  <loader_type>elilo</loader_type>\n";
+				} else {
+					print $f "	<activate>false</activate>\n";
+					if ($bootpartition ne "\/") {
+						print $f "	<boot_boot>true</boot_boot>\n";
+					} else {
+						print $f "	<boot_root>true</boot_root>\n";
+					}
+					print $f "	<boot_extended>false</boot_extended>\n";
+					print $f "	<generic_mbr>false</generic_mbr>\n";
+					print $f "	<timeout config:type=\"integer\">5</timeout>\n";
+					print $f "    </global>\n";
+					print $f "    <loader_type>grub</loader_type>\n";
+				}
+				print $f "  </bootloader>\n";
+			}
+		}
+	}
 }
 
 1;

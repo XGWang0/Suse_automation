@@ -131,7 +131,7 @@ if (request_str("proceed")) {
 			if ($update == "update-reg" and $regcode != "")
 				$args .= " -C " . $regcode;
 			if ($update == "update-opensuse")
-				$args .= " -O " . $update;
+				$args .= " -O ";
 		}
 		system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $autoyastfile");
 		system("sed -i 's/ARGS/$args/g' $autoyastfile");

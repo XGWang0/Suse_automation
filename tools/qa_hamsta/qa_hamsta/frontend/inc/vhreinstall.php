@@ -149,7 +149,7 @@ if (request_str("proceed")) {
                if (request_str("startupdate") == "update-reg" and request_str("update-reg-code") != "")
                    $args .= " -C " . request_str("update-reg-code");
                if (request_str("startupdate") == "update-opensuse")
-	           $args .= " -O " . request_str("startupdate");
+	           $args .= " -O ";
                if ($installmethod == "Upgrade")
                    $args .= " -U";
 	       $args .= " -V " .$virtualization_method;

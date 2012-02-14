@@ -135,7 +135,7 @@ if (request_str("proceed")) {
 		if ($additionalrpms)
 			$args .= " -r $additionalrpms";
 		if ($additionalpatterns)
-			$args .= " -t $additionalpatterns";
+			$args .= " -t +$additionalpatterns";
 		if ($setupfordesktop == "yes")
 			$args .= " -D";
 		if ($virtcpu)
@@ -150,7 +150,7 @@ if (request_str("proceed")) {
 		if (request_str("startupdate") == "update-reg" and request_str("update-reg-code") != "")
 			$args .= " -C " . request_str("update-reg-code");
 		if (request_str("startupdate") == "update-opensuse")
-		$args .= " -O " . request_str("startupdate");
+			$args .= " -O ";
 		system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $autoyastfile");
 		system("sed -i 's/ARGS/$args/g' $autoyastfile");
 		system("sed -i 's/REPOURL/$producturl/g' $autoyastfile");

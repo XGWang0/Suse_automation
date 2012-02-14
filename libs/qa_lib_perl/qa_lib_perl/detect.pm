@@ -408,7 +408,8 @@ sub detect_product
 	}
 	map { &log( LOG_DEBUG, "Results from %s : type '%s', version '%s', subversion '%s', release '%s', arch '%s'" , @$_ ) } @data;
 	&log( LOG_INFO, "Autodetection results: type='$type', version='$version', subversion='$subversion', release='$release', arch='$arch', QADB product = '$product'" );
-	return ($type, $version, $subversion, $release, $arch, $product);
+	return ($type, $version, $subversion, $release, $arch, $product) if wantarray;
+	return { type=>$type, version=>$version, subversion=>$subversion, release=>$release, arch=>$arch, product=>$product };
 }
 
 1;

@@ -172,7 +172,7 @@ if (request_str("proceed")) {
 		if ($update == "update-reg" and $regcode != "")
 			$args .= " -C " . $regcode;
 		if ($update == "update-opensuse")
-			$args .= " -O " . $update;
+			$args .= " -O ";
 		if ($installmethod == "Upgrade")
 			$args .= " -U";
 		if ($setupfordesktop == "yes")
