@@ -41,6 +41,12 @@ define ("XML_WEB_DIR", "/xml_files" );
 define ("XML_MULTIMACHINE_DIR", XML_DIR."/multimachine");
 define ("XML_MULTIMACHINE_WEB_DIR", XML_WEB_DIR."/multimachine");
 define ("XML_VALIDATION", "/usr/share/hamsta/xml_files/Validation_test.xml /usr/share/hamsta/xml_files/QA_KERNEL_launch_all_test_sles11-sp2.xml" );
+# Directories with CUSTOM XML files - first is system path, second is web path
+define ("XML_DIR_CUSTOM", XML_DIR."/custom");
+define ("XML_WEB_DIR_CUSTOM", XML_WEB_DIR."/custom");
+define ("XML_MULTIMACHINE_DIR_CUSTOM", XML_MULTIMACHINE_DIR."/custom");
+define ("XML_MULTIMACHINE_WEB_DIR_CUSTOM", XML_MULTIMACHINE_WEB_DIR."/custom");
+
 
 # Please modify following lines according to your local. This is used for reinstall repo/sdk url drop down list
 

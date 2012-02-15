@@ -51,12 +51,61 @@
 $(document).ready(function(){
 	for(i=0; i<99; i++)
 		$('#div_' + i).hide();
+        for(i=2; i<5; i++)
+		$('#commands_' + i).hide();
+	$('#predefine_form').show();
+        $('#multimachine_form').hide();
 });
 
 function showParamConts(n)
 {
 	$('#div_' + n).slideToggle("slow");
 }
+
+var getJobType =  function(select)
+{
+	var idx = select.selectedIndex, option, value;
+        if(idx > -1)
+        {
+                option = select.options[idx];
+                value = option.attributes.value;
+                jobtype = (value && value.specified)?option.value:option.text;
+                if(jobtype == 1)
+		{
+                    $('#predefine_form').show();
+		    $('#multimachine_form').hide();
+
+		}
+                else
+		{
+                    $('#predefine_form').hide();
+		    $('#multimachine_form').show();
+		}
+                return jobtype;
+        }
+        return NULL;
+}
+
+var getRoleNumber = function(select)
+{
+	var idx = select.selectedIndex, option, value;
+	if(idx > -1)
+	{
+		option = select.options[idx];
+		value = option.attributes.value;
+		role_number = (value && value.specified)?option.value:option.text;
+		for(i=0;i<5; i++)
+		{
+			if(i < role_number)
+				$('#commands_' + i).show();
+			else
+				$('#commands_' + i).hide();
+		}
+		return role_number;
+	}
+	return NULL;
+}
+
 </script>
 
 <span class="text-main">(<span class="required">*</span>) required field(s)</span>
@@ -69,24 +118,34 @@ Pre-defined jobs are configuration tasks or test runs that have been pre-defined
 <b>Job(s) will run on the following machine(s): </b>
 <?php
     $flag=0;
+    $machine_list = "";
     foreach ($machines as $machine):
 	echo('<input type="hidden" name="a_machines[]" value="'.$machine->get_id().'">');
-	if( $flag ) echo ', ';
-	echo($machine->get_hostname() );
+	if( $flag ){
+		echo ', ';
+		echo($machine->get_hostname() );
+		$machine_list .= "," . $machine->get_id();
+	}
+	else{
+		echo($machine->get_hostname() );
+		$machine_list = $machine->get_id();
+	}
 	$flag=1;
     endforeach;
 ?>
 </p>
 <div id="predefined" class="text-main">
-<table id="jobs" class="text-main">
+<table id="jobs" class="text-main" width="600px">
+	<thead>
 	<tr>
-	    <th>&nbsp;</th>
-	    <th>Job XML</th>
-	    <th>Controls</th>
+	    <th width="10px">&nbsp;</th>
+	    <th width="60%">Job XML</th>
+	    <th align="centre">Controls</th>
 	</tr>
-    
+        </thead>
     <?php
 # see XML_DIR and XML_WEB_DIR in config.php
+
     $dir=XML_DIR;
     if(is_dir($dir))
     {
@@ -110,9 +169,12 @@ Pre-defined jobs are configuration tasks or test runs that have been pre-defined
 		    # echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"pre-defined job:$file\" onclick=\"showParamConts('$filebasename')\">\n";
 		    echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"pre-defined job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
                     echo "        <td title=\"$jobdescription\">$jobname</td>\n";
-                    echo "        <td class=\"viewXml\"><a href=\"".XML_WEB_DIR."/$file\" target=\"_blank\" title=\"view $file\">(view)</a></td>\n";
-                    echo "    </tr class=\"file_list\">\n";
-                    echo "    <tr>\n";
+                    echo "        <td class=\"viewXml\" align=\"center\">\n";
+                    echo "            <a href=\"".XML_WEB_DIR."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/icon-vnc.png\" alt=\"view\" title=\"view the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>\n";
+                    echo "            <a href=\"index.php?go=edit_jobs&amp;file=$file&amp;opt=edit&amp;machine_list=$machine_list\" title=\"edit $file\"><img src=\"images/icon-edit.png\" alt=\"edit\" title=\"Edit the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>\n";
+                    echo "        </td>";
+		    echo "     </tr>\n";
+                    echo "     <tr class=\"file_list\">\n";
 		    echo "        <td colspan=\"3\">\n";
 		    if( $count > 0 )
 		    {
@@ -120,7 +182,7 @@ Pre-defined jobs are configuration tasks or test runs that have been pre-defined
 		    	echo "        <div style=\"margin-left: 40px; margin-top: 2px; padding: 2px 2px 10px 2px; border: 1px solid #cdcdcd\" id=\"div_$sortcount\">\n";
 			echo "            <div class=\"text-main\" style=\"padding: 5px 5px 5px 5px\"><b>Edit parameters in the form below.</b></div>\n";
 			
-			# get the parameter table
+			# get the parameter table, avoid the same parameter name in different jobs
 			$prefix_name = $filebasename . "_";
 			$parameter_table = get_parameter_table($param_map, $prefix_name);
 
@@ -140,6 +202,79 @@ Pre-defined jobs are configuration tasks or test runs that have been pre-defined
 
     ?>
 </table>
+
+<table id="jobs_custom" class="text-main" width="600px">
+        <thead>
+	<tr>
+	    <th width="10px">&nbsp;</th>
+	    <th width="60%">Custom Job XML</th>
+	    <th align="centre">Controls</th>
+	</tr>
+	</thead>
+    <?php
+# see XML_DIR and XML_WEB_DIR in config.php
+    $dir=XML_DIR_CUSTOM;
+    if(is_dir($dir))
+    {
+        if($handle = opendir($dir))
+        {
+	    # $sortcount = 0;  # at first, I wanna use the XML file name, but failed, I have to sort the XML and use the sort number.
+            while(($file = readdir($handle)) !== false)
+            {
+                if($file != "." && $file != ".." && substr($file,-4)=='.xml')
+		{
+			$filebasename = substr($file, 0, -4);
+
+			$xml = simplexml_load_file( "$dir/$file" );
+			$jobname = $xml->config->name;
+			$jobdescription = $xml->config->description;
+
+			$param_map = get_parameter_maps($xml);
+			$count = count($param_map);
+					
+                    echo "    <tr class=\"file_list\">\n";
+		    # echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"pre-defined job:$file\" onclick=\"showParamConts('$filebasename')\">\n";
+		    echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"pre-defined job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
+                    echo "        <td title=\"$jobdescription\">$jobname</td>\n";
+                    echo "        <td class=\"viewXml\" align=\"center\">\n";
+                    echo "            <a href=\"".XML_WEB_DIR_CUSTOM."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/icon-vnc.png\" alt=\"view\" title=\"view the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>\n";
+                    echo "            <a href=\"index.php?go=edit_jobs&amp;file=custom/$file&amp;opt=edit&amp;machine_list=$machine_list\" title=\"edit $file\"><img src=\"images/icon-edit.png\" alt=\"edit\" title=\"Edit the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>\n";
+                    echo "            <a href=\"index.php?go=send_job&amp;file=custom/$file&amp;opt=delete&amp;machine_list=$machine_list\" onclick=\"if(confirm('WARNING: You will delete the custom job XML file, are you sure?')) return true; else return false;\" title=\"delete $file\"><img src=\"images/icon-delete.png\" alt=\"delete\" title=\"Delete the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>\n";
+                    echo "    </tr class=\"file_list\">\n";
+                    echo "    <tr>\n";
+		    echo "        <td colspan=\"3\">\n";
+		    if( $count > 0 )
+		    {
+
+		    	echo "        <div style=\"margin-left: 40px; margin-top: 2px; padding: 2px 2px 10px 2px; border: 1px solid #cdcdcd\" id=\"div_$sortcount\">\n";
+			echo "            <div class=\"text-main\" style=\"padding: 5px 5px 5px 5px\"><b>Edit parameters in the form below.</b></div>\n";
+			
+			# get the parameter table
+			
+			# define the parameter prefix name
+                        # $filebasename is used to distinguish the same parameter name in different jobs
+                        # "_custom_" is used to ditinguish the same XML file name in default directory and custom directory
+			$prefix_name = $filebasename . "_custom_";
+			print "prefix_name = $prefix_name <br />";
+			$parameter_table = get_parameter_table($param_map, $prefix_name);
+
+			echo $parameter_table;
+			echo "        </div>\n";
+		    }
+
+		    echo "        </td>\n";
+		    echo "    </tr>\n";
+
+		    $sortcount++;
+                }
+            }
+            closedir($handle);
+        }
+    }
+
+    ?>
+</table>
+
 </div>
 <br/>
 <span class="text-main"><b>Email address: </b></span>
@@ -150,10 +285,13 @@ Pre-defined jobs are configuration tasks or test runs that have been pre-defined
 <input type="submit" name="submit" value="Send pre-defined job(s)">
 </form>
 <script type="text/javascript">
-//var TSort_Data = new Array ('jobs', '','','' );
+<!--
+//var TSort_Data = new Array ('jobs', '','s','' );
 //tsRegister();
+//var TSort_Data = new Array ('jobs_custom', '','s','' );
+//tsRegister();
+-->
 </script>
-
 
 
 <HR>
@@ -167,20 +305,30 @@ Jobs in this category have different roles for different machines, you will be a
 <b>Job(s) will run on the following machine(s): </b>
 <?php
     $flag=0;
+    $machine_list = "";
     foreach ($machines as $machine):
 	echo('<input type="hidden" name="a_machines[]" value="'.$machine->get_id().'">');
-	if( $flag ) echo ', ';
-	echo($machine->get_hostname() );
+	if( $flag ){
+		echo ', ';
+		echo($machine->get_hostname() );
+		$machine_list .= "," . $machine->get_id();
+	}
+	else{
+		echo($machine->get_hostname() );
+		$machine_list = $machine->get_id();
+	}
 	$flag=1;
     endforeach;
 ?>
+
+
 </p>
-<table id="mmjobs" class="text-main">
+<table id="mmjobs" class="text-main" width="600px">
     <thead>
 	<tr>
-	    <th>&nbsp;</th>
-	    <th>Job XML</th>
-	    <th>Controls</th>
+	    <th width="10px">&nbsp;</th>
+	    <th width="60%">Job XML</th>
+	    <th align="centre">Controls</th>
 	</tr>
     </thead>
     <?php
@@ -195,9 +343,12 @@ Jobs in this category have different roles for different machines, you will be a
                 if($file != "." && $file != ".." && substr($file,-4)=='.xml')
                 {
                     echo "    <tr class=\"file_list\">\n";
-		    echo "        <td><input type=\"radio\" name=\"filename\" value=\"$dir/$file\" title=\"pre-defined job:$file\">\n";
+		    echo "        <td><input type=\"radio\" name=\"filename\" value=\"$dir/$file\" title=\"pre-defined job:$file\"></td>\n";
                     echo "        <td>$file</td>\n";
-                    echo "        <td class=\"viewXml\"><a href=\"".XML_MULTIMACHINE_WEB_DIR."/$file\" target=\"_blank\" title=\"view $file\">(view)</a></td>\n";
+                    echo "        <td align=\"center\">";
+                    echo "            <a href=\"".XML_MULTIMACHINE_WEB_DIR."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/icon-vnc.png\" alt=\"view\" title=\"view the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>";
+                    echo "            <a href=\"index.php?go=edit_jobs&amp;file=multimachine/$file&amp;opt=edit&amp;machine_list=$machine_list\" title=\"edit $file\"><img src=\"images/icon-edit.png\" alt=\"edit\" title=\"Edit the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>";
+                    echo "        </td>\n";
                     echo "    </tr>\n";
                 }
             }
@@ -205,6 +356,50 @@ Jobs in this category have different roles for different machines, you will be a
         }
     }
     ?>
+</table>
+
+<?php
+
+$dir=XML_MULTIMACHINE_DIR_CUSTOM;
+if(is_dir($dir))
+{
+?>
+<table id="mmjobs_custom" class="text-main" width="600px">
+    <thead>
+        <tr>
+            <th width="10px">&nbsp;</th>
+            <th width="60%">Custom Job XML</th>
+            <th align="centre">Controls</th>
+        </tr>
+    </thead>
+    <?php
+# see XML_MULTIMACHINE_DIR and XML_MULTIMACHINE_WEB_DIR in config.php
+    #print "$dir <br />";
+    //print "<br /> 2 ----------------------------- <br />machine_targets = $machine_targets <br />";
+    if(is_dir($dir))
+    {
+        if($handle = opendir($dir))
+        {
+            while(($file = readdir($handle)) !== false)
+            {
+                if($file != "." && $file != ".." && substr($file,-4)=='.xml')
+                {
+                    echo "    <tr class=\"file_list\">\n";
+                    echo "        <td><input type=\"radio\" name=\"filename\" value=\"$dir/$file\" title=\"pre-defined job:$file\"></td>\n";
+                    echo "        <td>$file</td>\n";
+                    echo "        <td align=\"center\">";
+                    echo "            <a href=\"".XML_MULTIMACHINE_WEB_DIR_CUSTOM."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/icon-vnc.png\" alt=\"vire\" title=\"View the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>";
+                    echo "            <a href=\"index.php?go=edit_jobs&amp;file=multimachine/custom/$file&amp;opt=edit&amp;machine_list=$machine_list\" title=\"edit $file\"><img src=\"images/icon-edit.png\" alt=\"edit\" title=\"Edit the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>";
+                    echo "            <a href=\"index.php?go=send_job&amp;file=multimachine/custom/$file&amp;opt=delete&amp;machine_list=$machine_list\" onclick=\"if(confirm('WARNING: You will delete the custom job XML file, are you sure?')) return true; else return false;\" title=\"delete $file\"><img src=\"images/icon-delete.png\" alt=\"delete\" title=\"Delete the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>";
+                    echo "        </td>\n";
+                    echo "    </tr>\n";
+                }
+            }
+            closedir($handle);
+        }
+    }
+}
+?>
 </table>
 <br/>
 <span class="text-main"><b>Email address: </b></span>
@@ -217,6 +412,8 @@ Jobs in this category have different roles for different machines, you will be a
 <script type="text/javascript">
 <!--
 var TSort_Data = new Array ('mmjobs', '','s','' );
+tsRegister();
+var TSort_Data = new Array ('mmjobs_custom', '','s','' );
 tsRegister();
 -->
 </script>
@@ -314,7 +511,10 @@ Auto test jobs. Here we only provide typic test for each autotest component. If 
 <HR>
 <h2 class="text-medium text-blue bold">Custom Jobs</h2>
 <p class="text-main">
-Custom Jobs are used for running any kind of configuration task that you may need to send to your test systems. To set up and run a configuration task, sipmly fill out and submit this form. If this configuration task is one that you would like to re-use in the future, be sure to check the "Add this job to the pre-defined job list" box so that you can return to this page later and run that same configuration task as a "Pre-defined Job".
+Custom Jobs are used for running any kind of configuration task that you may need to send to your test systems. To set up and run a configuration task, sipmly fill out and submit this form. If this configuration task is one that you would like to re-use in the future, be sure to check the "Add this job to the custom job list" box so that you can return to this page later and run that same configuration task as a custom job.
+</p>
+<p class="text-main">
+You can create two type of job: predefined job and multi-machine job, for predefined job, you just need configure the command line, and the XML file will be saved as "Predefined job" if you select to save it by checking the "Add this job to the custom job list"; For muti-machine job, you need configure some more data for all of roles in the form below, you can set the role number up to 5 according to what your need,  the XML file will be saved as "Multi-machine job" if you select to save it. Futhermore, if you select to save you job, you can edit it in the send job page later.
 </p>
 <form action="index.php?go=customjob" method="POST" name="customjob" onSubmit="return checkcontents(this)">
 <table class="text-main">
@@ -322,17 +522,27 @@ Custom Jobs are used for running any kind of configuration task that you may nee
     <td><b>Job will run on the following machine(s): </b></td>
     <td>
     <?php
-        $flag=0;
-        foreach ($machines as $machine):
-            echo('<input type="hidden" name="a_machines[]" value="'.$machine->get_id().'">');
-            if( $flag ) echo ', ';
-            echo($machine->get_hostname() );
-            $flag=1;
-        endforeach;
-        echo "</td></tr></table><table class=\"text-main\">";
+    $machine_list="";
+    $flag=0;
+    foreach ($machines as $machine):
+        echo('<input type="hidden" name="a_machines[]" value="'.$machine->get_id().'">');
+        if( $flag ){
+                echo ', ';
+                echo($machine->get_hostname() );
+                $machine_list .= "," . $machine->get_id();
+        }
+        else{
+                echo($machine->get_hostname() );
+                $machine_list = $machine->get_id();
+        }
+        $flag=1;
+    endforeach;
+        echo "</td></tr></table><table class=\"text-main\" width=\"700px\">";
+	echo "<input type=\"hidden\" name=\"machine_list\" value=\"$machine_list\">";
     ?>
-    <tr><td>Custom job name: </td>
-    <td><input type="text" size="20" name="jobname" title="required: job name"><span class="required">*</span>
+
+    <tr><td width="40%">Custom job name: </td>
+    <td><input type="text" size="20" name="jobname" title="required: job name" value="yourjobname"><span class="required">*</span>
     </td></tr>
     <tr><td>Debug level:</td>
     <td>
@@ -350,18 +560,99 @@ Custom Jobs are used for running any kind of configuration task that you may nee
     </select> default "level-3"
     </td></tr>
     <tr><td>Description:</td>
-    <td><input type="text" size="20" name="description" title="optional: job descption"></td></tr>
+    <td><input type="text" size="20" name="description" title="optional: job descption" value="your job descption"></td></tr>
     <tr><td>Motd message:</td>
-    <td><input type="text" size="20" name="motdmsg" title="optional: /etc/motd message in SUT"></td></tr>
+    <td><input type="text" size="20" name="motdmsg" title="optional: /etc/motd message in SUT" value="your job motd message"></td></tr>
     <tr><td>Email address:</td>
-    <td><input type="text" size="20" name="mailto" title="optional: send mail if address is given">
+    <td><input type="text" size="20" name="mailto" title="optional: send mail if address is given" value="hamsta@suse.com">
     </td></tr>
     <tr><td>Needed rpms:</td>
-    <td><input type="text" size="20" name="rpmlist" title="optional: divided by space, e.g: qa_tools qa_bind"></td></tr>
-    <tr><td>Commands (one per line):</td>
-    <td><textarea cols="50" rows="10" id="commands" name="commands" title="required: write your script here, one command per line."></textarea><span class="required">*</span>
+    <td><input type="text" size="20" name="rpmlist" title="optional: divided by space, e.g: qa_tools qa_bind" value=""></td></tr>
+    <!--
+    <tr><td>Edit additional Parameters:</td>
+    <td><input type="checkbox" size="20" name="parameters" id="custom_param" title="Add addtional parameters">Select it if you want to add somme addtional parameters.
+    <br/>
     </td></tr>
-    <tr><td><input type="checkbox" value="addtopredefine" name="addtopredefine">Add this job to the pre-defined job list</td></tr>
+    -->
+
+    <tr><td>Job type:</td>
+    <td>
+     <select name="jobType" title="Job type, predefined job or multi-machine job" onChange="getJobType(jobType);">
+	<option value="1" selected="selected">Predefined job</option>;
+	<option value="2">multi-machine job</option>;
+    </td></tr>
+
+    <tr><td colspan="2">
+    <div id="predefine_form">
+    <table class="text-main" width="700px">
+    <tr><td width="40%">Commands (one per line):</td>
+    <td><textarea cols="50" rows="10" id="commands" name="commands_content[]" title="required: write your script here, one command per line."><?php echo "#!/bin/bash\necho Custom job"; ?></textarea><span class="required">*</span>
+    </td></tr>
+    </table></div>
+    </td></tr>
+    
+    <tr><td colspan="2">
+    <div id="multimachine_form">
+    <table class="text-main" width="700px">
+    <tr><td width="40%">Role number(role id is "0" origin):</td>
+    <td>
+     <select name="rolenumber" title="role number, from 2 to 10" onChange="getRoleNumber(rolenumber);">
+      <?php
+      for($j=2;$j<=5;$j++)
+      {
+          if($j==2)
+              echo "<option value=\"$j\" selected=\"selected\">$j</option>";
+          else
+              echo "<option value=\"$j\">$j</option>";
+      }
+      ?>
+    </select>
+    </td></tr>
+    <?php
+
+    for($i=0; $i<5; $i++)
+    {
+	echo "<tr><td colspan=\"2\">";
+        echo "<div id=\"commands_$i\">\n";
+	echo "<table class=\"text-main\">\n";
+        echo "<tr><td colspan=\"2\"><hr></td><tr>\n";
+        echo "<tr><td colspan=\"2\"><b>Edit SUT Role #$i:</b></td><tr>\n";
+        echo "<tr><td>Role name: </td>";
+        echo "<td><input type=\"text\" size=\"20\" name=\"rolename[]\" value=\"role$i\"></td>\n";
+        echo "</tr>\n";
+	echo "<tr><td>Minimum name: </td>";
+        echo "<td><select name=\"minnumber[]\" title=\"Select the minimum number for role $i\">";
+        for($j=1;$j<=10;$j++)
+        {
+	    if($j==1)
+                echo "<option value=\"$j\" selected=\"selected\">$j</option>";
+            else
+                echo "<option value=\"$j\">$j</option>";
+        }
+	echo "</select></td></tr>\n";
+        echo "<tr><td>Maximum name: </td>";
+        echo "<td><select name=\"maxnumber[]\" title=\"Select the maximum number for role $i\">";
+        for($j=1;$j<=20;$j++)
+        {
+	    if($j==1)
+                echo "<option value=\"$j\" selected=\"selected\">$j</option>";
+            else
+                echo "<option value=\"$j\">$j</option>";
+        }
+	echo "</select></td></tr>\n";
+	echo "<tr><td>Commands (one per line):</td>\n";
+        echo "<td colspan=\"2\"><textarea cols=\"60\" rows=\"10\" name=\"commands_content[]\" title=\"required: write your script here, one command per line.\">#!/bin/bash\necho Custom job role$i</textarea><span class=\"required\">*</span><td>\n";
+        echo "</tr>\n";
+        #echo "<tr><td colspan=\"2\"><hr></td><tr>\n";
+        echo "<tr><td colspan=\"2\"><hr></td><tr>\n";
+	echo "</table></div>\n";
+        echo "</td></tr>\n";
+    }
+
+    ?>
+    </td></tr>
+    </table></div>  <!-- End of mm_form area -->
+    <tr><td colspan="2"><input type="checkbox" value="addtopredefine" name="addtopredefine">Add this job to the custom job list</td></tr>
     <tr><td><input type="submit" name="submit" value="Send custom job"></td></tr>
 </table>
 </form>

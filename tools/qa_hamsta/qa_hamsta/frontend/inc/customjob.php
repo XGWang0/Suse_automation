@@ -31,6 +31,7 @@
 		return require("../index.php");
 	}
 	$search = new MachineSearch();
+	$a_machines = request_array("a_machines");
 	$search->filter_in_array(request_array("a_machines"));
 	$machines = $search->query();
 	$jobname=str_replace(' ', "\ ", str_replace('"', '\"', str_replace("/", "\/", $_POST['jobname'])));
@@ -39,38 +40,141 @@
 	$motdmsg=str_replace('"', '\"', str_replace("/", "\/", $_POST['motdmsg']));
 	$mailto=$_POST['mailto'];
 	$rpmlist=$_POST['rpmlist'];
-	$commands=$_POST['commands'];
-	$commandsSplit = explode("\n", $commands);
+	#$commands=$_POST['commands'];
+	$jobType=$_POST['jobType'];
+	$roleNumber=($jobType == 1)?1:$_POST['rolenumber'];
+	$commandsArray=request_array("commands_content");
 	$commandArray = array();
-	foreach($commandsSplit as $singleCommand)
+
+	$errors[] = array();
+
+	for($i=0; $i<$roleNumber; $i++)
 	{
-		$singleCommandTrimmed = trim($singleCommand);
-		if($singleCommandTrimmed != "")
+		$commandsSplit = explode("\n", $commandsArray[$i]);
+
+		foreach($commandsSplit as $singleCommand)
 		{
-			$commandArray[] = $singleCommandTrimmed;
+			$singleCommandTrimmed = trim($singleCommand);
+			if($singleCommandTrimmed != "")
+			{
+				$commandArray[$i][] = $singleCommandTrimmed;
+			}
 		}
 	}
+
 	$addtopredefine=$_POST['addtopredefine'];
 
 	$rand = rand();
 	$customjobfile = "/tmp/customjob_$rand.xml";
-	system("cat /usr/share/hamsta/xml_files/templates/customjob-template1.xml > $customjobfile");
-	system("sed -i -e \"s/JOBNAME/$jobname/g\" -e \"s/DEBUGLEVEL/$debuglevel/g\" -e \"s/MAILTO/$mailto/g\" -e \"s/RPMLIST/$rpmlist/g\" -e \"s/DESCRIPTION/$description/g\" -e \"s/MOTDMSG/$motdmsg/g\" $customjobfile");
-	$fh = fopen($customjobfile, 'a');
-	fwrite($fh, implode("\n", $commandArray) . "\n");
-	fclose($fh);
-	system("cat /usr/share/hamsta/xml_files/templates/customjob-template2.xml >> $customjobfile");
+	
+	#system("cat /usr/share/hamsta/xml_files/templates/customjob-template-1.xml > $customjobfile");
+	#system("sed -i -e \"s/JOBNAME/$jobname/g\" -e \"s/DEBUGLEVEL/$debuglevel/g\" -e \"s/MAILTO/$mailto/g\" -e \"s/RPMLIST/$rpmlist/g\" -e \"s/DESCRIPTION/$description/g\" -e \"s/MOTDMSG/$motdmsg/g\" $customjobfile");
+
+	# Read the template file
+	$fileName = "/usr/share/hamsta/xml_files/templates/customjob-template-role.xml";
+	$fileTemplate = fopen($fileName, "r");
+	$roleString = fread($fileTemplate, filesize($fileName));
+	fclose($fileTemplate);
+
+	if($roleNumber > 1)
+		$fileName = "/usr/share/hamsta/xml_files/templates/customjob-template-command-role.xml";
+	else
+		$fileName = "/usr/share/hamsta/xml_files/templates/customjob-template-command.xml";
+	$fileTemplate = fopen($fileName, "r");
+	if($fileTemplate == null)
+		$errors[] = "Can not open command file";
+	$commandString = fread($fileTemplate, filesize($fileName));
+	fclose($fileTemplate);
+	
+	$commandsCustom = "";
+	$rolesCustom = "";
+
+	$roleName = request_array("rolename");
+	$minNumber = request_array("minnumber");
+	$maxNumber = request_array("maxnumber");
+	for( $i=0; $i<$roleNumber; $i++ )
+	{
+		$commandLines = "";
+		if($roleNumber > 1)
+		{
+			$rolesCustom .= str_replace("ROLE_ID", $i, str_replace("ROLE_NAME", $roleName[$i], 
+					str_replace("ROLE_MIN", $minNumber[$i], str_replace("ROLE_MAX", $maxNumber[$i], $roleString))));
+		}
+		foreach($commandArray[$i] as $commandLine)
+			$commandLines .= $commandLine . "\n";
+		#$filetest = fopen("/tmp/testfile.txt", "a+");
+		#fwrite($filetest, $commandLines);
+		#fclose($filetest);
+		$commandsCustom .= str_replace("ROLE_ID", $i, str_replace("COMMANDS", $commandLines, $commandString));
+	}
+
+	if($roleNumber > 1)
+		$rolesCustom = "<roles>\n" . $rolesCustom . "\n    </roles>";
+
+	$fileName = "/usr/share/hamsta/xml_files/templates/customjob-template.xml";
+	$fileTemplate = fopen($fileName, "r");
+	if($fileTemplate == NULL)
+		$errors[] = "Can not open template file";
+	$fileCustom = fread($fileTemplate, filesize($fileName));
+	fclose($fileName);
+
+	$fileCustom = str_replace("ROLES_AREA", $rolesCustom, str_replace("COMMANDS_AREA", $commandsCustom, $fileCustom));
+
+	$fileJob = fopen($customjobfile, "w");
+	if($fileJob == NULL)
+		$errors[] = "Can not open job file to write";
+	fwrite($fileJob, $fileCustom);
+	fclose($fileJob);
+	system("sed -i -e \"s/JOBNAME/$jobname/g\" -e \"s/DEBUGLEVEL/$debuglevel/g\" -e \"s/MAILTO/$mailto/g\" -e \"s/RPMLIST/$rpmlist/g\" -e \"s/DESCRIPTION/$description/g\" -e \"s/MOTDMSG/$motdmsg/g\" -e \"/^\s*$/d\" $customjobfile");
+
+	#$fh = fopen($customjobfile, 'a');
+	#fwrite($fh, implode("\n", $commandArray) . "\n");
+	#fclose($fh);
+	#system("cat /usr/share/hamsta/xml_files/templates/customjob-template2.xml >> $customjobfile");
 	if ($addtopredefine=="addtopredefine")
-	system("cp $customjobfile /usr/share/hamsta/xml_files/$jobname.xml");
+	{
+		if($roleNumber > 1)
+			$fileDir = "/usr/share/hamsta/xml_files/multimachine/custom";
+		else
+			$fileDir = "/usr/share/hamsta/xml_files/custom";
+
+		if(!is_dir($fileDir))
+		{
+			if(mkdir($fileDir) == false )
+				$errors[] = "Can not create directory: $fileDir";
+		}
+		system("cp $customjobfile $fileDir/$jobname.xml");
+	}	
 
 	if (request_str("submit"))
-		foreach ($machines as $machine)
-			if ($machine->send_job($customjobfile)) {
-				Log::create($machine->get_id(), $machine->get_used_by(), 'JOB_START', "has sent a \"custom\" job to this machine (Job name: \"" . htmlspecialchars($_POST['jobname']) . "\")");
-			} else {
-				$error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
+	{
+		if($roleNumber == 1)
+		{
+			foreach ($machines as $machine){
+				if ($machine->send_job($customjobfile)) {
+					Log::create($machine->get_id(), $machine->get_used_by(), 'JOB_START', "has sent a \"custom\" job to this machine (Job name: \"" . htmlspecialchars($_POST['jobname']) . "\")");
+				} else {
+					$errors[] = $machine->get_hostname().": ".$machine->errmsg;
+				}
 			}
-	if (empty($error))
-		header("Location: index.php");
+			header("Location: index.php");
+			
+		}
+		else
+		{
+			#$machine_list = request_str("machine_list");
+			#header("Location: index.php?go=mm_job&machine_list=$machine_list&mailto=$mailto&filename=$customjobfile&submit=submit");
+			#$filename = $customjobfile;		    
+			#$go = "mm_job";
+			#return require("inc/mm_job.php");
+			header("Location: index.php");
+		}
+	}
+	
 	$html_title="Send custom job";
+
+	if (count($errors) != 0) {
+        	$_SESSION['message'] = implode("\n", $errors);
+        	$_SESSION['mtype'] = "fail";
+	}
 ?>
