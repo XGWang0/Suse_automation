@@ -95,7 +95,8 @@ $pages = array(
     "newvm",
     "del_virtual_machines",
     "upgrade",
-    "merge_machines"
+    "merge_machines",
+    "edit_jobs"
 );
 
 if (!in_array($go, $pages)) {
