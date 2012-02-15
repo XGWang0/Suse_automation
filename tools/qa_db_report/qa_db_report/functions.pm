@@ -89,7 +89,7 @@ my %benchmarks=(
 	'tiobench[-\w]*' => 'parse_tiobench',
 	'kernbench' => 'parse_kernbench',
 	'hazard_stress' => 'parse_hazard',
-	'openssl_bench(_z)?' => 'parse_openssl'
+	'openssl_benchmark' => 'parse_openssl'
 );
 
 
