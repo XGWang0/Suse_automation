@@ -30,7 +30,7 @@
 
 # norootforbuild
 
-BuildRequires:  coreutils
+BuildRequires:  coreutils perl qa_libperl qa-config
 
 Name:           qa_tools
 License:        SUSE Proprietary
@@ -81,6 +81,8 @@ Authors:
 #%patch
 
 %build
+perl -f install.pl --manual > install.8
+perl -f newvm.pl --manual > newvm.8
 
 %install
 install -m 755 -d $RPM_BUILD_ROOT%{destdir}

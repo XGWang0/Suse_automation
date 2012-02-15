@@ -32,8 +32,11 @@ BEGIN {
 use detect;
 use strict;
 use warnings;
-use Getopt::Std;
-use Getopt::Long qw(:config no_ignore_case);
+
+# no_ignore_case is required for short options to work
+# no_getopt_compat is required for patterns to start with '+'
+use Getopt::Long qw(:config no_ignore_case no_getopt_compat);
+
 use qaconfig;
 use install_functions;
 
@@ -191,11 +194,13 @@ sub print_man
 		print " \n.I <".$o->[2].">\n.B " if $o->[2];
 		print '] ';
 	}
-	unless( $args->{'newvm'} )	{
+	print "\n.SH DESCRIPTION\n.B $name\n";
+	if( $args->{'newvm'} )	{
 		print <<EOF;
-
-.SH DESCRIPTION
-.B $name
+is used to create a new (para)virtual machine using AutoYaST.
+EOF
+	} else {
+		print <<EOF;
 does following actions:
 
 (1) analyzes the system to find out partitions, IP address, location etc.
@@ -212,11 +217,9 @@ Every product has different syntax of the AutoYaST config files.
 And every product has different bugs.
 For this reason, the script has different base AutoYaST script for different products, the functions select different patterns and packages, and so on.
 You will probably need to customize this script for newer products.
-
-.SH OPTIONS
-
 EOF
 	}
+	print ".SH OPTIONS\n";
 	foreach my $o (@$options)	{
 		printf ".IP \"\\fB-%s\\fR, \\fB--%s",$o->[0],$o->[1];
 		print ' <'.$o->[2].'>' if $o->[2];
@@ -302,6 +305,7 @@ else {
 	$cmdline .= "autoupgrade=1 " if $args->{'upgrade'};
 	$cmdline .= "autoyast=$ay_xml install=".$args->{'source'};
 	$cmdline .= ' '.$args->{'installoptions'} if defined $args->{'installoptions'};
+	print $cmdline . "\n";
 	&command($cmdline);
 	&command( "sleep 2" );
 	&command( "reboot" );
