@@ -81,8 +81,10 @@ Authors:
 #%patch
 
 %build
-perl -f install.pl --manual > install.8
-perl -f newvm.pl --manual > newvm.8
+ln -s reinstall.pl install.pl
+ln -s reinstall.pl newvm.pl
+perl reinstall.pl --manual > install.8
+perl newvm.pl --manual > newvm.8
 
 %install
 install -m 755 -d $RPM_BUILD_ROOT%{destdir}
@@ -110,8 +112,6 @@ gzip -9 $RPM_BUILD_ROOT%{mandir}/man8/%{name}.8
 cp --target-directory=$RPM_BUILD_ROOT%{confdir} 00-qa_tools-default 00-qa_tools-default.*
 cp -r profiles/* $RPM_BUILD_ROOT%{profiledir}
 cd $RPM_BUILD_ROOT%{bindir}
-ln -s reinstall.pl install.pl
-ln -s reinstall.pl newvm.pl
 
 
 %clean
