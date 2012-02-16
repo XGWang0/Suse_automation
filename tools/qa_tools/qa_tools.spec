@@ -88,7 +88,6 @@ perl newvm.pl --manual > newvm.pl.8
 gzip -9 *.1 *.8
 ln -s reinstall.pl.8.gz reinstall.8.gz
 ln -s reinstall.pl.8.gz install.pl.8.gz
-ln -s reinstall.pl.8.gz install.8.gz
 ln -s newvm.pl.8.gz newvm.8.gz
 
 %install
