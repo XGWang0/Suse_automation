@@ -41,7 +41,9 @@ foreach($machines as $machine)
 #print_r($_REQUEST);
 #print "</pre>\n";
 
-$filename = request_str("filename");
+$custom_flag = request_str('customflag');
+if( $custom_flag != 1 ) # not custom define job
+	$filename = request_str("filename");
 $email = request_str('mailto');
 
 # Generate some form contents here instead of the HTML part, 

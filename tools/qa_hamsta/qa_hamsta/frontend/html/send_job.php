@@ -53,7 +53,7 @@ $(document).ready(function(){
 		$('#div_' + i).hide();
         for(i=2; i<5; i++)
 		$('#commands_' + i).hide();
-	$('#predefine_form').show();
+	$('#singlemachine_form').show();
         $('#multimachine_form').hide();
 });
 
@@ -72,13 +72,13 @@ var getJobType =  function(select)
                 jobtype = (value && value.specified)?option.value:option.text;
                 if(jobtype == 1)
 		{
-                    $('#predefine_form').show();
+                    $('#singlemachine_form').show();
 		    $('#multimachine_form').hide();
 
 		}
                 else
 		{
-                    $('#predefine_form').hide();
+                    $('#singlemachine_form').hide();
 		    $('#multimachine_form').show();
 		}
                 return jobtype;
@@ -109,9 +109,9 @@ var getRoleNumber = function(select)
 </script>
 
 <span class="text-main">(<span class="required">*</span>) required field(s)</span>
-<h2 class="text-medium text-blue bold">Pre-defined Jobs</h2>
+<h2 class="text-medium text-blue bold">Single-machine Jobs</h2>
 <p class="text-main">
-Pre-defined jobs are configuration tasks or test runs that have been pre-defined and stored on the automation servers. If you want to pre-define a job and add it to this list, please email qa-automation@suse.de
+Single-machine jobs are configuration tasks or test runs that have been stored on the automation servers, this is a subcategory of pre-defined jobs intended for single machine tests. If you want to pre-define a job and add it to this list, please email qa-automation@suse.de
 </p>
 <form action="index.php?go=send_job" method="post" name="predefinedjobs" onsubmit="return checkcheckbox(this);">
 <p class="text-main">
@@ -166,8 +166,8 @@ Pre-defined jobs are configuration tasks or test runs that have been pre-defined
 			$count = count($param_map);
 					
                     echo "    <tr class=\"file_list\">\n";
-		    # echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"pre-defined job:$file\" onclick=\"showParamConts('$filebasename')\">\n";
-		    echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"pre-defined job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
+		    # echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"single-machine job:$file\" onclick=\"showParamConts('$filebasename')\">\n";
+		    echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"Single-machine job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
                     echo "        <td title=\"$jobdescription\">$jobname</td>\n";
                     echo "        <td class=\"viewXml\" align=\"center\">\n";
                     echo "            <a href=\"".XML_WEB_DIR."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/icon-vnc.png\" alt=\"view\" title=\"view the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>\n";
@@ -233,8 +233,8 @@ Pre-defined jobs are configuration tasks or test runs that have been pre-defined
 			$count = count($param_map);
 					
                     echo "    <tr class=\"file_list\">\n";
-		    # echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"pre-defined job:$file\" onclick=\"showParamConts('$filebasename')\">\n";
-		    echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"pre-defined job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
+		    # echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"single-machine job:$file\" onclick=\"showParamConts('$filebasename')\">\n";
+		    echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"Single-machine custom job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
                     echo "        <td title=\"$jobdescription\">$jobname</td>\n";
                     echo "        <td class=\"viewXml\" align=\"center\">\n";
                     echo "            <a href=\"".XML_WEB_DIR_CUSTOM."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/icon-vnc.png\" alt=\"view\" title=\"view the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>\n";
@@ -282,7 +282,7 @@ Pre-defined jobs are configuration tasks or test runs that have been pre-defined
 <a onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('qmark1','','../hamsta/images/qmark1.gif',1)">
 <img src="../hamsta/images/qmark.gif" name="qmark1" id="qmark1" border="0" width="18" height="20" title="click me for clues of email" onclick="window.open('../hamsta/helps/email.html','channelmode', 'width=550, height=450, top=250, left=450')"/></a>
 <br/><br>
-<input type="submit" name="submit" value="Send pre-defined job(s)">
+<input type="submit" name="submit" value="Send Single-machine job(s)">
 </form>
 <script type="text/javascript">
 <!--
@@ -343,7 +343,7 @@ Jobs in this category have different roles for different machines, you will be a
                 if($file != "." && $file != ".." && substr($file,-4)=='.xml')
                 {
                     echo "    <tr class=\"file_list\">\n";
-		    echo "        <td><input type=\"radio\" name=\"filename\" value=\"$dir/$file\" title=\"pre-defined job:$file\"></td>\n";
+		    echo "        <td><input type=\"radio\" name=\"filename\" value=\"$dir/$file\" title=\"Multi-machine job:$file\"></td>\n";
                     echo "        <td>$file</td>\n";
                     echo "        <td align=\"center\">";
                     echo "            <a href=\"".XML_MULTIMACHINE_WEB_DIR."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/icon-vnc.png\" alt=\"view\" title=\"view the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>";
@@ -385,7 +385,7 @@ if(is_dir($dir))
                 if($file != "." && $file != ".." && substr($file,-4)=='.xml')
                 {
                     echo "    <tr class=\"file_list\">\n";
-                    echo "        <td><input type=\"radio\" name=\"filename\" value=\"$dir/$file\" title=\"pre-defined job:$file\"></td>\n";
+                    echo "        <td><input type=\"radio\" name=\"filename\" value=\"$dir/$file\" title=\"Multi-machine custom job:$file\"></td>\n";
                     echo "        <td>$file</td>\n";
                     echo "        <td align=\"center\">";
                     echo "            <a href=\"".XML_MULTIMACHINE_WEB_DIR_CUSTOM."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/icon-vnc.png\" alt=\"vire\" title=\"View the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>";
@@ -514,7 +514,7 @@ Auto test jobs. Here we only provide typic test for each autotest component. If 
 Custom Jobs are used for running any kind of configuration task that you may need to send to your test systems. To set up and run a configuration task, sipmly fill out and submit this form. If this configuration task is one that you would like to re-use in the future, be sure to check the "Add this job to the custom job list" box so that you can return to this page later and run that same configuration task as a custom job.
 </p>
 <p class="text-main">
-You can create two type of job: predefined job and multi-machine job, for predefined job, you just need configure the command line, and the XML file will be saved as "Predefined job" if you select to save it by checking the "Add this job to the custom job list"; For muti-machine job, you need configure some more data for all of roles in the form below, you can set the role number up to 5 according to what your need,  the XML file will be saved as "Multi-machine job" if you select to save it. Futhermore, if you select to save you job, you can edit it in the send job page later.
+You can create two type of job: Single-machine job and Multi-machine job, for Single-machine job, you just need configure the command line, and the XML file will be saved as "Single-machine job" if you select to save it by checking the "Add this job to the custom job list"; For Multi-machine job, you need configure some more data for all of roles in the form below, you can set the role number up to 5 according to what your need, the XML file will be saved as "Multi-machine job" if you select to save it. Futhermore, if you select to save you job, you can edit it in the send job page later.
 </p>
 <form action="index.php?go=customjob" method="POST" name="customjob" onSubmit="return checkcontents(this)">
 <table class="text-main">
@@ -577,16 +577,16 @@ You can create two type of job: predefined job and multi-machine job, for predef
 
     <tr><td>Job type:</td>
     <td>
-     <select name="jobType" title="Job type, predefined job or multi-machine job" onChange="getJobType(jobType);">
-	<option value="1" selected="selected">Predefined job</option>;
-	<option value="2">multi-machine job</option>;
+     <select name="jobType" title="Job type, Single-machine job or Multi-machine job" onChange="getJobType(jobType);">
+	<option value="1" selected="selected">Single-machine job</option>;
+	<option value="2">Multi-machine job</option>;
     </td></tr>
 
     <tr><td colspan="2">
-    <div id="predefine_form">
+    <div id="singlemachine_form">
     <table class="text-main" width="700px">
     <tr><td width="40%">Commands (one per line):</td>
-    <td><textarea cols="50" rows="10" id="commands" name="commands_content[]" title="required: write your script here, one command per line."><?php echo "#!/bin/bash\necho Custom job"; ?></textarea><span class="required">*</span>
+    <td><textarea cols="50" rows="10" id="commands" name="commands_content_single" title="required: write your script here, one command per line."><?php echo "#!/bin/bash\necho Custom job"; ?></textarea><span class="required">*</span>
     </td></tr>
     </table></div>
     </td></tr>
@@ -596,7 +596,7 @@ You can create two type of job: predefined job and multi-machine job, for predef
     <table class="text-main" width="700px">
     <tr><td width="40%">Role number(role id is "0" origin):</td>
     <td>
-     <select name="rolenumber" title="role number, from 2 to 10" onChange="getRoleNumber(rolenumber);">
+     <select name="rolenumber" title="role number, from 2 to 5" onChange="getRoleNumber(rolenumber);">
       <?php
       for($j=2;$j<=5;$j++)
       {
@@ -620,7 +620,7 @@ You can create two type of job: predefined job and multi-machine job, for predef
         echo "<tr><td>Role name: </td>";
         echo "<td><input type=\"text\" size=\"20\" name=\"rolename[]\" value=\"role$i\"></td>\n";
         echo "</tr>\n";
-	echo "<tr><td>Minimum name: </td>";
+	echo "<tr><td>Minimum machines: </td>";
         echo "<td><select name=\"minnumber[]\" title=\"Select the minimum number for role $i\">";
         for($j=1;$j<=10;$j++)
         {
@@ -630,7 +630,7 @@ You can create two type of job: predefined job and multi-machine job, for predef
                 echo "<option value=\"$j\">$j</option>";
         }
 	echo "</select></td></tr>\n";
-        echo "<tr><td>Maximum name: </td>";
+        echo "<tr><td>Maximum machines: </td>";
         echo "<td><select name=\"maxnumber[]\" title=\"Select the maximum number for role $i\">";
         for($j=1;$j<=20;$j++)
         {
@@ -641,9 +641,8 @@ You can create two type of job: predefined job and multi-machine job, for predef
         }
 	echo "</select></td></tr>\n";
 	echo "<tr><td>Commands (one per line):</td>\n";
-        echo "<td colspan=\"2\"><textarea cols=\"60\" rows=\"10\" name=\"commands_content[]\" title=\"required: write your script here, one command per line.\">#!/bin/bash\necho Custom job role$i</textarea><span class=\"required\">*</span><td>\n";
+        echo "<td colspan=\"2\"><textarea cols=\"60\" rows=\"10\" name=\"commands_content_multiple[]\" title=\"required: write your script here, one command per line.\">#!/bin/bash\necho Custom job role$i</textarea><span class=\"required\">*</span><td>\n";
         echo "</tr>\n";
-        #echo "<tr><td colspan=\"2\"><hr></td><tr>\n";
         echo "<tr><td colspan=\"2\"><hr></td><tr>\n";
 	echo "</table></div>\n";
         echo "</td></tr>\n";
@@ -652,8 +651,9 @@ You can create two type of job: predefined job and multi-machine job, for predef
     ?>
     </td></tr>
     </table></div>  <!-- End of mm_form area -->
-    <tr><td colspan="2"><input type="checkbox" value="addtopredefine" name="addtopredefine">Add this job to the custom job list</td></tr>
+    <tr><td colspan="2"><input type="checkbox" value="addtoCustomJob" name="addtoCustomJob">Add this job to the custom job list</td></tr>
     <tr><td><input type="submit" name="submit" value="Send custom job"></td></tr>
+    <input type="hidden" name="customflag" value="1">
 </table>
 </form>
 

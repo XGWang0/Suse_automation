@@ -31,10 +31,6 @@
         return require("index.php");
     }
 
-
-    $dirname = dirname($custom_file);
-    $basename = basename($custom_file);
-
     # for delete custom file
     $option = request_str("opt");
     $machine_list = request_str("machine_list");

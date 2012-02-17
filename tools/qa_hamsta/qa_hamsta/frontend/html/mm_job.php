@@ -37,7 +37,9 @@ if (!defined('HAMSTA_FRONTEND')) {
 
 <?php
 
-$vars_preserve=array('a_machines','filename','mailto');
+#$vars_preserve=array('a_machines','filename','mailto');
+$vars_preserve=array('a_machines', 'mailto');
+print '<input type="hidden" name="filename" value="'.$filename.'"/>'."\n";
 preserve_request($vars_preserve);
 
 # form data prepared in inc/mm_job.php
