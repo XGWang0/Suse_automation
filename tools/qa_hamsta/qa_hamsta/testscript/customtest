@@ -32,7 +32,7 @@ if ((`id -u`!=0));then
   echo "you should be root to run this test"
   exit 1
 fi
-rm -rf $output 
+rm -rf $output
 
 mkdir -p /abuild $logdir/
 #((`ls $logdir/ | wc -l`==0)) || (cd $logdir/../ && tar zcf Oldlog-`date +%F-%H-%M-%S`.tgz ctcs2 && rm -rf $logdir/*)
@@ -68,12 +68,12 @@ echo "Tests completed. summarizing and submitting..."
 
 ## Check test result (make sure all test results in /var/log/qa/ctcs2/ are submitted everytime)
 # Check whether all test suites were implemented
-resultsnum=`find $logdir -name test_results | wc -l`
-((returncode+=$(expr $suitesnum - $resultsnum)))
+#resultsnum=`find $logdir -name test_results | wc -l`
+#((returncode+=$(expr $suitesnum - $resultsnum)))
 
 # Check whether empty files
 for file in `find $logdir -name test_results`; do
-	[ -n $file ] && ((returncode+=1))
+	[ -z "$(cat $file)" ] && ((returncode+=1))
 done
 
 # Check whether cases in tcf equals found in test_results 
