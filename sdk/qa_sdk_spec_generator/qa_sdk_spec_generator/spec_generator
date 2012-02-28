@@ -24,8 +24,37 @@ EOF
 #generate a template for modify
 function gen_template(){
 cat <<'eof'
+# ****************************************************************************
+# Copyright © 2011 Unpublished Work of SUSE, Inc. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE, INC.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
 #
-# spec file for package qa_sample
+# spec file for package qa_test_sample (Version 0.1)
+#
+# Please submit bugfixes or comments via http://bugzilla.novell.com/
+#
+
+# norootforbuil
+#
+# spec file for package qa_test_sample
 # Copyright (c) 2010 Novell, Inc.
 # This file and all modifications and additions to the pristine
 # package are under the same license as the package itself.
@@ -35,20 +64,21 @@ cat <<'eof'
 
 # norootforbuild
 
-Name:           qa_sample
-License:        Enter License Here
-Group:          OpenSUSE
+Name:           qa_test_sample
+License:        SUSE Proprietary
+Group:          SuSE internal
 AutoReqProv:    on
-Version:        0.1
+Version:        0.11
 Release:        1
-Summary:        qa_sample
+Summary:        (rd-)qa internal package for training
 Url:            http://www.novell.com/
 Source0:        %name-%version.tar.bz2
 Source1:        %name.tcf
-Source2:        sample-run
+Source2:        test_sample-run
+Source3:	%name.8
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
-Requires:       ctcs2 qa_dummy
-BuildRequires:  ctcs2 qa_dummy
+Requires:       ctcs2 
+BuildRequires:  ctcs2
 
 %description
 
@@ -60,8 +90,11 @@ install -m 755 -d $RPM_BUILD_ROOT/usr/share/qa/tcf
 install -m 755 -d $RPM_BUILD_ROOT/usr/share/qa/tools
 install -m 755 -d $RPM_BUILD_ROOT/usr/share/qa/%name
 install -m 755 -d $RPM_BUILD_ROOT/usr/share/qa/%name/tcf
+install -m 755 -d $RPM_BUILD_ROOT/usr/share/man/man8
 install -m 644 %{S:1} $RPM_BUILD_ROOT/usr/share/qa/%name/tcf
 install -m 755 %{S:2} $RPM_BUILD_ROOT/usr/share/qa/tools
+install -m 644 %{S:3} $RPM_BUILD_ROOT/usr/share/man/man8
+gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
 cp -a * $RPM_BUILD_ROOT/usr/share/qa/%name
 ln -s ../%name/tcf/%name.tcf $RPM_BUILD_ROOT/usr/share/qa/tcf/
 find $RPM_BUILD_ROOT/usr/share/qa/%name -depth -type d -name CVS -exec rm -rf {} \;
@@ -73,6 +106,9 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root)   
 /usr/share/qa/%name
 /usr/share/qa/tcf/%{name}.tcf
+/usr/share/qa/tools/*
+/usr/share/man/man8/*
+%doc COPYING
 
 %changelog
 
@@ -105,8 +141,8 @@ if [ $# == 0 ];then
 	Usage
 	exit 2
 fi
-if [ -z "`echo $1|grep '^qa_'`" ];then
-	echo "The argument name should start with qa_ "
+if [ -z "`echo $1|grep '^qa_test'`" ];then
+	echo "The argument name should start with qa_test "
 	Usage
 	exit 2
 fi
@@ -118,13 +154,14 @@ if [ -d "$1" ];then
 	tcf_name=$dirname.tcf
 	run_name=${dirname:3}"-run"
 	spec_name=$dirname.spec
+        manfile=$dirname.8
 else
 	echo "$1 is not a directory/tar.bz2 "
 	Usage
 	exit 2
 fi
-if [ ! -f $tcf_name -o ! -f $run_name ];then
-	echo "Missing $tcf_name and/or $run_name"
+if [ ! -f $tcf_name -o ! -f $run_name -o ! -f $manfile ];then
+	echo "Missing $tcf_name and/or $run_name/$manfile"
 	exit 2
 fi
 #get opt form command line
@@ -178,6 +215,6 @@ section_append description "$description"
 section_append files "/usr/share/qa/tools/$run_name"
 
 #change the header info 
-sed -i "s/# spec file for package qa_sample/# spec file for package $dirname/" $spec_name
+sed -i "s/# spec file for package qa_test_sample/# spec file for package $dirname/" $spec_name
 echo "Generated spec file successfully"
 
