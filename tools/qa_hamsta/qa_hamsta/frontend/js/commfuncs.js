@@ -92,7 +92,7 @@ function checkcontents(which)
 	for (i=0;i<which.length;i++) {
 		var tempobj=which.elements[i]
 		if (tempobj.title.substring(0,8)=="required") {
-			if ( (tempobj.type=="text"||tempobj.type=="textarea") && tempobj.value=='') {
+			if ( (tempobj.type=="text"||tempobj.type=="textarea") && (tempobj.value).replace(/(^\s*)|(\s*$)/g, '')=='') {
 				alert("Please input required fields of this job section.")
 				return false
 			}
