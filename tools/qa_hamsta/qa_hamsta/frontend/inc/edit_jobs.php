@@ -48,9 +48,13 @@
             $new_file_dir = $file_dir . "/custom";
         else
             $new_file_dir = $file_dir;
-    }
 
-    $file_name = substr(basename($real_file), 0, -4);
+        $file_name = substr(basename($real_file), 0, -4);
+        $new_file = "/tmp/" . $file_name . ".xml";
+        system("cp $real_file $new_file");
+    }
+    else
+        $errors[] = "You didn't define any file to be edit.";
 
     $option = request_str("opt");
     $machine_list = request_str("machine_list");
@@ -60,13 +64,13 @@
     $file_content = "";
 
     if(!file_exists($real_file))
-        $errors[] = "Can not find the file: $realfile_file";
+        $errors[] = "Can not find the file: $real_file";
     else
         $file_content = file_get_contents($real_file);
 
     if(request_str("submit"))
     {
-        $new_file_name = request_str("new_file_name");
+        $new_file_name = trim(request_str("new_file_name"));
         $new_file_content = request_str("new_file_content");
         $new_file_dir = request_str("new_file_dir");
 
@@ -76,16 +80,28 @@
                 $errors[] = "Can not create directory: $new_file_dir";
         }
 
-        $new_file = $new_file_dir . "/" . $new_file_name . ".xml";
+        if(preg_match("/^[0-9a-zA-Z_]+$/", $new_file_name))  # validate the file name user input
+        {
+            $new_real_file = $new_file_dir . "/" . $new_file_name . ".xml";
+            file_put_contents($new_file, $new_file_content);
 
-        file_put_contents($new_file, $new_file_content);
-
-	if(xml_read($new_file))
-	{
-	    header("Location: index.php?go=send_job&machine_list=$machine_list");
-	}
+	    if(xml_read($new_file))  # validate the XML data user input
+	    {
+                system("cp $new_file $new_real_file");
+                unlink($new_file);
+	        header("Location: index.php?go=send_job&machine_list=$machine_list");
+	    }
+            else
+                $errors[] = "The XML data you input is not valid, please try to edit again!";
+        }
+        else
+                $errors[] = "The file name you input is invalid! It must be composed by number, letter or underscroe.";
     }
 
     $html_title = "Edit jobs";
+    if (count($errors) != 0) {
+        $_SESSION['message'] = implode("\n", $errors);
+        $_SESSION['mtype'] = "fail";
+    }
 ?>
 

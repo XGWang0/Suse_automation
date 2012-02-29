@@ -45,8 +45,10 @@
 </tr>
 
 </table>
+<input type="hidden" name="file" value="<?php echo $file; ?>"/>
 <input type="hidden" name="new_file_dir" value="<?php echo $new_file_dir; ?>"/>
 <input type="hidden" name="machine_list" value="<?php echo $machine_list; ?>"/>
+<input type="hidden" name="opt" value="<?php echo $option; ?>"/>
 <input type="submit" name="submit" value="Save"/>
 <br />
 <p class="text-small"><strong>*</strong> The new name of job XML file, need NOT the suffix(.xml). Please note that if you do not edit the name, the new file will override the old one after you save the new job XML file.</p>
