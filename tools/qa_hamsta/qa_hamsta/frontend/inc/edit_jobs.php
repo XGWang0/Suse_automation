@@ -51,7 +51,6 @@
 
         $file_name = substr(basename($real_file), 0, -4);
         $new_file = "/tmp/" . $file_name . ".xml";
-        system("cp $real_file $new_file");
     }
     else
         $errors[] = "You didn't define any file to be edit.";
