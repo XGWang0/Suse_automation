@@ -50,8 +50,8 @@
             $new_file_dir = $file_dir;
 
         $file_name = substr(basename($real_file), 0, -4);
-        $new_file = "/tmp/" . $file_name . ".xml";
-        system("cp $real_file $new_file");
+        $rand = rand();
+        $new_file = "/tmp/" . $file_name . "_" . $rand . ".xml";
     }
     else
         $errors[] = "You didn't define any file to be edit.";
@@ -88,11 +88,12 @@
 	    if(xml_read($new_file))  # validate the XML data user input
 	    {
                 system("cp $new_file $new_real_file");
-                unlink($new_file);
 	        header("Location: index.php?go=send_job&machine_list=$machine_list");
 	    }
             else
                 $errors[] = "The XML data you input is not valid, please try to edit again!";
+            if(file_exists($new_file))
+                unlink($new_file);
         }
         else
                 $errors[] = "The file name you input is invalid! It must be composed by number, letter or underscroe.";
