@@ -71,5 +71,3 @@ if __name__ == '__main__':
 	if len(sys.argv) > 1:
 		for pattern in retrieve_patterns(sys.argv[1]):
 			print pattern
-	else:
-		print 'sys.argv[1] needs to be a repository such as http://151.155.144.100/install/sles11sp2gm/x86_64'

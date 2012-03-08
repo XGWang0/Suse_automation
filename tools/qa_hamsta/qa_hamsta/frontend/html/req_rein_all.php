@@ -65,7 +65,7 @@
 			<option value="kde">Default KDE</option>
   			<option value="full">Full install</option>
 		  </select>
-		<span id='patterns_modified' class='modified'></span>
+               <span id='patterns_modified' class='modified'></span>
 		</legend>
 		<div id="available_patterns"></div>
 		<div id="sdk_patterns"></div>
