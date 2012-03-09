@@ -79,7 +79,7 @@ define ("TSLIST", "qa_test_bonnie qa_test_dbench qa_test_libmicro qa_test_ltp qa
 define ("ATLIST", "iozone sleeptest posixtest aiostress bonnie cerberus disktest");
 
 # Fields shown in the machine listing by default  
-#$display_fields=array("status_string", "used_by", "usage", "product", "architecture_capable", "kernel", "type");
+#$display_fields=array("used_by", "usage", "product", "architecture_capable", "kernel", "type");
 
 
 # Additional rpms
