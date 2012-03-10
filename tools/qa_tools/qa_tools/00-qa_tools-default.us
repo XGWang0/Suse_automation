@@ -24,7 +24,7 @@
 
 #
 # This file contains default configuration for qa_tools
-# Location specific: us
+# Location specific: cn
 #
 # Please never edit this file directly, if you want to change
 # anything, do it in a new file. (Files are read in alphabetical
@@ -33,6 +33,7 @@
 # Don't forget, all values names must be specified by
 # <variable name>=<variable value>
 #
+
 
 # Set NIS domain
 nis_domain=""
@@ -44,8 +45,9 @@ nis_domain=""
 nis_server_list=""
 
 # Where to put autinstallation profile
-install_profile_nfs_server="10.20.1.229"
-install_profile_nfs_dir="/srv/hamsta"
+install_profile_nfs_server="147.2.207.242"
+install_profile_nfs_dir="/mirror_a"
 
 # From where to get the autoinstallation profile
-install_profile_url_base="http://10.20.1.229/autoinst"
+install_profile_url_base="http://147.2.207.242/autoinst"
+
