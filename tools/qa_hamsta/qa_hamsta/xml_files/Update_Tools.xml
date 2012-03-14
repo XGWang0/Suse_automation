@@ -16,7 +16,7 @@
         <worker>
             <!-- Required -->
             <command execution="forked">
-repo=`zypper lr -u | grep "http://dist.suse.de/ibs/QA:/"  | awk '{print $1;}'`
+repo=`zypper lr -u | grep "/ibs/QA:/Head"  | awk '{print $1;}'`
 zypper ref -r $repo
 zypper --non-interactive up --auto-agree-with-licenses -r $repo
 rchamsta restart
