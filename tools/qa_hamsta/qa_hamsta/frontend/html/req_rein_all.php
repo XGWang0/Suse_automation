@@ -35,7 +35,7 @@
   <tr>
 	<td></td>
 	<td>
-	  <input type="text" name="repo_producturl" id="repo_producturl" size="70" value="<?php if(isset($_POST["repo_producturl"])){echo $_POST["repo_producturl"];} ?>" title="required: url" onchange="alert('WARNING!\n\nIf you change the \'Installation repo URL\' manually then the \'Available patterns\' shown on this page may not reflect the actual product you are installing. The installation itself may work just fine, however, it is likely that you will not end up with the right set of patterns.\n\nWhile we support editing the installation URL manually, it is not advised to do so (rather, you should use the pre-populated installation URLs in the dropdown boxes).\n\nIf you insist on modifying the URL by hand, your safest bet is to de-select all of the \'Available patterns\' below and then install the patterns that you want after the installation completes.\n\n(Note: This will be fixed in our next release).');" /><span class="required">*</span>
+	  <input type="text" name="repo_producturl" id="repo_producturl" size="70" value="<?php if(isset($_POST["repo_producturl"])){echo $_POST["repo_producturl"];} ?>" title="required: url" /><button type="button" title="Refresh Patterns" onclick="$.get('html/refresh_patterns.php', { product_url: $('#repo_producturl').val() }, function(data) { retrieve_patterns(data, 'available_patterns'); });"> &#10227 </button><span class="required">*</span>
 	</td>
   </tr>
   <tr>
@@ -50,7 +50,7 @@
 	<td></td>
 	<td>
 	  SDK #1: <input type="text" name="addon_url[]" id="sdk_producturl" size="70" value="<?php if(isset($_POST["sdk_producturl"])){echo $_POST["sdk_producturl"];} ?>" />
-	  &emsp;<button type="button" onclick='anotherrepo()'> + </button>
+	  &emsp;<button type="button" onclick='anotherrepo()'> + </button><button type="button" title="Refresh Patterns" onclick="$.get('html/refresh_patterns.php', { product_url: $('#sdk_producturl').val() }, function(data) { retrieve_patterns(data, 'sdk_pattern_1'); });"> &#10227 </button>
 	  <div id="additional_repo"></div>
 	</td>
   </tr>
@@ -68,7 +68,7 @@
                <span id='patterns_modified' class='modified'></span>
 		</legend>
 		<div id="available_patterns"></div>
-		<div id="sdk_patterns"></div>
+		<div id="sdk_patterns"><div id="sdk_pattern_1"></div></div>
         <div id="more_patterns"><label style="width: 1000; float: left;">More patterns: <input type="text" size="75" name="patterns[]" /></label></div>
 	  </fieldset>
 	</td>

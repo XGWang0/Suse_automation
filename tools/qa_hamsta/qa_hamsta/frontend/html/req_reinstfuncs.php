@@ -147,7 +147,7 @@ var get_sdk_urls = function (){
             $("#sdk_producturl").attr("value", "");
         else {
             $("#sdk_producturl").attr("value", data[0]);
-            insert_checkboxes("#sdk_patterns", data[1]);
+            insert_checkboxes("#sdk_pattern_1", data[1]);
         }
     });
     return false;
