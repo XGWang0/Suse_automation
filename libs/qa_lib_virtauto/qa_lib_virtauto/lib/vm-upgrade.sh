@@ -139,9 +139,9 @@ if [ $count -gt 0 ]
 then
     title="$title ($((count+1)))"
 fi
-export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP 'echo "" >> $bootloaderconf'
+export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP "echo \"\" >> $bootloaderconf"
 export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP "echo \"title Installation $title\" >> $bootloaderconf"
-export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP "echo \"    root $grubpatition >> $bootloaderconf"
+export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP "echo \"    root $grubpartition\" >> $bootloaderconf"
 export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP "echo \"    kernel $imagedir/linux $params\" >> $bootloaderconf"
 export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP "echo \"    initrd $imagedir/initrd\" >> $bootloaderconf"
 export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP sync
