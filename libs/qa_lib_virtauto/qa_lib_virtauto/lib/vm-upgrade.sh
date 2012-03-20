@@ -168,7 +168,7 @@ echo
 echo "   Grub menu setting successfully..."
 echo
 
-vmInfo=`virsh dominfo $domuName 2>/dev/null`
+vmInfo=`virsh dominfo $vmname 2>/dev/null`
 vmID=`echo "$vmInfo" | grep '^Id:' | sed 's/^[^:]*:[[:space:]]*//'`
 vmName=`echo "$vmInfo" | grep '^Name:' | sed 's/^[^:]*:[[:space:]]*//'`
 echo "   VM Upgrade Details: ..."
