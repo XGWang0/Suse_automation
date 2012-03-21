@@ -49,10 +49,15 @@ then
     usage
 fi
 
-curl=curl
-ssh_enable="ssh=1 sshpassword=susetesting"
-vnc_enable="vnc=1 vncpassword=susetesting"
+echo
+echo "          --------------------"
+echo "          ---  VM UPGRADE  ---"
+echo "          --------------------"
+echo
 
+curl=curl
+
+# Get arg
 insturl=$1
 ayfile=$2
 vmname=$3 # Either domUName or domUID works fine
@@ -70,9 +75,19 @@ domUIP=`export SSHPASS=$pass; $sshNoPass $netinfoUser@$netinfoIP "mac2ip $domUma
 vmuser=`$getSettings vm.user`
 vmpasswd=`$getSettings vm.pass > /dev/null 2>&1`
 
+# Create a temp file, in order to verify ssh connection.
+TMPFILE=`export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP 'mktemp /tmp/distinst.XXXXXX > /dev/null 2>&1'`
+if [ $? -ne 0 ]
+then
+    echo "$0: Cannot create temp file, VM cannot be connected by ssh. Exiting."
+    exit 1
+fi
+
 # Get domUCPUArch
 dumUCPUArch=`export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP 'uname -m'`
 
+echo
+echo "   Setting grub parameters and kernel parameters..."
 # Set grub parameters
 params="vga=normal autoyast=$ayfile netdevice=eth0 netwait=10 $domUIP install=$insturl"
 
@@ -86,26 +101,17 @@ then
 	grubpartition="(${grubpartition}"
 fi
 
-#imagedir='/boot/loader'
-TMPFILE=`export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP 'mktemp /tmp/distinst.XXXXXX'`
-if [ $? -ne 0 ]
-then
-    echo "$0: Cannot create temp file, exiting."
-    exit 1
-fi
-
-imagedir=`export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP "mktemp -d /boot/tmp.XXXXXX"`
+imagedir=`export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP "mktemp -d /boot/tmp.XXXXXX > /dev/null 2>&1"`
 
 if [ $? -ne 0 ]
 then
     echo "$0: Cannot create temp directory, exiting"
     exit 1
 fi
-#export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP 'mkdir -p "$imagedir"'
 
 cleanup()
 {
-    [ -f $TMPFILE ] && rm $TMPFILE
+    [ -f $TMPFILE ] && rm $TMPFILE > /dev/null 2>&1
 }
 trap cleanup EXIT
 
@@ -113,16 +119,16 @@ for DIR in "boot/x86_64/loader" "boot/loader" "boot/i386/loader" "boot/i586/load
 do
     if curlprobe "$insturl/$DIR/linux"
     then
-        #kernelurl="$insturl/boot/$arch/loader/linux"
         kernelurl="$insturl/$DIR/linux"
-        #initrdurl="$insturl/boot/$arch/loader/initrd"
         initrdurl="$insturl/$DIR/initrd"
         break
     fi
 done
 
-export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP "$curl -f -L -o $imagedir/linux $kernelurl"
-export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP "$curl -f -L -o $imagedir/initrd $initrdurl"
+echo
+echo "   Downloading kernel and initrd files to upgraded VM..."
+export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP "$curl -f -L -o $imagedir/linux $kernelurl > /dev/null 2>&1"
+export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP "$curl -f -L -o $imagedir/initrd $initrdurl > /dev/null 2>&1"
 
 ret1=`export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP "ls $imagedir/linux > /dev/null 2>&1; echo $?"`
 ret2=`export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP "ls $imagedir/initrd > /dev/null 2>&1; echo $?"`
@@ -139,6 +145,9 @@ if [ $count -gt 0 ]
 then
     title="$title ($((count+1)))"
 fi
+
+echo
+echo "   Setting grub menu..."
 export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP "echo \"\" >> $bootloaderconf"
 export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP "echo \"title Installation $title\" >> $bootloaderconf"
 export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP "echo \"    root $grubpartition\" >> $bootloaderconf"
@@ -154,6 +163,30 @@ if [ `export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP "grep '^default' $bootloa
 else # SLMS creates menu.lst without 'default'
     export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP "sed -i '1idefault $item' $bootloaderconf"
 fi
+echo 
+
+echo "   Grub menu setting successfully..."
+echo
+
+vmInfo=`virsh dominfo $vmname 2>/dev/null`
+vmID=`echo "$vmInfo" | grep '^Id:' | sed 's/^[^:]*:[[:space:]]*//'`
+vmName=`echo "$vmInfo" | grep '^Name:' | sed 's/^[^:]*:[[:space:]]*//'`
+echo "   VM Upgrade Details: ..."
+echo ""
+echo "          UpgradeVMName : $vmName..."
+echo "          UpgradeVMID   : $vmID..."
+echo "          UpgradeVMIP   : $domUIP..."
+echo "          UpgradeVMArch : $dumUCPUArch..."
+echo "          InstallProd   : $title..."
+echo "          InstallRepo   : $insturl..."
+echo "          AutoYastFile  : $ayfile..."
+echo
+
+echo "   VM will reboot to start upgrading..."
 export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP "reboot"
-echo "edited menu.lst"
-echo "done."
+
+echo
+echo "          -----------------------"
+echo "          --- VM UPGRADE DONE ---"
+echo "          -----------------------"
+echo
