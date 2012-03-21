@@ -24,21 +24,29 @@
 #
 
 # Install require patterns
-patterns="X11 gnome desktop-gnome"
+system=`cat /etc/SuSE-release |head -n 1 |awk '{print $4}'`
+if [ "$system" = "Desktop" ]; then
+	p1="desktop-gnome"
+elif [ "$system" = "Server" ]; then
+	p1="gnome"
+fi
+p2="X11"
+patterns="$p1 $p2"
+
 for p in $patterns; do
-	result=`zypper --no-refresh search -i -t pattern $p |tail -n 1`;
+	result=`zypper --no-refresh search -i -t pattern $p |tail -n 1`
 
 	if [ "$result" = "No packages found." ]; then
-		zypper -n install -t pattern $p;
+		zypper -n install -t pattern $p
 	else
-		echo $result;
+		echo $result
 	fi
 done
 
 # Enable accessibility
 status=`gconftool-2  -g /desktop/gnome/interface/accessibility`
 if [ "$status" = "false" ]; then
-	gconftool-2  -s --type=Boolean /desktop/gnome/interface/accessibility ture;
+	gconftool-2  -s --type=Boolean /desktop/gnome/interface/accessibility ture
 else
 	echo "accessibility is enabled"
 fi
@@ -47,7 +55,7 @@ fi
 xhost_path=~/.config/autostart/xhost.desktop
 if [ ! -f $xhost_path ]; then
 	echo "Setup: autostart xhost + when gdm restart"
-	mkdir -p ~/.config/autostart;
+	mkdir -p ~/.config/autostart
 	cat >>$xhost_path <<'EOF'
 [Desktop Entry]
 Type=Application
@@ -65,7 +73,7 @@ sut_user=`who |grep :0 | head -n 1 |awk {'print $1'}`
 gdm_conf_path="/etc/gdm/custom.conf"
 gdm_status=`grep -c "\[daemon\]" $gdm_conf_path`
 
-if [ $gdm_status = "0" ] && [ $sut_user = "root" ] ; then
+if [ "$gdm_status" = "0" -a "$sut_user" = "root" ]; then
 	echo "Setup: root user auto login X window when gdm restart"
 	cat >>$gdm_conf_path <<'EOF'
 
@@ -76,16 +84,14 @@ TimedLogin=root
 AutomaticLogin=root
 TimeLoginDelay=5
 EOF
-	autologin=true;
+	autologin=true
 fi
 
 # Restart gnome session
 if [ $autoxhost ] || [ $autologin ]; then
-	echo "Restart gnome session";
-	sudo /usr/sbin/rcxdm restart;
+	echo "Restart gnome session"
+	sudo /usr/sbin/rcxdm restart
 else
-	echo "Done!";
-	exit 0;
+	echo "Done!"
+	exit 0
 fi
-
-
