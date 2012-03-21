@@ -53,7 +53,6 @@
 
 	<div id="hlogo">
 		<a href="/hamsta" border="0" style="text-decoration: none;">
-			<img src="images/logo-novell.png" class="logo" alt="Novell Logo" title="Click to return to the main page" />
 			<img src="images/logo-hamsta.png" class="logo" alt="Hamsta Logo" title="Click to return to the main page" />
 			<img src="images/logo-suse.png" class="logo" alt="Suse Logo" title="Click to return to the main page" />
 			<img src="images/header.png" class="caption" alt="OPS QA Automation" title="Click to return to the main page" />
