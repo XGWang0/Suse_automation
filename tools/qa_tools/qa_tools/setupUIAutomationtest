@@ -23,6 +23,8 @@
 # ****************************************************************************
 #
 
+sut_user=`who |grep :0 | head -n 1 |awk {'print $1'}`
+
 # Install require patterns
 system=`cat /etc/SuSE-release |head -n 1 |awk '{print $4}'`
 if [ "$system" = "Desktop" ]; then
@@ -52,11 +54,16 @@ else
 fi
 
 # Enable xhost +
-xhost_path=~/.config/autostart/xhost.desktop
-if [ ! -f $xhost_path ]; then
+if [ "$sut_user" = "root" ]; then
+	xhost_path=/$sut_user/.config/autostart
+else
+	xhost_path=/home/$sut_user/.config/autostart
+fi
+
+if [ ! -f $xhost_path/xhost.desktop ]; then
 	echo "Setup: autostart xhost + when gdm restart"
-	mkdir -p ~/.config/autostart
-	cat >>$xhost_path <<'EOF'
+	mkdir -p $xhost_path
+	cat >>$xhost_path/xhost.desktop <<'EOF'
 [Desktop Entry]
 Type=Application
 Exec=xhost +
@@ -69,7 +76,6 @@ EOF
 fi
 
 # Make root user auto login X window
-sut_user=`who |grep :0 | head -n 1 |awk {'print $1'}`
 gdm_conf_path="/etc/gdm/custom.conf"
 gdm_status=`grep -c "\[daemon\]" $gdm_conf_path`
 
