@@ -598,7 +598,7 @@ sub parse_fio($)
 				if( $lat =~ /([\d\.]+)=([\d\.]+)%/ )	{
 					my($lat_r,$perc)=($1,$2);
 					$lat_r *= 1000 if $lat_u eq 'msec';
-					push @ret,"${lat_r} ms; ${part}latency; %",$perc;
+					push @ret,"${lat_r} us; ${part}latency; %",$perc;
 				}
 			}
 		}
