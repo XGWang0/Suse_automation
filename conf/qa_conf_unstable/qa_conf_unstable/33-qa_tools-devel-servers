@@ -38,7 +38,7 @@
 # is the host that results are sent to by remote_qa_db_report.pl
 #
 #remote_qa_db_report_host="vm-auto-devel.qa.suse.cz"
-remote_qa_db_report_host="10.20.141.16"
+remote_qa_db_report_host="10.100.101.16"
 remote_qa_db_report_user="rd-qa"
 
 

@@ -38,7 +38,7 @@
 # The address of QADB DB server
 #
 #qa_db_report_sql_host="vm-auto-devel.qa.suse.cz"
-qa_db_report_sql_host="10.20.141.16"
+qa_db_report_sql_host="10.100.101.16"
 
 #
 # MySQL port
@@ -64,11 +64,11 @@ qa_db_report_sql_pwd="qadb"
 # Log archive - where to store the submitted logs
 #
 #log_archive_host="vm-auto-devel.qa.suse.cz"
-log_archive_host="10.20.141.16"
+log_archive_host="10.100.101.16"
 log_archive_login="rd-qa"
 log_archive_root_path="/srv/www/htdocs/Results"
 #log_archive_wwwroot="http://vm-auto-devel.qa.suse.cz/Results"
-log_archive_wwwroot="http://10.20.141.16/Results"
+log_archive_wwwroot="http://10.100.101.16/Results"
 
 #
 # Log reviewer
