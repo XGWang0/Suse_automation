@@ -60,6 +60,17 @@
 	# Change the long definition of TS_LIST (this must go *after* the 'sed' on TS_LIST_SHORT)
 	system("sed -i 's/TS_LIST/" . implode(" ", $tslist) . "/g' $qapackagejobfile");
 
+	# Check UI test cases
+	$UISetupComm = "\/usr\/share\/qa\/tools\/setupUIAutomationtest; sleep 60";
+	$UIlist = UILIST;
+	$UIarr = split(" ", $UIlist);
+	foreach ( $UIarr as $case ) {
+		if ( in_array($case, $tslist) ) {
+			system("sed -i 's/#setupUI/". $UISetupComm . "/g' $qapackagejobfile");
+			break;
+		}
+	}
+
 	# Make sure each job gets sent correctly
 	if( request_str("submit") )
 	{
@@ -76,5 +87,4 @@
 		header("Location: index.php");
 	}
 	$html_title="Send qapackage job";
-
 ?>

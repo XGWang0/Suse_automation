@@ -569,6 +569,25 @@ QA-packages Jobs are used to launch various test suites on your System Under Tes
         }
     ?>
 <tr><td></td></tr>
+<tr><td><b>UI tests:</b></td></tr>
+	<?php
+		$UIlist=UILIST;
+		$arr=split(" ", $UIlist);
+		sort($arr);
+		$i=0;
+		foreach ($arr as $value) {
+			if ($i%6==0) {echo "<tr>\n";}
+			echo "<td stype=\"padding: 5px;\">";
+			echo "<lable><input name=testsuite[] type=\"checkbox\" value=\"$value\" title=\"check one at least\"/>$value</label>";
+			echo "<a href=\"http://qa.suse.de/automation/qa-packages?package=" . urlencode($value) . "#" . urlencode($value) . "\" target=\"_blank\">".
+				"<img src=\"images/icon-info.png\" alt=\"Click for information\" title=\"Click for information\" width=\"15\" border=\"0\" /></a>";
+			echo "</td>";
+			if ($i%6==5) {echo "</tr>\n";}
+			$i++;	
+		}
+	?>
+<tr></tr>
+
 <tr><td><input type="checkbox" value="checkall" onclick='chkall("qapackagejob",this)' name=chk>Select all</td></tr>
 </table>
 <br/>
