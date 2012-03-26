@@ -47,7 +47,7 @@ while( my $row=<IFCONFIG> )
 		{
 			if( $2==10 or $2==11 or $2==0 )
 			{   $loc='de'; }
-			elsif( $2==20 )
+			elsif( $2==100 )
 			{   $loc='cz'; }
 		}
 		elsif( $1==147 ) 
