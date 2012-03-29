@@ -88,9 +88,7 @@ sub submission_create # type, tester_id, host_id, comment, arch_id, product_id, 
 	$type_short='kotd' if $type =~ /^kotd/;
 	$type_short='maint' if $type=~ /^patch/;
 	&log(LOG_DEBUG,"Inserting into submissions");
-	$self->update_query("INSERT INTO submission (type,tester_id,host_id,comment,arch_id,product_id,release_id,rpm_config_id,hwinfo_id) VALUES (?,?,?,?,?,?,?,?,?)",$type_short,@_);
-	&log(LOG_DEBUG,"Getting ID of the new submission");
-	my $submission_id=$self->get_new_id();
+	my $submission_id=$self->insert_query("INSERT INTO submission (type,tester_id,host_id,comment,arch_id,product_id,release_id,rpm_config_id,hwinfo_id) VALUES (?,?,?,?,?,?,?,?,?)",$type_short,@_);
 	&log(LOG_DEBUG,"New ID is $submission_id");
 	push @{$self->{'open_submissions'}}, $submission_id if $submission_id;
 	return $submission_id;
@@ -110,8 +108,7 @@ sub delete_open_submissions
 sub create_tcf # testsuite_id, submission_id, log_url, test_date
 {
 	my $self=shift;
-	$self->update_query( 'INSERT INTO tcf_group(testsuite_id,submission_id,log_url,test_date) VALUES(?,?,?,?)', @_ );
-	return $self->get_new_id();
+	return $self->insert_query( 'INSERT INTO tcf_group(testsuite_id,submission_id,log_url,test_date) VALUES(?,?,?,?)', @_ );
 }
 
 
@@ -143,10 +140,8 @@ sub get_rpm_id	# rpm_basename, rpm_version, insert?
 	$rpm_basename_id=$self->enum_get_id_cond('rpm_basename',$rpm_basename, $insert);
 	$rpm_version_id =$self->enum_get_id_cond('rpm_version' ,$rpm_version,  $insert);
 	$rpm_id=$self->scalar_query('SELECT rpm_id FROM rpm WHERE rpm_basename_id=? AND rpm_version_id=? LIMIT 1',$rpm_basename_id,$rpm_version_id) if $rpm_basename_id and $rpm_version_id;
-	if( !$rpm_id and $insert )
-	{
-		$self->update_query('INSERT INTO rpm(rpm_basename_id,rpm_version_id) VALUES(?,?)',$rpm_basename_id,$rpm_version_id);
-		$rpm_id=$self->get_new_id();
+	if( !$rpm_id and $insert )	{
+		$rpm_id=$self->insert_query('INSERT INTO rpm(rpm_basename_id,rpm_version_id) VALUES(?,?)',$rpm_basename_id,$rpm_version_id);
 	}
 	return $rpm_id;
 }
@@ -174,8 +169,7 @@ sub hwinfo_put # $hwinfo_path
 	my $hwinfo_id = $self->scalar_query('SELECT hwinfo_id FROM hwinfo WHERE md5sum=?',$md5sum);
 	return $hwinfo_id if defined $hwinfo_id;
 	my $hwinfo_bz2 = `bzip2 -c "$hwinfo_path"`;
-	$self->update_query('INSERT INTO hwinfo(md5sum,hwinfo_bz2) VALUES(?,?)',$md5sum,$hwinfo_bz2);
-	$hwinfo_id = $self->get_new_id();
+	$hwinfo_id = $self->insert_query('INSERT INTO hwinfo(md5sum,hwinfo_bz2) VALUES(?,?)',$md5sum,$hwinfo_bz2);
 	push @{$self->{'inserted_hwinfo'}},$hwinfo_id;
 	return $hwinfo_id;
 }
@@ -191,40 +185,38 @@ sub undo_hwinfo
 sub submit_results # $times_run, $succeeded, $failed, $int_err, $skipped, $test_time, $testcase_id, $tcf_id
 {
 	my $self=shift;
-	$self->update_query('INSERT INTO `result`(times_run,succeeded,failed,internal_error,skipped,test_time,testcase_id,tcf_id) VALUES(?,?,?,?,?,?,?,?)',@_);
-	return $self->get_new_id();
+	return $self->insert_query('INSERT INTO `result`(times_run,succeeded,failed,internal_error,skipped,test_time,testcase_id,tcf_id) VALUES(?,?,?,?,?,?,?,?)',@_);
 }
 
 sub insert_benchmark_data # $result_id, $bench_part, $value
 {
 	my ($self,$result_id,$bench_part,$value)=@_;
 	my $bench_part_id = $self->enum_get_id_or_insert('bench_part',$bench_part);
-	$self->update_query('INSERT INTO bench_data(result_id,bench_part_id,result) VALUES(?,?,?)',$result_id,$bench_part_id,$value);
-	return $self->get_new_id();
+	return $self->insert_query('INSERT INTO bench_data(result_id,bench_part_id,result) VALUES(?,?,?)',$result_id,$bench_part_id,$value);
 }
 
 sub kotd_testing_insert # submission_id, kernel_branch_id, kernel_flavor_id, release, version
 {	
 	my $self=shift;
-	$self->update_query('INSERT INTO kotd_testing(submission_id,kernel_branch_id,kernel_flavor_id,`release`,version) VALUES(?,?,?,?,?)',@_);	
+	$self->insert_query('INSERT INTO kotd_testing(submission_id,kernel_branch_id,kernel_flavor_id,`release`,version) VALUES(?,?,?,?,?)',@_);	
 }
 
 sub product_testing_insert # submission_id
 {	
 	my $self=shift;
-	$self->update_query('INSERT INTO product_testing(submission_id) VALUES(?)',$_[0]);	
+	$self->insert_query('INSERT INTO product_testing(submission_id) VALUES(?)',$_[0]);	
 }
 
 sub maintenance_testing_insert # submission_id, patch_id, md5sum
 {	
 	my $self=shift;
-	$self->update_query("INSERT INTO maintenance_testing(submission_id,patch_id,md5sum,status) VALUES(?,?,?,'wip')",@_);	
+	$self->insert_query("INSERT INTO maintenance_testing(submission_id,patch_id,md5sum,status) VALUES(?,?,?,'wip')",@_);	
 }
 
 sub released_rpms_insert # submission_id, rpm_basename_id, rpm_version_id
 {	
 	my $self=shift;
-	$self->update_query('INSERT INTO released_rpm(submission_id,rpm_basename_id,rpm_version_id) VALUES(?,?,?)',@_);	
+	$self->insert_query('INSERT INTO released_rpm(submission_id,rpm_basename_id,rpm_version_id) VALUES(?,?,?)',@_);	
 }
 
 # testcase table is enum, but also have additional information relative_url
