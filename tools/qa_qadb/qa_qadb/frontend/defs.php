@@ -11,15 +11,15 @@ $group_by = array(
 	array( 0, 'testsuite, host, product, release', 't.testsuite,h.host,pr.product,rel.release' ),
 	array( 1, 'testsuite, host, product', 't.testsuite,h.host,pr.product' ),
 	array( 2, 'testsuite, host', 't.testsuite,h.host' ),
-	array( 3, 'testsuite, submissionID', 't.testsuite,s.submissionID' ),
-	array( 4, 'product, release, submissionID, comment', 'pr.product,rel.release,s.submissionID,s.comment' ),
+	array( 3, 'testsuite, submission_id', 't.testsuite,s.submission_id' ),
+	array( 4, 'product, release, submission_id, comment', 'pr.product,rel.release,s.submission_id,s.comment' ),
 	array(  5, 'testcase, testsuite, host, product, release', 'tc.testcase,t.testsuite,h.host,pr.product,rel.release' ),
 	array(  6, 'testcase, testsuite, host, product', 'tc.testcase,t.testsuite,h.host,pr.product' ),
 	array(  7, 'testcase, testsuite, host', 'tc.testcase,t.testsuite,h.host' ),
-	array(  8, 'testcase, testsuite, submissionID', 'tc.testcase,t.testsuite,s.submissionID' ),
+	array(  8, 'testcase, testsuite, submission_id', 'tc.testcase,t.testsuite,s.submission_id' ),
 
-	array(  9, 'testcase', 'tg.tcfID' ),
-	array( 10, 'testcase, tcfID', 'tc.testcase,tg.tcfID' ),
+	array(  9, 'testcase', 'tg.tcf_id' ),
+	array( 10, 'testcase, tcf_id', 'tc.testcase,tg.tcf_id' ),
 );
 
 ?>

@@ -3,16 +3,16 @@
 require_once("qadb.php");
 common_header(array('title'=>'HWinfo'));
 
-$hwinfoID=http('hwinfoID');
+$hwinfo_id=http('hwinfo_id');
 
 # search form
 $what = array(
-	array('hwinfoID', '', $hwinfoID, TEXT_ROW, 'HWinfoID(s)')
+	array('hwinfo_id', '', $hwinfo_id, TEXT_ROW, 'HWinfo_id(s)')
 );
 print html_search_form('hwinfo.php',$what);
 
-# split $hwinfoID, fetch existing 
-$splitted = explode(',',$hwinfoID);
+# split $hwinfo_id, fetch existing 
+$splitted = explode(',',$hwinfo_id);
 $hwinfos=array();
 $errors=array();
 foreach( $splitted as $id )	{
@@ -27,19 +27,19 @@ foreach( $splitted as $id )	{
 $cnt = count($hwinfos);
 $val=array_values($hwinfos);
 
-# non-existing hwinfoIDs
+# non-existing hwinfo_ids
 if( count($errors) )
-	print html_error("No such hwinfoID(s): " . join(', ',$errors));
+	print html_error("No such hwinfo_id(s): " . join(', ',$errors));
 
 # header, referers
 if( $cnt )	{
-	print '<h2>'. ($cnt==1 ? 'HWinfo for ID' : 'Diff hwinfoIDs') . ' ';
+	print '<h2>'. ($cnt==1 ? 'HWinfo for ID' : 'Diff hwinfo_ids') . ' ';
 	print join(', ',array_keys($hwinfos));
 	print "</h2>\n";
 
 	print '<div class="screen allresults">References :';
 	foreach( array_keys($hwinfos) as $id )
-		printf("\t%s\n",html_text_button($id,"submission.php?hwinfoID=$id&search=1"));
+		printf("\t%s\n",html_text_button($id,"submission.php?hwinfo_id=$id&search=1"));
 	print "</div>\n";
 }
 

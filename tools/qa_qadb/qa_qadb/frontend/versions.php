@@ -1,10 +1,10 @@
 <?php
 header('Content-Type: text/plain');
 require_once('qadb.php');
-$connID=connect_to_mydb();
+$conn_id=connect_to_mydb();
 $name=http('name');
 $what=http('what');
-if( in_array($what, array('products', 'releases', 'architectures') ) )
+if( in_array($what, array('product', 'release', 'arch') ) )
 	$data=enum_list_val($what);
 else
 {

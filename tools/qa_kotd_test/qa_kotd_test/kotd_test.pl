@@ -392,7 +392,7 @@ sub install_kernel(@) # $datetime, $baseurl, @files
 {
 	my ($datetime,$baseurl,@files) = @_;
 	my $tmpdir = "/tmp/kotdtest/$datetime";
-	my @basenames;
+	my @rpm_basenames;
 
 	# uninstall old kernel(s)
 	my $installed = &read_file($conf{'krnl_list'},CMD_SURVIVE);
@@ -406,7 +406,7 @@ sub install_kernel(@) # $datetime, $baseurl, @files
 		if( defined($baseurl) and $baseurl =~ /^(http|https|ftp):/ )	{
 			&command(CMD_DIE,"mkdir -p \"$tmpdir\"") unless -d $tmpdir;
 			$files[$i] = &download_file("$tmpdir/".$files[$i],"$baseurl/".$files[$i]);
-			push @basenames,$1 if $files[$i] =~ /([^\/]+).$conf{'arch'}.rpm/;
+			push @rpm_basenames,$1 if $files[$i] =~ /([^\/]+).$conf{'arch'}.rpm/;
 		}
 		unless( -f $files[$i] )	{
 			&log(LOG_ERROR,'File '.$files[$i].' does not exist, aborting installation');
@@ -422,7 +422,7 @@ sub install_kernel(@) # $datetime, $baseurl, @files
 	&command(CMD_DIE,"PBL_AUTOTEST=1 rpm -i --oldpackage --nodeps".(join '',map {' "'.$_.'"'} @files));
 
 	# update list of installed kernels
-	push @$installed,join(' ',@basenames);
+	push @$installed,join(' ',@rpm_basenames);
 	&write_file($conf{'krnl_list'},$installed,CMD_SURVIVE,F_OVERWRITE);
 
 	# push RPM info on the cmdline

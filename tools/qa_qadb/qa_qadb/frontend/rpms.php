@@ -3,41 +3,41 @@
 require_once("qadb.php");
 common_header(array('title'=>'RPM info'));
 
-$configID=http('configID');
+$rpm_config_id=http('rpm_config_id');
 $all     =http('all');
 
 # search form
 $what = array(
-	array('configID', '',$configID, TEXT_ROW,'configID(s)'),
+	array('rpm_config_id', '',$rpm_config_id, TEXT_ROW,'RPM config_id(s)'),
 	array('all','',$all,CHECKBOX,'(Incl. matching RPMs)')
 );
 print html_search_form('rpms.php',$what);
 
-# split $configID and filter out existing configIDs
-$splitted = explode(',',$configID);
-$configIDs=array();
+# split $rpm_config_id and filter out existing rpm_config_ids
+$splitted = explode(',',$rpm_config_id);
+$rpm_config_ids=array();
 $errors=array();
 foreach($splitted as $id)	{
 	if( is_numeric($id) && rpms_num($id)>0 )
-		$configIDs[]=$id;
+		$rpm_config_ids[]=$id;
 	else
 		$errors[]=$id;
 }
-$cnt = count($configIDs);
+$cnt = count($rpm_config_ids);
 
-# non-existing configIDs
+# non-existing rpm_config_ids
 if( count($errors) )
-	print html_error("No such configID(s): " . join(', ',$errors));
+	print html_error("No such rpm_config_id(s): " . join(', ',$errors));
 
 # header, referers
 if( $cnt )	{
-	print '<h2>'. ($cnt==1 ? 'RPM info for configID' : 'Diff configIDs') . ' ';
-	print join(', ',$configIDs);
+	print '<h2>'. ($cnt==1 ? 'RPM info for rpm_config_id' : 'Diff rpm_config_ids') . ' ';
+	print join(', ',$rpm_config_ids);
 	print "</h2>\n";
 
 	print '<div class="screen allresults">References :';
-	foreach( $configIDs as $id )
-		printf("\t%s\n",html_text_button($id,"submission.php?configID=$id&search=1"));
+	foreach( $rpm_config_ids as $id )
+		printf("\t%s\n",html_text_button($id,"submission.php?rpm_config_id=$id&search=1"));
 	print "</div>\n";
 }
 
@@ -46,12 +46,12 @@ if( $cnt )	{
 if( $cnt == 1 )
 {
 	# simple list
-	print html_table(rpms_fetch($configID,1,null),array('id'=>'rpmlist','sort'=>'ss','total'=>true));
+	print html_table(rpms_fetch($rpm_config_id,1,null),array('id'=>'rpmlist','sort'=>'ss','total'=>true));
 }
 else if( $cnt > 1 )
 {	
 	# diff mode
-	$data = rpms_diff(null,$all,$configIDs);
+	$data = rpms_diff(null,$all,$rpm_config_ids);
 	print html_table($data,array('id'=>'rpmdiff','sort'=>'sss','total'=>true));
 }
 
