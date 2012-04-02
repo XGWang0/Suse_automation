@@ -250,7 +250,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	# $sel2[ $i_next ] -- appends for full details
 	$sel2=array( 
 /* simple */ array(),
-/* mtnce  */ array('m.patch_id','m.md5sum','m.status'),
+/* mtnce  */ array('m.maintenance_testing_id','m.patch_id','m.md5sum','m.status'),
 /* KOTD   */ array('k.release','k.version','k.kernel_branch_id','k.kernel_flavor_id'),
 /* any    */ array('m.patch_id','m.md5sum','m.status'),
 /* trend  */ array('g.testsuite_id'),
@@ -326,9 +326,9 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	return $data;
 }
 
-function get_maintenance_rpms($submission_id)
+function get_maintenance_rpms($maintenance_testing_id)
 {
-	$data=matrix_query(0,null,"SELECT b.rpm_basename,v.rpm_version FROM released_rpm r join rpm_basename b on (r.rpm_basename_id=b.rpm_basename_id) left outer join rpm_version v on (r.rpm_version_id=v.rpm_version_id) WHERE r.submission_id=?",'i',$submission_id);
+	$data=matrix_query(0,null,"SELECT b.rpm_basename,v.rpm_version FROM released_rpm r join rpm_basename b on (r.rpm_basename_id=b.rpm_basename_id) left outer join rpm_version v on (r.rpm_version_id=v.rpm_version_id) WHERE r.maintenance_testing_id=?",'i',$maintenance_testing_id);
 	$ret=array();
 	foreach( $data as $row )
 		$ret[]=$row[0].(is_null($row[1]) ? '':'-'.$row[1]);
@@ -339,8 +339,12 @@ function append_maintenance( $data, $header )
 {
 	if($header)
 		$data[0]['rpms']='RPMS included in this update';
-	for( $i=($header ? 1:0); $i<count($data); $i++ )
-		$data[$i]['rpms'] = get_maintenance_rpms($data[$i]['submission_id']);
+	for( $i=($header ? 1:0); $i<count($data); $i++ )	{
+		$data[$i]['rpms'] = get_maintenance_rpms($data[$i]['maintenance_testing_id']);
+		unset($data[$i]['maintenance_testing_id']);
+	}
+	if( $header )
+		unset($data[0]['maintenance_testing_id']);
 	return $data;
 }
 

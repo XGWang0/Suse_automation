@@ -649,6 +649,7 @@ sub exec_submission_type # $submission_id, $config_id, $type
 		$dst->die_cleanly("No patch submit possible") unless @released_rpms;
 
 		&TRANSACTION('rpm_basename','software_config','rpm','released_rpm','maintenance_testing');
+		my $maintenance_testing_id = $dst->maintenance_testing_insert($submission_id, $patch_id, $md5sum);
 		foreach my $rpm( @released_rpms )
 		{
 			my $rpm_basename_id=$dst->enum_get_id('rpm_basename',$rpm);
@@ -661,12 +662,11 @@ sub exec_submission_type # $submission_id, $config_id, $type
 			if( @rpm_version_ids )
 			{
 				&log(LOG_WARNING,"Multiple versions installed for '$rpm'") if @rpm_version_ids>1;
-				$dst->released_rpms_insert($submission_id, $rpm_basename_id, $rpm_version_ids[0] );
+				$dst->released_rpms_insert($maintenance_testing_id, $rpm_basename_id, $rpm_version_ids[0] );
 			}
 			else
 			{	&log(LOG_WARNING,"The RPM '$rpm' was not installed, not submitting");	}
 		}
-		$dst->maintenance_testing_insert($submission_id, $patch_id, $md5sum);
 		&TRANSACTION_END;
 	}
 	elsif( $parts[0] eq 'product' )

@@ -213,10 +213,10 @@ sub maintenance_testing_insert # submission_id, patch_id, md5sum
 	$self->insert_query("INSERT INTO maintenance_testing(submission_id,patch_id,md5sum,status) VALUES(?,?,?,'wip')",@_);	
 }
 
-sub released_rpms_insert # submission_id, rpm_basename_id, rpm_version_id
+sub released_rpms_insert # maintenance_testing_id, rpm_basename_id, rpm_version_id
 {	
 	my $self=shift;
-	$self->insert_query('INSERT INTO released_rpm(submission_id,rpm_basename_id,rpm_version_id) VALUES(?,?,?)',@_);	
+	$self->insert_query('INSERT INTO released_rpm(maintenance_testing_id,rpm_basename_id,rpm_version_id) VALUES(?,?,?)',@_);
 }
 
 # testcase table is enum, but also have additional information relative_url
