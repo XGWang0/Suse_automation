@@ -84,26 +84,18 @@ $where   .= ' AND tg.tcf_id IN ('.join(',',$tests).')';
 # here are specified the control attributes
 # for every tree level
 $lev_attrs = array (
-
-	# p.part without the first field
-	# better do not ask how the SQL would look
-	# if the last field should also be stripped
-	/* 1 */ array("ltrim(substr(p.bench_part,1+instr(p.bench_part,';')))"),
-
+	/* 1 */ array("bench_part_z"),
 	/* 0 */ $group_attrs,
-
-	# p.part - first field only
-	/* 2 */ array("substring_index(bench_part,';',1)"),
-	
+	/* 2 */ array("bench_part_x"),
 	/* 3 */ array('d.result')
 );  // TODO: should be one level deeper
 
 # when filled, a special WHERE clause is used for the attribute
 # sprintf syntax is used, value is passed to the sprintf() call
 $lev_wheres = array (
-	/* 1 */ array("p.bench_part like '%%%s'"),
+	/* 1 */	array("bench_part_z='%s'"), # TODO
 	/* 0 */ array(),
-	/* 2 */ array("locate('%s;',p.bench_part)=1"),
+	/* 2 */ array("bench_part_x='%s'"), # TODO
 	/* 3 */ array()
 );  // TODO: should be one level deeper
 
