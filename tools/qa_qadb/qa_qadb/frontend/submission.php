@@ -37,7 +37,7 @@ if( token_read(http('wtoken')) )
 	}
 	else if( $submit=='comment' && $submission_id )
 	{
-		$active =http('active') ? 1:0;
+		$status_id=http('status');
 		$related=http('related');
 		$related=$related ? $related:null;
 		$comment=http('comment');
@@ -46,7 +46,7 @@ if( token_read(http('wtoken')) )
 			print html_error("No such submission_id: $related");	
 			$related=null;
 		}
-		update_result( submission_set_details($submission_id,$active,$related,$comment) ); 
+		update_result( submission_set_details($submission_id,$status_id,$related,$comment) ); 
 	}
 	else if( $submit=='link' && $tcf_id )
 	{
@@ -62,6 +62,7 @@ if(!$submission_id)
 	$arch	=enum_list_id_val('arch'); 
 	$host	=enum_list_id_val('host');
 	$tester	=enum_list_id_val('tester');
+	$status	=enum_list_id_val('status');
 	$product_got	=http('product');
 	$release_got	=http('release');
 	$arch_got	=http('arch');
@@ -70,28 +71,12 @@ if(!$submission_id)
 	$date_from_got	=http('date_from');
 	$date_to_got	=http('date_to');
 	$testcase_got	=http('testcase');
-	$active_got	=http('active');
 	$tester_got	=http('tester');
 	$comment_got	=http('comment');
 	$rpm_config_id_got=http('rpm_config_id');
 	$hwinfo_id_got	=http('hwinfo_id');
 	$submission_id_got=http('submission_id');
-
-	# create the form
-	$what=array(
-		array('product',$product,$product_got,MULTI_SELECT),
-		array('release',$release,$release_got,MULTI_SELECT),
-		array('arch',$arch,$arch_got,MULTI_SELECT),
-#		array('testsuite',$testsuite,$testsuite_got,MULTI_SELECT),
-		array('host',$host,$host_got,MULTI_SELECT),
-		array('tester',$tester,$tester_got,MULTI_SELECT),
-		array('date_from','',$date_from_got,TEXT_ROW),
-		array('date_to','',$date_to_got,TEXT_ROW),
-		array('active','',$active_got,TEXT_ROW),
-		array('comment','',$comment_got,TEXT_ROW,'comment [%]'),
-		array('submission_id','',$submission_id_got,TEXT_ROW),
-	);
-	$what0=$what;
+	$status_got	=http('status');
 
 	# modes for submission select
 	$modes=array(
@@ -101,6 +86,22 @@ if(!$submission_id)
 		array( 2, "Maintenance Testing"), 
 		array( 5, "Any")
 	);
+
+	# create the form
+	$what=array(
+		array('product',$product,$product_got,MULTI_SELECT),
+		array('release',$release,$release_got,MULTI_SELECT),
+		array('arch',$arch,$arch_got,MULTI_SELECT),
+#		array('testsuite',$testsuite,$testsuite_got,MULTI_SELECT),
+		array('host',$host,$host_got,MULTI_SELECT),
+		array('tester',$tester,$tester_got,MULTI_SELECT),
+		array('status',$status,$status_got,MULTI_SELECT),
+		array('date_from','',$date_from_got,TEXT_ROW),
+		array('date_to','',$date_to_got,TEXT_ROW),
+		array('comment','',$comment_got,TEXT_ROW,'comment [%]'),
+		array('submission_id','',$submission_id_got,TEXT_ROW),
+	);
+	$what0=$what;
 
 	# card-dependent form fields
 	if( $step=='tcf' )
@@ -162,12 +163,12 @@ if(!$submission_id)
 			'date_to'     =>$date_to_got,
 			'testsuite_id' =>$testsuite_got,
 			'testcase'    =>$testcase,
-			'active'      =>$active_got,
 			'tester_id'    =>$tester_got,
 			'comment'     =>$comment_got,
 			'rpm_config_id'    =>$rpm_config_id_got,
 			'hwinfo_id'    =>$hwinfo_id_got,
-			'submission_id'=>$submission_id_got,
+			'submission_id'	=>$submission_id_got,
+			'status_id'	=>$status_got,
 			'order_nr'    =>-1
 		),$transl,$pager);
 		$sort='sssssssis'.str_repeat('s',count($data[0])-9);
@@ -205,13 +206,12 @@ else if( $action=='edit' )
 	$detail=print_submission_details($submission_id);
 	if( count($detail) > 1 )
 	{
-		$comment=$detail[1]['comment'];
-		$related=$detail[1]['related'];
-		$active=$detail[1]['active'];
+		$status=enum_list_id_val('status');
+		array_unshift($status,array('null',''));
 		$what=array(
-			array('active','',$active,CHECK_BOX),
-			array('comment','',$comment,TEXT_AREA),
-			array('related','',$related,TEXT_ROW),
+			array('status',$status,$detail[1]['status_id'],SINGLE_SELECT),
+			array('comment','',$detail[1]['comment'],TEXT_AREA),
+			array('related','',$detail[1]['related'],TEXT_ROW),
 			array('submission_id','',$submission_id,HIDDEN),
 			array('submit','','comment',HIDDEN),
 			array('wtoken','',token_generate(),HIDDEN)
@@ -254,7 +254,7 @@ else if( $submission_id)
 		echo "</div>\n";
 		echo "<div class=\"screen\">\n";
 		echo "<div class=\"controls\">Controls :";
-		echo html_text_button('edit comment/active/related',"$base3&action=edit");
+		echo html_text_button('edit comment/status/related',"$base3&action=edit");
 		echo html_text_button('delete submission',"$base2&confirm=s");
 		echo "</div>\n</div>\n";
 		echo "<h2>Included testsuites</h2>\n";

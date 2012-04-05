@@ -23,6 +23,7 @@ $enums = array(
 	'rpm_version'		=> array('rpm_version_id','rpm_version'),
 	'rpm_config'		=> array('rpm_config_id','md5sum'),
 	'host'			=> array('host_id','host'),
+	'status'		=> array('status_id','status'),
 	'tester'		=> array('tester_id','tester'),
 	);
 
@@ -205,7 +206,6 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 		'arch_id'	=> array('s.arch_id=?',			'i'),
 		'product_id'	=> array('s.product_id=?',		'i'),
 		'release_id'	=> array('s.release_id=?',		'i'),
-		'active'	=> array('s.active=?',			'i'),
 		'testsuite_id'   => array('g.testsuite_id=?',		'i'),
 		'testcase_id'	=> array('r.testcase_id=?',		'i'),
 		'testcase'	=> array('c.testcase like ?',	's'),
@@ -214,6 +214,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 		'rpm_config_id'	=> array('s.rpm_config_id=?',		'i'),
 		'hwinfo_id'	=> array('s.hwinfo_id=?',		'i'),
 		'comment'	=> array('s.comment like ?',		's'),
+		'status_id'	=> array('s.status_id=?',		'i'),
 		# testcase differences - only for result search
 		'res_minus_sub'	=> array("$rd1 g2.submission_id=? $rd2",	'i'),
 		'res_minus_tcf'	=> array("$rd1 g2.tcf_id=? $rd2",	'i'),
@@ -242,7 +243,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	$sel0=array( 's.submission_id', 'r.result_id', 'g.testsuite_id' );
 	# $sel1[ $i_main ] -- appends for full details
 	$sel1=array( 
-/* subms */  array('s.submission_date','s.host_id','s.tester_id','s.arch_id','s.product_id','s.release_id','s.active','s.related','s.comment','s.rpm_config_id','s.hwinfo_id','s.type'),
+/* subms */  array('s.submission_date','s.host_id','s.tester_id','s.arch_id','s.product_id','s.release_id','s.related','s.status_id','s.comment','s.rpm_config_id','s.hwinfo_id','s.type'),
 /* rslts */  array('g.tcf_id','g.testsuite_id','r.testcase_id','t.testcase','r.succeeded','r.failed','r.internal_error','r.skipped','r.times_run','r.test_time','w.waiver_id','t.relative_url'),
 /* suite */  array(),
 /* sums  */  array('SUM(r.testcase) as testcase','SUM(r.succeeded) as succeeded','SUM(r.failed) as failed','SUM(r.internal_error) as internal_error','SUM(r.skipped) as skipped','SUM(r.times_run) as times_run','SUM(r.test_time) as test_time')
@@ -250,9 +251,9 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	# $sel2[ $i_next ] -- appends for full details
 	$sel2=array( 
 /* simple */ array(),
-/* mtnce  */ array('m.maintenance_testing_id','m.patch_id','m.md5sum','m.status'),
+/* mtnce  */ array('m.maintenance_testing_id','m.patch_id','m.md5sum'),
 /* KOTD   */ array('k.release','k.version','k.kernel_branch_id','k.kernel_flavor_id'),
-/* any    */ array('m.patch_id','m.md5sum','m.status'),
+/* any    */ array('m.patch_id','m.md5sum'),
 /* trend  */ array('g.testsuite_id'),
 /* TCF    */ array('g.testsuite_id','g.tcf_id'),
 /* TCF+res*/ array('g.testsuite_id','g.tcf_id','r.testcase_id'),
@@ -276,7 +277,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	
 	# $enum1[ $i_main ] - for full details when $transl set
 	$enum1=array(
-/* subms */  array('host_id'=>'host','tester_id'=>'tester','arch_id'=>'arch','product_id'=>'product','release_id'=>'release'),
+/* subms */  array('host_id'=>'host','tester_id'=>'tester','arch_id'=>'arch','product_id'=>'product','release_id'=>'release','status_id'=>'status'),
 /* rslts */  array('testsuite_id'=>'testsuite'),
 /* suite */  array()
 	);
@@ -431,8 +432,8 @@ function regression_differences($attrs,&$pager=null)
 ###############################################################################
 # API for submission, configuration, comments etc.
 
-function submission_set_details($submission_id, $active, $related, $comment)
-{	return update_query('UPDATE submission SET active=?,related=?,comment=? WHERE submission_id=?','iisi',$active,$related,$comment,$submission_id);	}
+function submission_set_details($submission_id, $status_id, $related, $comment)
+{	return update_query('UPDATE submission SET status_id=?,related=?,comment=? WHERE submission_id=?','iisi',$status_id,$related,$comment,$submission_id);	}
 
 /**  gets ID of related submission or null */
 function submission_get_related($submission_id)
