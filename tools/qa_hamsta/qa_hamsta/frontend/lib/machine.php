@@ -355,12 +355,28 @@ class Machine {
 		
 		$old_packages = array();
 		$tools_packages = array("qa_conf_unstable", "qa_db_report", "qa_hamsta", "qa_hamsta-cmdline", "qa_hamsta-common", "qa_hamsta-frontend", "qa_hamsta-jobs", "qa_hamsta-master", "qa_hamsta-multicast-forward", "qa_kotd_test", "qa_lib_config", "qa_lib_ctcs2", "qa_lib_internalapi", "qa_lib_internalapi-perlbinding", "qa_lib_keys", "qa_lib_perl", "qa_lib_tblib", "qa_lib_virtauto", "qa_lib_virtauto-data", "qa_qadb", "qa_tools");
+		$versions = array();
 		foreach (array_unique($GLOBALS['packageVersions']) as $package) {
 			$package_data = explode(" ", $package);
 			if (sizeof($package_data) == 2) {
-				if (in_array($package_data[0], $tools_packages) && array_key_exists($package_data[0], $rpm_list) && $rpm_list[$package_data[0]] != $package_data[1]) {
-					$old_packages[] = $package_data[0].' '.$rpm_list[$package_data[0]];
+				$key = $package_data[0];
+				$val = $package_data[1];
+				if (in_array($key, $tools_packages)) {
+					if (!array_key_exists($key, $versions)) {
+						$versions[$key] = $val;
+					} else {
+						$current_version = explode(".", substr($versions[$key], strpos($versions[$key], "-")+1));
+						$suggested_version = explode(".", substr($val, strpos($val, "-")+1));
+						if ($this->check_newer_version($current_version, $suggested_version)) {
+							$versions[$key] = $val;
+						}
+					}
 				}
+			}
+		}
+		foreach ($versions as $key => $val) {
+			if (array_key_exists($key, $rpm_list) && $rpm_list[$key] != $val) {
+				$old_packages[] = $key.' '.$rpm_list[$key];
 			}
 		}
 
@@ -368,6 +384,25 @@ class Machine {
 			return $old_packages;
 		else
 			return false;
+	}
+
+	/**
+	 * check_newer_version 
+	 * 
+	 * @access public
+	 * @param array() the old version to compare
+	 * @param array() the new version to compare
+	 * @return The newer version of the two arguments.
+	 */
+	function check_newer_version($old, $new) {
+		if ($old[0] < $new[0]) {
+			return 1;
+		} else if ($old[0] == $new[0] && $old[1] < $new[1]) {
+			return 1;
+		} else if ($old[0] == $new[0] && $old[1] == $new[1] && $old[2] < $new[2]) {
+			return 1;
+		}
+		return 0;
 	}
 
 	/**
