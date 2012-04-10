@@ -564,7 +564,7 @@ function rpms_diff($limit,$all,$rpm_config_ids)
 {
 	$sql_args=array(); # SQL args for prepared statement
 	$select='rpm_basename';
-	$from='software_config c JOIN rpm r USING(rpm_id) JOIN rpm_basename USING(basename_id) JOIN rpm_version USING(rpm_version_id)';
+	$from='software_config c JOIN rpm r USING(rpm_id) JOIN rpm_basename USING(rpm_basename_id) JOIN rpm_version USING(rpm_version_id)';
 	$where2=array(); # 'c<n>.rpm_id is null' conditions
 	$cnt=count($rpm_config_ids);
 	for($i=0; $i<$cnt; $i++)	{
