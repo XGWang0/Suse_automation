@@ -16,11 +16,10 @@
         <worker>
             <!-- Required -->
             <command execution="forked">
-repo=`zypper lr -u | grep "/ibs/QA:/Head"  | awk '{print $1;}'`
-zypper ref -r $repo
-zypper --non-interactive up --auto-agree-with-licenses -r $repo
-rchamsta restart
-</command>
+		    repo=`zypper lr -u | grep "/ibs/QA:/Head"  | awk '{print $1;}'`
+		    zypper ref -r $repo
+		    bash -c 'zypper --non-interactive up --auto-agree-with-licenses -r '$repo'; rchamsta restart' &amp;
+	    </command>
             <!-- Optional -->
             <directory>/</directory>
             <timeout>300000</timeout>
