@@ -6,7 +6,6 @@
         <distributable>0</distributable>
         <parallel>0</parallel>
         <mail notify="1"></mail>
-	<rpm>qa_hamsta</rpm>
         <logdir>/tmp</logdir>
         <description>Reboot SUT</description>
     </config>
@@ -14,13 +13,7 @@
     <commands>
         <worker>
             <!-- Required -->
-            <command execution="forked">
-#!/bin/bash
-reboot
-</command>
-            <!-- Optional -->
-            <directory>/</directory>
-            <timeout>300000</timeout>
+            <command execution="threaded">/sbin/reboot</command>
         </worker>
     </commands>
 </job>
