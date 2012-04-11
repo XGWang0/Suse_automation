@@ -123,7 +123,7 @@ function compare_trees($trees)
 		$header[$id] = $id;
 	$ret = compare_trees_step(array(),$trees);
 	$data = array_merge(array($header),$ret);
-	print html_table($data,array());
+	print html_table($data,array('id'=>'hwinfodiff','sort'=>'s'.str_repeat('s',count($trees))));
 }
 
 function compare_trees_step($path,$trees)

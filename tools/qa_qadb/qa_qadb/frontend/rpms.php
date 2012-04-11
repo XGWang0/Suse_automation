@@ -52,7 +52,7 @@ else if( $cnt > 1 )
 {	
 	# diff mode
 	$data = rpms_diff(null,$all,$rpm_config_ids);
-	print html_table($data,array('id'=>'rpmdiff','sort'=>'sss','total'=>true));
+	print html_table($data,array('id'=>'rpmdiff','sort'=>'s'.str_repeat('s',$cnt),'total'=>true));
 }
 
 # page footer
