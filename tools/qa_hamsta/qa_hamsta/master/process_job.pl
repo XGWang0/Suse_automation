@@ -290,7 +290,7 @@ sub send_job($$$) {
 		return (undef, $loglevel);
 	}
  	#Establish ack , SUT will send a Establish sync (blank-space) once the accept() method succeed.
-        my $s_canread = IO:Select->new();
+        my $s_canread = IO::Select->new();
 	$s_canread->add($sock);
         $s_canread->can_read();
  	&TRANSACTION( 'job_on_machine', 'job' );
