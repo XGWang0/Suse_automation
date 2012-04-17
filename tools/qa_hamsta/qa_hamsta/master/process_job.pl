@@ -29,6 +29,7 @@ use strict;
 use warnings;
 
 use IO::Socket::INET;
+use IO::Select;
 use MIME::Lite;
 use MIME::Base64;
 use sql;
@@ -289,7 +290,9 @@ sub send_job($$$) {
 		return (undef, $loglevel);
 	}
  	#Establish ack , SUT will send a Establish sync (blank-space) once the accept() method succeed.
- 	my $sync_rev=<$sock>;
+        my $s_canread = IO:Select->new();
+	$s_canread->add($sock);
+        $s_canread->can_read();
  	&TRANSACTION( 'job_on_machine', 'job' );
  	&job_set_status($job_id,JS_RUNNING);
  	&TRANSACTION_END;
