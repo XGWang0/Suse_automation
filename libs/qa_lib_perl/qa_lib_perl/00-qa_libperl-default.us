@@ -23,8 +23,7 @@
 #
 
 #
-# This file contains default configuration for qa_tools
-# Location specific: us
+# This file contains default configuration for qa_lib_perl
 #
 # Please never edit this file directly, if you want to change
 # anything, do it in a new file. (Files are read in alphabetical
@@ -34,29 +33,16 @@
 # <variable name>=<variable value>
 #
 
-
-# Set NIS domain
-nis_domain=""
-
-# FIXME
-# simpy add nis server list here, this server list should be detected automatically from 
-# DHCP answer 
-# Format: space separated list
-nis_server_list=""
-
-# Where to put autinstallation profile
-install_profile_nfs_server="149.44.146.1"
-install_profile_nfs_dir="/srv/hamsta"
-
-# From where to get the autoinstallation profile
-install_profile_url_base="http://149.44.146.1/autoinst"
+#
+# The url address of root ofQADB Webserver
+#
+qadb_wwwroot="http://qadb.nue.suse.com/qadb"
 
 #
-## The address of the host, where qa_db_report is installed, this
-## is the host that results are sent to by remote_qa_db_report.pl
+# The location of the current system. If it is kept empty, 
+# autodetection will be used. It can be set to a value to bypass 
+# the autodetection (e.g. 'cz' will force it to think it's in czech 
+# suse network 
 #
-remote_qa_db_report_host="qadb.nue.suse.com"
-remote_qa_db_report_user="rd-qa"
+location=''
 
-# Which repository should be used for *next* installation 
-install_qa_repository="http://download.nue.suse.com/ibs/QA:/Head"

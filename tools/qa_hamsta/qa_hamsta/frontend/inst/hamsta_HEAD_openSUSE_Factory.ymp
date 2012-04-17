@@ -5,7 +5,7 @@
         <name>qa_hamsta</name>
         <summary>Hamsta</summary>
         <description></description>
-        <url>http://dist.suse.de/ibs/QA:/Head/openSUSE_Factory</url>
+        <url>http://download.nue.suse.com/ibs/QA:/Head/openSUSE_Factory</url>
       </repository>
     </repositories>
     <software>

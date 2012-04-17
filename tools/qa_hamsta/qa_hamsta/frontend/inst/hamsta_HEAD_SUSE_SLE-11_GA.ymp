@@ -5,7 +5,7 @@
         <name>qa_hamsta</name>
         <summary>Hamsta</summary>
         <description></description>
-        <url>http://dist.suse.de/ibs/QA:/Head/SUSE_SLE-11_GA</url>
+        <url>http://download.nue.suse.com/ibs/QA:/Head/SUSE_SLE-11_GA</url>
       </repository>
     </repositories>
     <software>
