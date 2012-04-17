@@ -80,6 +80,8 @@
                 $errors[] = "Can not create directory: $new_file_dir";
         }
 
+        $new_file_content = preg_replace('/&[^; ]{0,6}.?/e', "((substr('\\0', -1) == ';') ? '\\0' : '&amp;'.substr('\\0', 1))", $new_file_content);
+
         if(preg_match("/^[0-9a-zA-Z_]+$/", $new_file_name))  # validate the file name user input
         {
             $new_real_file = $new_file_dir . "/" . $new_file_name . ".xml";
