@@ -289,13 +289,6 @@ sub send_job($$$) {
 		&log(LOG_NOTICE, "PROCESS_JOB: send_job $!");
 		return (undef, $loglevel);
 	}
- 	#Establish ack , SUT will send a Establish sync (blank-space) once the accept() method succeed.
-        my $s_canread = IO::Select->new();
-	$s_canread->add($sock);
-        $s_canread->can_read();
- 	&TRANSACTION( 'job_on_machine', 'job' );
- 	&job_set_status($job_id,JS_RUNNING);
- 	&TRANSACTION_END;
 
 # Pass the XML job description to the slave
 	open (FH,'<',"$job_file");
@@ -315,6 +308,13 @@ sub send_job($$$) {
 		return (undef, $loglevel);
 	}
 	close FH;
+ 	#Establish ack , SUT will send a Establish sync (blank-space) once the accept() method succeed.
+        my $s_canread = IO::Select->new();
+	$s_canread->add($sock);
+        $s_canread->can_read();
+ 	&TRANSACTION( 'job_on_machine', 'job' );
+ 	&job_set_status($job_id,JS_RUNNING);
+ 	&TRANSACTION_END;
 
 # Return the socket
 	return ($sock, $loglevel);
