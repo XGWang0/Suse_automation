@@ -354,7 +354,7 @@ class Machine {
 		}
 		
 		$old_packages = array();
-		$tools_packages = array("qa_conf_unstable", "qa_db_report", "qa_hamsta", "qa_hamsta-cmdline", "qa_hamsta-common", "qa_hamsta-frontend", "qa_hamsta-jobs", "qa_hamsta-master", "qa_hamsta-multicast-forward", "qa_kotd_test", "qa_lib_config", "qa_lib_ctcs2", "qa_lib_internalapi", "qa_lib_internalapi-perlbinding", "qa_lib_keys", "qa_lib_perl", "qa_lib_tblib", "qa_lib_virtauto", "qa_lib_virtauto-data", "qa_qadb", "qa_tools");
+		$tools_packages = array("qa_hamsta", "qa_hamsta-cmdline", "qa_hamsta-common", "qa_tools", "qa_lib_perl", "qa_lib_ctcs2", "qa_lib_config", "qa_lib_keys");
 		$versions = array();
 		foreach (array_unique($GLOBALS['packageVersions']) as $package) {
 			$package_data = explode(" ", $package);

@@ -16,8 +16,11 @@
         <worker>
             <!-- Required -->
             <command execution="forked">
-		    repo=`zypper lr -u | grep "/ibs/QA:/Head"  | awk '{print $1;}'`
-		    zypper ref -r $repo
+		    repo=`zypper lr -u | grep "/ibs/QA:/Head"  | awk '{print $1;}'`;
+			if [ -n $repo ] ; then
+		   	    repo=`zypper lr -u | grep "/ibs/QA%3a/Head" | awk '{print $1;}'`;
+			fi
+		    zypper --gpg-auto-import-keys ref -r $repo;
 		    bash -c 'zypper --non-interactive up --auto-agree-with-licenses -r '$repo'; rchamsta restart' &amp;
 	    </command>
             <!-- Optional -->
