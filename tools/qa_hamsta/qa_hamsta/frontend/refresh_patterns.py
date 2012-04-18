@@ -56,7 +56,7 @@ def retrieve_patterns(repo):
 				for line in filter(re_pat.search, data.split("\n")):
 					patterns.append(line.split(' ')[2])
 		except:
-			print "Can not read from " + repo + " (either non-existant or broken)"
+			pass
 		return patterns
 	else:
 		result = 0
