@@ -16,6 +16,7 @@ $enums = array(
 	'release'		=> array('release_id','release'),
 	'kernel_branch'		=> array('kernel_branch_id','kernel_branch'),
 	'kernel_flavor'		=> array('kernel_flavor_id','kernel_flavor'),
+	'kernel_version'	=> array('kernel_version_id','kernel_version'),
 	'testsuite'		=> array('testsuite_id','testsuite'),
 	'testcase'		=> array('testcase_id','testcase'),
 	'bench_part'		=> array('bench_part_id','bench_part'),
@@ -206,15 +207,21 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 		'arch_id'	=> array('s.arch_id=?',			'i'),
 		'product_id'	=> array('s.product_id=?',		'i'),
 		'release_id'	=> array('s.release_id=?',		'i'),
-		'testsuite_id'   => array('g.testsuite_id=?',		'i'),
+		'testsuite_id'	=> array('g.testsuite_id=?',		'i'),
 		'testcase_id'	=> array('r.testcase_id=?',		'i'),
 		'testcase'	=> array('c.testcase like ?',	's'),
-		'tcf_id'		=> array('r.tcf_id=?',			'i'),
+		'tcf_id'	=> array('r.tcf_id=?',			'i'),
 		'submission_id'	=> array('s.submission_id=?',		'i'),
 		'rpm_config_id'	=> array('s.rpm_config_id=?',		'i'),
 		'hwinfo_id'	=> array('s.hwinfo_id=?',		'i'),
 		'comment'	=> array('s.comment like ?',		's'),
 		'status_id'	=> array('s.status_id=?',		'i'),
+		'md5sum'	=> array('s.md5sum=?',			's'),
+		'patch_id'	=> array('s.patch_id=?',		's'),
+		'type'		=> array('s.type=?',			's'),
+		'kernel_version'=> array('s.kernel_version_id=?',	'i'),
+		'kernel_branch'	=> array('s.kernel_branch_id=?',	'i'),
+		'kernel_flavor'	=> array('s.kernel_flavor_id=?',	'i'),
 		# testcase differences - only for result search
 		'res_minus_sub'	=> array("$rd1 g2.submission_id=? $rd2",	'i'),
 		'res_minus_tcf'	=> array("$rd1 g2.tcf_id=? $rd2",	'i'),
@@ -251,9 +258,9 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	# $sel2[ $i_next ] -- appends for full details
 	$sel2=array( 
 /* simple */ array(),
-/* mtnce  */ array('m.maintenance_testing_id','m.patch_id','m.md5sum'),
-/* KOTD   */ array('k.release','k.version','k.kernel_branch_id','k.kernel_flavor_id'),
-/* any    */ array('m.patch_id','m.md5sum'),
+/* mtnce  */ array('s.patch_id','s.md5sum'),
+/* KOTD   */ array('s.md5sum','s.kernel_version_id','s.kernel_branch_id','s.kernel_flavor_id'),
+/* any    */ array('s.patch_id','s.md5sum'),
 /* trend  */ array('g.testsuite_id'),
 /* TCF    */ array('g.testsuite_id','g.tcf_id'),
 /* TCF+res*/ array('g.testsuite_id','g.tcf_id','r.testcase_id'),
@@ -266,10 +273,10 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	# $from2[ $i_from ] -- always
 	$from2=array(
 /* simple */	'',
-/* mtnce  */	' JOIN maintenance_testing m USING(submission_id)',
-/* KOTD   */	' JOIN kotd_testing k USING(submission_id)',
-/* prod   */	' JOIN product_testing p USING(submission_id)',
-/* any    */	' LEFT JOIN kotd_testing k USING(submission_id) LEFT JOIN maintenance_testing m USING(submission_id) LEFT JOIN product_testing p USING(submission_id)',
+/* mtnce  */	'',
+/* KOTD   */	'',
+/* prod   */	'',
+/* any    */	'',
 /* TCF    */    ' JOIN tcf_group g USING(submission_id)',
 /* bench  */	' JOIN tcf_group g USING(submission_id) JOIN bench_suite b USING(testsuite_id)',
 /* TCF+res*/	' JOIN tcf_group g USING(submission_id) JOIN `result` r USING(tcf_id) JOIN testcase c USING(testcase_id)',
@@ -286,7 +293,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	$enum2=array(
 /* simple */	array(),
 /* mtnce  */	array(),
-/* KOTD   */	array('kernel_branch_id'=>'kernel_branch','kernel_flavor_id'=>'kernel_flavor'),
+/* KOTD   */	array('kernel_branch_id'=>'kernel_branch','kernel_flavor_id'=>'kernel_flavor','kernel_version_id'=>'kernel_version'),
 /* prod   */	array(),
 /* any    */	array(),
 /* TCF    */	array('testsuite_id'=>'testsuite'),
@@ -303,8 +310,8 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 
 	# $links2[ $i_link ] - for full details when $transl set
 	$links2=array(	
-		array(), 
-/* KOTD */	array('release'=>'http://kerncvs.suse.de/gitweb/?p=kernel-source.git;a=commit;h='), 
+		array(),
+/* KOTD */	array('md5sum'=>'http://kerncvs.suse.de/gitweb/?p=kernel-source.git;a=commit;h='), 
 /* TCF data */	array('tcf_id'=>'result.php?tcf_id=') 
 	);
 	
@@ -321,15 +328,21 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 		$transl['enums'] = array_merge($enum1[ $i_main[$mode]], $enum2[ $i_next[$mode]]);
 		$transl['links'] = array_merge($links1[$i_main[$mode]], $links2[$i_link[$mode]]);
 	}
+	# TODO: redesign following code
+	if( !isset($attrs['type']) )	{
+		$type = array(2=>'maint',3=>'kotd',4=>'prod'/*,5=>array('maint','kotd')*/);
+		if( isset($type[$mode]) )
+			$attrs['type']=$type[$mode];
+	}
 	$data=search_common( $sel, $from, $attrs, $attrs_known, $pager );
 	if( $mode==2 ) # maintenance - append RPM lists
 		$data=append_maintenance($data,$header);
 	return $data;
 }
 
-function get_maintenance_rpms($maintenance_testing_id)
+function get_maintenance_rpms($submission_id)
 {
-	$data=matrix_query(0,null,"SELECT b.rpm_basename,v.rpm_version FROM released_rpm r join rpm_basename b on (r.rpm_basename_id=b.rpm_basename_id) left outer join rpm_version v on (r.rpm_version_id=v.rpm_version_id) WHERE r.maintenance_testing_id=?",'i',$maintenance_testing_id);
+	$data=matrix_query(0,null,"SELECT b.rpm_basename,v.rpm_version FROM released_rpm r JOIN rpm_basename b ON (r.rpm_basename_id=b.rpm_basename_id) LEFT OUTER JOIN rpm_version v ON (r.rpm_version_id=v.rpm_version_id) WHERE r.submission_id=?",'i',$submission_id);
 	$ret=array();
 	foreach( $data as $row )
 		$ret[]=$row[0].(is_null($row[1]) ? '':'-'.$row[1]);
@@ -340,12 +353,8 @@ function append_maintenance( $data, $header )
 {
 	if($header)
 		$data[0]['rpms']='RPMS included in this update';
-	for( $i=($header ? 1:0); $i<count($data); $i++ )	{
-		$data[$i]['rpms'] = get_maintenance_rpms($data[$i]['maintenance_testing_id']);
-		unset($data[$i]['maintenance_testing_id']);
-	}
-	if( $header )
-		unset($data[0]['maintenance_testing_id']);
+	for( $i=($header ? 1:0); $i<count($data); $i++ )
+		$data[$i]['rpms'] = get_maintenance_rpms($data[$i]['submission_id']);
 	return $data;
 }
 

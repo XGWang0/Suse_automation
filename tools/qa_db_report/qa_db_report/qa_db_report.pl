@@ -626,19 +626,20 @@ sub exec_submission_type # $submission_id, $config_id, $type
 	if( $parts[0] eq 'kotd' )
 	{
 		shift @parts;
-		my ($release,$version,$kernel_branch,$kernel_flavor)=@parts;
+		my ($md5sum,$kernel_version,$kernel_branch,$kernel_flavor)=@parts;
 		
 		# check if the kernel branch exists in QADB
 		my $kernel_branch_id = $dst->enum_get_id('kernel_branch',$kernel_branch);
 		$dst->die_cleanly("The specified KotD branch \"$kernel_branch\" does not exist.\nPlease check for typos or contact the DB admin\n") unless $kernel_branch_id;
 
-		&TRANSACTION('kernel_flavor','kotd_testing');
+		&TRANSACTION('kernel_flavor','kernel_version','submission');
 		# check if the kernel flavor exists in QADB
 		my $kernel_flavor_id = $dst->enum_get_id_or_insert('kernel_flavor',$kernel_flavor);
+		my $kernel_version_id = $dst->enum_get_id_or_insert('kernel_version',$kernel_version);
 		$dst->die_cleanly("The specified KotD flavor \"$kernel_flavor\" does not exist.\nPlease check for typos or contact the DB admin\n") unless $kernel_flavor_id;
 
 		# record as kotd_testing
-		$dst->kotd_testing_insert($submission_id,$kernel_branch_id,$kernel_flavor_id,$release,$version);
+		$dst->submission_set_kotd_values($submission_id,$kernel_branch_id,$kernel_flavor_id,$md5sum,$kernel_version_id);
 		&TRANSACTION_END;
 	}
 	elsif( $parts[0] eq 'patch' )
@@ -648,8 +649,8 @@ sub exec_submission_type # $submission_id, $config_id, $type
 		my $patch_id=shift @released_rpms;
 		$dst->die_cleanly("No patch submit possible") unless @released_rpms;
 
-		&TRANSACTION('rpm_basename','software_config','rpm','released_rpm','maintenance_testing');
-		my $maintenance_testing_id = $dst->maintenance_testing_insert($submission_id, $patch_id, $md5sum);
+		&TRANSACTION('rpm_basename','software_config','rpm','released_rpm','submission');
+		$dst->submission_set_maintenance_values($submission_id, $patch_id, $md5sum);
 		foreach my $rpm( @released_rpms )
 		{
 			my $rpm_basename_id=$dst->enum_get_id('rpm_basename',$rpm);
@@ -662,17 +663,11 @@ sub exec_submission_type # $submission_id, $config_id, $type
 			if( @rpm_version_ids )
 			{
 				&log(LOG_WARNING,"Multiple versions installed for '$rpm'") if @rpm_version_ids>1;
-				$dst->released_rpms_insert($maintenance_testing_id, $rpm_basename_id, $rpm_version_ids[0] );
+				$dst->released_rpms_insert($submission_id, $rpm_basename_id, $rpm_version_ids[0] );
 			}
 			else
 			{	&log(LOG_WARNING,"The RPM '$rpm' was not installed, not submitting");	}
 		}
-		&TRANSACTION_END;
-	}
-	elsif( $parts[0] eq 'product' )
-	{
-		&TRANSACTION('product_testing');
-		$dst->product_testing_insert($submission_id);	
 		&TRANSACTION_END;
 	}
 }

@@ -66,10 +66,10 @@ $db_common::cleanup_callback = sub
 	'release'	=> ['release_id','release'],
 	'kernel_branch'	=> ['kernel_branch_id','kernel_branch'],
 	'kernel_flavor'	=> ['kernel_flavor_id','kernel_flavor'],
+	'kernel_version'=> ['kernel_version_id','kernel_version'],
 	'testsuite'	=> ['testsuite_id','testsuite'],
 	'testcase'	=> ['testcase_id','testcase'],
 	'tester'	=> ['tester_id','tester'],
-	'bench_part'	=> ['bench_part_id','bench_part'],
 	'rpm_basename'	=> ['rpm_basename_id','rpm_basename'],
 	'rpm_version'	=> ['rpm_version_id','rpm_version'],
 	'rpm_config'	=> ['rpm_config_id','md5sum'],
@@ -191,32 +191,31 @@ sub submit_results # $times_run, $succeeded, $failed, $int_err, $skipped, $test_
 sub insert_benchmark_data # $result_id, $bench_part, $value
 {
 	my ($self,$result_id,$bench_part,$value)=@_;
-	my $bench_part_id = $self->enum_get_id_or_insert('bench_part',$bench_part);
+	return unless $bench_part =~ /^\s*([^;]+?)\s*;\s*(.*)\s*$/;
+	my ($bench_part_x,$bench_part_z)=($1,$2);
+	my $bench_part_id = $self->row_query('SELECT bench_part_id FROM bench_part WHERE bench_part_x=? AND bench_part_z=? LIMIT 1',$bench_part_x,$bench_part_z);
+	unless( $bench_part_id )	{
+		$bench_part_id = $self->insert_query('INSERT INTO bench_part(bench_part_x,bench_part_z) VALUES(?,?)',$bench_part_x,$bench_part_z);
+	}
 	return $self->insert_query('INSERT INTO bench_data(result_id,bench_part_id,result) VALUES(?,?,?)',$result_id,$bench_part_id,$value);
 }
 
-sub kotd_testing_insert # submission_id, kernel_branch_id, kernel_flavor_id, release, version
+sub submission_set_kotd_values # submission_id, kernel_branch_id, kernel_flavor_id, md5sum, kernel_version_id
 {	
 	my $self=shift;
-	$self->insert_query('INSERT INTO kotd_testing(submission_id,kernel_branch_id,kernel_flavor_id,`release`,version) VALUES(?,?,?,?,?)',@_);	
+	$self->update_query('UPDATE submission SET kernel_branch_id=?,kernel_flavor_id=?,md5sum=?,kernel_version_id=? WHERE submission_id=?',$_[1],$_[2],$_[3],$_[4],$_[0]);
 }
 
-sub product_testing_insert # submission_id
+sub submission_set_maintenance_values # submission_id, patch_id, md5sum
 {	
 	my $self=shift;
-	$self->insert_query('INSERT INTO product_testing(submission_id) VALUES(?)',$_[0]);	
+	$self->update_query("UPDATE submission SET patch_id=?,md5sum=?,status='wip' WHERE submission_id=?",$_[1],$_[2],$_[0]);
 }
 
-sub maintenance_testing_insert # submission_id, patch_id, md5sum
+sub released_rpms_insert # submission_id, rpm_basename_id, rpm_version_id
 {	
 	my $self=shift;
-	$self->insert_query("INSERT INTO maintenance_testing(submission_id,patch_id,md5sum,status) VALUES(?,?,?,'wip')",@_);	
-}
-
-sub released_rpms_insert # maintenance_testing_id, rpm_basename_id, rpm_version_id
-{	
-	my $self=shift;
-	$self->insert_query('INSERT INTO released_rpm(maintenance_testing_id,rpm_basename_id,rpm_version_id) VALUES(?,?,?)',@_);
+	$self->insert_query('INSERT INTO released_rpm(submission_id,rpm_basename_id,rpm_version_id) VALUES(?,?,?)',@_);
 }
 
 # testcase table is enum, but also have additional information relative_url

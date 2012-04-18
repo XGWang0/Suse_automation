@@ -57,26 +57,39 @@ if( token_read(http('wtoken')) )
 
 if(!$submission_id)
 {	# main search form & results
-	$product=enum_list_id_val('product'); 
-	$release=enum_list_id_val('release');
-	$arch	=enum_list_id_val('arch'); 
-	$host	=enum_list_id_val('host');
-	$tester	=enum_list_id_val('tester');
-	$status	=enum_list_id_val('status');
-	$product_got	=http('product');
-	$release_got	=http('release');
-	$arch_got	=http('arch');
-	$testsuite_got	=http('testsuite');
-	$host_got	=http('host');
-	$date_from_got	=http('date_from');
-	$date_to_got	=http('date_to');
-	$testcase_got	=http('testcase');
-	$tester_got	=http('tester');
-	$comment_got	=http('comment');
-	$rpm_config_id_got=http('rpm_config_id');
-	$hwinfo_id_got	=http('hwinfo_id');
-	$submission_id_got=http('submission_id');
-	$status_got	=http('status');
+	$product	=enum_list_id_val('product'); 
+	$release	=enum_list_id_val('release');
+	$arch		=enum_list_id_val('arch'); 
+	$host		=enum_list_id_val('host');
+	$tester		=enum_list_id_val('tester');
+	$status		=enum_list_id_val('status');
+	$kernel_version	=enum_list_id_val('kernel_version');
+	$kernel_branch	=enum_list_id_val('kernel_branch');
+	$kernel_flavor	=enum_list_id_val('kernel_flavor');
+	$nothing=array( null, '' );
+	array_unshift($status,$nothing);
+	array_unshift($kernel_version,$nothing);
+	array_unshift($kernel_branch,$nothing);
+	array_unshift($kernel_flavor,$nothing);
+	$product_got		=http('product');
+	$release_got		=http('release');
+	$arch_got		=http('arch');
+	$testsuite_got		=http('testsuite');
+	$host_got		=http('host');
+	$date_from_got		=http('date_from');
+	$date_to_got		=http('date_to');
+	$testcase_got		=http('testcase');
+	$tester_got		=http('tester');
+	$comment_got		=http('comment');
+	$rpm_config_id_got	=http('rpm_config_id');
+	$hwinfo_id_got		=http('hwinfo_id');
+	$submission_id_got	=http('submission_id');
+	$status_got		=http('status');
+	$md5sum_got		=http('md5sum');
+	$patch_id_got		=http('patch_id');
+	$kernel_version_got	=http('kernel_version');
+	$kernel_branch_got	=http('kernel_branch');
+	$kernel_flavor_got	=http('kernel_flavor');
 
 	# modes for submission select
 	$modes=array(
@@ -95,11 +108,16 @@ if(!$submission_id)
 #		array('testsuite',$testsuite,$testsuite_got,MULTI_SELECT),
 		array('host',$host,$host_got,MULTI_SELECT),
 		array('tester',$tester,$tester_got,MULTI_SELECT),
-		array('status',$status,$status_got,MULTI_SELECT),
 		array('date_from','',$date_from_got,TEXT_ROW),
 		array('date_to','',$date_to_got,TEXT_ROW),
 		array('comment','',$comment_got,TEXT_ROW,'comment [%]'),
 		array('submission_id','',$submission_id_got,TEXT_ROW),
+		array('md5sum','',$md5sum_got,TEXT_ROW),
+		array('patch_id','',$patch_id_got,TEXT_ROW),
+		array('status',$status,$status_got,SINGLE_SELECT),
+		array('kernel_version',$kernel_version,$kernel_version_got,SINGLE_SELECT),
+		array('kernel_branch',$kernel_branch,$kernel_branch_got,SINGLE_SELECT),
+		array('kernel_flavor',$kernel_flavor,$kernel_flavor_got,SINGLE_SELECT),
 	);
 	$what0=$what;
 
@@ -155,21 +173,26 @@ if(!$submission_id)
 		if( $testcase && $testcase[0] )    $mode_got=10;
 		$transl=array();
 		$data=search_submission_result($mode_got,array(
-			'arch_id'      =>$arch_got,
-			'product_id'   =>$product_got,
-			'release_id'   =>$release_got,
-			'host_id'      =>$host_got,
-			'date_from'   =>$date_from_got,
-			'date_to'     =>$date_to_got,
-			'testsuite_id' =>$testsuite_got,
-			'testcase'    =>$testcase,
-			'tester_id'    =>$tester_got,
-			'comment'     =>$comment_got,
-			'rpm_config_id'    =>$rpm_config_id_got,
-			'hwinfo_id'    =>$hwinfo_id_got,
-			'submission_id'	=>$submission_id_got,
-			'status_id'	=>$status_got,
-			'order_nr'    =>-1
+			'arch_id'		=>$arch_got,
+			'product_id'		=>$product_got,
+			'release_id'		=>$release_got,
+			'host_id'		=>$host_got,
+			'date_from'		=>$date_from_got,
+			'date_to'		=>$date_to_got,
+			'testsuite_id'		=>$testsuite_got,
+			'testcase'		=>$testcase,
+			'tester_id'		=>$tester_got,
+			'comment'		=>$comment_got,
+			'rpm_config_id'		=>$rpm_config_id_got,
+			'hwinfo_id'		=>$hwinfo_id_got,
+			'submission_id'		=>$submission_id_got,
+			'status_id'		=>$status_got,
+			'md5sum'		=>$md5sum_got,
+			'patch_id'		=>$patch_id_got,
+			'kernel_version'	=>$kernel_version_got,
+			'kernel_branch'		=>$kernel_branch_got,
+			'kernel_flavor'		=>$kernel_flavor_got,
+			'order_nr'		=>-1
 		),$transl,$pager);
 		$sort='sssssssis'.str_repeat('s',count($data[0])-9);
 		$class='tbl';
@@ -181,8 +204,8 @@ if(!$submission_id)
 			$class.=' controls';
 		}
 		table_translate($data,$transl); 
-		if( $mode_got==3 ) # KOTD external links
-			table_translate($data,array('links'=>array('branch_id'=>'http://kerncvs.suse.de/kernel-overview/?b=')));
+		if( $mode_got==3 ) # KOTD external links, linked by value instead of ID, need translating here
+			table_translate($data,array('links'=>array('kernel_branch_id'=>'http://kerncvs.suse.de/kernel-overview/?b=')));
 		print html_table($data,array('id'=>'submission','sort'=>$sort,'total'=>true,'class'=>$class,'pager'=>$pager));
 		if( $step=='bench' && count($data)>1 )
 		{

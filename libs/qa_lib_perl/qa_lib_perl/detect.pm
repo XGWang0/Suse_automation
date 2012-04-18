@@ -314,15 +314,15 @@ sub guess_product_from_url # URL
 
 # reads QADB products over HTTP
 sub read_qadb_products
-{	return &read_http_csv("$ws_base?what=products",1);	}
+{	return &read_http_csv("$ws_base?what=product",1);	}
 
 # reads QADB releases over HTTP
 sub read_qadb_releases
-{	return &read_http_csv("$ws_base?what=releases",1);	}
+{	return &read_http_csv("$ws_base?what=release",1);	}
 
 # reads QADB architectures over HTTP
 sub read_qadb_architectures
-{	return &read_http_csv("$ws_base?what=architectures",1);	}
+{	return &read_http_csv("$ws_base?what=arch",1);	}
 
 # initializes %qadb_products and %qadb_releases with current data
 sub qadb_read_data
