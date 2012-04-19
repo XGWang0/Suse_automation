@@ -219,7 +219,7 @@ if( isset($sub_r[1]) && isset($sub_c[1]) )
 
 	# candicate-only testcases
 	$transl=array();
-	$candonly=search_submissions_result(0,array('submission_id'=>$cand_submission_id_got,'tcf_id'=>$cand_tcf_id,'res_minus_sub'=>$ref_submission_id_got,'res_minus_tcf'=>$ref_tcf_id),$transl,$pager2);
+	$candonly=search_submission_result(0,array('submission_id'=>$cand_submission_id_got,'tcf_id'=>$cand_tcf_id,'res_minus_sub'=>$ref_submission_id_got,'res_minus_tcf'=>$ref_tcf_id),$transl,$pager2);
 	if( count($candonly)>1 )	{
 		print "<h3>Testcases only in candidate</h3>\n";
 		result_process_print($candonly,$sub_c,$transl,$pager2,'res_candonly');
@@ -227,7 +227,7 @@ if( isset($sub_r[1]) && isset($sub_c[1]) )
 
 	# reference-only testcases
 	$transl=array();
-	$refonly=search_submissions_result(0,array('submission_id'=>$ref_submission_id_got,'tcf_id'=>$ref_tcf_id,'res_minus_sub'=>$cand_submission_id_got,'res_minus_tcf'=>$cand_tcf_id),$transl,$pager3);
+	$refonly=search_submission_result(0,array('submission_id'=>$ref_submission_id_got,'tcf_id'=>$ref_tcf_id,'res_minus_sub'=>$cand_submission_id_got,'res_minus_tcf'=>$cand_tcf_id),$transl,$pager3);
 	if( count($refonly)>1 )	{
 		print "<h3>Testcases only in reference</h3>\n";
 		result_process_print($refonly,$sub_r,$transl,$pager3,'res_refonly');
