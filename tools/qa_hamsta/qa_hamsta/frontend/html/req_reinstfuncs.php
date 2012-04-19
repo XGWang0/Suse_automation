@@ -78,12 +78,12 @@ var changepattern = function() {
         for (i=0;i<plist.length;i++)
             plist[i] = plist[i].replace("desktop-", "");
     if ($("#typicmode").attr("value") == "full")
-        plist = fullpatternlist;
+	    plist = fullpatternlist;
     $.each(fullpatternlist, function(i, item){
         $("#pt_"+item).attr("checked", false);
     }) 
     $.each(plist, function(i, item){
-        $("#pt_"+item).attr("checked", true);
+	    $("#pt_"+item).attr("checked", true);
     })
     remove_modified_flag();
 }
@@ -123,7 +123,11 @@ var get_repo_urls = function (){
             $("#repo_producturl").attr("value", "");
         } else {
             $("#repo_producturl").attr("value", data[0]);
-            fullpatternlist = data[1];
+	    if (typeof fullpatternlist = 'undefined') {
+		    fullpatternlist = data[1];
+	    } else {
+		    fullpatternlist = fullpatternlist.concat(data[1]);
+	    }
             insert_checkboxes("#available_patterns", fullpatternlist);
             if (data[0].toLowerCase().match("sled")) {
                 $("#typicmode").attr("value", "gnome");
@@ -160,7 +164,7 @@ var anotherrepo = function (){
     var addon_url_name = '#addon_url_' + sdkid;
     $(addon_url_name).blur(function() {
 	    var url = $(addon_url_name).val();
-	    $.get("html/refresh_patterns.php", { product_url: url }, function(data) { retrieve_patterns(data, sdk_pattern_name); });
+	    $.get("html/refresh_patterns.php", { product_url: url }, function(data) { retrieve_patterns(data, sdk_pattern_name, url); });
     });
 }
 
@@ -217,13 +221,26 @@ $(document).ready(function(){
     });
 });
 
-var retrieve_patterns = function (data, sdk_name) {
+var retrieve_patterns = function (data, sdk_name, url) {
 	var patterns_vals = data.replace(/^\s+|\s+$/g, '').split("\n");
 	if (!document.getElementById(sdk_name)) {
 		$('#sdk_patterns').append('<div id="' + sdk_name + '"></div>');
 	}
 	if (patterns_vals[0] != '' || patterns_vals.length > 1) {
 		insert_checkboxes('#' + sdk_name, patterns_vals);
+		if (typeof fullpatternlist == 'undefined') {
+			fullpatternlist = patterns_vals;
+		} else {
+			fullpatternlist = fullpatternlist.concat(patterns_vals);
+		}
+		if (url.toLowerCase().match("sled")) {
+			$("#typicmode").attr("value", "gnome");
+			producttype = 'sled';
+		} else {
+			$("#typicmode").attr("value", "text");
+			producttype = 'others';
+		}
+		changepattern();
 	} else {
 		$('#' + sdk_name).empty();
 	}
