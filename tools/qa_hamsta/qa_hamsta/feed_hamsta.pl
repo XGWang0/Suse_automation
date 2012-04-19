@@ -37,8 +37,6 @@ use Encode;
 
 use IO::Socket::INET;
 
-#to get result from hamsta
-use LWP::Simple;
 
 $0 =~ m/([^\/]*)$/;
 my $progname = $1;
