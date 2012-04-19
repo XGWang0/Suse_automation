@@ -104,6 +104,7 @@ install -m 755 -d $RPM_BUILD_ROOT%{_sbindir}
 cp --target-directory=$RPM_BUILD_ROOT%{bindir} setupIA64liloforinstall
 cp --target-directory=$RPM_BUILD_ROOT%{bindir} setupPPCliloforinstall
 cp --target-directory=$RPM_BUILD_ROOT%{bindir} setupgrubforinstall
+cp --target-directory=$RPM_BUILD_ROOT%{bindir} setupUIAutomationtest
 cp -d --target-directory=$RPM_BUILD_ROOT%{bindir} *.pl
 echo ${version} > $RPM_BUILD_ROOT%{libdir}/qa_tools.version
 cp --target-directory=$RPM_BUILD_ROOT%{libdir} install_functions.pm
