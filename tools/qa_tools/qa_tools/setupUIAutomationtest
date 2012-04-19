@@ -23,7 +23,7 @@
 # ****************************************************************************
 #
 
-sut_user=`who |grep :0 | head -n 1 |awk {'print $1'}`
+sut_user=`who |awk {'print $1,$2'} |grep :0 |awk {'print $1'}`
 
 # Install require patterns
 system=`cat /etc/SuSE-release |head -n 1 |awk '{print $4}'`
@@ -93,8 +93,17 @@ EOF
 	autologin=true
 fi
 
+# Reset xrandr
+default_size=`DISPLAY=:0 xrandr  |grep "*" |awk '{print $1}'`
+
+if [ "$default_size" == "800x600" ]; then
+	echo "Reset xrandr to 1024x768, currently is $default_size"
+	/usr/sbin/sax2 -a -V 0:1024x768@60
+	rexrandr=true
+fi
+
 # Restart gnome session
-if [ $autoxhost ] || [ $autologin ]; then
+if [ $autoxhost ] || [ $autologin ] || [ $rexrandr ]; then
 	echo "Restart gnome session"
 	sudo /usr/sbin/rcxdm restart
 else
