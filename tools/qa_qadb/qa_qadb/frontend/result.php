@@ -47,7 +47,7 @@ if( $submission_id )
 		'testsuite_id'=>$testsuite_id, 
 		'tcf_id'=>$tcf_id, 
 	);
-	$data  = search_submissions_result( 0, $args, $transl, $pager );
+	$data  = search_submission_result( 0, $args, $transl, $pager );
 	result_process_print($data,$sub_info,$transl,$pager,'reslist');
 }
 else if($search && $testsuite_id)
