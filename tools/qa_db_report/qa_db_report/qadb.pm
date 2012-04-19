@@ -193,7 +193,7 @@ sub insert_benchmark_data # $result_id, $bench_part, $value
 	my ($self,$result_id,$bench_part,$value)=@_;
 	return unless $bench_part =~ /^\s*([^;]+?)\s*;\s*(.*)\s*$/;
 	my ($bench_part_x,$bench_part_z)=($1,$2);
-	my $bench_part_id = $self->row_query('SELECT bench_part_id FROM bench_part WHERE bench_part_x=? AND bench_part_z=? LIMIT 1',$bench_part_x,$bench_part_z);
+	my $bench_part_id = $self->scalar_query('SELECT bench_part_id FROM bench_part WHERE bench_part_x=? AND bench_part_z=? LIMIT 1',$bench_part_x,$bench_part_z);
 	unless( $bench_part_id )	{
 		$bench_part_id = $self->insert_query('INSERT INTO bench_part(bench_part_x,bench_part_z) VALUES(?,?)',$bench_part_x,$bench_part_z);
 	}
