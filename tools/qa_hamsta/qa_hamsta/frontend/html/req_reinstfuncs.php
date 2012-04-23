@@ -123,7 +123,7 @@ var get_repo_urls = function (){
             $("#repo_producturl").attr("value", "");
         } else {
             $("#repo_producturl").attr("value", data[0]);
-	    if (typeof fullpatternlist = 'undefined') {
+	    if (typeof fullpatternlist == 'undefined') {
 		    fullpatternlist = data[1];
 	    } else {
 		    fullpatternlist = fullpatternlist.concat(data[1]);
