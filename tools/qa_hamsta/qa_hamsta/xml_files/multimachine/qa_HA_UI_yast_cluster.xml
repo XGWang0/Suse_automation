@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<job>
+    <roles>
+        <role id="0" name="server" num_min="1" num_max="1"/>
+        <role id="1" name="client" num_min="1" num_max="1"/>
+    </roles>
+    <config>
+        <name>qa_HA_UI_yast_cluster</name>
+        <debuglevel>4</debuglevel>
+        <distributable>0</distributable>
+        <mail notify="1"/> 
+        <rpm>qa_test_yast_HA</rpm>      
+        <description>HA Server yast2-cluster UI Automation test</description>
+        <logdir>/tmp</logdir>
+    </config>
+    <commands>
+     <worker>
+            <!-- Pre -->
+            <command execution="forked" role_id="0">
+                #!/bin/bash
+                config_path=/usr/share/qa/qa_test_yast_HA/yast2_cluster/yast2_cluster_config.py
+                sed -i '/node2_ip/s/node2_ip.*/node2_ip = "'$ROLE_1_IP'"/g' $config_path
+                /usr/share/hamsta/testscript/customtest qa_test_HA_yast-cluster
+            </command>
+            <command execution="forked" role_id="1">
+                #!/bin/bash
+                echo "node2"
+           </command>
+	   <directory>/var/log/qa/ctcs2</directory>
+     </worker>
+    </commands>
+</job>
+
