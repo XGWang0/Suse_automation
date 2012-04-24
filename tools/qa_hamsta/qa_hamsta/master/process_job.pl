@@ -145,7 +145,7 @@ sub process_job($) {
 		if ($is_xml) {
 			print FH $line."\n";
 		} else {
-			if ($line =~ /submissionID=/) {
+			if ($line =~ /submission_id=/) {
 				$submission_link .= (split(/ /, $line))[-1]."\n";
 				&log(LOG_NOTICE, "QADB submission link is: $submission_link");
 			}
