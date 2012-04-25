@@ -191,7 +191,7 @@ sub process_job($) {
 	my $status=JS_FAILED;
 
 	# send e-mail that the job has finished
-	my $reboot = ( $job_file =~ /install|reboot|XENGrub/ );
+	my $reboot = ( $job_file =~ /install|reboot|XENGrub|hamsta-upgrade-restart/ );
 	if( $reboot ) {
 		sleep 300;
 		while( &machine_get_status($machine_id) != MS_UP ) {		
