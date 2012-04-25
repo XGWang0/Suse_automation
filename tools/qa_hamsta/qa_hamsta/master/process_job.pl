@@ -254,6 +254,9 @@ sub process_job($) {
 			push @args, $qaconf{hamsta_master_smtp_relay};
 			if($qaconf{hamsta_master_smtp_login})
 			{	push @args, (AuthUser=>$qaconf{hamsta_master_smtp_login}, ($qaconf{hamsta_master_smtp_password} ? (AuthPass=>$qaconf{hamsta_master_smtp_password}) : ()))	}
+		}else
+                {
+			@args=('sendmail');
 		}
 		$msg->send(@args);
 		&log(LOG_DETAIL, "Mail sending done");
