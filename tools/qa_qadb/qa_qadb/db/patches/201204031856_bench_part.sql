@@ -1,6 +1,6 @@
 ALTER TABLE bench_part 
-	ADD COLUMN bench_part_x VARCHAR(100) NOT NULL COMMENT 'What goes on X axis', 
-	ADD COLUMN bench_part_z VARCHAR(500) NOT NULL COMMENT 'Different settings or parts of the test, creates separate graphs',
+	ADD COLUMN bench_part_x VARCHAR(80) NOT NULL COMMENT 'What goes on X axis', 
+	ADD COLUMN bench_part_z VARCHAR(170) NOT NULL COMMENT 'Different settings or parts of the test, creates separate graphs',
 	COMMENT='Different cathegories for benchmark numbers.';
 UPDATE bench_part SET bench_part_x=LTRIM(SUBSTRING_INDEX(bench_part,';',1));
 UPDATE bench_part SET bench_part_z=LTRIM(TRIM(LEADING ';' FROM LTRIM(TRIM(LEADING bench_part_x FROM bench_part))));
