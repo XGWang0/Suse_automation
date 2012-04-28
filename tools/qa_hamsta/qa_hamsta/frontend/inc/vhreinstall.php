@@ -96,13 +96,13 @@ if (request_str("proceed")) {
         $additionalpatterns .= " ".$p;
 
     if ($virtualization_method == "xen") {
-        $additionalpatterns .= " xen_server";
+        $additionalpatterns .= "xen_server";
         if (preg_match('/[SsLlEe]{3}.-10/',$producturl)) {
             $additionalrpms .= " kernel-xen";
         }
     } elseif ($virtualization_method == "kvm") {
         if (preg_match('/[SsLlEe]{3}.-11-[SsPp]{2}[234]/',$producturl)) {
-            $additionalrpms .= " kvm";
+            $additionalrpms .= "kvm";
         }
     } else {
 	# Report error.
