@@ -345,6 +345,9 @@ class Machine {
 	 */
 	function get_tools_out_of_date() {
 		$rpm_str = $this->get_rpm_list();
+		if (!$rpm_str) {
+                        return array('qa_hamsta 2.2.0');
+                }
 		$rpm_list = array();
 		foreach (explode("\n", $rpm_str) as $rpm) {
 			$rpm_vals = explode(" ", $rpm);
