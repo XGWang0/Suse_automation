@@ -16,7 +16,7 @@ License:        GPL v2 or later; LGPL v2.1
 Group:          SuSE internal
 AutoReqProv:    on
 Version:        0.10
-Release:        10
+Release:        11
 Summary:        ajax based ssh client, include vncserver setup script
 Url:            http://antony.lesuisse.org/software/ajaxterm/
 Source0:        ajaxterm-%version.tar.bz2
@@ -74,6 +74,17 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) /etc/init.d/ajaxterm
 
 %changelog
+* Wed May 2 2012 - llipavsky@suse.cz
+- New 2.3 release from QA Automation team, includes: 
+- out-of date and developement SUTs are marked in web frontend and can be updated from the frontend 
+- HA Server yast2-cluster UI Automation 
+- Improved CLI interface to Hamsta 
+- It is possible to get/choose all patterns from all products during SUT intallation (until now, only SLES/D & SDK patterns were shown) 
+- Parametrized jobs 
+- Better web editors of jobs. Now with multimachine job support 
+- Hamsta client one-click installer 
+- QADB improvements 
+- No more Novell icon in Hamsta ;-) 
 * Mon Nov 14 2011 - llipavsky@suse.cz
 - New 2.2 release from QA Automation team, includes:
 - Automated stage testing
