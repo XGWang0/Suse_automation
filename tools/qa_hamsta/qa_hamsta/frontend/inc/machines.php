@@ -84,7 +84,7 @@
 	$d_fields = request_array("d_fields");
 	$display_fields = ( count($d_fields) ? $d_fields :	# user-selected fields
 	( isset($display_fields) ? $display_fields : # fields from config 
-	array("status_string", "used_by", "usage", "expires_formated", "product", "architecture_capable", "kernel", "type")
+	array("used_by", "usage", "expires_formated", "product", "architecture_capable", "kernel", "type")
 	));
 	$a_machines = request_array("a_machines");
 
@@ -142,9 +142,10 @@
 	global $latestFeatures;
 	$html_title = "Machines";
 	if ($searched_fields) {
-		$html_title .= "<br><span class=\"text-small text-red normal\">filtered by:";
+		$_SESSION['message'] = "Search Result: ";
 		foreach ($searched_fields as $c)
-			$html_title .= "&emsp;".$c;
-		$html_title .= "</span>";
+			$_SESSION['message'] .= $c.", ";
+		$_SESSION['message'] = substr($_SESSION['message'], 0, strlen($_SESSION['message'])-2);
+		$_SESSION['mtype'] = "success";
 	}
 ?>

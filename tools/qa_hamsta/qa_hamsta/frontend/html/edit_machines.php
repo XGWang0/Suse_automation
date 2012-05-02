@@ -57,11 +57,13 @@
 		# Common columns (configurable)
 		foreach ($show_column as $item) {
 			$getstring = "get_".$item;
-			$item_list = $_REQUEST[$item];
-			$valuer = $item_list[$machine->get_id()];
-			foreach ($input as $value) {
-				$valuer = $value;
+			$item_list = request_array($item);
+			if (array_key_exists($machine->get_id(), $item_list)) {
+				$valuer = $item_list[$machine->get_id()];
 			}
+			//foreach ($input as $value) {
+			//	$valuer = $value;
+			//}
 			if (!isset($valuer)) {
 				$valuer = $machine->$getstring();
 			}
@@ -71,39 +73,50 @@
 		}
 
 		# Console device
-		$consoledevices = $_REQUEST['consoledevice'];
-		$consoledevice = $consoledevices[$machine->get_id()];
+		$consoledevices = request_array('consoledevice');
+		if (array_key_exists($machine->get_id(), $consoledevices)) {
+			$consoledevice = $consoledevices[$machine->get_id()];
+		}
 		if (!isset($consoledevice)) {
 			$consoledevice = $machine->get_consoledevice();
 		}
 		$column[] = "<input name=\"consoledevice[" . $machine->get_id() . "]\" id=\"consoledevice" . $machine->get_id() . "\" value=\"" . $consoledevice . "\"style=\"width: 200px;\" tabindex=" . $counterAddValue++ . " onkeyup=\"update_def_inst_opt(" . $machine->get_id() . ");\">";
 
 		# Console speed
-		$consolespeeds = $_REQUEST['consolespeed'];
-		$consolespeed = $consolespeeds[$machine->get_id()];
+		$consolespeeds = request_array('consolespeed');
+		if (array_key_exists($machine->get_id(), $consolespeeds)) {
+			$consolespeed = $consolespeeds[$machine->get_id()];
+		}
 		if (!isset($consolespeed)) {
 			$consolespeed = $machine->get_consolespeed();
 		}
 		$column[] = "<input name=\"consolespeed[" . $machine->get_id() . "]\" id=\"consolespeed" . $machine->get_id() . "\" value=\"" . $consolespeed . "\"style=\"width: 200px;\" tabindex=" . $counterAddValue++ . " onkeyup=\"update_def_inst_opt(" . $machine->get_id() . ");\">";
-
+		
 		# Enable console (careful, checkboxes that aren't checked don't show up as isset in PHP)
 		if (isset($_POST['submit'])) { # They submitted the form, so we use if they checked it or not
-			$consolesetdefaults = $_REQUEST['consolesetdefault'];
-			$consolesetdefault = $consolesetdefaults[$machine->get_id()];
+			$consolesetdefaults = request_array('consolesetdefault');
+			if (array_key_exists($machine->get_id(), $consolesetdefaults)) {
+				$consolesetdefault = $consolesetdefaults[$machine->get_id()];
 
-			# If they actually checked the form, otherwise just leave it empty
-			if ($consolesetdefault == "enable_console") {
-				$consolesetdefault = "1";
+				# If they actually checked the form, otherwise just leave it empty
+				if ($consolesetdefault == "enable_console") {
+					$consolesetdefault = "1";
+				}
 			}
 		}
 		else { # They did not submit the form, so we use what was in the database
 			$consolesetdefault = $machine->get_consolesetdefault();
 		}
+		if (!isset($consolesetdefault)) {
+			$consolesetdefault = 0;
+		}
 		$column[] = "<input name=\"consolesetdefault[" . $machine->get_id() . "]\" id=\"consolesetdefault" . $machine->get_id() . "\" value=\"enable_console\" type=\"checkbox\"" . ($consolesetdefault == "1" ? " checked=\"checked\"" : "") . " tabindex=" . $counterAddValue++ . " onclick=\"update_def_inst_opt(" . $machine->get_id() . ");\">";
 
 		# Default install options
-		$def_inst_opts = $_REQUEST['default_options'];
-		$def_inst_opt = $def_inst_opts[$machine->get_id()];
+		$def_inst_opts = request_array('default_options');
+		if (array_key_exists($machine->get_id(), $def_inst_opts)) {
+			$def_inst_opt = $def_inst_opts[$machine->get_id()];
+		}
 		if (!isset($def_inst_opt)) {
 			$def_inst_opt = $machine->get_def_inst_opt();
 		}

@@ -37,6 +37,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 	<tr>
 		<th><input type="checkbox" onChange='chkall("machine_list", this)'></th>
 		<th>Name</th>
+		<th>Status</th>
 		<?php
 			foreach ($fields_list as $key=>$value)
 				if (in_array($key, $display_fields))
@@ -54,6 +55,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 		>
 			<td><input type="checkbox" name="a_machines[]" value="<?php echo($machine->get_id()); ?>" <?php if (in_array($machine->get_id(), $a_machines)) echo("checked"); ?>></td>
 			<td title="<?php echo($machine->get_notes()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>&amp;highlight=<?php echo($highlight); ?>"><?php echo($machine->get_hostname()); ?></a></td>
+			<td><?php echo($machine->get_status_string()); if ($old_packages = $machine->get_tools_out_of_date()) echo('<a href="index.php?go=send_job&a_machines[]='.$machine->get_id().'&filename[]='.XML_DIR.'/hamsta-upgrade-restart.xml&submit=1"><img src="images/exclamation_yellow.png" alt="Tools out of date!" title="Click to update. Outdated tools: '.implode(", ", $old_packages).'" width="20" style="float:right; padding-left: 3px;"></img></a>'); if ($machine->get_devel_tools()) echo('<img src="images/gear-cog_blue.png" alt="Devel Tools" title="Devel Tools" width="20" style="float:right; padding-left: 3px;"></img>'); ?></td>
 		<?php
 			foreach ($fields_list as $key=>$value){
 				$fname = "get_".$key;
@@ -102,7 +104,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 </table>
 <script type="text/javascript">
 <!--
-var TSort_Data = new Array ('machines','', '0' <?php echo str_repeat(", 'h'",count($display_fields)); ?>);
+var TSort_Data = new Array ('machines','', '0' <?php echo str_repeat(", 'h'",count($display_fields)+1); ?>);
 tsRegister();
 -->
 </script>

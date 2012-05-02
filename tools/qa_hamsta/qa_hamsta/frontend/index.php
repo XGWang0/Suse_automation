@@ -52,6 +52,7 @@ require("lib/configuration.php");
 require("lib/group.php");
 require("lib/roles.php");
 require("lib/Utilfunc.php");
+require("lib/parameters.php");
 
 require_once("../tblib/tblib.php");
 
@@ -61,7 +62,9 @@ $pages = array(
     "machines",
     "edit_machines",
     "del_machines",
+    "install_client",
     "machine_details",
+    "machine_purge",
     "action_history",
     "module_details",
     "validation",
@@ -92,7 +95,8 @@ $pages = array(
     "newvm",
     "del_virtual_machines",
     "upgrade",
-    "merge_machines"
+    "merge_machines",
+    "edit_jobs"
 );
 
 if (!in_array($go, $pages)) {

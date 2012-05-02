@@ -1,4 +1,4 @@
-# ****************************************************************************
+# ***************************************************************************
 # Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
 # 
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
@@ -37,7 +37,7 @@ use Slave::Job::Worker;
 use Slave::Job::Monitor;
 use Slave::Job::Logger;
 use Slave::Job::Notification;
-use Slave::functions;
+use Slave::functions qw(:DEFAULT @file_array);
 
 BEGIN { push @INC, '.', '/usr/share/hamsta', '/usr/share/qa/lib'; }
 use log;
@@ -112,6 +112,10 @@ sub destroy {
     if (defined($self->{'motd_id'})) {
         $self->clear_motd();
     }
+
+    foreach my $file (@file_array){
+        unlink $file if -f $file;
+    }
     
     return $self->get_xml_log();
 }
@@ -182,7 +186,10 @@ sub run {
 		{	push @$upgrade, $rpm->{'content'};	}
 	}
 	&log(LOG_INFO, "RPMs to install if missing: %s\tRPMs to install/upgrade: %s", join(',',@$install ), join(',',@$upgrade));
-	&install_rpms($install,$upgrade);
+	if( &install_rpms($install,$upgrade) )	{
+		&log(LOG_ERROR, "RPM install/upgrade failed, aborting");
+		return;
+	}
 	&log(LOG_INFO, "RPM install finished.");
     }
 

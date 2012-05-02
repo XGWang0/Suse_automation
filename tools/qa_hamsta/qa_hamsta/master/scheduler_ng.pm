@@ -87,13 +87,15 @@ sub schedule_jobs() {
         my ($job_on_machine_id,$machine_id,$job_id)=@$job;
         my ($job_file, $job_owner, $job_name) = &job_get_details($job_id);
         if ($machine_id) {
+	    my @has_connecting = &job_on_machine_get_by_machineid_status($machine_id,JS_CONNECTING);
+	    my @has_running = &job_on_machine_get_by_machineid_status($machine_id,JS_RUNNING);
             my $busy_status = &machine_get_busy($machine_id);
 	    my $machine_status_id = &machine_get_status($machine_id);
-            if( !$busy_status && &machine_has_perm($machine_id,'job') && ( $job_file !~ /reinstall/ || &machine_has_perm($machine_id,'install') ) ) {
+            if( !@has_connecting && !@has_running && !$busy_status && &machine_has_perm($machine_id,'job') && ( $job_file !~ /reinstall/ || &machine_has_perm($machine_id,'install') ) ) {
                 &TRANSACTION( 'machine', 'job_on_machine', 'job' );
                 &machine_set_busy($machine_id,1);
                 &job_on_machine_start($job_on_machine_id);
-		&job_set_status($job_id,JS_RUNNING);
+		&job_set_status($job_id,JS_CONNECTING);
                 &TRANSACTION_END;
                 &log(LOG_NOTICE,"MASTER::SCHEDULER send $job->[0] to machine $machine_id");
                 child {

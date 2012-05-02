@@ -25,6 +25,15 @@
 
 	# Keep this structure (for now), especially the " -- " between the feature title and description
 	$latestFeatures = array(
+			"2.3.0" => array(
+				'2 May 2012 -- Outdated SUTs -- out-of date and developement SUTs are marked in web frontend and can be updated from the frontend',
+				'2 May 2012 -- HAMSTA CLI -- command line interface to Hamsta has been improved', 
+				'2 May 2012 -- Improved patterns -- it is possible to get/choose all patterns from all products during SUT resintallation (until now, only SLES/D & SDK patterns were shown)', 
+				'2 May 2012 -- Parametrized jobs -- predefined jobs can now be parametrized, so they can be customized every time the job is run', 
+				'2 May 2012 -- Job web editor -- web editors of jobs has been imrpoved. Now with multimachine job support', 
+				'2 May 2012 -- One-click installer -- HAMSTA client can now be installed by one-click installer', 
+				'2 May 2012 -- QADB improvements'
+			),
 			"2.2.0" => array(
 				'14 November 2011 -- Repartitioning support -- during reinstall (with an option to leave some space unpartitioned).',
 				'14 November 2011 -- Default additional RPMs -- It is now possible to define list of RPMs (in hamsta frontend config), that will be prepopulated on reinstall page.',
@@ -152,4 +161,7 @@
  );
 
 $virtdisktypes = array("def", "file", "tap:aio", "tap:qcow", "tap:qcow2");
+
+$hamstaVersion = htmlspecialchars(`rpm -q qa_hamsta-master`);
+$packageVersions = explode("\n", htmlspecialchars(`REPO=$(zypper lr -u | grep ibs/QA:/Head | awk '{FS="|"; print $3}'); zypper se -sr \$REPO | awk '{FS="|"; gsub(" ", "", $2); gsub(" ", "", $4); print $2 " " $4}'`));
 ?>

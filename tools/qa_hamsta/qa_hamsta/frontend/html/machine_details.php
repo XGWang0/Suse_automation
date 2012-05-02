@@ -41,11 +41,24 @@ if (!defined('HAMSTA_FRONTEND')) {
 	</tr>
 <?php
 	foreach ($fields_list as $key=>$value) {
+		$arr_res = array();
 		$fstring = "get_".$key;
 		$valuer = $machine->$fstring();
-		echo ("<tr><td>$value</td><td>$valuer</td><td>");
-		if ($valuer != NULL && method_exists('MachineSearch',"filter_$key"))
-			echo("<a href=index.php?go=machines&amp;".$key."=".urlencode($valuer).">Search</a>");
+		if (is_array($valuer)) { #get_group will return an array
+			foreach ($valuer as $tmparr) 
+				$arr_res[] = $tmparr[0];
+			echo ("<tr><td>$value</td><td>");
+			foreach ($arr_res as $res)
+				echo "$res ";
+			echo ("</td><td>");
+			if(method_exists('MachineSearch',"filter_$key"))
+				foreach ($arr_res as $res)
+					echo ("<a href=index.php?go=machines&amp;".$key."=".urlencode($res).">Search_".$res."</a> ");
+		} else {
+			echo ("<tr><td>$value</td><td>$valuer</td><td>");
+			if ($valuer != NULL && method_exists('MachineSearch',"filter_$key"))
+				echo("<a href=index.php?go=machines&amp;".$key."=".urlencode($valuer).">Search</a>");
+		}
 		echo "</td></tr>";
 	}
 ?>
@@ -88,6 +101,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 		<th>Name</th>
 		<th>Started</th>
 		<th>Stopped</th>
+		<th>Finish</th>
 	</tr>
 	</thead>
 
@@ -103,12 +117,14 @@ if (!defined('HAMSTA_FRONTEND')) {
 			<td><?php echo($job->get_name()); ?></td>
 			<td><?php echo($job->get_started()); ?></td>
 			<td><?php echo($job->get_stopped()); ?></td>
+			<td><a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;finished_job=1" class="text-main">set</a></td>
 		</tr>
 	<?php endforeach; ?>
 
 	<?php
 		if (count($active_jobs) < 10):
-		foreach ($machine->get_jobs_by_active(0, 10 - count($active_jobs)) as $job):
+		$nonactive_jobs = $machine->get_jobs_by_active(0, 10 - count($active_jobs));
+		foreach ($nonactive_jobs as $job):
 	?>
 		<tr>
 			<td><a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>"><?php echo($job->get_id()); ?></a></td>
@@ -126,7 +142,11 @@ if (!defined('HAMSTA_FRONTEND')) {
 </table>
 
 <a href="index.php?go=jobruns&amp;machine=<?php echo($machine->get_id()); ?>" class="text-small">Show complete list</a>
-
+<?php 
+	if( (count($active_jobs) + count($nonactive_jobs)) > 0 )	{
+		echo '<p><a href="index.php?go=machine_purge&amp;id=' . $machine->get_id() . '&amp;purge=job">Purge job history</a></p>' . "\n";
+	}
+?>
 <?php if($configuration->get_id() == $machine->get_current_configuration()->get_id()): ?>
 	<h2 class="text-medium text-blue bold">Current configuration</h2>
 <?php else: ?>
@@ -162,7 +182,8 @@ if (!defined('HAMSTA_FRONTEND')) {
 		<th>First online</th>
 		<th>Last used</th>
 	</tr>
-	<?php foreach ($machine->get_configurations() as $configuration): ?>
+	<?php	$configs=$machine->get_configurations(); 
+		foreach ($configs as $configuration): ?>
 		<tr>
 			<td>
 				<input type="radio" name="config1" value="<?php echo($configuration->get_id()); ?>">
@@ -176,9 +197,11 @@ if (!defined('HAMSTA_FRONTEND')) {
 </table>
 <input type="submit" value="Compare">
 </form>
-
 <?php
 
+	if( count($configs) > 1 ) {
+		echo '<p><a href="index.php?go=machine_purge&amp;id=' . $machine->get_id() . '&amp;purge=config">Purge configuration history</a></p>' . "\n";
+	}
 	echo "<h2 class=\"text-medium text-blue bold\">Action history</h2>";
 
 	if($machine_logs_number == 0) {
@@ -210,6 +233,8 @@ if (!defined('HAMSTA_FRONTEND')) {
 		if($machine_logs_number == 20) {
 			echo "<span class=\"text-small\">Only the last 20 entries are shown,</span> <a href=\"index.php?go=action_history&amp;id=" . $machine->get_id() . "\" class=\"text-small\">click here to see the complete list</a>.";
 		}
+		echo '<p><a href="index.php?go=machine_purge&amp;id=' . $machine->get_id() . '&amp;purge=log">Purge log history</a></p>' . "\n";
+
 	}
 
 ?>

@@ -33,6 +33,10 @@ var old_repo_arch = "<?php if(isset($_POST["repo_archs"])){echo $_POST["repo_arc
 var old_sdk_product = "<?php if(isset($_POST["sdk_products"])){echo $_POST["sdk_products"];}?>";
 var old_sdk_arch = "<?php if(isset($_POST["sdk_archs"])){echo $_POST["sdk_archs"];}?>";
 
+// sdkid & sdkrcodeid
+var sdkid = 1
+var sdkrcodeid = 1;
+
 // Iterate $data and insert all options to select box $id
 var insert_options = function (id, data, old_selected){
 	$(id).empty();
@@ -74,12 +78,12 @@ var changepattern = function() {
         for (i=0;i<plist.length;i++)
             plist[i] = plist[i].replace("desktop-", "");
     if ($("#typicmode").attr("value") == "full")
-        plist = fullpatternlist;
+	    plist = fullpatternlist;
     $.each(fullpatternlist, function(i, item){
         $("#pt_"+item).attr("checked", false);
     }) 
     $.each(plist, function(i, item){
-        $("#pt_"+item).attr("checked", true);
+	    $("#pt_"+item).attr("checked", true);
     })
     remove_modified_flag();
 }
@@ -119,7 +123,11 @@ var get_repo_urls = function (){
             $("#repo_producturl").attr("value", "");
         } else {
             $("#repo_producturl").attr("value", data[0]);
-            fullpatternlist = data[1];
+	    if (typeof fullpatternlist == 'undefined') {
+		    fullpatternlist = data[1];
+	    } else {
+		    fullpatternlist = fullpatternlist.concat(data[1]);
+	    }
             insert_checkboxes("#available_patterns", fullpatternlist);
             if (data[0].toLowerCase().match("sled")) {
                 $("#typicmode").attr("value", "gnome");
@@ -143,14 +151,26 @@ var get_sdk_urls = function (){
             $("#sdk_producturl").attr("value", "");
         else {
             $("#sdk_producturl").attr("value", data[0]);
-            insert_checkboxes("#sdk_patterns", data[1]);
+            insert_checkboxes("#sdk_pattern_1", data[1]);
         }
     });
     return false;
 };
 
 var anotherrepo = function (){
-    $('#additional_repo').append('<input type="text" name="addon_url[]" size="70" /> &emsp;Registration Code:&nbsp;<input type="text" name="rcode[]" size="20" /> &emsp;<button type="button" onclick="anotherrepo()"> + </button>');
+    sdkid += 1;
+    $('#additional_repo').append('SDK #'+ sdkid  +': <input type="text" name="addon_url[]" id="addon_url_' + sdkid +'" size="70" /> &emsp;<button type="button" onclick="anotherrepo()"> + </button><br />');
+    var sdk_pattern_name = 'sdk_pattern_' + sdkid;
+    var addon_url_name = '#addon_url_' + sdkid;
+    $(addon_url_name).blur(function() {
+	    var url = $(addon_url_name).val();
+	    $.get("html/refresh_patterns.php", { product_url: url }, function(data) { retrieve_patterns(data, sdk_pattern_name, url); });
+    });
+}
+
+var anotherrcode = function (){
+    sdkrcodeid += 1;
+    $('#additional_rcode').append('Registration Code for SDK repo #' + sdkrcodeid  + ': <input type="text" name="rcode[]" size="20" /><input type="button" onclick="anotherrcode('+ sdkrcodeid +')" value="+" /><br />');
 }
 
 var anotherdisk = function (){
@@ -200,4 +220,29 @@ $(document).ready(function(){
         insert_options("#sdk_products", data, old_sdk_product);
     });
 });
+
+var retrieve_patterns = function (data, sdk_name, url) {
+	var patterns_vals = data.replace(/^\s+|\s+$/g, '').split("\n");
+	if (!document.getElementById(sdk_name)) {
+		$('#sdk_patterns').append('<div id="' + sdk_name + '"></div>');
+	}
+	if (patterns_vals[0] != '' || patterns_vals.length > 1) {
+		insert_checkboxes('#' + sdk_name, patterns_vals);
+		if (typeof fullpatternlist == 'undefined') {
+			fullpatternlist = patterns_vals;
+		} else {
+			fullpatternlist = fullpatternlist.concat(patterns_vals);
+		}
+		if (url.toLowerCase().match("sled")) {
+			$("#typicmode").attr("value", "gnome");
+			producttype = 'sled';
+		} else {
+			$("#typicmode").attr("value", "text");
+			producttype = 'others';
+		}
+		changepattern();
+	} else {
+		$('#' + sdk_name).empty();
+	}
+};
 </script>

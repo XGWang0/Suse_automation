@@ -83,4 +83,3 @@
 			print("$where : ");
 		printf("%f us<br/>\n",1000000*($now-$prof_begin));
 	}
-?>

@@ -63,7 +63,7 @@ foreach my $r (@forward::alt_routes)
 }
 
 # prepare multicast catching & default route
-my $sock = IO::Socket::Multicast->new(Proto=>'udp',LocalPort=>$forward::port);
+my $sock = IO::Socket::Multicast->new(Proto=>'udp',LocalPort=>$forward::port) || die "Couldn't bind on local port:".$forward::port." $!\n";
 $sock->mcast_add($forward::group) || die "Couldn't set group $forward::group: $!\n";
 my $route = IO::Socket::INET->new(PeerPort=>$forward::port,Proto=>'udp',PeerAddr=>$forward::route);
 

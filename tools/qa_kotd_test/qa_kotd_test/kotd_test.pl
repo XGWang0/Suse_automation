@@ -34,6 +34,8 @@ use log;
 use qaconfig qw(get_qa_config);
 use detect;
 use Getopt::Std;
+use IPC::Open3;
+use IO::Select;
 
 use constant {
 	CMD_SURVIVE => 0,
@@ -330,6 +332,47 @@ sub command($$) # $die, $cmd
 	my $ret = system $cmd;
 	die "Command '$cmd' failed with code $ret" if $die and $ret>0;
 	&log(LOG_ERROR, "Command '$cmd' failed with code $ret") if $ret>0;
+	return $ret;
+}
+
+# runs a command, logs its STDOUT/STDERR 
+sub command_log # $die, command + arguments ...
+{
+	my $die = shift;
+	my $pid = open3('<&STDIN',*OUT,*ERR, '-');
+	if( $pid==0 )	{
+		if( @_ > 1 )	{
+			exec @_;
+			die "Cannot exec command: $!";
+		}
+		else	{
+			system @_;
+			exit $?;
+		}
+	}
+	my $selector = IO::Select->new();
+	$selector->add(*OUT,*ERR);
+
+	while($selector->count() > 0)	{
+		my @handles = $selector->can_read();
+		foreach my $fh (@handles)	{
+			my $line = <$fh>;
+			unless( defined $line )	{
+				$selector->remove($fh);
+				next;
+			}
+			if( fileno($fh) == fileno(ERR) )	{
+				&log(LOG_STDERR, $line);
+			} else {
+				&log(LOG_STDOUT, $line);
+			}
+		}
+	}
+	my $ret = waitpid($pid,0) >> 8;
+#	&log(LOG_RETURN, $ret);
+	die "Command '".join(' ',@_)."' failed with code $ret" if $die and $ret>0;
+	&log(LOG_ERROR, "Command '".join(' ',@_)."' failed with code $ret") if $ret>0;
+	return $ret;
 }
 
 # prints an error message, dies optionally
@@ -349,7 +392,7 @@ sub install_kernel(@) # $datetime, $baseurl, @files
 {
 	my ($datetime,$baseurl,@files) = @_;
 	my $tmpdir = "/tmp/kotdtest/$datetime";
-	my @basenames;
+	my @rpm_basenames;
 
 	# uninstall old kernel(s)
 	my $installed = &read_file($conf{'krnl_list'},CMD_SURVIVE);
@@ -363,7 +406,7 @@ sub install_kernel(@) # $datetime, $baseurl, @files
 		if( defined($baseurl) and $baseurl =~ /^(http|https|ftp):/ )	{
 			&command(CMD_DIE,"mkdir -p \"$tmpdir\"") unless -d $tmpdir;
 			$files[$i] = &download_file("$tmpdir/".$files[$i],"$baseurl/".$files[$i]);
-			push @basenames,$1 if $files[$i] =~ /([^\/]+).$conf{'arch'}.rpm/;
+			push @rpm_basenames,$1 if $files[$i] =~ /([^\/]+).$conf{'arch'}.rpm/;
 		}
 		unless( -f $files[$i] )	{
 			&log(LOG_ERROR,'File '.$files[$i].' does not exist, aborting installation');
@@ -379,7 +422,7 @@ sub install_kernel(@) # $datetime, $baseurl, @files
 	&command(CMD_DIE,"PBL_AUTOTEST=1 rpm -i --oldpackage --nodeps".(join '',map {' "'.$_.'"'} @files));
 
 	# update list of installed kernels
-	push @$installed,join(' ',@basenames);
+	push @$installed,join(' ',@rpm_basenames);
 	&write_file($conf{'krnl_list'},$installed,CMD_SURVIVE,F_OVERWRITE);
 
 	# push RPM info on the cmdline
@@ -668,7 +711,7 @@ sub qa_db_report($) # $comment
 	my $options="-b -p $conf{'qadb_product'} -t \"$type\"";
 	$options .= " -T $conf{'tester'}" if $conf{'tester'};
 	$options .= " -c \"$comment\"" if $comment;
-	&command(CMD_DIE,"/usr/share/qa/tools/remote_qa_db_report.pl $options");
+	&command_log(CMD_DIE,"/usr/share/qa/tools/remote_qa_db_report.pl $options");
 }
 
 

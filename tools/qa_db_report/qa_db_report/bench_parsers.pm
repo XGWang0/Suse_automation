@@ -52,13 +52,13 @@ BEGIN {
         &parse_kernbench
 	&parse_hazard
         &parse_openssl
+	&parse_fio
     );
     %EXPORT_TAGS = ( );
     @EXPORT_OK   = ();
 }
 
 our @EXPORT_OK;
-our %part_id = ();
 
 
 ###############################################################################################################################
@@ -572,6 +572,38 @@ sub parse_openssl
     }
 
     return @results;
+}
+
+sub parse_fio($)
+{
+	my $fh=shift;
+	my @ret=();
+	my $part='';
+	while( my $row=<$fh> )	{
+		if( $row =~ /^([\w\-_]+):/ )	{
+			$part="$1 ";
+		}
+		elsif( $row =~ /^\s*(read|write)\s*:.*?bw=([^ ,]+)[, ]+iops=([^ ,]+)/ )	{
+			my ($what,$bw,$iops)=($1,$2,$3);
+			my $bw_u;
+			($bw,$bw_u)=($1,$2) if $bw =~ /([\+\-\d\.]+)((KB|MB)\/s)/;
+			$bw *= 1000 if $bw_u eq 'MB/s';
+			push @ret,"$part$what; bandwidth; KB/s",$bw;
+			push @ret,"$part$what; IOs per sec; IOs per sec",$iops;
+		}
+		elsif( $row =~ /^\s*lat\s*\((msec|usec)\)\s*:\s*(.+)$/ )	{
+			my ($lat_u,$tail)=($1,$2);
+			my @lat = split(/\s*,\s*/,$tail);
+			foreach my $lat (@lat)	{
+				if( $lat =~ /([\d\.]+)=([\d\.]+)%/ )	{
+					my($lat_r,$perc)=($1,$2);
+					$lat_r *= 1000 if $lat_u eq 'msec';
+					push @ret,"${lat_r} us; ${part}latency; %",$perc;
+				}
+			}
+		}
+	}
+	return @ret;
 }
 
 

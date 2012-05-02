@@ -131,7 +131,7 @@ if (request_str("proceed")) {
 			if ($update == "update-reg" and $regcode != "")
 				$args .= " -C " . $regcode;
 			if ($update == "update-opensuse")
-				$args .= " -O " . $update;
+				$args .= " -O ";
 		}
 		system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $autoyastfile");
 		system("sed -i 's/ARGS/$args/g' $autoyastfile");
@@ -143,10 +143,14 @@ if (request_str("proceed")) {
 				$errors['autoyastjob']=$machine->get_hostname().": ".$machine->errmsg;
 			}
 			if ($validation) {
-				$validationfile = "/tmp/validation_$rand.xml";
-				system("cp ".XML_VALIDATION." $validationfile");
-				system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $validationfile");
-				$machine->send_job($validationfile) or $errors['validationjob']=$machine->get_hostname().": ".$machine->errmsg;
+				$validationfiles = split(" ", XML_VALIDATION);
+				foreach ( $validationfiles as &$validationfile ) {
+					$randfile = "/tmp/validation_$rand.xml";
+					system("cp $validationfile $randfile");
+					$validationfile = $randfile;
+					system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $validationfile");
+					$machine->send_job($validationfile) or $errors['validationjob']=$machine->get_hostname().": ".$machine->errmsg;
+				}
 			}
 		}
 		if (count($errors)==0)

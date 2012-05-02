@@ -180,7 +180,7 @@ if ($product eq '') {
 if( $kernel eq '' )
 {	push @ARGV, '-k', &get_kernel_version();	}
 
-my $rfile="$host-$time.tar.bz2";
+my $rfile="$host-$time.tar.gz";
 
 # process path argument
 if($argf_index)
@@ -232,9 +232,9 @@ my $tmpfile="/tmp/$rfile";
 my $base=`basename $dir`;
 chdir $dir or die "Cannot chdir to $dir: $!";
 if ($tcflist) {
-	system "tar cf - ".(join ' ', map {(/ / ? '"'.$_.'"' : $_)} split(/,/, $tcflist))." | bzip2 -f > \"$tmpfile\"" and die "Cannot create archive.";
+	system "tar cf - ".(join ' ', map {(/ / ? '"'.$_.'"' : $_)} split(/,/, $tcflist))." | gzip -f > \"$tmpfile\"" and die "Cannot create archive.";
 } else {
-	system "ls | grep -v '^oldlogs\$' | xargs tar cf - | bzip2 -f > \"$tmpfile\"" and die "Cannot create archive.";
+	system "ls | grep -v '^oldlogs\$' | xargs tar cf - | gzip -f > \"$tmpfile\"" and die "Cannot create archive.";
 }
 &log(LOG_INFO,"Copying files over network");
 system "scp \"$tmpfile\" $ruser\@$rhost:$rbase/" and die "Cannot SCP";
@@ -265,7 +265,7 @@ unless( $nomove )
 			`for i in $dirlist ; do [ "\$i" == "oldlogs" ] || ( mkdir -p "$savedir/\$(dirname "\$i")" && mv "\$i" "$savedir/\$(dirname "\$i")" ) ; done`;
 		} else {
 			# all parsers, no need create subdir, aleready have a right structure
-			`for i in * ; do [ "\$i" == "oldlogs" ] || for j in "\$i"/* ; do mkdir -p "$savedir/\$i"; mv "\$j" "$savedir/\$i" ; done ; done`;
+			`for i in * ; do [ "\$i" == "oldlogs" ] || for j in "\$i"/* ; do [ -e "\$j" ] && ( mkdir -p "$savedir/\$i"; mv "\$j" "$savedir/\$i" ) ; done ; done`;
 		}
 	} else {
 		&log(LOG_ERR,"Unable to move Logs to target: $savedir. Not moving logs to oldlogs.\n");

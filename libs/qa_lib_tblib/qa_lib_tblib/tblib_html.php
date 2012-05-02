@@ -52,19 +52,19 @@ function html_header($args=null)
 
 	# Table sorting support
 	if( $args['gs_sortable'] )
-		$args['script'][]='/tblib/scripts/gs_sortable.js';
+		$args['script'][]='/scripts/gs_sortable.js';
 
 	# Jquery support
 	if($args['jquery'])
 	{
-		$args['script'][]='/tblib/scripts/jquery-1.6.1.js';
+		$args['script'][]='/scripts/jquery.js';
 	}
 
 	# Calendar support part 1
 	if( $args['calendar'] )
 	{
-		$args['script'][]='epoch/epoch_classes.js';
-		$args['css_screen'][]='epoch/epoch_styles.css';
+		$args['script'][]='/epoch/epoch_classes.js';
+		$args['css_screen'][]='/epoch/epoch_styles.css';
 	}
 
 	# DOCTYPE, header start

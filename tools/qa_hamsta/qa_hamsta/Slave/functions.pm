@@ -45,6 +45,7 @@ BEGIN {
 	%EXPORT_TAGS	= ();
 	@EXPORT_OK	= qw(
 		@force_array
+		@file_array
 	);
 }
 
@@ -54,7 +55,8 @@ sub command
 	my $cmd=$_[0];
 	&log(LOG_INFO,$cmd."\n");
 	my $ret = system $cmd;
-	warn "Command '$cmd' failed with code $ret\n" if $ret>0;
+	&log(LOG_ERROR,"Command '$cmd' failed with code $ret") if $ret>0;
+	return $ret;
 }
 
 # installs missing RPMs using zypper
@@ -64,19 +66,28 @@ sub install_rpms # $upgrade_flag, @basenames
 {
 	my ($to_install,$to_upgrade)=@_;
 	my %upgrade_flag = map {$_=>1} @$to_upgrade;
-	my (@install,@upgrade);
-	foreach my $rpm( @$to_install, @$to_upgrade )
+	my (@install,@upgrade,@suites);
+	foreach my $rpms (@$to_install, @$to_upgrade )
 	{
-		my $ret=(system("rpm -q '$rpm' > /dev/null"))>>8;
-		if( $ret==0 )
-		{	push @upgrade,$rpm if $upgrade_flag{$rpm};	}
-		elsif( $ret==1 )
-		{	push @install,$rpm;	}
-		else # error
-		{	die "RPM failed with exitcode $ret: $!";	}
+		foreach my $rpm (split / /, $rpms)
+		{
+			print "RPM: " . $rpm."\n";
+			my $ret=(system("rpm -q '$rpm' > /dev/null"))>>8;
+			if( $ret==0 )
+			{       push @upgrade,$rpm if $upgrade_flag{$rpm};      }
+			elsif( $ret==1 )
+			{       push @install,$rpm;     }
+			else # error
+			{       die "RPM failed with exitcode $ret: $!";        }
+		}
 	}
-    &command('zypper -n install -l '.join(' ',@install)) if @install;
-    &command('zypper -n install -l '.join(' ',@upgrade)) if @upgrade; # Since zypper install can update package as well, and it can do better on SLES10
+
+	@suites=@install if @install;
+	@suites=(@suites, @upgrade) if @upgrade; # Since zypper install can update package as well, and it can do better on SLES10
+
+	foreach my $suite(@suites) {
+		&command("zypper -n install -l $suite");
+	}
 }
 
 # returns $pid and PIDs of all its subprocesses
@@ -97,8 +108,10 @@ sub get_process_tree	# $pid
 	return @ret;
 }
 
-our @force_array = qw(rpm attachment worker logger monitor role machine);
+our @force_array = qw(rpm attachment worker logger monitor role machine parameter);
 our %force_array = map {$_=>1} @force_array;
+our @file_array = ();
+
 
 # get_slave_ip() : string
 # Returns the IP address of this slave
@@ -148,7 +161,13 @@ sub read_xml($$) # filename, map_roles
 	}
 
 	if( $map_roles )
-	{	$role_id = &get_role_id( $ret );	}
+	{	
+		$role_id = &get_role_id( $ret );
+		&get_parameters($ret)
+	}
+	
+	# do not use any more
+	delete($ret->{'parameters'});
 
 	$ret = &process_xml( $ret, $role_id, 'job' );
 	return $ret;
@@ -178,6 +197,36 @@ sub get_role_id($) # XML_tree
 		$ENV{'ROLE_'.$role_id.'_NAME'} = join(',', @role_dns);
 	}
 	return $my_role;
+}
+
+sub get_parameters($)
+{
+	my $xml = shift;
+	
+	foreach my $parameter (@{$xml->{'parameters'}->{'parameter'}})
+	{
+		my $param_name = $parameter->{'name'};
+		my $param_file_flag = $parameter->{'file'};
+
+		if( defined($param_file_flag) && (($param_file_flag == 1) || ($param_file_flag == "true")) )
+		{
+			my ($fh, $file_name) = File::Temp::tempfile();
+			if($fh)
+			{
+				print $fh $parameter->{'content'};
+				close($fh);
+				$ENV{'param_' . $param_name} = $file_name;
+				push(@file_array, $file_name);
+			}
+			else{
+				&log(LOG_ERROR, "Can not open tempfile for $param_name");
+			}
+		}
+		else{
+			$ENV{'param_' . $param_name} = $parameter->{'content'};
+		}
+	}
+
 }
 
 # Omits elements that are assigned to another role_id.

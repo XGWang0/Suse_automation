@@ -30,7 +30,7 @@
 
 # norootforbuild
 
-BuildRequires:  coreutils
+BuildRequires:  coreutils perl qa_libperl qa-config
 
 Name:           qa_tools
 License:        SUSE Proprietary
@@ -81,6 +81,14 @@ Authors:
 #%patch
 
 %build
+ln -s reinstall.pl install.pl
+ln -s reinstall.pl newvm.pl
+perl reinstall.pl --manual > reinstall.pl.8
+perl newvm.pl --manual > newvm.pl.8
+gzip -9 *.1 *.8
+ln -s reinstall.pl.8.gz reinstall.8.gz
+ln -s reinstall.pl.8.gz install.pl.8.gz
+ln -s newvm.pl.8.gz newvm.8.gz
 
 %install
 install -m 755 -d $RPM_BUILD_ROOT%{destdir}
@@ -93,20 +101,22 @@ install -m 755 -d $RPM_BUILD_ROOT%{mandir}/man8
 install -m 755 -d $RPM_BUILD_ROOT%{confdir}
 install -m 755 -d $RPM_BUILD_ROOT%{_sysconfdir}/init.d
 install -m 755 -d $RPM_BUILD_ROOT%{_sbindir}
-gzip -9 *.1 *.8
 cp --target-directory=$RPM_BUILD_ROOT%{bindir} setupIA64liloforinstall
 cp --target-directory=$RPM_BUILD_ROOT%{bindir} setupPPCliloforinstall
 cp --target-directory=$RPM_BUILD_ROOT%{bindir} setupgrubforinstall
-cp --target-directory=$RPM_BUILD_ROOT%{bindir} *.pl
+cp --target-directory=$RPM_BUILD_ROOT%{bindir} setupUIAutomationtest
+cp -d --target-directory=$RPM_BUILD_ROOT%{bindir} *.pl
 echo ${version} > $RPM_BUILD_ROOT%{libdir}/qa_tools.version
 cp --target-directory=$RPM_BUILD_ROOT%{libdir} install_functions.pm
 cp vimrc $RPM_BUILD_ROOT%{fhsdir}/.vimrc
-cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man1 *.1.gz
-cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man8 *.8.gz
+cp -d --target-directory=$RPM_BUILD_ROOT%{mandir}/man1 *.1.gz
+cp -d --target-directory=$RPM_BUILD_ROOT%{mandir}/man8 *.8.gz
 cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man8 %{S:1}
 gzip -9 $RPM_BUILD_ROOT%{mandir}/man8/%{name}.8
 cp --target-directory=$RPM_BUILD_ROOT%{confdir} 00-qa_tools-default 00-qa_tools-default.*
 cp -r profiles/* $RPM_BUILD_ROOT%{profiledir}
+cd $RPM_BUILD_ROOT%{bindir}
+
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -139,6 +149,7 @@ echo "Your system has been hacked successfuly."
 %{fhsdir}/.vimrc
 %{profiledir}/*
 %{confdir}
+%doc COPYING
 
 %changelog
 

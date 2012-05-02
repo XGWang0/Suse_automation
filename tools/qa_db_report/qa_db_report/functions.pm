@@ -78,7 +78,7 @@ my %benchmarks=(
 	'dbench[-_]\w[\w\d]*' => 'parse_dbench',
 	'bonnie-default' => 'parse_bonnie',
 	'tiobench' => 'parse_tiobench',
-	'siege_defaultrun|qa_siege_defaultrun.sh|qa_siege' => 'parse_siege',
+	'siege_defaultrun|qa_siege_defaultrun.sh|qa_siege|qa_siege_https?' => 'parse_siege',
 	'libmicro-bench' => 'parse_libmicro',
 	'specweb' => 'parse_specweb',
 	'sysbench-\w+' => 'parse_sysbench',
@@ -89,14 +89,15 @@ my %benchmarks=(
 	'tiobench[-\w]*' => 'parse_tiobench',
 	'kernbench' => 'parse_kernbench',
 	'hazard_stress' => 'parse_hazard',
-	'openssl_bench(_z)?' => 'parse_openssl'
+	'openssl_benchmark' => 'parse_openssl',
+	'fio(?:\-\w+)' => 'parse_fio',
 );
 
 
 
 sub is_bench	# 
 {
-	my $exp='^('.join('|',keys %benchmarks).')';
+	my $exp='^('.join('|',keys %benchmarks).')$';
 	return $1 if $_[0] =~ $exp;
 	return undef;
 }
@@ -119,7 +120,7 @@ sub get_log_dir	# directory basename
 		'testsuite'=>'',
 		'date'=>'',
 		'md5sum'=>'',
-		'branch'=>'',
+		'kernel_branch'=>'',
 		'product'=>'',
 		'release'=>'',
 		@_
@@ -138,9 +139,9 @@ sub get_log_dir	# directory basename
 	{
 		# TODO - is this correct??? Seems that it will get extra level testsuite[-date]/testsuite ? maybe delete last part?
 		if( $ltp )
-		{	$logdir='kotd/'.$args{'branch'}.'/'.$args{'arch'}.'/'.$args{'host'}.'/'.$args{'kernel'}.'/ltp/'.$args{'testsuite'}.'-'.$args{'date'};	}
+		{	$logdir='kotd/'.$args{'kernel_branch'}.'/'.$args{'arch'}.'/'.$args{'host'}.'/'.$args{'kernel'}.'/ltp/'.$args{'testsuite'}.'-'.$args{'date'};	}
 		else
-		{	$logdir='kotd/'.$args{'branch'}.'/'.$args{'arch'}.'/'.$args{'host'}.'/'.$args{'kernel'}.'/'.$args{'testsuite'};	}
+		{	$logdir='kotd/'.$args{'kernel_branch'}.'/'.$args{'arch'}.'/'.$args{'host'}.'/'.$args{'kernel'}.'/'.$args{'testsuite'};	}
 	}
 #	elsif( $type eq 'regression' )
 #	{	$logdir=$args{'arch'}.'/'.$args{'host'}.'/'.$args{'kernel'}.'/'.$args{'testsuite'}.'-'.$args{'date'};	}

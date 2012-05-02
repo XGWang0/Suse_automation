@@ -32,7 +32,7 @@ function &table_translate(&$table, $what=array())
 	$ctrl_col=hash_get($what,'ctrl_col',null,false);
 	if( $header && $enums )
 		foreach(array_keys($enums) as $col)
-			$table[0][$col]=preg_replace('/ID$/i','',$table[0][$col]);
+			$table[0][$col]=preg_replace('/_?ID$/i','',$table[0][$col]);
 	$cnt=count($table);
 	for( $i=($header ? 1:0); $i<$cnt; $i++ )
 	{

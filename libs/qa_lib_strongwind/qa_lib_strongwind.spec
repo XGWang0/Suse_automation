@@ -59,6 +59,17 @@ rm -rvf $RPM_BUILD_ROOT
 %{py_libdir}/site-packages/strongwind
 
 %changelog
+* Wed May 2 2012 - llipavsky@suse.cz
+- New 2.3 release from QA Automation team, includes: 
+- out-of date and developement SUTs are marked in web frontend and can be updated from the frontend 
+- HA Server yast2-cluster UI Automation 
+- Improved CLI interface to Hamsta 
+- It is possible to get/choose all patterns from all products during SUT intallation (until now, only SLES/D & SDK patterns were shown) 
+- Parametrized jobs 
+- Better web editors of jobs. Now with multimachine job support 
+- Hamsta client one-click installer 
+- QADB improvements 
+- No more Novell icon in Hamsta ;-)
 * Sun Sep 04 2011 - llipavsky@suse.cz
 - New, updated release from the automation team. Includes:
 - Improved virtual machine handling/QA cloud

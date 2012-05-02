@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<job>
+    ROLES_AREA
+    <config>
+        <name>JOBNAME</name>
+        <debuglevel>DEBUGLEVEL</debuglevel>
+        <distributable>0</distributable>
+        <parallel>0</parallel>
+        <mail notify="1">MAILTO</mail>
+	<rpm>qa_hamsta qa_tools qa_lib_perl RPMLIST</rpm>
+        <logdir>/tmp</logdir>
+        <description>DESCRIPTION</description>
+        <motd>[Custom job]: MOTDMSG</motd>
+    </config>
+
+    <commands>
+        <worker>
+            <!-- Required -->
+COMMANDS_AREA
+	</worker>
+    </commands>
+</job>

@@ -31,6 +31,11 @@ else
 fi
 
 release=`egrep -o '[aA]lpha[1-9]|[bB]eta[1-9]|RC[1-9]' /etc/issue`
+
+if [ -z "$release" ]; then
+        release="GM"
+fi
+
 mkdir -p /mounts/dist
 ipaddr_list=`ifconfig | grep "inet addr" | cut -d":" -f 2 | cut -d " " -f 1`
 if echo $ipaddr_list | grep "147\.2\." &>/dev/null;then

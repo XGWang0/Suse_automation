@@ -41,7 +41,7 @@ Release:        0
 Summary:        QA KOTD test controller
 #Url:          http://qa.suse.de/hamsta
 Source:         %{name}-%{version}.tar.bz2
-Source1:	%name.8
+Source1:	%{name}.8
 #Patch:        %{name}-%{version}.patch
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 %if 0%{?sles_version} == 9
@@ -85,10 +85,10 @@ install -m 755 -d $RPM_BUILD_ROOT%{confdir}
 install -m 755 -d $RPM_BUILD_ROOT%{_sysconfdir}/init.d
 install -m 755 -d $RPM_BUILD_ROOT%{_sbindir}
 install -m 755 -d $RPM_BUILD_ROOT%{kotddir}
-gzip -9 *.8
+install -m 644 %{S:1} $RPM_BUILD_ROOT/usr/share/man/man8
+gzip -9 $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
 cp --target-directory=$RPM_BUILD_ROOT%{bindir} *.pl
 echo ${version} > $RPM_BUILD_ROOT%{libdir}/kotd_test.version
-cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man8 *.8.gz
 cp --target-directory=$RPM_BUILD_ROOT%{confdir} 25-kotd
 cp --target-directory=$RPM_BUILD_ROOT%{_sysconfdir}/init.d kotd_test
 ln -s %{_sysconfdir}/init.d/kotd_test $RPM_BUILD_ROOT%{_sbindir}/rckotd_test
@@ -124,6 +124,7 @@ done
 %attr(0755,root,root) %{_sbindir}/rckotd_test
 %config(noreplace) %{kotddir}/test
 %config(noreplace) %{confdir}/25-kotd
+%doc COPYING
 
 %changelog
 

@@ -172,7 +172,7 @@ if (request_str("proceed")) {
 		if ($update == "update-reg" and $regcode != "")
 			$args .= " -C " . $regcode;
 		if ($update == "update-opensuse")
-			$args .= " -O " . $update;
+			$args .= " -O ";
 		if ($installmethod == "Upgrade")
 			$args .= " -U";
 		if ($setupfordesktop == "yes")
@@ -203,8 +203,16 @@ if (request_str("proceed")) {
 
 			}
 		}
-		if (count($errors)==0)
+		if (count($errors)==0) {
+			$machine_list = "";
+			foreach ($machines as $machine)
+				$machine_list .= $machine->get_hostname() . ", ";
+			$machine_list = substr($machine_list, 0, strlen($machine_list)-2);
+			$_SESSION['message'] = "Machine ".$machine_list." reinstallation has been launched.";
+			$_SESSION['mtype'] = "success";
 			header("Location: index.php");
+			exit();
+		}
 	} else {
 		$_SESSION['message'] = implode("\n", $errors);
 		$_SESSION['mtype'] = "fail";

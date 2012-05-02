@@ -198,7 +198,7 @@ class Machine {
 			$stmt = get_pdo()->prepare('select .group.group from .group,group_machine where .group.group_id=group_machine.group_id and group_machine.machine_id=:machineid');
 			$stmt->bindParam(':machineid', $this->fields["id"]);
 			$stmt->execute();
-        	return $stmt->fetchColumn(); }
+        	return $stmt->fetchAll(); }
     	else
     		return NULL;
     }
@@ -286,33 +286,22 @@ class Machine {
 	 * @return latest hardware element info value of this machine
 	 */
 	function get_cpu_numbers() {
-		return count(explode("\n", $this->get_hwelement("cpu", "Model")));
+		return( isset($this->fields['cpu_nr']) ? $this->fields['cpu_nr'] : NULL );
 	}
 	function get_memory_size() {
-                $memory = $this->get_hwelement("memory", "Memory Size");
-                return $memory;
+		return( isset($this->fields['memsize']) ? $this->fields['memsize'] : NULL );
 	}
 	function get_disk_size() {
-		$disks = explode("\n", $this->get_hwelement("disk", "Size"));
-		$ret = "";
-		foreach ($disks as $disk) {
-			$infos = explode(" ", $disk);
-			$size = explode(".", $infos[0]*$infos[3]/1024/1024/1024);
-			if ($size[0] != 0) {
-				$ret .= $size[0] . "G  ";
-			}
-		}
-		return $ret;
+		return( isset($this->fields['disksize']) ? $this->fields['disksize'] : NULL );
 	}
 	function get_cpu_vendor() {
-		$vendors = explode("\n", $this->get_hwelement("cpu", "Vendor"));
-		if (preg_match("/AMD/i", $vendors[0])) {
-			return "AMD";
-		} elseif (preg_match("/Intel/i", $vendors[0])) {
-			return "Intel";
-		} else {
-			return $vendors[0];
-		}
+		if( !isset($this->fields['cpu_vendor_id']) )
+			return NULL;
+		if( !($stmt = get_pdo()->prepare('SELECT cpu_vendor FROM cpu_vendor WHERE cpu_vendor_id=:id')) )
+			return NULL;
+		$stmt->bindParam(':id',$this->fields['cpu_vendor_id']);
+		$stmt->execute();
+		return $stmt->fetchColumn();
 	}
 	function get_vmusedmemory() {
 		$memory = $this->get_hwelement("vmusedmemory", "VMUsedMemory");
@@ -322,6 +311,100 @@ class Machine {
 		$avaivmdisk = $this->get_hwelement("avaivmdisk","AvaiVMDisk");
 		return $avaivmdisk;
 	}
+
+	/**
+	 * get_devel_tools()
+	 *
+	 * @access public
+	 * @return int(bool) indicating whether client is running devel tools.
+	 */
+	function get_devel_tools() {
+		$devel_tools = $this->get_hwelement("devel_tools", "DevelTools");
+		return $devel_tools;
+	}
+
+	/*
+	 * get_rpm_list()
+	 *
+	 * @access public
+	 * @return string list of client installed packages.
+	 */
+	function get_rpm_list() {
+		$stmt = get_pdo()->prepare('SELECT rpm_list FROM machine WHERE machine_id = :id');
+		$stmt->bindParam(':id',$this->fields['machine_id']);
+		$stmt->execute();
+		return $stmt->fetchColumn();
+	}
+
+	/**
+	 * get_tools_out_of_date
+	 *
+	 * @access public
+	 * @return array containing list of outdated packages.
+	 * @return bool false if no packages were outdated.
+	 */
+	function get_tools_out_of_date() {
+		$rpm_str = $this->get_rpm_list();
+		$rpm_list = array();
+		foreach (explode("\n", $rpm_str) as $rpm) {
+			$rpm_vals = explode(" ", $rpm);
+			if (sizeof($rpm_vals) == 2) {
+				$rpm_list[$rpm_vals[0]] = $rpm_vals[1];
+			}
+		}
+		
+		$old_packages = array();
+		$tools_packages = array("qa_hamsta", "qa_hamsta-cmdline", "qa_hamsta-common", "qa_tools", "qa_lib_perl", "qa_lib_ctcs2", "qa_lib_config", "qa_lib_keys");
+		$versions = array();
+		foreach (array_unique($GLOBALS['packageVersions']) as $package) {
+			$package_data = explode(" ", $package);
+			if (sizeof($package_data) == 2) {
+				$key = $package_data[0];
+				$val = $package_data[1];
+				if (in_array($key, $tools_packages)) {
+					if (!array_key_exists($key, $versions)) {
+						$versions[$key] = $val;
+					} else {
+						$current_version = explode(".", substr($versions[$key], strpos($versions[$key], "-")+1));
+						$suggested_version = explode(".", substr($val, strpos($val, "-")+1));
+						if ($this->check_newer_version($current_version, $suggested_version)) {
+							$versions[$key] = $val;
+						}
+					}
+				}
+			}
+		}
+		foreach ($versions as $key => $val) {
+			if (array_key_exists($key, $rpm_list) && $rpm_list[$key] != $val) {
+				$old_packages[] = $key.' '.$rpm_list[$key];
+			}
+		}
+
+		if ($old_packages)
+			return $old_packages;
+		else
+			return false;
+	}
+
+	/**
+	 * check_newer_version 
+	 * 
+	 * @access public
+	 * @param array() the old version to compare
+	 * @param array() the new version to compare
+	 * @return The newer version of the two arguments.
+	 */
+	function check_newer_version($old, $new) {
+		if ($old[0] < $new[0]) {
+			return 1;
+		} else if ($old[0] == $new[0] && $old[1] < $new[1]) {
+			return 1;
+		} else if ($old[0] == $new[0] && $old[1] == $new[1] && $old[2] < $new[2]) {
+			return 1;
+		}
+		return 0;
+	}
+
 	/**
 	 * get_last_used 
 	 * 
@@ -784,6 +867,11 @@ class Machine {
 	 * @return string Product that the machine is running
 	 */
 	function get_product() {
+		$stmt = get_pdo()->prepare('SELECT product FROM product WHERE product_id=:product_id');
+		$stmt->bindParam(':product_id',$this->fields['product_id']);
+		$stmt->execute();
+		return $stmt->fetchColumn();
+/*
 		$product = $this->fields["description"];
 		
 		$product = str_replace("SUSE", ";SUSE", $product);
@@ -800,7 +888,7 @@ class Machine {
 		//print_r($arr);
 		return  nl2br($arr[0]);
 	}
-		if (ereg("^([A-Za-z0-9.-]+);([A-Za-z0-9.]+)(\(([A-Za-z0-9_-]+)\))?VERSION=", $product, $reg)) {
+		if (ereg("^([A-Za-z0-9.\-]+);([A-Za-z0-9.]+)(\(([A-Za-z0-9_\-]+)\))?VERSION=", $product, $reg)) {
 			ereg("PATCHLEVEL=([0-9]+)", $product, $sp);
 			$sp[0] = str_replace("PATCHLEVEL=", "SP",$sp[0]);
 			if( $sp[0] )
@@ -812,7 +900,7 @@ class Machine {
 		}
 
 		return nl2br($product);
-		//return nl2br($this->fields["description"]);
+		//return nl2br($this->fields["description"]);*/
 	}
 	
 	/**
@@ -822,6 +910,11 @@ class Machine {
 	 * @return string Kernel version the machine is running
 	 */
 	function get_kernel() {
+		if( isset($this->fields['kernel']) )
+			return $this->fields['kernel'];
+		else
+			return NULL;
+/*			
 		$product = $this->fields["description"];
 		
 		$product = str_replace("SUSE", ";SUSE", $product);
@@ -830,10 +923,11 @@ class Machine {
 		$product = str_replace(";SUSELinuxEnterpriseDesktop", ";SLED", $product);
 	$product = str_replace("SLESforSAPApplications", ";SLES4SAP", $product);
 
-		if (ereg("^([A-Za-z0-9.-]+);([A-Za-z0-9.]+)(\(([A-Za-z0-9_-]+)\))?VERSION=", $product, $reg)) {
+		if (ereg("^([A-Za-z0-9.\-]+);([A-Za-z0-9.]+)(\(([A-Za-z0-9_\-]+)\))?VERSION=", $product, $reg)) {
 			return $reg[1];
 		}
 		return "see product";
+*/
 	}
 
 	
@@ -1263,7 +1357,7 @@ class Machine {
 					if (($count++) > 3) {
 						fclose(Machine::$master_socket);
 						Machine::$master_socket = null;
-						$this->errmsg = "Giving up after 3 empty reads from master";
+						Machine::$errmsg = "Giving up after 3 empty reads from master";
 						return null;
 					}
 					sleep(1);
@@ -1425,6 +1519,7 @@ class Machine {
 		return $result;
 	}
 
+	private static $related_tables = array('group_machine','log','job_on_machine','config');
 	/**
 	 * merge_other_machines
 	 *
@@ -1436,9 +1531,8 @@ class Machine {
 	 * @return bool true if the operation succeeded
 	 */
 	function merge_other_machine($other_id)	{
-		$tables = array('group_machine','log','job_on_machine','config');
 		$ret = true;
-		foreach( $tables as $table )	{
+		foreach( self::$related_tables as $table )	{
 			if( !($stmt = get_pdo()->prepare("UPDATE IGNORE $table SET machine_id=:new_id WHERE machine_id=:old_id")))	{
 				continue;
 			}
@@ -1447,6 +1541,80 @@ class Machine {
 			$ret = $ret && $stmt->execute();
 		}
 		return $ret;
+	}
+
+
+	/**
+	 * _purge
+	 * Purges one sort of the related records - hwinfo history, logs, jobs, or groups.
+	 *
+	 * @param string $table (group_machine|log|job_on_machine|config)
+	 * @access protected
+	 * @return bool true if succeeded
+	 */
+	protected function _purge($table)	{
+		if( !array_search($table,self::$related_tables) )
+			return false;
+		if( !($stmt = get_pdo()->prepare("DELETE FROM `$table` WHERE machine_id=:id")) )
+			return false;
+		$stmt->bindParam(':id',$this->fields['machine_id']);
+		return $stmt->execute();
+	}
+
+	/**
+	 * purge_config_history()
+	 * Purges machine's hwinfo history
+	 *
+	 * @access public
+	 * @return bool true if succeeded
+	 */
+	function purge_config_history()	{
+		if( !($config = $this->get_current_configuration()) )
+			return false;
+		if( !($stmt = get_pdo()->prepare("DELETE FROM `config` WHERE machine_id=:id AND config_id<>:cid")) )
+			return null;
+		$stmt->bindParam(':id',$this->fields['machine_id']);
+		$stmt->bindParam(':cid',$config->get_id());
+		return $stmt->execute();
+	}
+
+	/**
+	 * purge_group_membership()
+	 * Purges machine's group memberships
+	 *
+	 * @access public
+	 * @return bool true if succeeded
+	 */
+	function purge_group_membership() {
+		return $this->_purge('group_machine');
+	}
+
+	/**
+	 * purge_job_history()
+	 * Purges machine's job history
+	 *
+	 * @access public
+	 * @return bool true if succeeded
+	 */
+	function purge_job_history() {
+		if( !$this->_purge('job_on_machine') )
+			return false;
+		# TODO: this should be removed after one job on multiple machines correctly implemented
+		if( !($stmt = get_pdo()->prepare("DELETE FROM `job` WHERE NOT EXISTS( SELECT * FROM job_on_machine WHERE job_on_machine.job_id=job.job_id )")) )
+			return true;
+		$stmt->execute();
+		return true;
+	}
+
+	/**
+	 * purge_log()
+	 * Purges machine's logs
+	 *
+	 * @access public
+	 * @return bool true if succeeded
+	 */
+	function purge_log() {
+		return $this->_purge('log');
 	}
 
 	/* generic getters/setters */
@@ -1482,7 +1650,8 @@ class Machine {
 		'type'=>'s',
 		'vh_id'=>'machine',
 		'reserved'=>'d',
-		'expires'=>'d'
+		'expires'=>'d',
+		'rpm_list'=>'s'
 	);
 
 	/**

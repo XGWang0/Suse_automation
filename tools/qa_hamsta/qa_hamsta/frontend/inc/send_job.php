@@ -30,13 +30,33 @@
         $go = 'send_job';
         return require("index.php");
     }
-	// print_r($_REQUEST);
-    $search = new MachineSearch();
-    $search->filter_in_array(request_array("a_machines"));
-    $machines = $search->query();
 
-    $resend_job=request_str("xml_file_name");
-    $filenames =request_array("filename");
+    # for delete custom file
+    $option = request_str("opt");
+    $machine_list = request_str("machine_list");
+    $custom_file = request_str("file");
+    
+    if($option == "delete") # only custom defined file can be deleted
+    {
+    	$custom_file = XML_DIR . "/" . $custom_file;
+
+	if(file_exists($custom_file))
+            unlink($custom_file);
+    }
+
+    $search = new MachineSearch();
+    if($machine_list != "")
+    	$machines_id_array = explode(",", $machine_list);
+    else
+	$machines_id_array = request_array("a_machines");
+
+        // print_r($_REQUEST);
+        #$search->filter_in_array(request_array("a_machines"));
+        $search->filter_in_array($machines_id_array);
+        $machines = $search->query();
+
+        $resend_job=request_str("xml_file_name");
+        $filenames =request_array("filename");
 
 	if (request_str("submit")) {
 
@@ -44,10 +64,26 @@
 		$jobfilenames = array();
 
 		foreach ($filenames as $jobfile) {
+
 			$jobbasename = basename($jobfile);
 			system("cp $jobfile /tmp/");
 			system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' /tmp/$jobbasename");
-			array_push ($jobfilenames, "/tmp/$jobbasename");
+				
+			$filebasename = substr($jobbasename, 0, -4);
+			$xml = simplexml_load_file( "/tmp/$jobbasename" );
+
+			if(substr(dirname($jobfile), -6) == "custom")
+				parameters_assign($xml, $filebasename . "_custom_" );
+			else
+				parameters_assign($xml, $filebasename . "_" );
+
+			$path = "/tmp/" . $filebasename . "_" . genRandomString(10) . ".xml";
+			$xml->asXML($path);
+
+			if(file_exists("/tmp/$jobbasename"))
+				unlink("/tmp/$jobbasename");
+
+			array_push ($jobfilenames, $path);
 		}
 
 		foreach ($machines as $machine) {
@@ -64,4 +100,5 @@
 		}
 	}
     $html_title = "Send job";
+
 ?>

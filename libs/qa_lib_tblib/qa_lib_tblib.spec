@@ -19,7 +19,7 @@
 
 BuildRequires:  coreutils
 Name:           qa_lib_tblib
-License:        GPL v2 or later
+License:        LGPL v2.1 or later
 Group:          System/Management
 AutoReqProv:    on
 Version:        @@VERSION@@
@@ -33,7 +33,7 @@ BuildArch:      noarch
 PreReq:         coreutils
 Provides:	tblib
 Obsoletes:	tblib
-Requires:       mod_php_any httpd php-pdo php-mysql
+Requires:       mod_php_any httpd php-pdo php-mysql gs_sortable epoch
 
 %description
 TBlib web frontend library. Works with PHP and MySQL.
@@ -70,7 +70,6 @@ gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
 install -m 755 -d $RPM_BUILD_ROOT%{webdir}
 cp -a --target-directory=$RPM_BUILD_ROOT%{webdir} *.php
 cp -a -r --target-directory=$RPM_BUILD_ROOT%{webdir} doc
-cp -a -r --target-directory=$RPM_BUILD_ROOT%{webdir} scripts
 cp -a -r --target-directory=$RPM_BUILD_ROOT%{webdir} icons
 cp -a -r --target-directory=$RPM_BUILD_ROOT%{webdir} css
 rm -rf `find $RPM_BUILD_ROOT -name .svn`
@@ -85,8 +84,20 @@ echo %{version} > %{webdir}/.version
 %defattr(-, root, root)
 /usr/share/man/man8/qa_lib_tblib.8.gz
 %{webdir}
+%doc COPYING
 
 %changelog
+* Wed May 2 2012 - llipavsky@suse.cz
+- New 2.3 release from QA Automation team, includes: 
+- out-of date and developement SUTs are marked in web frontend and can be updated from the frontend 
+- HA Server yast2-cluster UI Automation 
+- Improved CLI interface to Hamsta 
+- It is possible to get/choose all patterns from all products during SUT intallation (until now, only SLES/D & SDK patterns were shown) 
+- Parametrized jobs 
+- Better web editors of jobs. Now with multimachine job support 
+- Hamsta client one-click installer 
+- QADB improvements 
+- No more Novell icon in Hamsta ;-)
 * Mon Nov 14 2011 - llipavsky@suse.cz
 - New 2.2 release from QA Automation team, includes:
 - Automated stage testing

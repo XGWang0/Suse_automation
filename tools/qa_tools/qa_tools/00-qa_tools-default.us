@@ -50,3 +50,13 @@ install_profile_nfs_dir="/srv/hamsta"
 
 # From where to get the autoinstallation profile
 install_profile_url_base="http://149.44.146.1/autoinst"
+
+#
+## The address of the host, where qa_db_report is installed, this
+## is the host that results are sent to by remote_qa_db_report.pl
+#
+remote_qa_db_report_host="qadb.nue.suse.com"
+remote_qa_db_report_user="rd-qa"
+
+# Which repository should be used for *next* installation 
+install_qa_repository="http://download.nue.suse.com/ibs/QA:/Head"

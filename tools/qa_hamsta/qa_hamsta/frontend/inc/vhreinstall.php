@@ -96,13 +96,13 @@ if (request_str("proceed")) {
         $additionalpatterns .= " ".$p;
 
     if ($virtualization_method == "xen") {
-        $additionalpatterns .= " xen_server";
+        $additionalpatterns .= "xen_server";
         if (preg_match('/[SsLlEe]{3}.-10/',$producturl)) {
             $additionalrpms .= " kernel-xen";
         }
     } elseif ($virtualization_method == "kvm") {
         if (preg_match('/[SsLlEe]{3}.-11-[SsPp]{2}[234]/',$producturl)) {
-            $additionalrpms .= " kvm";
+            $additionalrpms .= "kvm";
         }
     } else {
 	# Report error.
@@ -149,7 +149,7 @@ if (request_str("proceed")) {
                if (request_str("startupdate") == "update-reg" and request_str("update-reg-code") != "")
                    $args .= " -C " . request_str("update-reg-code");
                if (request_str("startupdate") == "update-opensuse")
-	           $args .= " -O " . request_str("startupdate");
+	           $args .= " -O ";
                if ($installmethod == "Upgrade")
                    $args .= " -U";
 	       $args .= " -V " .$virtualization_method;

@@ -58,6 +58,7 @@ require 'Slave/config_slave';
 $SIG{KILL} = \&deconstruct;
 $SIG{INT} = \&deconstruct;
 $SIG{TERM} = \&deconstruct;
+$SIG{CHLD} = 'IGNORE';
 
 if ($> != 0) {
     &log(LOG_CRIT,"The HAMSTA slave has to be run as root (needed for hwinfo)");
@@ -92,6 +93,10 @@ $log::loglevel=$Slave::debug;
 # problem won't occur ever. This does not mean the problem is gone. If
 # you remove the forking again, the code will probably be broken on some
 # machines.
+our $last_ip = &get_slave_ip($Slave::multicast_address);
+our $slave_pid;
+our $multicast_pid;
+
 child {
     $log::loginfo='hamsta';
     &log(LOG_INFO, "Starting server");
@@ -100,23 +105,74 @@ child {
     STDOUT_ORG->autoflush(1);
     &log_set_output(handle=>*STDOUT_ORG,close=>1);
     run_slave_server();
-};
+}
+parent {
+    $slave_pid=shift;
+}
+;
 
 
 # Start the multicast announcement as a new thread
 # my $mcast_thread =threads->new(sub {system("/usr/bin/perl mcast.pm");});
+child {
 &log(LOG_INFO,"Starting multicast thread");
 &Slave::Multicast::run();
+}
+parent {
+    $multicast_pid=shift;
+};
+
+while(1){
+    my $sleep_s=10;
+    my $current_ip=&get_slave_ip($Slave::multicast_address);
+    if($last_ip ne $current_ip){
+      if(! &chk_run) { 
+	kill 9,$slave_pid,$multicast_pid;
+	&log(LOG_ERR,"Multicast died");
+	&log(LOG_ERR,"slave server died");
+	$last_ip=$current_ip;
+	child {
+	      $log::loginfo='hamsta';
+	      &log(LOG_INFO, "Starting server");
+              open(STDOUT_ORG, ">&STDOUT");
+	      STDOUT_ORG->autoflush(1);
+	      &log_set_output(handle=>*STDOUT_ORG,close=>1);
+	      run_slave_server();
+	}
+	parent {
+		    $slave_pid=shift;
+	}
+	;
+	child {
+		&log(LOG_INFO,"Starting multicast thread");
+		&Slave::Multicast::run();
+	}
+	parent {
+		    $multicast_pid=shift;
+	};
+
+      }
+      $sleep_s=60;
+    }
+      sleep($sleep_s);
+}
 
 # Should be never reached
-&log(LOG_ERR,"Multicast died");
-1 while 1;
 
 # run_slave_server()
 #
 # Listens for incoming connections on the slave_port and forwards
 # requests to process_request.
 # 
+sub chk_run() {
+	
+
+  open my $sub_p,"pstree $slave_pid |" or return 0;
+  my @pstreeo = <$sub_p>;
+  close $sub_p;
+  return 1 if(grep { /\-/ } @pstreeo);
+  return 0 ;
+}
 sub run_slave_server() {
     my $socket = new IO::Socket::INET(
         LocalPort => $Slave::slave_port,
@@ -196,6 +252,8 @@ sub run_slave_server() {
 
 sub process_request {
     my ($sock,$ip_addr) = @_;
+    #Send Establish sync
+    print $sock "\n";
     eval {
 
         STDOUT->autoflush(1);

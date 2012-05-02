@@ -1,0 +1,1481 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml">
+		<head>
+			<!-- template designed by Marco Von Ballmoos -->
+			<title>Docs for page qadb.php</title>
+			<link rel="stylesheet" href="../media/stylesheet.css" />
+			<meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1'/>
+		</head>
+		<body>
+			<div class="page-body">			
+<h2 class="file-name">/qadb.php</h2>
+
+<a name="sec-description"></a>
+<div class="info-box">
+	<div class="info-box-title">Description</div>
+	<div class="nav-bar">
+					<span class="disabled">Description</span> |
+									<a href="#sec-includes">Includes</a>
+			|											<a href="#sec-functions">Functions</a>
+			</div>
+	<div class="info-box-body">	
+		<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">QADB - related functions</p>
+	<ul class="tags">
+				<li><span class="field">license:</span> <a href="http://opensource.org/licenses/gpl-2.0.php">GNU General Public License</a></li>
+				<li><span class="field">filesource:</span> <a href="../__filesource/fsource_QADB__qadb.php.html">Source Code for this file</a></li>
+			</ul>
+		
+			</div>
+</div>
+		
+
+	<a name="sec-includes"></a>	
+	<div class="info-box">
+		<div class="info-box-title">Includes</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+						<span class="disabled">Includes</span>
+			|													<a href="#sec-functions">Functions</a>
+					</div>
+		<div class="info-box-body">	
+			<a name="___/tblib/tblib_php"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="include-title">
+			<span class="include-type">require_once</span>
+			(<span class="include-name">'../tblib/tblib.php'</span>)
+			(line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a11">11</a></span>)
+		</span>
+	</div>
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">library functions - common DB and HTML functions</p>
+	
+</div>
+		</div>
+	</div>
+	
+	
+	
+	<a name="sec-functions"></a>	
+	<div class="info-box">
+		<div class="info-box-title">Functions</div>
+		<div class="nav-bar">
+			<a href="#sec-description">Description</a> |
+										<a href="#sec-includes">Includes</a>
+				|												<span class="disabled">Functions</span>
+		</div>
+		<div class="info-box-body">	
+			<a name="functionappend_maintenance" id="functionappend_maintenance"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">append_maintenance</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a352">352</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			append_maintenance
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$data</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$header</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$data</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$header</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionbench_list_testsuite" id="functionbench_list_testsuite"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">bench_list_testsuite</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a167">167</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Lists all testsuite that contain benchmark data. Uses the statistical table 'test'.</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			bench_list_testsuite
+		</span>
+					([<span class="var-type"></span>&nbsp;<span class="var-name">$limit</span> = <span class="var-default">null</span>])
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$limit</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionboard_delete" id="functionboard_delete"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">board_delete</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a534">534</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Deletes a board topic.</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			board_delete
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$board_id</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$board_id</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionboard_get_topic" id="functionboard_get_topic"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">board_get_topic</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a526">526</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Gets just one topic from the board.</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			board_get_topic
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$board_id</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$board_id</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionboard_insert" id="functionboard_insert"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">board_insert</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a522">522</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Inserts a new board entry.</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			board_insert
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$topic</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$topic</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionboard_last" id="functionboard_last"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">board_last</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a538">538</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Returns nonzero if there are new board messages since user's last visit.</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			board_last
+		</span>
+				()
+			</div>
+
+		
+	
+</div>
+<a name="functionboard_list" id="functionboard_list"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">board_list</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a518">518</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Lists last board entries.</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			board_list
+		</span>
+					([<span class="var-type"></span>&nbsp;<span class="var-name">$header</span> = <span class="var-default">1</span>], [<span class="var-type"></span>&nbsp;<span class="var-name">$limit</span> = <span class="var-default">null</span>])
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$header</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$limit</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionboard_update" id="functionboard_update"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">board_update</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a530">530</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Updates a board topic.</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			board_update
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$board_id</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$topic</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$board_id</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$topic</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionboard_update_last" id="functionboard_update_last"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">board_update_last</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a546">546</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Updates current user's last board access info in the table board_last.</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			board_update_last
+		</span>
+				()
+			</div>
+
+		
+	
+</div>
+<a name="functioncommon_header" id="functioncommon_header"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">common_header</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a631">631</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">logs into DB, checks user, prints header, prints navigation bar</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			common_header
+		</span>
+					([<span class="var-type"></span>&nbsp;<span class="var-name">$args</span> = <span class="var-default">null</span>])
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$args</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionget_bench_number" id="functionget_bench_number"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">get_bench_number</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a159">159</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Gets one row from bench_data.</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			get_bench_number
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$result_id</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$bench_part_id</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$result_id</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$bench_part_id</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionget_bench_numbers" id="functionget_bench_numbers"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">get_bench_numbers</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a163">163</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Gets keys and bench numbers for a given result_id</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			get_bench_numbers
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$result_id</span>, [<span class="var-type"></span>&nbsp;<span class="var-name">$limit</span> = <span class="var-default">null</span>])
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$result_id</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$limit</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionget_maintenance_rpms" id="functionget_maintenance_rpms"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">get_maintenance_rpms</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a343">343</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			get_maintenance_rpms
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$submission_id</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$submission_id</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionget_rpm_config_id" id="functionget_rpm_config_id"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">get_rpm_config_id</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a559">559</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">gets rpm_config_id from submission</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			get_rpm_config_id
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$tcf_id</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$tcf_id</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionget_script_versions" id="functionget_script_versions"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">get_script_versions</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a698">698</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">returns newest and oldest allowed version of a script, or for all known scripts</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			get_script_versions
+		</span>
+					([<span class="var-type"></span>&nbsp;<span class="var-name">$name</span> = <span class="var-default">null</span>])
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$name</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionget_user_id" id="functionget_user_id"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">get_user_id</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a511">511</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Creates or finds current user's numerical ID in the table 'tester'</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			get_user_id
+		</span>
+				()
+			</div>
+
+		
+	
+</div>
+<a name="functionhighlight_result" id="functionhighlight_result"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">highlight_result</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a792">792</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			highlight_result
+		</span>
+				()
+			</div>
+
+		
+	
+</div>
+<a name="functionhwinfo_get" id="functionhwinfo_get"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">hwinfo_get</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a464">464</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">gets hwinfo</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			hwinfo_get
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$hwinfo_id</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$hwinfo_id</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionprint_nav_bar" id="functionprint_nav_bar"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">print_nav_bar</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a708">708</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">converts dynamical menu items, prints the menu</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			print_nav_bar
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$dest</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$dest</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionprint_submission_details" id="functionprint_submission_details"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">print_submission_details</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a658">658</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Prints one-row table of submission details.</p>
+	<ul class="tags">
+				<li><span class="field">return:</span> the used table data</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			&amp;print_submission_details
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$submission_id</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$submission_id</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionprint_tcf_details" id="functionprint_tcf_details"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">print_tcf_details</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a679">679</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Prints one-row table with TCF details.</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			&amp;print_tcf_details
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$tcf_id</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$tcf_id</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionregression_differences" id="functionregression_differences"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">regression_differences</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a366">366</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			regression_differences
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$attrs</span>, [<span class="var-type"></span>&nbsp;<span class="var-name">&$pager</span> = <span class="var-default">null</span>])
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$attrs</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">&$pager</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionresult_process_print" id="functionresult_process_print"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">result_process_print</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a735">735</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			result_process_print
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">&$data</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$sub_info</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$transl</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$pager</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$id</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">&$data</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$sub_info</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$transl</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$pager</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$id</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionresult_stats" id="functionresult_stats"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">result_stats</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a361">361</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			result_stats
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$submission_id</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$testcase_id</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$submission_id</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$testcase_id</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionrpms_diff" id="functionrpms_diff"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">rpms_diff</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a572">572</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">compares two or more configurations, returns versions that don't exist in other ones</p>
+<p class="description"><p>usage: diff_rpms( $rpm_config_id, $rpm_config_id2, ... )</p></p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			rpms_diff
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$limit</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$all</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$rpm_config_ids</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$limit</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$all</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$rpm_config_ids</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionrpms_fetch" id="functionrpms_fetch"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">rpms_fetch</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a563">563</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">gets RPM basenames and versions for a given rpm_config_id, returns table with 2 columns</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			rpms_fetch
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$rpm_config_id</span>, [<span class="var-type"></span>&nbsp;<span class="var-name">$header</span> = <span class="var-default">1</span>], [<span class="var-type"></span>&nbsp;<span class="var-name">$limit</span> = <span class="var-default">null</span>])
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$rpm_config_id</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$header</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$limit</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionrpms_num" id="functionrpms_num"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">rpms_num</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a606">606</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">returns the number of RPMs in a given rpm_config_id</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			rpms_num
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$rpm_config_id</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$rpm_config_id</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionschema_get_version" id="functionschema_get_version"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">schema_get_version</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a788">788</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			schema_get_version
+		</span>
+				()
+			</div>
+
+		
+	
+</div>
+<a name="functionsearch_submission_result" id="functionsearch_submission_result"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">search_submission_result</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a196">196</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">searches for submission, testsuite, or result</p>
+<p class="description"><p>$mode : <ol><li>result</li><li>just submission</li><li>maintenance</li><li>KOTD</li><li>product</li><li>any</li><li>testsuite</li><li>trend graphs</li><li>submission + TCF</li></ol>  10 submission + TCF + testcase   11 summaries  $attrs['only_id']: <ol><li>for full details</li><li>for IDs only</li></ol> $attrs['order_nr']: +/- (1+&lt;index of the result column&gt;):    positive nr. means ascending order, negative means descending</p><p>Other $attrs keyvals are search criteria and their values (single or arrays).    See $attrs_known below for available search criteria.  $transl - if you put an empty array here, it would get filled with arguments    suitable for calling table_translate() (enums and links only).</p></p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			search_submission_result
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$mode</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$attrs</span>, [<span class="var-type"></span>&nbsp;<span class="var-name">&$transl</span> = <span class="var-default">null</span>], [<span class="var-type"></span>&nbsp;<span class="var-name">&$pager</span> = <span class="var-default">null</span>])
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$mode</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$attrs</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">&$transl</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">&$pager</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionsearch_waiver" id="functionsearch_waiver"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">search_waiver</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a109">109</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Searches waiver tables.</p>
+<p class="description"><p>$mode: <ol><li>waiver</li><li>waiver + waiver_testcase</li><li>waiver_testcase only</li></ol> $attrs['only_id']: <ol><li>for full details</li><li>for IDs only</li></ol> $attrs['order_nr']: +/- (1+&lt;index of the result column&gt;)    positive nr. means ascending order, negative means descending.</p><p>NOTE: see search_submission_result for similar code &amp; more comments</p></p>
+	<ul class="tags">
+				<li><span class="field">return:</span> 2D array of result</li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">array</span>
+		<span class="method-name">
+			search_waiver
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$mode</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$attrs</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$mode</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$attrs</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionsubmission_delete" id="functionsubmission_delete"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">submission_delete</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a477">477</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Deletes the whole submission. Triggers will delete the details.</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			submission_delete
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$submission_id</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$submission_id</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionsubmission_get_hwinfo_id" id="functionsubmission_get_hwinfo_id"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">submission_get_hwinfo_id</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a473">473</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">gets submission's hwinfo_id</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			submission_get_hwinfo_id
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$submission_id</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$submission_id</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionsubmission_get_related" id="functionsubmission_get_related"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">submission_get_related</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a448">448</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">gets ID of related submission or null</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			submission_get_related
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$submission_id</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$submission_id</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionsubmission_set_details" id="functionsubmission_set_details"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">submission_set_details</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a444">444</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			submission_set_details
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$submission_id</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$status_id</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$related</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$comment</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$submission_id</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$status_id</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$related</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$comment</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functiontable_description" id="functiontable_description"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">table_description</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a551">551</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Gets a description text for a given database table.</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			table_description
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$table</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$table</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functiontcf_delete" id="functiontcf_delete"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">tcf_delete</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a491">491</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">deletes all TCFs for a submission_id and testcase_id</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			tcf_delete
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$submission_id</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$tcf_id</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$submission_id</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$tcf_id</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functiontcf_details" id="functiontcf_details"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">tcf_details</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a485">485</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Fetches TCF details and result stats for either a $submission_id or a tcf_id.</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			tcf_details
+		</span>
+					(<span class="var-type">int</span>&nbsp;<span class="var-name">$ID</span>, <span class="var-type">int</span>&nbsp;<span class="var-name">$type</span>, [<span class="var-type"></span>&nbsp;<span class="var-name">$header</span> = <span class="var-default">1</span>], [<span class="var-type"></span>&nbsp;<span class="var-name">$limit</span> = <span class="var-default">null</span>])
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type">int</span>
+				<span class="var-name">$type</span><span class="var-description">: 0 for submission_id, 1 for tcf_id</span>			</li>
+					<li>
+				<span class="var-type">int</span>
+				<span class="var-name">$ID</span><span class="var-description">: either submission_id or tcf_id</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$header</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$limit</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functiontcf_get_submission" id="functiontcf_get_submission"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">tcf_get_submission</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a495">495</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Returns a submission_id for a tcf_id</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			tcf_get_submission
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$tcf_id</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$tcf_id</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functiontcf_get_url" id="functiontcf_get_url"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">tcf_get_url</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a503">503</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Returns URL to test logs</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			tcf_get_url
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$tcf_id</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$tcf_id</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functiontcf_set_url" id="functiontcf_set_url"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">tcf_set_url</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a499">499</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Sets a URL link to test logs</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			tcf_set_url
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$tcf_id</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$url</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$tcf_id</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$url</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functiontestcase_get_relative_url" id="functiontestcase_get_relative_url"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">testcase_get_relative_url</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a506">506</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			testcase_get_relative_url
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$testcase_id</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$testcase_id</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionwaiver_delete" id="functionwaiver_delete"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">waiver_delete</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a78">78</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">deletes a waiver</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			waiver_delete
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$waiver_id</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$waiver_id</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionwaiver_delete_detail" id="functionwaiver_delete_detail"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">waiver_delete_detail</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a82">82</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">deletes a waiver detail</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			waiver_delete_detail
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$waiver_testcase_id</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$waiver_testcase_id</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionwaiver_exact" id="functionwaiver_exact"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">waiver_exact</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a41">41</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Tests if the given $waiver_id applies to a given submission's arch/product/release.</p>
+	<ul class="tags">
+				<li><span class="field">return:</span> 0 for no waiver, 1 for partial match (testcase only), 2 for full match</li>
+				<li><span class="field">see:</span> <a href="../QADB/_qadb.php.html#functionprint_submission_details">print_submission_details()</a></li>
+			</ul>
+	
+	<div class="method-signature">
+		<span class="method-result">int</span>
+		<span class="method-name">
+			waiver_exact
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$waiver_id</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$s</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$s</span><span class="var-description">: output of print_submission_detais()</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$waiver_id</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionwaiver_get_id" id="functionwaiver_get_id"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">waiver_get_id</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a62">62</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">gets testcase_id, returns waiver_id or null</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			waiver_get_id
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$testcase_id</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$testcase_id</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionwaiver_get_master" id="functionwaiver_get_master"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">waiver_get_master</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a66">66</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">Gets waiver_testcase_id, returns waiver_id</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			waiver_get_master
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$waiver_testcase_id</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$waiver_testcase_id</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionwaiver_new" id="functionwaiver_new"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">waiver_new</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a70">70</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">creates a new waiver master record in waiver table</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			waiver_new
+		</span>
+					([<span class="var-type"></span>&nbsp;<span class="var-name">$testcase_id</span> = <span class="var-default">null</span>], [<span class="var-type"></span>&nbsp;<span class="var-name">$bug_id</span> = <span class="var-default">null</span>], [<span class="var-type"></span>&nbsp;<span class="var-name">$explanation</span> = <span class="var-default">&#039;&#039;</span>])
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$testcase_id</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$bug_id</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$explanation</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionwaiver_new_detail" id="functionwaiver_new_detail"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">waiver_new_detail</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a74">74</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">creates a new detail in waiver_testcase table</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			waiver_new_detail
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$waiver_id</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$product_id</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$release_id</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$arch_id</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$matchtype</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$waiver_id</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$product_id</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$release_id</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$arch_id</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$matchtype</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionwaiver_update" id="functionwaiver_update"><!-- --></a>
+<div class="oddrow">
+	
+	<div>
+		<span class="method-title">waiver_update</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a86">86</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">updates an existing waiver master record</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			waiver_update
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$waiver_id</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$testcase_id</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$bug_id</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$explanation</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$waiver_id</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$testcase_id</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$bug_id</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$explanation</span>			</li>
+				</ul>
+		
+	
+</div>
+<a name="functionwaiver_update_detail" id="functionwaiver_update_detail"><!-- --></a>
+<div class="evenrow">
+	
+	<div>
+		<span class="method-title">waiver_update_detail</span> (line <span class="line-number"><a href="../__filesource/fsource_QADB__qadb.php.html#a90">90</a></span>)
+	</div> 
+
+	<!-- ========== Info from phpDoc block ========= -->
+<p class="short-description">updates an existing waiver_testcase record</p>
+	
+	<div class="method-signature">
+		<span class="method-result">void</span>
+		<span class="method-name">
+			waiver_update_detail
+		</span>
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$waiver_testcase_id</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$product_id</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$release_id</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$arch_id</span>, <span class="var-type"></span>&nbsp;<span class="var-name">$matchtype</span>)
+			</div>
+
+			<ul class="parameters">
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$waiver_testcase_id</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$product_id</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$release_id</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$arch_id</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$matchtype</span>			</li>
+				</ul>
+		
+	
+</div>
+		</div>
+	</div>
+	
+	<p class="notes" id="credit">
+		Documentation generated on Thu, 19 Apr 2012 14:49:05 +0200 by <a href="http://www.phpdoc.org" target="_blank">phpDocumentor 1.4.2</a>
+	</p>
+	</div></body>
+</html>

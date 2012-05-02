@@ -64,6 +64,10 @@
         color: #bb2222;
         font-weight: bold;
 }
+.connecting {
+        color: #008080;
+        font-weight: bold;
+}
 .canceled {
         color: #FFFF00;
         font-style: italic;

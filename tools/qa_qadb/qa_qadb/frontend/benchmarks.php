@@ -11,7 +11,7 @@ $grp_by = $_REQUEST['group_by'];
 if( is_numeric($grp_by) && isset($group_by[$grp_by]) )
 	$grp_by = $group_by[$grp_by][2];
 else
-	$grp_by = 'tcfID';
+	$grp_by = 'tcf_id';
 
 $group_attrs = split(',',$grp_by);
 
@@ -77,33 +77,25 @@ else
 
 # 7. set up the main data
 
-$from     = 'bench_parts p JOIN bench_data d USING(partID) JOIN results r USING(resultsID) JOIN tcf_group tg USING(tcfID) JOIN submissions s USING(submissionID) JOIN testsuites t USING(testsuiteID) JOIN products pr USING(productID) JOIN releases rel USING(releaseID) JOIN hosts h USING(hostID)';
+$from     = 'bench_part p JOIN bench_data d USING(bench_part_id) JOIN `result` r USING(result_id) JOIN tcf_group tg USING(tcf_id) JOIN submission s USING(submission_id) JOIN testsuite t USING(testsuite_id) JOIN product pr USING(product_id) JOIN `release` rel USING(release_id) JOIN host h USING(host_id) JOIN testcase tc USING(testcase_id)';
 $where    = '1';
-$where   .= ' AND tg.tcfID IN ('.join(',',$tests).')';
+$where   .= ' AND tg.tcf_id IN ('.join(',',$tests).')';
 
 # here are specified the control attributes
 # for every tree level
 $lev_attrs = array (
-
-	# p.part without the first field
-	# better do not ask how the SQL would look
-	# if the last field should also be stripped
-	/* 1 */ array("ltrim(substr(p.part,1+instr(p.part,';')))"),
-
+	/* 1 */ array("bench_part_z"),
 	/* 0 */ $group_attrs,
-
-	# p.part - first field only
-	/* 2 */ array("substring_index(part,';',1)"),
-	
+	/* 2 */ array("bench_part_x"),
 	/* 3 */ array('d.result')
 );  // TODO: should be one level deeper
 
 # when filled, a special WHERE clause is used for the attribute
 # sprintf syntax is used, value is passed to the sprintf() call
 $lev_wheres = array (
-	/* 1 */ array("p.part like '%%%s'"),
+	/* 1 */	array("bench_part_z='%s'"), # TODO
 	/* 0 */ array(),
-	/* 2 */ array("locate('%s;',p.part)=1"),
+	/* 2 */ array("bench_part_x='%s'"), # TODO
 	/* 3 */ array()
 );  // TODO: should be one level deeper
 

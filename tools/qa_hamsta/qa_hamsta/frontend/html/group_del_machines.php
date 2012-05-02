@@ -33,7 +33,7 @@
 ?>
 
 <h2 class="text-medium text-blue">Delete machines from group</h2>
-<form action="index.php?go=group_del_machines" method="post">
+<form action="index.php?go=group_del_machines" method="post" onsubmit="return checkcheckbox(this);">
 <table class="list text-main">
 	<tr>
 		<th>Machine</th>
@@ -50,7 +50,7 @@
 				foreach (Group::get_groups_by_machine($machine) as $group_id => $group_name) {
 					echo "<lable>";
 					/* $machine_id_$group_id, correct if you have better methods */
-					echo ('<input type="checkbox" name="a_groups[]" value="'.$machine_id.'_'.$group_id.'">');
+					echo ('<input type="checkbox" name="a_groups[]" value="'.$machine_id.'_'.$group_id.'" checked="true">');
 					echo "$group_name";
 					echo "</lable>";
 				}
