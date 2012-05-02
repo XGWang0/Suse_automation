@@ -272,11 +272,9 @@
 					Log::create($machine->get_id(), $machine->get_used_by(), 'JOB_START', "has sent a \"custom\" job to this machine (Job name: \"" . htmlspecialchars($_POST['jobname']) . "\")");
 				} else {
 					$errors[] = $machine->get_hostname().": ".$machine->errmsg;
+					//echo $machine->get_hostname().": ".$machine->errmsg; var_dump("abc"); exit ();
 				}
 			}
-
-			header("Location: index.php");
-			
 		}
 		else    # for multi-machine job, redirect to "multi-machine job detail" page
 		{
@@ -284,11 +282,12 @@
 			return require("inc/mm_job.php");
 		}
 	}
-	
 	$html_title="Send custom job";
 
 	if (count($errors) != 0) {
         	$_SESSION['message'] = implode("\n", $errors);
         	$_SESSION['mtype'] = "fail";
+	} else {
+		header("Location: index.php");
 	}
 ?>

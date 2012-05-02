@@ -212,6 +212,9 @@ if (request_str("proceed")) {
 			$_SESSION['mtype'] = "success";
 			header("Location: index.php");
 			exit();
+		} else {
+			$_SESSION['message'] = implode("\n", $errors);
+                	$_SESSION['mtype'] = "fail";
 		}
 	} else {
 		$_SESSION['message'] = implode("\n", $errors);
