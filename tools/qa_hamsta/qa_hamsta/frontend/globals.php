@@ -25,6 +25,9 @@
 
 	# Keep this structure (for now), especially the " -- " between the feature title and description
 	$latestFeatures = array(
+			"2.4.0" => array(
+				'3 May 2012 -- TODO'
+			),
 			"2.3.0" => array(
 				'2 May 2012 -- Outdated SUTs -- out-of date and developement SUTs are marked in web frontend and can be updated from the frontend',
 				'2 May 2012 -- HAMSTA CLI -- command line interface to Hamsta has been improved', 
