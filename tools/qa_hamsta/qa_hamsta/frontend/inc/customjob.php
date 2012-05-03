@@ -95,7 +95,7 @@
 
 	# get all command lines and put into an array
 	$commandArray = array();
-	$errors[] = array();
+	$errors = array();
 
 	for($i=0; $i<$roleNumber; $i++)
 	{
