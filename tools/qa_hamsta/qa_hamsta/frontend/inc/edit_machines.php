@@ -137,8 +137,8 @@
 				}
 			}
 
-			$go = "machines";
-			header("Location: index.php");
+			$machine->get_role() == "VH" ? $go = "qacloud" : $go = "machines";
+			header("Location: index.php?go=$go");
 		}
 		
 		# If there were errors, we set the fail message
