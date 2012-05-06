@@ -209,7 +209,7 @@ sub submission_set_kotd_values # submission_id, kernel_branch_id, kernel_flavor_
 sub submission_set_maintenance_values # submission_id, patch_id, md5sum
 {	
 	my $self=shift;
-	$self->update_query("UPDATE submission SET patch_id=?,md5sum=?,status='wip' WHERE submission_id=?",$_[1],$_[2],$_[0]);
+	$self->update_query("UPDATE submission SET patch_id=?,md5sum=?,status_id=1 WHERE submission_id=?",$_[1],$_[2],$_[0]); # status_id=1 means 'wip'
 }
 
 sub released_rpms_insert # submission_id, rpm_basename_id, rpm_version_id
