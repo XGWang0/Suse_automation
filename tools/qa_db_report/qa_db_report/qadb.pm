@@ -149,7 +149,7 @@ sub get_rpm_id	# rpm_basename, rpm_version, insert?
 sub get_rpm_versions # rpm_config_id, rpm_basename_id
 {	
 	my $self=shift;
-	return $self->vector_query('SELECT DISTINCT rpm_version_id FROM software_config JOIN rpms USING(rpm_id) WHERE rpm_config_id=? AND rpm_basename_id=?',@_);	
+	return $self->vector_query('SELECT DISTINCT rpm_version_id FROM software_config JOIN rpm USING(rpm_id) WHERE rpm_config_id=? AND rpm_basename_id=?',@_);	
 }
 
 # delete configs, foreign key constraints should do the rest
