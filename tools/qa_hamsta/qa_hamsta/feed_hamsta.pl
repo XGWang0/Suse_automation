@@ -68,12 +68,13 @@ Options:
 				4 mult_machine
 				5 reinstall
 	-n|--testname <testname> set test name for the job work with -t option 
-		                    (only for pre-define, qa_package, autotest)
+		                    (only for pre-define, qa_package, autotest, mult_machine)
 		                    seperate by ',' for qa_package&autotest job
 	-l|--listcases		print the support test case name for each jobtype
 				work with -t option
 	-r|--roles			for mult-machine jobs, set roles number and host
-		         	    Assign SUT to roles "r0:host1,host2;r1:host3,host4"
+		         	    Assign SUT to roles , format like:
+					-r 'r0:host1,host2;r1:host3,host4'
 
 	-u|--re_url			set reinstall url
 	   --re_sdk			set reinstall sdk
