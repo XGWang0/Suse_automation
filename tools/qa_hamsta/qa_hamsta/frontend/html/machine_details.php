@@ -134,6 +134,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 			<td><?php echo($job->get_name()); ?></td>
 			<td><?php echo($job->get_started()); ?></td>
 			<td><?php echo($job->get_stopped()); ?></td>
+			<td></td>
 		</tr>
 	<?php
 		endforeach;
