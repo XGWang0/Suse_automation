@@ -144,8 +144,7 @@ sub get_hwinfo_module($) {
 	if($module_name eq 'devel_tools'){
 		my $module = {};
 		$module->{'Description'} = "devel tools";
-		my $zypper_output = `zypper lr -u`;
-		if (`echo $zypper_output | grep ibs/QA:/Head:/Devel` || `echo $zypper_output | grep ibs/QA%3a/Head%3a/Devel`) {
+		if (`zypper lr -u | grep 'ibs/QA\(:\|%3[aA]\)/Head\(:\|%3[aA]\)/Devel'`) {
 			$module->{'DevelTools'} = 1;
 		} else {
 			$module->{'DevelTools'} = 0;
