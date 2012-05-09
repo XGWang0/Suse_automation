@@ -86,4 +86,6 @@ for p in patches/* ; do
 	fi
 done
 
+echo Updating DB stats
+mysqlcheck --analyze --user="$DBUSER" --password="$DBPASS" "$DB"
 
