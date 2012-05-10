@@ -378,8 +378,15 @@ class Machine {
 			}
 		}
 		foreach ($versions as $key => $val) {
-			if (array_key_exists($key, $rpm_list) && $rpm_list[$key] != $val) {
-				$old_packages[] = $key.' '.$rpm_list[$key];
+			if (array_key_exists($key, $rpm_list)) {
+				$server_core_version = explode(".", substr($val, 0, strpos($val, "-")));
+				$server_sub_version = explode(".", substr($val, strpos($val, "-")+1));
+				$client_core_version = explode(".", substr($rpm_list[$key], 0, strpos($rpm_list[$key], "-")));
+				$client_sub_version = explode(".", substr($rpm_list[$key], strpos($rpm_list[$key], "-")+1));
+				if ($this->check_newer_version($client_core_version, $server_core_version) ||
+					($server_core_version == $client_core_version && $this->check_newer_version($client_sub_version, $server_sub_version))) {
+					$old_packages[] = $key.' '.$rpm_list[$key];
+				}
 			}
 		}
 
@@ -402,7 +409,11 @@ class Machine {
 			return 1;
 		} else if ($old[0] == $new[0] && $old[1] < $new[1]) {
 			return 1;
-		} else if ($old[0] == $new[0] && $old[1] == $new[1] && $old[2] < $new[2]) {
+		} else if (array_key_exists(2, $old) &&
+			array_key_exists(2, $new) &&
+			$old[0] == $new[0] &&
+			$old[1] == $new[1] &&
+			$old[2] < $new[2]) {
 			return 1;
 		}
 		return 0;
