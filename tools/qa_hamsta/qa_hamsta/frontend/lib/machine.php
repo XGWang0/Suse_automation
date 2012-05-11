@@ -62,6 +62,13 @@ class Machine {
 	public $errmsg = "";
 
 	/**
+	 * readerr 
+	 * 
+	 * static @var string Error message returned by the master
+	 */
+	private static $readerr = "";
+
+	/**
 	 * children
 	 *
 	 * @var array containing the machines which are running on this machine.
@@ -1371,7 +1378,7 @@ class Machine {
 					if (($count++) > 3) {
 						fclose(Machine::$master_socket);
 						Machine::$master_socket = null;
-						Machine::$errmsg = "Giving up after 3 empty reads from master";
+						Machine::$readerr = "Giving up after 3 empty reads from master";
 						return null;
 					}
 					sleep(1);
@@ -1397,7 +1404,7 @@ class Machine {
 	 */
 	function send_job($filename) {
 		if (!($sock = Machine::get_master_socket())) {
-			$this->errmsg = "cannot connect to master!";
+			$this->errmsg = (empty(Machine::$readerr)?"cannot connect to master!":Machine::$readerr);
 			return false;
 		}
 		
