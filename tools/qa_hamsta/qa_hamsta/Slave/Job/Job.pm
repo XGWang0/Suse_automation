@@ -186,7 +186,7 @@ sub run {
 		{	push @$upgrade, $rpm->{'content'};	}
 	}
 	&log(LOG_INFO, "RPMs to install if missing: %s\tRPMs to install/upgrade: %s", join(',',@$install ), join(',',@$upgrade));
-	if( &install_rpms($install,$upgrade) )	{
+	if( ! &install_rpms($install,$upgrade) )	{
 		&log(LOG_ERROR, "RPM install/upgrade failed, aborting");
 		return;
 	}
