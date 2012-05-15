@@ -92,7 +92,9 @@ done
 # Find all ^[1-9] lines which means test case fails
 ((returncode+=`find $logdir -name test_results -exec grep "^[1-9] " {} \; | wc -l`))
 /usr/share/hamsta/testscript/report
+((returncode+=$?))
 /usr/share/qa/tools/remote_qa_db_report.pl -b -c "QA packages test results on $hn-$ARCH"
+((returncode+=$?))
 # The returncode means how many errors are met during testing
 exit $returncode
 
