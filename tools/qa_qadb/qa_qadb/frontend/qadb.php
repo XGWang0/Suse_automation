@@ -251,7 +251,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	# $sel1[ $i_main ] -- appends for full details
 	$sel1=array( 
 /* subms */  array('s.submission_date','s.host_id','s.tester_id','s.arch_id','s.product_id','s.release_id','s.related','s.status_id','s.comment','s.rpm_config_id','s.hwinfo_id','s.type'),
-/* rslts */  array('g.tcf_id','g.testsuite_id','r.testcase_id','t.testcase','r.succeeded','r.failed','r.internal_error','r.skipped','r.times_run','r.test_time','w.waiver_id','t.relative_url'),
+/* rslts */  array('g.tcf_id','g.testsuite_id','r.testcase_id','t.testcase','r.succeeded','r.failed','r.internal_error','r.skipped','r.times_run','r.test_time','w.waiver_id','t.relative_url','b.is_bench'),
 /* suite */  array(),
 /* sums  */  array('SUM(r.testcase) as testcase','SUM(r.succeeded) as succeeded','SUM(r.failed) as failed','SUM(r.internal_error) as internal_error','SUM(r.skipped) as skipped','SUM(r.times_run) as times_run','SUM(r.test_time) as test_time')
 	);
@@ -269,7 +269,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	# $from0[ $i_main ] -- always
 	$from0=array( 'submission s', 'submission s JOIN tcf_group g USING(submission_id) JOIN result r USING(tcf_id)', 'submission s JOIN tcf_group g USING(submission_id)' );
 	# $from1[ $i_main ] -- append for full details
-	$from1=array( '', ' JOIN testcase t USING(testcase_id) LEFT OUTER JOIN waiver w USING(testcase_id)', '' );
+	$from1=array( '', ' JOIN testcase t USING(testcase_id) LEFT OUTER JOIN waiver w USING(testcase_id) JOIN test b USING(testcase_id)', '' );
 	# $from2[ $i_from ] -- always
 	$from2=array(
 /* simple */	'',
@@ -766,9 +766,16 @@ function result_process_print(&$data,$sub_info,$transl,$pager,$id)
 			$tcf_id_url[$my_tcf_id]=tcf_get_url($my_tcf_id);
 		$url=$tcf_id_url[$my_tcf_id];
 		$data[$i]['logs']=($url ? html_link('logs',$tcf_id_url[$my_tcf_id].'/'.$data[$i]['relative_url']) : '');
-
+                #Display Graphs for benchmark results.
+		if( $data[$i]['is_bench'] )
+		{
+			require_once('defs.php');
+			$graphlink="benchmarks.php?tests[]=$my_tcf_id&group_by=0&graph_x=$bench_def_width&graph_y=$bench_def_height&legend_pos=$bench_def_pos&font_size=$bench_def_font&search=1";
+		        $data[$i]['testcase']= html_link($data[$i]['testcase'],$graphlink);
+		}
 		unset($data[$i]['testcase_id']);
 		unset($data[$i]['relative_url']);
+		unset($data[$i]['is_bench']);
 
 		# append highlight info at the end
 		$data[$i][]=$classes;
@@ -779,6 +786,7 @@ function result_process_print(&$data,$sub_info,$transl,$pager,$id)
 	unset($data[0]['waiver_id']);
 	unset($data[0]['testcase_id']);
 	unset($data[0]['relative_url']);
+	unset($data[0]['is_bench']);
 
 	table_translate( $data, $transl );
 	print html_table( $data, array('callback'=>'highlight_result','id'=>$id,'sort'=>'iissiiiiiiss','pager'=>$pager,'total'=>1));
