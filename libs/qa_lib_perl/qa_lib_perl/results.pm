@@ -171,7 +171,7 @@ Structure of bench_results is:
                  name         => 'name_of_attribute_1', # MUST BE SAME AS KEY
                  label        => 'label to show in graph',
                  description  => 'description of attr',
-                 type         => 'linear', # discrete, linear or logaritmic
+                 type         => 'linear', # enum, linear or logaritmic
                  unit         => 'unit the attribute is measured in',
              },
              name_of_attribute_2 => {
