@@ -78,7 +78,8 @@ This page will allow you to customize the AutoYaST product installation for the 
 
 <table class="text-medium">
   <?php require ("req_rein_all.php"); ?>
-  <?php require ("req_newvm.php"); ?>
+  <?php require ("req_newvm_com_conf.php"); ?>
+  <?php require ("req_newvm_linux_conf.php"); ?>
   <?php require ("req_sut.php"); ?>
   <tr>
     <td>Notification email address (optional):</td>
