@@ -1,6 +1,15 @@
+-------------------------------------------------------------------
+Thu May 17 15:34:49 CEST 2012 - llipavsky@suse.cz
+
+- Add benchparser command support in TCF file
+
+-------------------------------------------------------------------
+
 Wed May  2 15:13:00 CEST 2012 - vmarsik@suse.cz
 
 - Added info about running kernel's RPM
+
+-------------------------------------------------------------------
 
 Wed May  2 09:08:03 CEST 2012 - llipavsky@suse.cz
 

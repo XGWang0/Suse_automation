@@ -646,7 +646,7 @@ $postcmd
 				<bootproto>dhcp4</bootproto>
 				<bridge>yes</bridge>
 				<bridge_forwarddelay>0</bridge_forwarddelay>
-				<bridge_ports>$dev2</bridge_ports>
+				<bridge_ports>$dev</bridge_ports>
 				<bridge_stp>off</bridge_stp>
 				<device>br$num</device>
 				<startmode>auto</startmode>

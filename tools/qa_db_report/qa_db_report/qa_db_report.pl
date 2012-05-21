@@ -486,34 +486,46 @@ while( my $parser = readdir RESULTS) {
 			&TRANSACTION_END;
 	
 			# benchmarks - parse testcase log + store benchmark data
+			# TODO: this needs rework, newer parsers give us more more information that we should
+			# improve the staring and displaying results in QADB!
 			my $bench_pairs = 0;
-			if( &is_bench($tc_name) )
+			if( $res->{bench_results} or &is_bench($tc_name) )
 			{
-				my $bfile=$the_parser->path()."/$tcf/".$the_parser->testsuite_tc_output_rel_url();
-				my $log;
-				if( open $log, $bfile )
-				{
-					# read and parse the testcase log
-					my $func = &bench_func($tc_name);
-					&log(LOG_INFO,"Parsing bench data from $tc_name using $func()");
-					my @parsed = &{$func}($log);
-					@parsed = &remove_duplicite_keyvals(@parsed);
-					&log(LOG_INFO,"Submitting ".(0+@parsed)." benchmark keys and values");
-					$bench_pairs=@parsed/2;
-					&log(LOG_WARNING,"No performance data in $filename.\n") unless @parsed;
-					&TRANSACTION('bench_part','bench_data');
-					for( my $i=0; $i<@parsed-1; $i+=2 )
-					{
-						# insert one bench key/val pair into DB
-						&log(LOG_DETAIL,"\t%s\t%s",$parsed[$i],$parsed[$i+1]);
-						$dst->insert_benchmark_data( $result_id, $parsed[$i], $parsed[$i+1] );
-					}
-					&TRANSACTION_END;
+				my @parsed;
+				if ($res->{bench_results}) {
+					# now move the new structure back to old limited format :(
+					@parsed = parse_new_bench_format($res->{bench_results});
 
-					close($log);
+				} else { # &is_bench($tc_name)
+					my $bfile=$the_parser->path()."/$tcf/".$the_parser->testsuite_tc_output_rel_url();
+					my $log;
+					if( open $log, $bfile )
+					{
+						# read and parse the testcase log - old parsing!
+						&log(LOG_WARN, "Using deprecated benchmark parsers to $tc_name, please the testsuite!");
+
+						my $func = &bench_func($tc_name);
+						&log(LOG_INFO,"Parsing bench data from $tc_name using $func()");
+						@parsed = &{$func}($log);
+	
+						close($log);
+					}
+					else
+					{	$dst->die_cleanly("Cannot open '$bfile': $!\n");	}
 				}
-				else
-				{	$dst->die_cleanly("Cannot open '$bfile': $!\n");	}
+
+				@parsed = &remove_duplicite_keyvals(@parsed);
+				&log(LOG_INFO,"Submitting ".(0+@parsed)." benchmark keys and values");
+				$bench_pairs=@parsed/2;
+				&log(LOG_WARNING,"No performance data for $tc_name.\n") unless @parsed;
+				&TRANSACTION('bench_part','bench_data');
+				for( my $i=0; $i<@parsed-1; $i+=2 )
+				{
+					# insert one bench key/val pair into DB
+					&log(LOG_DETAIL,"\t%s\t%s",$parsed[$i],$parsed[$i+1]);
+					$dst->insert_benchmark_data( $result_id, $parsed[$i], $parsed[$i+1] );
+				}
+				&TRANSACTION_END;
 			}
 	
 			# statistics

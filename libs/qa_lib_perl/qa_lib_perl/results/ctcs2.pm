@@ -57,6 +57,7 @@ package results::ctcs2;
 use results;
 @ISA = qw(results);
 
+use benchxml;
 
 use strict;
 use warnings;
@@ -239,6 +240,10 @@ sub testsuite_next
 		test_time => $p[3],
 		skipped => $p[5]
 	};
+
+	# add benchmark resutlst if any
+	my $benchres_file = $self->{TCF} . '.bench.xml';
+	$res->{bench_results} = read_bench_results_from_xml_file($benchres_file) if -r $benchres_file;
 		
 	$self->{'TC_NAME'} = $tcname;
 	
