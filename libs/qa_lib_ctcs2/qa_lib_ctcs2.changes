@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu May 17 15:34:49 CEST 2012 - llipavsky@suse.cz
+
+- Add benchparser command support in TCF file
+
+-------------------------------------------------------------------
 Wed May  2 09:08:03 CEST 2012 - llipavsky@suse.cz
 
 - New 2.3 release from QA Automation team, includes: 
