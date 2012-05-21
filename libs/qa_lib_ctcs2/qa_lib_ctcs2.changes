@@ -4,6 +4,13 @@ Thu May 17 15:34:49 CEST 2012 - llipavsky@suse.cz
 - Add benchparser command support in TCF file
 
 -------------------------------------------------------------------
+
+Wed May  2 15:13:00 CEST 2012 - vmarsik@suse.cz
+
+- Added info about running kernel's RPM
+
+-------------------------------------------------------------------
+
 Wed May  2 09:08:03 CEST 2012 - llipavsky@suse.cz
 
 - New 2.3 release from QA Automation team, includes: 
@@ -16,7 +23,6 @@ Wed May  2 09:08:03 CEST 2012 - llipavsky@suse.cz
 - Hamsta client one-click installer 
 - QADB improvements 
 - No more Novell icon in Hamsta ;-) 
-
 
 -------------------------------------------------------------------
 Mon Nov 14 11:08:55 CET 2011 - llipavsky@suse.cz

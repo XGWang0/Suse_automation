@@ -63,6 +63,11 @@ sub _hwinfo_get
 	return $self->path()."/$key/hwinfo";
 }
 
+sub _kernel_get
+{
+	my ($self,$key)=@_;
+	return $self->path()."/$key/kernel";
+}
 
 sub testsuite_list_open
 {	

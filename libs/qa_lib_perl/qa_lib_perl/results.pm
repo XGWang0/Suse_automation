@@ -287,6 +287,15 @@ sub rpmlist
 	return $rpms;
 }
 
+sub kernel
+{
+	my ($self, $tcf)=@_;
+	my $kernel = $self->_kernel_get($tcf);
+	$kernel = $self->path().'/../_REMOTE/kernel' unless -r $kernel;
+	$kernel = $self->__tmp_list('kernel') unless -r $kernel;
+	return $kernel;
+}
+
 # Do not overload this in subclass!
 sub path
 {
@@ -354,6 +363,10 @@ sub __tmp_list # type
 	{   
 		# If you change this, you must also change it in ctcs2/tools/run!!!   
 		system('rpm -qa --qf "%{NAME} %{VERSION}-%{RELEASE}\n" | sort >'.$fname);      
+	}
+	elsif( $type eq 'kernel' )
+	{
+		system('rpm -qi $(rpm -qf /boot/System.map-$(uname -r)) >'.$fname);
 	}
 	else
 	{       		
