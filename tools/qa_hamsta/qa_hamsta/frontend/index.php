@@ -103,6 +103,20 @@ if (!in_array($go, $pages)) {
     $go = $pages[0];
 }
 
+if ($openid_auth && isset($_GET['openid_mode']) && $_GET['openid_mode'] == "id_res") {
+	require_once "Zend/OpenId/Consumer.php";
+	$consumer = new Zend_OpenId_Consumer();
+	if ($consumer->verify($_GET, $id)) {
+		$_SESSION['OPENID_AUTH'] = true;
+		$_SESSION['mtype'] = "success";
+		$_SESSION['message'] = "Successfully authenticated using ".$id;
+	}
+} else if ($openid_auth && (!isset($_SESSION['OPENID_AUTH']) || $_SESSION['OPENID_AUTH'] == false)) {
+	require_once "Zend/OpenId/Consumer.php";
+	$consumer = new Zend_OpenId_Consumer();
+	$consumer->login("www.novell.com/openid");
+}
+
 require("inc/$go.php");
 require("html/header.php");
 
