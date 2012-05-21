@@ -334,8 +334,7 @@ our @stat_keys=('testcases','runs','succeeded','failed','interr','skipped', 'tim
 
 # scan for results
 
-my %rpmlist_paths = ();
-my %hwinfo_paths = ();
+my (%rpmlist_paths,%hwinfo_paths,%kernel_paths);
 my @skipped_list = ();
 
 opendir(RESULTS, $args{'resultpath'}) or die "Can't open results directory $args{'resultpath'}: $!";
@@ -396,21 +395,28 @@ while( my $parser = readdir RESULTS) {
 		&log(LOG_DEBUG, "RPMlist md5sum is $rpmlist_md5");
 		my $hwinfo_md5  = $hwinfo_path  ? `md5sum $hwinfo_path | cut -d\\  -f1` : '';
 		&log(LOG_DEBUG, "HWinfo md5sum is $hwinfo_md5");
+		my ($kernel_path,$kernel_info,$kernel_id);
+		$kernel_path = $the_parser->kernel($tcf);
+		$kernel_info = &parse_kernel_info($kernel_path) if $kernel_path;
+		if( $kernel_info )	{
+			&log(LOG_DEBUG, "Kernel info: ".join(' ',map {"$_=$kernel_info->{$_}"} keys %{$kernel_info}));
+			$kernel_id = join('-',(map {defined $_ ? ($_) : ()} map {$kernel_info->{$_}} qw(version release)));
+		}
 		chomp($rpmlist_md5,$hwinfo_md5); 
-		my $key="$rpmlist_md5|$hwinfo_md5";
+		my $key="$rpmlist_md5|$hwinfo_md5|$kernel_id";
 	
 		# submissions
 		my $submission_id=$submissions{$key};
 		unless( $submission_id or $db_common::nodb )
 		{
 			&log(LOG_DEBUG,"Preparing new submission for key $key");
-			my $rpmlist_msg = '';
-			my $hwinfo_msg = '';
 			my ($config_id,$hwinfo_id);
-			$rpmlist_msg = "File $rpmlist_path is different than already processed file(s):\n  ".join("\n  ", values(%rpmlist_paths))."\n\n" unless $rpmlist_paths{$rpmlist_md5};
-			$hwinfo_msg = "File $hwinfo_path is different than already processed file(s):\n  ".join("\n  ", values(%hwinfo_paths))."\n\n" unless $hwinfo_paths{$hwinfo_md5};
+			my @changes;
+			push @changes,'rpmlist' unless $rpmlist_paths{$rpmlist_md5};
+			push @changes,'hwinfo' unless $hwinfo_paths{$hwinfo_md5};
+			push @changes,'kernel' unless $kernel_paths{$kernel_id};
 			# annoy the user when submitting multiple configurations
-			$dst->die_cleanly('User abort') unless keys(%submissions)!=1 or $db_common::batchmode or &annoy_user("The testsuite uses another rpminfo and/or hwinfo than the previous one(s):\n$rpmlist_msg$hwinfo_msg","Do you want to continue and have multiple submissions ?");
+			$dst->die_cleanly('User abort') unless keys(%submissions)!=1 or $db_common::batchmode or &annoy_user("The testsuite uses another rpminfo and/or hwinfo than the previous one(s) in : ".join(', ',@changes)."\n","Do you want to continue and have multiple submissions ?");
 	
 			# insert rpmlist
 			if( $rpmlist_path )	{
@@ -427,11 +433,19 @@ while( my $parser = readdir RESULTS) {
 			}
 			
 			# create a new submission
-			&TRANSACTION('submission');
 			&log(LOG_INFO,"Creating a new submission");
+
+			&TRANSACTION('submission');
 			$submission_id = $dst->submission_create($args{'type'},$tester_id,$host_id,$args{'comment'},$arch_id,$product_id,$release_id,$config_id,$hwinfo_id);
 			$submissions{$key}=$submission_id;
 			&TRANSACTION_END;
+
+			# set kernel info, if available
+			if( $kernel_info )	{
+				&TRANSACTION('kernel_flavor','kernel_version','submission');
+				$dst->submission_set_kernel_values($submission_id,map{$kernel_info->{$_}} qw(branch flavor revision version));
+				&TRANSACTION_END;
+			}
 	
 			# write the submission(s) type
 			&log(LOG_INFO,"Writing submission types for submission $submission_id");
@@ -440,6 +454,7 @@ while( my $parser = readdir RESULTS) {
 	
 		$rpmlist_paths{$rpmlist_md5} = $rpmlist_path;
 		$hwinfo_paths{$hwinfo_md5} = $hwinfo_path;
+		$kernel_paths{$kernel_id} = $kernel_path;
 		&log(LOG_DEBUG, "Submission for key $key exists, going to write testsuite now");
 	
 		# testsuites
@@ -623,26 +638,7 @@ sub exec_submission_type # $submission_id, $config_id, $type
 {
 	my ($submission_id,$config_id) = @_;
 	my @parts = split /:/, $_[2];
-	if( $parts[0] eq 'kotd' )
-	{
-		shift @parts;
-		my ($md5sum,$kernel_version,$kernel_branch,$kernel_flavor)=@parts;
-		
-		# check if the kernel branch exists in QADB
-		my $kernel_branch_id = $dst->enum_get_id('kernel_branch',$kernel_branch);
-		$dst->die_cleanly("The specified KotD branch \"$kernel_branch\" does not exist.\nPlease check for typos or contact the DB admin\n") unless $kernel_branch_id;
-
-		&TRANSACTION('kernel_flavor','kernel_version','submission');
-		# check if the kernel flavor exists in QADB
-		my $kernel_flavor_id = $dst->enum_get_id_or_insert('kernel_flavor',$kernel_flavor);
-		my $kernel_version_id = $dst->enum_get_id_or_insert('kernel_version',$kernel_version);
-		$dst->die_cleanly("The specified KotD flavor \"$kernel_flavor\" does not exist.\nPlease check for typos or contact the DB admin\n") unless $kernel_flavor_id;
-
-		# record as kotd_testing
-		$dst->submission_set_kotd_values($submission_id,$kernel_branch_id,$kernel_flavor_id,$md5sum,$kernel_version_id);
-		&TRANSACTION_END;
-	}
-	elsif( $parts[0] eq 'patch' )
+	if( $parts[0] eq 'patch' )
 	{
 		my $md5sum=$parts[1];
 		my @released_rpms=&get_patch_details($md5sum);

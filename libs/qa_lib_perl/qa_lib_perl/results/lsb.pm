@@ -724,5 +724,10 @@ sub _hwinfo_get
 	return '';
 }
 
+sub _kernel_get
+{
+	return '';
+}
+
 1;
 

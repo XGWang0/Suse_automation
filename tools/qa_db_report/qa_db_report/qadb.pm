@@ -200,10 +200,23 @@ sub insert_benchmark_data # $result_id, $bench_part, $value
 	return $self->insert_query('INSERT INTO bench_data(result_id,bench_part_id,result) VALUES(?,?,?)',$result_id,$bench_part_id,$value);
 }
 
-sub submission_set_kotd_values # submission_id, kernel_branch_id, kernel_flavor_id, md5sum, kernel_version_id
+sub submission_set_kernel_values # submission_id, kernel_branch_id, kernel_flavor_id, md5sum, kernel_version_id
 {	
-	my $self=shift;
-	$self->update_query('UPDATE submission SET kernel_branch_id=?,kernel_flavor_id=?,md5sum=?,kernel_version_id=? WHERE submission_id=?',$_[1],$_[2],$_[3],$_[4],$_[0]);
+	my ($self,$submission_id,$kernel_branch,$kernel_flavor,$md5sum,$kernel_version)=@_;
+
+	# check if the kernel branch exists in QADB
+	my @kernel_branches = $self->enum_list_vals('kernel_branch');
+	my $best_match='';
+	foreach my $b (@kernel_branches)	{
+		$best_match=$b if length($b)>length($best_match) and $kernel_branch =~ /^$b/;
+	}
+	my $kernel_branch_id = $self->enum_get_id('kernel_branch',$best_match);
+	$self->die_cleanly("The specified KotD branch \"$kernel_branch\" does not exist.\nPlease check for typos or contact the DB admin\n") unless $kernel_branch_id;
+
+	# check if the kernel flavor exists in QADB
+	my $kernel_flavor_id = $self->enum_get_id_or_insert('kernel_flavor',$kernel_flavor);
+	my $kernel_version_id = $self->enum_get_id_or_insert('kernel_version',$kernel_version);
+	$self->update_query('UPDATE submission SET kernel_branch_id=?,kernel_flavor_id=?,md5sum=?,kernel_version_id=? WHERE submission_id=?',$kernel_branch_id,$kernel_flavor_id,$md5sum,$kernel_version_id,$submission_id);
 }
 
 sub submission_set_maintenance_values # submission_id, patch_id, md5sum

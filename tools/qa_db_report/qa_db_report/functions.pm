@@ -58,6 +58,7 @@ BEGIN {
 			&process_dirname
 			&remove_duplicite_keyvals
 			&set_product_release
+			&parse_kernel_info
 			$batchmode
 		);
     %EXPORT_TAGS = ( );     # eg: TAG => [ qw!name1 name2! ],
@@ -248,6 +249,27 @@ sub process_dirname # basename of the dir
 		$testdate = ( $testdate =~ /([12]\d{3})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})/ ? "$1-$2-$3 $4:$5:$6" : undef ) if $testdate
 	}
 	return ($testsuite,$testdate);
+}
+
+sub parse_kernel_info($) # filename with RPM info of kernel
+{
+	if( defined $_[0] )	{
+		open INFO, $_[0] or return undef;
+	} else {
+		open INFO, "rpm -qi \$(rpm -qf /boot/System.map-\$(uname -r)) |" or return undef;
+	}
+
+	my $args={};
+	while( my $row=<INFO> )	{
+		chomp $row;
+		$args->{flavor}  =$1 if $row =~ /Name\s*:\s*kernel-([^\s]+)/;
+		$args->{version} =$1 if $row =~ /Version\s*:\s*([^\s]+)/;
+		$args->{release} =$1 if $row =~ /Release\s*:\s*([^\s]+)/;
+		$args->{revision}=$1 if $row =~ /Revision\s*:\s*([^\s]+)/;
+		$args->{branch}  =$1 if $row =~ /Branch\s*:\s*([^\s]+)/;
+	}
+	close INFO;
+	return $args;
 }
 
 1;

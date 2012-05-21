@@ -863,19 +863,30 @@ sub save_state {
 	save_hash(\%timers, $environment{"save_directory"}."/timer_state") or warn "Can't save timer state!\n";
 	save_hash(\%test_results, $environment{"save_directory"}."/test_results", @test_order) or warn "Can't save test results!\n";
 	save_hash(\%processes, $environment{"save_directory"}."/process_state") or warn "Can't save process state!\n";
-	# fixme
-	my $tmp = $environment{"save_directory"}."/rpmlist";
+	# FIXME : all this should be shared with remote_qa_db_report, somehow
 	
 	unless( system('which rpm >/dev/null 2>/dev/null' ) )	{
 		# If we have RPM, we collect RPM list for further processing.
 		# Please do not change the format, it is used by other tools in the chain as well.
-		system ( "rpm -qa --qf \"%{NAME} %{VERSION}-%{RELEASE}\n\" | sort > $tmp " ); 
+		my $rpmlist_file = $environment{"save_directory"}."/rpmlist";
+		system ( "rpm -qa --qf \"%{NAME} %{VERSION}-%{RELEASE}\n\" | sort > $rpmlist_file " );
+		
+		# Collect info about RPM of a running kernel, if available
+		my $kernel_file = $environment{'save_directory'} . '/kernel';
+		my $kernel_rpm = `rpm -qf /boot/System.map-\$(uname -r)`;
+		if( $kernel_rpm )	{
+			chomp $kernel_rpm;
+			system ( "rpm -qi '$kernel_rpm' > '$kernel_file'" );
+		}
+		else	{
+			system ( "uname -r > '$kernel_file'" );
+		}
 	}
 
 	if( -x '/usr/sbin/hwinfo' )	{
 		# If we have hwinfo, we collect its results for further processing.
-		$tmp = $environment{"save_directory"}."/hwinfo";
-		system ( "/usr/sbin/hwinfo --all > $tmp ");
+		my $hwinfo_file = $environment{"save_directory"}."/hwinfo";
+		system ( "/usr/sbin/hwinfo --all > $hwinfo_file ");
 	}
 
 	# Create "done" file which contain time of completion
