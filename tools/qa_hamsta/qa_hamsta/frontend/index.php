@@ -93,6 +93,7 @@ $pages = array(
     "autopxe",
     "vhreinstall",
     "newvm",
+    "newvm-win",
     "del_virtual_machines",
     "upgrade",
     "merge_machines",

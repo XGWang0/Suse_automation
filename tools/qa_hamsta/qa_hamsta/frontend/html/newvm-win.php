@@ -27,7 +27,7 @@
      * Contents of the <tt>send_job</tt> page  
      */
     if (!defined('HAMSTA_FRONTEND')) {
-        $go = 'newvm';
+        $go = 'newvm-win';
         return require("index.php");
     }
 	$blockedMachines = array();
@@ -71,16 +71,14 @@
 <?php endforeach; ?>
 </ul></h5>
 
-This page will allow you to customize the AutoYaST product installation for the machine(s) you have selected, including repository URLs and other options, or to upload your own custom AutoYaST profile. However, you can still simply copy the product url into the fields
+This page will allow you to install a Windows for the virtual machine(s) you have selected. However, you can still simply copy the product path into the fields.
 <br /><br />
 
-<form enctype="multipart/form-data" action="index.php?go=newvm" method="POST" onsubmit="return checkcontents(this);">
+<form enctype="multipart/form-data" action="index.php?go=newvm-win" method="POST" onsubmit="return checkcontents(this);">
 
 <table class="text-medium">
-  <?php require ("req_rein_all.php"); ?>
+  <?php require ("req_newvm_win.php"); ?>
   <?php require ("req_newvm_com_conf.php"); ?>
-  <?php require ("req_newvm_linux_conf.php"); ?>
-  <?php require ("req_sut.php"); ?>
   <tr>
     <td>Notification email address (optional):</td>
     <td><input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} ?>" /> (if you want to be notified when the installation is finished)</td>

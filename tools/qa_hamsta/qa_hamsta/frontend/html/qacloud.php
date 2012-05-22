@@ -62,6 +62,7 @@ if (!defined('HAMSTA_FRONTEND')) {
             echo "\" />\n";
         ?>
       <a href="index.php?go=newvm&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-newvm.png" alt="Create new virtual machine" title="Create new virtual machine SUT on <?php echo($machine->get_hostname()); ?>" border="0" width="20" style="padding-right: 3px;" /></a>
+      <a href="index.php?go=newvm-win&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-win.png" alt="Create new Windows virtual machine" title="Create new Windows virtual machine on <?php echo($machine->get_hostname()); ?>" border="0" width="20" style="padding-right: 3px;" /></a>
       <a href="http://<?php echo($machine->get_ip_address()); ?>:5801" target="_blank"><img src="images/icon-vnc.png" alt="Open a VNC viewer" title="Open a VNC viewer on <?php echo($machine->get_hostname());?>" border="0" width="20" style="padding-right: 3px;" /></a>
       <a href="http://<?php echo($_SERVER['SERVER_ADDR']); ?>/ajaxterm/?host=<?php echo($machine->get_ip_address()); ?>" target="_blank"><img src="images/icon-terminal.png" alt="Access the terminal" title="Access the terminal on <?php echo($machine->get_hostname());?>" border="0" width="20" style="padding-right: 3px;" /></a>
       <?php if(count($machine->get_children()) > 0) { ?>
