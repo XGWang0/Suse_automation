@@ -53,6 +53,7 @@ require("lib/group.php");
 require("lib/roles.php");
 require("lib/Utilfunc.php");
 require("lib/parameters.php");
+require("lib/powerswitch.php");
 
 require_once("../tblib/tblib.php");
 
