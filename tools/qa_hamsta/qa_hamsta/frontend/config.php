@@ -112,4 +112,7 @@ $pxeserver="147.2.207.240";
 # Sane default SMT server
 $smtserver="https://smt.novell.com/center/regsvc";
 
+# Enable/Disable openid authentication to the system.
+$openid_auth = false;
+
 ?>

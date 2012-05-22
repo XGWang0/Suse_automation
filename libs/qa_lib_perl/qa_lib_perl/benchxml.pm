@@ -37,7 +37,9 @@ BEGIN {
 	@ISA	= qw(Exporter);
 	@EXPORT	= qw(
 		&read_bench_results_from_xml_file
+		bench_results_from_xml
 		&write_bench_results_to_xml_file
+		bench_results_to_xml
 	);
 	%EXPORT_TAGS	= ();
 	@EXPORT_OK	= ();
@@ -45,14 +47,29 @@ BEGIN {
 
 sub read_bench_results_from_xml_file # $path_to_file.bench.xml ; returns hash reference
 {
+	# IF YOU EVER CHANGE THIS, CHANGE bench_results_from_xml TOO!!!
 	my $file = shift;
 	XMLin($file, ForceArray => [ 'values', 'axis', 'graphs' ], KeyAttr => { attribute => '+name' , axis => 'id' }, GroupTags => { attributes => 'attribute' }, ValueAttr => {axis => 'attribute'});
+}
+
+sub bench_results_from_xml # $xml_string ; returns hash reference
+{
+	# same command works on files and strings!
+	# UGLY HACK
+	# IF YOU EVER CHANGE THIS, CHANGE read_bench_results_from_xml_file TOO!!!
+	read_bench_results_from_xml_file($_[0]);
+}
+
+
+sub bench_results_to_xml # $hashref ; returns string
+{
+	XMLout($_[0], RootName => 'benchmark', KeyAttr => {attribute => '+name', axis => 'id'}, GroupTags => { attributes => 'attribute' }, ValueAttr => {axis => 'attribute'});
 }
 
 sub write_bench_results_to_xml_file # $path_to_file.bench.xml $hashref
 {
 	if (open FILE, '>', $_[0]) {
-		print FILE XMLout($_[1], RootName => 'benchmark', KeyAttr => {attribute => '+name', axis => 'id'}, GroupTags => { attributes => 'attribute' }, ValueAttr => {axis => 'attribute'});
+		print FILE bench_results_to_xml($_[1]);
 		close FILE;
 		return 1;
 	} else {
@@ -60,5 +77,7 @@ sub write_bench_results_to_xml_file # $path_to_file.bench.xml $hashref
 		return 0;
 	}
 }
+
+
 
 1;

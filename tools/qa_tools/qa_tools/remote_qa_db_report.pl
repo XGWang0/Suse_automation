@@ -216,11 +216,21 @@ if ( -d $metadir ) {
 mkdir $metadir or die "Unable to create directory '$metadir' for information transfer: $!\n"
 						."It is possible that another submit is running. If you're sure it's not, "
 						."delete directory and start again.\n";
+
+# TODO: this should be merged with the same code in CTCS2
 &log(LOG_INFO,"Getting RPM info");
 system('rpm -qa --qf "%{NAME} %{VERSION}-%{RELEASE}\n" | sort > "'.$metadir.'/rpmlist"');
 &log(LOG_INFO,"Getting hwinfo");
 system("/usr/sbin/hwinfo --all > '$metadir/hwinfo'");
-
+&log(LOG_INFO,"Getting running kernel info");
+my $kernel_rpm = `rpm -qf /boot/System.map-\$(uname -r)`;
+if( $kernel_rpm )	{
+	chomp $kernel_rpm;
+	system("rpm -qi '$kernel_rpm' > '$metadir/kernel'");
+}
+else	{
+	system("uname -r > '$metadir/kernel'");
+}
 
 #my ($type, $version, $subversion, $ar) = &parse_suse_release();
 #print "type:$type version:$version subversion:$subversion arch:$arch\n";

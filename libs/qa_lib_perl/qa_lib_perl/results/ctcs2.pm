@@ -96,6 +96,12 @@ sub _hwinfo_get
 	return $self->path()."/$tcf/hwinfo";
 }
 
+sub _kernel_get
+{
+	my ($self,$tcf)=@_;
+	return $self->path()."/$tcf/kernel";
+}
+
 # private method for opening directory path() and keeping its handle
 sub __dir_open
 {

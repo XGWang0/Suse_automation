@@ -93,6 +93,12 @@ sub _hwinfo_get
 	return $self->path()."/hwinfo";
 }
 
+sub _kernel_get
+{
+	my $self = shift;
+	return $self->path()."/kernel";
+}
+
 # TODO
 # stores a hash of machine attributes
 sub set_options
