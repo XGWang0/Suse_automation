@@ -33,8 +33,8 @@
 
 	# We are going to output all fields and data for the machines, so first we collect it
 	$table = array();
-	$tableHeadings = array("Name", "*Perm", "Used By", "Usage", "Usage Expires (days)", "Maintainer", "Affiliation", "Notes", "Power Switch", "Serial Console", "Console Device", "Console Speed", "Enable Console", "Default Install Options");
-	$show_column = array("used_by", "usage", "expires", "maintainer_string", "affiliation", "anomaly", "powerswitch", "serialconsole");
+	$tableHeadings = array("Name", "*Perm", "Used By", "Usage", "Usage Expires (days)", "Maintainer", "Affiliation", "Notes", "Power Switch", "Power type", "Power slot", "Serial Console", "Console Device", "Console Speed", "Enable Console", "Default Install Options");
+	$show_column = array("used_by", "usage", "expires", "maintainer_string", "affiliation", "anomaly", "powerswitch", "powertype", "powerslot","serialconsole");
 	$machineCounter = 0;
 	foreach ($machines as $machine) {
 
