@@ -36,37 +36,52 @@ BEGIN {
 	our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
 	@ISA	= qw(Exporter);
 	@EXPORT	= qw(
-		&read_bench_results_from_xml_file
-		bench_results_from_xml
-		&write_bench_results_to_xml_file
-		bench_results_to_xml
+		&bench_results_from_xml
+		&bench_results_to_xml_file
+		&bench_results_to_xml
 	);
 	%EXPORT_TAGS	= ();
 	@EXPORT_OK	= ();
 }
 
-sub read_bench_results_from_xml_file # $path_to_file.bench.xml ; returns hash reference
+our %options = (
+	KeyAttr => { attr => '+id' }, 
+	GroupTags => { attrs => 'attr', 'graphs'=>'graph', 'values'=>'value' }, 
+);
+our %out_options = (
+	RootName => 'benchmark',
+	%options
+);
+our %in_options = (
+	ForceArray => [ 'value', 'axis', 'graph' ], 
+	ValueAttr => {axis => 'attr'},
+	%options
+);
+
+
+# Parses XML from string or file.
+# @param1 XML
+# - either a path of a bench XML file
+# - or a string containing the XML code
+# @returns the parsed bench hashref
+sub bench_results_from_xml($) # XML string or file
 {
-	# IF YOU EVER CHANGE THIS, CHANGE bench_results_from_xml TOO!!!
-	my $file = shift;
-	XMLin($file, ForceArray => [ 'values', 'axis', 'graphs' ], KeyAttr => { attribute => '+name' , axis => 'id' }, GroupTags => { attributes => 'attribute' }, ValueAttr => {axis => 'attribute'});
+	return XMLin( $_[0], %in_options	);
 }
 
-sub bench_results_from_xml # $xml_string ; returns hash reference
+# Formats bench hashref as XML and returns it.
+# @param1 bench hashref
+# @returns a string with bench XML
+sub bench_results_to_xml($) # bench hashref
 {
-	# same command works on files and strings!
-	# UGLY HACK
-	# IF YOU EVER CHANGE THIS, CHANGE read_bench_results_from_xml_file TOO!!!
-	read_bench_results_from_xml_file($_[0]);
+	return XMLout($_[0], %out_options );
 }
 
-
-sub bench_results_to_xml # $hashref ; returns string
-{
-	XMLout($_[0], RootName => 'benchmark', KeyAttr => {attribute => '+name', axis => 'id'}, GroupTags => { attributes => 'attribute' }, ValueAttr => {axis => 'attribute'});
-}
-
-sub write_bench_results_to_xml_file # $path_to_file.bench.xml $hashref
+# Formats bench hashref as XML and writes to a file.
+# @param1 path to a bench file to write
+# @param2 bench hashref
+# @returns 1 on successfull write, 0 on error
+sub bench_results_to_xml_file($$) # path, bench hashref
 {
 	if (open FILE, '>', $_[0]) {
 		print FILE bench_results_to_xml($_[1]);
