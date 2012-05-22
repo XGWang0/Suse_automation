@@ -36,9 +36,9 @@ BEGIN {
 	our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
 	@ISA	= qw(Exporter);
 	@EXPORT	= qw(
-		&bench_results_from_xml
-		&bench_results_to_xml_file
-		&bench_results_to_xml
+		&bench_data_from_xml
+		&bench_data_to_xml_file
+		&bench_data_to_xml
 	);
 	%EXPORT_TAGS	= ();
 	@EXPORT_OK	= ();
@@ -64,7 +64,7 @@ our %in_options = (
 # - either a path of a bench XML file
 # - or a string containing the XML code
 # @returns the parsed bench hashref
-sub bench_results_from_xml($) # XML string or file
+sub bench_data_from_xml($) # XML string or file
 {
 	return XMLin( $_[0], %in_options	);
 }
@@ -72,7 +72,7 @@ sub bench_results_from_xml($) # XML string or file
 # Formats bench hashref as XML and returns it.
 # @param1 bench hashref
 # @returns a string with bench XML
-sub bench_results_to_xml($) # bench hashref
+sub bench_data_to_xml($) # bench hashref
 {
 	return XMLout($_[0], %out_options );
 }
@@ -81,10 +81,10 @@ sub bench_results_to_xml($) # bench hashref
 # @param1 path to a bench file to write
 # @param2 bench hashref
 # @returns 1 on successfull write, 0 on error
-sub bench_results_to_xml_file($$) # path, bench hashref
+sub bench_data_to_xml_file($$) # path, bench hashref
 {
 	if (open FILE, '>', $_[0]) {
-		print FILE bench_results_to_xml($_[1]);
+		print FILE bench_data_to_xml($_[1]);
 		close FILE;
 		return 1;
 	} else {
