@@ -92,6 +92,8 @@ CREATE TABLE machine (
   anomaly text not null,
   serialconsole varchar(255),
   powerswitch varchar(255),
+  powerswitch varchar(255),
+  powerslot varchar(255),
   busy tinyint(1) not null default 0,
   primary key  (machine_id),
   foreign key(machine_status_id) references machine_status(machine_status_id) on delete restrict,
