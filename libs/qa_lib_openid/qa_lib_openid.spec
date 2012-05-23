@@ -24,7 +24,7 @@ Release:	1
 License:	BSD
 Url:		http://framework.zend.com/
 Group:		Development/Libraries/Other
-Source:		Zend.tar.gz
+Source:		%{name}-%{version}.tar.gz
 BuildRequires:	php5 >= 5.2
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
