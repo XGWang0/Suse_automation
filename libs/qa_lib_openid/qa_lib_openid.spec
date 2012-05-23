@@ -44,15 +44,15 @@ well as API providers and catalogers like StrikeIron and ProgrammableWeb.
 install -m 755 -d $RPM_BUILD_ROOT/usr/share/man/man8
 install -m 644 %{S:1} $RPM_BUILD_ROOT/usr/share/man/man8
 gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
-%{__cp} -pr Zend $RPM_BUILD_ROOT%{_datadir}/php5
+%{__cp} -pr * $RPM_BUILD_ROOT%{_datadir}/php5
 
 %clean
 %{?buildroot:%__rm -rf "%{buildroot}"}
 
 %files
 %defattr(-,root,root)
-/usr/share/man/man8/%{name}.8
-%{_datadir}/php5/Zend
+/usr/share/man/man8/%{name}.8.gz
+%{_datadir}/php5/Zend/*
 
 %changelog
 * Wed May 23 2012 dmulder@suse.com
