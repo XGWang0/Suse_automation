@@ -25,6 +25,7 @@ License:	BSD
 Url:		http://framework.zend.com/
 Group:		Development/Libraries/Other
 Source:		%{name}-%{version}.tar.gz
+Source1:	%{name}.8
 BuildRequires:	php5 >= 5.2
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
@@ -41,7 +42,7 @@ well as API providers and catalogers like StrikeIron and ProgrammableWeb.
 
 %install
 install -m 755 -d $RPM_BUILD_ROOT/usr/share/man/man8
-install -m 644 %{S:3} $RPM_BUILD_ROOT/usr/share/man/man8
+install -m 644 %{S:1} $RPM_BUILD_ROOT/usr/share/man/man8
 gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
 %{__cp} -pr Zend $RPM_BUILD_ROOT%{_datadir}/php5
 
