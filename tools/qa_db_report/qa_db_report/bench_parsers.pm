@@ -68,7 +68,7 @@ our @EXPORT_OK;
 # This could be deleted when QADB is later extended and we will
 # store bench results in a better way
 #
-# arguments: harhref to bench_results structure (see results.pm for definition)
+# arguments: harhref to bench_data structure (see results.pm for definition)
 # returns: array ( $key1, $number1, $key2, $number2, ... )
 # key conventions: semicolon-separated strings, 
 #  first one is used to make X axis and should start with a number for line graphs
