@@ -45,7 +45,8 @@ install -m 755 -d $RPM_BUILD_ROOT/usr/share/man/man8
 install -m 644 %{S:1} $RPM_BUILD_ROOT/usr/share/man/man8
 gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
 mkdir -p $RPM_BUILD_ROOT%{_datadir}/php5
-%{__cp} -pr Zend $RPM_BUILD_ROOT%{_datadir}/php5
+install --directory $RPM_BUILD_ROOT%{_datadir}/php5/Zend
+%{__cp} -pr Zend/* $RPM_BUILD_ROOT%{_datadir}/php5/Zend
 
 %clean
 %{?buildroot:%__rm -rf "%{buildroot}"}
@@ -53,7 +54,7 @@ mkdir -p $RPM_BUILD_ROOT%{_datadir}/php5
 %files
 %defattr(-,root,root)
 /usr/share/man/man8/%{name}.8.gz
-%{_datadir}/php5/Zend/*
+%{_datadir}/php5/Zend
 
 %changelog
 * Wed May 23 2012 dmulder@suse.com
