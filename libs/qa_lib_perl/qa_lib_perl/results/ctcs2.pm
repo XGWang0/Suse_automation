@@ -247,7 +247,7 @@ sub testsuite_next
 	};
 
 	# add benchmark resutlst if any
-	my $benchres_file = $self->{TCF} . '.bench.xml';
+	my $benchres_file = $self->path().'/'.$self->{TCF} .'/'.$tcname .'.bench.xml';
 	$res->{bench_data} = bench_data_from_xml($benchres_file) if -r $benchres_file;
 		
 	$self->{'TC_NAME'} = $tcname;
