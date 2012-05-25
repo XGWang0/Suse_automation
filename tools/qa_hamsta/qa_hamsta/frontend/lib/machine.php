@@ -735,11 +735,17 @@ class Machine {
 	 * @return string Login for which the machine is reserved 
 	 */
 	function get_used_by() {
-	if( isset($this->fields["usedby"]) )
+		if( isset($this->fields["usedby"]) )
 			return $this->fields["usedby"];
 		else
 			return NULL;
 	}
+
+	function get_used_by_name() {
+		if( isset($this->fields["usedby"]) && $openid_auth && $used_by = User::get_by_openid($this->fields["usedby"]) )
+			return $used_by->get_name();
+		else
+			return NULL;
 	
 	/**
 	 * set_used_by 
