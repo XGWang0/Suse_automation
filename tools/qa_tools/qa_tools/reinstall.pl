@@ -176,8 +176,6 @@ sub set_common_args
 
 sub print_help
 {
-	my ($entry) = @_;
-	print "$entry\n";
 	print STDERR "Usage: $name [options] [-p]<source URL>";
 	print STDERR " -V<pv|fv>" if $args->{'newvm'};
 	print STDERR "\n";
@@ -261,22 +259,22 @@ EOF
 our ($ay_xml,$aytool);
 
 unless ($args->{'winvm'}) {
-if ( $args->{'userprofile'} ) {
-	$ay_xml = $args->{'userprofile'};
-} else {
-	&command( 'mount '.$qaconf{install_profile_nfs_server}.":".$qaconf{install_profile_nfs_dir}." $mountpoint -o nolock" );
+	if ( $args->{'userprofile'} ) {
+		$ay_xml = $args->{'userprofile'};
+	} else {
+		&command( 'mount '.$qaconf{install_profile_nfs_server}.":".$qaconf{install_profile_nfs_dir}." $mountpoint -o nolock" );
 
-	my $profile = &get_profile( $args, $profiledir );
-	
-	my $modfile = &make_modfile( $args );
+		my $profile = &get_profile( $args, $profiledir );
 
-	$ay_xml = 'autoinst_'.$args->{'hostname'} . ($args->{'newvm'} ? "_vm_$$" : '') . '.xml';
-	&command( "$tooldir/modify_xml.pl -m '$modfile' '$profile' '$mountpoint/autoinst/$ay_xml'" );
-	$ay_xml = $qaconf{'install_profile_url_base'} . '/' . $ay_xml;
+		my $modfile = &make_modfile( $args );
 
-	&command( "umount $mountpoint" );
-}
-print "***\nResult profile is $ay_xml\n***\n";
+		$ay_xml = 'autoinst_'.$args->{'hostname'} . ($args->{'newvm'} ? "_vm_$$" : '') . '.xml';
+		&command( "$tooldir/modify_xml.pl -m '$modfile' '$profile' '$mountpoint/autoinst/$ay_xml'" );
+		$ay_xml = $qaconf{'install_profile_url_base'} . '/' . $ay_xml;
+
+		&command( "umount $mountpoint" );
+	}
+	print "***\nResult profile is $ay_xml\n***\n";
 }
 
 # setup tool
@@ -327,8 +325,6 @@ if( $args->{'newvm'} )	{
 	$cmdline .= " -x ".$args->{'maxmem'} if defined $args->{'maxmem'};
 	$cmdline .= " -d ".$args->{'virtdisksize'} if defined $args->{'virtdisksize'};
 	$cmdline .= " -D ".$args->{'virtdisktype'} if defined $args->{'virtdisktype'};
-	#print $cmdline . "\n";
-	#exit (100);
 	my $ret = system("$cmdline");
 	$ret = $ret >> 8;
 	# this will let hamsta know that it should increase stats version -> master will then query 
