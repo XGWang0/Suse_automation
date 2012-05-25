@@ -50,6 +50,8 @@ our $args={
 };
 
 $args->{'newvm'} = ( $0 =~ /newvm(?:\.\w*)?$/ );
+$args->{'winvm'} = ( $0 =~ /winvm(?:\.\w*)?$/ );
+
 our $name = `basename $0`;
 chomp $name;
 # [ [ cmdline_letter, ID, parameter_desc, option_desc, manpage_desc ] ]; option takes parameter if there is a parameter_desc
@@ -93,9 +95,17 @@ push @$options, (
 	['T','virtdisktype','type', 'VM disk type: file | iscsi | nbd | npiv | phy | tap:aio | tap:qcow | tap:qcow2 | vmdk',''],
 ) if $args->{'newvm'};
 
+push @$options, (
+	### Windows VM options ### Example: vm-install.sh -C -g -Q /usr/share/qa/virtautolib/data/sources.cn -o win -r xp -p sp3 -c 32 -t fv -n def -m iso
+	['F','settingsFile','full path','','','The path and name of the settings file to use, can be full or relative path'],
+	['W','WinEntry','WindowsInstallEntry','','','Windows Install Entry, for example: Win-2k-sp3-32'],
+	['I','InstScen','InstallScenario','scenario','scenario: def | shm','by default: def; If you want the shm for Windows 2008 or Vista, then this must begin with shm'],
+
+) if $args->{'winvm'};
+
 &read_cmdline();
 &validate_cmdline();
-&set_common_args();
+&set_common_args() unless $args->{'winvm'};
 
 sub read_cmdline
 {
@@ -106,23 +116,23 @@ sub read_cmdline
 	&print_man() if $args->{'manual'};
 
 	# let's accept source without '-p' prefix
-	$args->{'source'} = $ARGV[0] if @ARGV and !$args->{'source'};
+	$args->{'source'} = $ARGV[0] if @ARGV and !$args->{'source'} and !$args->{'winvm'};
 }
 
 sub validate_cmdline
 {
 	# validate source
-	&print_help() if !$args->{'source'} or length($args->{'source'})<=3;
+	&print_help() if ((!$args->{'source'} or length($args->{'source'})<=3) and !$args->{'winvm'}) ;
 
 	# validate virtualization
 	die "Virtualization host type must be either xen or kvm" if defined $args->{'virthosttype'} and $args->{'virthosttype'} !~ /^xen|kvm$/;
 	&print_help() if $args->{'newvm'} and ( !defined $args->{'virttype'} or $args->{'virttype'}!~/^(?:pv|fv)$/ );
+	&print_help() if $args->{'winvm'} and ( !defined $args->{'WinEntry'} );
 
 	# validate SMT / NCC
 	if( ($args->{'smt_server'} and $args->{'ncc_email'} and $args->{'ncc_code'}) or ($args->{'ncc_email'} xor $args->{'ncc_code'}) ) {
 		die "You must specify an SMT update (-S) *or* NCC (-R *and* -C)\n";
 	}
-
 }
 
 our ($tooldir,$profiledir,$mountpoint);
@@ -162,11 +172,12 @@ sub set_common_args
 	$args->{'domainname'}=`domainname`;
 	chomp $args->{'domainname'};
 	$args->{'domainname'} = 'site' if ($args->{'domainname'} eq '');
-
 }
 
 sub print_help
 {
+	my ($entry) = @_;
+	print "$entry\n";
 	print STDERR "Usage: $name [options] [-p]<source URL>";
 	print STDERR " -V<pv|fv>" if $args->{'newvm'};
 	print STDERR "\n";
@@ -249,6 +260,7 @@ EOF
 
 our ($ay_xml,$aytool);
 
+unless ($args->{'winvm'}) {
 if ( $args->{'userprofile'} ) {
 	$ay_xml = $args->{'userprofile'};
 } else {
@@ -265,9 +277,10 @@ if ( $args->{'userprofile'} ) {
 	&command( "umount $mountpoint" );
 }
 print "***\nResult profile is $ay_xml\n***\n";
+}
 
 # setup tool
-if( $args->{'newvm'} )	{
+if( $args->{'newvm'} or $args->{'winvm'})	{
 	$aytool = "/usr/share/qa/virtautolib/lib/vm-install.sh";
 } elsif ($args->{'from_arch'} eq 'ia64') {
 	$aytool = $tooldir."/setupIA64liloforinstall";
@@ -298,9 +311,31 @@ if( $args->{'newvm'} )	{
 # this host for changes
 	system ("touch /var/lib/hamsta/stats_changed");
 	exit $ret;
-}
-# reinstall / upgrade
-else {
+} elsif ( $args->{'winvm'} ) { # install Windows VM : vm-install.sh -C -g -Q /usr/share/qa/virtautolib/data/sources.cn -o win -r xp -p sp3 -c 32 -t fv -n def -m iso
+	my $WinEntry = $args->{'WinEntry'};
+	my ($win, $ver, $subver, $arch) = split '-', $WinEntry;
+	my $instscenario = "";
+	defined $args->{'InstScen'} ? $instscenario = $args->{'InstScen'} : $instscenario = "def";
+	my $location = `/usr/share/qa/tools/location.pl`;
+	chomp($location);
+	my $sourcefile = "";
+	defined $args->{'settingsFile'} ? $sourcefile = $args->{'settingsFile'} : $sourcefile = "/usr/share/qa/virtautolib/data/sources.".$location;
+
+	my $cmdline = "$aytool -C -g -Q $sourcefile -o win -r $ver -p $subver -c $arch -t fv -n $instscenario -m iso";
+	$cmdline .= " -s ".$args->{'virtcpu'} if defined $args->{'virtcpu'};
+	$cmdline .= " -e ".$args->{'initmem'} if defined $args->{'initmem'};
+	$cmdline .= " -x ".$args->{'maxmem'} if defined $args->{'maxmem'};
+	$cmdline .= " -d ".$args->{'virtdisksize'} if defined $args->{'virtdisksize'};
+	$cmdline .= " -D ".$args->{'virtdisktype'} if defined $args->{'virtdisktype'};
+	#print $cmdline . "\n";
+	#exit (100);
+	my $ret = system("$cmdline");
+	$ret = $ret >> 8;
+	# this will let hamsta know that it should increase stats version -> master will then query 
+	# this host for changes
+	system ("touch /var/lib/hamsta/stats_changed");
+	exit $ret;
+} else { # reinstall / upgrade
 	my $cmdline = "$aytool ".$args->{'source'}.' ';
 	$cmdline .= "autoupgrade=1 " if $args->{'upgrade'};
 	$cmdline .= "autoyast=$ay_xml install=".$args->{'source'};
@@ -311,4 +346,3 @@ else {
 	&command( "reboot" );
 	exit -1;
 }
-
