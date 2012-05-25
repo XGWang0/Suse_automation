@@ -52,6 +52,11 @@ This class in an implementation of results class, it adds no public methods.
 
 =cut 
 
+BEGIN {
+	# extend the include path to get our modules found
+	push @INC,"/usr/share/qa/lib",'.';
+}
+
 package results::ctcs2;
 
 use results;
@@ -243,7 +248,7 @@ sub testsuite_next
 
 	# add benchmark resutlst if any
 	my $benchres_file = $self->{TCF} . '.bench.xml';
-	$res->{bench_data} = bench_data_from_xml_file($benchres_file) if -r $benchres_file;
+	$res->{bench_data} = bench_data_from_xml($benchres_file) if -r $benchres_file;
 		
 	$self->{'TC_NAME'} = $tcname;
 	
