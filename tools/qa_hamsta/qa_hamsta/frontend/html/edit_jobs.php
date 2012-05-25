@@ -32,23 +32,16 @@
 	}
 ?>
 <script type="text/javascript" src="js/edit_job.js"></script>
-<form name='edit_jobs' action="index.php?go=edit_jobs" method="post">
-<table name='table_jobs' class="list text-main" width="800px">
-<p>Please edit the job XML file in the form below.</p>
-<tr>
-	<th valign="top" width="20%"><b>*</b> file name </th>
-	<td><input type="text\" size="20" name="new_file_name" value= "<?php echo $file_name; ?>" >New name of job XML file, if not edit, the new file will overrid the old one.</td>
-</tr>
-<tr>
-	<th valign="top" width="20%">XML file</th>
-	<td width="80%"><textarea cols="90%" rows="30" name="new_file_content"><?php echo $file_content; ?></textarea></td>
-</tr>
+<form name='edit_jobs' action="index.php?go=edit_jobs" method="post" onSubmit="return checkcontents(this)">
+<table name='table_jobs' class="text-main" width="900px">
+<p><b>Please edit the job XML file in the form below.</b></p>
+
+<?php require("edit_job.php"); ?>
 
 </table>
 <input type="hidden" name="file" value="<?php echo $file; ?>"/>
-<input type="hidden" name="new_file_dir" value="<?php echo $new_file_dir; ?>"/>
 <input type="hidden" name="machine_list" value="<?php echo $machine_list; ?>"/>
-<input type="hidden" name="opt" value="<?php echo $option; ?>"/>
+<input type="hidden" name="opt" value="<?php echo $opt; ?>"/>
 <input type="submit" name="submit" value="Save"/>
 <br />
 <p class="text-small"><strong>*</strong> The new name of job XML file, need NOT the suffix(.xml). Please note that if you do not edit the name, the new file will override the old one after you save the new job XML file.</p>

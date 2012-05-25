@@ -27,20 +27,20 @@
   <tr>
     <td width=380>Installation ISO (required): </td>
     <td>
-      <label for="win_product">Product:</label>
+      <label for="win_products">Product:</label>
       <!-- Will update this part later -->
-      <select name="win_product" id="win_products">
-        <option value="/VIRT-ISO/win-2k-sp4-32-auto.iso">win-2k-sp4-32</option>
-        <option value="/VIRT-ISO/win-2k3-sp2-32-auto.iso">win-2k3-sp2-32</option>
-        <option value="/VIRT-ISO/win-2k3-sp2-64-auto.iso">win-2k3-sp2-64</option>
-        <option value="/VIRT-ISO/win-2k8-sp2-32-auto.iso">win-2k8-sp2-32</option>
-        <option value="/VIRT-ISO/win-2k8-sp2-64-auto.iso">win-2k8-sp2-64</option>
-        <option value="/VIRT-ISO/win-2k8r2-fcs-64-auto.iso">win-2k8r2-fcs-64</option>
-        <option value="/VIRT-ISO/win-7-fcs-32-auto.iso">win-7-fcs-32</option>
-        <option value="/VIRT-ISO/win-7-fcs-64-auto.iso">win-7-fcs-64</option>
-        <option value="/VIRT-ISO/win-vista-sp2-32-auto.iso">win-vista-sp2-32</option>
-        <option value="/VIRT-ISO/win-vista-sp2-64-auto.iso">win-vista-sp2-64</option>
-        <option value="/VIRT-ISO/win-xp-sp3-32-auto.iso">win-xp-sp3-32</option>
+      <select name="win_products" id="win_products">
+        <option value="win-2k-sp4-32">win-2k-sp4-32</option>
+        <option value="win-2k3-sp2-32">win-2k3-sp2-32</option>
+        <option value="win-2k3-sp2-64">win-2k3-sp2-64</option>
+        <option value="win-2k8-sp2-32">win-2k8-sp2-32</option>
+        <option value="win-2k8-sp2-64">win-2k8-sp2-64</option>
+        <option value="win-2k8r2-fcs-64">win-2k8r2-fcs-64</option>
+        <option value="win-7-fcs-32">win-7-fcs-32</option>
+        <option value="win-7-fcs-64">win-7-fcs-64</option>
+        <option value="win-vista-sp2-32">win-vista-sp2-32</option>
+        <option value="win-vista-sp2-64">win-vista-sp2-64</option>
+        <option value="win-xp-sp3-32">win-xp-sp3-32</option>
       </select>
       <span id="repo_archs_warning" class="text-red text-small bold">*</span>
     </td>
