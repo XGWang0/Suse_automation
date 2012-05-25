@@ -64,9 +64,9 @@
 			$valuer = $machine->get_used_by();
 		}
 		if ($valuer == "" && $openid_auth) {
-			$valuer = $user->get_name();
+			$valuer = $user->get_openid();
 		}
-		$column[] = "<input name=\"used_by"."[".$machine->get_id()."]\" value=\"$valuer\" style=\"width: 200px;\" tabindex=".$counterAddValue++.">";
+		$column[] = "<input name=\"used_by[".$machine->get_id()."]\" value=\"$valuer\" style=\"width: 200px;\" tabindex=".$counterAddValue++. (($openid_auth && $used_by = User::get_by_openid($valuer)) ? " type=\"hidden\">".$used_by->get_name()."</input>" : " \>");
 		$valuer = NULL;
 
 		# Common columns (configurable)
