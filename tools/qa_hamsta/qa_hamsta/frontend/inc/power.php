@@ -29,12 +29,20 @@
      * Starts selected machine (via powerswitch or hardware management console)
      */
     if(!defined('HAMSTA_FRONTEND')) {
-        $go = 'start';
+        $go = 'power';
         return require("index.php");
     }
-    $allmachines = request_array("a_machines");
-    foreach ($allmachines as $machine_id){
-	$machine = Machine::get_by_id($machine_id);
-	$machine->start_machine();
-    }
+    if (request_str("action") == "start") {
+	foreeach ($allmachines as $machine_id) {
+		$machine = Machine::get_by_id($machine_id);
+		$machine->start_machine();
+		}
+	}
+
+    else if (request_str("action") == "stop") {
+	foreeach ($allmachines as $machine_id) {
+		$machine = Machine::get_by_id($machine_id);
+		$machine->stop_machine();
+		}
+	}
 ?>
