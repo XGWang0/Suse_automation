@@ -547,7 +547,7 @@ class Machine {
          *
          */
         function start_machine()  {
-                $powerswitch = $this->get_powerswitch()
+                $powerswitch = $this->get_powerswitch();
 		$powertype = $this->get_powertype();
                 $powerslot = $this->get_powerslot();
                 if ($powertype == "s390")
@@ -564,7 +564,7 @@ class Machine {
          *
          */
         function stop_machine()  {
-		$powerswitch = $this->get_powerswitch()
+		$powerswitch = $this->get_powerswitch();
                 $powertype= $this->get_powertype();
                 $powerslot= $this->get_powerslot();
                 if ($powertype == "s390")
