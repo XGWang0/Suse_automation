@@ -76,7 +76,13 @@
 	   case "vhreinstall":
 			$go = "vhreinstall";
 			return require("inc/vhreinstall.php");
-           case "upgrade":
+           case "start":
+			$go = "power";
+			return require("inc/power.php");
+           case "stop":
+			$go = "power";
+			return require("inc/power.php");
+	   case "upgrade":
 			$go = "upgrade";
 			return require("inc/upgrade.php");
 	}
