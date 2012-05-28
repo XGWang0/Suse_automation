@@ -746,6 +746,7 @@ class Machine {
 			return $used_by->get_name();
 		else
 			return NULL;
+	}
 	
 	/**
 	 * set_used_by 
