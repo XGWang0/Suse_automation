@@ -65,8 +65,28 @@ if (!defined('HAMSTA_FRONTEND')) {
 			}
 		?>
 		<td align="center">
-			<a href="index.php?go=start&amp;a_machines[]=<?php echo ($machine->get_id()); ?>"><img src="images/icon-start.png" alt="Start machine" title="Start <?php echo($machine->get_hostname()); ?>" border="0" width="20" style="padding-right: 3px;" /></a>
-			<a href="index.php?go=stop&amp;a_machines[]=<?php echo ($machine->get_id()); ?>"><img src="images/icon-stop.png" alt="Stop machine" title="Stop <?php echo($machine->get_hostname()); ?>" border="0" width="20" style="padding-right: 3px;" /></a>
+<?php
+        echo "<img src=\"images/icon-start.png\" alt=\"Start " . $machine->get_hostname() . "\" title=\"Start ".$machine->get_hostname() . "\" border=\"0\" " .
+                                "width=\"20\" style=\"padding-right: 3px;\" " .
+                                "onclick=\"";
+        echo "var r = confirm('This will start " . $machine->get_hostname() . ". Are you sure you want to continue?');" .
+        "if(r==true)" .
+                "{" .
+                        "window.location='index.php?go=power&amp;a_machines[]=" . $machine->get_id() . "&amp;action=start';" .
+                "}";
+        echo "\" />";
+
+        echo "<img src=\"images/icon-stop.png\" alt=\"Stop " . $machine->get_hostname() . "\" title=\"Stop ".$machine->get_hostname() . "\" border=\"0\" " .
+                                "width=\"20\" style=\"padding-right: 3px;\" " .
+                                "onclick=\"";
+        echo "var r = confirm('This will stop " . $machine->get_hostname() . ". Are you sure you want to continue?');" .
+        "if(r==true)" .
+                "{" .
+                        "window.location='index.php?go=power&amp;a_machines[]=" . $machine->get_id() . "&amp;action=stop';" .
+                "}";
+        echo "\" />";
+?>
+
 <?php if(preg_match ('/^vm\//', $machine->get_type())) { ?>
 			<img src="images/icon-reinstall.png" alt="Reinstall this machine" title="Reinstall <?php echo($machine->get_hostname()); ?>" border="0" width="20" style="padding-left: 3px; padding-right: 3px;" onclick="alert('It is not possible to reinstall virtual machine!');"/>
 <?php } else { ?>

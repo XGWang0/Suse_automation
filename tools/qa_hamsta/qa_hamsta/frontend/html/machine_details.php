@@ -66,8 +66,27 @@ if (!defined('HAMSTA_FRONTEND')) {
 
 <div style="margin-top: 6px; margin-left: 3px;">
 	<span class="text-main text-blue bold" style="position: relative; bottom: 6px;">Actions: </span>
-	<a href="index.php?go=start&amp;a_machines[]=<?php echo ($machine->get_id()); ?>"><img src="images/icon-start.png" alt="Start machine" title="Start <?php echo($machine->get_hostname()); ?>" border="0" width="20" style="padding-right: 3px;" /></a>
-        <a href="index.php?go=stop&amp;a_machines[]=<?php echo ($machine->get_id()); ?>"><img src="images/icon-stop.png" alt="Stop machine" title="Stop <?php echo($machine->get_hostname()); ?>" border="0" width="20" style="padding-right: 3px;" /></a>
+<?php
+	echo "<img src=\"images/icon-start.png\" alt=\"Start " . $machine->get_hostname() . "\" title=\"Start ".$machine->get_hostname() . "\" border=\"0\" " .
+                                "width=\"20\" style=\"padding-right: 3px;\" " .
+                                "onclick=\"";
+	echo "var r = confirm('This will start " . $machine->get_hostname() . ". Are you sure you want to continue?');" .
+	"if(r==true)" .
+		"{" .
+			"window.location='index.php?go=power&amp;a_machines[]=" . $machine->get_id() . "&amp;action=start';" .
+		"}";
+	echo "\" />";
+
+	echo "<img src=\"images/icon-stop.png\" alt=\"Stop " . $machine->get_hostname() . "\" title=\"Stop ".$machine->get_hostname() . "\" border=\"0\" " .
+                                "width=\"20\" style=\"padding-right: 3px;\" " .
+                                "onclick=\"";
+	echo "var r = confirm('This will stop " . $machine->get_hostname() . ". Are you sure you want to continue?');" .
+	"if(r==true)" .
+		"{" .
+			"window.location='index.php?go=power&amp;a_machines[]=" . $machine->get_id() . "&amp;action=stop';" .
+		"}";
+	echo "\" />";
+?>
 	<a href="index.php?go=<?php echo $machine->get_role() == 'SUT' ? "reinstall" : "vhreinstall"; ?>&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-reinstall.png" alt="Reinstall this machine" title="Reinstall this machine" border="0" width="26" style="padding-left: 3px; padding-right: 3px;" /></a>
 	<a href="index.php?go=edit_machines&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-edit.png" alt="Edit/reserve this machine" title="Edit/reserve this machine" border="0" width="26" style="padding-right: 3px;" /></a>
 <?php
