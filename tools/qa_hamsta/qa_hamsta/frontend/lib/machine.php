@@ -547,10 +547,13 @@ class Machine {
          *
          */
         function start_machine()  {
-                $powertype= $this->get_powertype();
-                $powerslot= $this->get_powerslot();
+                $powerswitch = $this->get_powerswitch()
+		$powertype = $this->get_powertype();
+                $powerslot = $this->get_powerslot();
                 if ($powertype == "s390")
                         power_s390($powerslot, "start");
+		else if ($powertype == "apc")
+			power_apc($powerswitch, $powerslot, 'start');
         }
 
         /**
@@ -561,10 +564,13 @@ class Machine {
          *
          */
         function stop_machine()  {
+		$powerswitch = $this->get_powerswitch()
                 $powertype= $this->get_powertype();
                 $powerslot= $this->get_powerslot();
                 if ($powertype == "s390")
-                        power_s390($powerslot, "stop");
+                        power_s390($powerslot, 'stop');
+		else if ($powertype == "apc")
+			power_apc($powerswitch, $powerslot, 'stop');
         }
 
 
