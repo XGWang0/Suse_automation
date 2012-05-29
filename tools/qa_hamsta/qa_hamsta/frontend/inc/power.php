@@ -33,8 +33,10 @@
         return require("index.php");
     }
 
-    $allmachines = request_array("a_machines");
+    $html_title = "Start/Stop/Restart machine";
 
+    $allmachines = request_array("a_machines");
+    
     if (request_str("action") == "start") {
 	foreach ($allmachines as $machine_id) {
 		$machine = Machine::get_by_id($machine_id);
