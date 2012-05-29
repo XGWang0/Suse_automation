@@ -28,7 +28,7 @@
 	 */
 
 	$jobname=str_replace(' ', "\ ", str_replace('"', '\"', str_replace("/", "\/", $_POST['jobname'])));
-	if(!preg_match("/^[0-9a-zA-Z_- ]+$/", $jobname))  # validate the file name user input
+	if(!preg_match("/^[0-9a-zA-Z_-\s]+$/", $jobname))  # validate the file name user input
 	{
 		$errors[] = "The file name you input is invalid! It must be composed by number, letter, underscroe, dash or space.";
 	}
@@ -49,6 +49,7 @@
 	$paramFlag = request_str("param_flag");
 	$existFileName = request_str("existfilename");
 	
+	$param_map = array();
 	if($paramFlag == "paramFlag")
 	{
 		$paramNameArray = request_array("param_name");
@@ -57,7 +58,6 @@
 		$paramDefaultArray = request_array("param_default");
 		$paramSortArray = request_array("param_sort");
 	
-		$param_map = array();
 		$paramValueArray = array();
 	
 		for($i=0; $i<count($paramNameArray); $i++)
@@ -236,7 +236,7 @@
 	if($fileTemplate == NULL)
 		$errors[] = "Can not open template file";
 	$fileCustom = fread($fileTemplate, filesize($fileTemplateName));
-	fclose($fileTemplateName);
+	fclose($fileTemplate);
 
 	$fileCustom = str_replace("ROLES_AREA", $rolesCustom, str_replace("PARAMETERS_AREA", $parametersCustom,
 		      str_replace("COMMANDS_AREA", $commandsCustom, $fileCustom)));
@@ -265,11 +265,12 @@
 		
 		if(count($errors) == 0) {
 			system("cp $filename $fileDir/$jobname.xml");
-			system("sed -i -e \"/PARAM_VALUE_$parameterRandStr:/d\" $fileDir/$jobname.xml"); # delete the value
+			if (count($param_map) > 0)
+				system("sed -i -e \"/PARAM_VALUE_$parameterRandStr:/d\" $fileDir/$jobname.xml"); # delete the value
 		}
 	}
 
-	if($opt != "edit") # we are on send job page, not on edit job page
+	if( (!isset($opt) || ($opt != "edit")) && (count($param_map) > 0)) # we are on send job page, not on edit job page
 	{
 		if($roleNumber > 1) # for multi-machine job, the <option> tag will be used in "multi-machine job detail" page
 			system("sed -i -e \"/PARAM_VALUE_$parameterRandStr:/d\" $filename");

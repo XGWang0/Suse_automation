@@ -61,17 +61,21 @@
 
                 # get role map
                 $i = 0;
-                foreach($xml->roles->role as $role)
-                {
-                    $jobRoleMap[$i++] = array('id'=>$role['id'],       'name'=>$role['name'],
-                                              'min'=>$role['num_min'], 'max'=>$role['num_max']);
-                }
 
-                # sort parameter by key "id"
-                foreach ($jobRoleMap as $key=>$value)
-                    $roleSortKey[$key] = $value['id'];
-                array_multisort($roleSortKey, SORT_NUMERIC, $jobRoleMap);
-                $roleCount = count($jobRoleMap);
+                $roleCount = count($xml->roles->role);
+                if($roleCount > 0) {
+                    foreach($xml->roles->role as $role)
+                    {
+                        $jobRoleMap[$i++] = array('id'=>$role['id'],       'name'=>$role['name'],
+                                                  'min'=>$role['num_min'], 'max'=>$role['num_max']);
+                    }
+
+                    # sort parameter by key "id"
+                    foreach ($jobRoleMap as $key=>$value)
+                        $roleSortKey[$key] = $value['id'];
+                    array_multisort($roleSortKey, SORT_NUMERIC, $jobRoleMap);
+                    $roleCount = count($jobRoleMap);
+                }
 
                 # get command map
                 $i = 0;
@@ -82,10 +86,12 @@
                 }
 
                 # sort command by key "role_id"
-                foreach ($jobCommandMap as $key=>$value)
-                    $commandSortKey[$key] = $value[role_id];
-                array_multisort($commandSortKey, SORT_NUMERIC, $jobCommandMap);
-                $commandCount = count($jobCommandMap);
+                if($roleCount > 0) {
+                    foreach ($jobCommandMap as $key=>$value)
+                        $commandSortKey[$key] = $value[role_id];
+                    array_multisort($commandSortKey, SORT_NUMERIC, $jobCommandMap);
+                    $commandCount = count($jobCommandMap);
+                }
 
                 print "<input type=\"hidden\" name=\"existfilename\" value=\"$existFileName\">";
             }
