@@ -119,7 +119,7 @@ if ($openid_auth && isset($_GET['openid_mode']) && $_GET['openid_mode'] == "id_r
 } else if ($openid_auth && !isset($_SESSION['OPENID_AUTH'])) {
 	require_once "Zend/OpenId/Consumer.php";
 	$consumer = new Zend_OpenId_Consumer();
-	$consumer->login("www.novell.com/openid");
+	$consumer->login($openid_url);
 }
 
 require("inc/$go.php");
