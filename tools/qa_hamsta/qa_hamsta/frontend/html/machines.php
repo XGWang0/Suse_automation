@@ -66,25 +66,38 @@ if (!defined('HAMSTA_FRONTEND')) {
 		?>
 		<td align="center">
 <?php
-        echo "<img src=\"images/icon-start.png\" alt=\"Start " . $machine->get_hostname() . "\" title=\"Start ".$machine->get_hostname() . "\" border=\"0\" " .
-                                "width=\"20\" style=\"padding-right: 3px;\" " .
-                                "onclick=\"";
-        echo "var r = confirm('This will start " . $machine->get_hostname() . ". Are you sure you want to continue?');" .
-        "if(r==true)" .
-                "{" .
-                        "window.location='index.php?go=power&amp;a_machines[]=" . $machine->get_id() . "&amp;action=start';" .
-                "}";
-        echo "\" />";
+        if (($machine->get_powerswitch() != NULL) and ($machine->get_powertype() != NULL) and ($machine->get_powerslot() != NULL) ) {
+		echo "<img src=\"images/icon-start.png\" alt=\"Start " . $machine->get_hostname() . "\" title=\"Start ".$machine->get_hostname() . "\" border=\"0\" " .
+                	                "width=\"20\" style=\"padding-right: 3px;\" " .
+        	                        "onclick=\"";
+	        echo "var r = confirm('This will start " . $machine->get_hostname() . ". Are you sure you want to continue?');" .
+	        "if(r==true)" .
+	                "{" .
+                	        "window.location='index.php?go=power&amp;a_machines[]=" . $machine->get_id() . "&amp;action=start';" .
+        	        "}";
+	        echo "\" />";
+	
+	        echo "<img src=\"images/icon-stop.png\" alt=\"Stop " . $machine->get_hostname() . "\" title=\"Stop ".$machine->get_hostname() . "\" border=\"0\" " .
+	                                "width=\"20\" style=\"padding-right: 3px;\" " .
+        	                        "onclick=\"";
+	        echo "var r = confirm('This will stop " . $machine->get_hostname() . ". Are you sure you want to continue?');" .
+	        "if(r==true)" .
+	                "{" .
+	                        "window.location='index.php?go=power&amp;a_machines[]=" . $machine->get_id() . "&amp;action=stop';" .
+	                "}";
+	        echo "\" />";
+	}
+	else {
+		echo "<img src=\"images/icon-start-grey.png\" alt=\"Powercycling for " . $machine->get_hostname(). "is not supported" . "\" title=\"Powercycling for "
+			. $machine->get_hostname() . " is not supported" . "\" border=\"0\" " .
+				"width=\"20\" style=\"padding-right: 3px;\" ";
+		echo "\" />";
 
-        echo "<img src=\"images/icon-stop.png\" alt=\"Stop " . $machine->get_hostname() . "\" title=\"Stop ".$machine->get_hostname() . "\" border=\"0\" " .
-                                "width=\"20\" style=\"padding-right: 3px;\" " .
-                                "onclick=\"";
-        echo "var r = confirm('This will stop " . $machine->get_hostname() . ". Are you sure you want to continue?');" .
-        "if(r==true)" .
-                "{" .
-                        "window.location='index.php?go=power&amp;a_machines[]=" . $machine->get_id() . "&amp;action=stop';" .
-                "}";
-        echo "\" />";
+		echo "<img src=\"images/icon-stop-grey.png\" alt=\"Powercycling for " . $machine->get_hostname() . "is not supported" . "\" title=\"Powercycling for "
+			. $machine->get_hostname() . " is not supported" . "\" border=\"0\" " .
+				"width=\"20\" style=\"padding-right: 3px;\" ";
+		echo "\" />";
+	}
 ?>
 
 <?php if(preg_match ('/^vm\//', $machine->get_type())) { ?>
