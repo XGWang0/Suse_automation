@@ -81,7 +81,7 @@ define ("ATLIST", "iozone sleeptest posixtest aiostress bonnie cerberus disktest
 define ("UILIST", "qa_test_firefox qa_test_gnome qa_test_evolution qa_test_tomboy qa_test_evince");
 
 # Fields shown in the machine listing by default  
-#$display_fields=array("used_by", "usage", "product", "architecture_capable", "kernel", "type");
+#$display_fields=array("usage", "product", "architecture_capable", "kernel", "type");
 
 
 # Additional rpms

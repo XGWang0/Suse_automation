@@ -58,7 +58,7 @@
 		# Used by
 		$item_list = request_array("used_by");
 		if (array_key_exists($machine->get_id(), $item_list)) {
-			$valuer = $item_list[$machine->geit_id()];
+			$valuer = $item_list[$machine->get_id()];
 		}
 		if (!isset($valuer)) {
 			$valuer = $machine->get_used_by();

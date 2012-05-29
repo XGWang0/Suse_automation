@@ -742,7 +742,7 @@ class Machine {
 	}
 
 	function get_used_by_name() {
-		if( isset($this->fields["usedby"]) && $openid_auth && $used_by = User::get_by_openid($this->fields["usedby"]) )
+		if ($used_by = User::get_by_openid($this->get_used_by()))
 			return $used_by->get_name();
 		else
 			return NULL;
