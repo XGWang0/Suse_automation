@@ -41,6 +41,12 @@
 		$machine->start_machine();
 		}
 	}
+    else if (request_str("action") == "restart") {
+	foreach ($allmachines as $machine_id) {
+		$machine = Machine::get_by_id($machine_id);
+		$machine->restart_machine();
+		}
+	}
 
     else if (request_str("action") == "stop") {
 	foreach ($allmachines as $machine_id) {

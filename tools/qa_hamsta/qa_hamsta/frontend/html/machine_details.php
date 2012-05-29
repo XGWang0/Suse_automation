@@ -77,6 +77,17 @@ if (!defined('HAMSTA_FRONTEND')) {
                 	        "window.location='index.php?go=power&amp;a_machines[]=" . $machine->get_id() . "&amp;action=start';" .
         	        "}";
 	        echo "\" />";
+
+                echo "<img src=\"images/icon-restart.png\" alt=\"Restart " . $machine->get_hostname() . "\" title=\"Restart ".$machine->get_hostname() . "\" border=\"0\" " .
+                                        "width=\"20\" style=\"padding-right: 3px;\" " .
+                                        "onclick=\"";
+                echo "var r = confirm('This will restart " . $machine->get_hostname() . ". Are you sure you want to continue?');" .
+                "if(r==true)" .
+                        "{" .
+                                "window.location='index.php?go=power&amp;a_machines[]=" . $machine->get_id() . "&amp;action=restart';" .
+                        "}";
+                echo "\" />";
+
 	
 	        echo "<img src=\"images/icon-stop.png\" alt=\"Stop " . $machine->get_hostname() . "\" title=\"Stop ".$machine->get_hostname() . "\" border=\"0\" " .
 	                                "width=\"20\" style=\"padding-right: 3px;\" " .
@@ -93,6 +104,12 @@ if (!defined('HAMSTA_FRONTEND')) {
 			. $machine->get_hostname() . " is not supported" . "\" border=\"0\" " .
 				"width=\"20\" style=\"padding-right: 3px;\" ";
 		echo "\" />";
+
+                echo "<img src=\"images/icon-restart-grey.png\" alt=\"Powercycling for " . $machine->get_hostname(). "is not supported" . "\" title=\"Powercycling for "
+                        . $machine->get_hostname() . " is not supported" . "\" border=\"0\" " .
+                                "width=\"20\" style=\"padding-right: 3px;\" ";
+                echo "\" />";
+
 
 		echo "<img src=\"images/icon-stop-grey.png\" alt=\"Powercycling for " . $machine->get_hostname() . "is not supported" . "\" title=\"Powercycling for "
 			. $machine->get_hostname() . " is not supported" . "\" border=\"0\" " .

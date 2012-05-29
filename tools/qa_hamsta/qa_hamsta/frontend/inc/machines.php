@@ -79,6 +79,11 @@
            case "start":
 			$go = "power";
 			return require("inc/power.php");
+
+           case "restart":
+			$go = "power";
+			return require("inc/power.php");
+
            case "stop":
 			$go = "power";
 			return require("inc/power.php");
