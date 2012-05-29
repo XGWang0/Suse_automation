@@ -30,6 +30,9 @@
         $go = 'newvm';
         return require("index.php");
     }
+	
+	$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
+
 	$blockedMachines = array();
 	$nonVH = array();
 	$paravirtnotsupported = array();
@@ -83,7 +86,7 @@ This page will allow you to customize the AutoYaST product installation for the 
   <?php require ("req_sut.php"); ?>
   <tr>
     <td>Notification email address (optional):</td>
-    <td><input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} ?>" /> (if you want to be notified when the installation is finished)</td>
+    <td><input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} else if ($openid_auth) { echo $user->get_email(); } ?>" /> (if you want to be notified when the installation is finished)</td>
   </tr>
 </table>    
 <br />

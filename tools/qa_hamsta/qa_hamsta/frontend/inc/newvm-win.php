@@ -41,17 +41,11 @@ $search = new MachineSearch();
 $search->filter_in_array(request_array("a_machines"));
 $machines = $search->query();
 
-### Figure out, check, and set the installation options ###
-$installoptions = request_str("installoptions");
-$installoptions_warning = "";
-
-//$resend_job=request_str("xml_file_name");
 if (request_str("proceed")) {
 	$errors = array(); // Used for recording errors
 
 	# Request all variables 
-	$producturl_raw = request_str("win_producturl");
-	$producturl = $producturl_raw;
+	$producturl = request_str("win_products");
 	$virttype = request_str("virttype");
 	$virtcpu = request_str("virtcpu");
 	$virtinitmem = request_str("virtinitmem");
@@ -69,12 +63,8 @@ if (request_str("proceed")) {
 		# Copy the update.xml file and patch it !
 		$rand = rand();
 		$autoyastfile = "/tmp/newvm_$rand.xml";
-		system("cp /usr/share/hamsta/xml_files/templates/newvm-template.xml $autoyastfile");
-		// Example: /usr/share/qa/virtautolib/lib/vm-install.sh -y 192.168.123.1 -b br123 -o win -r xp -p sp3 -c 32 -t fv -m iso -e 512 -x 4096
-		$args = "-y 192.168.123.1 -b br123 -o win -m iso -V fv";
-		// Check Windows version, sub-ver and arch win-2k-sp4-32
-		list($win, $ver, $subv, $arch) = split ('-', $producturl);
-		$args .= "-r $ver -p $subv -c $arch";
+		system("cp /usr/share/hamsta/xml_files/templates/winvm-template.xml $autoyastfile");
+		$args = "-W $producturl";
 		// Virtual Machine options
 		if ($virtcpu)
 			$args .= " -c $virtcpu";
@@ -92,7 +82,7 @@ if (request_str("proceed")) {
 			if (!$machine->send_job($autoyastfile)) {
 				$error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
 			} else {
-				Log::create($machine->get_id(), $machine->get_used_by(), 'VMNEW', "has installed new virtual machine using \"$producturl_raw\" (SDK: " . ($addon_url ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
+				Log::create($machine->get_id(), $machine->get_used_by(), 'VMNEW', "has installed new Windows virtual machine using \"$producturl_raw\"");
 			}
 		}
 

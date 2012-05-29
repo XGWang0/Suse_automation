@@ -53,6 +53,7 @@ require("lib/group.php");
 require("lib/roles.php");
 require("lib/Utilfunc.php");
 require("lib/parameters.php");
+require("lib/user.php");
 
 require_once("../tblib/tblib.php");
 
@@ -97,7 +98,8 @@ $pages = array(
     "del_virtual_machines",
     "upgrade",
     "merge_machines",
-    "edit_jobs"
+    "edit_jobs",
+    "register"
 );
 
 if (!in_array($go, $pages)) {
@@ -108,11 +110,13 @@ if ($openid_auth && isset($_GET['openid_mode']) && $_GET['openid_mode'] == "id_r
 	require_once "Zend/OpenId/Consumer.php";
 	$consumer = new Zend_OpenId_Consumer();
 	if ($consumer->verify($_GET, $id)) {
-		$_SESSION['OPENID_AUTH'] = true;
-		$_SESSION['mtype'] = "success";
-		$_SESSION['message'] = "Successfully authenticated using ".$id;
+		$_SESSION['OPENID_AUTH'] = $id;
+		$user = User::get_by_openid($id);
+		if (!$user) {
+			header('Location: index.php?go=register');
+		}
 	}
-} else if ($openid_auth && (!isset($_SESSION['OPENID_AUTH']) || $_SESSION['OPENID_AUTH'] == false)) {
+} else if ($openid_auth && !isset($_SESSION['OPENID_AUTH'])) {
 	require_once "Zend/OpenId/Consumer.php";
 	$consumer = new Zend_OpenId_Consumer();
 	$consumer->login("www.novell.com/openid");

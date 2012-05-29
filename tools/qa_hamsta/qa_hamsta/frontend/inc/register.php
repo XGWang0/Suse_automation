@@ -23,26 +23,27 @@
   ****************************************************************************
  */
 
-	/**
-	 * Contents of the <tt>edit_machines</tt> page 
-	 */
-	if (!defined('HAMSTA_FRONTEND')) {
-		$go = 'edit_jobs';
-		return require("index.php");
-	}
+    /**
+     * Logic of the register page
+     *
+     * 
+     */
+    if(!defined('HAMSTA_FRONTEND')) {
+        $go = 'register';
+        return require("index.php");
+    }
+    $html_title = "Register";
+
+// Redirect to the homepage if the user has already registered (maybe fill in and allow an update instead?).
+$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
+if ($user) {
+	header('Location: index.php?go=machines');
+}
+
+// Submit registration info to database.
+if (request_str("submit")) {
+	User::add_user($_SESSION['OPENID_AUTH'], htmlspecialchars(request_str("name")), htmlspecialchars(request_str("email")));
+	header('Location: index.php?go=machines');
+}
+
 ?>
-<script type="text/javascript" src="js/edit_job.js"></script>
-<form name='edit_jobs' action="index.php?go=edit_jobs" method="post" onSubmit="return checkcontents(this)">
-<table name='table_jobs' class="text-main" width="900px">
-<p><b>Please edit the job XML file in the form below.</b></p>
-
-<?php require("edit_job.php"); ?>
-
-</table>
-<input type="hidden" name="file" value="<?php echo $file; ?>"/>
-<input type="hidden" name="machine_list" value="<?php echo $machine_list; ?>"/>
-<input type="hidden" name="opt" value="<?php echo $opt; ?>"/>
-<input type="submit" name="submit" value="Save"/>
-<br />
-<p class="text-small"><strong>*</strong> The new name of job XML file, need NOT the suffix(.xml). Please note that if you do not edit the name, the new file will override the old one after you save the new job XML file.</p>
-</form>

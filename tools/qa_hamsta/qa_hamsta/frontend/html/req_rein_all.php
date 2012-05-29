@@ -22,6 +22,8 @@
   WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
   ****************************************************************************
  */
+
+$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
 ?>
 
   <tr>
@@ -104,7 +106,11 @@
         "</div>";
         print "<div id=\"updateoptions-reg\" class=\"text-small\" style=\"margin: 5px; padding: 5px; border: 1px solid red; display: " . ((isset($_POST['startupdate']) and $_POST['startupdate'] == "update-reg") ? "block" : "none") . ";\">" .
         "Registration Email: <input type=\"text\" name=\"update-reg-email\" value=\"";
-        if (isset($_POST["update-reg-email"])) echo $_POST["update-reg-email"];
+	if (isset($_POST["update-reg-email"])) {
+		echo $_POST["update-reg-email"];
+	} else if ($openid_auth) {
+		echo $user->get_email();
+	}
         print "\" /> <br />\n";
 	print "Registration Code for main product: <input type=\"text\" name=\"rcode[]\" id=\"rcode_product\" size=\"20\" value=\"";
 		if(isset($_POST["rcode"][0])){echo $_POST["rcode"][0];} 

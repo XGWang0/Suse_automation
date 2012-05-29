@@ -83,6 +83,7 @@ Authors:
 %build
 ln -s reinstall.pl install.pl
 ln -s reinstall.pl newvm.pl
+ln -s reinstall.pl winvm.pl
 perl reinstall.pl --manual > reinstall.pl.8
 perl newvm.pl --manual > newvm.pl.8
 gzip -9 *.1 *.8

@@ -30,11 +30,13 @@
 		$go = 'edit_machines';
 		return require("index.php");
 	}
+	
+	$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
 
 	# We are going to output all fields and data for the machines, so first we collect it
 	$table = array();
 	$tableHeadings = array("Name", "*Perm", "Used By", "Usage", "Usage Expires (days)", "Maintainer", "Affiliation", "Notes", "Power Switch", "Serial Console", "Console Device", "Console Speed", "Enable Console", "Default Install Options");
-	$show_column = array("used_by", "usage", "expires", "maintainer_string", "affiliation", "anomaly", "powerswitch", "serialconsole");
+	$show_column = array("usage", "expires", "maintainer_string", "affiliation", "anomaly", "powerswitch", "serialconsole");
 	$machineCounter = 0;
 	foreach ($machines as $machine) {
 
@@ -53,7 +55,20 @@
                         "<input type=\"checkbox\" name=\"perm_" . $machine_id . "[]\" " . ($machine->has_perm("partition")?" checked=\"checked\"":"") . " value=\"partition\"  >partition".
                         "<input type=\"checkbox\" name=\"perm_" . $machine_id . "[]\" " . ($machine->has_perm("boot")?" checked=\"checked\"" : "") . " value=\"boot\"  >boot";
 
-		
+		# Used by
+		$item_list = request_array("used_by");
+		if (array_key_exists($machine->get_id(), $item_list)) {
+			$valuer = $item_list[$machine->geit_id()];
+		}
+		if (!isset($valuer)) {
+			$valuer = $machine->get_used_by();
+		}
+		if ($valuer == "" && $openid_auth) {
+			$valuer = $user->get_openid();
+		}
+		$column[] = "<input name=\"used_by[".$machine->get_id()."]\" value=\"$valuer\" style=\"width: 200px;\" tabindex=".$counterAddValue++. (($openid_auth && $used_by = User::get_by_openid($valuer)) ? " type=\"hidden\">".$used_by->get_name()."</input>" : " \>");
+		$valuer = NULL;
+
 		# Common columns (configurable)
 		foreach ($show_column as $item) {
 			$getstring = "get_".$item;
@@ -61,9 +76,6 @@
 			if (array_key_exists($machine->get_id(), $item_list)) {
 				$valuer = $item_list[$machine->get_id()];
 			}
-			//foreach ($input as $value) {
-			//	$valuer = $value;
-			//}
 			if (!isset($valuer)) {
 				$valuer = $machine->$getstring();
 			}
