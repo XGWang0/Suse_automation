@@ -30,8 +30,8 @@
 		$go = 'edit_machines';
 		return require("index.php");
 	}
-	
-	$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
+	if (array_key_exists('OPENID_AUTH', $_SESSION))
+		$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
 
 	# We are going to output all fields and data for the machines, so first we collect it
 	$table = array();
@@ -63,7 +63,7 @@
 		if (!isset($valuer)) {
 			$valuer = $machine->get_used_by();
 		}
-		if ($valuer == "" && $openid_auth) {
+		if ($valuer == "" && $openid_auth && isset($user)) {
 			$valuer = $user->get_openid();
 		}
 		$column[] = "<input name=\"used_by[".$machine->get_id()."]\" value=\"$valuer\" style=\"width: 200px;\" tabindex=".$counterAddValue++. (($openid_auth && $used_by = User::get_by_openid($valuer)) ? " type=\"hidden\">".$used_by->get_name()."</input>" : " \>");

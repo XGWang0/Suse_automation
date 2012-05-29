@@ -22,8 +22,8 @@
   WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
   ****************************************************************************
  */
-
-$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
+if (array_key_exists('OPENID_AUTH', $_SESSION))
+	$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
 ?>
 
   <tr>
@@ -108,7 +108,7 @@ $user = User::get_by_openid($_SESSION['OPENID_AUTH']);
         "Registration Email: <input type=\"text\" name=\"update-reg-email\" value=\"";
 	if (isset($_POST["update-reg-email"])) {
 		echo $_POST["update-reg-email"];
-	} else if ($openid_auth) {
+	} else if ($openid_auth && isset($user)) {
 		echo $user->get_email();
 	}
         print "\" /> <br />\n";
