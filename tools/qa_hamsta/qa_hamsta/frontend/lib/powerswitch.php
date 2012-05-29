@@ -98,7 +98,7 @@ function power_s390($powerslot, $action) {
 
 function power_apc($powerswitch, $powerslot, $action) {
 	$apc_host = $powerswitch;
-	$acp_port = $powerslot;
+	$apc_port = $powerslot;
 	$apc_snmp_community = 'qanet';
 	$apc_snmp_mib_generic = '1.3.6.1.4.1.318.1.1.12.3.3.1.1.4.';
 	$apc_snmp_mib_port = $apc_snmp_mib_generic.$apc_port;
