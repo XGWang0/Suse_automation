@@ -573,6 +573,23 @@ class Machine {
 			power_apc($powerswitch, $powerslot, 'stop');
         }
 
+        /**
+         * restart_machine
+         *
+         * @acces public
+         * @return void
+         *
+         */
+        function restart_machine()  {
+		$powerswitch = $this->get_powerswitch();
+                $powertype= $this->get_powertype();
+                $powerslot= $this->get_powerslot();
+                if ($powertype == "s390")
+                        power_s390($powerslot, 'restart');
+		else if ($powertype == "apc")
+			power_apc($powerswitch, $powerslot, 'restart');
+        }
+
 
 	/**
 	 * get_serialconsole 

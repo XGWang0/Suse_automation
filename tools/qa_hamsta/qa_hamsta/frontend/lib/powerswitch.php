@@ -25,15 +25,10 @@
 
 	/* power_s390 currently accepts userid (ie LINUX152 and action (startm, stop etc ..).
 	* for more details see http://s390zvi33.suse.de/zvm/index.php
-	* todo:
-	* - check input of function (only start and stop)
+	* 
 	*/
    
-function power_s390($userid, $action) {
-	/*
-	 * URL of web interface for controlling s390 VM's
-	 */
-	$s390_controller = 'http://s390zvi33.suse.de/zvm/formaction.php';
+function power_s390($powerslot, $action) {
 	/* 
 	 * Actuall command that we send to the interface wia http post method.
 	 * Notoce that for some array variables we have to use [0] since interface
@@ -42,30 +37,49 @@ function power_s390($userid, $action) {
 	 * reason count has to be set, althouhg there are more variables that can be (and in
 	 * this case were) ommited.
 	 */
-	$command = array(
-		'count' => urlencode('0'),
-		'ipl_device[0]' => urlencode('0150'),
-		'zvm_version[0]' => urlencode('54'),
-		'userid[0]' => urlencode("$userid"),
-		'action' => urlencode("$action"),
-	);
-	/* 
-	 *We transform array to http request string
-	 */
+	$userid = $powerslot;
+	function s390_interface($userid, $action) {
+		$s390_action = 'start';
+		/*
+	 	* URL of web interface for controlling s390 VM's
+	 	*/
+		$s390_controller = 'http://s390zvi33.suse.de/zvm/formaction.php';
+		$command = array(
+			'count' => urlencode('0'),
+			'ipl_device[0]' => urlencode('0150'),
+			'zvm_version[0]' => urlencode('54'),
+			'userid[0]' => urlencode("$userid"),
+			'action' => urlencode("$action"),
+		);
+		/* 
+		 *We transform array to http request string
+		 */
 
-	$command_string = http_build_query($command);
-	/* 
-	 *And here we execute everything using php_curl
-	 */
+		$command_string = http_build_query($command);
+		/* 
+		 *And here we execute everything using php_curl
+		 */
 
-	$address = curl_init($s390_controller);
+		$address = curl_init($s390_controller);
 
-	curl_setopt($address, CURLOPT_URL, $s390_controller);
-	curl_setopt($address, CURLOPT_POST, count($command));
-	curl_setopt($address, CURLOPT_POSTFIELDS,$command_string);
+		curl_setopt($address, CURLOPT_URL, $s390_controller);
+		curl_setopt($address, CURLOPT_POST, count($command));
+		curl_setopt($address, CURLOPT_POSTFIELDS,$command_string);
 
-	curl_exec($address);
-	curl_close($address);
+		curl_exec($address);
+		curl_close($address);
+		}
+	if ($action == "start") {
+		s390_interface($userid, 'start');
+		}
+	else if ($action == "stop") {
+		s390_interface($userid, 'stop');
+		}
+	else if ($action == "restart") {
+		s390_interface($userid, 'start');
+		sleep(5);
+		s390_interface($userid, 'stop');
+		}
 	}
 
 	/*
@@ -75,7 +89,9 @@ function power_s390($userid, $action) {
 	 *
 	 */
 
-function power_apc($apc_host, $apc_port, $action) {
+function power_apc($powerswitch, $powerslot, $action) {
+	$apc_host = $powerswitch;
+	$acp_port = $powerslot;
 	$apc_snmp_community = 'qanet';
 	$apc_snmp_mib_generic = '1.3.6.1.4.1.318.1.1.12.3.3.1.1.4.';
 	$apc_snmp_mib_port = $apc_snmp_mib_generic.$apc_port;
@@ -85,7 +101,7 @@ function power_apc($apc_host, $apc_port, $action) {
 	else if ($action == "stop")
 		$apc_action = '2';
 	else if ($action == "restart")
-	$apc_action = '3';
+		$apc_action = '3';
 	/*
 	 * This is eqal to issuing 'snmpset -c qanet -v 1 apc2.qa.suse.cz 1.3.6.1.4.1.318.1.1.12.3.3.1.1.4.7 i 2'
 	 * (example will casuse apc2.qa.suse.cz port 7 using community qanet to stop
