@@ -76,9 +76,9 @@ function power_s390($powerslot, $action) {
 		s390_interface($userid, 'stop');
 		}
 	else if ($action == "restart") {
-		s390_interface($userid, 'start');
-		sleep(5);
 		s390_interface($userid, 'stop');
+		sleep(5);
+		s390_interface($userid, 'start');
 		}
 	}
 
