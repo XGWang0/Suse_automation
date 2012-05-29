@@ -65,8 +65,15 @@ function power_s390($powerslot, $action) {
 		curl_setopt($address, CURLOPT_URL, $s390_controller);
 		curl_setopt($address, CURLOPT_POST, count($command));
 		curl_setopt($address, CURLOPT_POSTFIELDS,$command_string);
-
+		
+		/*
+		 * Here we execute command itself, while using output buffering to
+		 * supress unwanted output
+		 *
+		 */
+		ob_start();
 		curl_exec($address);
+		ob_end_clean();
 		curl_close($address);
 		}
 	if ($action == "start") {
