@@ -504,10 +504,14 @@ class Machine {
          * @return void
          */
         function set_powertype($powertype)  {
-                $stmt = get_pdo()->prepare('UPDATE machine SET powertype = :powertype WHERE machine_id = :id');
-                $stmt->bindParam(':id', $this->fields["id"]);
-                $stmt->bindParam(':powertype', $powertype);
-                $stmt->execute();
+                if (($powertype == 's390') or ($powertype == 'apc') or ($powertype == NULL)) {
+			$stmt = get_pdo()->prepare('UPDATE machine SET powertype = :powertype WHERE machine_id = :id');
+        	        $stmt->bindParam(':id', $this->fields["id"]);
+	                $stmt->bindParam(':powertype', $powertype);
+                	$stmt->execute();
+		}
+		else
+			return NULL;
         }
 
         /**
