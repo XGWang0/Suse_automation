@@ -25,4 +25,5 @@
 ?>
 
 <html>
+<p><b>There are some errors, please return and try again.<b></p>
 </html>

@@ -55,6 +55,19 @@
         $search->filter_in_array($machines_id_array);
         $machines = $search->query();
 
+	# Verify user has rights to modify the machine
+	if ($openid_auth && array_key_exists('OPENID_AUTH', $_SESSION) && $user = User::get_by_openid($_SESSION['OPENID_AUTH'])) {
+		foreach ($machines as $machine) {
+			$used_by = User::get_by_openid($machine->get_used_by());
+			if ($used_by && $used_by->get_openid() != $user->get_openid()) {
+				$_SESSION['mtype'] = "fail";
+				$_SESSION['message'] = "You cannot send jobs to a reserved machine.";
+				header('Location: index.php?go=machines');
+				exit();
+			}
+		}
+	}
+
         $resend_job=request_str("xml_file_name");
         $filenames =request_array("filename");
 
