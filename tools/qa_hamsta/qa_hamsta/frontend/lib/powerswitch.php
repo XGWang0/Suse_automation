@@ -103,7 +103,19 @@ function power_apc($powerswitch, $powerslot, $action) {
 	$apc_snmp_mib_generic = '1.3.6.1.4.1.318.1.1.12.3.3.1.1.4.';
 	$apc_snmp_mib_port = $apc_snmp_mib_generic.$apc_port;
 
-	if ($action == "start")
+	if ($action == "status") {
+		$snmp_status = snmpget($apc_host, $apc_snmp_community, $apc_snmp_mib_port, 20000);
+		if ($snmp_status == "INTEGER: 1")
+			$status = "on";
+		else if ($snmp_status == "INTEGER: 2")
+			$status = "off";
+		else if ($snmp_status == "INTEGER: 3")
+			$status = "restarting";
+		else
+			$status = "unknown";
+		return($status);
+	}
+	elseif ($action == "start")
 		$apc_action = '1';
 	else if ($action == "stop")
 		$apc_action = '2';
