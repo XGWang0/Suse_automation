@@ -26,7 +26,7 @@ Url:		http://framework.zend.com/
 Group:		Development/Libraries/Other
 Source:		%{name}-%{version}.tar.gz
 Source1:	%{name}.8
-Requires:	php5 >= 5.2
+BuildRequires:	php5 >= 5.2
 Requires:	php5-gmp
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
