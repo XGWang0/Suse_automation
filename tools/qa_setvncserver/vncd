@@ -12,8 +12,12 @@
 case "$1" in
     start)
         export USER="/root"
-        export HOME="/root"
-	[ -s /root/.vnc/passwd ] || cat /usr/share/qa/data/passwords/root | vncpasswd -f > /root/.vnc/passwd
+	export HOME="/root"
+	#[ -s /root/.vnc/passwd ] || cat /usr/share/qa/data/passwords/root | vncpasswd -f > /root/.vnc/passwd
+	if [ ! -s /root/.vnc/passwd ]; then
+	/usr/bin/vncpasswd.arg /root/.vnc/passwd susetesting
+	fi
+
         rm -rf /tmp/.X11-unix/X1
         /usr/bin/vncserver :1;;
     stop)
