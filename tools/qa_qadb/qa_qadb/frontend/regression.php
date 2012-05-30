@@ -139,12 +139,12 @@ if( isset($sub_r[1]) && isset($sub_c[1]) )
 
 	# rewrite table header received from DB
 	$internal=array('testcase_id','r_state','c_state','waiver_id');
-	$data[0]['r_testsuites']='ref<br/>suite(s)';
+	$data[0]['r_testsuite']='ref<br/>suite(s)';
 	$data[0]['r_succ']='ref<br/>succ';
 	$data[0]['r_fail']='ref<br/>fail';
 	$data[0]['r_interr']='ref<br/>interr';
 	$data[0]['r_skip']='ref<br/>skipped';
-	$data[0]['c_testsuites']='cand<br/>suite(s)';
+	$data[0]['c_testsuite']='cand<br/>suite(s)';
 	$data[0]['c_succ']='cand<br/>succ';
 	$data[0]['c_fail']='cand<br/>fail';
 	$data[0]['c_interr']='cand<br/>interr';

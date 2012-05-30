@@ -68,7 +68,7 @@ our @EXPORT_OK;
 # This could be deleted when QADB is later extended and we will
 # store bench results in a better way
 #
-# arguments: harhref to bench_results structure (see results.pm for definition)
+# arguments: harhref to bench_data structure (see results.pm for definition)
 # returns: array ( $key1, $number1, $key2, $number2, ... )
 # key conventions: semicolon-separated strings, 
 #  first one is used to make X axis and should start with a number for line graphs
@@ -78,16 +78,16 @@ sub parse_new_bench_format
 	
 	my @parsed;
 
-	foreach my $graph (@{$res->{schema}->{graphs}}) {
+	foreach my $graph (@{$res->{graphs}}) {
 		# there might be more graphs
-		my $x = $graph->{axis}->{1}->{attribute};
+		my $x = $graph->{axis_1};
 		my $y = $graph->{result};
 
 
-		my $x_label = $res->{schema}->{attributes}->{$x}->{label};
-		my $x_unit  = $res->{schema}->{attributes}->{$x}->{unit};
-		my $y_label = $res->{schema}->{attributes}->{$y}->{label};
-		my $y_unit  = $res->{schema}->{attributes}->{$y}->{unit};
+		my $x_label = $res->{attrs}->{$x}->{label};
+		my $x_unit  = $res->{attrs}->{$x}->{unit};
+		my $y_label = $res->{attrs}->{$y}->{label};
+		my $y_unit  = $res->{attrs}->{$y}->{unit};
 
 		foreach my $val (@{$res->{values}}) {
 			# if for different graph, skip
@@ -98,10 +98,10 @@ sub parse_new_bench_format
 			foreach my $z (sort keys %$val) {
 				# add the middle part
 				next if $z eq $x or $z eq $y;
-				$str .= $res->{schema}->{attributes}->{$z}->{label};
+				$str .= $res->{attrs}->{$z}->{label};
 				$str .= '=' . $val->{$z};
-				if ($res->{schema}->{attributes}->{$z}->{unit}) {
-					$str .= ' ' . $res->{schema}->{attributes}->{$z}->{unit};
+				if ($res->{attrs}->{$z}->{unit}) {
+					$str .= ' ' . $res->{attrs}->{$z}->{unit};
 				}
 				$str .= ';';
 			}

@@ -236,7 +236,7 @@ print_full_usage()
 	echo "        - This can be a fully qualified or relative path."
 	echo "        - The file must exist."
 	echo "        - DEFAULT: ../data/sources.local, if it does not exists, ../data/sources.<location>"
-	echo "        - EXAMPLE: -P ../path/sourcesfile.properties"
+	echo "        - EXAMPLE: -Q ../path/sourcesfile.properties"
 	echo
 	echo " -N <nameAddition>"
 	echo "        - What to add onto the end of the guest name, instead of the random letters and numbers."

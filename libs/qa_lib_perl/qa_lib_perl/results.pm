@@ -157,55 +157,43 @@ contains following hash:
 	int_errors    => <number>, 
 	test_time     => <string>,
 	skipped       => <number>,
-	bench_results => <benchmark results reference>
+	bench_data     => <benchmark results reference>
  }
 
-Key bench_results is defined only for benchmark testcases.
+Key bench_data is defined only for benchmark testcases.
 
-Structure of bench_results is:
+Structure of bench_data is:
 
- $bench_results => {
-     schema => {    # result semantics
-         attributes => {
-             name_of_attribute_1 => {
-                 name         => 'name_of_attribute_1', # MUST BE SAME AS KEY
-                 label        => 'label to show in graph',
-                 description  => 'description of attr',
-                 type         => 'linear', # enum, linear or logaritmic
-                 unit         => 'unit the attribute is measured in',
-             },
-             name_of_attribute_2 => {
-	         ...
-             },
-	     ...
-	 },
-         graphs => [
-             {   # how should default graphs look like
-		 label        => 'graph label',
-                 description  => 'graph description',
-    	         result       => 'name_of_attribute',
-	         axis         => { 
- 	             # Axis 'x' (1st axis)
-                     1 => {
-		         attribute => 'name_of_attribute'
-		     }
-
-		     # Optional -> 3D graphs - axis 'z'
-                     2 => {
-		         attribute => 'name_of_attribute'
-                     }
-
-		     # Theoretically, we can have more, but it will be hard to
-		     # display ;-)
-                 }
-	     }
-	     ...
-	 ]
+ $bench_data => {
+     attrs => { # attributes (what can be on graph axis)
+         id_of_attribute_1 => {
+             id           => 'id_of_attribute_1', # MUST BE SAME AS KEY
+             label        => 'label to show in graph',
+             desc         => 'description of attr',
+             type         => 'linear', # enum, linear or logaritmic
+             unit         => 'unit the attribute is measured in',
+         },
+         id_of_attribute_2 => {
+             ...
+         },
+         ...
      },
+     graphs => [
+         {   # how should default graphs look like
+    	     label        => 'graph label',
+             desc         => 'graph description',
+             result       => 'id_of_attribute' (y axis),
+             axis_1       => 'id of attribute (x axis)'
+    	     # Optional -> 3D graphs - axis 'z'
+             axis_2       => 'id of attribute (z axis)'
+         }
+         ...
+     ],
      values => [
          { 
-             name_off_attribute_1 => value_of_attribute_1,
-             name_off_attribute_2 => value_of_attribute_2,
+	     # not all attributes must be here!!!
+             id_of_attribute_1 => value_of_attribute_1,
+             id_of_attribute_2 => value_of_attribute_2,
 	     ...
 	 }
 	 ...

@@ -489,12 +489,12 @@ while( my $parser = readdir RESULTS) {
 			# TODO: this needs rework, newer parsers give us more more information that we should
 			# improve the staring and displaying results in QADB!
 			my $bench_pairs = 0;
-			if( $res->{bench_results} or &is_bench($tc_name) )
+			if( $res->{bench_data} or &is_bench($tc_name) )
 			{
 				my @parsed;
-				if ($res->{bench_results}) {
+				if ($res->{bench_data}) {
 					# now move the new structure back to old limited format :(
-					@parsed = parse_new_bench_format($res->{bench_results});
+					@parsed = parse_new_bench_format($res->{bench_data});
 
 				} else { # &is_bench($tc_name)
 					my $bfile=$the_parser->path()."/$tcf/".$the_parser->testsuite_tc_output_rel_url();
