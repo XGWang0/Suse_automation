@@ -481,6 +481,118 @@ class Machine {
 		$stmt->bindParam(':powerswitch', $powerswitch);
 		$stmt->execute();
 	}
+        /**
+         * get_powertype
+         *
+         * @access public
+         * @return string Unique ID if the machine
+         */
+        function get_powertype() {
+        if( isset($this->fields['powertype']) )
+                        return $this->fields["powertype"];
+                else
+                        return NULL;
+        }
+
+        /**
+         * set_powertype
+         *
+         * Sets the powertype description of the machine
+         * 
+         * @param string $powertype has the configuration of the connected powerswitch
+         * @access public
+         * @return void
+         */
+        function set_powertype($powertype)  {
+                if (($powertype == 's390') or ($powertype == 'apc') or ($powertype == NULL)) {
+			$stmt = get_pdo()->prepare('UPDATE machine SET powertype = :powertype WHERE machine_id = :id');
+        	        $stmt->bindParam(':id', $this->fields["id"]);
+	                $stmt->bindParam(':powertype', $powertype);
+                	$stmt->execute();
+		}
+		else
+			return NULL;
+        }
+
+        /**
+         * get_powerslot
+         *
+         * @access public
+         * @return string Unique ID if the machine
+         */
+        function get_powerslot() {
+        if( isset($this->fields['powerslot']) )
+                        return $this->fields["powerslot"];
+                else
+                        return NULL;
+        }
+
+        /**
+         * set_powerslot
+         *
+         * Sets the powerslot description of the machine
+         * 
+         * @param string $powerslot has the slot of the connected powerswitch
+         * @access public
+         * @return void
+         */
+        function set_powerslot($powerslot)  {
+                $stmt = get_pdo()->prepare('UPDATE machine SET powerslot = :powerslot WHERE machine_id = :id');
+                $stmt->bindParam(':id', $this->fields["id"]);
+                $stmt->bindParam(':powerslot', $powerslot);
+                $stmt->execute();
+        }
+
+        /**
+         * start_machine
+         *
+         * @acces public
+         * @return void
+         *
+         */
+        function start_machine()  {
+                $powerswitch = $this->get_powerswitch();
+		$powertype = $this->get_powertype();
+                $powerslot = $this->get_powerslot();
+                if ($powertype == "s390")
+                        power_s390($powerslot, "start");
+		else if ($powertype == "apc")
+			power_apc($powerswitch, $powerslot, 'start');
+        }
+
+        /**
+         * stop_machine
+         *
+         * @acces public
+         * @return void
+         *
+         */
+        function stop_machine()  {
+		$powerswitch = $this->get_powerswitch();
+                $powertype= $this->get_powertype();
+                $powerslot= $this->get_powerslot();
+                if ($powertype == "s390")
+                        power_s390($powerslot, 'stop');
+		else if ($powertype == "apc")
+			power_apc($powerswitch, $powerslot, 'stop');
+        }
+
+        /**
+         * restart_machine
+         *
+         * @acces public
+         * @return void
+         *
+         */
+        function restart_machine()  {
+		$powerswitch = $this->get_powerswitch();
+                $powertype= $this->get_powertype();
+                $powerslot= $this->get_powerslot();
+                if ($powertype == "s390")
+                        power_s390($powerslot, 'restart');
+		else if ($powertype == "apc")
+			power_apc($powerswitch, $powerslot, 'restart');
+        }
 
 
 	/**
@@ -1669,6 +1781,8 @@ class Machine {
 		'anomaly'=>'s',
 		'serialconsole'=>'s',
 		'powerswitch'=>'s',
+		'powertype'=>'s',
+		'powerslot'=>'s',
 		'busy'=>'i',
 		'consoledevice'=>'s',
 		'consolespeed'=>'s',
