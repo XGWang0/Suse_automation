@@ -29,19 +29,14 @@
     <td>
       <label for="win_products">Product:</label>
       <!-- Will update this part later -->
-      <select name="win_products" id="win_products">
-        <option value="win-2k-sp4-32">win-2k-sp4-32</option>
-        <option value="win-2k3-sp2-32">win-2k3-sp2-32</option>
-        <option value="win-2k3-sp2-64">win-2k3-sp2-64</option>
-        <option value="win-2k8-sp2-32">win-2k8-sp2-32</option>
-        <option value="win-2k8-sp2-64">win-2k8-sp2-64</option>
-        <option value="win-2k8r2-fcs-64">win-2k8r2-fcs-64</option>
-        <option value="win-7-fcs-32">win-7-fcs-32</option>
-        <option value="win-7-fcs-64">win-7-fcs-64</option>
-        <option value="win-vista-sp2-32">win-vista-sp2-32</option>
-        <option value="win-vista-sp2-64">win-vista-sp2-64</option>
-        <option value="win-xp-sp3-32">win-xp-sp3-32</option>
-      </select>
-      <span id="repo_archs_warning" class="text-red text-small bold">*</span>
+	<?php
+        $content = file_get_contents(WIN_INDEX_URL);
+        $getJson = json_decode($content,true);
+		echo "<select name=\"win_products\" id=\"win_products\">\n";
+		foreach ($getJson as $item)
+			echo "<option value=\"" . $item["product"] ."\">" . $item["name"] . "</option>\n";
+		echo "</select>\n";
+	?>
+      <span class="text-red text-small bold">*</span>
     </td>
   </tr>
