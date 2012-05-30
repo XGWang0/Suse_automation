@@ -53,18 +53,23 @@ define ("XML_MULTIMACHINE_WEB_DIR_CUSTOM", XML_MULTIMACHINE_WEB_DIR."/custom");
 # CN repo. (default)
 define ("REPO_INDEX_URL", "http://147.2.207.242/repo-index/cn.repo.json");
 define ("SDK_INDEX_URL", "http://147.2.207.242/repo-index/cn.sdk.json");
+define ("WIN_INDEX_URL", "http://147.2.207.242/repo-index/cn.win.json");
+define ("WIN_INDEX_URL", "http://147.2.207.242/repo-index/us.win.json");
 
 # US repo.
 #define ("REPO_INDEX_URL", "http://147.2.207.242/repo-index/us.repo.json");
 #define ("SDK_INDEX_URL", "http://147.2.207.242/repo-index/us.sdk.json");
+#define ("WIN_INDEX_URL", "http://147.2.207.242/repo-index/us.win.json");
 
 # CZ repo.
 #define ("REPO_INDEX_URL", "http://qadb.suse.de/hamsta/cz.repo.json");
 #define ("SDK_INDEX_URL", "http://qadb.suse.de/hamsta/cz.sdk.json");
+#define ("WIN_INDEX_URL", "http://qadb.suse.de/hamsta/cz.win.json");
 
 # DE repo.
 #define ("REPO_INDEX_URL", "http://147.2.207.242/repo-index/de.repo.json");
 #define ("SDK_INDEX_URL", "http://147.2.207.242/repo-index/de.json");
+#define ("WIN_INDEX_URL", "http://147.2.207.242/repo-index/de.win.json");
 
 # Validation test machine and URL setting, must use **IP address** in vmlist value.
 $vmlist=array("i386"=>"147.2.207.171", "x86_64"=>"147.2.207.97", "ia64"=>"N/A", "s390x"=>"N/A", "ppc64"=>"N/A", "x86-xen"=>"147.2.207.79", "x86_64-xen"=>"147.2.207.193"); 
