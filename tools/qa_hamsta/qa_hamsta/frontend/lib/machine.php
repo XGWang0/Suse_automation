@@ -1781,6 +1781,8 @@ class Machine {
 		'anomaly'=>'s',
 		'serialconsole'=>'s',
 		'powerswitch'=>'s',
+		'powertype'=>'s',
+		'powerslot'=>'s',
 		'busy'=>'i',
 		'consoledevice'=>'s',
 		'consolespeed'=>'s',
