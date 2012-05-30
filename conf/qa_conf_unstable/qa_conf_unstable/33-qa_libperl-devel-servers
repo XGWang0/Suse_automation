@@ -37,7 +37,7 @@
 #
 # The url address of root ofQADB Webserver
 #
-qadb_wwwroot="http://vm-auto-devel.qa.suse.cz/qadb"
+qadb_wwwroot="http://autodev.qa.suse.cz/qadb"
 
 # Do not overwrite location, keep default
 
