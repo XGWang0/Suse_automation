@@ -115,7 +115,7 @@ function power_apc($powerswitch, $powerslot, $action) {
 			$status = "unknown";
 		return($status);
 	}
-	elseif ($action == "start")
+	else if ($action == "start")
 		$apc_action = '1';
 	else if ($action == "stop")
 		$apc_action = '2';
