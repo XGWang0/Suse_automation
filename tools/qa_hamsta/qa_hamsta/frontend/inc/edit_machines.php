@@ -30,13 +30,28 @@
 	 * Gets all selected machines and updates their status if requested.
 	 */
 
-	$edit_fields = array('used_by', 'expires', 'usage','maintainer_string','anomaly','powerswitch','serialconsole','consoledevice','consolespeed','consolesetdefault','affiliation');
+	$edit_fields = array('used_by', 'expires', 'usage','maintainer_string','anomaly','powerswitch', 'powertype', 'powerslot', 'serialconsole','consoledevice','consolespeed','consolesetdefault','affiliation');
 	$allmachines = request_array("a_machines");
 
 	if (!defined('HAMSTA_FRONTEND'))
 	{
 		$go = 'edit_machines';
 		return require("index.php");
+	}
+
+	# Verify user has rights to modify the machine
+	if ($openid_auth && array_key_exists('OPENID_AUTH', $_SESSION) && $user = User::get_by_openid($_SESSION['OPENID_AUTH'])) {
+		foreach ($allmachines as $machine_id)
+		{
+			$machine = Machine::get_by_id($machine_id);
+			$used_by = User::get_by_openid($machine->get_used_by());
+			if ($used_by && $used_by->get_openid() != $user->get_openid()) {
+				$_SESSION['mtype'] = "fail";
+				$_SESSION['message'] = "You cannot modify a reserved machine.";
+				header('Location: index.php?go=machines');
+				exit();
+			}
+		}
 	}
 
 	# If they are doing the shortcut field clearing	

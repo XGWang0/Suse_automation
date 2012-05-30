@@ -22,21 +22,39 @@
   WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
   ****************************************************************************
  */
-?>
 
-  <tr>
-    <td width=380>Installation ISO (required): </td>
-    <td>
-      <label for="win_products">Product:</label>
-      <!-- Will update this part later -->
-	<?php
-        $content = file_get_contents(WIN_INDEX_URL);
-        $getJson = json_decode($content,true);
-		echo "<select name=\"win_products\" id=\"win_products\">\n";
-		foreach ($getJson as $item)
-			echo "<option value=\"" . $item["product"] ."\">" . $item["name"] . "</option>\n";
-		echo "</select>\n";
-	?>
-      <span class="text-red text-small bold">*</span>
-    </td>
-  </tr>
+    /**
+     * Logic of the powercycling functions
+     *
+     * Starts or stops selected machine (via powerswitch or hardware management console)
+     */
+    if(!defined('HAMSTA_FRONTEND')) {
+        $go = 'power';
+        return require("index.php");
+    }
+
+    $html_title = "Start/Stop/Restart machine";
+
+    $allmachines = request_array("a_machines");
+    
+    if (request_str("action") == "start") {
+	foreach ($allmachines as $machine_id) {
+		$machine = Machine::get_by_id($machine_id);
+		$machine->start_machine();
+		}
+	}
+    else if (request_str("action") == "restart") {
+	foreach ($allmachines as $machine_id) {
+		$machine = Machine::get_by_id($machine_id);
+		$machine->restart_machine();
+		}
+	}
+
+    else if (request_str("action") == "stop") {
+	foreach ($allmachines as $machine_id) {
+		$machine = Machine::get_by_id($machine_id);
+		$machine->stop_machine();
+		}
+	}
+
+?>

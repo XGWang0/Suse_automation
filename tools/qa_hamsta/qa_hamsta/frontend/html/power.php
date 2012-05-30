@@ -22,21 +22,16 @@
   WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
   ****************************************************************************
  */
-?>
+    if(!defined('HAMSTA_FRONTEND')) {
+        $go = 'power';
+        return require("index.php");
+    }
 
-  <tr>
-    <td width=380>Installation ISO (required): </td>
-    <td>
-      <label for="win_products">Product:</label>
-      <!-- Will update this part later -->
-	<?php
-        $content = file_get_contents(WIN_INDEX_URL);
-        $getJson = json_decode($content,true);
-		echo "<select name=\"win_products\" id=\"win_products\">\n";
-		foreach ($getJson as $item)
-			echo "<option value=\"" . $item["product"] ."\">" . $item["name"] . "</option>\n";
-		echo "</select>\n";
-	?>
-      <span class="text-red text-small bold">*</span>
-    </td>
-  </tr>
+    /*
+     * Here we just redirect back to the frontpage
+     *
+     */
+
+    echo '<meta HTTP-EQUIV="REFRESH" content="0; url=../hamsta">';
+
+?>

@@ -35,7 +35,8 @@
     $html_title = "Register";
 
 // Redirect to the homepage if the user has already registered (maybe fill in and allow an update instead?).
-$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
+if (array_key_exists('OPENID_AUTH', $_SESSION))
+	$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
 if ($user) {
 	header('Location: index.php?go=machines');
 }

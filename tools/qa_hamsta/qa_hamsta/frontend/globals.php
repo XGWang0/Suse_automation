@@ -146,6 +146,8 @@
 		'unique_id'=>'Unique ID',
 		'serialconsole'=>'Serial console',
 		'powerswitch'=>'Power switch',
+		'powertype'=>'Power switch type',
+		'powerslot'=>'Power switch slot',
 		'role'=>'Role',
 		'type'=>'Type',
 		'vh'=>'Virt. Host'

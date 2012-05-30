@@ -30,8 +30,8 @@
         $go = 'newvm-win';
         return require("index.php");
     }
-
-	$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
+	if (array_key_exists('OPENID_AUTH', $_SESSION))
+		$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
 
 	$blockedMachines = array();
 	$nonVH = array();
@@ -84,7 +84,7 @@ This page will allow you to install a Windows for the virtual machine(s) you hav
   <?php require ("req_newvm_com_conf.php"); ?>
   <tr>
     <td>Notification email address (optional):</td>
-    <td><input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} else if ($openid_auth) { echo $user->get_email(); } ?>" /> (if you want to be notified when the installation is finished)</td>
+    <td><input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} else if ($openid_auth && isset($user)) { echo $user->get_email(); } ?>" /> (if you want to be notified when the installation is finished)</td>
   </tr>
 </table>    
 <br />
