@@ -36,6 +36,8 @@
 	$blockedMachines = array();
 	$virtualMachines = array();
 	$hasChildren = array();
+    $ishwvirt = 0;
+    $arrhwvirt = array();
 	foreach ($machines as $machine) {
 		if( ! $machine->has_perm('job') || ! $machine->has_perm('install') ) {
 			$blockedMachines[] = $machine->get_hostname();
@@ -46,6 +48,8 @@
 		if(count($machine->get_children()) > 0) {
 			$hasChildren[] = $machine->get_hostname();
 		}
+        $ishwvirt += $machine->get_ishwvirt();
+        $arrhwvirt[$machine->get_hostname()]=$machine->get_ishwvirt();
 	}
 	if(count($blockedMachines) != 0) {
 		echo "<div class=\"text-medium\">" .
@@ -65,7 +69,13 @@
 			"<strong>" . implode(", ", $hasChildren) . "</strong><br /><br />" .
 			"It is not possible to reinstall virtual hosts with virtual machines (you can delete them in QA Cloud before reinstalling virtual host)." .
 			"</div>";
-
+	} elseif ($ishwvirt != count($machines)) {
+		echo "<div class=\"text-medium\">" .
+		"The following machines probably doesn't support HardWare virtualization:<br /><br />";
+		foreach ($arrhwvirt as $key=>$value)
+			if ($value == "0")
+					echo "<strong>" . $key . "</strong><br />";
+		echo "Please go back and try other machines.</div>\n";
 	} else {
 
 ?>

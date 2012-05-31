@@ -318,6 +318,10 @@ class Machine {
 		$avaivmdisk = $this->get_hwelement("avaivmdisk","AvaiVMDisk");
 		return $avaivmdisk;
 	}
+	function get_ishwvirt() {
+		$ishwvirt = $this->get_hwelement("ishwvirt","IsHWVirt");
+		return $ishwvirt;
+	}
 
 	/**
 	 * get_devel_tools()
