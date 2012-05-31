@@ -54,7 +54,6 @@ define ("XML_MULTIMACHINE_WEB_DIR_CUSTOM", XML_MULTIMACHINE_WEB_DIR."/custom");
 define ("REPO_INDEX_URL", "http://147.2.207.242/repo-index/cn.repo.json");
 define ("SDK_INDEX_URL", "http://147.2.207.242/repo-index/cn.sdk.json");
 define ("WIN_INDEX_URL", "http://147.2.207.242/repo-index/cn.win.json");
-define ("WIN_INDEX_URL", "http://147.2.207.242/repo-index/us.win.json");
 
 # US repo.
 #define ("REPO_INDEX_URL", "http://147.2.207.242/repo-index/us.repo.json");
