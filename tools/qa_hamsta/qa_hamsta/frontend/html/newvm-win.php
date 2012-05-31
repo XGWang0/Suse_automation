@@ -37,6 +37,8 @@
 	$nonVH = array();
 	$paravirtnotsupported = array();
 	$fullvirtnotsupported = array();
+	$ishwvirt = 0;
+	$arrhwvirt = array();
 	foreach ($machines as $machine) {
 		if ($machine->is_busy() || ! $machine->has_perm('job')) {
 			$blockedMachines[] = $machine->get_hostname();
@@ -45,11 +47,13 @@
 			$nonVH[] = $machine->get_hostname();
 		} else {
 			if ($machine->get_type() != 'xen') $paravirtnotsupported[] = $machine->get_hostname();
-			//TODO check full virt support!
 		}
-                $virtavaimem = $machine->get_vmusedmemory() < 512 ? $machine->get_vmusedmemory() : $machine->get_vmusedmemory() - 512; #Dom0 will cost 512MB
-                $virtavaidisk = $machine->get_avaivmdisk();
+		$virtavaimem = $machine->get_vmusedmemory() < 512 ? $machine->get_vmusedmemory() : $machine->get_vmusedmemory() - 512; #Dom0 will cost 512MB
+        $virtavaidisk = $machine->get_avaivmdisk();
+		$ishwvirt += $machine->get_ishwvirt();
+		$arrhwvirt[$machine->get_hostname()]=$machine->get_ishwvirt();
 	}
+
 	if(count($nonVH) != 0) {
 		echo "<div class=\"text-medium\">" .
 			"The following machines are not virtualization hosts:<br /><br />" .
@@ -62,6 +66,13 @@
 			"<strong>" . implode(", ", $blockedMachines) . "</strong><br /><br />" .
 			"Please go back to free them up and then try new VM creation again." .
 		"</div>";
+	} elseif($ishwvirt != count($machines)) {
+		echo "<div class=\"text-medium\">" .
+			"The following machines are not support virtualization by HardWare, cannot install Windows VM: <br /><br />";
+		foreach ($arrhwvirt as $key=>$value)
+			if ($value == "0")
+				echo "<strong> $key </strong><br />";
+		echo "<br />Please go back to to deselect them and then try new VM installation again. </div>\n";
 	} else {
 
 ?>

@@ -377,8 +377,20 @@ EOF
 
 	# Scripts section, we can add every command that we would like to run on the 1st boot here.
 	# Especially useful for some work arounds of autoyast bug
-	print $f "	<scripts>
-	  <init-scripts config:type=\"list\">
+	print $f "	<scripts>\n";
+	print $f "	  <post-scripts config:type=\"list\">
+		<script>
+		  <filename>zzz_write_passwords</filename>
+		  <interpreter>shell</interpreter>
+		  <source>
+		    mkdir -p /usr/share/qa/data/passwords ;
+		    echo '$rootpass' > /usr/share/qa/data/passwords/root ;
+		    echo '$testpass' > /usr/share/qa/data/passwords/$testusr
+		  </source> 
+		 </script>
+           </post-scripts>\n";
+
+	print $f "	 <init-scripts config:type=\"list\">
 	  <script>
 		<filename>yya_for_xorg</filename>
 		<interpreter>shell</interpreter>
@@ -435,16 +447,6 @@ EOF
 			</script>";
 	
 		}
-	
-		print $f "      <script>
-		  <filename>zzz_write_passwords</filename>
-		  <interpreter>shell</interpreter>
-		  <source>
-		    mkdir -p /usr/share/qa/data/passwords ;
-		    echo '$rootpass' > /usr/share/qa/data/passwords/root ;
-		    echo '$testpass' > /usr/share/qa/data/passwords/$testusr
-		  </source> 
-		 </script>";
 	
 	        # write user config - if it is different
 	        my $qarepo=$qaconf{install_qa_repository};

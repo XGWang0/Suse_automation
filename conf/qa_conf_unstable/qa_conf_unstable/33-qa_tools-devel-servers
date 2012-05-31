@@ -37,7 +37,7 @@
 # The address of the host, where qa_db_report is installed, this
 # is the host that results are sent to by remote_qa_db_report.pl
 #
-remote_qa_db_report_host="vm-auto-devel.qa.suse.cz"
+remote_qa_db_report_host="autodev.qa.suse.cz"
 remote_qa_db_report_user="rd-qa"
 
 

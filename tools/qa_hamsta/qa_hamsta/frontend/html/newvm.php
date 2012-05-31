@@ -45,10 +45,9 @@
 			$nonVH[] = $machine->get_hostname();
 		} else {
 			if ($machine->get_type() != 'xen') $paravirtnotsupported[] = $machine->get_hostname();
-			//TODO check full virt support!
 		}
-                $virtavaimem = $machine->get_vmusedmemory() < 512 ? $machine->get_vmusedmemory() : $machine->get_vmusedmemory() - 512; #Dom0 will cost 512MB
-                $virtavaidisk = $machine->get_avaivmdisk();
+		$virtavaimem = $machine->get_vmusedmemory() < 512 ? $machine->get_vmusedmemory() : $machine->get_vmusedmemory() - 512; #Dom0 will cost 512MB
+		$virtavaidisk = $machine->get_avaivmdisk();
 	}
 	if(count($nonVH) != 0) {
 		echo "<div class=\"text-medium\">" .
@@ -70,7 +69,9 @@
 
 <ul>
 <?php foreach ($machines as $machine): ?>
-<li><input type="hidden" name="a_machines[]" value="<?php echo($machine->get_id()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>"><?php echo($machine->get_hostname()); ?></a></li>
+<li><input type="hidden" name="a_machines[]" value="<?php echo($machine->get_id()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>"><?php echo($machine->get_hostname()); ?></a> &nbsp;&nbsp;
+<?php if($machine->get_ishwvirt() == 0) echo $machine->get_hostname()." probably doesn't support full-virtualization. Use Para mode, please!"; ?>
+</li>
 <?php endforeach; ?>
 </ul></h5>
 
