@@ -91,15 +91,16 @@ function power_s390($powerslot, $action) {
 
 	/*
 	 * function power_apc is used to start/stop power on apc 
-	 * power switches, we hawe to set community to qanet, and grant
+	 * power switches, we specify community by entering community@powerswitch, and grant
 	 * this community write+ privileges.
 	 *
 	 */
 
 function power_apc($powerswitch, $powerslot, $action) {
-	$apc_host = $powerswitch;
+	$apc_url_string = split('[@]', $powerswitch);
+	$apc_snmp_community = $apc_url_string[0];;
+	$apc_host = $apc_url_string[1];
 	$apc_port = $powerslot;
-	$apc_snmp_community = 'qanet';
 	$apc_snmp_mib_generic = '1.3.6.1.4.1.318.1.1.12.3.3.1.1.4.';
 	$apc_snmp_mib_port = $apc_snmp_mib_generic.$apc_port;
 
@@ -131,11 +132,13 @@ function power_apc($powerswitch, $powerslot, $action) {
 
 	/*
 	 * Support for powercycling using ipmi (requires ipmitool)
+	 * 
+	 * We specify user:password@host of ipmi inteface
 	 *
 	 */
 
-function power_ipmi($ipmi_url, $ipmi_port, $action) {
-	$ipmi_url_array = split('[@:]', $ipmi_url);
+function power_ipmi($powerswitch, $powerslot, $action) {
+	$ipmi_url_array = split('[@:]', $powerswitch);
 	$ipmi_user = $ipmi_url_array[0];
 	$ipmi_password = $ipmi_url_array[1];
 	$ipmi_host = $ipmi_url_array[2];
