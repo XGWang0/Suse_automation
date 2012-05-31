@@ -508,7 +508,7 @@ class Machine {
          * @return void
          */
         function set_powertype($powertype)  {
-                if (($powertype == 's390') or ($powertype == 'apc') or ($powertype == NULL)) {
+                if (($powertype == 's390') or ($powertype == 'apc') or ($powertype == 'ipmi') or ($powertype == NULL)) {
 			$stmt = get_pdo()->prepare('UPDATE machine SET powertype = :powertype WHERE machine_id = :id');
         	        $stmt->bindParam(':id', $this->fields["id"]);
 	                $stmt->bindParam(':powertype', $powertype);
@@ -562,6 +562,8 @@ class Machine {
                         power_s390($powerslot, "start");
 		else if ($powertype == "apc")
 			power_apc($powerswitch, $powerslot, 'start');
+		else if ($powertype == "ipmi")
+			power_ipmi($powerswitch, $powerslot, 'start');
         }
 
         /**
@@ -579,6 +581,8 @@ class Machine {
                         power_s390($powerslot, 'stop');
 		else if ($powertype == "apc")
 			power_apc($powerswitch, $powerslot, 'stop');
+		else if ($powertype == "ipmi")
+			power_ipmi($powerswitch, $powerslot, 'stop');
         }
 
         /**
@@ -596,6 +600,8 @@ class Machine {
                         power_s390($powerslot, 'restart');
 		else if ($powertype == "apc")
 			power_apc($powerswitch, $powerslot, 'restart');
+		else if ($powertype == "ipmi")
+			power_ipmi($powerswitch, $powerslot, 'restart');
         }
 
 

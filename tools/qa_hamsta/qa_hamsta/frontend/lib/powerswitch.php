@@ -128,4 +128,49 @@ function power_apc($powerswitch, $powerslot, $action) {
 	 */
 	snmpset($apc_host, $apc_snmp_community, $apc_snmp_mib_port, 'i', $apc_action);
 	}
+
+	/*
+	 * Support for powercycling using ipmi (requires ipmitool)
+	 *
+	 */
+
+function power_ipmi($ipmi_url, $ipmi_port, $action) {
+	$ipmi_url_array = split('[@:]', $ipmi_url);
+	$ipmi_user = $ipmi_url_array[0];
+	$ipmi_password = $ipmi_url_array[1];
+	$ipmi_host = $ipmi_url_array[2];
+
+	function ipmi_command($ipmi_user, $ipmi_password, $ipmi_host, $command) {
+		$ipmitool_command = "ipmitool -I lan -H $ipmi_host -U $ipmi_user -P $ipmi_password chassis power $command";
+		$result = exec($ipmitool_command);
+		return($result);
+	}
+
+
+	if ($action == "status") {
+        		$ipmi_status = ipmi_command($ipmi_user, $ipmi_password, $ipmi_host, 'status');
+	        if ($ipmi_status == "Chassis Power is on")
+        	        $status = "on";
+	        else if ($ipmi__status == "Chassis Power is off")
+        	        $status = "off";
+	        else
+                	$status = "unknown";
+        	return($status);
+	}
+	else if ($action == "start")
+        	ipmi_command($ipmi_user, $ipmi_password, $ipmi_host, 'on');
+	else if ($action == "stop")
+        	ipmi_command($ipmi_user, $ipmi_password, $ipmi_host, 'off');
+	else if ($action == "restart") {
+		/*
+		 * We are using this, since 'cycle' and 'reset' fail when machine 
+		 * is already powered off, also this results in behaviuour which is
+		 * more consistent with s390 
+		 */
+		ipmi_command($ipmi_user, $ipmi_password, $ipmi_host, 'off');
+		sleep(5);
+		ipmi_command($ipmi_user, $ipmi_password, $ipmi_host, 'on');
+		}
+	}
+
 ?>
