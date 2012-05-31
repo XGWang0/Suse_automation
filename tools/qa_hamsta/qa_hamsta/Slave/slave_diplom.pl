@@ -98,7 +98,8 @@ our $slave_pid;
 our $multicast_pid;
 
 child {
-    $log::loginfo='hamsta';
+    $log::loginfo='hamsta-server';
+    $0 .= ' server';
     &log(LOG_INFO, "Starting server");
     
     open(STDOUT_ORG, ">&STDOUT");
@@ -115,12 +116,16 @@ parent {
 # Start the multicast announcement as a new thread
 # my $mcast_thread =threads->new(sub {system("/usr/bin/perl mcast.pm");});
 child {
+	$log::loginfo = 'hamsta-multicast';
+	$0 .= ' multicast';
 &log(LOG_INFO,"Starting multicast thread");
 &Slave::Multicast::run();
 }
 parent {
     $multicast_pid=shift;
 };
+
+$log::loginfo = 'hamsta';
 
 while(1){
     my $sleep_s=10;
@@ -132,7 +137,8 @@ while(1){
 	&log(LOG_ERR,"slave server died");
 	$last_ip=$current_ip;
 	child {
-	      $log::loginfo='hamsta';
+	      $log::loginfo='hamsta-server';
+	      $0 .= ' server';
 	      &log(LOG_INFO, "Starting server");
               open(STDOUT_ORG, ">&STDOUT");
 	      STDOUT_ORG->autoflush(1);
@@ -144,6 +150,8 @@ while(1){
 	}
 	;
 	child {
+		$log::loginfo = 'hamsta-multicast';
+		$0 .= ' multicast';
 		&log(LOG_INFO,"Starting multicast thread");
 		&Slave::Multicast::run();
 	}
@@ -186,6 +194,7 @@ sub run_slave_server() {
     while(1) {
         eval {
 	    my ($port,$iaddr,$paddr);
+	    &log(LOG_DETAIL,"Accepting connections");
             ($connection,$paddr) = $socket->accept();
             $| = 1;
 	    $connection->autoflush(1);
@@ -277,6 +286,7 @@ sub process_request {
                 }
                 &log(LOG_NOTICE, "[$ip_addr] Sent hwinfo.");
                 $sent_hwinfo = time;
+		last;
             } elsif ($incoming =~ /^get_stats$/) {
                 eval { 
                     print $sock uri_escape(&get_stats_xml());
@@ -285,8 +295,10 @@ sub process_request {
                     &log(LOG_ERROR, $@);
                 }
                 &log(LOG_NOTICE, "[$ip_addr] Sent machine stats.");
+		last;
             } elsif ($incoming =~ /^ping$/) {
                 print $sock "pong\n" ;	
+		last;
             } else {
                 my $job = $incoming."\n";
 		&log(LOG_NOTICE, "[$ip_addr] Start of XML job");
@@ -299,6 +311,7 @@ sub process_request {
                     last if ($incoming =~ /%3C\/job%3E/);
                 }
                 &start_job($job, $sock);
+		last;
             }
         }
     };
@@ -307,6 +320,7 @@ sub process_request {
         &log(LOG_ERROR, $@);
         return;
     }
+    &log(LOG_DETAIL, "Request finished.");
 
 }
 
