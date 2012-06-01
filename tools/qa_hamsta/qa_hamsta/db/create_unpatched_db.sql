@@ -92,7 +92,7 @@ CREATE TABLE machine (
   anomaly text not null,
   serialconsole varchar(255),
   powerswitch varchar(255),
-  powerswitch varchar(255),
+  powertype varchar(255),
   powerslot varchar(255),
   busy tinyint(1) not null default 0,
   primary key  (machine_id),
