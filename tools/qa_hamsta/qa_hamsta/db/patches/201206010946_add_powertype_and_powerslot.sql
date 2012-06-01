@@ -23,4 +23,4 @@
   ****************************************************************************
  */
 
- alter table machine add column (powertype varchar(255)) default NULL, powerslot varchar(255) default NULL);
+ alter table machine add column (powertype varchar(255) default NULL, powerslot varchar(255) default NULL);
