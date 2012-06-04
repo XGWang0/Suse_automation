@@ -18,7 +18,7 @@
 # norootforbuild
 
 Name:           qa_lib_openid
-Summary:	Consumer openid pieces of Zend Framework
+Summary:	Zend Framework
 Version:	1.11.11
 Release:	1
 License:	BSD

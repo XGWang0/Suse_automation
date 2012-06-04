@@ -630,6 +630,20 @@ $glob_dest=array(
 /** logs into DB, checks user, prints header, prints navigation bar */
 function common_header($args=null)
 {
+	$openid_auth = false;
+	$openid_url = "www.novell.com/openid";
+	if ($openid_auth && isset($_GET['openid_mode']) && $_GET['openid_mode'] == "id_res") {
+		require_once "Zend/OpenId/Consumer.php";
+		$consumer = new Zend_OpenId_Consumer();
+		if ($consumer->verify($_GET, $id)) {
+			$_SESSION['OPENID_AUTH'] = $id;
+		}
+	} else if ($openid_auth && !isset($_SESSION['OPENID_AUTH'])) {
+		require_once "Zend/OpenId/Consumer.php";
+		$consumer = new Zend_OpenId_Consumer();
+		$consumer->login($openid_url);
+	}
+
 	global $conn_id,$glob_dest;
 #	$is_production_server = ( $_SERVER['SERVER_ADDR'] == '10.10.3.155' );
 	$defaults=array(
