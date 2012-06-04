@@ -154,7 +154,7 @@ function power_ipmi($powerswitch, $powerslot, $action) {
         		$ipmi_status = ipmi_command($ipmi_user, $ipmi_password, $ipmi_host, 'status');
 	        if ($ipmi_status == "Chassis Power is on")
         	        $status = "on";
-	        else if ($ipmi__status == "Chassis Power is off")
+	        else if ($ipmi_status == "Chassis Power is off")
         	        $status = "off";
 	        else
                 	$status = "unknown";
