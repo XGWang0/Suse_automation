@@ -176,4 +176,53 @@ function power_ipmi($powerswitch, $powerslot, $action) {
 		}
 	}
 
+	/*
+	 * Support for powercycling of ibm iseries ppc machines that are managed by
+	 * by hmc
+	 *
+	 * We are using ssh to execute commands on hmc console
+	 * powerswitch = user:pass@hmc 
+	 * powesrlot = machine-machine id (ie steel-2 means that machine is steel and id is 2)
+	 */
+
+function power_hmc($powerswitch, $powerslot, $action) {
+	$hmc_url_array = preg_split("/[:@]/", $powerswitch);
+	$hmc_user = $hmc_url_array[0];
+	$hmc_pass = $hmc_url_array[1];
+	$hmc_host = $hmc_url_array[2];
+	$machine_id_array = preg_split("/-/", $powerslot);
+	$machine_name = $machine_id_array[0];
+	$lpar_id = $machine_id_array[1];
+
+
+	function hmc_lssyscfg($hmc_user, $hmc_pass, $hmc_host, $machine_name, $lpar_id) {
+		$lssyscfg_command = "lssyscfg -m $machine_name -r lpar --filter \"\"lpar_ids=$lpar_id\"\" -F name:state";
+		$lssyscfg_command_ssh = "sshpass -p $hmc_pass ssh -o StrictHostKeyChecking=no --user $hmc_user"."@"."$hmc_host \"$lssyscfg_command\" ";
+		$result = exec($lssyscfg_command_ssh);
+		return $result;
+	}
+
+	function hmc_chsysstate($hmc_user, $hmc_pass, $hmc_host, $machine_name, $lpar_id, $action) {
+		$chsysstate_command = "chsysstate -m $machine_name -r lpar --id $lpar_id -o $action";
+		$chsysstate_command_ssh = "sshpass -p $hmc_pass ssh -o StrictHostKeyChecking=no --user $hmc_user"."@"."$hmc_host \"$chsysstate_command\" ";
+		exec ($chsysstate_command_ssh);
+	}
+
+	if ($action == "status") {
+		$hmc_status = hmc_lssyscfg($hmc_user, $hmc_pass, $hmc_host, $machine_name, $lpar_id);
+		if (preg_match("/Running/", $hmc_status))
+			$status = "on";
+		else if (preg_match("/Not Activated/", $hmc_status))
+			$status = "off";
+		else
+			$status = "unknown";
+		return($status);
+	}
+	else if ($action == "start")
+		hmc_chsysstate($hmc_user, $hmc_pass, $hmc_host, $machine_name, $lpar_id, 'on');
+	else if ($action == "stop")
+		hmc_chsysstate($hmc_user, $hmc_pass, $hmc_host, $machine_name, $lpar_id, 'shutdown --immed');
+	else if ($action == "restart") 
+		hmc_chsysstate($hmc_user, $hmc_pass, $hmc_host, $machine_name, $lpar_id, 'shutdown --immed --restart');
+	}   
 ?>
