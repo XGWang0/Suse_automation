@@ -138,7 +138,7 @@ function power_apc($powerswitch, $powerslot, $action) {
 	 */
 
 function power_ipmi($powerswitch, $powerslot, $action) {
-	$ipmi_url_array = split('[@:]', $powerswitch);
+	$ipmi_url_array = preg_split('/[:@]/', $powerswitch);
 	$ipmi_user = $ipmi_url_array[0];
 	$ipmi_password = $ipmi_url_array[1];
 	$ipmi_host = $ipmi_url_array[2];
