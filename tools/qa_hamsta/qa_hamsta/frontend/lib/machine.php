@@ -508,7 +508,8 @@ class Machine {
          * @return void
          */
         function set_powertype($powertype)  {
-                if (($powertype == 's390') or ($powertype == 'apc') or ($powertype == 'ipmi') or ($powertype == 'hmc') or ($powertype == NULL)) {
+		$power_function = "power_".$powertype;
+		if ((function_exists("$power_function")) OR ($powertype == NULL)) {
 			$stmt = get_pdo()->prepare('UPDATE machine SET powertype = :powertype WHERE machine_id = :id');
         	        $stmt->bindParam(':id', $this->fields["id"]);
 	                $stmt->bindParam(':powertype', $powertype);
