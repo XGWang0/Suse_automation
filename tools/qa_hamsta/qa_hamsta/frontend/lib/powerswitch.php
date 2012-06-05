@@ -97,7 +97,7 @@ function power_s390($powerslot, $action) {
 	 */
 
 function power_apc($powerswitch, $powerslot, $action) {
-	$apc_url_string = split('[@]', $powerswitch);
+	$apc_url_string = preg_split("/@/", $powerswitch);
 	$apc_snmp_community = $apc_url_string[0];;
 	$apc_host = $apc_url_string[1];
 	$apc_port = $powerslot;
@@ -138,7 +138,7 @@ function power_apc($powerswitch, $powerslot, $action) {
 	 */
 
 function power_ipmi($powerswitch, $powerslot, $action) {
-	$ipmi_url_array = preg_split('/[:@]/', $powerswitch);
+	$ipmi_url_array = preg_split("/[:@]/", $powerswitch);
 	$ipmi_user = $ipmi_url_array[0];
 	$ipmi_password = $ipmi_url_array[1];
 	$ipmi_host = $ipmi_url_array[2];
