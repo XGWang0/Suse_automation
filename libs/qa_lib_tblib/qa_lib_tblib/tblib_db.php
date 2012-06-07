@@ -629,8 +629,11 @@ function cached_query()
 	$statement=cache_statement($query);
 	if(!$statement)
 		return null;
-	if(count($args)>1)
+	if(count($args)>1)	{
+		foreach($args as $key => $value)
+			$args[$key] = &$args[$key];
 		call_user_func_array(array($statement,'bind_param'),$args);
+	}
 	$statement->execute() or abort( $statement->error );
 	$statement->store_result();
 	$time=time()-$start;

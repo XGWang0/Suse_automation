@@ -126,7 +126,7 @@ function html_footer()
 
 /** Redirects to login page when not yet logged in. */ 
 function check_user(){
-	session_start();
+#	session_start();
 	if( !isset($_SESSION['user']) ) {
 		header("Location: login.php");
 		exit;
