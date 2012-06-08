@@ -14,19 +14,21 @@ function destroySession($p_strMessage) {
 	exit;
 }
 
-$openid_auth = false;
+$openid_auth = true;
 $openid_url = "www.novell.com/openid";
 
-if ($openid_auth && isset($_GET['openid_mode']) && $_GET['openid_mode'] == "id_res") {
+if ($openid_auth) {
 	require_once "Zend/OpenId/Consumer.php";
 	$consumer = new Zend_OpenId_Consumer();
-	if ($consumer->verify($_GET, $id)) {
-		$_SESSION['OPENID_AUTH'] = $id;
+	if (isset($_GET['openid_mode']) && $_GET['openid_mode'] == "id_res") {
+		 if ($consumer->verify($_GET, $id)) {
+			$_SESSION['OPENID_AUTH'] = $id;
+		}
+	} else if (!isset($_SESSION['OPENID_AUTH'])) {
+		if (!$consumer->login($openid_url)) {
+			destroySession("Openid Authentication Failed");
+		}
 	}
-} else if ($openid_auth && !isset($_SESSION['OPENID_AUTH'])) {
-	require_once "Zend/OpenId/Consumer.php";
-	$consumer = new Zend_OpenId_Consumer();
-	$consumer->login($openid_url);
 }
 
 if( isset($_SESSION['user']) ) {
