@@ -559,14 +559,11 @@ class Machine {
                 $powerswitch = $this->get_powerswitch();
 		$powertype = $this->get_powertype();
                 $powerslot = $this->get_powerslot();
-                if ($powertype == "s390")
-                        power_s390($powerslot, "start");
-		else if ($powertype == "apc")
-			power_apc($powerswitch, $powerslot, 'start');
-		else if ($powertype == "ipmi")
-			power_ipmi($powerswitch, $powerslot, 'start');
-		else if ($powertype == "hmc")
-			power_hmc($powerswitch, $powerslot, 'start');
+                $power_function = "power_".$powertype;
+		if (function_exists("$power_function")) 
+			$power_function($powerswitch, $powerslot, 'start');
+		else
+			return NULL;
         }
 
         /**
@@ -580,14 +577,11 @@ class Machine {
 		$powerswitch = $this->get_powerswitch();
                 $powertype= $this->get_powertype();
                 $powerslot= $this->get_powerslot();
-                if ($powertype == "s390")
-                        power_s390($powerslot, 'stop');
-		else if ($powertype == "apc")
-			power_apc($powerswitch, $powerslot, 'stop');
-		else if ($powertype == "ipmi")
-			power_ipmi($powerswitch, $powerslot, 'stop');
-		else if ($powertype == "hmc")
-			power_hmc($powerswitch, $powerslot, 'stop');
+                $power_function = "power_".$powertype;
+		if (function_exists("$power_function")) 
+			$power_function($powerswitch, $powerslot, 'stop');
+		else
+			return NULL;
         }
 
         /**
@@ -601,14 +595,11 @@ class Machine {
 		$powerswitch = $this->get_powerswitch();
                 $powertype= $this->get_powertype();
                 $powerslot= $this->get_powerslot();
-                if ($powertype == "s390")
-                        power_s390($powerslot, 'restart');
-		else if ($powertype == "apc")
-			power_apc($powerswitch, $powerslot, 'restart');
-		else if ($powertype == "ipmi")
-			power_ipmi($powerswitch, $powerslot, 'restart');
-		else if ($powertype == "hmc")
-			power_hmc($powerswitch, $powerslot, 'restart');
+                $power_function = "power_".$powertype;
+		if (function_exists("$power_function")) 
+			$power_function($powerswitch, $powerslot, 'restart');
+		else
+			return NULL;
         }
 
 
