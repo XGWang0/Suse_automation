@@ -552,7 +552,7 @@ class Machine {
          * start_machine
          *
          * @acces public
-         * @return void
+         * @return string results of action
          *
          */
         function start_machine()  {
@@ -560,17 +560,19 @@ class Machine {
 		$powertype = $this->get_powertype();
                 $powerslot = $this->get_powerslot();
                 $power_function = "power_".$powertype;
-		if (function_exists("$power_function")) 
-			$power_function($powerswitch, $powerslot, 'start');
+		if (function_exists("$power_function")) {
+			$result = $power_function($powerswitch, $powerslot, 'start');
+			return $result;
+		}
 		else
-			return NULL;
+			return "not_implemented";
         }
 
         /**
          * stop_machine
          *
          * @acces public
-         * @return void
+         * @return string results of action
          *
          */
         function stop_machine()  {
@@ -578,17 +580,19 @@ class Machine {
                 $powertype= $this->get_powertype();
                 $powerslot= $this->get_powerslot();
                 $power_function = "power_".$powertype;
-		if (function_exists("$power_function")) 
-			$power_function($powerswitch, $powerslot, 'stop');
+		if (function_exists("$power_function")) {
+			$result = $power_function($powerswitch, $powerslot, 'stop');
+			return $result;
+		}
 		else
-			return NULL;
+			return "not_implemented";
         }
 
         /**
          * restart_machine
          *
          * @acces public
-         * @return void
+         * @return string results of action
          *
          */
         function restart_machine()  {
@@ -596,10 +600,12 @@ class Machine {
                 $powertype= $this->get_powertype();
                 $powerslot= $this->get_powerslot();
                 $power_function = "power_".$powertype;
-		if (function_exists("$power_function")) 
-			$power_function($powerswitch, $powerslot, 'restart');
+		if (function_exists("$power_function")) {
+			$result = $power_function($powerswitch, $powerslot, 'restart');
+			return $result;
+		}
 		else
-			return NULL;
+			return "not_implemeted";
         }
 
 
