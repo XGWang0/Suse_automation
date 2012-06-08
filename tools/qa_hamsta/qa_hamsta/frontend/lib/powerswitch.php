@@ -21,16 +21,16 @@
   OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
   WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
   ****************************************************************************
- */
+*/
 
 	/* power_s390 currently accepts userid (ie LINUX152 and action (startm, stop etc ..).
-	* for more details see http://s390zvi33.suse.de/zvm/index.php
-	* 
-	*/
+	 * for more details see http://s390zvi33.suse.de/zvm/index.php
+	 * 
+	 */
    
-function power_s390($powerslot, $action) {
+function power_s390($powerswitch, $powerslot, $action) {
 	/* 
-	 * Actuall command that we send to the interface wia http post method.
+	 * Actuall command that we send to the interface via http post method.
 	 * Notoce that for some array variables we have to use [0] since interface
 	 * accepts and actually expects the input to be complex array/
 	 * zVM version seems to be allways 54, IPL device seems to be allways 0150, for some
@@ -87,7 +87,7 @@ function power_s390($powerslot, $action) {
 		sleep(5);
 		s390_interface($userid, 'start');
 		}
-	}
+}
 
 	/*
 	 * function power_apc is used to start/stop power on apc 
@@ -98,8 +98,15 @@ function power_s390($powerslot, $action) {
 
 function power_apc($powerswitch, $powerslot, $action) {
 	$apc_url_string = preg_split("/@/", $powerswitch);
-	$apc_snmp_community = $apc_url_string[0];;
-	$apc_host = $apc_url_string[1];
+
+	if (sizeof($apc_url_string) == "2") {
+		$apc_snmp_community = $apc_url_string[0];;
+		$apc_host = $apc_url_string[1];
+	}
+
+	else
+		return "powerswitch_description_error";
+
 	$apc_port = $powerslot;
 	$apc_snmp_mib_generic = '1.3.6.1.4.1.318.1.1.12.3.3.1.1.4.';
 	$apc_snmp_mib_port = $apc_snmp_mib_generic.$apc_port;
@@ -127,8 +134,10 @@ function power_apc($powerswitch, $powerslot, $action) {
 	 * (example will casuse apc2.qa.suse.cz port 7 using community qanet to stop
 	 *
 	 */
+
 	snmpset($apc_host, $apc_snmp_community, $apc_snmp_mib_port, 'i', $apc_action);
-	}
+
+}
 
 	/*
 	 * Support for powercycling using ipmi (requires ipmitool)
@@ -139,9 +148,16 @@ function power_apc($powerswitch, $powerslot, $action) {
 
 function power_ipmi($powerswitch, $powerslot, $action) {
 	$ipmi_url_array = preg_split("/[:@]/", $powerswitch);
-	$ipmi_user = $ipmi_url_array[0];
-	$ipmi_password = $ipmi_url_array[1];
-	$ipmi_host = $ipmi_url_array[2];
+
+	if(sizeof($ipmi_url_array) == "3") {
+		$ipmi_user = $ipmi_url_array[0];
+		$ipmi_password = $ipmi_url_array[1];
+		$ipmi_host = $ipmi_url_array[2];
+	}
+
+	else {
+		return "powerswitch_description_error";
+	}
 
 	function ipmi_command($ipmi_user, $ipmi_password, $ipmi_host, $command) {
 		$ipmitool_command = "ipmitool -I lan -H $ipmi_host -U $ipmi_user -P $ipmi_password chassis power $command";
@@ -174,7 +190,7 @@ function power_ipmi($powerswitch, $powerslot, $action) {
 		sleep(5);
 		ipmi_command($ipmi_user, $ipmi_password, $ipmi_host, 'on');
 		}
-	}
+}
 
 	/*
 	 * Support for powercycling of ibm iseries ppc machines that are managed by
@@ -187,13 +203,25 @@ function power_ipmi($powerswitch, $powerslot, $action) {
 
 function power_hmc($powerswitch, $powerslot, $action) {
 	$hmc_url_array = preg_split("/[:@]/", $powerswitch);
-	$hmc_user = $hmc_url_array[0];
-	$hmc_pass = $hmc_url_array[1];
-	$hmc_host = $hmc_url_array[2];
-	$machine_id_array = preg_split("/-/", $powerslot);
-	$machine_name = $machine_id_array[0];
-	$lpar_id = $machine_id_array[1];
 
+	if (sizeof($hmc_url_array) == "3") {
+		$hmc_user = $hmc_url_array[0];
+		$hmc_pass = $hmc_url_array[1];
+		$hmc_host = $hmc_url_array[2];
+	}
+
+	else
+		return "powerswitch_description_error";
+
+	$machine_id_array = preg_split("/-/", $powerslot);
+
+	if (sizeof($hmc_url_array) == "2") {
+		$machine_name = $machine_id_array[0];
+		$lpar_id = $machine_id_array[1];
+	}
+
+	else
+		return "powerslot_description_error";
 
 	function hmc_lssyscfg($hmc_user, $hmc_pass, $hmc_host, $machine_name, $lpar_id) {
 		$lssyscfg_command = "lssyscfg -m $machine_name -r lpar --filter \"\"lpar_ids=$lpar_id\"\" -F name:state";
@@ -236,8 +264,14 @@ function power_hmc($powerswitch, $powerslot, $action) {
 
 function power_amt($powerswitch, $powerslot, $action) {
 	$amt_url_array = preg_split('/@/', $powerswitch);
-	$amt_password = $amt_url_array[0];
-	$amt_host = $amt_url_array[1];
+
+	if(sizeof($amt_url_array == "2")) {
+		$amt_password = $amt_url_array[0];
+		$amt_host = $amt_url_array[1];
+	}
+
+	else
+		return "powerswitch_description_error";
 
 	function amt_command($amt_password, $amt_host, $command) {
 		$amttool_command = "AMT_PASSWORD=$amt_password amttool $amt_host $action";
