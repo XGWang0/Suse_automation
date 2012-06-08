@@ -520,6 +520,25 @@ class Machine {
         }
 
         /**
+         * check_powertype
+         *
+         * Checks if powertype is supported
+         * 
+         * @param string $powertype has the configuration of the connected powerswitch
+         * @access public
+         * @return bool 
+         */
+        function check_powertype()  {
+		$powertype = $this->get_powertype();
+		$power_function = "power_".$powertype;
+		if (function_exists("$power_function")) {
+			return TRUE; 
+		}
+		else
+			return NULL;
+        }
+
+        /**
          * get_powerslot
          *
          * @access public
