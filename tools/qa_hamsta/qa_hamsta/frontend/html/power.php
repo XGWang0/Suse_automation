@@ -23,15 +23,45 @@
   ****************************************************************************
  */
     if(!defined('HAMSTA_FRONTEND')) {
-        $go = 'power';
-        return require("index.php");
+	$go = 'power';
+	return require("index.php");
     }
 
-    /*
-     * Here we just redirect back to the frontpage
-     *
-     */
+    $html_return_string = "<br> <FORM><INPUT TYPE=\"button\" VALUE=\"Back\" onClick=\"history.go(-1);return true;\"></FORM>";
 
-    echo '<meta HTTP-EQUIV="REFRESH" content="0; url=../hamsta">';
+    if ($result == "powerswitch_description_error") {
+	if ($machine->get_powertype() == "apc") {
+		echo "Powerswitch description for apc controlled host <i>".$machine->get_hostname()."</i> is not in valid form (".$machine->get_powerswitch().").<br> It should be \"community@host\"";
+		echo $html_return_string;
+	}
+	else if ($machine->get_powertype() == "ipmi") {
+		echo "Powerswitch description for ipmi controlled host <i>".$machine->get_hostname()."</i> is not in valid form (".$machine->get_powerswitch().").<br> It should be \"user:password@host\"";
+		echo $html_return_string;
+	}
+	else if ($machine->get_powertype() == "hmc") {
+		echo "Powerswitch description for IBM iseries hmc controlled host <i>".$machine->get_hostname()."<i> is not in valid form (".$machine->get_powerswitch().").<br> It should be \"user:password@host\"";
+		echo $html_return_string;
+	}
+	else if ($machine->get_powertype() == "amt") {
+		echo "Powerswitch description for intel AMT controlled host <i>".$machine->get_hostname()."</i> is not in valid form (".$machine->get_powerswitch().").<br> It should be \"password@host\"";
+		echo $html_return_string;
+	}
+    }
 
+    else if ($result == "powerswitch_description_error") {
+	if ($machine->get_powertype() == "hmc") {
+		echo "Powerslot description for IBM iseries hmc controlled host <i>".$machine->get_hostname()."</i> is not in valid form (".$machine->get_powerslot().").<br> It should be \"machine-id\"";
+		echo $html_return_string;
+	}
+    }
+
+    else if ($result == NULL) {
+		echo "Action succeeded";
+		echo $html_return_string;
+    }
+
+    else {
+	echo "Unexpected result: $result";
+	echo $html_return_string;
+    }
 ?>
