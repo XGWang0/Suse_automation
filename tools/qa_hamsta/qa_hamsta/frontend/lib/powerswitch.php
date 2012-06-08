@@ -224,5 +224,44 @@ function power_hmc($powerswitch, $powerslot, $action) {
 		hmc_chsysstate($hmc_user, $hmc_pass, $hmc_host, $machine_name, $lpar_id, 'shutdown --immed');
 	else if ($action == "restart") 
 		hmc_chsysstate($hmc_user, $hmc_pass, $hmc_host, $machine_name, $lpar_id, 'shutdown --immed --restart');
-	}   
+	}
+
+	/*
+	 * Support for powercycling of machines with intel AMT
+	 * see http://en.wikipedia.org/wiki/Intel_Active_Management_Technology
+	 * using amttool (part of amtterm package)
+	 * example usage: 'AMT_PASSWORD=pass amttool localhost powerup'
+	 *
+	 */
+
+function power_amt($powerswitch, $powerslot, $action) {
+	$amt_url_array = preg_split('/@/', $powerswitch);
+	$amt_password = $amt_url_array[0];
+	$amt_host = $amt_url_array[1];
+
+	function amt_command($amt_password, $amt_host, $command) {
+		$amttool_command = "AMT_PASSWORD=$amt_password amttool $amt_host $action";
+		$result = exec($amttool_command);
+		return($result);
+	}
+	
+	if ($action == "status") {
+		$amt_status = amt_command($amt_password, $amt_host, 'info');
+		if (preg_match("/S0/", $amt_status))
+			$status = "on";
+		else if (preg_match("/S5/", $amt_status))
+			$status = "off";
+		else
+			$status = "unknown";
+		return($status);
+	}
+	else if ($action == "start")
+		amt_command($amt_password, $amt_host, 'powerup');
+	else if ($action == "stop")
+		amt_command($amt_password, $amt_host, 'powerdown');
+	else if ($action == "restart") {
+		amt_command($amt_password, $amt_host, 'powercycle');
+		}
+}   
+
 ?>
