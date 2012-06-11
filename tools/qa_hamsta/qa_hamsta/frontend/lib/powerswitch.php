@@ -304,4 +304,63 @@ function power_amt($powerswitch, $powerslot, $action) {
 		}
 }   
 
+	/*
+	 * Support for powecycling of virtual machines using virsh (libvirt-client)
+	 * 
+	 * command syntax is:
+	 * sshpass -p pass virsh -c qemu+ssh://root@shoggoth.qa.suse.cz/system dominfo sles
+	 * where powerslot containst qamu-sles for qemu and domain sles or xen-sles for sles
+	 * running using xen
+	 * 
+	 */
+
+function power_virsh($powerswitch, $powerslot, $action) {
+	$virsh_url_array =  preg_split('/[:@]/', $powerswitch);
+
+	if(sizeof($virsh_url_array == "3")) {
+		$virsh_user = $virsh_url_array[0];
+		$virsh_password = $virsh_url_array[1];
+		$virsh_host = $virsh_url_array[2];
+	}
+
+	else
+		return "powerswitch_description_error";
+
+	$virsh_domain_array = preg_split('/-/', $powerslot);
+
+	if(sizeof($virsh_domain_array == "2")) {
+		$virsh_scheme = $virsh_domain_array[0];
+		$virsh_domain = $virsh_domain_array[1];
+	}
+
+	else
+		return "powerslot_description_error";
+
+	function virsh_command($virsh_user, $virsh_password, $virsh_host, $virsh_scheme, $virsh_domain, $command) {
+		$virsh_command = "sshpass -p ".$virsh_password." virsh -c ".$virsh_scheme."+ssh://".$virsh_user."@".$virsh_host." ".$command." ".$virsh_domain;
+		echo "$virsh_command\n";
+		exec($virsh_command, $result );
+		$result = implode($result);
+		return($result);
+	}
+
+	if ($action == "status") {
+		$virsh_status = virsh_command($virsh_user, $virsh_password, $virsh_host, $virsh_scheme, $virsh_domain, 'dominfo');
+		if (preg_match("/running/", $virsh_status))
+			$status = "on";
+		else if (preg_match("/off/", $virsh_status))
+			$status = "off";
+		else
+			$status = "unknown";
+		echo("status: $status\n");
+		return($status);
+	}
+	else if ($action == "start")
+		virsh_command($virsh_user, $virsh_password, $virsh_host, $virsh_scheme, $virsh_domain, 'start');
+	else if ($action == "stop")
+		virsh_command($virsh_user, $virsh_password, $virsh_host, $virsh_scheme, $virsh_domain, 'shutdown');
+	else if ($action == "restart")
+		virsh_command($virsh_user, $virsh_password, $virsh_host, $virsh_scheme, $virsh_domain, 'reboot');
+}   
+
 ?>
