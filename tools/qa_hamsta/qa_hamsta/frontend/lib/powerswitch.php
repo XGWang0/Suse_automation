@@ -338,7 +338,6 @@ function power_virsh($powerswitch, $powerslot, $action) {
 
 	function virsh_command($virsh_user, $virsh_password, $virsh_host, $virsh_scheme, $virsh_domain, $command) {
 		$virsh_command = "sshpass -p ".$virsh_password." virsh -c ".$virsh_scheme."+ssh://".$virsh_user."@".$virsh_host." ".$command." ".$virsh_domain;
-		echo "$virsh_command\n";
 		exec($virsh_command, $result );
 		$result = implode($result);
 		return($result);
