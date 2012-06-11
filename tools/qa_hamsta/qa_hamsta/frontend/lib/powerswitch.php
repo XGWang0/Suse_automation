@@ -84,6 +84,11 @@ function power_s390($powerswitch, $powerslot, $action) {
 		}
 	else if ($action == "restart") {
 		s390_interface($userid, 'stop');
+		/*
+		 * This is equal to reseting machine, also we wait for 5 seconds
+		 * because the poweroff commang takes few seconds to complete
+		 *
+		 */
 		sleep(5);
 		s390_interface($userid, 'start');
 		}
@@ -183,8 +188,9 @@ function power_ipmi($powerswitch, $powerslot, $action) {
 	else if ($action == "restart") {
 		/*
 		 * We are using this, since 'cycle' and 'reset' fail when machine 
-		 * is already powered off, also this results in behaviuour which is
-		 * more consistent with s390 
+		 * is already powered off, also we have to wait for ipmi to shut down machine
+		 * before starting it agait (there is usually few seconds delay).
+		 *
 		 */
 		ipmi_command($ipmi_user, $ipmi_password, $ipmi_host, 'off');
 		sleep(5);
