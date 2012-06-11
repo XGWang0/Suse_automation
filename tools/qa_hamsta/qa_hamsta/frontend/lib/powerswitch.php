@@ -358,7 +358,7 @@ function power_virsh($powerswitch, $powerslot, $action) {
 	else if ($action == "start")
 		virsh_command($virsh_user, $virsh_password, $virsh_host, $virsh_scheme, $virsh_domain, 'start');
 	else if ($action == "stop")
-		virsh_command($virsh_user, $virsh_password, $virsh_host, $virsh_scheme, $virsh_domain, 'shutdown');
+		virsh_command($virsh_user, $virsh_password, $virsh_host, $virsh_scheme, $virsh_domain, 'destroy');
 	else if ($action == "restart")
 		virsh_command($virsh_user, $virsh_password, $virsh_host, $virsh_scheme, $virsh_domain, 'reboot');
 }   
