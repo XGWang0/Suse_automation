@@ -130,9 +130,9 @@
 
 	# define command XML template
 	if($roleNumber > 1)
-		$commandString = "<command execution=\"forked\" role_id=\"ROLE_ID\">\nCOMMANDS            </command>\n";
+		$commandString = "<command execution=\"forked\" role_id=\"ROLE_ID\">COMMANDS            </command>\n";
 	else
-		$commandString = "<command execution=\"forked\">\nCOMMANDS            </command>\n";
+		$commandString = "<command execution=\"forked\">COMMANDS            </command>\n";
 
 	# deinfe paramter XML template
 	$paramString = "        <parameter type=\"PARAM_TYPE\" name=\"PARAM_NAME\" default=\"PARAM_DEFAULT\" label=\"PARAM_LABEL\">\nPARAM_VALUE\n        </parameter>\n";
