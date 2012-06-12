@@ -221,7 +221,7 @@ function power_hmc($powerswitch, $powerslot, $action) {
 
 	$machine_id_array = preg_split("/-/", $powerslot);
 
-	if (sizeof($hmc_url_array) == "2") {
+	if (sizeof($machine_id_array) == "2") {
 		$machine_name = $machine_id_array[0];
 		$lpar_id = $machine_id_array[1];
 	}
