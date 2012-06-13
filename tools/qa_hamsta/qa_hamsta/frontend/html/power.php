@@ -50,6 +50,10 @@
 		echo "Powerswitch description for virtual machine <i>".$machine->get_hostname()."</i> is not in valid form (".$machine->get_powerswitch().").<br> It should be \"user:pass@host\"";
 		echo $html_return_string;
 	}
+	else if ($machine->get_powertype() == "esx") {
+		echo "Powerswitch description for virtual machine <i>".$machine->get_hostname()."</i> is not in valid form (".$machine->get_powerswitch().").<br> It should be \"user:pass@host\"";
+		echo $html_return_string;
+	}
     }
 
     else if ($result == "powerswitch_description_error") {
@@ -59,6 +63,10 @@
 	}
 	if ($machine->get_powertype() == "virsh") {
 		echo "Powerslot description for virtual machine <i>".$machine->get_hostname()."</i> is not in valid form (".$machine->get_powerslot().").<br> It should be \"virtualization type-domain (ie qemu-vm1\"";
+		echo $html_return_string;
+	}
+	if ($machine->get_powertype() == "es") {
+		echo "Powerslot description for virtual machine <i>".$machine->get_hostname()."</i> is not in valid form (".$machine->get_powerslot().").<br> It should be \"vmid\" (number)";
 		echo $html_return_string;
 	}
     }

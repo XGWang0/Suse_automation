@@ -362,4 +362,54 @@ function power_virsh($powerswitch, $powerslot, $action) {
 		virsh_command($virsh_user, $virsh_password, $virsh_host, $virsh_scheme, $virsh_domain, 'reboot');
 }   
 
+	/*
+	 * Support for powercycling of ESX/ESXi machines
+	 * 
+	 * It is necessaty that ssh is enabled (esx console - troubleshooting options)
+	 *
+	 */
+
+function power_esx($powerswitch, $powerslot, $action) {
+	$esx_url_array = preg_split('/[:@]/', $powerswitch);
+
+	if(sizeof($esx_url_array == "3")) {
+		$esx_user = $esx_url_array[0];
+		$esx_password = $esx_url_array[1];
+		$esx_host = $esx_url_array[2];
+	}
+
+	else
+		return "powerswitch_description_error";
+
+	if (is_numeric($powerslot))
+		$vmid = $powerslot;
+
+	else
+		return "powerslot_description_error";
+
+	function esx_command($esx_user, $esx_password, $esx_host, $vmid, $action) {
+		$esx_command = "sshpass -p ".$esx_password." ssh -o StrictHostKeyChecking=no ".$esx_user."@".$esx_host." vim-cmd vmsvc/".$action." ".$vmid;
+		exec($esx_command, $result);
+		return($result);
+	}
+	
+	if ($action == "status") {
+		$esx_status = esx_command($esx_user, $esx_password, $esx_host, $vmid, 'power.getstate');
+		if (preg_match("//", $esx_status))
+			$status = "on";
+		else if (preg_match("//", $esx_status))
+			$status = "off";
+		else
+			$status = "unknown";
+		echo("status: $status\n");
+		return($status);
+	}
+	else if ($action == "start")
+		esx_command($esx_user, $esx_password, $esx_host, $vmid, 'power.on');
+	else if ($action == "stop")
+		esx_command($esx_user, $esx_password, $esx_host, $vmid, 'power.off');
+	else if ($action == "restart")
+		esx_command($esx_user, $esx_password, $esx_host, $vmid, 'power.reboot');
+}
+
 ?>
