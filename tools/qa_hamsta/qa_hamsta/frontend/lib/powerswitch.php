@@ -408,8 +408,11 @@ function power_esx($powerswitch, $powerslot, $action) {
 		esx_command($esx_user, $esx_password, $esx_host, $vmid, 'power.on');
 	else if ($action == "stop")
 		esx_command($esx_user, $esx_password, $esx_host, $vmid, 'power.off');
-	else if ($action == "restart")
-		esx_command($esx_user, $esx_password, $esx_host, $vmid, 'power.reboot');
+	else if ($action == "restart") {
+		esx_command($esx_user, $esx_password, $esx_host, $vmid, 'power.off');
+		sleep(5);
+		esx_command($esx_user, $esx_password, $esx_host, $vmid, 'power.on');
+	}
 }
 
 ?>
