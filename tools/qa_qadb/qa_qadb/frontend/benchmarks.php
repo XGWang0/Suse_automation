@@ -5,7 +5,8 @@ $debug=false;
 $tests = array();
 if( !empty( $_REQUEST['tests'] ) )
 	$tests = array_map(create_function('$a','return 0+$a;'),(array)$_REQUEST['tests']);
-
+if( !empty( $_REQUEST['testcase'] ) )
+        $testcase = $_REQUEST['testcase'];
 require_once('defs.php');
 $grp_by = $_REQUEST['group_by'];
 if( is_numeric($grp_by) && isset($group_by[$grp_by]) )
@@ -80,7 +81,8 @@ else
 $from     = 'bench_part p JOIN bench_data d USING(bench_part_id) JOIN `result` r USING(result_id) JOIN tcf_group tg USING(tcf_id) JOIN submission s USING(submission_id) JOIN testsuite t USING(testsuite_id) JOIN product pr USING(product_id) JOIN `release` rel USING(release_id) JOIN host h USING(host_id) JOIN testcase tc USING(testcase_id)';
 $where    = '1';
 $where   .= ' AND tg.tcf_id IN ('.join(',',$tests).')';
-
+if( !empty($testcase) )
+        $where   .= ' AND tc.testcase = \''.$testcase.'\'';
 # here are specified the control attributes
 # for every tree level
 $lev_attrs = array (
