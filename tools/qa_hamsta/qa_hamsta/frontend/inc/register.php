@@ -40,10 +40,17 @@ if (array_key_exists('OPENID_AUTH', $_SESSION))
 // Submit registration info to database.
 if (request_str("submit") && !isset($user)) {
 	User::add_user($_SESSION['OPENID_AUTH'], htmlspecialchars(request_str("name")), htmlspecialchars(request_str("email")));
+	$_SESSION['mtype'] = "success";
+	$_SESSION['message'] = "Registration was successful.";
 	header('Location: index.php?go=machines');
+	exit();
 } else if (request_str("submit") && isset($user)) {
 	$user->set_username(htmlspecialchars(request_str("name")));
 	$user->set_email(htmlspecialchars(request_str("email")));
+	$_SESSION['mtype'] = "success";
+	$_SESSION['message'] = "Successfully updated registration information.";
+	header('Location: index.php');
+	exit();
 }
 
 ?>
