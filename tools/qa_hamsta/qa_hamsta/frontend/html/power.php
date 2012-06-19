@@ -39,7 +39,7 @@
 		echo $html_return_string;
 	}
 	else if ($machine->get_powertype() == "hmc") {
-		echo "Powerswitch description for IBM iseries hmc controlled host <i>".$machine->get_hostname()."<i> is not in valid form (".$machine->get_powerswitch().").<br> It should be \"user:password@host\"";
+		echo "Powerswitch description for IBM iseries hmc controlled host <i>".$machine->get_hostname()."<i> is not in valid form (".$machine->get_powerswitch().").<br> It should be \"user:password@host\" or \"user@host\" if you are using ssh keys";
 		echo $html_return_string;
 	}
 	else if ($machine->get_powertype() == "amt") {
@@ -47,11 +47,11 @@
 		echo $html_return_string;
 	}
 	else if ($machine->get_powertype() == "virsh") {
-		echo "Powerswitch description for virtual machine <i>".$machine->get_hostname()."</i> is not in valid form (".$machine->get_powerswitch().").<br> It should be \"user:pass@host\"";
+		echo "Powerswitch description for virtual machine <i>".$machine->get_hostname()."</i> is not in valid form (".$machine->get_powerswitch().").<br> It should be \"user:pass@host\" or \"user@host\" if you are using ssh keys";
 		echo $html_return_string;
 	}
 	else if ($machine->get_powertype() == "esx") {
-		echo "Powerswitch description for virtual machine <i>".$machine->get_hostname()."</i> is not in valid form (".$machine->get_powerswitch().").<br> It should be \"user:pass@host\"";
+		echo "Powerswitch description for virtual machine <i>".$machine->get_hostname()."</i> is not in valid form (".$machine->get_powerswitch().").<br> It should be \"user:pass@host\" or \"user@host\" if you are using ssh keys";
 		echo $html_return_string;
 	}
     }

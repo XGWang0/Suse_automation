@@ -210,7 +210,13 @@ function power_ipmi($powerswitch, $powerslot, $action) {
 function power_hmc($powerswitch, $powerslot, $action) {
 	$hmc_url_array = preg_split("/[:@]/", $powerswitch);
 
-	if (sizeof($hmc_url_array) == "3") {
+	if (sizeof($hmc_url_array) == "2") {
+		$hmc_user = $hmc_url_array[0];
+		$hmc_pass = NULL;
+		$hmc_host = $hmc_url_array[2];
+	}
+
+	else if (sizeof($hmc_url_array) == "3") {
 		$hmc_user = $hmc_url_array[0];
 		$hmc_pass = $hmc_url_array[1];
 		$hmc_host = $hmc_url_array[2];
@@ -231,7 +237,12 @@ function power_hmc($powerswitch, $powerslot, $action) {
 
 	function hmc_lssyscfg($hmc_user, $hmc_pass, $hmc_host, $machine_name, $lpar_id) {
 		$lssyscfg_command = "lssyscfg -m $machine_name -r lpar --filter \"\"lpar_ids=$lpar_id\"\" -F name:state";
-		$lssyscfg_command_ssh = "sshpass -p $hmc_pass ssh -o StrictHostKeyChecking=no --user $hmc_user"."@"."$hmc_host \"$lssyscfg_command\" ";
+		
+		if ($hmc_pass =- NULL)
+			$lssyscfg_command_ssh = "ssh -o StrictHostKeyChecking=no --user $hmc_user"."@"."$hmc_host \"$lssyscfg_command\" ";
+		else
+			$lssyscfg_command_ssh = "sshpass -p $hmc_pass ssh -o StrictHostKeyChecking=no --user $hmc_user"."@"."$hmc_host \"$lssyscfg_command\" ";
+
 		$result = exec($lssyscfg_command_ssh);
 		return $result;
 	}
@@ -271,7 +282,7 @@ function power_hmc($powerswitch, $powerslot, $action) {
 function power_amt($powerswitch, $powerslot, $action) {
 	$amt_url_array = preg_split('/@/', $powerswitch);
 
-	if(sizeof($amt_url_array == "2")) {
+	if(sizeof($amt_url_array) == "2") {
 		$amt_password = $amt_url_array[0];
 		$amt_host = $amt_url_array[1];
 	}
@@ -317,18 +328,24 @@ function power_amt($powerswitch, $powerslot, $action) {
 function power_virsh($powerswitch, $powerslot, $action) {
 	$virsh_url_array =  preg_split('/[:@]/', $powerswitch);
 
-	if(sizeof($virsh_url_array == "3")) {
+	if(sizeof($virsh_url_array) == "2") {
+		$virsh_user = $virsh_url_array[0];
+		$virsh_password = NULL;
+		$virsh_host = $virsh_url_array[1];
+	}
+
+	else if(sizeof($virsh_url_array) == "3") {
 		$virsh_user = $virsh_url_array[0];
 		$virsh_password = $virsh_url_array[1];
 		$virsh_host = $virsh_url_array[2];
 	}
-
+	
 	else
 		return "powerswitch_description_error";
 
 	$virsh_domain_array = preg_split('/-/', $powerslot, '2');
 
-	if(sizeof($virsh_domain_array == "2")) {
+	if(sizeof($virsh_domain_array) == "2") {
 		$virsh_scheme = $virsh_domain_array[0];
 		$virsh_domain = $virsh_domain_array[1];
 	}
@@ -337,7 +354,12 @@ function power_virsh($powerswitch, $powerslot, $action) {
 		return "powerslot_description_error";
 
 	function virsh_command($virsh_user, $virsh_password, $virsh_host, $virsh_scheme, $virsh_domain, $command) {
-		$virsh_command = "sshpass -p ".$virsh_password." virsh -c ".$virsh_scheme."+ssh://".$virsh_user."@".$virsh_host." ".$command." ".$virsh_domain;
+		
+		if ($virsh_password == NULL)
+			$virsh_command = "virsh -c ".$virsh_scheme."+ssh://".$virsh_user."@".$virsh_host." ".$command." ".$virsh_domain;
+		else 
+			$virsh_command = "sshpass -p ".$virsh_password." virsh -c ".$virsh_scheme."+ssh://".$virsh_user."@".$virsh_host." ".$command." ".$virsh_domain;
+		
 		exec($virsh_command, $result );
 		$result = implode($result);
 		return($result);
@@ -372,7 +394,13 @@ function power_virsh($powerswitch, $powerslot, $action) {
 function power_esx($powerswitch, $powerslot, $action) {
 	$esx_url_array = preg_split('/[:@]/', $powerswitch);
 
-	if(sizeof($esx_url_array == "3")) {
+	if(sizeof($esx_url_array == "2")) {
+		$esx_user = $esx_url_array[0];
+		$esx_password = NULL;
+		$esx_host = $esx_url_array[1];
+	}
+
+	else if(sizeof($esx_url_array == "3")) {
 		$esx_user = $esx_url_array[0];
 		$esx_password = $esx_url_array[1];
 		$esx_host = $esx_url_array[2];
@@ -388,7 +416,11 @@ function power_esx($powerswitch, $powerslot, $action) {
 		return "powerslot_description_error";
 
 	function esx_command($esx_user, $esx_password, $esx_host, $vmid, $action) {
-		$esx_command = "sshpass -p ".$esx_password." ssh -o StrictHostKeyChecking=no ".$esx_user."@".$esx_host." vim-cmd vmsvc/".$action." ".$vmid;
+		if ($esx_password == NULL)
+			$esx_command = "ssh -o StrictHostKeyChecking=no ".$esx_user."@".$esx_host." vim-cmd vmsvc/".$action." ".$vmid;
+		else
+			$esx_command = "sshpass -p ".$esx_password." ssh -o StrictHostKeyChecking=no ".$esx_user."@".$esx_host." vim-cmd vmsvc/".$action." ".$vmid;
+
 		exec($esx_command, $result);
 		return($result);
 	}
