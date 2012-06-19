@@ -122,5 +122,19 @@ class User {
 		else
 			return NULL;
 	}
+
+	function set_email($email)  {
+		$stmt = get_pdo()->prepare('UPDATE user SET email = :email WHERE id = :openid');
+		$stmt->bindParam(':openid', $this->fields["openid"]);
+		$stmt->bindParam(':email', $email);
+		$stmt->execute();
+	}
+
+	function set_username($name) {
+		$stmt = get_pdo()->prepare('UPDATE user SET name = :name WHERE id = :openid');
+		$stmt->bindParam(':openid', $this->fields["openid"]);
+		$stmt->bindParam(':name', $name);
+		$stmt->execute();
+	}
 }
 

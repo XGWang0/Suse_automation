@@ -34,17 +34,16 @@
     }
     $html_title = "Register";
 
-// Redirect to the homepage if the user has already registered (maybe fill in and allow an update instead?).
 if (array_key_exists('OPENID_AUTH', $_SESSION))
 	$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
-if ($user) {
-	header('Location: index.php?go=machines');
-}
 
 // Submit registration info to database.
-if (request_str("submit")) {
+if (request_str("submit") && !isset($user)) {
 	User::add_user($_SESSION['OPENID_AUTH'], htmlspecialchars(request_str("name")), htmlspecialchars(request_str("email")));
 	header('Location: index.php?go=machines');
+} else if (request_str("submit") && isset($user)) {
+	$user->set_username(htmlspecialchars(request_str("name")));
+	$user->set_email(htmlspecialchars(request_str("email")));
 }
 
 ?>

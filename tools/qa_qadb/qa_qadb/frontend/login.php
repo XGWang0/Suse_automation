@@ -37,7 +37,11 @@ if( isset($_SESSION['user']) ) {
 
 	# after we made sure that the user is ok, let's check if he can access the database
 	if ( ! connect_to_mydb() ){
-		destroySession("Wrong user name or password");
+		if ( $openid_auth ) {
+			destroySession("The administrator needs to create your qadb account.");
+		} else {
+			destroySession("Wrong user name or password");
+		}
 	}
 	else 
 		header("Location: index.php");
