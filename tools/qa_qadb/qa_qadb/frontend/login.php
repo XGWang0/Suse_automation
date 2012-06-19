@@ -14,22 +14,8 @@ function destroySession($p_strMessage) {
 	exit;
 }
 
-$openid_auth = true;
+$openid_auth = false;
 $openid_url = "www.novell.com/openid";
-
-if ($openid_auth) {
-	require_once "Zend/OpenId/Consumer.php";
-	$consumer = new Zend_OpenId_Consumer();
-	if (isset($_GET['openid_mode']) && $_GET['openid_mode'] == "id_res") {
-		 if ($consumer->verify($_GET, $id)) {
-			$_SESSION['OPENID_AUTH'] = $id;
-		}
-	} else if (!isset($_SESSION['OPENID_AUTH'])) {
-		if (!$consumer->login($openid_url)) {
-			destroySession("Openid Authentication Failed");
-		}
-	}
-}
 
 if( isset($_SESSION['user']) ) {
 	if ( $_SESSION['user'] == 'root' )
@@ -56,7 +42,15 @@ if( isset($_SESSION['user']) ) {
 	else 
 		header("Location: index.php");
 }
-elseif (  !isset($_POST['user']) || !isset($_POST['pass'] )) {
+elseif ((!isset($_POST['user']) || !isset($_POST['pass'])) && !isset($_GET['openid_mode'])) {
+
+	if ($openid_auth) {
+		require_once "Zend/OpenId/Consumer.php";
+		$consumer = new Zend_OpenId_Consumer();
+		if (!$consumer->login($openid_url)) {
+			destroySession("Openid Authentication Failed");
+		}
+	}
 
 ?>
 <table width="300" border="0" align="center" cellpadding="0" cellspacing="1" bgcolor="#CCCCCC">
@@ -91,14 +85,26 @@ elseif (  !isset($_POST['user']) || !isset($_POST['pass'] )) {
 }
 else{
 
-  $_SESSION['user']   		= $_POST['user'];
-  $_SESSION['email']  		= "john.doe@mysite.com";
-  $_SESSION['ip_address']	= $_SERVER['REMOTE_ADDR'];
-  $_SESSION['user_agent']	= $_SERVER['HTTP_USER_AGENT'];
-  $_SESSION['last_access']	= time();
-  $_SESSION['pass']		= $_POST['pass'];	
-  header("Location: login.php");
+	$_SESSION['user']   		= $_POST['user'];
+	$_SESSION['email']  		= "john.doe@mysite.com";
+	$_SESSION['ip_address']		= $_SERVER['REMOTE_ADDR'];
+	$_SESSION['user_agent']		= $_SERVER['HTTP_USER_AGENT'];
+	$_SESSION['last_access']	= time();
+	$_SESSION['pass']		= $_POST['pass'];
 
+	if ($openid_auth) {
+		require_once "Zend/OpenId/Consumer.php";
+		$consumer = new Zend_OpenId_Consumer();
+		if (isset($_GET['openid_mode']) && $_GET['openid_mode'] == "id_res") {
+			 if ($consumer->verify($_GET, $id)) {
+				$_SESSION['OPENID_AUTH'] = $id;
+				$id_array = explode("/", $id);
+				$_SESSION['user'] = $id_array[count($id_array)-1];
+				$_SESSION['pass'] = "";
+			}
+		}
+	}
+	header("Location: login.php");
 }
 print html_footer();
 ?>
