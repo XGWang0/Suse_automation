@@ -40,20 +40,20 @@
     if (request_str("action") == "start") {
 	foreach ($allmachines as $machine_id) {
 		$machine = Machine::get_by_id($machine_id);
-		$machine->start_machine();
+		$result = $machine->start_machine();
 		}
 	}
     else if (request_str("action") == "restart") {
 	foreach ($allmachines as $machine_id) {
 		$machine = Machine::get_by_id($machine_id);
-		$machine->restart_machine();
+		$result = $machine->restart_machine();
 		}
 	}
 
     else if (request_str("action") == "stop") {
 	foreach ($allmachines as $machine_id) {
 		$machine = Machine::get_by_id($machine_id);
-		$machine->stop_machine();
+		$result = $machine->stop_machine();
 		}
 	}
 

@@ -21,16 +21,16 @@
   OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
   WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
   ****************************************************************************
- */
+*/
 
 	/* power_s390 currently accepts userid (ie LINUX152 and action (startm, stop etc ..).
-	* for more details see http://s390zvi33.suse.de/zvm/index.php
-	* 
-	*/
+	 * for more details see http://s390zvi33.suse.de/zvm/index.php
+	 * 
+	 */
    
-function power_s390($powerslot, $action) {
+function power_s390($powerswitch, $powerslot, $action) {
 	/* 
-	 * Actuall command that we send to the interface wia http post method.
+	 * Actuall command that we send to the interface via http post method.
 	 * Notoce that for some array variables we have to use [0] since interface
 	 * accepts and actually expects the input to be complex array/
 	 * zVM version seems to be allways 54, IPL device seems to be allways 0150, for some
@@ -84,10 +84,15 @@ function power_s390($powerslot, $action) {
 		}
 	else if ($action == "restart") {
 		s390_interface($userid, 'stop');
+		/*
+		 * This is equal to reseting machine, also we wait for 5 seconds
+		 * because the poweroff commang takes few seconds to complete
+		 *
+		 */
 		sleep(5);
 		s390_interface($userid, 'start');
 		}
-	}
+}
 
 	/*
 	 * function power_apc is used to start/stop power on apc 
@@ -98,8 +103,15 @@ function power_s390($powerslot, $action) {
 
 function power_apc($powerswitch, $powerslot, $action) {
 	$apc_url_string = preg_split("/@/", $powerswitch);
-	$apc_snmp_community = $apc_url_string[0];;
-	$apc_host = $apc_url_string[1];
+
+	if (sizeof($apc_url_string) == "2") {
+		$apc_snmp_community = $apc_url_string[0];;
+		$apc_host = $apc_url_string[1];
+	}
+
+	else
+		return "powerswitch_description_error";
+
 	$apc_port = $powerslot;
 	$apc_snmp_mib_generic = '1.3.6.1.4.1.318.1.1.12.3.3.1.1.4.';
 	$apc_snmp_mib_port = $apc_snmp_mib_generic.$apc_port;
@@ -127,8 +139,10 @@ function power_apc($powerswitch, $powerslot, $action) {
 	 * (example will casuse apc2.qa.suse.cz port 7 using community qanet to stop
 	 *
 	 */
+
 	snmpset($apc_host, $apc_snmp_community, $apc_snmp_mib_port, 'i', $apc_action);
-	}
+
+}
 
 	/*
 	 * Support for powercycling using ipmi (requires ipmitool)
@@ -139,9 +153,16 @@ function power_apc($powerswitch, $powerslot, $action) {
 
 function power_ipmi($powerswitch, $powerslot, $action) {
 	$ipmi_url_array = preg_split("/[:@]/", $powerswitch);
-	$ipmi_user = $ipmi_url_array[0];
-	$ipmi_password = $ipmi_url_array[1];
-	$ipmi_host = $ipmi_url_array[2];
+
+	if(sizeof($ipmi_url_array) == "3") {
+		$ipmi_user = $ipmi_url_array[0];
+		$ipmi_password = $ipmi_url_array[1];
+		$ipmi_host = $ipmi_url_array[2];
+	}
+
+	else {
+		return "powerswitch_description_error";
+	}
 
 	function ipmi_command($ipmi_user, $ipmi_password, $ipmi_host, $command) {
 		$ipmitool_command = "ipmitool -I lan -H $ipmi_host -U $ipmi_user -P $ipmi_password chassis power $command";
@@ -167,14 +188,15 @@ function power_ipmi($powerswitch, $powerslot, $action) {
 	else if ($action == "restart") {
 		/*
 		 * We are using this, since 'cycle' and 'reset' fail when machine 
-		 * is already powered off, also this results in behaviuour which is
-		 * more consistent with s390 
+		 * is already powered off, also we have to wait for ipmi to shut down machine
+		 * before starting it agait (there is usually few seconds delay).
+		 *
 		 */
 		ipmi_command($ipmi_user, $ipmi_password, $ipmi_host, 'off');
 		sleep(5);
 		ipmi_command($ipmi_user, $ipmi_password, $ipmi_host, 'on');
 		}
-	}
+}
 
 	/*
 	 * Support for powercycling of ibm iseries ppc machines that are managed by
@@ -187,17 +209,40 @@ function power_ipmi($powerswitch, $powerslot, $action) {
 
 function power_hmc($powerswitch, $powerslot, $action) {
 	$hmc_url_array = preg_split("/[:@]/", $powerswitch);
-	$hmc_user = $hmc_url_array[0];
-	$hmc_pass = $hmc_url_array[1];
-	$hmc_host = $hmc_url_array[2];
-	$machine_id_array = preg_split("/-/", $powerslot);
-	$machine_name = $machine_id_array[0];
-	$lpar_id = $machine_id_array[1];
 
+	if (sizeof($hmc_url_array) == "2") {
+		$hmc_user = $hmc_url_array[0];
+		$hmc_pass = NULL;
+		$hmc_host = $hmc_url_array[2];
+	}
+
+	else if (sizeof($hmc_url_array) == "3") {
+		$hmc_user = $hmc_url_array[0];
+		$hmc_pass = $hmc_url_array[1];
+		$hmc_host = $hmc_url_array[2];
+	}
+
+	else
+		return "powerswitch_description_error";
+
+	$machine_id_array = preg_split("/-/", $powerslot);
+
+	if (sizeof($machine_id_array) == "2") {
+		$machine_name = $machine_id_array[0];
+		$lpar_id = $machine_id_array[1];
+	}
+
+	else
+		return "powerslot_description_error";
 
 	function hmc_lssyscfg($hmc_user, $hmc_pass, $hmc_host, $machine_name, $lpar_id) {
 		$lssyscfg_command = "lssyscfg -m $machine_name -r lpar --filter \"\"lpar_ids=$lpar_id\"\" -F name:state";
-		$lssyscfg_command_ssh = "sshpass -p $hmc_pass ssh -o StrictHostKeyChecking=no --user $hmc_user"."@"."$hmc_host \"$lssyscfg_command\" ";
+		
+		if ($hmc_pass =- NULL)
+			$lssyscfg_command_ssh = "ssh -o StrictHostKeyChecking=no --user $hmc_user"."@"."$hmc_host \"$lssyscfg_command\" ";
+		else
+			$lssyscfg_command_ssh = "sshpass -p $hmc_pass ssh -o StrictHostKeyChecking=no --user $hmc_user"."@"."$hmc_host \"$lssyscfg_command\" ";
+
 		$result = exec($lssyscfg_command_ssh);
 		return $result;
 	}
@@ -224,5 +269,182 @@ function power_hmc($powerswitch, $powerslot, $action) {
 		hmc_chsysstate($hmc_user, $hmc_pass, $hmc_host, $machine_name, $lpar_id, 'shutdown --immed');
 	else if ($action == "restart") 
 		hmc_chsysstate($hmc_user, $hmc_pass, $hmc_host, $machine_name, $lpar_id, 'shutdown --immed --restart');
-	}   
+	}
+
+	/*
+	 * Support for powercycling of machines with intel AMT
+	 * see http://en.wikipedia.org/wiki/Intel_Active_Management_Technology
+	 * using amttool (part of amtterm package)
+	 * example usage: 'AMT_PASSWORD=pass amttool localhost powerup'
+	 *
+	 */
+
+function power_amt($powerswitch, $powerslot, $action) {
+	$amt_url_array = preg_split('/@/', $powerswitch);
+
+	if(sizeof($amt_url_array) == "2") {
+		$amt_password = $amt_url_array[0];
+		$amt_host = $amt_url_array[1];
+	}
+
+	else
+		return "powerswitch_description_error";
+
+	function amt_command($amt_password, $amt_host, $command) {
+		$amttool_command = "AMT_PASSWORD=$amt_password amttool $amt_host $action";
+		$result = exec($amttool_command);
+		return($result);
+	}
+	
+	if ($action == "status") {
+		$amt_status = amt_command($amt_password, $amt_host, 'info');
+		if (preg_match("/S0/", $amt_status))
+			$status = "on";
+		else if (preg_match("/S5/", $amt_status))
+			$status = "off";
+		else
+			$status = "unknown";
+		return($status);
+	}
+	else if ($action == "start")
+		amt_command($amt_password, $amt_host, 'powerup');
+	else if ($action == "stop")
+		amt_command($amt_password, $amt_host, 'powerdown');
+	else if ($action == "restart") {
+		amt_command($amt_password, $amt_host, 'powercycle');
+		}
+}   
+
+	/*
+	 * Support for powecycling of virtual machines using virsh (libvirt-client)
+	 * 
+	 * command syntax is:
+	 * sshpass -p pass virsh -c qemu+ssh://root@shoggoth.qa.suse.cz/system dominfo sles
+	 * where powerslot containst qamu-sles for qemu and domain sles or xen-sles for sles
+	 * running using xen
+	 * 
+	 */
+
+function power_virsh($powerswitch, $powerslot, $action) {
+	$virsh_url_array =  preg_split('/[:@]/', $powerswitch);
+
+	if(sizeof($virsh_url_array) == "2") {
+		$virsh_user = $virsh_url_array[0];
+		$virsh_password = NULL;
+		$virsh_host = $virsh_url_array[1];
+	}
+
+	else if(sizeof($virsh_url_array) == "3") {
+		$virsh_user = $virsh_url_array[0];
+		$virsh_password = $virsh_url_array[1];
+		$virsh_host = $virsh_url_array[2];
+	}
+	
+	else
+		return "powerswitch_description_error";
+
+	$virsh_domain_array = preg_split('/-/', $powerslot, '2');
+
+	if(sizeof($virsh_domain_array) == "2") {
+		$virsh_scheme = $virsh_domain_array[0];
+		$virsh_domain = $virsh_domain_array[1];
+	}
+
+	else
+		return "powerslot_description_error";
+
+	function virsh_command($virsh_user, $virsh_password, $virsh_host, $virsh_scheme, $virsh_domain, $command) {
+		
+		if ($virsh_password == NULL)
+			$virsh_command = "virsh -c ".$virsh_scheme."+ssh://".$virsh_user."@".$virsh_host." ".$command." ".$virsh_domain;
+		else 
+			$virsh_command = "sshpass -p ".$virsh_password." virsh -c ".$virsh_scheme."+ssh://".$virsh_user."@".$virsh_host." ".$command." ".$virsh_domain;
+		
+		exec($virsh_command, $result );
+		$result = implode($result);
+		return($result);
+	}
+
+	if ($action == "status") {
+		$virsh_status = virsh_command($virsh_user, $virsh_password, $virsh_host, $virsh_scheme, $virsh_domain, 'dominfo');
+		if (preg_match("/running/", $virsh_status))
+			$status = "on";
+		else if (preg_match("/off/", $virsh_status))
+			$status = "off";
+		else
+			$status = "unknown";
+		echo("status: $status\n");
+		return($status);
+	}
+	else if ($action == "start")
+		virsh_command($virsh_user, $virsh_password, $virsh_host, $virsh_scheme, $virsh_domain, 'start');
+	else if ($action == "stop")
+		virsh_command($virsh_user, $virsh_password, $virsh_host, $virsh_scheme, $virsh_domain, 'destroy');
+	else if ($action == "restart")
+		virsh_command($virsh_user, $virsh_password, $virsh_host, $virsh_scheme, $virsh_domain, 'reboot');
+}   
+
+	/*
+	 * Support for powercycling of ESX/ESXi machines
+	 * 
+	 * It is necessaty that ssh is enabled (esx console - troubleshooting options)
+	 *
+	 */
+
+function power_esx($powerswitch, $powerslot, $action) {
+	$esx_url_array = preg_split('/[:@]/', $powerswitch);
+
+	if(sizeof($esx_url_array == "2")) {
+		$esx_user = $esx_url_array[0];
+		$esx_password = NULL;
+		$esx_host = $esx_url_array[1];
+	}
+
+	else if(sizeof($esx_url_array == "3")) {
+		$esx_user = $esx_url_array[0];
+		$esx_password = $esx_url_array[1];
+		$esx_host = $esx_url_array[2];
+	}
+
+	else
+		return "powerswitch_description_error";
+
+	if (is_numeric($powerslot))
+		$vmid = $powerslot;
+
+	else
+		return "powerslot_description_error";
+
+	function esx_command($esx_user, $esx_password, $esx_host, $vmid, $action) {
+		if ($esx_password == NULL)
+			$esx_command = "ssh -o StrictHostKeyChecking=no ".$esx_user."@".$esx_host." vim-cmd vmsvc/".$action." ".$vmid;
+		else
+			$esx_command = "sshpass -p ".$esx_password." ssh -o StrictHostKeyChecking=no ".$esx_user."@".$esx_host." vim-cmd vmsvc/".$action." ".$vmid;
+
+		exec($esx_command, $result);
+		return($result);
+	}
+	
+	if ($action == "status") {
+		$esx_status = esx_command($esx_user, $esx_password, $esx_host, $vmid, 'power.getstate');
+		if (preg_match("//", $esx_status))
+			$status = "on";
+		else if (preg_match("//", $esx_status))
+			$status = "off";
+		else
+			$status = "unknown";
+		echo("status: $status\n");
+		return($status);
+	}
+	else if ($action == "start")
+		esx_command($esx_user, $esx_password, $esx_host, $vmid, 'power.on');
+	else if ($action == "stop")
+		esx_command($esx_user, $esx_password, $esx_host, $vmid, 'power.off');
+	else if ($action == "restart") {
+		esx_command($esx_user, $esx_password, $esx_host, $vmid, 'power.off');
+		sleep(5);
+		esx_command($esx_user, $esx_password, $esx_host, $vmid, 'power.on');
+	}
+}
+
 ?>

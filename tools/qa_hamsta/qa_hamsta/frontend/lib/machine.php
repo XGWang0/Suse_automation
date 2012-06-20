@@ -520,6 +520,25 @@ class Machine {
         }
 
         /**
+         * check_powertype
+         *
+         * Checks if powertype is supported
+         * 
+         * @param string $powertype has the configuration of the connected powerswitch
+         * @access public
+         * @return bool 
+         */
+        function check_powertype()  {
+		$powertype = $this->get_powertype();
+		$power_function = "power_".$powertype;
+		if (function_exists("$power_function")) {
+			return TRUE; 
+		}
+		else
+			return NULL;
+        }
+
+        /**
          * get_powerslot
          *
          * @access public
@@ -552,63 +571,60 @@ class Machine {
          * start_machine
          *
          * @acces public
-         * @return void
+         * @return string results of action
          *
          */
         function start_machine()  {
                 $powerswitch = $this->get_powerswitch();
 		$powertype = $this->get_powertype();
                 $powerslot = $this->get_powerslot();
-                if ($powertype == "s390")
-                        power_s390($powerslot, "start");
-		else if ($powertype == "apc")
-			power_apc($powerswitch, $powerslot, 'start');
-		else if ($powertype == "ipmi")
-			power_ipmi($powerswitch, $powerslot, 'start');
-		else if ($powertype == "hmc")
-			power_hmc($powerswitch, $powerslot, 'start');
+                $power_function = "power_".$powertype;
+		if (function_exists("$power_function")) {
+			$result = $power_function($powerswitch, $powerslot, 'start');
+			return $result;
+		}
+		else
+			return "not_implemented";
         }
 
         /**
          * stop_machine
          *
          * @acces public
-         * @return void
+         * @return string results of action
          *
          */
         function stop_machine()  {
 		$powerswitch = $this->get_powerswitch();
                 $powertype= $this->get_powertype();
                 $powerslot= $this->get_powerslot();
-                if ($powertype == "s390")
-                        power_s390($powerslot, 'stop');
-		else if ($powertype == "apc")
-			power_apc($powerswitch, $powerslot, 'stop');
-		else if ($powertype == "ipmi")
-			power_ipmi($powerswitch, $powerslot, 'stop');
-		else if ($powertype == "hmc")
-			power_hmc($powerswitch, $powerslot, 'stop');
+                $power_function = "power_".$powertype;
+		if (function_exists("$power_function")) {
+			$result = $power_function($powerswitch, $powerslot, 'stop');
+			return $result;
+		}
+		else
+			return "not_implemented";
         }
 
         /**
          * restart_machine
          *
          * @acces public
-         * @return void
+         * @return string results of action
          *
          */
         function restart_machine()  {
 		$powerswitch = $this->get_powerswitch();
                 $powertype= $this->get_powertype();
                 $powerslot= $this->get_powerslot();
-                if ($powertype == "s390")
-                        power_s390($powerslot, 'restart');
-		else if ($powertype == "apc")
-			power_apc($powerswitch, $powerslot, 'restart');
-		else if ($powertype == "ipmi")
-			power_ipmi($powerswitch, $powerslot, 'restart');
-		else if ($powertype == "hmc")
-			power_hmc($powerswitch, $powerslot, 'restart');
+                $power_function = "power_".$powertype;
+		if (function_exists("$power_function")) {
+			$result = $power_function($powerswitch, $powerslot, 'restart');
+			return $result;
+		}
+		else
+			return "not_implemeted";
         }
 
 

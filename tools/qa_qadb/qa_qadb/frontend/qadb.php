@@ -770,8 +770,8 @@ function result_process_print(&$data,$sub_info,$transl,$pager,$id)
 		if( $data[$i]['is_bench'] )
 		{
 			require_once('defs.php');
-			$graphlink="benchmarks.php?tests[]=$my_tcf_id&group_by=0&graph_x=$bench_def_width&graph_y=$bench_def_height&legend_pos=$bench_def_pos&font_size=$bench_def_font&search=1";
-		        $data[$i]['testcase']= html_link($data[$i]['testcase'],$graphlink);
+		        $graphlink="benchmarks.php?tests[]=".$my_tcf_id."&testcase=".$data[$i]['testcase']."&group_by=0&graph_x=".$bench_def_width."&graph_y=".$bench_def_height."&legend_pos=".$bench_def_pos."&font_size=".$bench_def_font."&search=1";
+			$data[$i]['testcase']= html_link($data[$i]['testcase'],$graphlink);
 		}
 		unset($data[$i]['testcase_id']);
 		unset($data[$i]['relative_url']);

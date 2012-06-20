@@ -106,7 +106,7 @@ Authors:
 License:        SUSE Proprietary  
 Summary:        HArdware Maintenance, Setup & Test Automation  
 Group:          System/Management  
-Requires:       mod_php_any httpd php-pdo php-mysql hamsta-jobs tblib ajaxterm jquery qa_lib_openid php5-curl php5-snmp ipmitool
+Requires:       mod_php_any httpd php-pdo php-mysql hamsta-jobs tblib ajaxterm jquery qa_lib_openid php5-curl php5-snmp ipmitool sshpass libvirt-client
 
 %if 0%{?sles_version} > 9
 Recommends:	mysql

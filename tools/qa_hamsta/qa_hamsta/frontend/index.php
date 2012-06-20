@@ -107,20 +107,22 @@ if (!in_array($go, $pages)) {
     $go = $pages[0];
 }
 
-if ($openid_auth && isset($_GET['openid_mode']) && $_GET['openid_mode'] == "id_res") {
-	require_once "Zend/OpenId/Consumer.php";
-	$consumer = new Zend_OpenId_Consumer();
-	if ($consumer->verify($_GET, $id)) {
-		$_SESSION['OPENID_AUTH'] = $id;
-		$user = User::get_by_openid($id);
-		if (!$user) {
-			header('Location: index.php?go=register');
-		}
-	}
-} else if ($openid_auth && !isset($_SESSION['OPENID_AUTH'])) {
-	require_once "Zend/OpenId/Consumer.php";
-	$consumer = new Zend_OpenId_Consumer();
-	$consumer->login($openid_url);
+if ($openid_auth) {
+        require_once "Zend/OpenId/Consumer.php";
+        $consumer = new Zend_OpenId_Consumer();
+        if (isset($_GET['openid_mode']) && $_GET['openid_mode'] == "id_res") {
+                 if ($consumer->verify($_GET, $id)) {
+                        $_SESSION['OPENID_AUTH'] = $id;
+                        $user = User::get_by_openid($id);
+                        if (!$user) {
+                                header('Location: index.php?go=register');
+                        }
+                }
+        } else if (!isset($_SESSION['OPENID_AUTH'])) {
+                if (!$consumer->login($openid_url)) {
+                        die("Authentication Failed");
+                }
+        }
 }
 
 require("inc/$go.php");

@@ -30,12 +30,15 @@
         $go = 'register';
         return require("index.php");
     }
-
+	if (array_key_exists('OPENID_AUTH', $_SESSION))
+		$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
 ?>
 <p>Please enter your full name and email address to register with hamsta. This information will be used when reserving machines and to email you job notifications.</p>
 <form method="POST">
-<input type="hidden" name="go" value="register" />
-Name:<input type="text" name="name" /> <br />
-Email:<input type="text" name="email" /> <br />
+	<input type="hidden" name="go" value="register" />
+	<table>
+		<tr><td>Name:</td> <td><input type="text" name="name" value="<?php echo isset($user) ? $user->get_name() : '' ?>" /></td></tr>
+		<tr><td>Email:</td> <td><input type="text" name="email" value="<?php echo isset($user) ? $user->get_email() : '' ?>" /></td></tr>
+	</table><br />
 <input type="submit" value="Submit" name="submit" />
 </form>

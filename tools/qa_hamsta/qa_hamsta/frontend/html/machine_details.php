@@ -67,7 +67,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 <div style="margin-top: 6px; margin-left: 3px;">
 	<span class="text-main text-blue bold" style="position: relative; bottom: 6px;">Actions: </span>
 <?php
-	if (($machine->get_powerswitch() != NULL) and ($machine->get_powertype() != NULL) and ($machine->get_powerslot() != NULL) ) {
+	if (($machine->get_powerswitch() != NULL) and ($machine->get_powertype() != NULL) and ($machine->check_powertype() == TRUE )) {
 		echo "<img src=\"images/icon-start.png\" alt=\"Start " . $machine->get_hostname() . "\" title=\"Start ".$machine->get_hostname() . "\" border=\"0\" " .
                 	                "width=\"20\" style=\"padding-right: 3px;\" " .
         	                        "onclick=\"";
