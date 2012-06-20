@@ -38,7 +38,8 @@ if( isset($_SESSION['user']) ) {
 	# after we made sure that the user is ok, let's check if he can access the database
 	if ( ! connect_to_mydb() ){
 		if ( $openid_auth ) {
-			destroySession("The administrator needs to create your qadb account.");
+			$_SESSION['user'] = "qadb_user";
+			header("Location: index.php");
 		} else {
 			destroySession("Wrong user name or password");
 		}
@@ -101,9 +102,9 @@ else{
 		$consumer = new Zend_OpenId_Consumer();
 		if (isset($_GET['openid_mode']) && $_GET['openid_mode'] == "id_res") {
 			 if ($consumer->verify($_GET, $id)) {
-				$_SESSION['OPENID_AUTH'] = $id;
 				$id_array = explode("/", $id);
-				$_SESSION['user'] = $id_array[count($id_array)-1];
+				$_SESSION['OPENID_AUTH'] = $id_array[count($id_array)-1];
+				$_SESSION['user'] = $_SESSION['OPENID_AUTH'];
 				$_SESSION['pass'] = "";
 			}
 		}
