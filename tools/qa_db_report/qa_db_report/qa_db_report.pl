@@ -60,7 +60,7 @@ use qaconfig('%qaconf','&get_qa_config');
 %qaconf = ( %qaconf, &get_qa_config('qa_db_report') );
 
 $log::loginfo='qa_db_report';
-&log_set_output(handle=>*STDOUT);
+&log_set_output(handle=>*STDERR);
 
 #
 # Load all result parsers
@@ -244,7 +244,7 @@ if ($opt_F) {
 # If logs should be deleted, don't move them to oldlogs
 $nomove=1 if $delete;
 
-die 'Wrong product type :'.$args{'type'}."\n" unless $args{'type'} =~ /^(kotd:[^:]+:[^:]+:[^:]+:[^:]+|patch:[0-9a-f]{32}|product)$/;
+&log_and_die('Wrong product type :'.$args{'type'}."\n") unless $args{'type'} =~ /^(kotd:[^:]+:[^:]+:[^:]+:[^:]+|patch:[0-9a-f]{32}|product)$/;
 
 
 unless ($args{'product'}) {
@@ -286,7 +286,7 @@ if ( $args{'resultpath'} =~ /\.tar\.gz$/ ) {
 	&log_add_output( path=>"/var/log/qa-remote-results/$dir.log", gzip=>1, level=>LOG_DEBUG );
 	$args{'resultpath'} = "$remote_results_dir/$dir";
 	mkdir $args{'resultpath'};
-	system "tar xzf \"$tarball\" -C \"". $args{'resultpath'}.'"' and die "Cannot extract archive.";
+	system "tar xzf \"$tarball\" -C \"". $args{'resultpath'}.'"' and &log_and_die( "Cannot extract archive." );
 
 	unlink $tarball if $delete; 
 	# we don't want to store the results here.
@@ -298,7 +298,7 @@ if ( $args{'resultpath'} =~ /\.tar\.gz$/ ) {
 	&log_add_output( path=>"/var/log/qa-remote-results/$dir.log", bzip2=>1, level=>LOG_DEBUG );
 	$args{'resultpath'} = "$remote_results_dir/$dir";
 	mkdir $args{'resultpath'};
-	system "tar xjf \"$tarball\" -C \"". $args{'resultpath'}.'"' and die "Cannot extract archive.";
+	system "tar xjf \"$tarball\" -C \"". $args{'resultpath'}.'"' and &log_and_die( "Cannot extract archive." );
 
 	unlink $tarball if $delete; 
 	# we don't want to store the results here.
@@ -308,10 +308,10 @@ if ( $args{'resultpath'} =~ /\.tar\.gz$/ ) {
 $dst->set_user();
 &TRANSACTION('arch','release','product','host','tester');
 my $arch_id	= $dst->enum_get_id('arch',$args{'arch'})	
-	or die "Architecture '".$args{'arch'}."' not in the database";
+	or &log_and_die( "Architecture '".$args{'arch'}."' not in the database" );
 my $release_id = $dst->enum_get_id_or_insert('release',$args{'release'});
 my $product_id = $dst->enum_get_id('product',$args{'product'})	
-	or die "Product '".$args{'product'}."' not found in the database";	
+	or &log_and_die( "Product '".$args{'product'}."' not found in the database" );	
 my $host_id = $dst->enum_get_id_or_insert('host',$args{'host'});
 my $tester_id = $dst->enum_get_id_or_insert('tester',$args{'tester'});
 &TRANSACTION_END;
@@ -338,7 +338,7 @@ my %rpmlist_paths = ();
 my %hwinfo_paths = ();
 my @skipped_list = ();
 
-opendir(RESULTS, $args{'resultpath'}) or die "Can't open results directory $args{'resultpath'}: $!";
+opendir(RESULTS, $args{'resultpath'}) or $dst->die_cleanly("Can't open results directory $args{'resultpath'}: $!";
 while( my $parser = readdir RESULTS) {
 	# Skip non-parsable files/dirs
 	next if $parser =~ /^\.\.?$/;	# skip . and ..
@@ -701,5 +701,10 @@ sub TRANSACTION	{
 
 sub TRANSACTION_END	{
 	$dst->TRANSACTION_END(@_);
+}
+
+sub log_and_die {
+	&log(LOG_CRITICAL,@_);
+	die "Exiting.";
 }
 
