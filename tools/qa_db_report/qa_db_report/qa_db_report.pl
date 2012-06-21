@@ -338,7 +338,7 @@ my %rpmlist_paths = ();
 my %hwinfo_paths = ();
 my @skipped_list = ();
 
-opendir(RESULTS, $args{'resultpath'}) or $dst->die_cleanly("Can't open results directory $args{'resultpath'}: $!";
+opendir(RESULTS, $args{'resultpath'}) or $dst->die_cleanly("Can't open results directory $args{'resultpath'}: $!");
 while( my $parser = readdir RESULTS) {
 	# Skip non-parsable files/dirs
 	next if $parser =~ /^\.\.?$/;	# skip . and ..
