@@ -437,6 +437,17 @@ function regression_differences($attrs,&$pager=null)
 	return call_user_func_array('mhash_query',$args);
 }
 
+function search_user($username) {
+	# Create new mysqli object to access mysql database (to access the user table)
+	$mysqli = new mysqli("localhost", "qadb_guest", "", "mysql");
+	$stmt = $mysqli->prepare("SELECT Password FROM user WHERE User=?");
+	$stmt->bind_param("s", $username);
+	$stmt->execute();
+	$stmt->bind_result($password);
+	$stmt->fetch();
+	return $password;
+}
+
 
 ###############################################################################
 # API for submission, configuration, comments etc.
