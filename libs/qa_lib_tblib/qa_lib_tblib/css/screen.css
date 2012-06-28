@@ -116,18 +116,18 @@ button { display: inline; }
 .tbl.controls td:last-child { white-space:nowrap; }
 
 /* 5. table row highlights */
-.failed.evenrow, .r.evenrow				{ background-color:#fbb; }
-.failed.oddrow,  .r.oddrow				{ background-color:#eaa; }
-.internalerr.evenrow, .wr.evenrow			{ background-color:#fbf; }
-.internalerr.oddrow,  .wr.oddrow			{ background-color:#eae; }
-.skipped.evenrow					{ background-color:#bbb; }
-.skipped.oddrow						{ background-color:#aaa; }
-.i.evenrow						{ background-color:#bfb; }
-.i.oddrow						{ background-color:#aea; }
-.wi.evenrow						{ background-color:#bdd; }
-.wi.oddrow						{ background-color:#acc; }
-.m.evenrow						{ background-color:#ffb; }
-.m.oddrow						{ background-color:#eea; }
+.failed.evenrow, .r.evenrow, .evenrow .r		{ background-color:#fbb; }
+.failed.oddrow,  .r.oddrow, .oddrow .r			{ background-color:#eaa; }
+.internalerr.evenrow, .wr.evenrow, .evenrow .wr		{ background-color:#fbf; }
+.internalerr.oddrow,  .wr.oddrow, .oddrow .wr		{ background-color:#eae; }
+.skipped.evenrow, .evenrow .skipped			{ background-color:#bbb; }
+.skipped.oddrow, .oddrow .skipped			{ background-color:#aaa; }
+.i.evenrow, .evenrow .i					{ background-color:#bfb; }
+.i.oddrow, .oddrow .i					{ background-color:#aea; }
+.wi.evenrow, .evenrow .wi				{ background-color:#bdd; }
+.wi.oddrow, .oddrow .wi					{ background-color:#acc; }
+.m.evenrow, .evenrow .m					{ background-color:#ffb; }
+.m.oddrow, .oddrow .m					{ background-color:#eea; }
 .evenrow						{ background-color:#fff; }
 .oddrow							{ background-color:#eee; }
 
