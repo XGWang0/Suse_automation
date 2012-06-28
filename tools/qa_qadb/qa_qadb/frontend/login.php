@@ -18,6 +18,9 @@ $openid_auth = false;
 $openid_url = "www.novell.com/openid";
 
 if( isset($_SESSION['user']) ) {
+	if ( isset($_POST['pass']) )
+		$_SESSION['pass'] = $_POST['pass'];
+
 	if ( $_SESSION['user'] == 'root' )
 		destroySession("No root login allowed");
 
@@ -34,12 +37,42 @@ if( isset($_SESSION['user']) ) {
 	elseif( (time()-1200) > $_SESSION['last_access'] ) {
 		destroySession("Session Timed Out");
 	}
-
+	
 	# after we made sure that the user is ok, let's check if he can access the database
 	if ( ! connect_to_mydb() ){
 		if ( $openid_auth ) {
-			$_SESSION['user'] = "qadb_user";
-			header("Location: index.php");
+			$password = search_user($_SESSION['user']);
+			if ( count($password) == 0 ) {
+				$_SESSION['user'] = "qadb_user";
+				header("Location: index.php");
+			} else if ( $password != '' ) {
+?>
+<table width="300" border="0" align="center" cellpadding="0" cellspacing="1" bgcolor="#CCCCCC">
+<tr>
+<form name="form1" method="post" action="login.php">
+<td>
+<table width="100%" border="0" cellpadding="3" cellspacing="1" bgcolor="#FFFFFF">
+<tr>
+<td colspan="3"><strong>QADB password</strong></td>
+</tr>
+<tr>
+<tr>
+<td>Password</td>
+<td>:</td>
+<td><input name="pass" type="password" ></td>
+</tr>
+<tr>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td><input type="submit" name="Submit" value="Login"></td>
+</tr>
+</table>
+</td>
+</form>
+</tr>
+</table>
+<?php
+			}
 		} else {
 			destroySession("Wrong user name or password");
 		}
