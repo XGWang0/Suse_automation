@@ -80,7 +80,7 @@ $db_common::cleanup_callback = sub
 # manipulating QADB records
 ###############################################################################
 
-sub submission_create # type, tester_id, host_id, comment, arch_id, product_id, release_id, config_id, hwinfo_id
+sub submission_create # type, tester_id, host_id, comment, arch_id, product_id, release_id, config_id, hwinfo_id, build_nr
 {
 	my ($self,$type);
 	($self,$type,@_)=@_;
@@ -88,7 +88,7 @@ sub submission_create # type, tester_id, host_id, comment, arch_id, product_id, 
 	$type_short='kotd' if $type =~ /^kotd/;
 	$type_short='maint' if $type=~ /^patch/;
 	&log(LOG_DEBUG,"Inserting into submissions");
-	my $submission_id=$self->insert_query("INSERT INTO submission (type,tester_id,host_id,comment,arch_id,product_id,release_id,rpm_config_id,hwinfo_id) VALUES (?,?,?,?,?,?,?,?,?)",$type_short,@_);
+	my $submission_id=$self->insert_query("INSERT INTO submission (type,tester_id,host_id,comment,arch_id,product_id,release_id,rpm_config_id,hwinfo_id,build_nr) VALUES (?,?,?,?,?,?,?,?,?,?)",$type_short,@_);
 	&log(LOG_DEBUG,"New ID is $submission_id");
 	push @{$self->{'open_submissions'}}, $submission_id if $submission_id;
 	return $submission_id;

@@ -41,8 +41,8 @@ no strict 'refs';	# for benchmark parsers
 use Getopt::Std;
 
 # Needed global variables for Getopt::Std;
-our ($opt_h,$opt_d,$opt_c,$opt_p,$opt_a,$opt_f,$opt_F,$opt_m,$opt_t,$opt_v,$opt_b,$opt_C) =
-    ("",    0,     "",    "",    "",    "",    "",    "",    "",    "",    "",    "");
+our ($opt_h,$opt_d,$opt_c,$opt_p,$opt_a,$opt_f,$opt_F,$opt_m,$opt_t,$opt_v,$opt_b,$opt_C,$opt_N) =
+    ("",    0,     "",    "",    "",    "",    "",    "",    "",    "",    "",    "",	"");
 our ($opt_L,$opt_D,$opt_A,$opt_k, $opt_T, $opt_R) =
     ("",    "",    "",    ""    , "",     "");
 
@@ -126,6 +126,7 @@ my %args;
 $args{'product'}="";
 $args{'release'}="";
 $args{'arch'}= &get_architecture;
+$args{'build_nr'}="";
 $args{'comment'}="";
 $args{'resultpath'}="/var/log/qa";
 $args{'tcf_filter'} = undef;
@@ -151,7 +152,7 @@ $Getopt::Std::STANDARD_HELP_VERSION=1;
 
 sub usage {
 print 
-"Usage: $0 -p PRODUCT [-c <comment>] [-bCLRDA] [-v <n>] [-a ARCH] [-f PATH] [-F TCF_LIST] [-k KERNEL] [-m TESTHOST] [-t TYPE] [-T TESTER]\n",
+"Usage: $0 -p PRODUCT [-c <comment>] [-bCLRDA] [-v <n>] [-a ARCH] [-N BUILD_NUMBER ] [-f PATH] [-F TCF_LIST] [-k KERNEL] [-m TESTHOST] [-t TYPE] [-T TESTER]\n",
 "       $0 -h\n",
 "\n",
 "Options and option values (options may be given in any order):\n",
@@ -169,6 +170,7 @@ print
 "	PRODUCT:	e.g. SLES-10-beta1 | SLES-9-SP4-RC1\n",
 "	ARCH:		QADB architecture, e.g. i586,ia64,x86_64,ppc,ppc64,s390x,xen0-*...\n",
 "       		(default: detected arch of this host (".$args{'host'}."): ".$args{'arch'}.")\n",
+"	BUILD_NUMBER	THE BUILD NUMBER (BUILDXXX) ,we use BUILD NUMBER before the release\n",
 "	PATH:		the ctcs2 directory containing the $filename files to submit\n",
 "       		(default: ".$args{'resultpath'}.")\n",
 "	TCF_LIST:	comma-separated list of test-runs (ctcs2 subdirs) that should be processed.\n",
@@ -210,7 +212,7 @@ sub annoy_user # question
 #  (Note: man Getopt::Std is misleading, to put it mildly.
 #   Consult /usr/lib/perl5/Getopt/Std.pm itself, instead.
 #
-&getopts("hbLRDAv:c:p:a:f:F:k:m:t:T:");
+&getopts("hbLRDAv:c:p:a:f:F:k:m:N:t:T:");
 if ("$opt_h") 
 {	&usage; exit 0;	}
 $log::loglevel		= $opt_v	if (defined $opt_v and $opt_v=~/^-?\d+/);
@@ -222,6 +224,7 @@ $noscp			= 1		if ($opt_A);
 $db_common::batchmode	= 1		if ($opt_b);
 ($args{'product'},$args{'release'})	= &set_product_release($opt_p)	if ($opt_p);
 $args{'arch'}		= $opt_a	if ($opt_a);
+$args{'build_nr'}	= $opt_N	if ($opt_N);
 $args{'resultpath'}	= $opt_f	if ($opt_f);
 $args{'host'}		= $opt_m	if ($opt_m);
 $args{'kernel'}		= $opt_k	if ($opt_k);
@@ -432,17 +435,24 @@ while( my $parser = readdir RESULTS) {
 				&TRANSACTION_END;
 			}
 			
+			# query the build_promoted table for build promote
+			if( $args{'build_nr'} )	{
+				&TRANSACTION('build_promoted');
+				my $new_release_id=$dst->enum_get_promote_release_id($arch_id,$args{'build_nr'},$product_id);
+				$release_id = $new_release_id if ($new_release_id);
+				&TRANSACTION_END;
+			}
 			# create a new submission
 			&log(LOG_INFO,"Creating a new submission");
 
 			&TRANSACTION('submission');
-			$submission_id = $dst->submission_create($args{'type'},$tester_id,$host_id,$args{'comment'},$arch_id,$product_id,$release_id,$config_id,$hwinfo_id);
+			$submission_id = $dst->submission_create($args{'type'},$tester_id,$host_id,$args{'comment'},$arch_id,$product_id,$release_id,$config_id,$hwinfo_id,$args{'build_nr'});
 			$submissions{$key}=$submission_id;
 			&TRANSACTION_END;
 
 			# set kernel info, if available
 			if( $kernel_info )	{
-				&TRANSACTION('kernel_flavor','kernel_version','submission');
+				&TRANSACTION('kernel_flavor','kernel_version','submission','kernel_branch');
 				$dst->submission_set_kernel_values($submission_id,map{$kernel_info->{$_}} qw(branch flavor revision version));
 				&TRANSACTION_END;
 			}

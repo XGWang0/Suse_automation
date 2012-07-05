@@ -253,6 +253,12 @@ sub enum_get_id # tbl, val
 	return $self->scalar_query('SELECT '.&eid($tbl)." FROM `$tbl` WHERE ".&ename($tbl).'=? LIMIT 1',$val);
 }
 
+sub enum_get_promote_release_id # arch_id , build_nr, product_id
+{
+	my ($self,$arch,$build_nr,$product)=@_;
+	return $self->scalar_query('SELECT release_id FROM `build_promoted` WHERE arch_id=? AND build_nr=? AND product_id=? LIMIT 1',$arch,$build_nr,$product);
+}
+
 sub enum_insert_id # tbl, val
 {
 	my ($self,$tbl,$val)=@_;

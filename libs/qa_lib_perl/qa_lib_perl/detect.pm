@@ -390,6 +390,7 @@ sub detect_product
 	($type, $version, $subversion, $release, $arch, $build_nr) = map { our $i=$_; &best($fields[$i],map {$_->[$i]} @data) } (1 .. 6);
 	map { $release=$_[4] if $_[4] and $_[4] eq 'maintained' } @data;
 	$release = 'GA' unless $release;
+	$release = 'buildXXX' if $build_nr;
 
 	# compare with QADB
 	my @tries = ();
