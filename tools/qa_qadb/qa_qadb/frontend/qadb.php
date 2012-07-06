@@ -628,6 +628,7 @@ $glob_dest=array(
 	'log' => array(), 
 	array("result.php", "Results"), 
 	array("submission.php", "Submissions"), 
+	array("promote.php", "Promote"),
 	array("regression.php", "Regressions"), 
 	array("waiver.php", "Waiver"), 
 	'board' => array("board.php", "Board"),
