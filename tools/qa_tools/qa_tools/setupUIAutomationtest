@@ -22,8 +22,15 @@
 # WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
 # ****************************************************************************
 #
-
-sut_user=`who |awk {'print $1,$2'} |grep :0 |awk {'print $1'}`
+# Set up user and display to "root" ":0" as defaut if there is no X window running
+user_info=(`who |awk {'print $1,$2'} |grep :[0-9]`)
+if [ -z $user_info ]; then
+	sut_user=root
+	display=:0
+else
+	sut_user=${user_info[0]}
+	display=${user_info[1]}
+fi
 
 # Install require patterns
 system=`cat /etc/SuSE-release |head -n 1 |awk '{print $4}'`
@@ -75,26 +82,41 @@ EOF
 	autoxhost=true
 fi
 
-# Make root user auto login X window
+# Make user auto login X window
 gdm_conf_path="/etc/gdm/custom.conf"
-gdm_status=`grep -c "\[daemon\]" $gdm_conf_path`
+gdm_status=`grep -5R 'daemon' $gdm_conf_path`
+sut_status=`echo "$gdm_status" |grep "$sut_user"`
 
-if [ "$gdm_status" = "0" -a "$sut_user" = "root" ]; then
-	echo "Setup: root user auto login X window when gdm restart"
-	cat >>$gdm_conf_path <<'EOF'
+if [ -z "$gdm_status" ]; then
+	echo "Setup: user auto login X window when gdm restart"
+	cat >>$gdm_conf_path <<EOF
 
 [daemon]
 TimedLoginEnable=true
 AutomaticLoginEnable=true
-TimedLogin=root
-AutomaticLogin=root
+TimedLogin=$sut_user
+AutomaticLogin=$sut_user
 TimeLoginDelay=5
 EOF
 	autologin=true
+elif [ -n "$gdm_status" ] && [ -z "$sut_status" ]; then
+	sed -i "s/TimedLogin=.*/TimedLogin=$sut_user/g" $gdm_conf_path
+	sed -i "s/AutomaticLogin=.*/AutomaticLogin=$sut_user/g" $gdm_conf_path
+	autologin=true
 fi
 
+# Restart gnome session to keep only one X window running
+displays=(`who |awk {'print $2'} |grep :[0-9]`)
+if [ "${#displays[*]}" -eq 0 ]; then
+	autologin=true
+elif [ "${#displays[*]}" -gt 1 ]; then
+	autologin=true
+fi
+
+echo "$sut_user is automatic login"
+
 # Reset xrandr
-default_size=`DISPLAY=:0 xrandr  |grep "*" |awk '{print $1}'`
+default_size=`DISPLAY=$display xrandr  |grep "*" |awk '{print $1}'`
 
 if [ "$default_size" == "800x600" ]; then
 	echo "Reset xrandr to 1024x768, currently is $default_size"
