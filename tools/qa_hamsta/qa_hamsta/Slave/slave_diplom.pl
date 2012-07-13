@@ -59,7 +59,7 @@ require 'Slave/config_slave';
 $SIG{KILL} = \&deconstruct;
 $SIG{INT} = \&deconstruct;
 $SIG{TERM} = \&deconstruct;
-$SIG{CHLD} = 'IGNORE';
+#$SIG{CHLD} = 'IGNORE';
 
 if ($> != 0) {
     &log(LOG_CRIT,"The HAMSTA slave has to be run as root (needed for hwinfo)");
@@ -136,6 +136,9 @@ while(1){
     if($last_ip ne $current_ip ){
       if(! &chk_run ) { 
 	kill 9,$slave_pid,$multicast_pid;
+	sleep(1);
+	waitpid $slave_pid, 0;
+	waitpid $multicast_pid, 0;
 	&log(LOG_ERR,"Multicast died");
 	&log(LOG_ERR,"slave server died");
 	$last_ip=$current_ip;
