@@ -90,8 +90,8 @@
                     foreach ($jobCommandMap as $key=>$value)
                         $commandSortKey[$key] = $value[role_id];
                     array_multisort($commandSortKey, SORT_NUMERIC, $jobCommandMap);
-                    $commandCount = count($jobCommandMap);
                 }
+                $commandCount = count($jobCommandMap);
 
                 print "<input type=\"hidden\" name=\"existfilename\" value=\"$existFileName\">";
             }

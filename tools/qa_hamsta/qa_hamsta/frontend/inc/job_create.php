@@ -130,9 +130,9 @@
 
 	# define command XML template
 	if($roleNumber > 1)
-		$commandString = "<command execution=\"forked\" role_id=\"ROLE_ID\">COMMANDS            </command>\n";
+		$commandString = "<command execution=\"forked\" role_id=\"ROLE_ID\"><![CDATA[\nCOMMANDS\n]]>            </command>\n";
 	else
-		$commandString = "<command execution=\"forked\">COMMANDS            </command>\n";
+		$commandString = "<command execution=\"forked\"><![CDATA[\nCOMMANDS\n]]>            </command>\n";
 
 	# deinfe paramter XML template
 	$paramString = "        <parameter type=\"PARAM_TYPE\" name=\"PARAM_NAME\" default=\"PARAM_DEFAULT\" label=\"PARAM_LABEL\">\nPARAM_VALUE\n        </parameter>\n";
@@ -183,7 +183,7 @@
 			{
 				$parametersCustom .= str_replace("PARAM_TYPE", $type, str_replace("PARAM_NAME", $name,
 						     str_replace("PARAM_DEFAULT", $default, str_replace("PARAM_LABEL", $label,
-						     str_replace("PARAM_VALUE", $value, $paramString)))));
+						     str_replace("PARAM_VALUE", "<![CDATA[\n" . $value . "\n]]>\n", $paramString)))));
 			}
 			elseif($type == "enum") # for enumertion parameter, need set all of the options
 			{
