@@ -166,7 +166,7 @@ if(!$submission_id)
 	}
 	else	{
 		$what[]=array('submission_type',$modes,$mode_got,SINGLE_SELECT,'submission type');
-		unset($what[5]); # TODO: fix testsuites in this tab too
+		array_splice($what,5,1); # TODO: fix testsuites in this tab too
 	}
 }
 
