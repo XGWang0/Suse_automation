@@ -155,7 +155,7 @@ if(!$submission_id)
 			array(5,'')
 		);
 		$cell_color = array(
-			array(1,'worst'),
+			array(1,'status'),
 			array(2,'RGB'),
 			array(3,'grayscale')
 		);
@@ -371,8 +371,6 @@ exit;
 
 function aggregate_results( $runs, $succ, $fail, $interr, $skip, $time, $method )
 {
-	$full = "fail:$fail interr:$interr skip:$skip success:$succ time:$time";
-
 	$text='';
 	if( $method[0]==1 )
 		$text = ( $fail ? 'failed' : ( $interr ? 'interr' : ( $skip ? 'skipped' : 'success' )));
@@ -392,13 +390,13 @@ function aggregate_results( $runs, $succ, $fail, $interr, $skip, $time, $method 
 		if( $method[1]==2 )
 			$ret['style'] = sprintf("background-color: rgb(%d,%d,%d)",255*$fail/$runs,255*$succ/$runs,255*$interr/$runs);
 		else if( $method[1]==3 )	{
-			$gray = 255*$succ/$runs;
+			$gray = sprintf("%d",255*$succ/$runs);
 			$ret['style'] = "background-color: rgb($gray,$gray,$gray); color: ".($gray>128 ? 'black':'white');
 		}
 
 	}
 	$ret['text'] = $text;
-	$ret['title'] = "fail:$fail interr:$interr skip:$skip success:$succ time:$time";
+	$ret['title'] = "fail:$fail interr:$interr skip:$skip success:$succ runs:$runs time:$time";
 	return $ret;
 }
 
