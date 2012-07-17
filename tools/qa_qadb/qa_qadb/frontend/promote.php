@@ -18,67 +18,20 @@ $what=array(
 );
 print html_search_form('promote.php',$what);
 
-
-
-$db = new mysqli("localhost", 'qadb','', "qadb");
-if (mysqli_connect_errno()) {
-    printf("Connect failed: %s\n", mysqli_connect_error());
-    exit();
-}
-
-
-if(http('arch_id')){
-	if(insert_update_promoted($db,$arch_id,$product_id,$build_nr,$release_id)){
-	$res="recoder insert succeed<br>";
-	}
-	else {
-	$res="recoder insert failed<br>";
+if(is_numeric(http('build_nr'))){
+	list ($insert,$update) = insert_update_promoted($arch_id,$product_id,$build_nr,$release_id);
+	if($insert > 0){
+		 echo("$update recoders update");
+	}else{
+		echo("Insert failed");
 	}
 }
 
-list_promoted($db);
+$filter[]=array('build_promoted_id','arch_id','product_id','build_nr','release_id');
+foreach(list_promoted() as $r) $filter[]=$r;
 
+print html_table($filter);
 
 print html_footer();
-
-
-
-function insert_update_promoted($db,$arch_id,$product_id,$build_nr,$release_id)
-{
-	$stmt=$db->prepare("INSERT INTO build_promoted (arch_id,build_nr,product_id,release_id) VALUES ($arch_id ,$build_nr,$product_id,$release_id)");
-	$stmt->execute();
-	$affect=$stmt->affected_rows;
-	if( $affect >0 ) 
-	{
-		echo "recoder insert succeed<br>";
-		$stmt=$db->prepare("UPDATE submission SET release_id = $release_id WHERE arch_id=$arch_id AND build_nr=$build_nr AND product_id=$product_id");
-		$stmt->execute();
-		$number=$stmt->affected_rows;
-		if( $number >0 ) {
-			echo "$number recoders update<br>";
-		}
-		else 
-		{
-		echo "no recoders update<br>";
-		}
-	}
-	else 
-	{
-		echo "recoder insert failed<br>";
-	}
-
-}
-
-function list_promoted($db)
-{
-	$stmt=$db->prepare("SELECT build_promoted_id,arch.arch,build_nr,product.product,release.release FROM build_promoted JOIN arch USING(arch_id) JOIN product USING(product_id) JOIN `release` USING(release_id) ORDER BY build_promoted_id");
-	$stmt->execute();
-	$stmt->bind_result($bp_id,$a_id,$b_nr,$p_id,$r_id);
-	$r[]=array('build_promoted_id','arch_id','product_id','build_nr','release_id');
-	while($stmt->fetch()){
-		$r[]=array($bp_id,$a_id,$p_id,$b_nr,$r_id);
-	}
-	print html_table($r);
-}
 
 ?>

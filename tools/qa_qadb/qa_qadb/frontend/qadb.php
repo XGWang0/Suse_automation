@@ -166,7 +166,20 @@ function get_bench_numbers($result_id,$limit=null)
 /** Lists all testsuite that contain benchmark data. Uses the statistical table 'test'. */
 function bench_list_testsuite($limit=null)
 {	return matrix_query(0,$limit,'SELECT DISTINCT testsuite_id,testsuite FROM test JOIN testsuite USING(testsuite_id) WHERE is_bench ORDER BY testsuite');	}
+###############################################################################
+# API for promote data
+function list_promoted($limit=null)
+{
+       return matrix_query(0,$limit,'SELECT build_promoted_id,arch.arch,build_nr,product.product,release.release FROM build_promoted JOIN arch USING(arch_id) JOIN product USING(product_id) JOIN `release` USING(release_id) ORDER BY build_promoted_id');
+}
 
+function insert_update_promoted($arch_id,$product_id,$build_nr,$release_id)
+{
+        $insert=insert_query('INSERT INTO build_promoted (arch_id,build_nr,product_id,release_id) VALUES (?,?,?,?)','iiii',$arch_id ,$build_nr,$product_id,$release_id);
+        $update=update_query('UPDATE submission SET release_id = ? WHERE arch_id=? AND build_nr=? AND product_id=?','iiii',$release_id,$arch_id,$build_nr,$product_id);
+	return array ($insert,$update);
+
+}
 
 /** searches for submission, testsuite, or result
   * $mode :
