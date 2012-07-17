@@ -438,7 +438,7 @@ while( my $parser = readdir RESULTS) {
 			# query the build_promoted table for build promote
 			if( $args{'build_nr'} )	{
 				&TRANSACTION('build_promoted');
-				my $new_release_id=$dst->enum_get_promote_release_id($arch_id,$args{'build_nr'},$product_id);
+				my $new_release_id=$dst->get_promote_release_id($arch_id,$args{'build_nr'},$product_id);
 				$release_id = $new_release_id if ($new_release_id);
 				&TRANSACTION_END;
 			}
