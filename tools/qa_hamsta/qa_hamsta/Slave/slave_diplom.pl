@@ -99,7 +99,6 @@ our $last_ip = &get_slave_ip($Slave::multicast_address);
 our $slave_pid;
 our $multicast_pid;
 
-our $child_end=0;
 child {
     $log::loginfo='hamsta-server';
     $0 .= ' server';
@@ -372,12 +371,6 @@ sub start_job() {
     #time out monitor start.
     my $sut_timeout=0;
     #find out time out value.
-    $child_end=0;
-    { 
-	    no strict 'subs';
-	    $SIG{CHLD} = sub { $child_end++ ;while(waitpid(-1, WNOHANG) > 0){ }};
-    }
-    
     my $work_start = time;
     my $fork_re = fork ();
     if($fork_re==0) {
@@ -419,15 +412,9 @@ sub start_job() {
         &log(LOG_NOTICE, "Time out is $sut_timeout (s)");
 
 	my $current_time=time;
-	sleep 2;
 	while ($current_time - $work_start < $sut_timeout) {
 	    $current_time=time;
-	    if($child_end >= 1){
-		$SIG{CHLD} = 'IGNORE';
-		#job finished .
-		$child_end=0;
-		goto OUT ;
-	    }
+	    goto OUT if(waitpid($fork_re, WNOHANG));
 	    sleep 3;
 
 	}
