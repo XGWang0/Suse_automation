@@ -145,7 +145,7 @@ if(!$submission_id)
 #		);
 		$reg_method = array(
 			array(1,'different status'),
-			array(2,'fails')
+			array(2,'fail+interr'),
 		);
 		$cell_text = array(
 			array(1,'status'),
@@ -157,7 +157,8 @@ if(!$submission_id)
 		$cell_color = array(
 			array(1,'status'),
 			array(2,'RGB'),
-			array(3,'grayscale')
+			array(3,'grayscale'),
+			array(4,''),
 		);
 #		$what[]=array('group_by',$group_by,$group_by_got,SINGLE_SELECT);
 		$what[]=array('reg_method',$reg_method,$reg_method_got,SINGLE_SELECT,'regression method');
@@ -381,7 +382,9 @@ function aggregate_results( $runs, $succ, $fail, $interr, $skip, $time, $method 
 	else if( $method[0]==4 )
 		$text = ( $fail || $interr ? 'X' : '' );
 
-	$ret['class'] = ( $fail ? 'r' : ($interr ? 'wr' : ($skip ? 'm' : 'i' )));
+	$ret['class'] = ( $fail || $interr ? 'fail' : '');
+	if( $method[1] == 1 )
+		$ret['class'] .= ' ' . ( $fail ? 'r' : ($interr ? 'wr' : ($skip ? 'm' : 'i' )));
 
 	if( $runs>0 )	{
 #		if( $method[1]==1 )
@@ -406,7 +409,7 @@ function filter_regressions($rows,$method)
 	foreach( $rows as $column )
 		foreach( $column as $row )
 			foreach( $row as $field )	{
-				if( $method==2 && ($field['class']=='r' || $field['class']=='wr'))
+				if( $method>1 && ($field['class']=='r' || $field['class']=='wr' ))
 					return true;
 				else
 					$stat[$field['class']]=1;
