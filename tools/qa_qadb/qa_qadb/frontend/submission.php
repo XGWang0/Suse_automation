@@ -8,6 +8,8 @@ common_header(array(
     'calendar'=>1
 ));
 
+define('AGR_MAX_RES','15000');
+
 # read main CGI variables
 $submission_id=http('submission_id');
 $mode_got=http('submission_type',null);
@@ -238,7 +240,7 @@ if(!$submission_id)
 			$group=array_merge($y,$x);    
 			$attrs['group_by']=$group;
 			$attrs['order_by']=$group;
-			$attrs['limit'] = 100000;
+			$attrs['limit'] = array(AGR_MAX_RES);
 			$pager=null;
 		}
 		$data=search_submission_result($mode_got,$attrs,$transl,$pager);
@@ -259,6 +261,8 @@ if(!$submission_id)
 		if( $mode_got==3 ) # KOTD external links, linked by value instead of ID, need translating here
 			table_translate($data,array('links'=>array('kernel_branch_id'=>'http://kerncvs.suse.de/kernel-overview/?b=')));
 		if( $step=='reg' )	{
+			if( count($data) >= AGR_MAX_RES )
+				print html_error('Only processing firs '.AGR_MAX_RES.' result rows. This limitation will be removed in the next release.');
 			print html_groupped_table($data,array(
 				'group_y' => $y,
 				'group_x' => $x,
