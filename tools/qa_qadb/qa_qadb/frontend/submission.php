@@ -136,15 +136,15 @@ if(!$submission_id)
 	}
 	else if( $step=='reg' )
 	{
-#		$group_by_got = http('group_by',1);
+		$group_by_got = http('group_by',1);
 		$reg_method_got = http('reg_method',1);
 		$cell_text_got = http('cell_text',1);
 		$cell_color_got = http('cell_color',1);
 
-#		$group_by = array(
-#			array(1,'product+release',array('product_id','release_id')),
-#			array(2,'product',array('product_id'))
-#		);
+		$group_by = array(
+			array(1,'testsuite + testcase'),
+			array(2,'testsuite'),
+		);
 		$reg_method = array(
 			array(1,'different status'),
 			array(2,'fail+interr'),
@@ -162,7 +162,7 @@ if(!$submission_id)
 			array(3,'grayscale'),
 			array(4,''),
 		);
-#		$what[]=array('group_by',$group_by,$group_by_got,SINGLE_SELECT);
+		$what[]=array('group_by',$group_by,$group_by_got,SINGLE_SELECT);
 		$what[]=array('reg_method',$reg_method,$reg_method_got,SINGLE_SELECT,'regression method');
 		$what[]=array('cell_text',$cell_text,$cell_text_got,SINGLE_SELECT);
 		$what[]=array('cell_color',$cell_color,$cell_color_got,SINGLE_SELECT);
@@ -231,9 +231,9 @@ if(!$submission_id)
 			'order_nr'		=>-1,
 		);
 		if( $step=='reg' )	{
-			$mode_got=11;
+			$mode_got=($group_by_got==2 ? 12 : 11);
 			unset($attrs['order_nr']);
-			$y=array('testsuite','testcase');
+			$y=($group_by_got==2 ? array('testsuite') : array('testsuite','testcase'));
 			$x=array('product_id','release_id');
 #			if( $group_by==2 )
 #				$x=array('product');
@@ -413,7 +413,7 @@ function filter_regressions($rows,$method)
 	foreach( $rows as $column )
 		foreach( $column as $row )
 			foreach( $row as $field )	{
-				if( $method>1 && ($field['class']=='r' || $field['class']=='wr' ))
+				if( $method>1 && !strncmp($field['class'],'fail',4) )
 					return true;
 				else
 					$stat[$field['class']]=1;
