@@ -8,6 +8,8 @@ common_header(array(
     'calendar'=>1
 ));
 
+define('AGR_MAX_RES','15000');
+
 # read main CGI variables
 $submission_id=http('submission_id');
 $mode_got=http('submission_type',null);
@@ -134,18 +136,18 @@ if(!$submission_id)
 	}
 	else if( $step=='reg' )
 	{
-#		$group_by_got = http('group_by',1);
+		$group_by_got = http('group_by',1);
 		$reg_method_got = http('reg_method',1);
 		$cell_text_got = http('cell_text',1);
 		$cell_color_got = http('cell_color',1);
 
-#		$group_by = array(
-#			array(1,'product+release',array('product_id','release_id')),
-#			array(2,'product',array('product_id'))
-#		);
+		$group_by = array(
+			array(1,'testsuite + testcase'),
+			array(2,'testsuite'),
+		);
 		$reg_method = array(
 			array(1,'different status'),
-			array(2,'fails')
+			array(2,'fail+interr'),
 		);
 		$cell_text = array(
 			array(1,'status'),
@@ -157,9 +159,10 @@ if(!$submission_id)
 		$cell_color = array(
 			array(1,'status'),
 			array(2,'RGB'),
-			array(3,'grayscale')
+			array(3,'grayscale'),
+			array(4,''),
 		);
-#		$what[]=array('group_by',$group_by,$group_by_got,SINGLE_SELECT);
+		$what[]=array('group_by',$group_by,$group_by_got,SINGLE_SELECT);
 		$what[]=array('reg_method',$reg_method,$reg_method_got,SINGLE_SELECT,'regression method');
 		$what[]=array('cell_text',$cell_text,$cell_text_got,SINGLE_SELECT);
 		$what[]=array('cell_color',$cell_color,$cell_color_got,SINGLE_SELECT);
@@ -228,16 +231,16 @@ if(!$submission_id)
 			'order_nr'		=>-1,
 		);
 		if( $step=='reg' )	{
-			$mode_got=11;
+			$mode_got=($group_by_got==2 ? 12 : 11);
 			unset($attrs['order_nr']);
-			$y=array('testsuite','testcase');
+			$y=($group_by_got==2 ? array('testsuite') : array('testsuite','testcase'));
 			$x=array('product_id','release_id');
 #			if( $group_by==2 )
 #				$x=array('product');
 			$group=array_merge($y,$x);    
 			$attrs['group_by']=$group;
 			$attrs['order_by']=$group;
-			$attrs['limit'] = 100000;
+			$attrs['limit'] = array(AGR_MAX_RES);
 			$pager=null;
 		}
 		$data=search_submission_result($mode_got,$attrs,$transl,$pager);
@@ -258,6 +261,8 @@ if(!$submission_id)
 		if( $mode_got==3 ) # KOTD external links, linked by value instead of ID, need translating here
 			table_translate($data,array('links'=>array('kernel_branch_id'=>'http://kerncvs.suse.de/kernel-overview/?b=')));
 		if( $step=='reg' )	{
+			if( count($data) >= AGR_MAX_RES )
+				print html_error('Only processing firs '.AGR_MAX_RES.' result rows. This limitation will be removed in the next release.');
 			print html_groupped_table($data,array(
 				'group_y' => $y,
 				'group_x' => $x,
@@ -381,7 +386,9 @@ function aggregate_results( $runs, $succ, $fail, $interr, $skip, $time, $method 
 	else if( $method[0]==4 )
 		$text = ( $fail || $interr ? 'X' : '' );
 
-	$ret['class'] = ( $fail ? 'r' : ($interr ? 'wr' : ($skip ? 'm' : 'i' )));
+	$ret['class'] = ( $fail || $interr ? 'fail' : '');
+	if( $method[1] == 1 )
+		$ret['class'] .= ' ' . ( $fail ? 'r' : ($interr ? 'wr' : ($skip ? 'm' : 'i' )));
 
 	if( $runs>0 )	{
 #		if( $method[1]==1 )
@@ -406,7 +413,7 @@ function filter_regressions($rows,$method)
 	foreach( $rows as $column )
 		foreach( $column as $row )
 			foreach( $row as $field )	{
-				if( $method==2 && ($field['class']=='r' || $field['class']=='wr'))
+				if( $method>1 && !strncmp($field['class'],'fail',4) )
 					return true;
 				else
 					$stat[$field['class']]=1;
