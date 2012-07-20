@@ -127,7 +127,6 @@
 		'hostname'=>'Hostname',
 		'status_string'=>'Status',
 		'used_by'=>'Used by',
-		'usage'=>'Usage',
 		'reserved'=>'Reserved',
 		'expires_formated'=>'Expires',
 		'group'=>'Group',
