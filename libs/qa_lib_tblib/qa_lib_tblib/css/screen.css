@@ -133,13 +133,13 @@ button { display: inline; }
 
 .evenrow:hover, .oddrow:hover				{ background-color:#eec; }
 .failed.evenrow:hover, .failed.oddrow:hover		{ background-color:#f44; }
-.r:hover						{ background-color:#fdd; }
+.r:hover, tr:hover .r					{ background-color:#fdd; }
 .internalerr.evenrow:hover, .internalerr.oddrow:hover	{ background-color:#f4f; }
 .skipped.evenrow:hover, .skipped.oddrow:hover		{ background-color:#bb8; }
-.wr:hover						{ background-color:#fdf; }
-.i:hover						{ background-color:#cfc; }
-.wi:hover						{ background-color:#dfd; }
-.m:hover						{ background-color:#ffd; }
+.wr:hover, tr:hover .wr					{ background-color:#fdf; }
+.i:hover, tr:hover .i					{ background-color:#cfc; }
+.wi:hover, tr:hover .wi					{ background-color:#dfd; }
+.m:hover, tr:hover .m					{ background-color:#ffd; }
 
 /* buttons */
 .btn,.btn_disabled
