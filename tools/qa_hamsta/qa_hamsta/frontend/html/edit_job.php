@@ -31,7 +31,8 @@
     <?php
         # edit job from a parametrized job XML file
         # $existFileName = "/usr/share/hamsta/xml_files/multimachine/qa_parameter.xml";
-	$existFileName = $real_file;
+        if(isset($real_file))
+            $existFileName = $real_file;
 
         # define the default data of job XML file
         $jobInfo = array( 'name'=>'yourjobname',               'level'=>'3',
@@ -88,7 +89,7 @@
                 # sort command by key "role_id"
                 if($roleCount > 0) {
                     foreach ($jobCommandMap as $key=>$value)
-                        $commandSortKey[$key] = $value[role_id];
+                        $commandSortKey[$key] = $value['role_id'];
                     array_multisort($commandSortKey, SORT_NUMERIC, $jobCommandMap);
                 }
                 $commandCount = count($jobCommandMap);
