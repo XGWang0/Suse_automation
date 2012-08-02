@@ -19,13 +19,13 @@ $data = array(
 		html_link('~/.mysql_loc.rc','doc/mysql_loc.rc.5.html','client-side MySQL instance configuration'),
 	),
 	'Programming documentation' => array(
-		html_link('Qadb.pm','doc/qadb_api/index.html','QADB-specific DB functions'),
+		html_link('qadb.pm','doc/qadb_api/index.html','QADB-specific DB functions'),
 		html_link('TBlib','../tblib/doc/tblib_api/index.html','database and HTML toolkit'),
 		html_link('TBlib usage','../tblib/doc/tblib_usage/index.html','using the TBlib - database and HTML toolkit'),
 		html_link('DB tables (semi-generated)','tbldoc.php'),
 #		html_link('DB tables','doc/qadb_new.html','Description of the database tables'),
 #		html_link('DB tables (old)','doc/qadb_old.html','Description of the original QADB tables'),
-		html_link('Implemented changes','http://hamsta.qa.suse.cz/new_qadb.html','Describing the implemented changes since the original version'),
+#		html_link('Implemented changes','http://hamsta.qa.suse.cz/new_qadb.html','Describing the implemented changes since the original version'),
 	),
 
 );

@@ -307,7 +307,7 @@ function html_table($data,$attrs)
 
 /**
   * HTML contingency table.
-  * WARNING!! $data needs to be ordered by 'group_y' !!
+  * WARNING!! $data needs to be ordered by 'group_y' !! <pre>
   * $data	2D hashmap with results
   * $attrs['group_y']	Y axis attributes, !!! $data must be sorted by this !!!
   * $attrs['group_x']	X axis attributes
@@ -317,7 +317,7 @@ function html_table($data,$attrs)
   * $attrs['aggregate_callback']	callback to aggregate fields into one
   * $attrs['aggregate_arg']		extra argument passed to aggregate_callback
   * $attrs['filter_callback']		callback that can filter out some rows
-  * $attrs['filter_arg']		extra argument passed to filter_callback
+  * $attrs['filter_arg']		extra argument passed to filter_callback </pre>
   *
   **/
 function html_groupped_table($data,$args=array())
