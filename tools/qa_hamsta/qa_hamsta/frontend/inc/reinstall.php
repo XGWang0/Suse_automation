@@ -143,7 +143,7 @@ if (request_str("proceed")) {
 	foreach ($pattern_list as $p)
 		$gpattern .= " ".$p;
 	if ($setxen) {
-		$gpattern .= " xen_server";
+		$gpattern .= "xen_server";
 		if (preg_match('/[SsLlEe]{3}.-10/',$producturl))
 			$additionalrpms .= " kernel-xen";
 	}
