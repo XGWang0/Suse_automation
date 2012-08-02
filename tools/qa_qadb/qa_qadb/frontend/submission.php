@@ -108,7 +108,6 @@ if(!$submission_id)
 #		array('testsuite',$testsuite,$testsuite_got,MULTI_SELECT),
 		array('host',$host,$host_got,MULTI_SELECT),
 		array('tester',$tester,$tester_got,MULTI_SELECT),
-		array('testsuite',enum_list_id_val('testsuite'),$testsuite_got,MULTI_SELECT),
 		array('date_from','',$date_from_got,TEXT_ROW),
 		array('date_to','',$date_to_got,TEXT_ROW),
 		array('comment','',$comment_got,TEXT_ROW,'comment [%]'),
@@ -124,50 +123,19 @@ if(!$submission_id)
 
 	# card-dependent form fields
 	if( $step=='tcf' )
-		array_splice($what,6,0,array(
+		array_splice($what,5,0,array(
+			array('testsuite',enum_list_id_val('testsuite'),$testsuite_got,MULTI_SELECT),
 			array('testcase','',$testcase_got,TEXT_ROW,'testcase(s) (slow) [%]'),
 		));
 	else if( $step=='bench' )
 	{
-		$what[5]=array('testsuite',bench_list_testsuite(),$testsuite_got,MULTI_SELECT);
+		array_splice($what,5,0,array(
+			array('testsuite',bench_list_testsuite(),$testsuite_got,MULTI_SELECT),
+		));
 		$pager = null; # cannot use pager as the whole table is a form
 	}
-	else if( $step=='reg' )
-	{
-#		$group_by_got = http('group_by',1);
-		$reg_method_got = http('reg_method',1);
-		$cell_text_got = http('cell_text',1);
-		$cell_color_got = http('cell_color',1);
-
-#		$group_by = array(
-#			array(1,'product+release',array('product_id','release_id')),
-#			array(2,'product',array('product_id'))
-#		);
-		$reg_method = array(
-			array(1,'different status'),
-			array(2,'fails')
-		);
-		$cell_text = array(
-			array(1,'status'),
-			array(2,'% pass'),
-			array(3,'numbers'),
-			array(4,'X'),
-			array(5,'')
-		);
-		$cell_color = array(
-			array(1,'worst'),
-			array(2,'RGB'),
-			array(3,'grayscale')
-		);
-#		$what[]=array('group_by',$group_by,$group_by_got,SINGLE_SELECT);
-		$what[]=array('reg_method',$reg_method,$reg_method_got,SINGLE_SELECT,'regression method');
-		$what[]=array('cell_text',$cell_text,$cell_text_got,SINGLE_SELECT);
-		$what[]=array('cell_color',$cell_color,$cell_color_got,SINGLE_SELECT);
-	}
-	else	{
+	else
 		$what[]=array('submission_type',$modes,$mode_got,SINGLE_SELECT,'submission type');
-		unset($what[5]); # TODO: fix testsuites in this tab too
-	}
 }
 
 # cardset
@@ -175,8 +143,7 @@ $mode=0;
 $steps=array(
 	array('submissions','sub'),
 	array('TCFs','tcf'),
-	array('benchmarks','bench'),
-	array('ext. regressions','reg')
+	array('benchmarks','bench')
 );
 for( $i=0; $i<count($steps); $i++ )
 {
@@ -205,7 +172,7 @@ if(!$submission_id)
 		if( $step=='bench') $mode_got=9;
 		if( $testcase && $testcase[0] )    $mode_got=10;
 		$transl=array();
-		$attrs=array(
+		$data=search_submission_result($mode_got,array(
 			'arch_id'		=>$arch_got,
 			'product_id'		=>$product_got,
 			'release_id'		=>$release_got,
@@ -225,22 +192,8 @@ if(!$submission_id)
 			'kernel_version'	=>$kernel_version_got,
 			'kernel_branch'		=>$kernel_branch_got,
 			'kernel_flavor'		=>$kernel_flavor_got,
-			'order_nr'		=>-1,
-		);
-		if( $step=='reg' )	{
-			$mode_got=11;
-			unset($attrs['order_nr']);
-			$y=array('testsuite','testcase');
-			$x=array('product_id','release_id');
-#			if( $group_by==2 )
-#				$x=array('product');
-			$group=array_merge($y,$x);    
-			$attrs['group_by']=$group;
-			$attrs['order_by']=$group;
-			$attrs['limit'] = 100000;
-			$pager=null;
-		}
-		$data=search_submission_result($mode_got,$attrs,$transl,$pager);
+			'order_nr'		=>-1
+		),$transl,$pager);
 		$sort='sssssssis'.str_repeat('s',count($data[0])-9);
 		$class='tbl';
 		if( $step=='bench' )
@@ -250,44 +203,24 @@ if(!$submission_id)
 				print '<form action="benchmarks.php" method="get" name="bench_form">'."\n";
 			$class.=' controls';
 		}
-		else if( $step=='reg' )	{
-			$transl['enums']['product_id'] = 'product';
-			$transl['enums']['release_id'] = 'release';
-		}
 		table_translate($data,$transl); 
 		if( $mode_got==3 ) # KOTD external links, linked by value instead of ID, need translating here
 			table_translate($data,array('links'=>array('kernel_branch_id'=>'http://kerncvs.suse.de/kernel-overview/?b=')));
-		if( $step=='reg' )	{
-			print html_groupped_table($data,array(
-				'group_y' => $y,
-				'group_x' => $x,
-				'header' => 1,
-				'aggregate_fields' => array('runs','succ','fail','interr','skip','time'),
-				'aggregate_callback'    => 'aggregate_results',
-				'aggregate_name'        => 'result',
-				'aggregate_arg'         => array($cell_text_got,$cell_color_got),
-				'filter_callback'       => 'filter_regressions',
-				'filter_arg'            => $reg_method_got,
-			));
+		print html_table($data,array('id'=>'submission','sort'=>$sort,'total'=>true,'class'=>$class,'pager'=>$pager));
+		if( $step=='bench' && count($data)>1 )
+		{
+			$legend=array( array(0,'in the graph'), array(1,'next to the graph') );
+			$fontsize=array( array(1,1),array(2,2),array(3,3),array(4,4),array(5,5) );
+			$what=array(
+				array('group_by',$group_by,http('group_by',0),SINGLE_SELECT),
+				array('graph_x','',http('graph_x',$bench_def_width),TEXT_ROW,'graph width'),
+				array('graph_y','',http('graph_y',$bench_def_height),TEXT_ROW,'graph height'),
+				array('legend_pos',$legend,http('legend_pos',$bench_def_pos),SINGLE_SELECT),
+				array('font_size',$fontsize,http('font_size',$bench_def_font),SINGLE_SELECT),
+			);
+			print html_search_form(null,$what,array('form'=>false,'submit'=>'Graphs','div'=>'screen'));
+			print "</form>\n";
 		}
-		else	{
-			print html_table($data,array('id'=>'submission','sort'=>$sort,'total'=>true,'class'=>$class,'pager'=>$pager));
-			if( $step=='bench' && count($data)>1 )
-			{
-				$legend=array( array(0,'in the graph'), array(1,'next to the graph') );
-				$fontsize=array( array(1,1),array(2,2),array(3,3),array(4,4),array(5,5) );
-				$what=array(
-					array('group_by',$group_by,http('group_by',0),SINGLE_SELECT),
-					array('graph_x','',http('graph_x',$bench_def_width),TEXT_ROW,'graph width'),
-					array('graph_y','',http('graph_y',$bench_def_height),TEXT_ROW,'graph height'),
-					array('legend_pos',$legend,http('legend_pos',$bench_def_pos),SINGLE_SELECT),
-					array('font_size',$fontsize,http('font_size',$bench_def_font),SINGLE_SELECT),
-				);
-				print html_search_form(null,$what,array('form'=>false,'submit'=>'Graphs','div'=>'screen'));
-				print "</form>\n";
-			}
-		}
-
 	}
 	echo "</div>\n";
 }
@@ -368,56 +301,6 @@ print "</div>\n";
 print html_footer();
 exit;
 
-
-function aggregate_results( $runs, $succ, $fail, $interr, $skip, $time, $method )
-{
-	$full = "fail:$fail interr:$interr skip:$skip success:$succ time:$time";
-
-	$text='';
-	if( $method[0]==1 )
-		$text = ( $fail ? 'failed' : ( $interr ? 'interr' : ( $skip ? 'skipped' : 'success' )));
-	else if( $method[0]==2 )
-		$text = ( $runs>0 ? sprintf("%2d",100*$succ/$runs).'%' : 'N/A' );
-	else if( $method[0]==3 )
-		$text = "$fail/$interr/$skip/$succ";
-	else if( $method[0]==4 )
-		$text = ( $fail || $interr ? 'X' : '' );
-
-	$ret['class'] = ( $fail ? 'r' : ($interr ? 'wr' : ($skip ? 'm' : 'i' )));
-
-	if( $runs>0 )	{
-#		if( $method[1]==1 )
-#			$ret['class'] = ( $fail ? 'r' : ($interr ? 'wr' : ($skip ? 'm' : 'i' )));
-#		else 
-		if( $method[1]==2 )
-			$ret['style'] = sprintf("background-color: rgb(%d,%d,%d)",255*$fail/$runs,255*$succ/$runs,255*$interr/$runs);
-		else if( $method[1]==3 )	{
-			$gray = 255*$succ/$runs;
-			$ret['style'] = "background-color: rgb($gray,$gray,$gray); color: ".($gray>128 ? 'black':'white');
-		}
-
-	}
-	$ret['text'] = $text;
-	$ret['title'] = "fail:$fail interr:$interr skip:$skip success:$succ time:$time";
-	return $ret;
-}
-
-function filter_regressions($rows,$method)
-{
-	$stat=array();
-	foreach( $rows as $column )
-		foreach( $column as $row )
-			foreach( $row as $field )	{
-				if( $method==2 && ($field['class']=='r' || $field['class']=='wr'))
-					return true;
-				else
-					$stat[$field['class']]=1;
-			}
-	if( $method==2 )
-		return false;
-	else
-		return ( count($stat) > 1 );
-}
 
 
 

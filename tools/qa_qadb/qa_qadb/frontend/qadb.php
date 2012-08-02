@@ -181,7 +181,7 @@ function bench_list_testsuite($limit=null)
   *   8 submission + TCF
   *   9 bench search
   *  10 submission + TCF + testcase
-  *  11 extended regressions
+  *  11 summaries
   * $attrs['only_id']: 
   *   0 for full details
   *   1 for IDs only 
@@ -228,13 +228,13 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	);
 
 	# index into $sel0[], $sel1[] (SELECT ...), and $from0[] (FROM ...)
-	$i_main = array( 1,0,0,0,0,0,2,0,0,0,0,3 );
+	$i_main = array( 1,0,0,0,0,0,2,0,0,0,0 );
 	# index into $sel2[] (SELECT ...)
-	$i_next = array( 0,0,1,2,0,3,0,4,5,5,6,7 );
+	$i_next = array( 0,0,1,2,0,3,0,4,5,5,6 );
 	# index into $from2[] (FROM ...)
-	$i_from = array( 0,0,1,2,3,4,0,0,5,6,7,8 );
+	$i_from = array( 0,0,1,2,3,4,0,0,5,6,7 );
 	# index into $links2[] ( $transl->['links'] )
-	$i_link = array( 0,0,0,1,0,0,0,0,2,2,2,0 );
+	$i_link = array( 0,0,0,1,0,0,0,0,2,2,2 );
 
 	# should I return submission_id only?
 	$only_id  = hash_get($attrs,'only_id',false,true);
@@ -247,13 +247,13 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	# $from = $from0 $from2
 	# $sel0..$sel2 are done as lists - for ordering by them
 	# $sel0[ $i_main ] -- always
-	$sel0=array( 's.submission_id', 'r.result_id', 'g.testsuite_id','SUM(r.times_run) as runs' );
+	$sel0=array( 's.submission_id', 'r.result_id', 'g.testsuite_id' );
 	# $sel1[ $i_main ] -- appends for full details
 	$sel1=array( 
 /* subms */  array('s.submission_date','s.host_id','s.tester_id','s.arch_id','s.product_id','s.release_id','s.related','s.status_id','s.comment','s.rpm_config_id','s.hwinfo_id','s.type'),
 /* rslts */  array('g.tcf_id','g.testsuite_id','r.testcase_id','t.testcase','r.succeeded','r.failed','r.internal_error','r.skipped','r.times_run','r.test_time','w.waiver_id','t.relative_url'),
 /* suite */  array(),
-/* regs  */  array('s.product_id','s.release_id','SUM(r.succeeded) as succ','SUM(r.failed) as fail','SUM(r.internal_error) as interr','SUM(r.skipped) as skip','SUM(r.test_time) as time')
+/* sums  */  array('SUM(r.testcase) as testcase','SUM(r.succeeded) as succeeded','SUM(r.failed) as failed','SUM(r.internal_error) as internal_error','SUM(r.skipped) as skipped','SUM(r.times_run) as times_run','SUM(r.test_time) as test_time')
 	);
 	# $sel2[ $i_next ] -- appends for full details
 	$sel2=array( 
@@ -264,13 +264,12 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 /* trend  */ array('g.testsuite_id'),
 /* TCF    */ array('g.testsuite_id','g.tcf_id'),
 /* TCF+res*/ array('g.testsuite_id','g.tcf_id','r.testcase_id'),
-/* regs	  */ array('testsuite','testcase'),
 	);
 
 	# $from0[ $i_main ] -- always
-	$from0=array( 'submission s', 'submission s JOIN tcf_group g USING(submission_id) JOIN result r USING(tcf_id)', 'submission s JOIN tcf_group g USING(submission_id)', 'submission s' );
+	$from0=array( 'submission s', 'submission s JOIN tcf_group g USING(submission_id) JOIN result r USING(tcf_id)', 'submission s JOIN tcf_group g USING(submission_id)' );
 	# $from1[ $i_main ] -- append for full details
-	$from1=array( '', ' JOIN testcase t USING(testcase_id) LEFT OUTER JOIN waiver w USING(testcase_id) JOIN test b USING(testcase_id)', '', '' );
+	$from1=array( '', ' JOIN testcase t USING(testcase_id) LEFT OUTER JOIN waiver w USING(testcase_id)', '' );
 	# $from2[ $i_from ] -- always
 	$from2=array(
 /* simple */	'',
@@ -281,15 +280,13 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 /* TCF    */    ' JOIN tcf_group g USING(submission_id)',
 /* bench  */	' JOIN tcf_group g USING(submission_id) JOIN bench_suite b USING(testsuite_id)',
 /* TCF+res*/	' JOIN tcf_group g USING(submission_id) JOIN `result` r USING(tcf_id) JOIN testcase c USING(testcase_id)',
-/* regres */	' JOIN tcf_group g USING(submission_id) JOIN result r USING(tcf_id) JOIN testcase USING(testcase_id) JOIN testsuite USING(testsuite_id)', # testsuite/testcase joined to sort properly
 	);
 	
 	# $enum1[ $i_main ] - for full details when $transl set
 	$enum1=array(
 /* subms */  array('host_id'=>'host','tester_id'=>'tester','arch_id'=>'arch','product_id'=>'product','release_id'=>'release','status_id'=>'status'),
 /* rslts */  array('testsuite_id'=>'testsuite'),
-/* suite */  array(),
-/* regs  */  array(),
+/* suite */  array()
 	);
 
 	# $enum1[ $i_next ] - for full details when $transl set
@@ -301,15 +298,14 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 /* any    */	array(),
 /* TCF    */	array('testsuite_id'=>'testsuite'),
 /* bench  */	array('testsuite_id'=>'testsuite'),
-/* regs   */	array(),
+/* TCF+res*/	array('testsuite_id'=>'testsuite','testcase_id'=>'testcase')
 	);
 
 	# $links1[ $i_main ] - for full details when $transl set
 	$links1=array(
 /* subms */	array('submission_id'=>'submission.php?submission_id=','related'=>'submission.php?submission_id=','rpm_config_id'=>'rpms.php?rpm_config_id=','hwinfo_id'=>'hwinfo.php?hwinfo_id='),
 /* rslts */	array('tcf_id'=>'result.php?tcf_id='),
-/* suite */	array(),
-/* regs  */	array(),
+/* suite */	array()
 	);
 
 	# $links2[ $i_link ] - for full details when $transl set
