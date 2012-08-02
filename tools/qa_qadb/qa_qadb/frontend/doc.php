@@ -13,10 +13,11 @@ $data = array(
 		html_link('Frontend presentation','doc/qadb_web_demonstration/demonstration.html','Flash that demonstrates how to use the frontend'),
 	),
 	'Manual pages for qa_tools package' => array(
-		html_link('qa_db_report.pl','doc/qa_db_report.pl.1.html','QADB submission tool'),
-		html_link('select_db.pl','doc/select_db.pl.1.html','tool to select QADB instance'),
+		html_link('location.pl','doc/location.pl.1.html','location auto-detection'),
+		html_link('location_detect_impl.pl','doc/location_detect_impl.pl.1.html','location detection from ifconfig settings'),
+		html_link('modify_xml.pl','doc/modify_xml.pl.1.html','tool to merge XMLs for AutoYaST configuration'),
+		html_link('remote_qa_db_report.pl','doc/remote_qa_db_report.pl.1.html','QADB submission tool'),
 		html_link('product.pl','doc/product.pl.1.html','product guesser'),
-		html_link('~/.mysql_loc.rc','doc/mysql_loc.rc.5.html','client-side MySQL instance configuration'),
 	),
 	'Programming documentation' => array(
 		html_link('qadb.pm','doc/qadb_api/index.html','QADB-specific DB functions'),
