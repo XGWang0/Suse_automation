@@ -411,11 +411,11 @@ sub start_job() {
         $sut_timeout = 86400 if($sut_timeout ==0);   #24hours
         &log(LOG_NOTICE, "Time out is $sut_timeout (s)");
 
-	my $current_time=time;
-	while ($current_time - $work_start < $sut_timeout) {
-	    $current_time=time;
+	my $current_time=0;
+	while ($current_time < $sut_timeout) {
 	    goto OUT if(waitpid($fork_re, WNOHANG));
-	    sleep 3;
+	    sleep 5;
+	    $current_time += 5;
 
 	}
         #timeout

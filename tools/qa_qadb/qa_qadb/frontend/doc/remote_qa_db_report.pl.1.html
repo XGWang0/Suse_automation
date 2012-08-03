@@ -1,0 +1,156 @@
+<HTML>
+<BODY>
+<PRE>
+<!-- Manpage converted by man2html 3.0.1 -->
+
+
+</PRE>
+<H2>SYNOPSIS</H2><PRE>
+       remote_qa_db_report.pl -p product-release -[bhADL] [-c  comment  ]  [-v
+       &lt;n&gt;  ]  [-a arch ] [-f path ] [-F tcflist ] [-k kernel ] [-m testhost ]
+       [-t type ] [-T tester ]
+
+
+</PRE>
+<H2>DESCRIPTION</H2><PRE>
+       remote_qa_db_report.pl  reads  test  result  directories  (default   in
+       /var/log/qa), compresses them and copies via SCP to rd-qa@qadb.suse.de,
+       remotely runs <B><A HREF="qa_db_report.pl.1.html">qa_db_report.pl(1)</A></B> to store the results into QADB, copies
+       the logs to the archive at qainst.suse.de:/suse/rd-qa/Exports/Results ,
+       and moves the processed log to a subdirectory named oldlogs/.
+
+       The most of the options should have sane default values, but  you  need
+       to specify at least the product.
+
+
+
+
+</PRE>
+<H2>OPTIONS</H2><PRE>
+       -a arch
+              Here  you  can  specify  the  architecture.   Architecture  must
+              already exist in QADB, table architectures.  When  omitted,  the
+              script tries to auto-detect it.
+
+
+       -A     Do not copy the logs to the archive using SCP.
+
+
+       -b     Batch  processing  - not interactive, does not ask for confirma-
+              tions.  When hwinfo or rpmlist is missing, prints a warning  and
+              generates  it automatically, using current machine's data.  Mul-
+              tiple submissions caused by multiple  different  RPM  or  hwinfo
+              configurations are automatically created.
+
+
+       -c comment
+              Here you can specify the comment related to your submission(s).
+
+
+              NOTE  Submission  type  is  set  at  the end of the whole submit
+              process, so you cannot see it in QADB earlier.
+
+              When the submit fails, the newly inserted data are deleted  from
+              the  database  again  (you  will  need  the DELETE privilege for
+              that).
+
+
+
+       -D     Do not write to the database.
+
+
+       -f path
+
+
+       -P DIRECT_PATH_LIST
+              comma-separated  list  of  parser:directory  pairs.  This allows
+              specification of directories which contain individual  testsuite
+              results  without the need to have them in typical results struc-
+              ture (dir/parser/testsuite-timestamp). The directory still  MUST
+              have  a name in format testsuite-timestamp!  If this argument is
+              used, arguments -F and/or -f and/or -R  cannot  be  used!   This
+              argument implies (automatically sets) -L!
+
+              Example: -P 'ctcs2:/tmp/qa_siege-2009-12-03-11-13-37'
+
+
+       -k KERNEL
+              Kernel version for KOTD tests
+
+
+       -L     Do not moves logs to oldlogs.
+
+
+
+       -m testhost
+              The  machine  you  ran the tests on.  By default hostname of the
+              current machine.
+
+
+       -p product-release
+              This is the only mandatory switch.  Product must  already  exist
+              in  QADB,  table  products.   Release  will be created, when not
+              known in QADB.
+
+              Example : SLES-10-beta1 , SLES-9-SP4-RC1 , ...
+
+
+              Currently,  following  architectures  exist:  i586,  ia64,  ppc,
+              ppc64,    s390,    s390x,    x86_64,   xen0-i586,   xen0-x86_64,
+              xen0-x86_64-xenU-i586, xenU-i586, xenU-x86_64
+
+
+       -t type
+              Submission type.
+              product
+                     The  default  submission  type,  means  that  you  submit
+                     results from a product test.
+              patch:&lt;md5sum&gt;
+                     Testing      a      patch      with     given     md5sum.
+                     /mounts/work/built/patchinfo with details about the spec-
+                     ified  patch  must  be  available,  otherwise  the submit
+                     fails.
+              kotd:&lt;release&gt;:&lt;version&gt;:&lt;branch&gt;:&lt;flavor&gt;
+                     This one means that you submit results from Kernel of the
+
+              3 : warnings
+              4 : notices
+              5 : info
+              6 : details
+              7 : debug messages
+
+              All messages are sent to STDERR.
+
+
+
+
+</PRE>
+<H2>KNOWN BUGS</H2><PRE>
+       Inotify  not  yet implemented, you cannot submit your results while the
+       test runs.
+
+
+
+</PRE>
+<H2>AUTHOR</H2><PRE>
+       Vilem Marsik &lt;vmarsik@novell.com&gt;, using work of Patrick Kirsch
+
+
+
+</PRE>
+<H2>SEE ALSO</H2><PRE>
+       <B><A HREF="product.pl.1.html">product.pl(1)</A></B>, <B><A HREF="arch.pl.1.html">arch.pl(1)</A></B>,
+
+
+
+
+
+                                       1          remote_qa_db_report.pl(QADB)
+</PRE>
+<HR>
+<ADDRESS>
+Man(1) output converted with
+<a href="http://www.oac.uci.edu/indiv/ehood/man2html.html">man2html</a>
+</ADDRESS>
+</BODY>
+</HTML>
