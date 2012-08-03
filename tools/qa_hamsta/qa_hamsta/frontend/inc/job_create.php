@@ -27,11 +27,12 @@
 	 * Logic of the custom job page 
 	 */
 
-	$jobname=str_replace(' ', "\ ", str_replace('"', '\"', str_replace("/", "\/", $_POST['jobname'])));
-	if(!preg_match("/^[0-9a-zA-Z_-\s]+$/", $jobname))  # validate the file name user input
+	$jobname=$_POST['jobname'];
+	if(!preg_match("/^[0-9a-zA-Z_\s\-]+$/", "$jobname"))  # validate the file name user input
 	{
 		$errors[] = "The file name you input is invalid! It must be composed by number, letter, underscroe, dash or space.";
 	}
+	$jobname = str_replace(' ', "\ ", "$jobname");
 
 	$debuglevel=$_POST['debuglevel'];
 	$description=str_replace('"', '\"', str_replace("/", "\/", $_POST['description']));
@@ -130,9 +131,9 @@
 
 	# define command XML template
 	if($roleNumber > 1)
-		$commandString = "<command execution=\"forked\" role_id=\"ROLE_ID\"><![CDATA[\nCOMMANDS\n]]>            </command>\n";
+		$commandString = "<command execution=\"forked\" role_id=\"ROLE_ID\"><![CDATA[COMMANDS\n]]>            </command>\n";
 	else
-		$commandString = "<command execution=\"forked\"><![CDATA[\nCOMMANDS\n]]>            </command>\n";
+		$commandString = "<command execution=\"forked\"><![CDATA[COMMANDS\n]]>            </command>\n";
 
 	# deinfe paramter XML template
 	$paramString = "        <parameter type=\"PARAM_TYPE\" name=\"PARAM_NAME\" default=\"PARAM_DEFAULT\" label=\"PARAM_LABEL\">\nPARAM_VALUE\n        </parameter>\n";
