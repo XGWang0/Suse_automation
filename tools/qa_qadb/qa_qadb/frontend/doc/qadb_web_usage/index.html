@@ -200,9 +200,10 @@ A page on the frontend usually consists of the following elements:
 	<li><b>Card tabs</b> switch between different parts of the page</li>
 	<li>A <b>search form</b></li>
 	<li>A <b>search submit button</b> that initiates a new search</li>
-	<li>A <b>results table</b> showing the results of the last search.
+	<li>A <b>pager</b> for moving in larger tables</li>
+	<li>A <b>result table</b> showing the results of the last search.
 	<ul>
-		<li>the icon in the upper left corner can shrink large tables to 25 rows <em>(currently only works in Firefox</em></li>
+		<!--li>the icon in the upper left corner can shrink large tables to 25 rows <em>(currently only works in Firefox)</em></li-->
 		<li>black column headers are clickable - click to sort the results by this column</li>
 	</ul></li>
 </ol>
@@ -295,6 +296,10 @@ When you click on the tcfID in the result table, you will see its result list.
 
 <li>
 <b>benchmarks</b> search: searches tests with attached benchmark results (see <a href="#bench_stats">benchmark statistics table</a>). See also <a href="#bench_search">benchmark search</a>.
+</li>
+
+<li>
+<b>extended regressions</b> search: similar to classic <a href="#regressions">regressions</a>, prints summaries of results where there was a problem for different products and releases.
 </li>
 
 </ul>
@@ -432,7 +437,7 @@ When mixing the data into one set, two graphs are obtained:
 </ol>
 
 
-<h3>Regressions</h3>
+<a name="regressions"><h3>Regressions</h3></a>
 <p>
 The regression tool compares two submissions, and looks for improvements and regressions in their test results.
 </p>
