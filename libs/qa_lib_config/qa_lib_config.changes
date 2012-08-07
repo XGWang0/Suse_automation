@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Aug  7 18:01:51 CEST 2012 - pkacer@suse.com
+
+- qa_lib_config/config, qa_lib_config.8: Fixed doc typos and
+  formatting of the man page.
+
+-------------------------------------------------------------------
 Wed May  2 09:06:28 CEST 2012 - llipavsky@suse.cz
 
 - New 2.3 release from QA Automation team, includes: 

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Aug  7 18:01:51 CEST 2012 - pkacer@suse.com
+
+- qa_lib_ctcs2.8: Fixed formatting and typos. Refrased some setences.
+
+-------------------------------------------------------------------
 Thu May 17 15:34:49 CEST 2012 - llipavsky@suse.cz
 
 - Add benchparser command support in TCF file
