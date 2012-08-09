@@ -84,6 +84,10 @@ $resend_job=request_str("xml_file_name");
 if (request_str("proceed")) {
     $installoptions = request_str("installoptions"); # use options listed in webpage
     $smturl = request_str("update-smt-url");
+    $regcodes = $_POST["rcode"];
+    $regcodes = array_filter($regcodes,"filter");
+    $regcode = join(",", TrimArray($regcodes));
+
     # Check for errors
     $errors = array();
     if(request_str("startupdate") == "update-smt") {
@@ -91,7 +95,7 @@ if (request_str("proceed")) {
             $errors['startupdate'] = "You must provide the full URL of an SMT server to do an online update using SMT registration.";
         }
     } elseif(request_str("startupdate") == "update-reg") {
-        if(!preg_match("/^.*\@.*$/", request_str("update-reg-email")) or request_str("update-reg-code") == "") {
+        if(!preg_match("/^.*\@.*$/", request_str("update-reg-email")) and $regcode == "") {
             $errors['startupdate'] = "You must provide a valid email address and registration code in order to do an online update using NCC registration credentials.";
         }
     }
@@ -166,6 +170,9 @@ if (request_str("proceed")) {
                if ($installmethod == "Upgrade")
                    $args .= " -U";
 	       $args .= " -V " .$virtualization_method;
+				var_dump($args);
+				exit();
+
                $email = request_str("mailto");
                system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $autoyastfile");
                system("sed -i 's/ARGS/$args/g' $autoyastfile");
