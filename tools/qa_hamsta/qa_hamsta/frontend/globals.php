@@ -25,15 +25,25 @@
 
 	# Keep this structure (for now), especially the " -- " between the feature title and description
 	$latestFeatures = array(
+			"2.5.0" => array(
+				'11 Aug 2012 -- TODO'
+			),
 			"2.4.0" => array(
-				'3 May 2012 -- TODO'
+				'10 Aug 2012 -- Web user-friendly editor for jobs',
+				'10 Aug 2012 -- HA Server yast2 UI Automation',
+				'10 Aug 2012 -- Build mapping in QADB -- build numbers are now mapped to build names (buildXXX -> beta Y)',
+				'10 Aug 2012 -- Improved regression analysis',
+				'10 Aug 2012 -- Benchmark parsers -- support for benchmark parsers in benchmark testsuite (author of testsuite will also provide a script to parse the results)',
+				'10 Aug 2012 -- Power control -- power switch control is now supported in Hamsta (thanks mpluskal!)',
+				'10 Aug 2012 -- Result submission -- only results created in the job are submitted to QADB',
+				'10 Aug 2012 -- QADB improvements'
 			),
 			"2.3.0" => array(
 				'2 May 2012 -- Outdated SUTs -- out-of date and developement SUTs are marked in web frontend and can be updated from the frontend',
 				'2 May 2012 -- HAMSTA CLI -- command line interface to Hamsta has been improved', 
 				'2 May 2012 -- Improved patterns -- it is possible to get/choose all patterns from all products during SUT resintallation (until now, only SLES/D & SDK patterns were shown)', 
 				'2 May 2012 -- Parametrized jobs -- predefined jobs can now be parametrized, so they can be customized every time the job is run', 
-				'2 May 2012 -- Job web editor -- web editors of jobs has been imrpoved. Now with multimachine job support', 
+				'2 May 2012 -- Job web editor -- web editors of jobs has been improved. Now with multimachine job support', 
 				'2 May 2012 -- One-click installer -- HAMSTA client can now be installed by one-click installer', 
 				'2 May 2012 -- QADB improvements'
 			),

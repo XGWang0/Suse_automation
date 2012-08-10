@@ -378,6 +378,15 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %{confdir}/00-hamsta-common-default
 
 %changelog
+* Fri Aug 10 2012 - llipavsky@suse.cz
+- Web user-friendly editor for jobs
+- HA Server yast2 UI Automation
+- Build mapping in QADB (buildXXX -> beta Y)
+- Improved regression analysis
+- Support for benchmark parsers in benchmark testsuite (author of testsuite will also provide a script to parse the results)
+- Power switch support in Hamsta (thanks mpluskal!)
+- Only results created in the job are submitted to QADB
+- QADB improvements
 * Wed May 2 2012 - llipavsky@suse.cz
 - New 2.3 release from QA Automation team, includes: 
 - out-of date and developement SUTs are marked in web frontend and can be updated from the frontend 
