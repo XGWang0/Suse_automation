@@ -40,8 +40,7 @@ pre { font-size:12px; }
 	text-align:left;
 	padding-top: 0.5em;
 }
-
-#subnav-hdr a {
+#subnav-hdr a, #subnav-hdr span {
 	text-decoration:none;
 	color:#fff;
 }
@@ -137,7 +136,9 @@ select, input { background-color: #eee; }
 select:hover, input:hover { background-color: #ccc; }
 select option:hover { background-color:#8ac; }
 
-.tbl td, .tbl th { box-shadow: 3px 3px 7px #000; }
+/* CSS3 shadows, does not work in Konqueror */
+.tbl td, .tbl th, .btn, .btn_disabled, #card { box-shadow: 0.3em 0.3em 0.7em #000; }
+select, input[type="text"], #subnav { box-shadow: 0.1em 0.1em 0.3em #666; }
 
 /*tr:hover td:first-child:before,
 tr:hover th:first-child:before {
@@ -154,7 +155,6 @@ tr:hover th:first-child:before {
 	padding: 0.1em 0.3em 0.1em 0.3em;
 	margin: 0.2em;
 	background-color: #68a;
-	box-shadow: 3px 3px 7px #000;
 	display: inline-block;
 	min-width: 2em;
 	text-align: center;
@@ -197,10 +197,16 @@ select[multiple] {height:10em;}
 .static { display: none; }
 input[type="submit"] 
 { 
+	padding: 0.1em 1em 0.1em 1em;
 	float:left;
 	clear:both;
 	margin-bottom: 1em;
 }
+
+select, input[type="text"]	{
+	border: solid 2px #ccc;
+}
+
 .inputblock
 { 
 	clear:none;
@@ -254,19 +260,21 @@ table.tbldesc	{ border-collapse: collapse; }
 .tbldesc td:first-child	{ font-size:1em; }
 
 /* cards */
-.steps { margin: 0 0 0.2em 1em; }
+.steps {
+	margin: 0 0 0 1em; 
+	float: left;
+}
 .steps span 
 {
-	display:inline;
-	margin: 0 1em 3em 0;
-	border:solid 1px;
+	display:block;
+	float: left;
+	margin: 0 1em 0 0;
 	padding:0.2em 1em 0.2em 1em;
 }
 .steps span.nosel 
 {
 	background-color:#9bc;
-	border-color:#fff #999 #888 #fff;
-	border-bottom:none;
+	border-color:#fff #999 #9bc #fff;
 }
 .steps span.sel 
 {
@@ -274,10 +282,10 @@ table.tbldesc	{ border-collapse: collapse; }
 	border-color:#cef #568 #68a #cef;
 	font-weight: bold;
 }
+.steps span,.steps2 { box-shadow: 0.4em -0.2em 0.7em -0.2em #000; } 
 .steps2 
 {
-	border: solid 1px;
-	border-color:#cef #568 #457 #cef;
+	clear: left;
 	background-color:#68a;
 	margin: 0 4px;
 }
@@ -289,8 +297,8 @@ table.tbldesc	{ border-collapse: collapse; }
 .steps a:hover { text-decoration: underline; }
 #card 
 {
-	border: solid 1px;
-	border-color:#fff #aaa #999 #fff;
+/*	border: solid 1px;
+	border-color:#fff #aaa #999 #fff;*/
 	padding: 1em;
 	padding-bottom:2em;
 	margin: 0 4px;

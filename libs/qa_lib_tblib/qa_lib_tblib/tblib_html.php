@@ -258,7 +258,7 @@ function html_table($data,$attrs)
 	$r.="<table class=\"$class\"".($id? " id=\"$id\"":"").">\n";
 
 	# table body
-	$r.="<tbody>\n";
+	$tbody = false;
 	foreach(array_keys($data) as $i)
 	{	
 		if( $i=='header' || ( $i==0 && $header ))	{
@@ -270,16 +270,20 @@ function html_table($data,$attrs)
 		}
 		else	{
 			# body
-		$class='';
-		if( $evenodd )
-			$class=( (($i&1)==0 ? 'even':'odd').'row' );
-		if( $callback )
-			$class .= call_user_func_array( $callback, $data[$i] );
-		$r.="\t<tr".($class ?  " class=\"$class\"" : '').">";
-		foreach(array_keys($header ? $data[0] : $data[$i]) as $col)
-			$r.="<td>".(isset($data[$i][$col]) ? $data[$i][$col]:'').'</td>';
-		$r.="</tr>\n";
-	}
+			if( !$tbody )	{
+				$r.="<tbody>\n";
+				$tbody=true;
+			}
+			$class='';
+			if( $evenodd )
+				$class=( (($i&1)==0 ? 'even':'odd').'row' );
+			if( $callback )
+				$class .= call_user_func_array( $callback, $data[$i] );
+			$r.="\t<tr".($class ?  " class=\"$class\"" : '').">";
+			foreach(array_keys($header ? $data[0] : $data[$i]) as $col)
+				$r.="<td>".(isset($data[$i][$col]) ? $data[$i][$col]:'').'</td>';
+			$r.="</tr>\n";
+		}
 	}
 	$r.="</tbody>\n</table>\n";
 
