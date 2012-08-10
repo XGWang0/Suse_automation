@@ -25,6 +25,9 @@
 
 	# Keep this structure (for now), especially the " -- " between the feature title and description
 	$latestFeatures = array(
+			"2.5.0" => array(
+				'11 Aug 2012 -- TODO'
+			),
 			"2.4.0" => array(
 				'10 Aug 2012 -- Web user-friendly editor for jobs',
 				'10 Aug 2012 -- HA Server yast2 UI Automation',
