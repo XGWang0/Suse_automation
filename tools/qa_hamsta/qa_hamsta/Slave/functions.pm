@@ -85,9 +85,11 @@ sub install_rpms # $upgrade_flag, @basenames
 	@suites=@install if @install;
 	@suites=(@suites, @upgrade) if @upgrade; # Since zypper install can update package as well, and it can do better on SLES10
 
+	my $ret = 0;
 	foreach my $suite(@suites) {
-		&command("zypper -n install -l $suite");
+		$ret += &command("zypper -n install -l $suite") >> 8;
 	}
+	return $ret;
 }
 
 # returns $pid and PIDs of all its subprocesses

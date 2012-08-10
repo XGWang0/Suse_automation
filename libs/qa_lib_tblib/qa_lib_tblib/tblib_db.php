@@ -12,6 +12,31 @@
 require_once('tblib_common.php');
 
 /**
+  * Function to process GROUP BY and ORDER BY column specs
+  * @param $cols array of columns
+  * @param $by_nr column number(s) counted from 1, negative to append ' DESC'
+  * @param $by_name column names (or any random description, this is not validated)
+  * @return array of selected columns
+  **/
+function _select_columns($cols,$by_nr,$by_name)
+{
+	$ret=array();
+	if( $by_nr )	{
+		if( !is_array($by_nr) )
+			$by_nr=array($by_nr);
+		foreach( $by_nr as $nr )
+			$ret[]=$cols[abs($nr)-1].($nr<0 ? ' DESC':'');
+	}
+	if( $by_name )	{
+		if( is_array($by_name) )
+			$ret=array_merge($ret,$by_name);
+		else
+			$ret[]=$by_name;
+	}
+	return $ret;
+}
+
+/**
   * Common search code.
   * Builds a search query, executes, returns the results.
   * @param array $sel array of attributes to select
@@ -27,12 +52,14 @@ function search_common( $sel, $from, &$attrs, &$attrs_known, &$pager=null )
 	global $first;
 	$header   = hash_get($attrs,'header',true,true);	# return table header ?
 	$limit    = hash_get($attrs,'limit',null,true);		# row nr. limit (array)
-	$order_nr = hash_get($attrs,'order_nr',0,true);		# index of ORDER BY column
+	$order_nr = hash_get($attrs,'order_nr',0,true);		# index of ORDER BY columns
+	$order_by = hash_get($attrs,'order_by',null,true);	# columns for ORDER BY
 	$page     = hash_get($attrs,'page',$first,true);	# page number
 	$perpage  = hash_get($attrs,'perpage',null,true);	# rows per page
 	$where    = hash_get($attrs,'where',null,true);		# starting WHERE clause
 	$just_sql = hash_get($attrs,'just_sql',false,true);	# return SQL instead of results ?
-	$group_by = hash_get($attrs,'group_by',null,true);	# optional GROUP BY
+	$group_nr = hash_get($attrs,'group_nr',null,true);	# index of GROUP BY columns
+	$group_by = hash_get($attrs,'group_by',null,true);	# columns for GROUP BY
 
 	$select=is_array($sel) ? join(', ',$sel) : $sel;
 	$sql="FROM $from WHERE 1";
@@ -40,14 +67,13 @@ function search_common( $sel, $from, &$attrs, &$attrs_known, &$pager=null )
 	if( $where )
 		$sql .= " AND $where";
 
-	$order='';
-	if( $order_nr )
-		$order=' ORDER BY '.$sel[abs($order_nr)-1].($order_nr>0 ? ' ASC':' DESC');
-
+	# ORDER BY / GROUP BY clauses
+	$order = _select_columns($sel,$order_nr,$order_by);
+	$group = _select_columns($sel,$group_nr,$group_by);
 	
+	# WHERE clause
 	$args=array();
 	$format='';
-
 	foreach($attrs as $keys=>$vals)
 	{	# AND from all the conditions received
 		if( !set($vals) ) continue;
@@ -87,9 +113,10 @@ function search_common( $sel, $from, &$attrs, &$attrs_known, &$pager=null )
 			$sql .= ")";
 		}
 	}
-	if( $group_by )
-		$sql .= " GROUP BY $group_by";
-	$sql.=$order;
+	if( count($group) )
+		$sql .= ' GROUP BY '.join(',',$group);
+	if( count($order) )
+		$sql.=' ORDER BY '.join(',',$order);
 #	print("SQL : $sql<br/>\n");
 #	print("format : $format<br/>\n");
 #	print("Arguments : ");

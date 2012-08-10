@@ -135,7 +135,7 @@ if (request_str("proceed")) {
 		if ($additionalrpms)
 			$args .= " -r $additionalrpms";
 		if ($additionalpatterns)
-			$args .= " -t +$additionalpatterns";
+			$args .= " -t $additionalpatterns";
 		if ($setupfordesktop == "yes")
 			$args .= " -D";
 		if ($virtcpu)

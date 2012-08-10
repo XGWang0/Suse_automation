@@ -41,8 +41,8 @@ no strict 'refs';	# for benchmark parsers
 use Getopt::Std;
 
 # Needed global variables for Getopt::Std;
-our ($opt_h,$opt_d,$opt_c,$opt_p,$opt_a,$opt_f,$opt_F,$opt_m,$opt_t,$opt_v,$opt_b,$opt_C) =
-    ("",    0,     "",    "",    "",    "",    "",    "",    "",    "",    "",    "");
+our ($opt_h,$opt_d,$opt_c,$opt_p,$opt_a,$opt_f,$opt_F,$opt_m,$opt_t,$opt_v,$opt_b,$opt_C,$opt_N) =
+    ("",    0,     "",    "",    "",    "",    "",    "",    "",    "",    "",    "",	"");
 our ($opt_L,$opt_D,$opt_A,$opt_k, $opt_T, $opt_R) =
     ("",    "",    "",    ""    , "",     "");
 
@@ -126,6 +126,7 @@ my %args;
 $args{'product'}="";
 $args{'release'}="";
 $args{'arch'}= &get_architecture;
+$args{'build_nr'}="";
 $args{'comment'}="";
 $args{'resultpath'}="/var/log/qa";
 $args{'tcf_filter'} = undef;
@@ -151,7 +152,7 @@ $Getopt::Std::STANDARD_HELP_VERSION=1;
 
 sub usage {
 print 
-"Usage: $0 -p PRODUCT [-c <comment>] [-bCLRDA] [-v <n>] [-a ARCH] [-f PATH] [-F TCF_LIST] [-k KERNEL] [-m TESTHOST] [-t TYPE] [-T TESTER]\n",
+"Usage: $0 -p PRODUCT [-c <comment>] [-bCLRDA] [-v <n>] [-a ARCH] [-N BUILD_NUMBER ] [-f PATH] [-F TCF_LIST] [-k KERNEL] [-m TESTHOST] [-t TYPE] [-T TESTER]\n",
 "       $0 -h\n",
 "\n",
 "Options and option values (options may be given in any order):\n",
@@ -169,6 +170,7 @@ print
 "	PRODUCT:	e.g. SLES-10-beta1 | SLES-9-SP4-RC1\n",
 "	ARCH:		QADB architecture, e.g. i586,ia64,x86_64,ppc,ppc64,s390x,xen0-*...\n",
 "       		(default: detected arch of this host (".$args{'host'}."): ".$args{'arch'}.")\n",
+"	BUILD_NUMBER	THE BUILD NUMBER (BUILDXXX) ,we use BUILD NUMBER before the release\n",
 "	PATH:		the ctcs2 directory containing the $filename files to submit\n",
 "       		(default: ".$args{'resultpath'}.")\n",
 "	TCF_LIST:	comma-separated list of test-runs (ctcs2 subdirs) that should be processed.\n",
@@ -210,7 +212,7 @@ sub annoy_user # question
 #  (Note: man Getopt::Std is misleading, to put it mildly.
 #   Consult /usr/lib/perl5/Getopt/Std.pm itself, instead.
 #
-&getopts("hbLRDAv:c:p:a:f:F:k:m:t:T:");
+&getopts("hbLRDAv:c:p:a:f:F:k:m:N:t:T:");
 if ("$opt_h") 
 {	&usage; exit 0;	}
 $log::loglevel		= $opt_v	if (defined $opt_v and $opt_v=~/^-?\d+/);
@@ -222,6 +224,7 @@ $noscp			= 1		if ($opt_A);
 $db_common::batchmode	= 1		if ($opt_b);
 ($args{'product'},$args{'release'})	= &set_product_release($opt_p)	if ($opt_p);
 $args{'arch'}		= $opt_a	if ($opt_a);
+$args{'build_nr'}	= $opt_N	if ($opt_N);
 $args{'resultpath'}	= $opt_f	if ($opt_f);
 $args{'host'}		= $opt_m	if ($opt_m);
 $args{'kernel'}		= $opt_k	if ($opt_k);
@@ -334,8 +337,7 @@ our @stat_keys=('testcases','runs','succeeded','failed','interr','skipped', 'tim
 
 # scan for results
 
-my %rpmlist_paths = ();
-my %hwinfo_paths = ();
+my (%rpmlist_paths,%hwinfo_paths,%kernel_paths);
 my @skipped_list = ();
 
 opendir(RESULTS, $args{'resultpath'}) or $dst->die_cleanly("Can't open results directory $args{'resultpath'}: $!");
@@ -396,21 +398,28 @@ while( my $parser = readdir RESULTS) {
 		&log(LOG_DEBUG, "RPMlist md5sum is $rpmlist_md5");
 		my $hwinfo_md5  = $hwinfo_path  ? `md5sum $hwinfo_path | cut -d\\  -f1` : '';
 		&log(LOG_DEBUG, "HWinfo md5sum is $hwinfo_md5");
+		my ($kernel_path,$kernel_info,$kernel_id);
+		$kernel_path = $the_parser->kernel($tcf);
+		$kernel_info = &parse_kernel_info($kernel_path) if $kernel_path;
+		if( $kernel_info )	{
+			&log(LOG_DEBUG, "Kernel info: ".join(' ',map {"$_=$kernel_info->{$_}"} keys %{$kernel_info}));
+			$kernel_id = join('-',(map {defined $_ ? ($_) : ()} map {$kernel_info->{$_}} qw(version release)));
+		}
 		chomp($rpmlist_md5,$hwinfo_md5); 
-		my $key="$rpmlist_md5|$hwinfo_md5";
+		my $key="$rpmlist_md5|$hwinfo_md5|$kernel_id";
 	
 		# submissions
 		my $submission_id=$submissions{$key};
 		unless( $submission_id or $db_common::nodb )
 		{
 			&log(LOG_DEBUG,"Preparing new submission for key $key");
-			my $rpmlist_msg = '';
-			my $hwinfo_msg = '';
 			my ($config_id,$hwinfo_id);
-			$rpmlist_msg = "File $rpmlist_path is different than already processed file(s):\n  ".join("\n  ", values(%rpmlist_paths))."\n\n" unless $rpmlist_paths{$rpmlist_md5};
-			$hwinfo_msg = "File $hwinfo_path is different than already processed file(s):\n  ".join("\n  ", values(%hwinfo_paths))."\n\n" unless $hwinfo_paths{$hwinfo_md5};
+			my @changes;
+			push @changes,'rpmlist' unless $rpmlist_paths{$rpmlist_md5};
+			push @changes,'hwinfo' unless $hwinfo_paths{$hwinfo_md5};
+			push @changes,'kernel' unless $kernel_paths{$kernel_id};
 			# annoy the user when submitting multiple configurations
-			$dst->die_cleanly('User abort') unless keys(%submissions)!=1 or $db_common::batchmode or &annoy_user("The testsuite uses another rpminfo and/or hwinfo than the previous one(s):\n$rpmlist_msg$hwinfo_msg","Do you want to continue and have multiple submissions ?");
+			$dst->die_cleanly('User abort') unless keys(%submissions)!=1 or $db_common::batchmode or &annoy_user("The testsuite uses another rpminfo and/or hwinfo than the previous one(s) in : ".join(', ',@changes)."\n","Do you want to continue and have multiple submissions ?");
 	
 			# insert rpmlist
 			if( $rpmlist_path )	{
@@ -426,12 +435,27 @@ while( my $parser = readdir RESULTS) {
 				&TRANSACTION_END;
 			}
 			
+			# query the build_promoted table for build promote
+			if( $args{'build_nr'} )	{
+				&TRANSACTION('build_promoted');
+				my $new_release_id=$dst->get_promote_release_id($arch_id,$args{'build_nr'},$product_id);
+				$release_id = $new_release_id if ($new_release_id);
+				&TRANSACTION_END;
+			}
 			# create a new submission
-			&TRANSACTION('submission');
 			&log(LOG_INFO,"Creating a new submission");
-			$submission_id = $dst->submission_create($args{'type'},$tester_id,$host_id,$args{'comment'},$arch_id,$product_id,$release_id,$config_id,$hwinfo_id);
+
+			&TRANSACTION('submission');
+			$submission_id = $dst->submission_create($args{'type'},$tester_id,$host_id,$args{'comment'},$arch_id,$product_id,$release_id,$config_id,$hwinfo_id,$args{'build_nr'});
 			$submissions{$key}=$submission_id;
 			&TRANSACTION_END;
+
+			# set kernel info, if available
+			if( $kernel_info )	{
+				&TRANSACTION('kernel_flavor','kernel_version','submission','kernel_branch');
+				$dst->submission_set_kernel_values($submission_id,map{$kernel_info->{$_}} qw(branch flavor revision version));
+				&TRANSACTION_END;
+			}
 	
 			# write the submission(s) type
 			&log(LOG_INFO,"Writing submission types for submission $submission_id");
@@ -440,6 +464,7 @@ while( my $parser = readdir RESULTS) {
 	
 		$rpmlist_paths{$rpmlist_md5} = $rpmlist_path;
 		$hwinfo_paths{$hwinfo_md5} = $hwinfo_path;
+		$kernel_paths{$kernel_id} = $kernel_path;
 		&log(LOG_DEBUG, "Submission for key $key exists, going to write testsuite now");
 	
 		# testsuites
@@ -471,34 +496,46 @@ while( my $parser = readdir RESULTS) {
 			&TRANSACTION_END;
 	
 			# benchmarks - parse testcase log + store benchmark data
+			# TODO: this needs rework, newer parsers give us more more information that we should
+			# improve the staring and displaying results in QADB!
 			my $bench_pairs = 0;
-			if( &is_bench($tc_name) )
+			if( $res->{bench_data} or &is_bench($tc_name) )
 			{
-				my $bfile=$the_parser->path()."/$tcf/".$the_parser->testsuite_tc_output_rel_url();
-				my $log;
-				if( open $log, $bfile )
-				{
-					# read and parse the testcase log
-					my $func = &bench_func($tc_name);
-					&log(LOG_INFO,"Parsing bench data from $tc_name using $func()");
-					my @parsed = &{$func}($log);
-					@parsed = &remove_duplicite_keyvals(@parsed);
-					&log(LOG_INFO,"Submitting ".(0+@parsed)." benchmark keys and values");
-					$bench_pairs=@parsed/2;
-					&log(LOG_WARNING,"No performance data in $filename.\n") unless @parsed;
-					&TRANSACTION('bench_part','bench_data');
-					for( my $i=0; $i<@parsed-1; $i+=2 )
-					{
-						# insert one bench key/val pair into DB
-						&log(LOG_DETAIL,"\t%s\t%s",$parsed[$i],$parsed[$i+1]);
-						$dst->insert_benchmark_data( $result_id, $parsed[$i], $parsed[$i+1] );
-					}
-					&TRANSACTION_END;
+				my @parsed;
+				if ($res->{bench_data}) {
+					# now move the new structure back to old limited format :(
+					@parsed = parse_new_bench_format($res->{bench_data});
 
-					close($log);
+				} else { # &is_bench($tc_name)
+					my $bfile=$the_parser->path()."/$tcf/".$the_parser->testsuite_tc_output_rel_url();
+					my $log;
+					if( open $log, $bfile )
+					{
+						# read and parse the testcase log - old parsing!
+						&log(LOG_WARN, "Using deprecated benchmark parsers to $tc_name, please the testsuite!");
+
+						my $func = &bench_func($tc_name);
+						&log(LOG_INFO,"Parsing bench data from $tc_name using $func()");
+						@parsed = &{$func}($log);
+	
+						close($log);
+					}
+					else
+					{	$dst->die_cleanly("Cannot open '$bfile': $!\n");	}
 				}
-				else
-				{	$dst->die_cleanly("Cannot open '$bfile': $!\n");	}
+
+				@parsed = &remove_duplicite_keyvals(@parsed);
+				&log(LOG_INFO,"Submitting ".(0+@parsed)." benchmark keys and values");
+				$bench_pairs=@parsed/2;
+				&log(LOG_WARNING,"No performance data for $tc_name.\n") unless @parsed;
+				&TRANSACTION('bench_part','bench_data');
+				for( my $i=0; $i<@parsed-1; $i+=2 )
+				{
+					# insert one bench key/val pair into DB
+					&log(LOG_DETAIL,"\t%s\t%s",$parsed[$i],$parsed[$i+1]);
+					$dst->insert_benchmark_data( $result_id, $parsed[$i], $parsed[$i+1] );
+				}
+				&TRANSACTION_END;
 			}
 	
 			# statistics
@@ -623,26 +660,7 @@ sub exec_submission_type # $submission_id, $config_id, $type
 {
 	my ($submission_id,$config_id) = @_;
 	my @parts = split /:/, $_[2];
-	if( $parts[0] eq 'kotd' )
-	{
-		shift @parts;
-		my ($md5sum,$kernel_version,$kernel_branch,$kernel_flavor)=@parts;
-		
-		# check if the kernel branch exists in QADB
-		my $kernel_branch_id = $dst->enum_get_id('kernel_branch',$kernel_branch);
-		$dst->die_cleanly("The specified KotD branch \"$kernel_branch\" does not exist.\nPlease check for typos or contact the DB admin\n") unless $kernel_branch_id;
-
-		&TRANSACTION('kernel_flavor','kernel_version','submission');
-		# check if the kernel flavor exists in QADB
-		my $kernel_flavor_id = $dst->enum_get_id_or_insert('kernel_flavor',$kernel_flavor);
-		my $kernel_version_id = $dst->enum_get_id_or_insert('kernel_version',$kernel_version);
-		$dst->die_cleanly("The specified KotD flavor \"$kernel_flavor\" does not exist.\nPlease check for typos or contact the DB admin\n") unless $kernel_flavor_id;
-
-		# record as kotd_testing
-		$dst->submission_set_kotd_values($submission_id,$kernel_branch_id,$kernel_flavor_id,$md5sum,$kernel_version_id);
-		&TRANSACTION_END;
-	}
-	elsif( $parts[0] eq 'patch' )
+	if( $parts[0] eq 'patch' )
 	{
 		my $md5sum=$parts[1];
 		my @released_rpms=&get_patch_details($md5sum);

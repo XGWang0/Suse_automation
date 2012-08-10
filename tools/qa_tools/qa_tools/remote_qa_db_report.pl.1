@@ -62,9 +62,6 @@ is missing, prints a warning and generates it automatically, using current machi
 Multiple submissions caused by multiple different RPM or hwinfo configurations
 are automatically created.
 
-Batch processing also fails, when you have no user/password set in 
-.BR .mysql_loc.rc (5)
-
 .IP "\fB-c comment"
 Here you can specify the comment related to your submission(s).
 
@@ -165,16 +162,6 @@ All messages are sent to
 .B STDERR.
 
 
-.SH FILES
-.I ~/.mysql_loc.rc
-.RS
-File that specifies your default DB connection. 
-By default, database 'qadb' on 'qadb.suse.de' is used, user and password would be interactively asked.
-See
-.BR mysql_loc.rc (5), select_db.pl (1)
-for further details.
-.RE
-
 .SH KNOWN BUGS
 Inotify not yet implemented, you cannot submit your results while the test runs.
 
@@ -182,8 +169,6 @@ Inotify not yet implemented, you cannot submit your results while the test runs.
 Vilem Marsik <vmarsik@novell.com>, using work of Patrick Kirsch
 
 .SH "SEE ALSO"
-.BR select_db.pl (1),
-.BR mysql_loc.rc (5),
 .BR product.pl (1),
 .BR arch.pl (1),
 

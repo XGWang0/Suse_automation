@@ -38,6 +38,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 		<th><input type="checkbox" onChange='chkall("machine_list", this)'></th>
 		<th>Name</th>
 		<th>Status</th>
+		<th>Used by</th>
 		<?php
 			foreach ($fields_list as $key=>$value)
 				if (in_array($key, $display_fields))
@@ -56,7 +57,8 @@ if (!defined('HAMSTA_FRONTEND')) {
 			<td><input type="checkbox" name="a_machines[]" value="<?php echo($machine->get_id()); ?>" <?php if (in_array($machine->get_id(), $a_machines)) echo("checked"); ?>></td>
 			<td title="<?php echo($machine->get_notes()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>&amp;highlight=<?php echo($highlight); ?>"><?php echo($machine->get_hostname()); ?></a></td>
 			<td><?php echo($machine->get_status_string()); if ($old_packages = $machine->get_tools_out_of_date()) echo('<a href="index.php?go=send_job&a_machines[]='.$machine->get_id().'&filename[]='.XML_DIR.'/hamsta-upgrade-restart.xml&submit=1"><img src="images/exclamation_yellow.png" alt="Tools out of date!" title="Click to update. Outdated tools: '.implode(", ", $old_packages).'" width="20" style="float:right; padding-left: 3px;"></img></a>'); if ($machine->get_devel_tools()) echo('<img src="images/gear-cog_blue.png" alt="Devel Tools" title="Devel Tools" width="20" style="float:right; padding-left: 3px;"></img>'); ?></td>
-		<?php
+			<?php echo '<td>'.(($openid_auth && $used_by_name = $machine->get_used_by_name()) ? $used_by_name : $machine->get_used_by()).'</td>' ?>
+<?php
 			foreach ($fields_list as $key=>$value){
 				$fname = "get_".$key;
 				$res = $machine->$fname();
@@ -65,6 +67,56 @@ if (!defined('HAMSTA_FRONTEND')) {
 			}
 		?>
 		<td align="center">
+<?php
+	if (($machine->get_powerswitch() != NULL) and ($machine->get_powertype() != NULL) and ($machine->check_powertype() == TRUE )) {
+		echo "<img src=\"images/icon-start.png\" alt=\"Start " . $machine->get_hostname() . "\" title=\"Start ".$machine->get_hostname() . "\" border=\"0\" " .
+                	                "width=\"20\" style=\"padding-right: 3px;\" " .
+        	                        "onclick=\"";
+	        echo "var r = confirm('This will start " . $machine->get_hostname() . ". Are you sure you want to continue?');" .
+	        "if(r==true)" .
+	                "{" .
+                	        "window.location='index.php?go=power&amp;a_machines[]=" . $machine->get_id() . "&amp;action=start';" .
+        	        "}";
+	        echo "\" />";
+	
+		echo "<img src=\"images/icon-restart.png\" alt=\"Restart " . $machine->get_hostname() . "\" title=\"Restart ".$machine->get_hostname() . "\" border=\"0\" " .
+                	                "width=\"20\" style=\"padding-right: 3px;\" " .
+        	                        "onclick=\"";
+	        echo "var r = confirm('This will restart " . $machine->get_hostname() . ". Are you sure you want to continue?');" .
+	        "if(r==true)" .
+	                "{" .
+                	        "window.location='index.php?go=power&amp;a_machines[]=" . $machine->get_id() . "&amp;action=restart';" .
+        	        "}";
+	        echo "\" />";
+
+	        echo "<img src=\"images/icon-stop.png\" alt=\"Stop " . $machine->get_hostname() . "\" title=\"Stop ".$machine->get_hostname() . "\" border=\"0\" " .
+	                                "width=\"20\" style=\"padding-right: 3px;\" " .
+        	                        "onclick=\"";
+	        echo "var r = confirm('This will stop " . $machine->get_hostname() . ". Are you sure you want to continue?');" .
+	        "if(r==true)" .
+	                "{" .
+	                        "window.location='index.php?go=power&amp;a_machines[]=" . $machine->get_id() . "&amp;action=stop';" .
+	                "}";
+	        echo "\" />";
+	}
+	else {
+		echo "<img src=\"images/icon-start-grey.png\" alt=\"Powercycling for " . $machine->get_hostname(). "is not supported" . "\" title=\"Powercycling for "
+			. $machine->get_hostname() . " is not supported" . "\" border=\"0\" " .
+				"width=\"20\" style=\"padding-right: 3px;\" ";
+		echo "\" />";
+
+		echo "<img src=\"images/icon-restart-grey.png\" alt=\"Powercycling for " . $machine->get_hostname(). "is not supported" . "\" title=\"Powercycling for "
+			. $machine->get_hostname() . " is not supported" . "\" border=\"0\" " .
+				"width=\"20\" style=\"padding-right: 3px;\" ";
+		echo "\" />";
+
+		echo "<img src=\"images/icon-stop-grey.png\" alt=\"Powercycling for " . $machine->get_hostname() . "is not supported" . "\" title=\"Powercycling for "
+			. $machine->get_hostname() . " is not supported" . "\" border=\"0\" " .
+				"width=\"20\" style=\"padding-right: 3px;\" ";
+		echo "\" />";
+	}
+?>
+
 <?php if(preg_match ('/^vm\//', $machine->get_type())) { ?>
 			<img src="images/icon-reinstall.png" alt="Reinstall this machine" title="Reinstall <?php echo($machine->get_hostname()); ?>" border="0" width="20" style="padding-left: 3px; padding-right: 3px;" onclick="alert('It is not possible to reinstall virtual machine!');"/>
 <?php } else { ?>

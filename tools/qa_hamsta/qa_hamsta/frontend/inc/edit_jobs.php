@@ -56,49 +56,22 @@
     else
         $errors[] = "You didn't define any file to be edit.";
 
-    $option = request_str("opt");
+    $opt = request_str("opt");
     $machine_list = request_str("machine_list");
 
-    if($option != "edit")
+    if($opt != "edit")
         $errors[] = "The option is not what is expected: $edit";
     $file_content = "";
 
     if(!file_exists($real_file))
         $errors[] = "Can not find the file: $real_file";
-    else
-        $file_content = file_get_contents($real_file);
 
     if(request_str("submit"))
     {
-        $new_file_name = trim(request_str("new_file_name"));
-        $new_file_content = request_str("new_file_content");
-        $new_file_dir = request_str("new_file_dir");
+        require("inc/job_create.php");
 
-        if(!is_dir($new_file_dir))
-        {
-            if(mkdir($new_file_dir) == false )
-                $errors[] = "Can not create directory: $new_file_dir";
-        }
-
-        $new_file_content = preg_replace('/&[^; ]{0,6}.?/e', "((substr('\\0', -1) == ';') ? '\\0' : '&amp;'.substr('\\0', 1))", $new_file_content);
-
-        if(preg_match("/^[0-9a-zA-Z_]+$/", $new_file_name))  # validate the file name user input
-        {
-            $new_real_file = $new_file_dir . "/" . $new_file_name . ".xml";
-            file_put_contents($new_file, $new_file_content);
-
-	    if(xml_read($new_file))  # validate the XML data user input
-	    {
-                system("cp $new_file $new_real_file");
-	        header("Location: index.php?go=send_job&machine_list=$machine_list");
-	    }
-            else
-                $errors[] = "The XML data you input is not valid, please try to edit again!";
-            if(file_exists($new_file))
-                unlink($new_file);
-        }
-        else
-                $errors[] = "The file name you input is invalid! It must be composed by number, letter or underscroe.";
+	if(count($errors) == 0)
+            header("Location: index.php?go=send_job&machine_list=$machine_list");
     }
 
     $html_title = "Edit jobs";

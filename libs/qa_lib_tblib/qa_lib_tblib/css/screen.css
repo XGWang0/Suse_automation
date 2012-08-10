@@ -12,8 +12,10 @@
 
 /* 0. global settings */
 body {
-	background-color:#ddd;
+	font-family: arial,verdana,sans-serif;
+	background-color:#ccc;
 	color:#000;
+	margin: 0;
 }
 
 textarea { font-size:12px; margin:0 0 8px 0; } 
@@ -27,16 +29,18 @@ pre { font-size:12px; }
 
 
 /* 1. navigation - by pkirsch */
+#subnav	{
+	background-color:#456;
+	margin-bottom: 0.5em;
+}
 #subnav-hdr {
-	background-color:#6484A4;
-	color:#fff;
+	color:#456;
 	line-height:18px;
 	padding:2px 17px;
 	text-align:left;
-	font-weight:normal;
+	padding-top: 0.5em;
 }
-
-#subnav-hdr a {
+#subnav-hdr a, #subnav-hdr span {
 	text-decoration:none;
 	color:#fff;
 }
@@ -44,7 +48,7 @@ pre { font-size:12px; }
 #subnav-hdr a:hover 
 { 
 	text-decoration:underline;
-	color:#ccc;  
+	color:#e80;  
 }
 
 #subnav-hdr a .board_new { 
@@ -53,8 +57,9 @@ pre { font-size:12px; }
 }
 
 #subnav-hdr .item { 
-	padding: 1.5px 1em 1.5px 1em;
+	padding: 1.5px 0.5em 1.5px 0.5em;
 	word-spacing: 0.3em;
+	font-size: 1.13em;
 }
 
 /* 2. table headers & rows */
@@ -67,26 +72,18 @@ pre { font-size:12px; }
 .tbl th { 
 	background-color:#68a; 
 	color:#fff;
-	text-align:left;
+	text-align:center;
 	padding: 4px 3px;
 	font-size:110%;
 	font-weight:normal;
 }
-.tbl th, #subnav-hdr {
-	border: solid 1px;
-	border-color: #8bd #568 #457 #8bd;
-}
 .tbl td
 { 
-	border: solid 1px;
-	border-color: #ddd #aaa #888 #ddd;
 	padding: 2px 3px 3px 4px;
 }
 .tbl.shrank .last { padding-right:16px; }
 .tbl {
-	border-spacing:0;
-	border: solid 1px;
-	border-color: #8bd #999 #777 #aaa;
+	border-spacing:2px;
 	font-size: 80%;
 }
 .total { margin: 1em; }
@@ -115,57 +112,72 @@ button { display: inline; }
 .tbl.shrank td:last-child { padding-right: 18px; }
 .tbl.controls td:last-child { white-space:nowrap; }
 
-/* 5. table row highlights */
-.failed.evenrow, .r.evenrow				{ background-color:#fbb; }
-.failed.oddrow,  .r.oddrow				{ background-color:#eaa; }
-.internalerr.evenrow, .wr.evenrow			{ background-color:#fbf; }
-.internalerr.oddrow,  .wr.oddrow			{ background-color:#eae; }
-.skipped.evenrow					{ background-color:#bbb; }
-.skipped.oddrow						{ background-color:#aaa; }
-.i.evenrow						{ background-color:#bfb; }
-.i.oddrow						{ background-color:#aea; }
-.wi.evenrow						{ background-color:#bdd; }
-.wi.oddrow						{ background-color:#acc; }
-.m.evenrow						{ background-color:#ffb; }
-.m.oddrow						{ background-color:#eea; }
-.evenrow						{ background-color:#fff; }
-.oddrow							{ background-color:#eee; }
+.tbl td 							{ background-color:#eee; }
+.tbl .failed, 		.tbl .r 				{ background-color:#fbb; }
+.tbl .internalerr, 	.tbl .wr				{ background-color:#fbf; }
+.tbl .skipped							{ background-color:#bbb; }
+.tbl .i								{ background-color:#bfb; }
+.tbl .wi							{ background-color:#bdd; }
+.tbl .m								{ background-color:#ffb; }
 
-.evenrow:hover, .oddrow:hover				{ background-color:#eec; }
-.failed.evenrow:hover, .failed.oddrow:hover		{ background-color:#f44; }
-.r:hover						{ background-color:#fdd; }
-.internalerr.evenrow:hover, .internalerr.oddrow:hover	{ background-color:#f4f; }
-.skipped.evenrow:hover, .skipped.oddrow:hover		{ background-color:#bb8; }
-.wr:hover						{ background-color:#fdf; }
-.i:hover						{ background-color:#cfc; }
-.wi:hover						{ background-color:#dfd; }
-.m:hover						{ background-color:#ffd; }
+/* 5. table row highlights */
+.tbl td:hover,			.tbl tr:hover td		{ background-color:#ccc; }
+.tbl th:hover,			.tbl tr:hover th		{ background-color:#468; }
+.tbl td.failed:hover,		.tbl tr:hover .failed		{ background-color:#f99; }
+.tbl td.r:hover,		.tbl tr:hover .r		{ background-color:#f99; }
+.tbl td.internalerr:hover,	.tbl tr:hover .internalerr	{ background-color:#f9f; }
+.tbl td.wr:hover,		.tbl tr:hover .wr		{ background-color:#f9f; }
+.tbl td.skipped:hover,		.tbl tr:hover .skipped		{ background-color:#999; }
+.tbl td.i:hover,		.tbl tr:hover .i		{ background-color:#9f9; }
+.tbl td.wi:hover,		.tbl tr:hover .wi		{ background-color:#9bb; }
+.tbl td.m:hover,		.tbl tr:hover .m		{ background-color:#ffb; }
+
+select, input { background-color: #eee; }
+select:hover, input:hover { background-color: #ccc; }
+select option:hover { background-color:#8ac; }
+
+/* CSS3 shadows, does not work in Konqueror */
+.tbl td, .tbl th, .btn, .btn_disabled, #card { box-shadow: 0.3em 0.3em 0.7em #000; }
+select, input[type="text"], #subnav { box-shadow: 0.1em 0.1em 0.3em #666; }
+
+/*tr:hover td:first-child:before,
+tr:hover th:first-child:before {
+	content: '>'; 
+	margin-left: -1.2em; 
+	position: absolute;
+	color: #000;
+}*/
 
 /* buttons */
 .btn,.btn_disabled
-{ 
-	border: solid 1px;
-	border-color: #fff #888 #666 #eee ; 
+{
+	border: none;
 	padding: 0.1em 0.3em 0.1em 0.3em;
 	margin: 0.2em;
-	background-color: #9bc;
+	background-color: #68a;
+	display: inline-block;
+	min-width: 2em;
+	text-align: center;
 }
-.btn_disabled { background-color:#ddd; }
-.btn:hover { background-color: #68a; }
-.evenrow a.btn					{ background-color: #bcd; }
-.oddrow a.btn 					{ background-color: #9bc; }
-.failed.evenrow a.btn, .r.evenrow a.btn		{ background-color:#f88; }
-.failed.oddrow a.btn,  .r.oddrow a.btn		{ background-color:#e77; }
-.internalerr.evenrow a.btn, .wr.evenrow	a.btn	{ background-color:#f8f; }
-.internalerr.oddrow a.btn,  .wr.oddrow a.btn	{ background-color:#e7e; }
-.skipped.evenrow a.btn				{ background-color:#eee; }
-.skipped.oddrow a.btn				{ background-color:#ddd; }
-.i.evenrow a.btn				{ background-color:#8f8; }
-.i.oddrow a.btn					{ background-color:#7e7; }
-.wi.evenrow a.btn				{ background-color:#8dd; }
-.wi.oddrow a.btn				{ background-color:#acc; }
-.m.evenrow a.btn				{ background-color:#ff8; }
-.m.oddrow a.btn					{ background-color:#ee7; }
+.btn_disabled 			{ 
+	background-color:#ddd;
+	color: #aaa;
+}
+.highlight	{ 
+	font-weight: bold;
+	color: black;
+}
+.btn:active	{
+	position:relative;
+	top:2px;
+}
+.btn:hover 			{ background-color:#468; }
+.failed a.btn, .r a.btn		{ background-color:#f88; }
+.internalerr a.btn, .wr	a.btn	{ background-color:#f8f; }
+.skipped a.btn			{ background-color:#eee; }
+.i a.btn			{ background-color:#8f8; }
+.wi a.btn			{ background-color:#8dd; }
+.m a.btn			{ background-color:#ff8; }
 tr.w
 {
 	font-weight: bold;
@@ -185,10 +197,16 @@ select[multiple] {height:10em;}
 .static { display: none; }
 input[type="submit"] 
 { 
+	padding: 0.1em 1em 0.1em 1em;
 	float:left;
 	clear:both;
 	margin-bottom: 1em;
 }
+
+select, input[type="text"]	{
+	border: solid 2px #ccc;
+}
+
 .inputblock
 { 
 	clear:none;
@@ -206,8 +224,9 @@ input[type="submit"]
 hr
 { 
 	clear:both; 
-	border: dashed #68a 2px;
+	border: solid #68a 1px;
 	padding:0;
+	box-shadow: 3px 3px 7px #000;
 }
 
 /* SQL info */
@@ -241,19 +260,21 @@ table.tbldesc	{ border-collapse: collapse; }
 .tbldesc td:first-child	{ font-size:1em; }
 
 /* cards */
-.steps { margin: 0 0 0.2em 1em; }
+.steps {
+	margin: 0 0 0 1em; 
+	float: left;
+}
 .steps span 
 {
-	display:inline;
-	margin: 0 1em 3em 0;
-	border:solid 1px;
+	display:block;
+	float: left;
+	margin: 0 1em 0 0;
 	padding:0.2em 1em 0.2em 1em;
 }
 .steps span.nosel 
 {
 	background-color:#9bc;
-	border-color:#fff #999 #888 #fff;
-	border-bottom:none;
+	border-color:#fff #999 #9bc #fff;
 }
 .steps span.sel 
 {
@@ -261,11 +282,12 @@ table.tbldesc	{ border-collapse: collapse; }
 	border-color:#cef #568 #68a #cef;
 	font-weight: bold;
 }
+.steps span,.steps2 { box-shadow: 0.4em -0.2em 0.7em -0.2em #000; } 
 .steps2 
 {
-	border: solid 1px;
-	border-color:#cef #568 #457 #cef;
+	clear: left;
 	background-color:#68a;
+	margin: 0 4px;
 }
 .steps a 
 { 
@@ -275,10 +297,11 @@ table.tbldesc	{ border-collapse: collapse; }
 .steps a:hover { text-decoration: underline; }
 #card 
 {
-	border: solid 1px;
-	border-color:#fff #aaa #999 #fff;
+/*	border: solid 1px;
+	border-color:#fff #aaa #999 #fff;*/
 	padding: 1em;
 	padding-bottom:2em;
+	margin: 0 4px;
 }
 
 

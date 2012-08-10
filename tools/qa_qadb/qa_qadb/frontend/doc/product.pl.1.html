@@ -5,37 +5,31 @@
 
 </PRE>
 <H2>SYNOPSIS</H2><PRE>
-       <B>product.pl</B> <B>[-v]</B> <B>[-d]</B>
+       product.pl [-v] [-d]
 
 
 </PRE>
 <H2>DESCRIPTION</H2><PRE>
-       <B>product.pl</B>  guesses  current machine's product and release, and outputs
-       it in the format <I>&lt;product&gt;-&lt;release&gt;</I> , suitable for  <B>qa_db_report.pl</B>  <B>.</B>
+       product.pl  guesses  current machine's product and release, and outputs
+       it in the format &lt;product&gt;-&lt;release&gt; , suitable for  qa_db_report.pl  .
        The  script  was  written to allow automatical QADB submissions without
        any user interaction.
 
-       The product is guessed by reading the output of <I>zypper</I> <I>-sl</I> <I>.</I>  Then  the
-       system  repository  is  searched. This should change in the future, the
-       script should read <I>/etc/SuSE-release</I> instead.
+       The product is guessed by reading the  output  of  /etc/suse/release  ,
+       zypper  -sl  ,  and  /var/lib/YaST2/install.inf .  Candidate products /
+       releases are checked against QADB via HTTP.  Best  matching  product  /
+       release is printed to STDOUT.
 
 
 
 </PRE>
 <H2>OPTIONS</H2><PRE>
-       <B>-v</B>     Verbose mode.  Prints a short summary of  the  detected  product
+       -v     Verbose  mode.   Prints  a short summary of the detected product
               and release, and sends it to STDERR.
 
-       <B>-d</B>     Disables QADB use.  By default, the script queries QADB for sup-
+       -d     Disables QADB use.  By default, the script queries QADB for sup-
               ported products and releases.  When this flag is specified, only
               hardcoded (and possibly outdated) values are used instead.
-
-
-
-</PRE>
-<H2>BUGS</H2><PRE>
-       The  script should read <I>/etc/SuSE-release</I> instead of the zypper reposi-
-       tory list.
 
 
 
@@ -47,7 +41,7 @@
 
 </PRE>
 <H2>SEE ALSO</H2><PRE>
-       <B>qa_db_report.pl(1)</B>, <B>select_db.pl(1)</B>, <B>arch.pl(1)</B>
+       <B><A HREF="arch.pl.1.html">arch.pl(1)</A></B>, <B><A HREF="location.pl.1.html">location.pl(1)</A></B>, <B><A HREF="remote_qa_db_report.pl.1.html">remote_qa_db_report.pl(1)</A></B>
 
 
 

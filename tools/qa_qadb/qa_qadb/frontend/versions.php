@@ -4,6 +4,8 @@ require_once('qadb.php');
 $conn_id=connect_to_mydb();
 $name=http('name');
 $what=http('what');
+if( $what ) # workaround of QA-Maintenance update cycles
+	$what=preg_replace('/s$/','',$what);
 if( in_array($what, array('product', 'release', 'arch') ) )
 	$data=enum_list_val($what);
 else

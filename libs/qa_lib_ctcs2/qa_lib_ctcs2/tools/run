@@ -67,6 +67,15 @@ my $notified = 0;
 # hash of lists for currently running processes and their state
 my %processes;
 
+# hash all testcase logs that should be processed by benchmark parsers
+# format 'path to testcaselog' => 'path to parser with arguments'
+#
+# It will be run following way:
+# cat $key | $parser > "$key.bench.xml"
+my %benchparsers;
+
+# Currently set benchparser
+my $benchparser;
 
 # Global variables to support autoexit
 my $autoexit_days;
@@ -354,6 +363,9 @@ sub run {
 	# set synchronous writes.  Failure may only indicate that it's already done,
 	# so who cares.
 	system("chattr +S $logfilename >>/dev/null 2>&1");
+
+	# set this log to be parsed by the bench parser if some is set
+	$benchparsers{$logfilename} = $benchparser if $benchparser;
 	
 	# fork
 	if ($pid = fork) {
@@ -863,19 +875,30 @@ sub save_state {
 	save_hash(\%timers, $environment{"save_directory"}."/timer_state") or warn "Can't save timer state!\n";
 	save_hash(\%test_results, $environment{"save_directory"}."/test_results", @test_order) or warn "Can't save test results!\n";
 	save_hash(\%processes, $environment{"save_directory"}."/process_state") or warn "Can't save process state!\n";
-	# fixme
-	my $tmp = $environment{"save_directory"}."/rpmlist";
+	# FIXME : all this should be shared with remote_qa_db_report, somehow
 	
 	unless( system('which rpm >/dev/null 2>/dev/null' ) )	{
 		# If we have RPM, we collect RPM list for further processing.
 		# Please do not change the format, it is used by other tools in the chain as well.
-		system ( "rpm -qa --qf \"%{NAME} %{VERSION}-%{RELEASE}\n\" | sort > $tmp " ); 
+		my $rpmlist_file = $environment{"save_directory"}."/rpmlist";
+		system ( "rpm -qa --qf \"%{NAME} %{VERSION}-%{RELEASE}\n\" | sort > $rpmlist_file " );
+		
+		# Collect info about RPM of a running kernel, if available
+		my $kernel_file = $environment{'save_directory'} . '/kernel';
+		my $kernel_rpm = `rpm -qf /boot/System.map-\$(uname -r)`;
+		if( $kernel_rpm )	{
+			chomp $kernel_rpm;
+			system ( "rpm -qi '$kernel_rpm' > '$kernel_file'" );
+		}
+		else	{
+			system ( "uname -r > '$kernel_file'" );
+		}
 	}
 
 	if( -x '/usr/sbin/hwinfo' )	{
 		# If we have hwinfo, we collect its results for further processing.
-		$tmp = $environment{"save_directory"}."/hwinfo";
-		system ( "/usr/sbin/hwinfo --all > $tmp ");
+		my $hwinfo_file = $environment{"save_directory"}."/hwinfo";
+		system ( "/usr/sbin/hwinfo --all > $hwinfo_file ");
 	}
 
 	# Create "done" file which contain time of completion
@@ -907,6 +930,21 @@ sub clean_exit {
 	save_state();
 	report();  
 }
+
+sub run_bench_parsers {
+	my $result = 0;
+	return 0 unless %benchparsers;
+
+	print "Running benchmark parsers...\n";
+	while(my ($log, $parser) = each %benchparsers) {
+		my $res = system("cat $log | $parser > $log.bench.xml");
+		warn "Error while running benchmark parser '$parser' on results '$log'!\n" if $res;
+		$result += $res;
+	}
+	print "Benchmark parsers finished.\n";
+	return $result;
+}
+
 
 sub parse_control_file {
 	my $controlfile = shift;
@@ -1018,6 +1056,12 @@ sub parse_control_file {
 			$l = $#lines;
 			$environment{LINE} = $l;
 			next;
+		} elsif (/^\s*benchparser(.*)/i) {
+			$benchparser = $1;
+			chomp $benchparser;
+			$benchparser =~ s/^\s*//;
+			$benchparser =~ s/\s*$//;
+			
 		} else {
 			die ("Line ", $l + 1,":  Syntax error\n");
 		}
@@ -1037,6 +1081,8 @@ sub parse_control_file {
 		print "Current time: ".`date`;
 		$trcomplete = 1;
 		timer_stop(); 
+		
+		run_bench_parsers();
 	}
 	clean_exit();
 	return;

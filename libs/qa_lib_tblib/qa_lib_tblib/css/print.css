@@ -61,14 +61,16 @@ hr
 	content: 'SUCCESS : ';
 	font-weight: bold;
 } 
-#steps span.nosel { display:none; }
-#steps span.sel a:link, #steps span.sel a:visited
+.steps span.nosel { display:none; }
+.steps span.sel a:link, #steps span.sel a:visited
 {
 	display:block;
 	text-decoration: none;
 	text-transform: capitalize;
 	font-size:200%;		
+	font-weight: bold;
 }
-a.btn { display: none; }
+.btn,.btn_disabled { display: none; }
 textarea { border: none; }
 .tbl.controls td:last-child, .tbl.controls th:last-child { display:none; }
+.sel_skip { display: none; }

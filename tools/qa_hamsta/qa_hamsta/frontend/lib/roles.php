@@ -65,7 +65,7 @@ function roles_read( $xml )
   **/
 function roles_assign( &$xml, $roles )
 {
-	$cnt=count($xml->roles->children());
+	$cnt=( $xml->roles ? count($xml->roles->children()) : 0 );
 	foreach( $xml->roles->role as $role )
 	{
 		$id = (integer)$role['id'];

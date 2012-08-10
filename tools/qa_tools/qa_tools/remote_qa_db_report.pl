@@ -51,6 +51,7 @@ chomp(my $time=`date '+%F-%H-%M-%S'`);
 my $host='';
 my $arch = '';
 my $product = '';
+my $build_nr = '';
 my $kernel = '';
 
 my $rbase="/tmp";
@@ -72,7 +73,7 @@ our $VERSION='0.1';
 sub usage
 {
 	print
-"Usage: $0 [ -p PRODUCT] [-c <comment>] [-b] [-L] [-D] [-A] [-v <n>] [-a ARCH] [-f PATH] [-F TCF_LIST] [-P DIRECT_PATH_LIST]  [-k KERNEL] [-m TESTHOST] [-t TYPE] [-T TESTER]\n",
+"Usage: $0 [ -p PRODUCT] [-c <comment>] [-b] [-L] [-D] [-A] [-v <n>] [-a ARCH] [-N BUILD_NUMBER ] [-f PATH] [-F TCF_LIST] [-P DIRECT_PATH_LIST]  [-k KERNEL] [-m TESTHOST] [-t TYPE] [-T TESTER] \n",
 "       $0 -h\n",
 "\n",
 "Options and option values (options may be given in any order):\n",
@@ -89,6 +90,7 @@ sub usage
 "	PRODUCT:	e.g. SLES-10-beta1 | SLES-9-SP4-RC1\n",
 "	ARCH:		QADB architecture, e.g. i586,ia64,x86_64,ppc,ppc64,s390x,xen0-*...\n",
 "       		(default: detected arch of this host)\n",
+"	BUILD_NUMBER	BUILD NUMBER(BUILDXXX),we will use BUILD NUMBER before the release \n",
 "	KERNEL:		kernel version for KOTD tests\n",
 "	PATH:		the directory containing results to submit\n",
 "			If this argument is set, -P cannot be used.\n",
@@ -117,6 +119,8 @@ foreach my $i (0 .. @ARGV-1)
 	{	$argf_index=$i+1;	}
 	elsif( $a eq '-a' )
 	{	$arch=$ARGV[$i+1];	}
+	elsif( $a eq '-N' )
+	{	$build_nr=$ARGV[$i+1];	}
 	elsif( $a eq '-k' )
 	{	$kernel=$ARGV[$i+1];	}
 	elsif( $a eq '-m' )
@@ -171,10 +175,15 @@ if ($host eq '') {
 	push @ARGV,'-m',$host;
 }
 
+my @p = &detect_product;
+
 if ($product eq '') {
-	my @p = &detect_product;
 	$product = $p[5].'-'.$p[3];
 	push @ARGV,'-p',$product;
+}
+if ($build_nr eq '') {
+	$build_nr = $p[6];
+	push @ARGV,'-N',$build_nr if( $build_nr );
 }
 
 if( $kernel eq '' )
@@ -216,11 +225,21 @@ if ( -d $metadir ) {
 mkdir $metadir or die "Unable to create directory '$metadir' for information transfer: $!\n"
 						."It is possible that another submit is running. If you're sure it's not, "
 						."delete directory and start again.\n";
+
+# TODO: this should be merged with the same code in CTCS2
 &log(LOG_INFO,"Getting RPM info");
 system('rpm -qa --qf "%{NAME} %{VERSION}-%{RELEASE}\n" | sort > "'.$metadir.'/rpmlist"');
 &log(LOG_INFO,"Getting hwinfo");
 system("/usr/sbin/hwinfo --all > '$metadir/hwinfo'");
-
+&log(LOG_INFO,"Getting running kernel info");
+my $kernel_rpm = `rpm -qf /boot/System.map-\$(uname -r)`;
+if( $kernel_rpm )	{
+	chomp $kernel_rpm;
+	system("rpm -qi '$kernel_rpm' > '$metadir/kernel'");
+}
+else	{
+	system("uname -r > '$metadir/kernel'");
+}
 
 #my ($type, $version, $subversion, $ar) = &parse_suse_release();
 #print "type:$type version:$version subversion:$subversion arch:$arch\n";

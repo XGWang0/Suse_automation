@@ -86,7 +86,7 @@ install -m 755 -d $RPM_BUILD_ROOT%{confdir}
 gzip -9 *.1
 gzip -9 *.3
 
-cp -r --target-directory=$RPM_BUILD_ROOT%{libdir} log.pm detect.pm results results.pm misc.pm
+cp -r --target-directory=$RPM_BUILD_ROOT%{libdir} log.pm detect.pm results results.pm misc.pm benchxml.pm
 cp --target-directory=$RPM_BUILD_ROOT%{bindir} arch.pl location.pl product.pl hwinfo.pl location_detect_impl.pl
 cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man1 *.1.gz
 cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man3 *.3.gz
@@ -114,6 +114,18 @@ rm -rf $RPM_BUILD_ROOT
 %doc COPYING
 
 %changelog
+* Fri Aug 10 2012 - llipavsky@suse.cz
+- Web user-friendly editor for jobs
+- HA Server yast2 UI Automation
+- Build mapping in QADB (buildXXX -> beta Y)
+- Improved regression analysis
+- Support for benchmark parsers in benchmark testsuite (author of testsuite will also provide a script to parse the results)
+- Power switch support in Hamsta (thanks mpluskal!)
+- Only results created in the job are submitted to QADB
+- QADB improvements
+* Fri May 18 2012 - llipavsky@suse.cz
+- Added benchparser support to results (doc & ctcs2 parser)
+- added benchxml.pm to read/write bench results from/to xml
 * Wed May 2 2012 - llipavsky@suse.cz
 - New 2.3 release from QA Automation team, includes: 
 - out-of date and developement SUTs are marked in web frontend and can be updated from the frontend 

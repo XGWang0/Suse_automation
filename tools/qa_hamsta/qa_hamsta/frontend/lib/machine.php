@@ -62,6 +62,13 @@ class Machine {
 	public $errmsg = "";
 
 	/**
+	 * readerr 
+	 * 
+	 * static @var string Error message returned by the master
+	 */
+	private static $readerr = "";
+
+	/**
 	 * children
 	 *
 	 * @var array containing the machines which are running on this machine.
@@ -311,6 +318,10 @@ class Machine {
 		$avaivmdisk = $this->get_hwelement("avaivmdisk","AvaiVMDisk");
 		return $avaivmdisk;
 	}
+	function get_ishwvirt() {
+		$ishwvirt = $this->get_hwelement("ishwvirt","IsHWVirt");
+		return $ishwvirt;
+	}
 
 	/**
 	 * get_devel_tools()
@@ -474,6 +485,147 @@ class Machine {
 		$stmt->bindParam(':powerswitch', $powerswitch);
 		$stmt->execute();
 	}
+        /**
+         * get_powertype
+         *
+         * @access public
+         * @return string Unique ID if the machine
+         */
+        function get_powertype() {
+        if( isset($this->fields['powertype']) )
+                        return $this->fields["powertype"];
+                else
+                        return NULL;
+        }
+
+        /**
+         * set_powertype
+         *
+         * Sets the powertype description of the machine
+         * 
+         * @param string $powertype has the configuration of the connected powerswitch
+         * @access public
+         * @return void
+         */
+        function set_powertype($powertype)  {
+		$power_function = "power_".$powertype;
+		if ((function_exists("$power_function")) OR ($powertype == NULL)) {
+			$stmt = get_pdo()->prepare('UPDATE machine SET powertype = :powertype WHERE machine_id = :id');
+        	        $stmt->bindParam(':id', $this->fields["id"]);
+	                $stmt->bindParam(':powertype', $powertype);
+                	$stmt->execute();
+		}
+		else
+			return NULL;
+        }
+
+        /**
+         * check_powertype
+         *
+         * Checks if powertype is supported
+         * 
+         * @param string $powertype has the configuration of the connected powerswitch
+         * @access public
+         * @return bool 
+         */
+        function check_powertype()  {
+		$powertype = $this->get_powertype();
+		$power_function = "power_".$powertype;
+		if (function_exists("$power_function")) {
+			return TRUE; 
+		}
+		else
+			return NULL;
+        }
+
+        /**
+         * get_powerslot
+         *
+         * @access public
+         * @return string Unique ID if the machine
+         */
+        function get_powerslot() {
+        if( isset($this->fields['powerslot']) )
+                        return $this->fields["powerslot"];
+                else
+                        return NULL;
+        }
+
+        /**
+         * set_powerslot
+         *
+         * Sets the powerslot description of the machine
+         * 
+         * @param string $powerslot has the slot of the connected powerswitch
+         * @access public
+         * @return void
+         */
+        function set_powerslot($powerslot)  {
+                $stmt = get_pdo()->prepare('UPDATE machine SET powerslot = :powerslot WHERE machine_id = :id');
+                $stmt->bindParam(':id', $this->fields["id"]);
+                $stmt->bindParam(':powerslot', $powerslot);
+                $stmt->execute();
+        }
+
+        /**
+         * start_machine
+         *
+         * @acces public
+         * @return string results of action
+         *
+         */
+        function start_machine()  {
+                $powerswitch = $this->get_powerswitch();
+		$powertype = $this->get_powertype();
+                $powerslot = $this->get_powerslot();
+                $power_function = "power_".$powertype;
+		if (function_exists("$power_function")) {
+			$result = $power_function($powerswitch, $powerslot, 'start');
+			return $result;
+		}
+		else
+			return "not_implemented";
+        }
+
+        /**
+         * stop_machine
+         *
+         * @acces public
+         * @return string results of action
+         *
+         */
+        function stop_machine()  {
+		$powerswitch = $this->get_powerswitch();
+                $powertype= $this->get_powertype();
+                $powerslot= $this->get_powerslot();
+                $power_function = "power_".$powertype;
+		if (function_exists("$power_function")) {
+			$result = $power_function($powerswitch, $powerslot, 'stop');
+			return $result;
+		}
+		else
+			return "not_implemented";
+        }
+
+        /**
+         * restart_machine
+         *
+         * @acces public
+         * @return string results of action
+         *
+         */
+        function restart_machine()  {
+		$powerswitch = $this->get_powerswitch();
+                $powertype= $this->get_powertype();
+                $powerslot= $this->get_powerslot();
+                $power_function = "power_".$powertype;
+		if (function_exists("$power_function")) {
+			$result = $power_function($powerswitch, $powerslot, 'restart');
+			return $result;
+		}
+		else
+			return "not_implemeted";
+        }
 
 
 	/**
@@ -728,8 +880,15 @@ class Machine {
 	 * @return string Login for which the machine is reserved 
 	 */
 	function get_used_by() {
-	if( isset($this->fields["usedby"]) )
+		if( isset($this->fields["usedby"]) )
 			return $this->fields["usedby"];
+		else
+			return NULL;
+	}
+
+	function get_used_by_name() {
+		if ($used_by = User::get_by_openid($this->get_used_by()))
+			return $used_by->get_name();
 		else
 			return NULL;
 	}
@@ -1371,7 +1530,7 @@ class Machine {
 					if (($count++) > 3) {
 						fclose(Machine::$master_socket);
 						Machine::$master_socket = null;
-						Machine::$errmsg = "Giving up after 3 empty reads from master";
+						Machine::$readerr = "Giving up after 3 empty reads from master";
 						return null;
 					}
 					sleep(1);
@@ -1397,7 +1556,7 @@ class Machine {
 	 */
 	function send_job($filename) {
 		if (!($sock = Machine::get_master_socket())) {
-			$this->errmsg = "cannot connect to master!";
+			$this->errmsg = (empty(Machine::$readerr)?"cannot connect to master!":Machine::$readerr);
 			return false;
 		}
 		
@@ -1655,6 +1814,8 @@ class Machine {
 		'anomaly'=>'s',
 		'serialconsole'=>'s',
 		'powerswitch'=>'s',
+		'powertype'=>'s',
+		'powerslot'=>'s',
 		'busy'=>'i',
 		'consoledevice'=>'s',
 		'consolespeed'=>'s',

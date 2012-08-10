@@ -166,7 +166,20 @@ function get_bench_numbers($result_id,$limit=null)
 /** Lists all testsuite that contain benchmark data. Uses the statistical table 'test'. */
 function bench_list_testsuite($limit=null)
 {	return matrix_query(0,$limit,'SELECT DISTINCT testsuite_id,testsuite FROM test JOIN testsuite USING(testsuite_id) WHERE is_bench ORDER BY testsuite');	}
+###############################################################################
+# API for promote data
+function list_promoted($limit=null)
+{
+       return matrix_query(0,$limit,'SELECT build_promoted_id,arch.arch,build_nr,product.product,release.release FROM build_promoted JOIN arch USING(arch_id) JOIN product USING(product_id) JOIN `release` USING(release_id) ORDER BY build_promoted_id');
+}
 
+function insert_update_promoted($arch_id,$product_id,$build_nr,$release_id)
+{
+        $insert=insert_query('INSERT INTO build_promoted (arch_id,build_nr,product_id,release_id) VALUES (?,?,?,?)','iiii',$arch_id ,$build_nr,$product_id,$release_id);
+        $update=update_query('UPDATE submission SET release_id = ? WHERE arch_id=? AND build_nr=? AND product_id=?','iiii',$release_id,$arch_id,$build_nr,$product_id);
+	return array ($insert,$update);
+
+}
 
 /** searches for submission, testsuite, or result
   * $mode :
@@ -181,7 +194,7 @@ function bench_list_testsuite($limit=null)
   *   8 submission + TCF
   *   9 bench search
   *  10 submission + TCF + testcase
-  *  11 summaries
+  *  11 extended regressions
   * $attrs['only_id']: 
   *   0 for full details
   *   1 for IDs only 
@@ -228,13 +241,13 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	);
 
 	# index into $sel0[], $sel1[] (SELECT ...), and $from0[] (FROM ...)
-	$i_main = array( 1,0,0,0,0,0,2,0,0,0,0 );
+	$i_main = array( 1,0,0,0,0,0,2,0,0,0,0,3 );
 	# index into $sel2[] (SELECT ...)
-	$i_next = array( 0,0,1,2,0,3,0,4,5,5,6 );
+	$i_next = array( 0,0,1,2,0,3,0,4,5,5,6,7 );
 	# index into $from2[] (FROM ...)
-	$i_from = array( 0,0,1,2,3,4,0,0,5,6,7 );
+	$i_from = array( 0,0,1,2,3,4,0,0,5,6,7,8 );
 	# index into $links2[] ( $transl->['links'] )
-	$i_link = array( 0,0,0,1,0,0,0,0,2,2,2 );
+	$i_link = array( 0,0,0,1,0,0,0,0,2,2,2,0 );
 
 	# should I return submission_id only?
 	$only_id  = hash_get($attrs,'only_id',false,true);
@@ -247,13 +260,13 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	# $from = $from0 $from2
 	# $sel0..$sel2 are done as lists - for ordering by them
 	# $sel0[ $i_main ] -- always
-	$sel0=array( 's.submission_id', 'r.result_id', 'g.testsuite_id' );
+	$sel0=array( 's.submission_id', 'r.result_id', 'g.testsuite_id','SUM(r.times_run) as runs' );
 	# $sel1[ $i_main ] -- appends for full details
 	$sel1=array( 
 /* subms */  array('s.submission_date','s.host_id','s.tester_id','s.arch_id','s.product_id','s.release_id','s.related','s.status_id','s.comment','s.rpm_config_id','s.hwinfo_id','s.type'),
-/* rslts */  array('g.tcf_id','g.testsuite_id','r.testcase_id','t.testcase','r.succeeded','r.failed','r.internal_error','r.skipped','r.times_run','r.test_time','w.waiver_id','t.relative_url'),
+/* rslts */  array('g.tcf_id','g.testsuite_id','r.testcase_id','t.testcase','r.succeeded','r.failed','r.internal_error','r.skipped','r.times_run','r.test_time','w.waiver_id','t.relative_url','b.is_bench'),
 /* suite */  array(),
-/* sums  */  array('SUM(r.testcase) as testcase','SUM(r.succeeded) as succeeded','SUM(r.failed) as failed','SUM(r.internal_error) as internal_error','SUM(r.skipped) as skipped','SUM(r.times_run) as times_run','SUM(r.test_time) as test_time')
+/* regs  */  array('s.product_id','s.release_id','SUM(r.succeeded) as succ','SUM(r.failed) as fail','SUM(r.internal_error) as interr','SUM(r.skipped) as skip','SUM(r.test_time) as time')
 	);
 	# $sel2[ $i_next ] -- appends for full details
 	$sel2=array( 
@@ -264,12 +277,13 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 /* trend  */ array('g.testsuite_id'),
 /* TCF    */ array('g.testsuite_id','g.tcf_id'),
 /* TCF+res*/ array('g.testsuite_id','g.tcf_id','r.testcase_id'),
+/* regs	  */ array('testsuite','testcase'),
 	);
 
 	# $from0[ $i_main ] -- always
-	$from0=array( 'submission s', 'submission s JOIN tcf_group g USING(submission_id) JOIN result r USING(tcf_id)', 'submission s JOIN tcf_group g USING(submission_id)' );
+	$from0=array( 'submission s', 'submission s JOIN tcf_group g USING(submission_id) JOIN result r USING(tcf_id)', 'submission s JOIN tcf_group g USING(submission_id)', 'submission s' );
 	# $from1[ $i_main ] -- append for full details
-	$from1=array( '', ' JOIN testcase t USING(testcase_id) LEFT OUTER JOIN waiver w USING(testcase_id)', '' );
+	$from1=array( '', ' JOIN testcase t USING(testcase_id) LEFT OUTER JOIN waiver w USING(testcase_id) JOIN test b USING(testcase_id)', '', '' );
 	# $from2[ $i_from ] -- always
 	$from2=array(
 /* simple */	'',
@@ -280,13 +294,15 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 /* TCF    */    ' JOIN tcf_group g USING(submission_id)',
 /* bench  */	' JOIN tcf_group g USING(submission_id) JOIN bench_suite b USING(testsuite_id)',
 /* TCF+res*/	' JOIN tcf_group g USING(submission_id) JOIN `result` r USING(tcf_id) JOIN testcase c USING(testcase_id)',
+/* regres */	' JOIN tcf_group g USING(submission_id) JOIN result r USING(tcf_id) JOIN testcase USING(testcase_id) JOIN testsuite USING(testsuite_id)', # testsuite/testcase joined to sort properly
 	);
 	
 	# $enum1[ $i_main ] - for full details when $transl set
 	$enum1=array(
 /* subms */  array('host_id'=>'host','tester_id'=>'tester','arch_id'=>'arch','product_id'=>'product','release_id'=>'release','status_id'=>'status'),
 /* rslts */  array('testsuite_id'=>'testsuite'),
-/* suite */  array()
+/* suite */  array(),
+/* regs  */  array(),
 	);
 
 	# $enum1[ $i_next ] - for full details when $transl set
@@ -298,14 +314,15 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 /* any    */	array(),
 /* TCF    */	array('testsuite_id'=>'testsuite'),
 /* bench  */	array('testsuite_id'=>'testsuite'),
-/* TCF+res*/	array('testsuite_id'=>'testsuite','testcase_id'=>'testcase')
+/* regs   */	array(),
 	);
 
 	# $links1[ $i_main ] - for full details when $transl set
 	$links1=array(
 /* subms */	array('submission_id'=>'submission.php?submission_id=','related'=>'submission.php?submission_id=','rpm_config_id'=>'rpms.php?rpm_config_id=','hwinfo_id'=>'hwinfo.php?hwinfo_id='),
 /* rslts */	array('tcf_id'=>'result.php?tcf_id='),
-/* suite */	array()
+/* suite */	array(),
+/* regs  */	array(),
 	);
 
 	# $links2[ $i_link ] - for full details when $transl set
@@ -435,6 +452,17 @@ function regression_differences($attrs,&$pager=null)
 	$args[2] = "SELECT * $sql".(is_null($limit) ? '' : " LIMIT ".$limit[0].','.$limit[1]);
 
 	return call_user_func_array('mhash_query',$args);
+}
+
+function search_user($username) {
+	# Create new mysqli object to access mysql database (to access the user table)
+	$mysqli = new mysqli("localhost", "qadb_guest", "", "mysql");
+	$stmt = $mysqli->prepare("SELECT Password FROM user WHERE User=?");
+	$stmt->bind_param("s", $username);
+	$stmt->execute();
+	$stmt->bind_result($password);
+	$stmt->fetch();
+	return $password;
 }
 
 
@@ -613,6 +641,7 @@ $glob_dest=array(
 	'log' => array(), 
 	array("result.php", "Results"), 
 	array("submission.php", "Submissions"), 
+	array("promote.php", "Promote"),
 	array("regression.php", "Regressions"), 
 	array("waiver.php", "Waiver"), 
 	'board' => array("board.php", "Board"),
@@ -622,7 +651,7 @@ $glob_dest=array(
 	array( array(
 		array("http://qadb.suse.de/hamsta/", "De"),
 		array("http://hamsta.qa.suse.cz/hamsta/", "Cz"),
-		array("http://151.155.248.99/hamsta/","Us"),
+		array("http://hamsta.sled.lab.novell.com/hamsta/","Us"),
 		array("http://147.2.207.30/hamsta/index.php","Cn"),
 		), 'Hamsta'),
 	array("doc.php","Docs")); 
@@ -766,9 +795,16 @@ function result_process_print(&$data,$sub_info,$transl,$pager,$id)
 			$tcf_id_url[$my_tcf_id]=tcf_get_url($my_tcf_id);
 		$url=$tcf_id_url[$my_tcf_id];
 		$data[$i]['logs']=($url ? html_link('logs',$tcf_id_url[$my_tcf_id].'/'.$data[$i]['relative_url']) : '');
-
+                #Display Graphs for benchmark results.
+		if( $data[$i]['is_bench'] )
+		{
+			require_once('defs.php');
+		        $graphlink="benchmarks.php?tests[]=".$my_tcf_id."&testcase=".$data[$i]['testcase']."&group_by=0&graph_x=".$bench_def_width."&graph_y=".$bench_def_height."&legend_pos=".$bench_def_pos."&font_size=".$bench_def_font."&search=1";
+			$data[$i]['testcase']= html_link($data[$i]['testcase'],$graphlink);
+		}
 		unset($data[$i]['testcase_id']);
 		unset($data[$i]['relative_url']);
+		unset($data[$i]['is_bench']);
 
 		# append highlight info at the end
 		$data[$i][]=$classes;
@@ -779,6 +815,7 @@ function result_process_print(&$data,$sub_info,$transl,$pager,$id)
 	unset($data[0]['waiver_id']);
 	unset($data[0]['testcase_id']);
 	unset($data[0]['relative_url']);
+	unset($data[0]['is_bench']);
 
 	table_translate( $data, $transl );
 	print html_table( $data, array('callback'=>'highlight_result','id'=>$id,'sort'=>'iissiiiiiiss','pager'=>$pager,'total'=>1));

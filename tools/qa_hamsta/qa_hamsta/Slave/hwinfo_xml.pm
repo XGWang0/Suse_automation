@@ -41,7 +41,7 @@ require 'Slave/config_slave';
 my  $dumper = new XML::Dumper;
 
 #my @modules = ('bios', 'block', 'bluetooth', 'braille', 'bridge', 'camera', 'cdrom', 'chipcard', 'cpu', 'disk', 'dsl', 'dvb', 'floppy', 'framebuffer', 'gfxcard', 'hub', 'ide', 'isapnp', 'isdn',  'pcmcia', 'joystick', 'keyboard', 'memory', 'modem', 'monitor', 'mouse', 'netcard', 'network', 'partition', 'pci', 'pppoe', 'printer', 'scanner', 'scsi', 'smp', 'sound', 'storage-ctrl', 'sys', 'tape', 'tv', 'usb', 'usb-ctrl', 'vbe', 'wlan', 'zip');
-my @modules = ('bios', 'bridge', 'cpu', 'disk', 'gfxcard', 'ide', 'memory', 'network', 'partition', 'scsi', 'smp', 'storage-ctrl', 'sys', 'swap', 'system_partition', 'devel_tools', 'rpm_list');
+my @modules = ('bios', 'bridge', 'cpu', 'disk', 'gfxcard', 'ide', 'memory', 'network', 'partition', 'scsi', 'smp', 'storage-ctrl', 'sys', 'swap', 'system_partition', 'devel_tools', 'rpm_list', 'ishwvirt');
 
 my $ret;
 $ret = system("which virsh > /dev/null 2>&1");
@@ -144,7 +144,7 @@ sub get_hwinfo_module($) {
 	if($module_name eq 'devel_tools'){
 		my $module = {};
 		$module->{'Description'} = "devel tools";
-		if (! system 'zypper lr -u | grep \'ibs/QA\(:\|%3[aA]\)/Head\(:\|%3[aA]\)/Devel\'') {
+		if (`zypper lr -u` =~ m/ibs\/QA(:|%3[aA])\/Head(:|%3[aA])\/Devel/) {
 			$module->{'DevelTools'} = 1;
 		} else {
 			$module->{'DevelTools'} = 0;
@@ -179,6 +179,17 @@ sub get_hwinfo_module($) {
 	return \@result;
    }
 
+    if($module_name eq 'ishwvirt'){
+        my $module = {};
+        $module->{'Description'} = "Does CPU support HW Virt";
+		if (`uname -a | grep -i xen && xm info | grep virt_caps |grep -i hvm || egrep '(vmx|svm)' /proc/cpuinfo`) {
+			$module->{'IsHWVirt'} = 1;
+		} else {
+			$module->{'IsHWVirt'} = 0;
+		}
+        push @result, $module;
+        return \@result;
+    }
 	
 	my $pid = open (FH,"/usr/sbin/hwinfo --$module_name | grep -iv 'IRQ:' | ");
 	if (not $pid) {

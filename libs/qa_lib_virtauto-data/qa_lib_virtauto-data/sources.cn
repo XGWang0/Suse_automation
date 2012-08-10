@@ -222,37 +222,17 @@ source.iso.sled-11-sp2-64=/MOUNT-VIRT/SLED-11-SP2-Beta2/SLED-11-SP2-DVD-x86_64-B
 source.iso.sled-11-sp2-32=/MOUNT-VIRT/SLED-11-SP2-Beta2/SLED-11-SP2-DVD-i586-Build0139-Media1.iso
 
 # Windows
-
-##source.iso.win-7-fcs-64=/MOUNT-VIRT/isos/windows/7/win-7-fcs-64-auto.iso
-##source.iso.win-7-fcs-32=/MOUNT-VIRT/isos/windows/7/win-7-fcs-32-auto.iso
-
-##source.iso.win-2k8r2-fcs-64=/MOUNT-VIRT/isos/windows/2k8r2/win-2k8r2-fcs-64-auto.iso
-
-##source.iso.win-2k8-sp2-64=/MOUNT-VIRT/isos/windows/2k8/win-2k8-sp2-64-auto.iso
-##source.iso.win-2k8-sp2-32=/MOUNT-VIRT/isos/windows/2k8/win-2k8-sp2-32-auto.iso
-
-##source.iso.win-2k8-sp1-64=/MOUNT-VIRT/isos/windows/2k8/win-2k8-sp1-64-auto.iso
-##source.iso.win-2k8-sp1-32=/MOUNT-VIRT/isos/windows/2k8/win-2k8-sp1-32-auto.iso
-
-##source.iso.win-vista-sp2-64=/MOUNT-VIRT/isos/windows/vista/win-vista-sp2-64-auto.iso
-##source.iso.win-vista-sp2-32=/MOUNT-VIRT/isos/windows/vista/win-vista-sp2-32-auto.iso
-
-##source.iso.win-vista-sp1-64=/MOUNT-VIRT/isos/windows/vista/win-vista-sp1-64-auto.iso
-##source.iso.win-vista-sp1-32=/MOUNT-VIRT/isos/windows/vista/win-vista-sp1-32-auto.iso
-
-##source.iso.win-vista-fcs-64=/MOUNT-VIRT/isos/windows/vista/win-vista-fcs-64-auto.iso
-##source.iso.win-vista-fcs-32=/MOUNT-VIRT/isos/windows/vista/win-vista-fcs-32-auto.iso
-
-##source.iso.win-2k-sp4-32=/MOUNT-VIRT/isos/windows/2k/win-2k-sp4-32-auto.iso
-
-##source.iso.win-2k3-sp2-64=/MOUNT-VIRT/isos/windows/2k3/win-2k3-sp2-64-auto.iso
-##source.iso.win-2k3-sp2-32=/MOUNT-VIRT/isos/windows/2k3/win-2k3-sp2-32-auto.iso
-
-##source.iso.win-xp-sp3-32=/MOUNT-VIRT/isos/windows/xp/win-xp-sp3-32-auto.iso
-
-##source.iso.win-xp-sp2-32=/MOUNT-VIRT/isos/windows/xp/win-xp-sp2-32-auto.iso
-
-##source.iso.win-xp-sp1-64=/MOUNT-VIRT/isos/windows/xp/win-xp-sp1-64-auto.iso
+source.iso.win-2k-sp4-32=/VIRT-ISO/win-2k-sp4-32-auto.iso
+source.iso.win-2k3-sp2-32=/VIRT-ISO/win-2k3-sp2-32-auto.iso
+source.iso.win-2k3-sp2-64=/VIRT-ISO/win-2k3-sp2-64-auto.iso
+source.iso.win-2k8-sp2-32=/VIRT-ISO/win-2k8-sp2-32-auto.iso
+source.iso.win-2k8-sp2-64=/VIRT-ISO/win-2k8-sp2-64-auto.iso
+source.iso.win-2k8r2-fcs-64=/VIRT-ISO/win-2k8r2-fcs-64-auto.iso
+source.iso.win-7-fcs-32=/VIRT-ISO/win-7-fcs-32-auto.iso
+source.iso.win-7-fcs-64=/VIRT-ISO/win-7-fcs-64-auto.iso
+source.iso.win-vista-sp2-32=/VIRT-ISO/win-vista-sp2-32-auto.iso
+source.iso.win-vista-sp2-64=/VIRT-ISO/win-vista-sp2-64-auto.iso
+source.iso.win-xp-sp3-32=/VIRT-ISO/win-xp-sp3-32-auto.iso
 
 # NetWare
 

@@ -151,13 +151,55 @@ Returns ($testcase_name, $testcase_results) pair, where $testcase_results
 contains following hash:
 
  $testcase_results = {
-	times_run  => <number>, 
-	succeeded  => <number>, 
-	failed     => <number>, 
-	int_errors => <number>, 
-	test_time  => <string>,
-	skipped    => <number>
+	times_run     => <number>, 
+	succeeded     => <number>, 
+	failed        => <number>, 
+	int_errors    => <number>, 
+	test_time     => <string>,
+	skipped       => <number>,
+	bench_data     => <benchmark results reference>
  }
+
+Key bench_data is defined only for benchmark testcases.
+
+Structure of bench_data is:
+
+ $bench_data => {
+     attrs => { # attributes (what can be on graph axis)
+         id_of_attribute_1 => {
+             id           => 'id_of_attribute_1', # MUST BE SAME AS KEY
+             label        => 'label to show in graph',
+             desc         => 'description of attr',
+             type         => 'linear', # enum, linear or logaritmic
+             unit         => 'unit the attribute is measured in',
+         },
+         id_of_attribute_2 => {
+             ...
+         },
+         ...
+     },
+     graphs => [
+         {   # how should default graphs look like
+    	     label        => 'graph label',
+             desc         => 'graph description',
+             result       => 'id_of_attribute' (y axis),
+             axis_1       => 'id of attribute (x axis)'
+    	     # Optional -> 3D graphs - axis 'z'
+             axis_2       => 'id of attribute (z axis)'
+         }
+         ...
+     ],
+     values => [
+         { 
+	     # not all attributes must be here!!!
+             id_of_attribute_1 => value_of_attribute_1,
+             id_of_attribute_2 => value_of_attribute_2,
+	     ...
+	 }
+	 ...
+     ]
+ }
+
 
 =item $results->testsuite_tc_output
 
@@ -233,6 +275,15 @@ sub rpmlist
 	return $rpms;
 }
 
+sub kernel
+{
+	my ($self, $tcf)=@_;
+	my $kernel = $self->_kernel_get($tcf);
+	$kernel = $self->path().'/../_REMOTE/kernel' unless -r $kernel;
+	$kernel = $self->__tmp_list('kernel') unless -r $kernel;
+	return $kernel;
+}
+
 # Do not overload this in subclass!
 sub path
 {
@@ -300,6 +351,10 @@ sub __tmp_list # type
 	{   
 		# If you change this, you must also change it in ctcs2/tools/run!!!   
 		system('rpm -qa --qf "%{NAME} %{VERSION}-%{RELEASE}\n" | sort >'.$fname);      
+	}
+	elsif( $type eq 'kernel' )
+	{
+		system('rpm -qi $(rpm -qf /boot/System.map-$(uname -r)) >'.$fname);
 	}
 	else
 	{       		
