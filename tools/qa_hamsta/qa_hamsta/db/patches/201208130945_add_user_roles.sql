@@ -28,16 +28,3 @@ CREATE TABLE user_role (
        name  VARCHAR (255) NOT NULL UNIQUE COMMENT 'Name of the role.',
        descr  VARCHAR (255) DEFAULT NULL COMMENT 'Obligatory description.'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-CREATE TABLE user_in_role (
-       user_id            VARCHAR(255) NOT NULL,
-       role_id            INTEGER      NOT NULL,
-       FOREIGN KEY (user_id) REFERENCES user (id) on delete restrict,
-       FOREIGN KEY (role_id) REFERENCES  user_role (id) on delete restrict,
-       PRIMARY KEY (user_id, role_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-INSERT INTO user_role (name, descr) VALUES ('admin', 'Administrator role');
-INSERT INTO user_role (name, descr) VALUES ('user', 'Usual user role');
