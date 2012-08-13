@@ -19,7 +19,7 @@ Example: patches/201007301505_the_sample_sql_script.sql
 
 To apply the patch(es) to the database, script update_db.sh is used, this script 
 reads the current version from the DB (version is a timestamp of the last 
-applied patch), and than it applies all the patches with higher version (=newer
+applied patch), and then it applies all the patches with higher version (=newer
 timestamp) - in order in which the patches were created.
 
 Script update_db is safe to be run repeatedly, since it won't try to apply same 
