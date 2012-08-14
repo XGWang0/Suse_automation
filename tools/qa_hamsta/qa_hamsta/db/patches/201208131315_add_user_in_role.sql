@@ -28,7 +28,7 @@
 ALTER TABLE `user` ENGINE = InnoDB;
 
 /* Need to create index on referenced attribute or the next create fails. */
-CREATE INDEX `idx_user_id` USING BTREE ON `user`(`id`);
+ALTER TABLE `user` ADD PRIMARY KEY (`id`);
 
 /* Now the connecting table can be created. */
 CREATE TABLE user_in_role (
@@ -36,7 +36,7 @@ CREATE TABLE user_in_role (
        role_id            int      NOT NULL,
        KEY `fk_user_in_role_user_id`(`user_id`),
        KEY `fk_user_in_role_role_id`(`role_id`),
-       CONSTRAINT `fk_user_in_role_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE RESTRICT,
-       CONSTRAINT `fk_user_in_role_role_id` FOREIGN KEY (`role_id`) REFERENCES  `user_role` (`id`) ON DELETE RESTRICT,
+       CONSTRAINT fk_user_in_role_user_id FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE RESTRICT,
+       CONSTRAINT fk_user_in_role_role_id FOREIGN KEY (`role_id`) REFERENCES  `user_role` (`id`) ON DELETE RESTRICT,
        PRIMARY KEY (`user_id`, `role_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
