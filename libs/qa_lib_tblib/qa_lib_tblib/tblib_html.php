@@ -613,7 +613,7 @@ function html_link($text,$url,$tip=null,$class=null)
 {
 	return '<a href="'.$url.
 		($tip ? '" title="'.$tip : '').
-		($class ? '" class="'.$class.'"' : '').
+		($class ? '" class="'.$class : '').
 		'">'.$text."</a>";
 }
 
