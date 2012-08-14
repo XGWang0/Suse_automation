@@ -23,9 +23,6 @@
   ****************************************************************************
  */
 
-INSERT INTO user_role (name, descr) VALUES ('admin', 'Administrator role');
-INSERT INTO user_role (name, descr) VALUES ('user', 'Usual user role');
-
 /* Need to create index on referenced attribute or the next create fails. */
 CREATE INDEX `idx_user_id` USING BTREE ON `user`(`id`);
 

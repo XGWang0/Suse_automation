@@ -28,3 +28,6 @@ CREATE TABLE user_role (
        name  VARCHAR (255) NOT NULL UNIQUE COMMENT 'Name of the role.',
        descr  VARCHAR (255) DEFAULT NULL COMMENT 'Obligatory description.'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO user_role (name, descr) VALUES ('admin', 'Administrator role');
+INSERT INTO user_role (name, descr) VALUES ('user', 'Usual user role');
