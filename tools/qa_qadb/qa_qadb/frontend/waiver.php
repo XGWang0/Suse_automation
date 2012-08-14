@@ -193,7 +193,7 @@ else if( $view=='view_waiver' )
 			'ctrls'=>make_detail_controls()
 		));
 		print html_table($data,array('id'=>'details','sort'=>'isssi','class'=>'tbl controls'));
-		print '<p><a class="btn" href="waiver.php?view=new_detail&waiver_id='.$waiver_id.'">add detail</a></p>'."\n";
+		print '<p><a class="btn" href="waiver.php?view=new_detail&amp;waiver_id='.$waiver_id.'">add detail</a></p>'."\n";
 	}
 	else
 		print "Wrong input data.<br/>\n";

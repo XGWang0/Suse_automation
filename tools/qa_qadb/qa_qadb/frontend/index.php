@@ -4,7 +4,7 @@ common_header(array('title'=>'Welcome to the QA database'));
 print "<center><h2>Welcome to the QA database</h2>\n";
 
 if ( !isset($_SESSION['user'] ) )
-	printf("you are currently not loged in<br><br>");
+	printf("you are currently not loged in<br/><br/>");
 else
 	printf("you are currently loged in as <i><b>%s</b></i><br/><br/>", $_SESSION['user'] == "qadb_user" ? $_SESSION['OPENID_AUTH'] : $_SESSION['user']);
 $last_sub=row_query(array(1), "SELECT submission_id, submission_date FROM submission ORDER BY submission_date DESC");
