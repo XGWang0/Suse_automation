@@ -23,9 +23,14 @@
   ****************************************************************************
  */
 
+/* Alter the table `user`, changing to InnoDB engine which supports
+   foreing keys. */
+ALTER TABLE `user` ENGINE = InnoDB;
+
 /* Need to create index on referenced attribute or the next create fails. */
 CREATE INDEX `idx_user_id` USING BTREE ON `user`(`id`);
 
+/* Now the connecting table can be created. */
 CREATE TABLE user_in_role (
        user_id            varchar(255) NOT NULL,
        role_id            int      NOT NULL,
