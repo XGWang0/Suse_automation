@@ -91,9 +91,9 @@ elseif ((!isset($_POST['user']) || !isset($_POST['pass'])) && !isset($_GET['open
 	}
 
 ?>
+<form name="form1" method="post" action="login.php">
 <table width="300" border="0" align="center" cellpadding="0" cellspacing="1" bgcolor="#CCCCCC">
 <tr>
-<form name="form1" method="post" action="login.php">
 <td>
 <table width="100%" border="0" cellpadding="3" cellspacing="1" bgcolor="#FFFFFF">
 <tr>
@@ -102,23 +102,23 @@ elseif ((!isset($_POST['user']) || !isset($_POST['pass'])) && !isset($_GET['open
 <tr>
 <td width="78">Username</td>
 <td width="6">:</td>
-<td width="294"><input name="user" type="text" ></td>
+<td width="294"><input name="user" type="text" /></td>
 </tr>
 <tr>
 <td>Password</td>
 <td>:</td>
-<td><input name="pass" type="password" ></td>
+<td><input name="pass" type="password" /></td>
 </tr>
 <tr>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
-<td><input type="submit" name="Submit" value="Login"></td>
+<td><input type="submit" name="Submit" value="Login"/></td>
 </tr>
 </table>
 </td>
-</form>
 </tr>
 </table>
+</form>
 <?php
 }
 else{

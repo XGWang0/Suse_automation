@@ -66,6 +66,7 @@ if( $cancel[$confirm] )
 print "<h2>Confirm</h2>\n<div class=\"confirm\"><div class=\"message\">$msg</div>\n";
 print html_search_form($back[$confirm],$what,array('submit'=>'Yes','hr'=>false));
 print html_search_form($back[$confirm],$cancel_what,array('submit'=>'No','hr'=>false,'search'=>0));
+print "</div>\n";
 ?>
 </body>
 </html>
