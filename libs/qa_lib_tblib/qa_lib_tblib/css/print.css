@@ -4,17 +4,17 @@ pre { font-size:12px; }
 
 #subnav { display:none; }
 
-.tbl, table.input { border-collapse:collapse; }
+.tbl, table.input, .benchtbl { border-collapse:collapse; }
 .tbl td { padding: 2px 3px 3px 4px; }
-.tbl td, .tbl th, table.input td, table.input th { border: solid 1px black; }
-.tbl th {
+.tbl td, .tbl th, table.input td, table.input th, .benchtbl td, .benchtbl th { border: solid 1px black; }
+.tbl th, .benchtbl th {
 	padding: 4px 3px;
 	font-size:110%;
 	font-weight:bold;
-	text-align: left
+	text-align:center;
 }
-.tbl thead { display:table-header-group; }
-.tbl tbody { display:table-row-group; }
+.tbl thead, .benchtbl thead { display:table-header-group; }
+.tbl tbody, .benchtbl tbody { display:table-row-group; }
 a { color: #000; }
 .tbl th a { text-decoration: none; } 
 .total { margin-top: 1em; }
@@ -74,3 +74,16 @@ hr
 textarea { border: none; }
 .tbl.controls td:last-child, .tbl.controls th:last-child { display:none; }
 .sel_skip { display: none; }
+
+.tbl, .benchtbl {
+	border-spacing: 2px;
+	font-size: 80%;
+}
+.benchtbl td {
+	text-align: center;
+}
+p.benchimg { text-align: center; }
+#bench_graphs h1 { 
+	text-align: center;
+	text-transform: capitalize;
+}
