@@ -119,16 +119,16 @@ button { display: inline; }
 .tbl .m td, .tbl td.m							{ background-color:#ffb; }
 
 /* 5. table row highlights */
-.tbl td:hover,			.tbl tr:hover td			{ background-color:#ccc; }
-.tbl th:hover,			.tbl tr:hover th			{ background-color:#468; }
-.tbl td.failed:hover,		.tbl tr.failed:hover td			{ background-color:#f99; }
-.tbl td.r:hover,		.tbl tr.r:hover td			{ background-color:#f99; }
-.tbl td.internalerr:hover,	.tbl tr.internalerr:hover td		{ background-color:#f9f; }
-.tbl td.wr:hover,		.tbl tr.wr:hover td			{ background-color:#f9f; }
-.tbl td.skipped:hover,		.tbl tr.skipped:hover td		{ background-color:#999; }
-.tbl td.i:hover,		.tbl tr.i:hover td			{ background-color:#9f9; }
-.tbl td.wi:hover,		.tbl tr.wi:hover td			{ background-color:#9bb; }
-.tbl td.m:hover,		.tbl tr.m:hover td			{ background-color:#ffb; }
+.tbl td:hover,			.tbl tr:hover td						{ background-color:#ccc; }
+.tbl th:hover,			.tbl tr:hover th						{ background-color:#468; }
+.tbl td.failed:hover,		.tbl tr.failed:hover td,	.tbl tr:hover td.failed		{ background-color:#f99; }
+.tbl td.r:hover,		.tbl tr.r:hover td,		.tbl tr:hover td.r		{ background-color:#f99; }
+.tbl td.internalerr:hover,	.tbl tr.internalerr:hover td,	.tbl tr:hover td.internalerr	{ background-color:#f9f; }
+.tbl td.wr:hover,		.tbl tr.wr:hover td,		.tbl tr:hover td.wr		{ background-color:#f9f; }
+.tbl td.skipped:hover,		.tbl tr.skipped:hover td,	.tbl tr:hover td.skipped	{ background-color:#999; }
+.tbl td.i:hover,		.tbl tr.i:hover td,		.tbl tr:hover td.i		{ background-color:#9f9; }
+.tbl td.wi:hover,		.tbl tr.wi:hover td,		.tbl tr:hover td.wi		{ background-color:#9bb; }
+.tbl td.m:hover,		.tbl tr.m:hover td,		.tbl tr:hover td.m		{ background-color:#ffb; }
 
 .benchtbl th	{ 
 	background-color:#68a; 
@@ -213,7 +213,7 @@ div.pagesel { margin: 1em; }
 select[multiple] {height:10em;}
 .static { display: none; }
 input[type="submit"] 
-{ 
+{
 	padding: 0.1em 1em 0.1em 1em;
 	float:left;
 	clear:both;
