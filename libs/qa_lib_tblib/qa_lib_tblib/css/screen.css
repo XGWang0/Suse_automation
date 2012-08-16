@@ -35,10 +35,9 @@ pre { font-size:12px; }
 }
 #subnav-hdr {
 	color:#456;
-	line-height:18px;
-	padding:2px 17px;
-	text-align:left;
-	padding-top: 0.5em;
+	line-height: 130%;
+	padding: 0.4em 0 0 1em;
+	font-size: 1.13em;
 }
 #subnav-hdr a, #subnav-hdr span {
 	text-decoration:none;
@@ -48,7 +47,8 @@ pre { font-size:12px; }
 #subnav-hdr a:hover 
 { 
 	text-decoration:underline;
-	color:#e80;  
+	color:#e80;
+	background-color:#234;
 }
 
 #subnav-hdr a .board_new { 
@@ -56,11 +56,15 @@ pre { font-size:12px; }
 	font-weight:bold;
 }
 
-#subnav-hdr .item { 
-	padding: 1.5px 0.5em 1.5px 0.5em;
+#subnav-hdr a.item, #subnav-hdr .item a { 
+	padding-top: 0.4em;
 	word-spacing: 0.3em;
-	font-size: 1.13em;
 }
+#subnav-hdr .item {
+	padding-left: 0.45em;
+	padding-right: 0.35em;
+}
+
 
 /* 2. table headers & rows */
 .tbl th a
@@ -288,15 +292,11 @@ table.tbldesc	{ border-collapse: collapse; }
 	margin: 0 1em 0 0;
 	padding:0.2em 1em 0.2em 1em;
 }
-.steps span.nosel 
-{
-	background-color:#9bc;
-	border-color:#fff #999 #9bc #fff;
-}
-.steps span.sel 
-{
+.steps span.nosel	{ background-color:#9bc; }
+.steps span.nosel:hover	{ background-color:#68a; }
+.steps span.sel:hover	{ background-color:#468; }
+.steps span.sel	{
 	background-color:#68a;
-	border-color:#cef #568 #68a #cef;
 	font-weight: bold;
 }
 .steps span,.steps2 { box-shadow: 0.4em -0.2em 0.7em -0.2em #000; } 
