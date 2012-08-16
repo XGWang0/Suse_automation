@@ -154,7 +154,7 @@ select option:hover { background-color:#8ac; }
 .tbl td, .tbl th, .btn, .btn_disabled, #card { box-shadow: 0.3em 0.3em 0.7em #000; }
 .benchtbl td, .benchtbl th { box-shadow: 2px 2px 1px #000; }
 table.benchtbl { box-shadow: 4px 4px 9px #000, 1px 1px 9px #000 inset; }
-select, input[type="text"], #subnav { box-shadow: 0.1em 0.1em 0.3em #666; }
+select, input[type="text"], input[type="password"], #subnav { box-shadow: 0.1em 0.1em 0.3em #666; }
 img.benchimg { box-shadow: 3px 3px 7px #000; }
 
 /*tr:hover td:first-child:before,
@@ -220,7 +220,7 @@ input[type="submit"]
 	margin-bottom: 1em;
 }
 
-select, input[type="text"]	{
+select, input[type="text"], input[type="password"]	{
 	border: solid 2px #ccc;
 }
 
