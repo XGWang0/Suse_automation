@@ -136,6 +136,7 @@
 	$fields_list = array(
 		'hostname'=>'Hostname',
 		'status_string'=>'Status',
+		'usage'=>'Usage',
 		'reserved'=>'Reserved',
 		'expires_formated'=>'Expires',
 		'group'=>'Group',
