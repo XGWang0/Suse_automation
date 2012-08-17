@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug 17 12:07:07 CEST 2012 - llipavsky@suse.cz
+
+- Add get_qa_config CLI tool
+
+-------------------------------------------------------------------
 Fri Aug 10 13:14:28 CEST 2012 - llipavsky@suse.cz
 
 - Web user-friendly editor for jobs
