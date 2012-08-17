@@ -1,6 +1,7 @@
+<?php
 /* ****************************************************************************
   Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
-  
+
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
   RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
@@ -11,7 +12,7 @@
   PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
   AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
   LIABILITY.
-  
+
   SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
   WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
@@ -22,10 +23,15 @@
   ****************************************************************************
  */
 
-.navibar a{text-decoration:none; color:#FFFFFF; margin-right:20px;}
-.navibar a:active{color:#FFFFFF;}
-.navibar a:link:hover, .navibar a:visited:hover {color:#e78f08;}
-/*
-.navibar a:hover{color:#e78f08;}
-.navibar a:visited{color:#FFFFFF;}
-*/
+    /**
+     * Logic of the user page.
+     */
+    
+    if (!defined('HAMSTA_FRONTEND')) {
+        $go = 'user';
+        return require("index.php");
+    }
+
+    $html_title = "User configuration";
+
+?>

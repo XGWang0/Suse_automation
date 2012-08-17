@@ -35,10 +35,9 @@ pre { font-size:12px; }
 }
 #subnav-hdr {
 	color:#456;
-	line-height:18px;
-	padding:2px 17px;
-	text-align:left;
-	padding-top: 0.5em;
+	line-height: 130%;
+	padding: 0.4em 0 0 1em;
+	font-size: 1.13em;
 }
 #subnav-hdr a, #subnav-hdr span {
 	text-decoration:none;
@@ -48,7 +47,8 @@ pre { font-size:12px; }
 #subnav-hdr a:hover 
 { 
 	text-decoration:underline;
-	color:#e80;  
+	color:#e80;
+	background-color:#234;
 }
 
 #subnav-hdr a .board_new { 
@@ -56,11 +56,15 @@ pre { font-size:12px; }
 	font-weight:bold;
 }
 
-#subnav-hdr .item { 
-	padding: 1.5px 0.5em 1.5px 0.5em;
+#subnav-hdr a.item, #subnav-hdr .item a { 
+	padding-top: 0.4em;
 	word-spacing: 0.3em;
-	font-size: 1.13em;
 }
+#subnav-hdr .item {
+	padding-left: 0.45em;
+	padding-right: 0.35em;
+}
+
 
 /* 2. table headers & rows */
 .tbl th a
@@ -119,16 +123,16 @@ button { display: inline; }
 .tbl .m td, .tbl td.m							{ background-color:#ffb; }
 
 /* 5. table row highlights */
-.tbl td:hover,			.tbl tr:hover td			{ background-color:#ccc; }
-.tbl th:hover,			.tbl tr:hover th			{ background-color:#468; }
-.tbl td.failed:hover,		.tbl tr.failed:hover td			{ background-color:#f99; }
-.tbl td.r:hover,		.tbl tr.r:hover td			{ background-color:#f99; }
-.tbl td.internalerr:hover,	.tbl tr.internalerr:hover td		{ background-color:#f9f; }
-.tbl td.wr:hover,		.tbl tr.wr:hover td			{ background-color:#f9f; }
-.tbl td.skipped:hover,		.tbl tr.skipped:hover td		{ background-color:#999; }
-.tbl td.i:hover,		.tbl tr.i:hover td			{ background-color:#9f9; }
-.tbl td.wi:hover,		.tbl tr.wi:hover td			{ background-color:#9bb; }
-.tbl td.m:hover,		.tbl tr.m:hover td			{ background-color:#ffb; }
+.tbl td:hover,			.tbl tr:hover td						{ background-color:#ccc; }
+.tbl th:hover,			.tbl tr:hover th						{ background-color:#468; }
+.tbl td.failed:hover,		.tbl tr.failed:hover td,	.tbl tr:hover td.failed		{ background-color:#f99; }
+.tbl td.r:hover,		.tbl tr.r:hover td,		.tbl tr:hover td.r		{ background-color:#f99; }
+.tbl td.internalerr:hover,	.tbl tr.internalerr:hover td,	.tbl tr:hover td.internalerr	{ background-color:#f9f; }
+.tbl td.wr:hover,		.tbl tr.wr:hover td,		.tbl tr:hover td.wr		{ background-color:#f9f; }
+.tbl td.skipped:hover,		.tbl tr.skipped:hover td,	.tbl tr:hover td.skipped	{ background-color:#999; }
+.tbl td.i:hover,		.tbl tr.i:hover td,		.tbl tr:hover td.i		{ background-color:#9f9; }
+.tbl td.wi:hover,		.tbl tr.wi:hover td,		.tbl tr:hover td.wi		{ background-color:#9bb; }
+.tbl td.m:hover,		.tbl tr.m:hover td,		.tbl tr:hover td.m		{ background-color:#ffb; }
 
 .benchtbl th	{ 
 	background-color:#68a; 
@@ -154,7 +158,7 @@ select option:hover { background-color:#8ac; }
 .tbl td, .tbl th, .btn, .btn_disabled, #card { box-shadow: 0.3em 0.3em 0.7em #000; }
 .benchtbl td, .benchtbl th { box-shadow: 2px 2px 1px #000; }
 table.benchtbl { box-shadow: 4px 4px 9px #000, 1px 1px 9px #000 inset; }
-select, input[type="text"], #subnav { box-shadow: 0.1em 0.1em 0.3em #666; }
+select, input[type="text"], input[type="password"], #subnav { box-shadow: 0.1em 0.1em 0.3em #666; }
 img.benchimg { box-shadow: 3px 3px 7px #000; }
 
 /*tr:hover td:first-child:before,
@@ -213,14 +217,14 @@ div.pagesel { margin: 1em; }
 select[multiple] {height:10em;}
 .static { display: none; }
 input[type="submit"] 
-{ 
+{
 	padding: 0.1em 1em 0.1em 1em;
 	float:left;
 	clear:both;
 	margin-bottom: 1em;
 }
 
-select, input[type="text"]	{
+select, input[type="text"], input[type="password"]	{
 	border: solid 2px #ccc;
 }
 
@@ -288,15 +292,11 @@ table.tbldesc	{ border-collapse: collapse; }
 	margin: 0 1em 0 0;
 	padding:0.2em 1em 0.2em 1em;
 }
-.steps span.nosel 
-{
-	background-color:#9bc;
-	border-color:#fff #999 #9bc #fff;
-}
-.steps span.sel 
-{
+.steps span.nosel	{ background-color:#9bc; }
+.steps span.nosel:hover	{ background-color:#68a; }
+.steps span.sel:hover	{ background-color:#468; }
+.steps span.sel	{
 	background-color:#68a;
-	border-color:#cef #568 #68a #cef;
 	font-weight: bold;
 }
 .steps span,.steps2 { box-shadow: 0.4em -0.2em 0.7em -0.2em #000; } 

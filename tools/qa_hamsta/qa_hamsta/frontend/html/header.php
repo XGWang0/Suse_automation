@@ -49,33 +49,56 @@
 </head>
 <body>
 
-<div id="header">
+  <div id="header">
 
-	<div id="hlogo">
-		<a href="/hamsta" border="0" style="text-decoration: none;">
-			<img src="images/logo-hamsta.png" class="logo" alt="Hamsta Logo" title="Click to return to the main page" />
-			<img src="images/logo-suse.png" class="logo" alt="Suse Logo" title="Click to return to the main page" />
-			<img src="images/header.png" class="caption" alt="SUSE QA Automation" title="Click to return to the main page" />
-			<img src="images/hamsta.png" class="hamsta" alt="Hamsta" title="Hamsta" />
-		</a>
-		<div class="version text-main text-white bold"><em>v<?php $version = explode("-", $hamstaVersion); echo($version[2]); ?></em></div>
-		<div style="float: right" class="navibar"><a class="text-main text-white" href="index.php?go=install_client">Install Client</a></div>
-	</div>
+    <div id="hlogo">
+      <a href="/hamsta" border="0" style="text-decoration: none;">
+	<img src="images/logo-hamsta.png" class="logo" alt="Hamsta Logo" title="Click to return to the main page" />
+	<img src="images/logo-suse.png" class="logo" alt="Suse Logo" title="Click to return to the main page" />
+	<img src="images/header.png" class="caption" alt="SUSE QA Automation" title="Click to return to the main page" />
+	<img src="images/hamsta.png" class="hamsta" alt="Hamsta" title="Hamsta" />
+      </a>
+      <div class="version text-main text-white bold">
+        <em>v<?php $version = explode("-", $hamstaVersion); echo($version[2]);?></em>
+      </div>
+      <div style="float: right;" class="navibar text-white text-main">
+        <?php
+           if ( isset($_SESSION['OPENID_AUTH'])) {
+             echo("Logged in as ");
+             $user = User::get_by_openid($_SESSION['OPENID_AUTH']);
+             if ($user) {
+               echo('<a href="index.php?go=user">');
+               $username = $user->get_name();
+               echo($username);
+               echo('</a>');
+             } else {
+               echo('<a href="index.php?go=register">');
+               echo("Unknown User");
+               echo('</a>');
+             }
+             echo('<a href="index.php?go=logout">Log out</a>');
+           } else {
+             echo('<a href="index.php?go=login">Log in</a>');
+           }
+           ?>
+        <a class="navibar" href="index.php?go=install_client">Install Client</a>
+      </div>
+    </div>
 
-	<div id="header-links" class="text-medium bold">
-	</div>
+    <div id="header-links" class="text-medium bold">
+    </div>
 
-	<div class="text-small">
-	</div>
+    <div class="text-small">
+    </div>
 
-	<div id="links" class="text-medium bold navibar">
-	<?php
-        while (list($key,$value) = each($naviarr)) {
-                echo createLink($value, $key);
-        }
-	?>
-	</div>
-</div>
+    <div id="links" class="text-medium bold navibar">
+      <?php
+         while (list($key,$value) = each($naviarr)) {
+         echo createLink($value, $key);
+         }
+	 ?>
+    </div>
+  </div>
 
 <div id="content">
 

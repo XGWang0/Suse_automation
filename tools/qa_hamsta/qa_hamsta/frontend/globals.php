@@ -162,6 +162,7 @@
 	);
 
 # header & footer links
+$qadb_web = system('/usr/share/qa/tools/dump_qa_config |grep qadb |cut -f2 -d "="');
  $naviarr = array (
   "List Machines"=>"index.php?go=machines",
   "List Groups"=>"index.php?go=groups",
@@ -169,7 +170,7 @@
   "Validation Test"=>"index.php?go=validation",
   "AutoPXE"=>"index.php?go=autopxe",
   "QA Cloud"=>"index.php?go=qacloud",
-  "QADB"=>"http://qadb.suse.de/qadb/",
+  "QADB"=>$qadb_web,
   "About Hamsta"=>"index.php?go=about"
  );
 

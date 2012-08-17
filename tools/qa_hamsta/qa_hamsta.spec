@@ -378,6 +378,11 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %{confdir}/00-hamsta-common-default
 
 %changelog
+* Fri Aug 17 2012 pkacer@suse.com
+- OpenID authentication only on request by user (see header.php).
+- OpenID is on by default in configuration.
+- Added login/logout links and user name at the top right corner.
+- Added page with user configuration (configuration is available, yet).
 * Fri Aug 10 2012 - llipavsky@suse.cz
 - Web user-friendly editor for jobs
 - HA Server yast2 UI Automation

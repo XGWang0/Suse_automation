@@ -1,3 +1,4 @@
+<?php
 /* ****************************************************************************
   Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
   
@@ -22,10 +23,18 @@
   ****************************************************************************
  */
 
-.navibar a{text-decoration:none; color:#FFFFFF; margin-right:20px;}
-.navibar a:active{color:#FFFFFF;}
-.navibar a:link:hover, .navibar a:visited:hover {color:#e78f08;}
-/*
-.navibar a:hover{color:#e78f08;}
-.navibar a:visited{color:#FFFFFF;}
-*/
+	/**
+	 * Contents of the <tt>machine_details</tt> page  
+	 */
+if (!defined('HAMSTA_FRONTEND')) {
+	$go = 'user';
+	return require("index.php");
+}
+
+/* DEBUG from here */
+echo("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis lorem tortor, condimentum at laoreet vel.");
+/* DEBUG until here */
+
+?>
+
+
