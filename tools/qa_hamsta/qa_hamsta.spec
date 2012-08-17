@@ -378,6 +378,11 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %{confdir}/00-hamsta-common-default
 
 %changelog
+* Fri Aug 17 2012 pkacer@suse.com
+- OpenID authentication only on request by user (see header.php).
+- OpenID is on by default in configuration.
+- Added login/logout links and user name at the top right corner.
+- Added page with user configuration (configuration is available, yet).
 * Wed May 2 2012 - llipavsky@suse.cz
 - New 2.3 release from QA Automation team, includes: 
 - out-of date and developement SUTs are marked in web frontend and can be updated from the frontend 
