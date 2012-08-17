@@ -41,7 +41,7 @@ remote_qa_db_report_host="qadb.ext.suse.de"
 remote_qa_db_report_user="rd-qa"
 
 # Which repository should be used for *next* installation 
-install_qa_repository="http://dist.ext.suse.com/ibs/QA:/Head"
+install_qa_repository="http://dist.nue.suse.com/ibs/QA:/Head"
 
 # This packages should be installed additionaly during *next* installation
 # format (comma-separated list): "PKG1,PKG2,PKG3"

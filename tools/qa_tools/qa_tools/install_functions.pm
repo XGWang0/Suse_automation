@@ -126,6 +126,10 @@ sub disk_stats
 			$dev="/dev/hd".$short;
 		}
 	}
+	### ignore above if segment, because sometimes disk judgement by "_has_libsata" is not correct, see bug #745785.
+	$dev=`cat /proc/diskstats | sed -n \'1p\' | awk \'{print \$3}\'`;
+	chomp($dev);
+	$dev="/dev/" . $dev;
 	return ($dev,$num);
 }
 

@@ -1,5 +1,6 @@
-/* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+/*
+****************************************************************************
+  Copyright (c) 2012 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -22,10 +23,11 @@
   ****************************************************************************
  */
 
-.navibar a{text-decoration:none; color:#FFFFFF; margin-right:20px;}
-.navibar a:active{color:#FFFFFF;}
-.navibar a:link:hover, .navibar a:visited:hover {color:#e78f08;}
-/*
-.navibar a:hover{color:#e78f08;}
-.navibar a:visited{color:#FFFFFF;}
-*/
+CREATE TABLE user_role (
+       id    INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT 'Role identifier.',
+       name  VARCHAR (255) NOT NULL UNIQUE COMMENT 'Name of the role.',
+       descr  VARCHAR (255) DEFAULT NULL COMMENT 'Obligatory description.'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO user_role (name, descr) VALUES ('admin', 'Administrator role');
+INSERT INTO user_role (name, descr) VALUES ('user', 'Usual user role');

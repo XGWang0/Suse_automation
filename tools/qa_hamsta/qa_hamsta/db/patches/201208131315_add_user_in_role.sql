@@ -1,6 +1,7 @@
-/* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
-  
+/*
+****************************************************************************
+  Copyright (c) 2012 Unpublished Work of SUSE. All Rights Reserved.
+
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
   RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
@@ -11,7 +12,7 @@
   PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
   AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
   LIABILITY.
-  
+
   SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
   WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
@@ -22,10 +23,20 @@
   ****************************************************************************
  */
 
-.navibar a{text-decoration:none; color:#FFFFFF; margin-right:20px;}
-.navibar a:active{color:#FFFFFF;}
-.navibar a:link:hover, .navibar a:visited:hover {color:#e78f08;}
-/*
-.navibar a:hover{color:#e78f08;}
-.navibar a:visited{color:#FFFFFF;}
-*/
+/* Alter the table `user`, changing to InnoDB engine which supports
+   foreing keys. */
+ALTER TABLE `user` ENGINE = InnoDB;
+
+/* Need to create index on referenced attribute or the next create fails. */
+ALTER TABLE `user` ADD PRIMARY KEY (`id`);
+
+/* Now the connecting table can be created. */
+CREATE TABLE user_in_role (
+       user_id            varchar(255) NOT NULL,
+       role_id            int      NOT NULL,
+       KEY `fk_user_in_role_user_id`(`user_id`),
+       KEY `fk_user_in_role_role_id`(`role_id`),
+       CONSTRAINT fk_user_in_role_user_id FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE RESTRICT,
+       CONSTRAINT fk_user_in_role_role_id FOREIGN KEY (`role_id`) REFERENCES  `user_role` (`id`) ON DELETE RESTRICT,
+       PRIMARY KEY (`user_id`, `role_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;

@@ -613,7 +613,7 @@ function html_link($text,$url,$tip=null,$class=null)
 {
 	return '<a href="'.$url.
 		($tip ? '" title="'.$tip : '').
-		($class ? '" class="'.$class.'"' : '').
+		($class ? '" class="'.$class : '').
 		'">'.$text."</a>";
 }
 
@@ -636,7 +636,7 @@ function html_div($class,$text)
   * @param string $url URL where the control points to
   **/
 function html_text_button($text,$url)
-{	return '<a href="'.htmlspecialchars($url).'" name="'.$text.'" class="btn">'.$text.'</a>';	}
+{	return '<a href="'.htmlspecialchars($url).'" class="btn">'.$text.'</a>';	}
 
 /** Prints a message about failed operation. */
 function html_error($msg)
@@ -676,7 +676,7 @@ function html_message($msg, $type)
 		'</div>' .
 
 		# Jquery effect
-		'<script>
+		'<script type="text/javascript">
 			$("#message-close-' . $id . '").click(function()
 			{
 				$("#message-' . $id . '").fadeTo("slow", 0, function()
@@ -761,18 +761,18 @@ function html_search_form( $url, $data, $attrs=array() )
 		if( $d[3]==SINGLE_SELECT || $d[3]==MULTI_SELECT )
 			$r.=base_select($d[0],$d[1],4,($d[3]==MULTI_SELECT) ? 'multiple="multiple"':'', $d[2], $cls);
 		else if($d[3]==TEXT_ROW)
-			$r.=sprintf('<input class="%s" id="%s" type="text" name="%s"%s/>', $cls, $d[0], $d[0],(set($d[2]) ? ' value="'.$d[2].'"':'') );
+			$r.=sprintf('<input class="%s" type="text" name="%s"%s/>', $cls, $d[0],(set($d[2]) ? ' value="'.$d[2].'"':'') );
 		else if($d[3]==TEXT_AREA)
-			$r.=sprintf('<textarea class="%s" id="%s" name="%s" rows="10" cols="80">%s</textarea>',$cls,$d[0],$d[0],$d[2]);
+			$r.=sprintf('<textarea class="%s" name="%s" rows="10" cols="80">%s</textarea>',$cls,$d[0],$d[2]);
 		else if($d[3]==CHECKBOX)
-			$r.=sprintf('<input class="%s" id="%s" type="checkbox" name="%s"%s/>', $cls, $d[0], $d[0],($d[2] ? ' checked':''));
+			$r.=sprintf('<input class="%s" type="checkbox" name="%s"%s/>', $cls, $d[0],($d[2] ? ' checked="checked"':''));
 		else if($d[3]==HIDDEN && isset($d[2]) && $d[2]!='')
 		{
 			if( is_array($d[2]) )
 				foreach( $d[2] as $e )
 					$r.=sprintf('<input type="hidden" name="%s[]" value="%s"/>'."\n",$d[0],$e);
 			else
-				$r.=sprintf('<input type="hidden" id="%s" name="%s" value="%s"/>'."\n",$d[0],$d[0],$d[2]);
+				$r.=sprintf('<input type="hidden" name="%s" value="%s"/>'."\n",$d[0],$d[2]);
 		}
 		else if($d[3]==HR)
 			$r.="\n<hr/>\n";
@@ -807,7 +807,7 @@ function base_select($name, $args, $size, $multiple, $set=null, $class='notset')
 	if( !is_array($set) )
 		$set=array($set);
 
-	$r =sprintf('<select id="%s" name="%s" class="%s" %s>'."\n", $name, $name.($multiple ? '[]':''), $class, $multiple);
+	$r =sprintf('<select name="%s" class="%s" %s>'."\n", $name.($multiple ? '[]':''), $class, $multiple);
 	for ( $i=0; $i < count($args); $i++ ){
 		$sel=in_array($args[$i][0],$set);
 		if( $sel )

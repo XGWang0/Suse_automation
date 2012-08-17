@@ -53,9 +53,9 @@ for p in $patterns; do
 done
 
 # Enable accessibility
-status=`gconftool-2  -g /desktop/gnome/interface/accessibility`
+status=`sudo gconftool-2 -g /desktop/gnome/interface/accessibility`
 if [ "$status" = "false" ]; then
-	gconftool-2  -s --type=Boolean /desktop/gnome/interface/accessibility true
+	sudo gconftool-2 -s --type=Boolean /desktop/gnome/interface/accessibility true
 else
 	echo "accessibility is enabled"
 fi

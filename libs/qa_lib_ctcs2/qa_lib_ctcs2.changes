@@ -1,4 +1,24 @@
 -------------------------------------------------------------------
+
+Mon Aug 13 14:06:24 CEST 2012 - pkacer@suse.com
+
+- qa_lib_ctcs2.8: Fixed formatting and typos. Refrased some setences.
+
+-------------------------------------------------------------------
+
+Fri Aug 10 13:15:20 CEST 2012 - llipavsky@suse.cz
+
+- Web user-friendly editor for jobs
+- HA Server yast2 UI Automation
+- Build mapping in QADB (buildXXX -> beta Y)
+- Improved regression analysis
+- Support for benchmark parsers in benchmark testsuite (author of testsuite will also provide a script to parse the results)
+- Power switch support in Hamsta (thanks mpluskal!)
+- Only results created in the job are submitted to QADB
+- QADB improvements
+
+-------------------------------------------------------------------
+
 Thu May 17 15:34:49 CEST 2012 - llipavsky@suse.cz
 
 - Add benchparser command support in TCF file

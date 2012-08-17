@@ -151,10 +151,10 @@ function process_tree( $level, $where, $label='' )
 		process_x_axis($x,$graph_data);
 
 		# print the table header
-		print "<p><table border=\"1\" cellspacing=\"0\" style=\"empty-cells:show\">\n";
+		print "<table class=\"benchtbl\">\n";
 		$group = $grp_by;
 		$group = preg_replace('/\w+\./',' ',$group);
-		print "\t<tr><th colspan=2>$group</th>";
+		print "\t<tr><th colspan=\"2\">$group</th>";
 		foreach( $x as $xval )
 			print '<th colspan="2">'.join($separator,$xval).'</th>';
 		print "</tr>\n";
@@ -208,7 +208,7 @@ function process_tree( $level, $where, $label='' )
 	# level 1 - finish table & display graph
 	if( $level==1 )
 	{
-		print "</table></p>\n";
+		print "</table>\n";
         if( $cookie_val['graph_x']>0 && $cookie_val['graph_y']>0 )
 		    graph_draw( $graph_data );
 	}
@@ -316,7 +316,7 @@ function print_row( $header, $num, $data )
 		# left table header
 		if( $i==0 )
 		{
-			print "<th rowspan=\"$span\" bgcolor=\"".$colors[$num%count($colors)].'">&nbsp;</th>';
+			print "<th rowspan=\"$span\" style=\"background-color:".$colors[$num%count($colors)].'">&nbsp;</th>';
 			print "<th rowspan=\"$span\">$header</th>";
 		}
 		
@@ -354,7 +354,7 @@ function print_row( $header, $num, $data )
 			# format the average / deviation
 			if( $i==0 )
 				if( count( $column[1] ) > 1 )
-					print '<td rowspan="'.$span.'">'.sanitize_number($column[1][0]).' &plusmn; '.sanitize_number($column[1][1]);
+					print '<td rowspan="'.$span.'">'.sanitize_number($column[1][0]).' &plusmn; '.sanitize_number($column[1][1]).'</td>';
 				else
 					print "<td rowspan=\"$span\"></td>";
 		}
@@ -588,7 +588,7 @@ function graph_draw( $graph_data )
 	$plot->PrintImage();
 
 	# print HTML tag
-	print "<p><img src=\"$imgdir_rel/$graph_name\" alt=\"Graph\"></p>\n\n";
+	print "<p class=\"benchimg\"><img src=\"$imgdir_rel/$graph_name\" alt=\"Graph\" class=\"benchimg\"/></p>\n\n";
 
 }
 

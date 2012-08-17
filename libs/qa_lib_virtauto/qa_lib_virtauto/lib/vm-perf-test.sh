@@ -44,7 +44,7 @@ fi
 domuName=$1
 
 # Define performance test cases
-case_list="qa_fs_stress qa_process_stress qa_sched_stress"
+case_list="qa_test_fs_stress qa_test_process_stress qa_test_sched_stress"
 
 echo
 echo "          --------------------------------"
@@ -59,26 +59,26 @@ getSettings="./get-settings.sh"
 netinfoIP=`$getSettings netinfo.ip`
 netinfoUser=`$getSettings netinfo.user`
 netinfoPasswd=`$getSettings netinfo.pass > /dev/null 2>&1`
-domUIP=`export SSHPASS=$pass; $sshNoPass $netinfoUser@$netinfoIP mac2ip $domUMac`
+domUIP=`export SSHPASS=$netinfoPasswd; $sshNoPass $netinfoUser@$netinfoIP mac2ip $domUMac`
 
 # Get vm-user vm-pass
 vmuser=`$getSettings vm.user`
 vmpasswd=`$getSettings vm.pass > /dev/null 2>&1`
 
 # Get OS version/subversion
-dumUVersion=`export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP 'grep VERSION /etc/SuSE-release | cut -d" " -f3'`
-domUSubversion=`export SSHPASS=$pass; $sshNoPass $vmuser@$domUIP 'grep PATCHLEVEL /etc/SuSE-release | cut -d" " -f3'`
+dumUVersion=`export SSHPASS=$vmpasswd; $sshNoPass $vmuser@$domUIP 'grep VERSION /etc/SuSE-release | cut -d" " -f3'`
+domUSubversion=`export SSHPASS=$vmpasswd; $sshNoPass $vmuser@$domUIP 'grep PATCHLEVEL /etc/SuSE-release | cut -d" " -f3'`
 
 # Get repoURL
 source /usr/share/qa/lib/config ''
 install_repo=`get_qa_config install_qa_repository`
 
-if [ $dumUVersion -eq "11" ]; then
-	[ $domUSubversion -eq "0" ] && repoURL="$install_repo/SUSE_SLE-11_GA/"
-	[ $domUSubversion -eq "1" ] && repoURL="$install_repo/SUSE_SLE-11-SP1_GA/"
-elif [ $dumUVersion -eq "10" ]; then
-	[ $domUSubversion -eq "3" ] && repoURL="$install_repo/SLE_10_SP3/"
-	[ $domUSubversion -eq "4" ] && repoURL="$install_repo/SLE_10_SP4/"
+if [ "$dumUVersion" = "11" ]; then
+	[ $domUSubversion = "0" ] && repoURL="$install_repo/SUSE_SLE-11_GA/"
+	[ $domUSubversion = "1" ] && repoURL="$install_repo/SUSE_SLE-11-SP1_GA/"
+elif [ "$dumUVersion" = "10" ]; then
+	[ $domUSubversion = "3" ] && repoURL="$install_repo/SLE_10_SP3/"
+	[ $domUSubversion = "4" ] && repoURL="$install_repo/SLE_10_SP4/"
 fi
 
 vmInfo=`virsh dominfo $domuName 2>/dev/null`
@@ -103,10 +103,10 @@ echo "		TestCases: $case_list..."
 echo
 
 # Add Dev Repo
-if [ $dumUVersion -eq "11" ]; then
+if [ "$dumUVersion" = "11" ]; then
 	export SSHPASS=$vmpasswd ; $sshNoPass $vmuser@$domUIP "zypper ar -f $repoURL devrepo > /dev/null 2>&1"
 	ret=$?
-elif [ $dumUVersion -eq "10" ]; then
+elif [ "$dumUVersion" = "10" ]; then
 	export SSHPASS=$vmpasswd ; $sshNoPass $vmuser@$domUIP "zypper sa $repoURL devrepo > /dev/null 2>&1"
 	ret=$?
 fi

@@ -44,7 +44,7 @@ function field($name,$value)
       <td><input type="text" name="cand_submission_id"<?php if($cand_submission_id) print " value=\"$cand_submission_id\"";?>/></td>
       <td>Candidate tcf_id</td>
       <td><?php field('cand_tcf_id',$cand_tcf_id); ?></td>
-      <td><input type="submit" /></td>
+      <td><input type="submit" class="btn submit" /></td>
     </tr>
   </tbody>
 </table>

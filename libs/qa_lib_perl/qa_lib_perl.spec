@@ -114,6 +114,15 @@ rm -rf $RPM_BUILD_ROOT
 %doc COPYING
 
 %changelog
+* Fri Aug 10 2012 - llipavsky@suse.cz
+- Web user-friendly editor for jobs
+- HA Server yast2 UI Automation
+- Build mapping in QADB (buildXXX -> beta Y)
+- Improved regression analysis
+- Support for benchmark parsers in benchmark testsuite (author of testsuite will also provide a script to parse the results)
+- Power switch support in Hamsta (thanks mpluskal!)
+- Only results created in the job are submitted to QADB
+- QADB improvements
 * Fri May 18 2012 - llipavsky@suse.cz
 - Added benchparser support to results (doc & ctcs2 parser)
 - added benchxml.pm to read/write bench results from/to xml

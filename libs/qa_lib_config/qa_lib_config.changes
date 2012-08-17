@@ -1,4 +1,22 @@
 -------------------------------------------------------------------
+Fri Aug 10 13:14:28 CEST 2012 - llipavsky@suse.cz
+
+- Web user-friendly editor for jobs
+- HA Server yast2 UI Automation
+- Build mapping in QADB (buildXXX -> beta Y)
+- Improved regression analysis
+- Support for benchmark parsers in benchmark testsuite (author of testsuite will also provide a script to parse the results)
+- Power switch support in Hamsta (thanks mpluskal!)
+- Only results created in the job are submitted to QADB
+- QADB improvements
+
+-------------------------------------------------------------------
+Mon Aug 13 14:06:24 CEST 2012 - pkacer@suse.com
+
+- qa_lib_config/config, qa_lib_config.8: Fixed doc typos and
+  formatting of the man page.
+
+-------------------------------------------------------------------
 Wed May  2 09:06:28 CEST 2012 - llipavsky@suse.cz
 
 - New 2.3 release from QA Automation team, includes: 
