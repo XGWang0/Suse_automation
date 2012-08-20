@@ -702,16 +702,22 @@
 		<span class="method-name">
 			html_search_form
 		</span>
-					(<span class="var-type"></span>&nbsp;<span class="var-name">$num</span>, [<span class="var-type"></span>&nbsp;<span class="var-name">$valid_digits</span> = <span class="var-default">5</span>])
+					(<span class="var-type"></span>&nbsp;<span class="var-name">$url</span>, <span class="var-type">array</span>&nbsp;<span class="var-name">$data</span>, [<span class="var-type"></span>&nbsp;<span class="var-name">$attrs</span> = <span class="var-default">array()</span>], <span class="var-type">string</span>&nbsp;<span class="var-name">$action</span>)
 			</div>
 
 			<ul class="parameters">
 					<li>
-				<span class="var-type"></span>
-				<span class="var-name">$num</span>			</li>
+				<span class="var-type">string</span>
+				<span class="var-name">$action</span><span class="var-description">: URL where the form submit to</span>			</li>
+					<li>
+				<span class="var-type">array</span>
+				<span class="var-name">$data</span><span class="var-description">: array of array( $name, $values, $values_got, $type, [ $label ] ) :</span>			</li>
 					<li>
 				<span class="var-type"></span>
-				<span class="var-name">$valid_digits</span>			</li>
+				<span class="var-name">$url</span>			</li>
+					<li>
+				<span class="var-type"></span>
+				<span class="var-name">$attrs</span>			</li>
 				</ul>
 		
 	
@@ -809,7 +815,7 @@
 				<span class="var-name">$data</span>			</li>
 					<li>
 				<span class="var-type"></span>
-				<span class="var-name">$base</span>			</li>
+				<span class="var-name">$attrs</span>			</li>
 				</ul>
 		
 	
