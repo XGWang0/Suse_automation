@@ -1,7 +1,7 @@
 <?php
 /* ****************************************************************************
   Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
-  
+
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
   RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
@@ -12,7 +12,7 @@
   PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
   AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
   LIABILITY.
-  
+
   SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
   WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
@@ -23,18 +23,29 @@
   ****************************************************************************
  */
 
-	/**
-	 * Contents of the <tt>machine_details</tt> page  
-	 */
+/**
+ * Contents of the <tt>machine_details</tt> page  
+ */
 if (!defined('HAMSTA_FRONTEND')) {
 	$go = 'user';
 	return require("index.php");
 }
 
-/* DEBUG from here */
-echo("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis lorem tortor, condimentum at laoreet vel.");
-/* DEBUG until here */
-
+if ( array_key_exists('OPENID_AUTH', $_SESSION)) {
+   $user = User::get_by_openid ($_SESSION['OPENID_AUTH'] );
+}
 ?>
 
+<p>
+Your user name is <b><?php echo (isset ($user) ? $user->get_name() : "unset") ?></b>.<br />
+Your e-mail address is <b><?php echo (isset ($user) ? $user->get_email() : "unset") ?></b>.<br />
+</p>
 
+<?php if ( $user ): ?>
+<form type="post">
+  <formset>
+    <input type="hidden" name="go" value="register" />
+    <input type="submit" value="Change"/>
+  </formset>
+</form>
+<?php endif; ?>
