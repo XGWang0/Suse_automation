@@ -163,7 +163,7 @@
 	);
 
 # header & footer links
-$qadb_web = system('/usr/share/qa/tools/get_qa_config qadb_wwwroot');
+$qadb_web = exec('/usr/share/qa/tools/get_qa_config qadb_wwwroot');
  $naviarr = array (
   "List Machines"=>"index.php?go=machines",
   "List Groups"=>"index.php?go=groups",
