@@ -31,7 +31,7 @@ Source1:	%name.8
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 PreReq:         coreutils
-Requires:       mod_php_any httpd php-pdo tblib php-gd mysql mysql-client php-bz2 phplot
+Requires:       mod_php_any httpd php-pdo tblib php-gd mysql mysql-client php-bz2 phplot qa_lib_openid
 Provides:	qadb
 Obsoletes:	qadb
 
@@ -86,8 +86,29 @@ echo "=================== I M P O R T A N T ======================="
 %attr(755,root,root) %{destdir}/db/update_db.sh
 %config(noreplace) %{webdir}/myconnect.inc.php
 %attr(-,wwwrun,www) %{webdir}/output
+%doc COPYING
 
 %changelog
+* Fri Aug 10 2012 - llipavsky@suse.cz
+- Web user-friendly editor for jobs
+- HA Server yast2 UI Automation
+- Build mapping in QADB (buildXXX -> beta Y)
+- Improved regression analysis
+- Support for benchmark parsers in benchmark testsuite (author of testsuite will also provide a script to parse the results)
+- Power switch support in Hamsta (thanks mpluskal!)
+- Only results created in the job are submitted to QADB
+- QADB improvements
+* Wed May 2 2012 - llipavsky@suse.cz
+- New 2.3 release from QA Automation team, includes: 
+- out-of date and developement SUTs are marked in web frontend and can be updated from the frontend 
+- HA Server yast2-cluster UI Automation 
+- Improved CLI interface to Hamsta 
+- It is possible to get/choose all patterns from all products during SUT intallation (until now, only SLES/D & SDK patterns were shown) 
+- Parametrized jobs 
+- Better web editors of jobs. Now with multimachine job support 
+- Hamsta client one-click installer 
+- QADB improvements 
+- No more Novell icon in Hamsta ;-)
 * Mon Nov 14 2011 - llipavsky@suse.cz
 - New 2.2 release from QA Automation team, includes:
 - Automated stage testing

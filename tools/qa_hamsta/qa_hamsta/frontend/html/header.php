@@ -53,13 +53,13 @@
 
 	<div id="hlogo">
 		<a href="/hamsta" border="0" style="text-decoration: none;">
-			<img src="images/logo-novell.png" class="logo" alt="Novell Logo" title="Click to return to the main page" />
 			<img src="images/logo-hamsta.png" class="logo" alt="Hamsta Logo" title="Click to return to the main page" />
 			<img src="images/logo-suse.png" class="logo" alt="Suse Logo" title="Click to return to the main page" />
-			<img src="images/header.png" class="caption" alt="OPS QA Automation" title="Click to return to the main page" />
+			<img src="images/header.png" class="caption" alt="SUSE QA Automation" title="Click to return to the main page" />
 			<img src="images/hamsta.png" class="hamsta" alt="Hamsta" title="Hamsta" />
 		</a>
-		<div class="version text-main text-white bold"><em>v2.2.0</em></div>
+		<div class="version text-main text-white bold"><em>v<?php $version = explode("-", $hamstaVersion); echo($version[2]); ?></em></div>
+		<div style="float: right" class="navibar"><a class="text-main text-white" href="index.php?go=install_client">Install Client</a></div>
 	</div>
 
 	<div id="header-links" class="text-medium bold">

@@ -6,18 +6,18 @@ pager_fill_from_http($pager2,'p2_');
 pager_fill_from_http($pager3,'p3_');
 
 common_header(array('title'=>'regression tool'));
-$ref_submissionID=$ref_submissionID_got=http('ref_submissionID',http('oldsubmissionID'));
-$cand_submissionID=$cand_submissionID_got=http('cand_submissionID',http('newsubmissionID'));
-$ref_tcfID=http('ref_tcfID');
-$cand_tcfID=http('cand_tcfID');
+$ref_submission_id=$ref_submission_id_got=http('ref_submission_id',http('oldsubmission_id'));
+$cand_submission_id=$cand_submission_id_got=http('cand_submission_id',http('newsubmission_id'));
+$ref_tcf_id=http('ref_tcf_id');
+$cand_tcf_id=http('cand_tcf_id');
 
 $what1 = array(
-	array('ref_submissionID' ,'',$ref_submissionID, TEXT_ROW,'Reference (old) submission ID'),
-	array('cand_submissionID','',$cand_submissionID,TEXT_ROW,'Candidate (new) submission ID')
+	array('ref_submission_id' ,'',$ref_submission_id, TEXT_ROW,'Reference (old) submission ID'),
+	array('cand_submission_id','',$cand_submission_id,TEXT_ROW,'Candidate (new) submission ID')
 );
 $what2 = array(
-	array('ref_tcfID' ,'',$ref_tcfID, TEXT_ROW,'Reference (old) tcfID'),
-	array('cand_tcfID','',$cand_tcfID,TEXT_ROW,'Candidate (new) tcfID')
+	array('ref_tcf_id' ,'',$ref_tcf_id, TEXT_ROW,'Reference (old) tcf_id'),
+	array('cand_tcf_id','',$cand_tcf_id,TEXT_ROW,'Candidate (new) tcf_id')
 );
 
 function field($name,$value)
@@ -33,18 +33,18 @@ function field($name,$value)
   <tbody>
     <tr>
       <td>Reference Submission ID</td>
-      <td><?php field('ref_submissionID',$ref_submissionID); ?></td>
+      <td><?php field('ref_submission_id',$ref_submission_id); ?></td>
       <td rowspan="2" width="50">OR</td>
-      <td>Reference tcfID</td>
-      <td><?php field('ref_tcfID',$ref_tcfID); ?></td>
+      <td>Reference tcf_id</td>
+      <td><?php field('ref_tcf_id',$ref_tcf_id); ?></td>
       <td></td>
     </tr>
     <tr>
       <td>Candidate Submission ID</td>
-      <td><input type="text" name="cand_submissionID"<?php if($cand_submissionID) print " value=\"$cand_submissionID\"";?>/></td>
-      <td>Candidate tcfID</td>
-      <td><?php field('cand_tcfID',$cand_tcfID); ?></td>
-      <td><input type="submit" /></td>
+      <td><input type="text" name="cand_submission_id"<?php if($cand_submission_id) print " value=\"$cand_submission_id\"";?>/></td>
+      <td>Candidate tcf_id</td>
+      <td><?php field('cand_tcf_id',$cand_tcf_id); ?></td>
+      <td><input type="submit" class="btn submit" /></td>
     </tr>
   </tbody>
 </table>
@@ -81,10 +81,10 @@ function colorize()
 
 # HTTP args to preserve while paging
 $what = array (
-	array('ref_submissionID','',$ref_submissionID),
-	array('cand_submissionID','',$cand_submissionID),
-	array('ref_tcfID','',$ref_tcfID),
-	array('cand_tcfID','',$cand_tcfID),
+	array('ref_submission_id','',$ref_submission_id),
+	array('cand_submission_id','',$cand_submission_id),
+	array('ref_tcf_id','',$ref_tcf_id),
+	array('cand_tcf_id','',$cand_tcf_id),
 	array('p1_page','',http('p1_page')),
 	array('p2_page','',http('p2_page')),
 	array('p3_page','',http('p3_page'))
@@ -109,19 +109,19 @@ $pager2['what'] = pager_args('p2_page');
 $pager3['what'] = pager_args('p3_page');
 	
 
-# if no submissionIDs entered, count them from tcfIDs
-if( $ref_tcfID && !$ref_submissionID )
-	$ref_submissionID = tcf_get_submission($ref_tcfID);
-if( $cand_tcfID && !$cand_submissionID )
-	$cand_submissionID = tcf_get_submission($cand_tcfID);
+# if no submission_ids entered, count them from tcf_ids
+if( $ref_tcf_id && !$ref_submission_id )
+	$ref_submission_id = tcf_get_submission($ref_tcf_id);
+if( $cand_tcf_id && !$cand_submission_id )
+	$cand_submission_id = tcf_get_submission($cand_tcf_id);
 
 # lookup submissions and print their details
-if( $ref_submissionID>0 && $cand_submissionID>0 )
+if( $ref_submission_id>0 && $cand_submission_id>0 )
 {
-	echo "<h3>ref  (old) subm $ref_submissionID</h3>\n";
-	$sub_r=&print_submission_details($ref_submissionID);
-	echo "<h3>cand (new) subm $cand_submissionID</h3>\n";
-	$sub_c=&print_submission_details($cand_submissionID);
+	echo "<h3>ref  (old) subm $ref_submission_id</h3>\n";
+	$sub_r=&print_submission_details($ref_submission_id);
+	echo "<h3>cand (new) subm $cand_submission_id</h3>\n";
+	$sub_c=&print_submission_details($cand_submission_id);
 }
 
 # when all inputs present, do the comparison
@@ -131,20 +131,20 @@ if( isset($sub_r[1]) && isset($sub_c[1]) )
 
 	# fetch preprocessed data
 	$data = regression_differences(array(
-		'cand_submissionID'	=> $cand_submissionID_got,
-		'ref_submissionID'	=> $ref_submissionID_got,
-		'cand_tcfID'		=> $cand_tcfID,
-		'ref_tcfID'		=> $ref_tcfID,
+		'cand_submission_id'	=> $cand_submission_id_got,
+		'ref_submission_id'	=> $ref_submission_id_got,
+		'cand_tcf_id'		=> $cand_tcf_id,
+		'ref_tcf_id'		=> $ref_tcf_id,
 	),$pager1);
 
 	# rewrite table header received from DB
-	$internal=array('testcaseID','r_state','c_state','waiverID');
-	$data[0]['r_testsuites']='ref<br/>suite(s)';
+	$internal=array('testcase_id','r_state','c_state','waiver_id');
+	$data[0]['r_testsuite']='ref<br/>suite(s)';
 	$data[0]['r_succ']='ref<br/>succ';
 	$data[0]['r_fail']='ref<br/>fail';
 	$data[0]['r_interr']='ref<br/>interr';
 	$data[0]['r_skip']='ref<br/>skipped';
-	$data[0]['c_testsuites']='cand<br/>suite(s)';
+	$data[0]['c_testsuite']='cand<br/>suite(s)';
 	$data[0]['c_succ']='cand<br/>succ';
 	$data[0]['c_fail']='cand<br/>fail';
 	$data[0]['c_interr']='cand<br/>interr';
@@ -162,25 +162,25 @@ if( isset($sub_r[1]) && isset($sub_c[1]) )
 	{
 		# status
 		$row=$data[$i];
-		$tcID=$row['testcaseID'];
+		$tc_id=$row['testcase_id'];
 		$match=$state_table[$row['r_state']][$row['c_state']];
 		$info=$status_names[$match];
 
 		# waiver
 		$waiver='';
 		$wr=$wc=$hide=0;
-		$waiverID=$row['waiverID'];
-		if( $waiverID )	{
+		$waiver_id=$row['waiver_id'];
+		if( $waiver_id )	{
 			# waiver exists
-			$wr=waiver_exact($waiverID,$sub_r);
-			$wc=waiver_exact($waiverID,$sub_c);
+			$wr=waiver_exact($waiver_id,$sub_r);
+			$wc=waiver_exact($waiver_id,$sub_c);
 
 			# hide testcases known to be broken
 			if( $wc=='problem' || ($wc=='no problem' && $wr=='problem') )
 				$hide=1;
 
 			# button to view/edit waiver details
-			$waiver=html_text_button("show","waiver.php?view=view_waiver&waiverID=$waiverID");
+			$waiver=html_text_button("show","waiver.php?view=view_waiver&waiver_id=$waiver_id");
 			
 			# display mode, weaken the status
 			$info .= ', waiver';
@@ -189,7 +189,7 @@ if( isset($sub_r[1]) && isset($sub_c[1]) )
 			$match .= ' w';
 		} else {
 			# waiver does not exist - button
-			$waiver=html_text_button("create","waiver.php?view=new_both&testcases=$tcID&architectures=".$sub_c[1]['archID'].'&products='.$sub_c[1]['productID'].'&releases='.$sub_c[1]['releaseID']);
+			$waiver=html_text_button("create","waiver.php?view=new_both&testcase=$tc_id&arch=".$sub_c[1]['arch_id'].'&products='.$sub_c[1]['product_id'].'&releases='.$sub_c[1]['release_id']);
 		}
 
 		# write results, hide internal columns
@@ -219,18 +219,18 @@ if( isset($sub_r[1]) && isset($sub_c[1]) )
 
 	# candicate-only testcases
 	$transl=array();
-	$candonly=search_submissions_results(0,array('submissionID'=>$cand_submissionID_got,'tcfID'=>$cand_tcfID,'res_minus_sub'=>$ref_submissionID_got,'res_minus_tcf'=>$ref_tcfID),$transl,$pager2);
+	$candonly=search_submission_result(0,array('submission_id'=>$cand_submission_id_got,'tcf_id'=>$cand_tcf_id,'res_minus_sub'=>$ref_submission_id_got,'res_minus_tcf'=>$ref_tcf_id),$transl,$pager2);
 	if( count($candonly)>1 )	{
 		print "<h3>Testcases only in candidate</h3>\n";
-		results_process_print($candonly,$sub_c,$transl,$pager2,'res_candonly');
+		result_process_print($candonly,$sub_c,$transl,$pager2,'res_candonly');
 	}
 
 	# reference-only testcases
 	$transl=array();
-	$refonly=search_submissions_results(0,array('submissionID'=>$ref_submissionID_got,'tcfID'=>$ref_tcfID,'res_minus_sub'=>$cand_submissionID_got,'res_minus_tcf'=>$cand_tcfID),$transl,$pager3);
+	$refonly=search_submission_result(0,array('submission_id'=>$ref_submission_id_got,'tcf_id'=>$ref_tcf_id,'res_minus_sub'=>$cand_submission_id_got,'res_minus_tcf'=>$cand_tcf_id),$transl,$pager3);
 	if( count($refonly)>1 )	{
 		print "<h3>Testcases only in reference</h3>\n";
-		results_process_print($refonly,$sub_r,$transl,$pager3,'res_refonly');
+		result_process_print($refonly,$sub_r,$transl,$pager3,'res_refonly');
 	}
 
 }

@@ -106,10 +106,9 @@ Authors:
 License:        SUSE Proprietary  
 Summary:        HArdware Maintenance, Setup & Test Automation  
 Group:          System/Management  
-%if 0%{?sles_version} == 9
-Requires:       mod_php_any httpd php-pdo php-mysql hamsta-jobs tblib ajaxterm jquery
-%else
-Requires:       mod_php_any httpd php-pdo php-mysql hamsta-jobs tblib ajaxterm jquery
+Requires:       mod_php_any httpd php-pdo php-mysql hamsta-jobs tblib ajaxterm jquery qa_lib_openid php5-curl php5-snmp ipmitool sshpass libvirt
+
+%if 0%{?sles_version} > 9
 Recommends:	mysql
 %endif
 Provides:	hamsta-frontend
@@ -323,6 +322,7 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %{_sbindir}/rchamsta
 %{confdir}/00-hamsta-default
 %dir /var/lib/hamsta
+%doc COPYING
 
 %files master  
 %defattr(-, root, root)
@@ -376,6 +376,26 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %{confdir}/00-hamsta-common-default
 
 %changelog
+* Fri Aug 10 2012 - llipavsky@suse.cz
+- Web user-friendly editor for jobs
+- HA Server yast2 UI Automation
+- Build mapping in QADB (buildXXX -> beta Y)
+- Improved regression analysis
+- Support for benchmark parsers in benchmark testsuite (author of testsuite will also provide a script to parse the results)
+- Power switch support in Hamsta (thanks mpluskal!)
+- Only results created in the job are submitted to QADB
+- QADB improvements
+* Wed May 2 2012 - llipavsky@suse.cz
+- New 2.3 release from QA Automation team, includes: 
+- out-of date and developement SUTs are marked in web frontend and can be updated from the frontend 
+- HA Server yast2-cluster UI Automation 
+- Improved CLI interface to Hamsta 
+- It is possible to get/choose all patterns from all products during SUT intallation (until now, only SLES/D & SDK patterns were shown) 
+- Parametrized jobs 
+- Better web editors of jobs. Now with multimachine job support 
+- Hamsta client one-click installer 
+- QADB improvements 
+- No more Novell icon in Hamsta ;-)
 * Mon Nov 14 2011 - llipavsky@suse.cz
 - New 2.2 release from QA Automation team, includes:
 - Automated stage testing

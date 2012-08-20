@@ -30,9 +30,14 @@
         $go = 'vhreinstall';
         return require("index.php");
     }
+	if (array_key_exists('OPENID_AUTH', $_SESSION))
+		$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
+
 	$blockedMachines = array();
 	$virtualMachines = array();
 	$hasChildren = array();
+    $ishwvirt = 0;
+    $arrhwvirt = array();
 	foreach ($machines as $machine) {
 		if( ! $machine->has_perm('job') || ! $machine->has_perm('install') ) {
 			$blockedMachines[] = $machine->get_hostname();
@@ -43,6 +48,8 @@
 		if(count($machine->get_children()) > 0) {
 			$hasChildren[] = $machine->get_hostname();
 		}
+        $ishwvirt += $machine->get_ishwvirt();
+        $arrhwvirt[$machine->get_hostname()]=$machine->get_ishwvirt();
 	}
 	if(count($blockedMachines) != 0) {
 		echo "<div class=\"text-medium\">" .
@@ -62,7 +69,13 @@
 			"<strong>" . implode(", ", $hasChildren) . "</strong><br /><br />" .
 			"It is not possible to reinstall virtual hosts with virtual machines (you can delete them in QA Cloud before reinstalling virtual host)." .
 			"</div>";
-
+	} elseif ($ishwvirt != count($machines)) {
+		echo "<div class=\"text-medium\">" .
+		"The following machines probably doesn't support HardWare virtualization:<br /><br />";
+		foreach ($arrhwvirt as $key=>$value)
+			if ($value == "0")
+					echo "<strong>" . $key . "</strong><br />";
+		echo "Please go back and try other machines.</div>\n";
 	} else {
 
 ?>
@@ -88,7 +101,7 @@ This page will allow you to customize the AutoYaST product installation for the 
   <?php require ("req_vhrein.php"); ?>
   <tr>
     <td>Notification email address (optional):</td>
-    <td><input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} ?>" /> (if you want to be notified when the installation is finished)</td>
+    <td><input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} else if ($openid_auth && isset($user)) { echo $user->get_email(); } ?>" /> (if you want to be notified when the installation is finished)</td>
   </tr>
 </table>    
 <br />

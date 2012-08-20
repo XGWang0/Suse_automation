@@ -1,6 +1,6 @@
 ====Caution!!!====
-"Smoke test" and "test all" are done by "custome test" now, Triggered by validation test in pre-defined job list.
-"Custom test" receives a parameter list, which stands for the test suite list.
+"Smoke test" and "test all" are done by "custome test" now, triggered by validation test in pre-defined job list.
+"Custom test" receives a parameter list, which stands for the test suites list.
 Please make sure SLES, SDK and QA repos are added before test.(This could be done when you reinstall this machine.)
 This work suppose to be done by reinstall.pl, anyway you can also add/modify manually if it dosen't work.
 
@@ -18,4 +18,4 @@ Other scripts
 
 
 Contact:
-llwang@novell.com
+aguo@suse.com

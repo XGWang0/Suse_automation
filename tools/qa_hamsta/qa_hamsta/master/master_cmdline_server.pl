@@ -71,7 +71,7 @@ sub deconstruct() {
     # empty the machine table, so we have to initialize and fill them later again
     &sql_get_connection();
 
-    &TRANSACTION( 'machine' );
+    &TRANSACTION( 'machine','job_on_machine','job' );
     &machine_set_all_unknown();
     &TRANSACTION_END;
 

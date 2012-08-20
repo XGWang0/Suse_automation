@@ -16,6 +16,7 @@
         <worker>
             <!-- Required -->
             <command execution="forked">#!/bin/bash
+			#setupUI;
 		    cd /usr/share/hamsta/testscript 
 		    ./customtest TS_LIST
 	    </command>

@@ -123,6 +123,7 @@ rm -rf $RPM_BUILD_ROOT
 %{libdir}/bench_parsers.pm
 %{libdir}/.version
 %{confdir}
+%doc COPYING
 
 %changelog
 

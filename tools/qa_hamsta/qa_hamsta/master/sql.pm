@@ -38,6 +38,7 @@ use base 'db_common';
 
 %db_common::enums = (
 	'arch'			=>	[ 'arch_id', 'arch' ],
+	'cpu_vendor'		=>	[ 'cpu_vendor_id', 'cpu_vendor' ],
 	'group'			=>	[ 'group_id', 'group' ],
 	'job_status'		=>	[ 'job_status_id', 'job_status' ],
 	'machine'		=>	[ 'machine_id', 'name' ],
@@ -87,8 +88,11 @@ sub machine_set_busy($$) # machine_id, busy
 sub machine_has_perm($$) # machine_id, perm_str
 {    return $dbc->scalar_query('SELECT FIND_IN_SET(?,perm) FROM machine WHERE machine_id=?',$_[1],$_[0]);    }
 
-sub machine_set_all_unknown()
-{	return $dbc->update_query('UPDATE machine SET machine_status_id=6');	}
+sub machine_set_all_unknown(){
+     $dbc->update_query('UPDATE job_on_machine SET job_status_id=4 WHERE job_status_id=6');
+     $dbc->update_query('UPDATE job SET job_status_id=4 WHERE job_status_id=6');
+     $dbc->update_query('UPDATE machine SET machine_status_id=6');
+}
 
 sub machine_get_ip_hostname($) # machine_id
 {	return $dbc->row_query('SELECT ip,name FROM machine WHERE machine_id=?',$_[0]);	}
@@ -129,11 +133,15 @@ sub machine_search
 		$dbc->matrix_query(@args))));
 }
 
-sub machine_insert($$$$$$$) # unique_id, arch_id, hostname, IP, description, kernel, machine_status_id
-{	return $dbc->insert_query('INSERT INTO machine (unique_id,arch_id,name,ip,description,kernel,machine_status_id) VALUES(?,?,?,?,?,?,?)',@_);	}
+sub machine_insert($$$$$$$$$$$$) # unique_id, arch_id, hostname, IP, description, kernel, rpm_list, cpu_nr, cpu_vendor_id, memsize, disksize, machine_status_id
+{	return $dbc->insert_query('INSERT INTO machine (unique_id,arch_id,name,ip,description,kernel,rpm_list,cpu_nr,cpu_vendor_id,memsize,disksize,machine_status_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',@_);	}
 
-sub machine_update($$$$$$$) # machine_id, unique_id, arch_id, hostname, IP, description, kernel, machine_status_id
-{	return $dbc->update_query('UPDATE machine SET unique_id=?,arch_id=?,name=?,ip=?,description=?,kernel=?,machine_status_id=? WHERE machine_id=?',@_[1,2,3,4,5,6,7,0]);	}
+sub machine_update($$$$$$$$$$$$$) # machine_id, unique_id, arch_id, hostname, IP, description, kernel, rpm_list, cpu_nr, cpu_vendor_id, memsize, disksize, machine_status_id
+{	
+	my $machine_id = shift;
+	return $dbc->update_query('UPDATE machine SET unique_id=?,arch_id=?,name=?,ip=?,description=?,kernel=?,rpm_list=?,cpu_nr=?,cpu_vendor_id=?,memsize=?,disksize=?,machine_status_id=? WHERE machine_id=?',@_,$machine_id);
+}
+
 
 sub machine_update_hostnameip($$$) # unique_id, hostname, IP
 {   return $dbc->update_query('UPDATE machine SET name=?,ip=? WHERE unique_id=?',@_[1,2,0]);    }
@@ -151,7 +159,7 @@ sub machine_list_free()
 {	return $dbc->vector_query("SELECT machine_id FROM machine WHERE busy=0 AND machine_status_id=1 ORDER BY (ISNULL(usedby) OR usedby='') DESC, RAND()");	}
 
 sub busy_machines_without_jobs()	{
-	return $dbc->vector_query("SELECT machine_id FROM machine WHERE busy=1 AND NOT EXISTS(SELECT * FROM job_on_machine WHERE machine.machine_id=job_on_machine.machine_id AND job_status_id=2)");
+	return $dbc->vector_query("SELECT machine_id FROM machine WHERE busy=1 AND NOT EXISTS(SELECT * FROM job_on_machine WHERE machine.machine_id=job_on_machine.machine_id AND (job_status_id=2 OR job_status_id=6))");
 }
 
 ### virtual machines functions
@@ -180,6 +188,9 @@ sub job_set_status($$) # job_id, job_status_id
     $dbc->update_query('UPDATE job_on_machine SET job_status_id=? WHERE job_id=?',$_[1],$_[0]);
     return $dbc->update_query('UPDATE job SET job_status_id=? WHERE job_id=?',$_[1],$_[0]);
 }
+
+sub job_get_status($) # job_id
+{	return $dbc->scalar_query('SELECT job_status_id FROM job_on_machine WHERE job_id=?',$_[0]);	}
 
 sub job_get_aimed_host($) # job_id
 {	return $dbc->scalar_query('SELECT aimed_host FROM job WHERE job_id=?',$_[0]);	}
@@ -222,11 +233,14 @@ sub job_on_machine_get_by_job_id($) # job_id
 sub job_on_machine_get_by_status($) # status_id
 {	return $dbc->matrix_query('SELECT job_on_machine_id,machine_id,job_id FROM job_on_machine WHERE job_status_id=?',$_[0]);	}
 
+sub job_on_machine_get_by_machineid_status($$) # machine_id status_id
+{	return $dbc->vector_query('SELECT machine_id FROM job_on_machine WHERE machine_id=? AND job_status_id=?',$_[0],$_[1]);	}
+
 sub job_on_machine_start($) # job_on_machine_id
 {	return $dbc->update_query('UPDATE job_on_machine SET start=NOW(), job_status_id=2 WHERE job_on_machine_id=?',$_[0]);	}
 
 sub job_on_machine_stop($) # job_on_machine_id
-{	return $dbc->update_query('UPDATE job_on_machine SET stop=NOW(), job_status_id=3 WHERE job_on_machine_id=?',$_[0]);	}
+{	return $dbc->update_query('UPDATE job_on_machine SET stop=NOW(), job_status_id=4 WHERE job_on_machine_id=?',$_[0]);	}
 
 sub job_on_machine_stop_all($) # machine_id
 {	return $dbc->update_query('UPDATE job_on_machine SET stop=NOW(), job_status_id=3 WHERE machine_id=?',$_[0]);	}

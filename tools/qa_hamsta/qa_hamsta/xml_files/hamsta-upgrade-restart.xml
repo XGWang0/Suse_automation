@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<job>
+    <config>
+        <name>upgrade/restart Hamsta</name>
+        <distributable>0</distributable>
+        <parallel>0</parallel>
+        <mail notify="0">vmarsik@suse.cz</mail>
+        <logdir>/tmp</logdir>
+        <description>Upgrade and restart Hamsta client</description>
+        <motd>Hamsta upgrade and restart</motd>
+	<rpm upgrade="1">qa_hamsta</rpm>
+	<rpm upgrade="1">qa_hamsta-cmdline</rpm>
+	<rpm upgrade="1">qa_hamsta-common</rpm>
+	<rpm upgrade="1">qa_tools</rpm>
+	<rpm upgrade="1">qa_lib_perl</rpm>
+	<rpm upgrade="1">qa_lib_ctcs2</rpm>
+	<rpm upgrade="1">qa_lib_config</rpm>
+	<rpm upgrade="1">qa_lib_keys</rpm>
+    </config>
+
+    <commands>
+        <worker>
+            <!-- Required -->
+            <command execution="threaded">#!/bin/sh
+	    echo Restarting...
+	    screen setsid rchamsta restart
+	    echo Done.
+	    </command>
+
+            <!-- Optional -->
+            <directory>/</directory>
+            <timeout>600</timeout>
+            <notify pattern="" mail="" />
+
+            <!-- Created for output -->
+            <stdout />
+            <stderr />
+        </worker>
+        
+        <!-- Same options as in worker -->
+        <logger>
+            <command>tail -f /var/log/hamsta.log</command>
+        </logger>
+    </commands>
+</job>

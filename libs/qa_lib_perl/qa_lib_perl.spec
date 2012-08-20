@@ -86,13 +86,13 @@ install -m 755 -d $RPM_BUILD_ROOT%{confdir}
 gzip -9 *.1
 gzip -9 *.3
 
-cp -r --target-directory=$RPM_BUILD_ROOT%{libdir} log.pm detect.pm results results.pm misc.pm
+cp -r --target-directory=$RPM_BUILD_ROOT%{libdir} log.pm detect.pm results results.pm misc.pm benchxml.pm
 cp --target-directory=$RPM_BUILD_ROOT%{bindir} arch.pl location.pl product.pl hwinfo.pl location_detect_impl.pl
 cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man1 *.1.gz
 cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man3 *.3.gz
 cp -r --target-directory=$RPM_BUILD_ROOT%{libdir} utils
 cp --target-directory=$RPM_BUILD_ROOT%{libdir} db_common.pm
-cp --target-directory=$RPM_BUILD_ROOT%{confdir} 00-qa_libperl-default
+cp --target-directory=$RPM_BUILD_ROOT%{confdir} 00-qa_libperl-default 00-qa_libperl-default.us
 echo ${version} > $RPM_BUILD_ROOT%{libdir}/qa_libperl.version
 
 %clean
@@ -111,8 +111,32 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0755,root,root) %{libdir}/utils/*
 %{libdir}/*
 %{confdir}
+%doc COPYING
 
 %changelog
+* Fri Aug 10 2012 - llipavsky@suse.cz
+- Web user-friendly editor for jobs
+- HA Server yast2 UI Automation
+- Build mapping in QADB (buildXXX -> beta Y)
+- Improved regression analysis
+- Support for benchmark parsers in benchmark testsuite (author of testsuite will also provide a script to parse the results)
+- Power switch support in Hamsta (thanks mpluskal!)
+- Only results created in the job are submitted to QADB
+- QADB improvements
+* Fri May 18 2012 - llipavsky@suse.cz
+- Added benchparser support to results (doc & ctcs2 parser)
+- added benchxml.pm to read/write bench results from/to xml
+* Wed May 2 2012 - llipavsky@suse.cz
+- New 2.3 release from QA Automation team, includes: 
+- out-of date and developement SUTs are marked in web frontend and can be updated from the frontend 
+- HA Server yast2-cluster UI Automation 
+- Improved CLI interface to Hamsta 
+- It is possible to get/choose all patterns from all products during SUT intallation (until now, only SLES/D & SDK patterns were shown) 
+- Parametrized jobs 
+- Better web editors of jobs. Now with multimachine job support 
+- Hamsta client one-click installer 
+- QADB improvements 
+- No more Novell icon in Hamsta ;-)
 * Mon Nov 14 2011 - llipavsky@suse.cz
 - New 2.2 release from QA Automation team, includes:
 - Automated stage testing

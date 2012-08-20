@@ -45,6 +45,19 @@ foreach($machines as $m) {
 	$m->get_children();
 }
 
+# Verify user has rights to modify the machine
+if ($openid_auth && array_key_exists('OPENID_AUTH', $_SESSION) && $user = User::get_by_openid($_SESSION['OPENID_AUTH'])) {
+	foreach($machines as $machine) {
+		$used_by = User::get_by_openid($machine->get_used_by());
+		if ($used_by && $used_by->get_openid() != $user->get_openid()) {
+			$_SESSION['mtype'] = "fail";
+			$_SESSION['message'] = "You cannot reinstall a reserved machine.";
+			header('Location: index.php?go=machines');
+			exit();
+		}
+	}
+}
+
 # If the install options are empty, we use the ones from the DB, else we see if options are different between machines. If different, don't use them
 $installoptions_warning="";
 if (!isset($installoptions) or $installoptions=="") {
@@ -130,7 +143,7 @@ if (request_str("proceed")) {
 	foreach ($pattern_list as $p)
 		$gpattern .= " ".$p;
 	if ($setxen) {
-		$gpattern .= " xen_server";
+		$gpattern .= "xen_server";
 		if (preg_match('/[SsLlEe]{3}.-10/',$producturl))
 			$additionalrpms .= " kernel-xen";
 	}
@@ -172,7 +185,7 @@ if (request_str("proceed")) {
 		if ($update == "update-reg" and $regcode != "")
 			$args .= " -C " . $regcode;
 		if ($update == "update-opensuse")
-			$args .= " -O " . $update;
+			$args .= " -O ";
 		if ($installmethod == "Upgrade")
 			$args .= " -U";
 		if ($setupfordesktop == "yes")
@@ -203,8 +216,19 @@ if (request_str("proceed")) {
 
 			}
 		}
-		if (count($errors)==0)
+		if (count($errors)==0) {
+			$machine_list = "";
+			foreach ($machines as $machine)
+				$machine_list .= $machine->get_hostname() . ", ";
+			$machine_list = substr($machine_list, 0, strlen($machine_list)-2);
+			$_SESSION['message'] = "Machine ".$machine_list." reinstallation has been launched.";
+			$_SESSION['mtype'] = "success";
 			header("Location: index.php");
+			exit();
+		} else {
+			$_SESSION['message'] = implode("\n", $errors);
+                	$_SESSION['mtype'] = "fail";
+		}
 	} else {
 		$_SESSION['message'] = implode("\n", $errors);
 		$_SESSION['mtype'] = "fail";

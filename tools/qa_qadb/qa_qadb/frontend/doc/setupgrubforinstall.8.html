@@ -1,0 +1,55 @@
+<HTML>
+<BODY>
+<PRE>
+<!-- Manpage converted by man2html 3.0.1 -->
+
+
+
+</PRE>
+<H2>SYNOPSIS</H2><PRE>
+       setupgrubforinstall &lt;CML source URL&gt; &lt;AutoYaST profile URL&gt;
+       setupgrubforinstall &lt;CML source URL&gt; [&lt;kernel cmdline&gt;]
+
+
+
+</PRE>
+<H2>EXAMPLE</H2><PRE>
+       setupgrubforinstall                ftp://cml.suse.cz/netboot/find/open-
+       SUSE-11.0-RC3-DVD-x86_64   http://bender.suse.cz/autoinst/autoinst_vul-
+       ture.xml
+
+
+
+</PRE>
+<H2>DESCRIPTION</H2><PRE>
+       The script downloads the kernel and initrd from  CML  using  <B><A HREF="curl.1.html">curl(1)</A></B>  ,
+       stores  them  to  a newly created subdirectory of /boot , creates a new
+       entry in Grub config file, and makes it a default entry.
+
+       As a result, the machine should boot the CML kernel on next reboot, and
+       possibly start an AutoYaST reinstallation.
+
+       The  script tries to autodetect GRUB partition and computer IP address.
+       The results are stored on the kernel commandline,  which  contains  for
+       the first case:
+
+       vga=normal  autoyast=&lt;AutoYaST  profile  URL&gt; netdevice=eth0 netwait=10
+       &lt;detected IP address&gt; install=&lt;AutoYaST profile URL&gt;
+
+
+
+</PRE>
+<H2>SEE ALSO</H2><PRE>
+       <B><A HREF="grub.8.html">grub(8)</A></B>, <B><A HREF="curl.1.html">curl(1)</A></B>
+
+
+
+                                                        <B><A HREF="setupgrubforinstall.8.html">setupgrubforinstall(8)</A></B>
+</PRE>
+<HR>
+<ADDRESS>
+Man(1) output converted with
+<a href="http://www.oac.uci.edu/indiv/ehood/man2html.html">man2html</a>
+</ADDRESS>
+</BODY>
+</HTML>

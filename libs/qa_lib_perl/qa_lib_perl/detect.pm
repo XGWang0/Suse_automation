@@ -264,7 +264,7 @@ sub get_zypper_urls
 sub guess_product_from_url # URL
 {
 	my $url=shift;
-	my ($type, $version, $subversion, $release, $arch)=('','','','','');
+	my ($type, $version, $subversion, $release, $arch, $build_nr)=('','','','','','');
 
 	# fix mallformed releases - see https://bugzilla.novell.com/show_bug.cgi?id=648959
 	$url =~ s/(alpha|beta|RC)[ -_](\d+)/$1$2/ig;
@@ -303,26 +303,28 @@ sub guess_product_from_url # URL
 		$release = $qadb_releases{lc $rel};
 	}
 	elsif( $url =~ /build(\d+)/i )
-	{	$release = 'buildXXX';	}
+	{	$release = 'buildXXX';
+		$build_nr = $1;
+	}
 #	else
 #	{	$release = 'GA';	}
 	$arch=$1 if $url =~ /$arch_re/i;
 	$release='maintained' if $url =~ /https?:\/\/(you|update).suse.de/;
 	&log( LOG_DEBUG, "Parsing $url: type=$type, version=$version, subversion=$subversion, release=$release, arch=$arch" );
-	return ($type, $version, $subversion, $release, $arch);
+	return ($type, $version, $subversion, $release, $arch, $build_nr);
 }
 
 # reads QADB products over HTTP
 sub read_qadb_products
-{	return &read_http_csv("$ws_base?what=products",1);	}
+{	return &read_http_csv("$ws_base?what=product",1);	}
 
 # reads QADB releases over HTTP
 sub read_qadb_releases
-{	return &read_http_csv("$ws_base?what=releases",1);	}
+{	return &read_http_csv("$ws_base?what=release",1);	}
 
 # reads QADB architectures over HTTP
 sub read_qadb_architectures
-{	return &read_http_csv("$ws_base?what=architectures",1);	}
+{	return &read_http_csv("$ws_base?what=arch",1);	}
 
 # initializes %qadb_products and %qadb_releases with current data
 sub qadb_read_data
@@ -370,24 +372,25 @@ sub detect_product
 		@_
 		);
 	my @data=();
-	my ($type, $version, $subversion, $release, $arch, $product);
+	my ($type, $version, $subversion, $release, $arch, $product, $build_nr);
 
 	# find possible candidates from different sources
-	push @data, [ 'SuSE-release', &parse_suse_release() ];
+	push @data, [ 'SuSE-release', &parse_suse_release(), ''];
 	foreach my $url ( &get_zypper_urls() )	{	
 		push @data, [ 'zypper URLs',  &guess_product_from_url($url) ];
 	}
 	foreach my $url ( &get_install_urls() ) {
 		push @data, [ 'install.inf',  &guess_product_from_url($url) ];
 	}
-	push @data, [ 'uname', '', '', '', '', `echo -n \$(uname -m)` ];
+	push @data, [ 'uname', '', '', '', '', `echo -n \$(uname -m)` , ''];
 	push @data, [ '/etc/issue', &guess_product_from_url(`echo -n \$(cat /etc/issue)`) ];
-	my @fields = ( '', 'product type', 'product version', 'product subversion', 'product release', 'arch' );
+	my @fields = ( '', 'product type', 'product version', 'product subversion', 'product release', 'arch' ,'build_nr');
 
 	# find the best candidate
-	($type, $version, $subversion, $release, $arch) = map { our $i=$_; &best($fields[$i],map {$_->[$i]} @data) } (1 .. 5);
+	($type, $version, $subversion, $release, $arch, $build_nr) = map { our $i=$_; &best($fields[$i],map {$_->[$i]} @data) } (1 .. 6);
 	map { $release=$_[4] if $_[4] and $_[4] eq 'maintained' } @data;
 	$release = 'GA' unless $release;
+	$release = 'buildXXX' if $build_nr;
 
 	# compare with QADB
 	my @tries = ();
@@ -406,9 +409,10 @@ sub detect_product
 		&log( LOG_ERROR,"No matching product in QADB data for type=$type, version=$version, subversion=$subversion" );
 		$product = $tries[0];
 	}
-	map { &log( LOG_DEBUG, "Results from %s : type '%s', version '%s', subversion '%s', release '%s', arch '%s'" , @$_ ) } @data;
-	&log( LOG_INFO, "Autodetection results: type='$type', version='$version', subversion='$subversion', release='$release', arch='$arch', QADB product = '$product'" );
-	return ($type, $version, $subversion, $release, $arch, $product);
+	map { &log( LOG_DEBUG, "Results from %s : type '%s', version '%s', subversion '%s', release '%s', arch '%s' ,build_nr '%s'" , @$_ ) } @data;
+	&log( LOG_INFO, "Autodetection results: type='$type', version='$version', subversion='$subversion', release='$release', arch='$arch', QADB product = '$product',Build number = '$build_nr'" );
+	return ($type, $version, $subversion, $release, $arch, $product,$build_nr) if wantarray;
+	return { type=>$type, version=>$version, subversion=>$subversion, release=>$release, arch=>$arch, product=>$product ,build_nr=>$build_nr };
 }
 
 1;

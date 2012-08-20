@@ -58,6 +58,7 @@ BEGIN {
 			&process_dirname
 			&remove_duplicite_keyvals
 			&set_product_release
+			&parse_kernel_info
 			$batchmode
 		);
     %EXPORT_TAGS = ( );     # eg: TAG => [ qw!name1 name2! ],
@@ -78,7 +79,7 @@ my %benchmarks=(
 	'dbench[-_]\w[\w\d]*' => 'parse_dbench',
 	'bonnie-default' => 'parse_bonnie',
 	'tiobench' => 'parse_tiobench',
-	'siege_defaultrun|qa_siege_defaultrun.sh|qa_siege' => 'parse_siege',
+	'siege_defaultrun|qa_siege_defaultrun.sh|qa_siege|qa_siege_https?' => 'parse_siege',
 	'libmicro-bench' => 'parse_libmicro',
 	'specweb' => 'parse_specweb',
 	'sysbench-\w+' => 'parse_sysbench',
@@ -89,14 +90,15 @@ my %benchmarks=(
 	'tiobench[-\w]*' => 'parse_tiobench',
 	'kernbench' => 'parse_kernbench',
 	'hazard_stress' => 'parse_hazard',
-	'openssl_bench(_z)?' => 'parse_openssl'
+	'openssl_benchmark' => 'parse_openssl',
+	'fio(?:\-\w+)' => 'parse_fio',
 );
 
 
 
 sub is_bench	# 
 {
-	my $exp='^('.join('|',keys %benchmarks).')';
+	my $exp='^('.join('|',keys %benchmarks).')$';
 	return $1 if $_[0] =~ $exp;
 	return undef;
 }
@@ -119,7 +121,7 @@ sub get_log_dir	# directory basename
 		'testsuite'=>'',
 		'date'=>'',
 		'md5sum'=>'',
-		'branch'=>'',
+		'kernel_branch'=>'',
 		'product'=>'',
 		'release'=>'',
 		@_
@@ -138,9 +140,9 @@ sub get_log_dir	# directory basename
 	{
 		# TODO - is this correct??? Seems that it will get extra level testsuite[-date]/testsuite ? maybe delete last part?
 		if( $ltp )
-		{	$logdir='kotd/'.$args{'branch'}.'/'.$args{'arch'}.'/'.$args{'host'}.'/'.$args{'kernel'}.'/ltp/'.$args{'testsuite'}.'-'.$args{'date'};	}
+		{	$logdir='kotd/'.$args{'kernel_branch'}.'/'.$args{'arch'}.'/'.$args{'host'}.'/'.$args{'kernel'}.'/ltp/'.$args{'testsuite'}.'-'.$args{'date'};	}
 		else
-		{	$logdir='kotd/'.$args{'branch'}.'/'.$args{'arch'}.'/'.$args{'host'}.'/'.$args{'kernel'}.'/'.$args{'testsuite'};	}
+		{	$logdir='kotd/'.$args{'kernel_branch'}.'/'.$args{'arch'}.'/'.$args{'host'}.'/'.$args{'kernel'}.'/'.$args{'testsuite'};	}
 	}
 #	elsif( $type eq 'regression' )
 #	{	$logdir=$args{'arch'}.'/'.$args{'host'}.'/'.$args{'kernel'}.'/'.$args{'testsuite'}.'-'.$args{'date'};	}
@@ -247,6 +249,27 @@ sub process_dirname # basename of the dir
 		$testdate = ( $testdate =~ /([12]\d{3})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})/ ? "$1-$2-$3 $4:$5:$6" : undef ) if $testdate
 	}
 	return ($testsuite,$testdate);
+}
+
+sub parse_kernel_info($) # filename with RPM info of kernel
+{
+	if( defined $_[0] )	{
+		open INFO, $_[0] or return undef;
+	} else {
+		open INFO, "rpm -qi \$(rpm -qf /boot/System.map-\$(uname -r)) |" or return undef;
+	}
+
+	my $args={};
+	while( my $row=<INFO> )	{
+		chomp $row;
+		$args->{flavor}  =$1 if $row =~ /Name\s*:\s*kernel-([^\s]+)/;
+		$args->{version} =$1 if $row =~ /Version\s*:\s*([^\s]+)/;
+		$args->{release} =$1 if $row =~ /Release\s*:\s*([^\s]+)/;
+		$args->{revision}=$1 if $row =~ /Revision\s*:\s*([^\s]+)/;
+		$args->{branch}  =$1 if $row =~ /Branch\s*:\s*([^\s]+)/;
+	}
+	close INFO;
+	return $args;
 }
 
 1;

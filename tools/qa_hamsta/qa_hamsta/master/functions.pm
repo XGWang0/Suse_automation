@@ -88,7 +88,7 @@ sub process_product($)
 	$prod =~ s/;SUSELinuxEnterpriseDesktop/;SLED/;
 	$prod =~ s/SLESforSAPApplications/;SLES4SAP/;
 	return [(split /;/,$prod)[0],'',''] if( $prod =~ /BRANCH/ );
-	if( $prod =~ /^([\w\.-]+);(SLES4SAP|[[:alpha:]]+)([\dSP\.]+)?(\(([\w-]+)\))?VERSION=/ )
+	if( $prod =~ /^([\w\.\-_]+);(SLES4SAP|[[:alpha:]]+)([\dSP\.]+)?(\(([\w\-]+)\))?VERSION=/ )
 	{
 		my ($base,$major,$sp,$rel,$dom,$build,$arch)=($2,$3,'','','','','');
 		$sp 	="SP$1" if $prod =~ /PATCHLEVEL=(\d+)/;

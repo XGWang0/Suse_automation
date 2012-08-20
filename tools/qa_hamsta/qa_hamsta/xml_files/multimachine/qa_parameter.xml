@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<job>
+    <roles>
+        <role id="0" name="server" num_min="1" num_max="1"/>
+        <role id="1" name="client" num_min="1"/>
+    </roles>
+    <config>
+        <name>qa_parametrized</name>
+        <debuglevel>4</debuglevel>
+        <distributable>0</distributable>
+        <mail notify="0">vmarsik@suse.cz</mail>        
+	<description>HA cluster CTS test</description>
+	<logdir>/tmp</logdir>
+    </config>
+    <parameters>
+        <parameter type="string" name="broadcast_ip" default="10.20.3.0" label="Broadcast IP address"/>
+        <parameter type="enum" name="filesystem" default="ReiserFS filesystem">
+            <option value="reiserfs">ReiserFS filesystem</option>
+            <option value="ext3">Ext3 filesystem</option>
+        </parameter>
+        <parameter type="textarea" name="mails" label="Notification mailing list"><![CDATA[
+            <testuser@novell.com>
+            testuser@suse.com
+            root@suse.cz
+            ]]>
+	</parameter>
+        <parameter type="string" name="slave_ip" default="10.20.3.100" label="Slave IP address"/>
+	<parameter type="enum" name="runlevel" default="Level 3">
+            <option value="1">Level 1</option>
+            <option value="2">Level 2</option>
+            <option value="3">Level 3</option>
+            <option value="4">Level 4</option>
+            <option value="5">Level 5</option>
+        </parameter>
+    </parameters> 
+    <commands>
+    <worker>
+	    <!-- Pre -->
+           <command execution="forked" role_id="0">#!/bin/bash
+	   	echo the server 0 $param_broadcast_ip $param_filesystem $param_slave_ip
+           </command>
+	    <command execution="forked" role_id="1">#!/bin/bash
+	   	echo the server 1 $param_mmtest
+           </command>
+	   <directory>/var/log/qa/ctcs2</directory>
+     </worker>
+    </commands>
+</job>

@@ -52,6 +52,9 @@ require("lib/configuration.php");
 require("lib/group.php");
 require("lib/roles.php");
 require("lib/Utilfunc.php");
+require("lib/parameters.php");
+require("lib/powerswitch.php");
+require("lib/user.php");
 
 require_once("../tblib/tblib.php");
 
@@ -61,7 +64,9 @@ $pages = array(
     "machines",
     "edit_machines",
     "del_machines",
+    "install_client",
     "machine_details",
+    "machine_purge",
     "action_history",
     "module_details",
     "validation",
@@ -90,13 +95,34 @@ $pages = array(
     "autopxe",
     "vhreinstall",
     "newvm",
+    "newvm-win",
     "del_virtual_machines",
     "upgrade",
-    "merge_machines"
+    "merge_machines",
+    "edit_jobs",
+    "register"
 );
 
 if (!in_array($go, $pages)) {
     $go = $pages[0];
+}
+
+if ($openid_auth) {
+        require_once "Zend/OpenId/Consumer.php";
+        $consumer = new Zend_OpenId_Consumer();
+        if (isset($_GET['openid_mode']) && $_GET['openid_mode'] == "id_res") {
+                 if ($consumer->verify($_GET, $id)) {
+                        $_SESSION['OPENID_AUTH'] = $id;
+                        $user = User::get_by_openid($id);
+                        if (!$user) {
+                                header('Location: index.php?go=register');
+                        }
+                }
+        } else if (!isset($_SESSION['OPENID_AUTH'])) {
+                if (!$consumer->login($openid_url)) {
+                        die("Authentication Failed");
+                }
+        }
 }
 
 require("inc/$go.php");

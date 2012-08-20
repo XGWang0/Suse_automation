@@ -29,6 +29,7 @@ use strict;
 use warnings;
 
 use IO::Socket::INET;
+use IO::Select;
 use MIME::Lite;
 use MIME::Base64;
 use sql;
@@ -88,7 +89,7 @@ sub process_job($) {
 
 	# Send the job to the slave
 	my $sock;
-	($sock, $log::loglevel) = &send_job($ip, $job_file);
+	($sock, $log::loglevel) = &send_job($ip, $job_file,$job_id);
 	if (not defined($sock)) {
 		&log(LOG_ERR,"PROCESS_JOB: process_job: Could not open socket. Job failed.");
 
@@ -144,7 +145,7 @@ sub process_job($) {
 		if ($is_xml) {
 			print FH $line."\n";
 		} else {
-			if ($line =~ /submissionID=/) {
+			if ($line =~ /submission_id=/) {
 				$submission_link .= (split(/ /, $line))[-1]."\n";
 				&log(LOG_NOTICE, "QADB submission link is: $submission_link");
 			}
@@ -190,7 +191,7 @@ sub process_job($) {
 	my $status=JS_FAILED;
 
 	# send e-mail that the job has finished
-	my $reboot = ( $job_file =~ /install|reboot|XENGrub/ );
+	my $reboot = ( $job_file =~ /install|reboot|XENGrub|hamsta-upgrade-restart/ );
 	if( $reboot ) {
 		sleep 300;
 		while( &machine_get_status($machine_id) != MS_UP ) {		
@@ -207,8 +208,9 @@ sub process_job($) {
 
 	# Mark the job as finished
 	&TRANSACTION( 'job_on_machine', 'job' );
+	my $job_old_stauts = &job_get_status($job_id);
 	&job_on_machine_stop($job_on_machine_id);
-	&job_set_status($job_id,$status);
+	&job_set_status($job_id,$status) if $job_old_stauts == 2;
 	&TRANSACTION_END;
 
 	# send e-mail that the job has finished
@@ -252,6 +254,9 @@ sub process_job($) {
 			push @args, $qaconf{hamsta_master_smtp_relay};
 			if($qaconf{hamsta_master_smtp_login})
 			{	push @args, (AuthUser=>$qaconf{hamsta_master_smtp_login}, ($qaconf{hamsta_master_smtp_password} ? (AuthPass=>$qaconf{hamsta_master_smtp_password}) : ()))	}
+		}else
+                {
+			@args=('sendmail');
 		}
 		$msg->send(@args);
 		&log(LOG_DETAIL, "Mail sending done");
@@ -271,9 +276,10 @@ sub process_job($) {
 #				   $sock is the opened socket for the slave response.
 #				   $loglevel is the debuglevel for the job specified in the
 #				   XML job description.
-sub send_job($$) {
+sub send_job($$$) {
 	my $ip = shift;
 	my $job_file = shift;
+	my $job_id = shift;
 
 # Open a socket to the slave
 	my $sock = IO::Socket::INET->new(
@@ -305,6 +311,13 @@ sub send_job($$) {
 		return (undef, $loglevel);
 	}
 	close FH;
+ 	#Establish ack , SUT will send a Establish sync (blank-space) once the accept() method succeed.
+        my $s_canread = IO::Select->new();
+	$s_canread->add($sock);
+        $s_canread->can_read();
+ 	&TRANSACTION( 'job_on_machine', 'job' );
+ 	&job_set_status($job_id,JS_RUNNING);
+ 	&TRANSACTION_END;
 
 # Return the socket
 	return ($sock, $loglevel);

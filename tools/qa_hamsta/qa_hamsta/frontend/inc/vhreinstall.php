@@ -42,6 +42,19 @@ $search = new MachineSearch();
 $search->filter_in_array(request_array("a_machines"));
 $machines = $search->query();
 
+# Verify user has rights to modify the machine
+if ($openid_auth && array_key_exists('OPENID_AUTH', $_SESSION) && $user = User::get_by_openid($_SESSION['OPENID_AUTH'])) {
+	foreach ($machines as $machine) {
+		$used_by = User::get_by_openid($machine->get_used_by());
+		if ($used_by && $used_by->get_openid() != $user->get_openid()) {
+			$_SESSION['mtype'] = "fail";
+			$_SESSION['message'] = "You cannot reinstall a reserved machine.";
+			header('Location: index.php?go=qacloud');
+			exit();
+		}
+	}
+}
+
 foreach($machines as $m) {
 	$m->get_children();
 }
@@ -96,13 +109,13 @@ if (request_str("proceed")) {
         $additionalpatterns .= " ".$p;
 
     if ($virtualization_method == "xen") {
-        $additionalpatterns .= " xen_server";
+        $additionalpatterns .= "xen_server";
         if (preg_match('/[SsLlEe]{3}.-10/',$producturl)) {
             $additionalrpms .= " kernel-xen";
         }
     } elseif ($virtualization_method == "kvm") {
         if (preg_match('/[SsLlEe]{3}.-11-[SsPp]{2}[234]/',$producturl)) {
-            $additionalrpms .= " kvm";
+            $additionalrpms .= "kvm";
         }
     } else {
 	# Report error.
@@ -149,7 +162,7 @@ if (request_str("proceed")) {
                if (request_str("startupdate") == "update-reg" and request_str("update-reg-code") != "")
                    $args .= " -C " . request_str("update-reg-code");
                if (request_str("startupdate") == "update-opensuse")
-	           $args .= " -O " . request_str("startupdate");
+	           $args .= " -O ";
                if ($installmethod == "Upgrade")
                    $args .= " -U";
 	       $args .= " -V " .$virtualization_method;

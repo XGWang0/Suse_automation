@@ -77,6 +77,7 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/man/man8/qa_lib_config.8.gz
 /usr/share/qa
 /etc/qa/
+%doc COPYING
 
 %changelog
 

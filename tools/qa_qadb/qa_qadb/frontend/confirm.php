@@ -11,19 +11,19 @@ $what=array();
 
 $msg='Are you sure ';
 if( $confirm=='w' )
-	$msg.='to delete waiver with ID='.http('waiverID').' and all its details';
+	$msg.='to delete waiver with ID='.http('waiver_id').' and all its details';
 else if( $confirm=='wd' )
 {
-	$waiver_tcID=http('waiver_tcID');
-	$waiverID=waiver_get_master($waiver_tcID);
-	$_REQUEST['waiverID']=$waiverID;
-	$msg.="to delete waiver detail with tcID=$waiver_tcID of waiver ID=$waiverID";
-	$what[]=array('waiverID','',$waiverID,HIDDEN);
+	$waiver_testcase_id=http('waiver_testcase_id');
+	$waiver_id=waiver_get_master($waiver_testcase_id);
+	$_REQUEST['waiver_id']=$waiver_id;
+	$msg.="to delete waiver detail with tc_id=$waiver_testcase_id of waiver ID=$waiver_id";
+	$what[]=array('waiver_id','',$waiver_id,HIDDEN);
 }
 else if( $confirm=='s' )
-	$msg.='to delete submissionID '.http('submissionID').' and all its results';
+	$msg.='to delete submission_id '.http('submission_id').' and all its results';
 else if( $confirm=='sd' )
-	$msg.='to delete all results for tcfID '.http('tcfID').' from submission '.http('submissionID');
+	$msg.='to delete all results for tcf_id '.http('tcf_id').' from submission '.http('submission_id');
 $msg.=' ?';
 
 # The script is controlled by the variable 'confirm', which is used as key for following fields.
@@ -38,9 +38,9 @@ $submit=array( 'b'=>'delete_board', 'w'=>'delete_waiver', 'wd'=>'delete_detail',
 $cancel=array(
 	'b'=>array(),
 	'w'=>array('view'),
-	'wd'=>array('view','waiverID'),
-	's'=>array('submissionID'),
-	'sd'=>array('submissionID')
+	'wd'=>array('view','waiver_id'),
+	's'=>array('submission_id'),
+	'sd'=>array('submission_id')
 );
 
 # Page to go back (both 'Yes' and 'No')
@@ -66,6 +66,7 @@ if( $cancel[$confirm] )
 print "<h2>Confirm</h2>\n<div class=\"confirm\"><div class=\"message\">$msg</div>\n";
 print html_search_form($back[$confirm],$what,array('submit'=>'Yes','hr'=>false));
 print html_search_form($back[$confirm],$cancel_what,array('submit'=>'No','hr'=>false,'search'=>0));
+print "</div>\n";
 ?>
 </body>
 </html>

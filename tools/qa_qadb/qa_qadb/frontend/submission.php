@@ -8,90 +8,90 @@ common_header(array(
     'calendar'=>1
 ));
 
+define('AGR_MAX_RES','15000');
+
 # read main CGI variables
-$submissionID=http('submissionID');
+$submission_id=http('submission_id');
 $mode_got=http('submission_type',null);
 $search = http('search');
 $action = http('action');
 $submit = http('submit');
-$tcfID  = http('tcfID');
+$tcf_id  = http('tcf_id');
 $step   = http('step');
 $what0   = array();
 
 # commit changes
 if( token_read(http('wtoken')) )
 {	
-	if( $submit=='delete_tcf' && $tcfID )
+	if( $submit=='delete_tcf' && $tcf_id )
 	{
 		transaction();
-		update_result( tcf_delete($submissionID,$tcfID) ); 
+		update_result( tcf_delete($submission_id,$tcf_id) ); 
 		commit();
 	}
-	else if( $submit=='delete_submission' && $submissionID )
+	else if( $submit=='delete_submission' && $submission_id )
 	{
 		transaction();
-		update_result( submission_delete($submissionID) ); 
+		update_result( submission_delete($submission_id) ); 
 		commit();
-		$submissionID=null;
+		$submission_id=null;
 		$search=null;
 	}
-	else if( $submit=='comment' && $submissionID )
+	else if( $submit=='comment' && $submission_id )
 	{
-		$active =http('active') ? 1:0;
+		$status_id=http('status');
 		$related=http('related');
 		$related=$related ? $related:null;
 		$comment=http('comment');
-		if( $related  && !search_submissions_results(1,array('submissionID'=>$related,'only_id'=>1,'header'=>0)))
+		if( $related  && !search_submission_result(1,array('submission_id'=>$related,'only_id'=>1,'header'=>0)))
 		{	
-			print html_error("No such submissionID: $related");	
+			print html_error("No such submission_id: $related");	
 			$related=null;
 		}
-		update_result( submission_set_details($submissionID,$active,$related,$comment) ); 
+		update_result( submission_set_details($submission_id,$status_id,$related,$comment) ); 
 	}
-	else if( $submit=='link' && $tcfID )
+	else if( $submit=='link' && $tcf_id )
 	{
 		$url=http('url');
-		update_result( tcf_set_url($tcfID, set($url) ? $url:null) );
+		update_result( tcf_set_url($tcf_id, set($url) ? $url:null) );
 	}
 }
 
-if(!$submissionID)
+if(!$submission_id)
 {	# main search form & results
-	$products  =enum_list_id_val('products'); 
-	$releases  =enum_list_id_val('releases');
-	$archs     =enum_list_id_val('architectures'); 
-	$hosts	   =enum_list_id_val('hosts');
-	$testers   =enum_list_id_val('testers');
-	$products_got    =http('products');
-	$releases_got    =http('releases');
-	$archs_got       =http('architectures');
-	$testsuites_got  =http('testsuites');
-	$hosts_got       =http('hosts');
-	$date_from_got   =http('date_from');
-	$date_to_got     =http('date_to');
-	$testcases_got   =http('testcases');
-	$active_got      =http('active');
-	$testers_got     =http('testers');
-	$comment_got     =http('comment');
-	$configID_got    =http('configID');
-	$hwinfoID_got    =http('hwinfoID');
-	$submissionID_got=http('submissionID');
-
-	# create the form
-	$what=array(
-		array('products',$products,$products_got,MULTI_SELECT),
-		array('releases',$releases,$releases_got,MULTI_SELECT),
-		array('architectures',$archs,$archs_got,MULTI_SELECT),
-#		array('testsuites',$testsuites,$testsuites_got,MULTI_SELECT),
-		array('hosts',$hosts,$hosts_got,MULTI_SELECT),
-		array('testers',$testers,$testers_got,MULTI_SELECT),
-		array('date_from','',$date_from_got,TEXT_ROW),
-		array('date_to','',$date_to_got,TEXT_ROW),
-		array('active','',$active_got,TEXT_ROW),
-		array('comment','',$comment_got,TEXT_ROW,'comment [%]'),
-		array('submissionID','',$submissionID_got,TEXT_ROW),
-	);
-	$what0=$what;
+	$product	=enum_list_id_val('product'); 
+	$release	=enum_list_id_val('release');
+	$arch		=enum_list_id_val('arch'); 
+	$host		=enum_list_id_val('host');
+	$tester		=enum_list_id_val('tester');
+	$status		=enum_list_id_val('status');
+	$kernel_version	=enum_list_id_val('kernel_version');
+	$kernel_branch	=enum_list_id_val('kernel_branch');
+	$kernel_flavor	=enum_list_id_val('kernel_flavor');
+	$nothing=array( null, '' );
+	array_unshift($status,$nothing);
+	array_unshift($kernel_version,$nothing);
+	array_unshift($kernel_branch,$nothing);
+	array_unshift($kernel_flavor,$nothing);
+	$product_got		=http('product');
+	$release_got		=http('release');
+	$arch_got		=http('arch');
+	$testsuite_got		=http('testsuite');
+	$host_got		=http('host');
+	$date_from_got		=http('date_from');
+	$date_to_got		=http('date_to');
+	$testcase_got		=http('testcase');
+	$tester_got		=http('tester');
+	$comment_got		=http('comment');
+	$rpm_config_id_got	=http('rpm_config_id');
+	$hwinfo_id_got		=http('hwinfo_id');
+	$submission_id_got	=http('submission_id');
+	$status_got		=http('status');
+	$md5sum_got		=http('md5sum');
+	$patch_id_got		=http('patch_id');
+	$kernel_version_got	=http('kernel_version');
+	$kernel_branch_got	=http('kernel_branch');
+	$kernel_flavor_got	=http('kernel_flavor');
 
 	# modes for submission select
 	$modes=array(
@@ -102,21 +102,75 @@ if(!$submissionID)
 		array( 5, "Any")
 	);
 
+	# create the form
+	$what=array(
+		array('product',$product,$product_got,MULTI_SELECT),
+		array('release',$release,$release_got,MULTI_SELECT),
+		array('arch',$arch,$arch_got,MULTI_SELECT),
+#		array('testsuite',$testsuite,$testsuite_got,MULTI_SELECT),
+		array('host',$host,$host_got,MULTI_SELECT),
+		array('tester',$tester,$tester_got,MULTI_SELECT),
+		array('testsuite',enum_list_id_val('testsuite'),$testsuite_got,MULTI_SELECT),
+		array('date_from','',$date_from_got,TEXT_ROW),
+		array('date_to','',$date_to_got,TEXT_ROW),
+		array('comment','',$comment_got,TEXT_ROW,'comment [%]'),
+		array('submission_id','',$submission_id_got,TEXT_ROW),
+		array('md5sum','',$md5sum_got,TEXT_ROW),
+		array('patch_id','',$patch_id_got,TEXT_ROW),
+		array('status',$status,$status_got,SINGLE_SELECT),
+		array('kernel_version',$kernel_version,$kernel_version_got,SINGLE_SELECT),
+		array('kernel_branch',$kernel_branch,$kernel_branch_got,SINGLE_SELECT),
+		array('kernel_flavor',$kernel_flavor,$kernel_flavor_got,SINGLE_SELECT),
+	);
+	$what0=$what;
+
 	# card-dependent form fields
 	if( $step=='tcf' )
-		array_splice($what,5,0,array(
-			array('testsuites',enum_list_id_val('testsuites'),$testsuites_got,MULTI_SELECT),
-			array('testcases','',$testcases_got,TEXT_ROW,'testcase(s) (slow) [%]'),
+		array_splice($what,6,0,array(
+			array('testcase','',$testcase_got,TEXT_ROW,'testcase(s) (slow) [%]'),
 		));
 	else if( $step=='bench' )
 	{
-		array_splice($what,5,0,array(
-			array('testsuites',bench_list_testsuites(),$testsuites_got,MULTI_SELECT),
-		));
+		$what[5]=array('testsuite',bench_list_testsuite(),$testsuite_got,MULTI_SELECT);
 		$pager = null; # cannot use pager as the whole table is a form
 	}
-	else
+	else if( $step=='reg' )
+	{
+		$group_by_got = http('group_by',1);
+		$reg_method_got = http('reg_method',1);
+		$cell_text_got = http('cell_text',1);
+		$cell_color_got = http('cell_color',1);
+
+		$group_by = array(
+			array(1,'testsuite + testcase'),
+			array(2,'testsuite'),
+		);
+		$reg_method = array(
+			array(1,'different status'),
+			array(2,'fail+interr'),
+		);
+		$cell_text = array(
+			array(1,'status'),
+			array(2,'% pass'),
+			array(3,'numbers'),
+			array(4,'X'),
+			array(5,'')
+		);
+		$cell_color = array(
+			array(1,'status'),
+			array(2,'RGB'),
+			array(3,'grayscale'),
+			array(4,''),
+		);
+		$what[]=array('group_by',$group_by,$group_by_got,SINGLE_SELECT);
+		$what[]=array('reg_method',$reg_method,$reg_method_got,SINGLE_SELECT,'regression method');
+		$what[]=array('cell_text',$cell_text,$cell_text_got,SINGLE_SELECT);
+		$what[]=array('cell_color',$cell_color,$cell_color_got,SINGLE_SELECT);
+	}
+	else	{
 		$what[]=array('submission_type',$modes,$mode_got,SINGLE_SELECT,'submission type');
+		array_splice($what,5,1); # TODO: fix testsuites in this tab too
+	}
 }
 
 # cardset
@@ -124,7 +178,8 @@ $mode=0;
 $steps=array(
 	array('submissions','sub'),
 	array('TCFs','tcf'),
-	array('benchmarks','bench')
+	array('benchmarks','bench'),
+	array('ext. regressions','reg')
 );
 for( $i=0; $i<count($steps); $i++ )
 {
@@ -135,7 +190,7 @@ for( $i=0; $i<count($steps); $i++ )
 print steps(form_to_url('submission.php',$what0,0).'&amp;step=',$steps,$mode);
 
 # main content
-if(!$submissionID)
+if(!$submission_id)
 {
 	# main search form
 	$what[] = array('step','',$step,HIDDEN);
@@ -146,130 +201,170 @@ if(!$submissionID)
 	if( $search )
 	{
 		$pager['what'] = $what;
-		$testcases= field_split($testcases_got);
+		$testcase= field_split($testcase_got);
 		if(! ($mode_got>=2 && $mode_got<=5) )
 			$mode_got=1;
 		if( $step=='tcf' )  $mode_got=8;
 		if( $step=='bench') $mode_got=9;
-		if( $testcases && $testcases[0] )    $mode_got=10;
+		if( $testcase && $testcase[0] )    $mode_got=10;
 		$transl=array();
-		$data=search_submissions_results($mode_got,array(
-			'archID'      =>$archs_got,
-			'productID'   =>$products_got,
-			'releaseID'   =>$releases_got,
-			'hostID'      =>$hosts_got,
-			'date_from'   =>$date_from_got,
-			'date_to'     =>$date_to_got,
-			'testsuiteID' =>$testsuites_got,
-			'testcase'    =>$testcases,
-			'active'      =>$active_got,
-			'testerID'    =>$testers_got,
-			'comment'     =>$comment_got,
-			'configID'    =>$configID_got,
-			'hwinfoID'    =>$hwinfoID_got,
-			'submissionID'=>$submissionID_got,
-			'order_nr'    =>-1
-		),$transl,$pager);
+		$attrs=array(
+			'arch_id'		=>$arch_got,
+			'product_id'		=>$product_got,
+			'release_id'		=>$release_got,
+			'host_id'		=>$host_got,
+			'date_from'		=>$date_from_got,
+			'date_to'		=>$date_to_got,
+			'testsuite_id'		=>$testsuite_got,
+			'testcase'		=>$testcase,
+			'tester_id'		=>$tester_got,
+			'comment'		=>$comment_got,
+			'rpm_config_id'		=>$rpm_config_id_got,
+			'hwinfo_id'		=>$hwinfo_id_got,
+			'submission_id'		=>$submission_id_got,
+			'status_id'		=>$status_got,
+			'md5sum'		=>$md5sum_got,
+			'patch_id'		=>$patch_id_got,
+			'kernel_version'	=>$kernel_version_got,
+			'kernel_branch'		=>$kernel_branch_got,
+			'kernel_flavor'		=>$kernel_flavor_got,
+			'order_nr'		=>-1,
+		);
+		if( $step=='reg' )	{
+			$mode_got=($group_by_got==2 ? 12 : 11);
+			unset($attrs['order_nr']);
+			$y=($group_by_got==2 ? array('testsuite') : array('testsuite','testcase'));
+			$x=array('product_id','release_id');
+#			if( $group_by==2 )
+#				$x=array('product');
+			$group=array_merge($y,$x);    
+			$attrs['group_by']=$group;
+			$attrs['order_by']=$group;
+			$attrs['limit'] = array(AGR_MAX_RES);
+			$pager=null;
+		}
+		$data=search_submission_result($mode_got,$attrs,$transl,$pager);
 		$sort='sssssssis'.str_repeat('s',count($data[0])-9);
 		$class='tbl';
 		if( $step=='bench' )
 		{
-			table_add_checkboxes($data,'tests[]','tcfID',1,'bench_form',1);
+			table_add_checkboxes($data,'tests[]','tcf_id',1,'bench_form',1);
 			if( count($data)>1 )
 				print '<form action="benchmarks.php" method="get" name="bench_form">'."\n";
 			$class.=' controls';
 		}
-		table_translate($data,$transl); 
-		if( $mode_got==3 ) # KOTD external links
-			table_translate($data,array('links'=>array('branchID'=>'http://kerncvs.suse.de/kernel-overview/?b=')));
-		print html_table($data,array('id'=>'submission','sort'=>$sort,'total'=>true,'class'=>$class,'pager'=>$pager));
-		if( $step=='bench' && count($data)>1 )
-		{
-			$legend=array( array(0,'in the graph'), array(1,'next to the graph') );
-			$fontsize=array( array(1,1),array(2,2),array(3,3),array(4,4),array(5,5) );
-			$what=array(
-				array('group_by',$group_by,http('group_by',0),SINGLE_SELECT),
-				array('graph_x','',http('graph_x',$bench_def_width),TEXT_ROW,'graph width'),
-				array('graph_y','',http('graph_y',$bench_def_height),TEXT_ROW,'graph height'),
-				array('legend_pos',$legend,http('legend_pos',$bench_def_pos),SINGLE_SELECT),
-				array('font_size',$fontsize,http('font_size',$bench_def_font),SINGLE_SELECT),
-			);
-			print html_search_form(null,$what,array('form'=>false,'submit'=>'Graphs','div'=>'screen'));
-			print "</form>\n";
+		else if( $step=='reg' )	{
+			$transl['enums']['product_id'] = 'product';
+			$transl['enums']['release_id'] = 'release';
 		}
+		table_translate($data,$transl); 
+		if( $mode_got==3 ) # KOTD external links, linked by value instead of ID, need translating here
+			table_translate($data,array('links'=>array('kernel_branch_id'=>'http://kerncvs.suse.de/kernel-overview/?b=')));
+		if( $step=='reg' )	{
+			if( count($data) >= AGR_MAX_RES )
+				print html_error('Only processing firs '.AGR_MAX_RES.' result rows. This limitation will be removed in the next release.');
+			print html_groupped_table($data,array(
+				'group_y' => $y,
+				'group_x' => $x,
+				'header' => 1,
+				'aggregate_fields' => array('runs','succ','fail','interr','skip','time'),
+				'aggregate_callback'    => 'aggregate_results',
+				'aggregate_name'        => 'result',
+				'aggregate_arg'         => array($cell_text_got,$cell_color_got),
+				'filter_callback'       => 'filter_regressions',
+				'filter_arg'            => $reg_method_got,
+			));
+		}
+		else	{
+			print html_table($data,array('id'=>'submission','sort'=>$sort,'total'=>true,'class'=>$class,'pager'=>$pager));
+			if( $step=='bench' && count($data)>1 )
+			{
+				$legend=array( array(0,'in the graph'), array(1,'next to the graph') );
+				$fontsize=array( array(1,1),array(2,2),array(3,3),array(4,4),array(5,5) );
+				$what=array(
+					array('group_by',$group_by,http('group_by',0),SINGLE_SELECT),
+					array('graph_x','',http('graph_x',$bench_def_width),TEXT_ROW,'graph width'),
+					array('graph_y','',http('graph_y',$bench_def_height),TEXT_ROW,'graph height'),
+					array('legend_pos',$legend,http('legend_pos',$bench_def_pos),SINGLE_SELECT),
+					array('font_size',$fontsize,http('font_size',$bench_def_font),SINGLE_SELECT),
+				);
+				print html_search_form(null,$what,array('form'=>false,'submit'=>'Graphs','div'=>'screen'));
+				print "</form>\n";
+			}
+		}
+
 	}
 	echo "</div>\n";
 }
 else if( $action=='edit' )
 {	# detail edit form
-	$detail=print_submission_details($submissionID);
+	$detail=print_submission_details($submission_id);
 	if( count($detail) > 1 )
 	{
-		$comment=$detail[1]['comment'];
-		$related=$detail[1]['related'];
-		$active=$detail[1]['active'];
+		$status=enum_list_id_val('status');
+		array_unshift($status,array('null',''));
 		$what=array(
-			array('active','',$active,CHECK_BOX),
-			array('comment','',$comment,TEXT_AREA),
-			array('related','',$related,TEXT_ROW),
-			array('submissionID','',$submissionID,HIDDEN),
+			array('status',$status,$detail[1]['status_id'],SINGLE_SELECT),
+			array('comment','',$detail[1]['comment'],TEXT_AREA),
+			array('related','',$detail[1]['related'],TEXT_ROW),
+			array('submission_id','',$submission_id,HIDDEN),
 			array('submit','','comment',HIDDEN),
 			array('wtoken','',token_generate(),HIDDEN)
 		);
-		print "<h2>Editing submission $submissionID</h2>\n";
+		print "<h2>Editing submission $submission_id</h2>\n";
 		print html_search_form('submission.php',$what);
 	}
 #	print "<h3>
 }
-else if( $action=='edit_link' && $submissionID && $tcfID )
+else if( $action=='edit_link' && $submission_id && $tcf_id )
 {
 	# edit link to logs
 	echo "<h3>Submission details</h3>\n";
-	$detail1=print_submission_details($submissionID);
+	$detail1=print_submission_details($submission_id);
 	echo "<h3>TCF details</h3>\n";
-	$detail2=print_tcf_details($tcfID);
+	$detail2=print_tcf_details($tcf_id);
 	$what=array(
-		array('url','',$detail2[1]['logs_url'],TEXT_ROW),
-		array('submissionID','',$submissionID,HIDDEN),
-		array('tcfID','',$tcfID,HIDDEN),
+		array('url','',$detail2[1]['log_url'],TEXT_ROW),
+		array('submission_id','',$submission_id,HIDDEN),
+		array('tcf_id','',$tcf_id,HIDDEN),
 		array('submit','','link',HIDDEN),
 		array('wtoken','',token_generate(),HIDDEN),
 	);
 	print "<h2>Editing link to logs</h2>\n";
 	print html_search_form('submission.php',$what);
 }
-else if( $submissionID)
+else if( $submission_id)
 {	# detail list
-	echo "<h1>Details for submission $submissionID</h1>\n";
-	$detail1=print_submission_details($submissionID);
+	echo "<h1>Details for submission $submission_id</h1>\n";
+	$detail1=print_submission_details($submission_id);
 	if( count($detail1) > 1 )
 	{
 		echo "<div class=\"screen allresults\">&rarr; See ";
-		$base1="results.php?submissionID=$submissionID&search=1";
-		$base2="confirm.php?submissionID=$submissionID";
-		$base3="submission.php?submissionID=$submissionID";
+		$base1="result.php?submission_id=$submission_id&search=1";
+		$base2="confirm.php?submission_id=$submission_id";
+		$base3="submission.php?submission_id=$submission_id";
 		echo html_text_button('all results',$base1);
-		echo html_text_button('RPM list',"rpms.php?configID=".$detail1[1]['configID']);
-		echo html_text_button('hwinfo',"hwinfo.php?hwinfoID=".$detail1[1]['hwinfoID']);
+		echo html_text_button('RPM list',"rpms.php?rpm_config_id=".$detail1[1]['rpm_config_id']);
+		echo html_text_button('hwinfo',"hwinfo.php?hwinfo_id=".$detail1[1]['hwinfo_id']);
 		echo "</div>\n";
 		echo "<div class=\"screen\">\n";
 		echo "<div class=\"controls\">Controls :";
-		echo html_text_button('edit comment/active/related',"$base3&action=edit");
+		echo html_text_button('edit comment/status/related',"$base3&action=edit");
 		echo html_text_button('delete submission',"$base2&confirm=s");
 		echo "</div>\n</div>\n";
 		echo "<h2>Included testsuites</h2>\n";
-		$data=tcf_details($submissionID,0);
+		$data=tcf_details($submission_id,0);
 		table_translate($data,array(
 			'ctrls'=>array(
-				'delete'=>"$base2&confirm=sd&tcfID=",
-				'edit log URL'=>"$base3&action=edit_link&tcfID=",
+				'delete'=>"$base2&confirm=sd&tcf_id=",
+				'edit log URL'=>"$base3&action=edit_link&tcf_id=",
 			),
 			'links'=>array(
-				'tcfID'=>"$base1&tcfID=",
-				'testsuiteID'=>"$base1&testsuiteID=",
+				'tcf_id'=>"$base1&tcf_id=",
+				'testsuite_id'=>"$base1&testsuite_id=",
 			),
-			'urls'=>array( 'logs_url'=>'logs' ),
-			'enums'=>array('testsuiteID'=>'testsuites'),
+			'urls'=>array( 'log_url'=>'logs' ),
+			'enums'=>array('testsuite_id'=>'testsuite'),
 		));
 		print html_table($data,array('id'=>'tcf','sort'=>'hhiiiiiiih','class'=>'tbl controls'));
 	}
@@ -278,6 +373,56 @@ print "</div>\n";
 print html_footer();
 exit;
 
+
+function aggregate_results( $runs, $succ, $fail, $interr, $skip, $time, $method )
+{
+	$text='';
+	if( $method[0]==1 )
+		$text = ( $fail ? 'failed' : ( $interr ? 'interr' : ( $skip ? 'skipped' : 'success' )));
+	else if( $method[0]==2 )
+		$text = ( $runs>0 ? sprintf("%2d",100*$succ/$runs).'%' : 'N/A' );
+	else if( $method[0]==3 )
+		$text = "$fail/$interr/$skip/$succ";
+	else if( $method[0]==4 )
+		$text = ( $fail || $interr ? 'X' : '' );
+
+	$ret['class'] = ( $fail || $interr ? 'fail' : '');
+	if( $method[1] == 1 )
+		$ret['class'] .= ' ' . ( $fail ? 'r' : ($interr ? 'wr' : ($skip ? 'm' : 'i' )));
+
+	if( $runs>0 )	{
+#		if( $method[1]==1 )
+#			$ret['class'] = ( $fail ? 'r' : ($interr ? 'wr' : ($skip ? 'm' : 'i' )));
+#		else 
+		if( $method[1]==2 )
+			$ret['style'] = sprintf("background-color: rgb(%d,%d,%d)",255*$fail/$runs,255*$succ/$runs,255*$interr/$runs);
+		else if( $method[1]==3 )	{
+			$gray = sprintf("%d",255*$succ/$runs);
+			$ret['style'] = "background-color: rgb($gray,$gray,$gray); color: ".($gray>128 ? 'black':'white');
+		}
+
+	}
+	$ret['text'] = $text;
+	$ret['title'] = "fail:$fail interr:$interr skip:$skip success:$succ runs:$runs time:$time";
+	return $ret;
+}
+
+function filter_regressions($rows,$method)
+{
+	$stat=array();
+	foreach( $rows as $column )
+		foreach( $column as $row )
+			foreach( $row as $field )	{
+				if( $method>1 && !strncmp($field['class'],'fail',4) )
+					return true;
+				else
+					$stat[$field['class']]=1;
+			}
+	if( $method==2 )
+		return false;
+	else
+		return ( count($stat) > 1 );
+}
 
 
 

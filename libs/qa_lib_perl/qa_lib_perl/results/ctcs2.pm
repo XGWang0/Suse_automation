@@ -52,11 +52,17 @@ This class in an implementation of results class, it adds no public methods.
 
 =cut 
 
+BEGIN {
+	# extend the include path to get our modules found
+	push @INC,"/usr/share/qa/lib",'.';
+}
+
 package results::ctcs2;
 
 use results;
 @ISA = qw(results);
 
+use benchxml;
 
 use strict;
 use warnings;
@@ -93,6 +99,12 @@ sub _hwinfo_get
 {
 	my ($self,$tcf)=@_;
 	return $self->path()."/$tcf/hwinfo";
+}
+
+sub _kernel_get
+{
+	my ($self,$tcf)=@_;
+	return $self->path()."/$tcf/kernel";
 }
 
 # private method for opening directory path() and keeping its handle
@@ -233,6 +245,10 @@ sub testsuite_next
 		test_time => $p[3],
 		skipped => $p[5]
 	};
+
+	# add benchmark resutlst if any
+	my $benchres_file = $self->path().'/'.$self->{TCF} .'/'.$tcname .'.bench.xml';
+	$res->{bench_data} = bench_data_from_xml($benchres_file) if -r $benchres_file;
 		
 	$self->{'TC_NAME'} = $tcname;
 	

@@ -30,6 +30,9 @@
         $go = 'newvm';
         return require("index.php");
     }
+	if (array_key_exists('OPENID_AUTH', $_SESSION))	
+		$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
+
 	$blockedMachines = array();
 	$nonVH = array();
 	$paravirtnotsupported = array();
@@ -42,10 +45,9 @@
 			$nonVH[] = $machine->get_hostname();
 		} else {
 			if ($machine->get_type() != 'xen') $paravirtnotsupported[] = $machine->get_hostname();
-			//TODO check full virt support!
 		}
-                $virtavaimem = $machine->get_vmusedmemory() < 512 ? $machine->get_vmusedmemory() : $machine->get_vmusedmemory() - 512; #Dom0 will cost 512MB
-                $virtavaidisk = $machine->get_avaivmdisk();
+		$virtavaimem = $machine->get_vmusedmemory() < 512 ? $machine->get_vmusedmemory() : $machine->get_vmusedmemory() - 512; #Dom0 will cost 512MB
+		$virtavaidisk = $machine->get_avaivmdisk();
 	}
 	if(count($nonVH) != 0) {
 		echo "<div class=\"text-medium\">" .
@@ -67,7 +69,9 @@
 
 <ul>
 <?php foreach ($machines as $machine): ?>
-<li><input type="hidden" name="a_machines[]" value="<?php echo($machine->get_id()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>"><?php echo($machine->get_hostname()); ?></a></li>
+<li><input type="hidden" name="a_machines[]" value="<?php echo($machine->get_id()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>"><?php echo($machine->get_hostname()); ?></a> &nbsp;&nbsp;
+<?php if($machine->get_ishwvirt() == 0) echo $machine->get_hostname()." probably doesn't support full-virtualization. Use Para mode, please!"; ?>
+</li>
 <?php endforeach; ?>
 </ul></h5>
 
@@ -78,11 +82,12 @@ This page will allow you to customize the AutoYaST product installation for the 
 
 <table class="text-medium">
   <?php require ("req_rein_all.php"); ?>
-  <?php require ("req_newvm.php"); ?>
+  <?php require ("req_newvm_com_conf.php"); ?>
+  <?php require ("req_newvm_linux_conf.php"); ?>
   <?php require ("req_sut.php"); ?>
   <tr>
     <td>Notification email address (optional):</td>
-    <td><input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} ?>" /> (if you want to be notified when the installation is finished)</td>
+    <td><input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} else if ($openid_auth && isset($user)) { echo $user->get_email(); } ?>" /> (if you want to be notified when the installation is finished)</td>
   </tr>
 </table>    
 <br />

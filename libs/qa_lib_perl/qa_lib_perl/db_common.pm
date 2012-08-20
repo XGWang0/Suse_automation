@@ -253,6 +253,7 @@ sub enum_get_id # tbl, val
 	return $self->scalar_query('SELECT '.&eid($tbl)." FROM `$tbl` WHERE ".&ename($tbl).'=? LIMIT 1',$val);
 }
 
+
 sub enum_insert_id # tbl, val
 {
 	my ($self,$tbl,$val)=@_;
@@ -300,6 +301,14 @@ sub enum_undo_all_inserts
 }
 
 ###############################################################################
+# common DB interface
+###############################################################################
+sub get_promote_release_id # arch_id , build_nr, product_id
+{
+	my ($self,$arch,$build_nr,$product)=@_;
+	return $self->scalar_query('SELECT release_id FROM `build_promoted` WHERE arch_id=? AND build_nr=? AND product_id=? LIMIT 1',$arch,$build_nr,$product);
+}
+###############################################################################
 # lowlevel DB stuff, cleanup
 ###############################################################################
 
@@ -327,9 +336,7 @@ sub TRANSACTION_END
 	$self->update_query('UNLOCK TABLES') if $permit_locking;
 	my $delta = 1000*($s1-$t1)+0.001*($s2-$t2);
 	if( $transaction_max_ms and @tbl and $delta > $transaction_max_ms )	{
-		&log(LOG_WARN,"Transaction on %s finished after $delta ms, queries: %s",
-			join(',',@tbl),
-			join(' | ',@{$self->{'transaction_queries'}}) );
+		&log(LOG_WARN,"Transaction on %s finished after $delta ms",join(',',@tbl));
 	}
 }
 

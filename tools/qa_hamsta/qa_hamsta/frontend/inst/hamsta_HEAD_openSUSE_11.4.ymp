@@ -1,0 +1,19 @@
+<metapackage xmlns:os="http://opensuse.org/Standards/One_Click_Install" xmlns="http://opensuse.org/Standards/One_Click_Install">
+  <group>
+    <repositories>
+      <repository recommended="true">
+        <name>qa_hamsta</name>
+        <summary>Hamsta</summary>
+        <description></description>
+        <url>http://download.nue.suse.com/ibs/QA:/Head/openSUSE_11.4</url>
+      </repository>
+    </repositories>
+    <software>
+      <item>
+        <name>qa_hamsta</name>
+        <summary>Hamsta</summary>
+        <description></description>
+      </item>
+    </software>
+  </group>
+</metapackage>

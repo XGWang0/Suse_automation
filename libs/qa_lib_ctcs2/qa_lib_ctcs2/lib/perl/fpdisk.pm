@@ -235,12 +235,23 @@ sub get_disk_info_fdisk {
 	my ($heads, $sectors, $cylinders);
 	my ($cylsize, $blocksize);
 	my $disksize;
-	open FDISK, 'LANG=C fdisk -l ' . $disk . " 2>&1 |";
+	my $diskopt = "";
+	my @fdisk_out =  "";
+        open FDISK, 'LANG=C fdisk 2>&1 |';
+	@fdisk_out = <FDISK>;
+	close FDISK;
+	#check the help of fdisk
+	$diskopt = '-u=cylinders' if(grep(/display units: /,@fdisk_out)) ;
+
+	open FDISK, "LANG=C fdisk $diskopt -l " . $disk . " 2>&1 |";
 	while (<FDISK>) {
 		if (/^\s*(\d+) heads, (\d+) sectors[^\,]*, (\d+) cylinders/) {
 			($heads, $sectors, $cylinders) = ($1, $2, $3);
 		}
-		if (/^Units = cylinders of (\d+) \* (\d+)/) {
+		if (/^Units = sectors of (\d+) \* (\d+)/) {
+			$cylsize = $1 * $heads * $sectors;
+			$blocksize = $2;
+		} elsif (/^Units = cylinders of (\d+) \* (\d+)/) {
 			($cylsize, $blocksize) = ($1, $2)
 		}
 		if (/^\/dev\//) {

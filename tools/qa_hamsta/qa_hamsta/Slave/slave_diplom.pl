@@ -39,6 +39,7 @@ use Proc::Fork;
 use Sys::Hostname;
 use Data::Dumper;
 use Socket;
+use POSIX ':sys_wait_h';
 
 BEGIN { push @INC, '.', '/usr/share/hamsta', '/usr/share/qa/lib'; }
 use log;
@@ -58,11 +59,13 @@ require 'Slave/config_slave';
 $SIG{KILL} = \&deconstruct;
 $SIG{INT} = \&deconstruct;
 $SIG{TERM} = \&deconstruct;
+#$SIG{CHLD} = 'IGNORE';
 
 if ($> != 0) {
     &log(LOG_CRIT,"The HAMSTA slave has to be run as root (needed for hwinfo)");
     exit;
 }
+
 
 # If the running slave has already sent a hwinfo output, $sent_hwinfo contains
 # the timestamp when it was sent. When a request for hwinfo is received and
@@ -92,31 +95,98 @@ $log::loglevel=$Slave::debug;
 # problem won't occur ever. This does not mean the problem is gone. If
 # you remove the forking again, the code will probably be broken on some
 # machines.
+our $last_ip = &get_slave_ip($Slave::multicast_address);
+our $slave_pid;
+our $multicast_pid;
+
 child {
-    $log::loginfo='hamsta';
+    $log::loginfo='hamsta-server';
+    $0 .= ' server';
     &log(LOG_INFO, "Starting server");
-    
+
     open(STDOUT_ORG, ">&STDOUT");
     STDOUT_ORG->autoflush(1);
     &log_set_output(handle=>*STDOUT_ORG,close=>1);
     run_slave_server();
-};
+}
+parent {
+    $slave_pid=shift;
+}
+;
 
 
 # Start the multicast announcement as a new thread
 # my $mcast_thread =threads->new(sub {system("/usr/bin/perl mcast.pm");});
+child {
+        $log::loginfo = 'hamsta-multicast';
+        $0 .= ' multicast';
 &log(LOG_INFO,"Starting multicast thread");
 &Slave::Multicast::run();
+}
+parent {
+    $multicast_pid=shift;
+};
+
+$log::loginfo = 'hamsta';
+
+while(1){
+    my $sleep_s=300;
+    my $current_ip=&get_slave_ip($Slave::multicast_address);
+    if($last_ip ne $current_ip ){
+      if(! &chk_run ) { 
+	kill 9,$slave_pid,$multicast_pid;
+	sleep(1);
+	waitpid $slave_pid, 0;
+	waitpid $multicast_pid, 0;
+	&log(LOG_ERR,"Multicast died");
+	&log(LOG_ERR,"slave server died");
+	$last_ip=$current_ip;
+	sleep 5;
+	child {
+              $log::loginfo='hamsta-server';
+              $0 .= ' server';
+	      &log(LOG_INFO, "Starting server");
+              open(STDOUT_ORG, ">&STDOUT");
+	      STDOUT_ORG->autoflush(1);
+	      &log_set_output(handle=>*STDOUT_ORG,close=>1);
+	      run_slave_server();
+	}
+	parent {
+		    $slave_pid=shift;
+	}
+	;
+	child {
+                $log::loginfo = 'hamsta-multicast';
+                $0 .= ' multicast';
+		&log(LOG_INFO,"Starting multicast thread");
+		&Slave::Multicast::run();
+	}
+	parent {
+		    $multicast_pid=shift;
+	};
+
+      }
+      $sleep_s=600;
+    }
+      sleep($sleep_s);
+}
 
 # Should be never reached
-&log(LOG_ERR,"Multicast died");
-1 while 1;
 
 # run_slave_server()
 #
 # Listens for incoming connections on the slave_port and forwards
 # requests to process_request.
 # 
+sub chk_run() {
+	
+
+  open my $sub_p,"pstree $slave_pid |" or return 0;
+  my @pstreeo = <$sub_p>;
+  close $sub_p;
+  return 1 if(grep { /\-/ } @pstreeo);
+  return 0 ;
+}
 sub run_slave_server() {
     my $socket = new IO::Socket::INET(
         LocalPort => $Slave::slave_port,
@@ -129,7 +199,9 @@ sub run_slave_server() {
     my ($connection,$ip_addr);
     while(1) {
         eval {
+	    sleep 2;
 	    my ($port,$iaddr,$paddr);
+            &log(LOG_DETAIL,"Accepting connections");
             ($connection,$paddr) = $socket->accept();
             $| = 1;
 	    $connection->autoflush(1);
@@ -196,6 +268,8 @@ sub run_slave_server() {
 
 sub process_request {
     my ($sock,$ip_addr) = @_;
+    #Send Establish sync
+    print $sock "\n";
     eval {
 
         STDOUT->autoflush(1);
@@ -219,6 +293,7 @@ sub process_request {
                 }
                 &log(LOG_NOTICE, "[$ip_addr] Sent hwinfo.");
                 $sent_hwinfo = time;
+		last;
             } elsif ($incoming =~ /^get_stats$/) {
                 eval { 
                     print $sock uri_escape(&get_stats_xml());
@@ -227,8 +302,10 @@ sub process_request {
                     &log(LOG_ERROR, $@);
                 }
                 &log(LOG_NOTICE, "[$ip_addr] Sent machine stats.");
+		last;
             } elsif ($incoming =~ /^ping$/) {
                 print $sock "pong\n" ;	
+		last;
             } else {
                 my $job = $incoming."\n";
 		&log(LOG_NOTICE, "[$ip_addr] Start of XML job");
@@ -241,6 +318,7 @@ sub process_request {
                     last if ($incoming =~ /%3C\/job%3E/);
                 }
                 &start_job($job, $sock);
+		last;
             }
         }
     };
@@ -249,6 +327,7 @@ sub process_request {
         &log(LOG_ERROR, $@);
         return;
     }
+    &log(LOG_DETAIL, "Request finished.");
 
 }
 
@@ -288,22 +367,69 @@ sub start_job() {
     &log(LOG_DETAIL, "Written XML to file $filename");
 
     # Start the execution and collect the output
-    my $pid_main = open (FILE, "/usr/bin/perl Slave/run_job.pl $filename 2>&1|");
-    my $count = 0;
-    while (<FILE>) {
-	chomp;
-	#bug 615911
-	next if ($_ =~ /A thread exited while \d+ threads were running/);
-        &log(LOG_DETAIL, '%s', $_);
-        print $sock $_."\n";
-        $count++ if ($_ =~/\<job\>$/ );
-        goto OUT if ($count == 2);
+    
+    #time out monitor start.
+    my $sut_timeout=0;
+    #find out time out value.
+    my $work_start = time;
+    my $fork_re = fork ();
+    if($fork_re==0) {
+	#in child, start to work;
+	#close share socket in child
+        my $pid_main = open (FILE, "/usr/bin/perl Slave/run_job.pl $filename 2>&1|");
+        my $count = 0;
+        while (<FILE>) {
+	    chomp;
+	    #bug 615911
+	    next if ($_ =~ /A thread exited while \d+ threads were running/);
+            &log(LOG_DETAIL, '%s', $_);
+            print $sock $_."\n";
+            $count++ if ($_ =~/\<job\>$/ );
+            last if ($count == 2);
+        }
+	close FILE;
+	unlink $filename;
+	&log(LOG_NOTICE, "Job finished.");
+	print $sock "Job ist fertig\n";
+	exit;
+    }elsif($fork_re){
+	#in parent we start to check child is finish or not;
+        my $qa_package_jobs = `grep '\./customtest ' $filename`;
+        chomp $qa_package_jobs;
+        if($qa_package_jobs){
+            $qa_package_jobs =~ s/.*customtest //;
+            my @qa_package_jobs = split /\s+/,$qa_package_jobs;
+            for my $j (@qa_package_jobs) {
+                $j =~ s/qa_//;$j =~ s/$/-run/;
+    	        my $time_o = `grep 'sut_timeout ' /usr/share/qa/tools/$j`;
+	        chomp $time_o;
+	        $time_o =~ s/#sut_timeout //;
+		$time_o =~ s/\D+//g;
+	        $sut_timeout += $time_o if ($time_o);
+            }
+        }
+        $sut_timeout = 86400 if($sut_timeout ==0);   #24hours
+        &log(LOG_NOTICE, "Time out is $sut_timeout (s)");
+
+	my $current_time=0;
+	while ($current_time < $sut_timeout) {
+	    goto OUT if(waitpid($fork_re, WNOHANG));
+	    sleep 5;
+	    $current_time += 5;
+
+	}
+        #timeout
+        &log(LOG_ERROR, "TIMEOUT,please logon SUT check the job manually!");
+        &log(LOG_NOTICE, "Job TIMEOUT.");
+	print $sock "TIMEOUT\n";
+        print $sock "Job ist fertig\n";
+	OUT: 
+    }else{
+	#fork error ;
+        &log(LOG_ERROR, "Fork error,exit");
+	&log(LOG_NOTICE, "Job finished.");
+	print $sock "Job ist fertig\n";
     }
-    OUT:
-    close FILE;
-    unlink $filename;
-    &log(LOG_NOTICE, "Job finished.");
-    print $sock "Job ist fertig\n";
 }
 
 # deconstruct()

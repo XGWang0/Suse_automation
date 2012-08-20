@@ -52,23 +52,76 @@ BEGIN {
         &parse_kernbench
 	&parse_hazard
         &parse_openssl
+	&parse_fio
+
+	&parse_new_bench_format
     );
     %EXPORT_TAGS = ( );
     @EXPORT_OK   = ();
 }
 
 our @EXPORT_OK;
-our %part_id = ();
-
 
 ###############################################################################################################################
 
-# benchmark parser section
+# Convert the new benchmark results data to the old firmat. 
+# This could be deleted when QADB is later extended and we will
+# store bench results in a better way
+#
+# arguments: harhref to bench_data structure (see results.pm for definition)
+# returns: array ( $key1, $number1, $key2, $number2, ... )
+# key conventions: semicolon-separated strings, 
+#  first one is used to make X axis and should start with a number for line graphs
+sub parse_new_bench_format
+{
+	my $res = shift;
+	
+	my @parsed;
+
+	foreach my $graph (@{$res->{graphs}}) {
+		# there might be more graphs
+		my $x = $graph->{axis_1};
+		my $y = $graph->{result};
+
+
+		my $x_label = $res->{attrs}->{$x}->{label};
+		my $x_unit  = $res->{attrs}->{$x}->{unit};
+		my $y_label = $res->{attrs}->{$y}->{label};
+		my $y_unit  = $res->{attrs}->{$y}->{unit};
+
+		foreach my $val (@{$res->{values}}) {
+			# if for different graph, skip
+			next unless defined $val->{$x} and defined $val->{$y};
+
+			my $str = ''. $val->{$x} . ($x_unit ? " $x_unit;" : ';');
+			$str .= $graph->{label} . ';' if $graph->{label};
+			foreach my $z (sort keys %$val) {
+				# add the middle part
+				next if $z eq $x or $z eq $y;
+				$str .= $res->{attrs}->{$z}->{label};
+				$str .= '=' . $val->{$z};
+				if ($res->{attrs}->{$z}->{unit}) {
+					$str .= ' ' . $res->{attrs}->{$z}->{unit};
+				}
+				$str .= ';';
+			}
+			$str .= "$y_unit";
+			push @parsed, $str, $val->{$y};
+		}
+
+	}
+	return @parsed;
+}
+
+###############################################################################################################################
+
+# deprecated benchmark parser section (new parsers are part of testsuites)
 # one parser section per benchmark
 # arguments: open filehandle with data
 # returns: array ( $key1, $number1, $key2, $number2, ... )
 # key conventions: semicolon-separated strings, 
 #  first one is used to make X axis and should start with a number for line graphs
+
 
 
 sub parse_dbench
@@ -572,6 +625,38 @@ sub parse_openssl
     }
 
     return @results;
+}
+
+sub parse_fio($)
+{
+	my $fh=shift;
+	my @ret=();
+	my $part='';
+	while( my $row=<$fh> )	{
+		if( $row =~ /^([\w\-_]+):/ )	{
+			$part="$1 ";
+		}
+		elsif( $row =~ /^\s*(read|write)\s*:.*?bw=([^ ,]+)[, ]+iops=([^ ,]+)/ )	{
+			my ($what,$bw,$iops)=($1,$2,$3);
+			my $bw_u;
+			($bw,$bw_u)=($1,$2) if $bw =~ /([\+\-\d\.]+)((KB|MB)\/s)/;
+			$bw *= 1000 if $bw_u eq 'MB/s';
+			push @ret,"$part$what; bandwidth; KB/s",$bw;
+			push @ret,"$part$what; IOs per sec; IOs per sec",$iops;
+		}
+		elsif( $row =~ /^\s*lat\s*\((msec|usec)\)\s*:\s*(.+)$/ )	{
+			my ($lat_u,$tail)=($1,$2);
+			my @lat = split(/\s*,\s*/,$tail);
+			foreach my $lat (@lat)	{
+				if( $lat =~ /([\d\.]+)=([\d\.]+)%/ )	{
+					my($lat_r,$perc)=($1,$2);
+					$lat_r *= 1000 if $lat_u eq 'msec';
+					push @ret,"${lat_r} us; ${part}latency; %",$perc;
+				}
+			}
+		}
+	}
+	return @ret;
 }
 
 

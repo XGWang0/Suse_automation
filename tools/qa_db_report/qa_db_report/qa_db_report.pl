@@ -41,8 +41,8 @@ no strict 'refs';	# for benchmark parsers
 use Getopt::Std;
 
 # Needed global variables for Getopt::Std;
-our ($opt_h,$opt_d,$opt_c,$opt_p,$opt_a,$opt_f,$opt_F,$opt_m,$opt_t,$opt_v,$opt_b,$opt_C) =
-    ("",    0,     "",    "",    "",    "",    "",    "",    "",    "",    "",    "");
+our ($opt_h,$opt_d,$opt_c,$opt_p,$opt_a,$opt_f,$opt_F,$opt_m,$opt_t,$opt_v,$opt_b,$opt_C,$opt_N) =
+    ("",    0,     "",    "",    "",    "",    "",    "",    "",    "",    "",    "",	"");
 our ($opt_L,$opt_D,$opt_A,$opt_k, $opt_T, $opt_R) =
     ("",    "",    "",    ""    , "",     "");
 
@@ -60,7 +60,7 @@ use qaconfig('%qaconf','&get_qa_config');
 %qaconf = ( %qaconf, &get_qa_config('qa_db_report') );
 
 $log::loginfo='qa_db_report';
-&log_set_output(handle=>*STDOUT);
+&log_set_output(handle=>*STDERR);
 
 #
 # Load all result parsers
@@ -126,6 +126,7 @@ my %args;
 $args{'product'}="";
 $args{'release'}="";
 $args{'arch'}= &get_architecture;
+$args{'build_nr'}="";
 $args{'comment'}="";
 $args{'resultpath'}="/var/log/qa";
 $args{'tcf_filter'} = undef;
@@ -143,6 +144,7 @@ unless ($args{'host'})
 	$args{'host'}=`hostname`;
 	chomp $args{'host'};
 }
+$args{'host'}=$1 if $args{'host'} =~ /^([^\.]+)\./;
 
 $Getopt::Std::STANDARD_HELP_VERSION=1;
 
@@ -150,7 +152,7 @@ $Getopt::Std::STANDARD_HELP_VERSION=1;
 
 sub usage {
 print 
-"Usage: $0 -p PRODUCT [-c <comment>] [-bCLRDA] [-v <n>] [-a ARCH] [-f PATH] [-F TCF_LIST] [-k KERNEL] [-m TESTHOST] [-t TYPE] [-T TESTER]\n",
+"Usage: $0 -p PRODUCT [-c <comment>] [-bCLRDA] [-v <n>] [-a ARCH] [-N BUILD_NUMBER ] [-f PATH] [-F TCF_LIST] [-k KERNEL] [-m TESTHOST] [-t TYPE] [-T TESTER]\n",
 "       $0 -h\n",
 "\n",
 "Options and option values (options may be given in any order):\n",
@@ -168,6 +170,7 @@ print
 "	PRODUCT:	e.g. SLES-10-beta1 | SLES-9-SP4-RC1\n",
 "	ARCH:		QADB architecture, e.g. i586,ia64,x86_64,ppc,ppc64,s390x,xen0-*...\n",
 "       		(default: detected arch of this host (".$args{'host'}."): ".$args{'arch'}.")\n",
+"	BUILD_NUMBER	THE BUILD NUMBER (BUILDXXX) ,we use BUILD NUMBER before the release\n",
 "	PATH:		the ctcs2 directory containing the $filename files to submit\n",
 "       		(default: ".$args{'resultpath'}.")\n",
 "	TCF_LIST:	comma-separated list of test-runs (ctcs2 subdirs) that should be processed.\n",
@@ -209,7 +212,7 @@ sub annoy_user # question
 #  (Note: man Getopt::Std is misleading, to put it mildly.
 #   Consult /usr/lib/perl5/Getopt/Std.pm itself, instead.
 #
-&getopts("hbLRDAv:c:p:a:f:F:k:m:t:T:");
+&getopts("hbLRDAv:c:p:a:f:F:k:m:N:t:T:");
 if ("$opt_h") 
 {	&usage; exit 0;	}
 $log::loglevel		= $opt_v	if (defined $opt_v and $opt_v=~/^-?\d+/);
@@ -221,6 +224,7 @@ $noscp			= 1		if ($opt_A);
 $db_common::batchmode	= 1		if ($opt_b);
 ($args{'product'},$args{'release'})	= &set_product_release($opt_p)	if ($opt_p);
 $args{'arch'}		= $opt_a	if ($opt_a);
+$args{'build_nr'}	= $opt_N	if ($opt_N);
 $args{'resultpath'}	= $opt_f	if ($opt_f);
 $args{'host'}		= $opt_m	if ($opt_m);
 $args{'kernel'}		= $opt_k	if ($opt_k);
@@ -243,7 +247,7 @@ if ($opt_F) {
 # If logs should be deleted, don't move them to oldlogs
 $nomove=1 if $delete;
 
-die 'Wrong product type :'.$args{'type'}."\n" unless $args{'type'} =~ /^(kotd:[^:]+:[^:]+:[^:]+:[^:]+|patch:[0-9a-f]{32}|product)$/;
+&log_and_die('Wrong product type :'.$args{'type'}."\n") unless $args{'type'} =~ /^(kotd:[^:]+:[^:]+:[^:]+:[^:]+|patch:[0-9a-f]{32}|product)$/;
 
 
 unless ($args{'product'}) {
@@ -278,14 +282,26 @@ unless ($args{'release'}) {
 	"arch:".$args{'arch'}."\n"
 );
 
-# if logs are in tar.bz2., extract to remote logs dir
-if ( $args{'resultpath'} =~ /\.tar\.bz2$/ ) {
+# if logs are in tarball., extract to remote logs dir
+if ( $args{'resultpath'} =~ /\.tar\.gz$/ ) {
 	my $tarball = $args{'resultpath'};
-	chomp (my $dir = `basename "$args{'resultpath'}" .tar.bz2`);
+	chomp (my $dir = `basename "$args{'resultpath'}" .tar.gz`);
 	&log_add_output( path=>"/var/log/qa-remote-results/$dir.log", gzip=>1, level=>LOG_DEBUG );
 	$args{'resultpath'} = "$remote_results_dir/$dir";
 	mkdir $args{'resultpath'};
-	system "tar xjf \"$tarball\" -C \"". $args{'resultpath'}.'"' and die "Cannot extract archive.";
+	system "tar xzf \"$tarball\" -C \"". $args{'resultpath'}.'"' and &log_and_die( "Cannot extract archive." );
+
+	unlink $tarball if $delete; 
+	# we don't want to store the results here.
+	$delete_result_path=1;
+} elsif ( $args{'resultpath'} =~ /\.tar\.bz2$/ ) {
+	# if logs are in tar.bz2., extract to remote logs dir
+	my $tarball = $args{'resultpath'};
+	chomp (my $dir = `basename "$args{'resultpath'}" .tar.bz2`);
+	&log_add_output( path=>"/var/log/qa-remote-results/$dir.log", bzip2=>1, level=>LOG_DEBUG );
+	$args{'resultpath'} = "$remote_results_dir/$dir";
+	mkdir $args{'resultpath'};
+	system "tar xjf \"$tarball\" -C \"". $args{'resultpath'}.'"' and &log_and_die( "Cannot extract archive." );
 
 	unlink $tarball if $delete; 
 	# we don't want to store the results here.
@@ -293,14 +309,14 @@ if ( $args{'resultpath'} =~ /\.tar\.bz2$/ ) {
 }
 
 $dst->set_user();
-&TRANSACTION('architectures','releases','products','hosts','testers');
-my $archID	= $dst->enum_get_id('architectures',$args{'arch'})	
-	or die "Architecture '".$args{'arch'}."' not in the database";
-my $releaseID = $dst->enum_get_id_or_insert('releases',$args{'release'});
-my $productID = $dst->enum_get_id('products',$args{'product'})	
-	or die "Product '".$args{'product'}."' not found in the database";	
-my $hostID = $dst->enum_get_id_or_insert('hosts',$args{'host'});
-my $testerID = $dst->enum_get_id_or_insert('testers',$args{'tester'});
+&TRANSACTION('arch','release','product','host','tester');
+my $arch_id	= $dst->enum_get_id('arch',$args{'arch'})	
+	or &log_and_die( "Architecture '".$args{'arch'}."' not in the database" );
+my $release_id = $dst->enum_get_id_or_insert('release',$args{'release'});
+my $product_id = $dst->enum_get_id('product',$args{'product'})	
+	or &log_and_die( "Product '".$args{'product'}."' not found in the database" );	
+my $host_id = $dst->enum_get_id_or_insert('host',$args{'host'});
+my $tester_id = $dst->enum_get_id_or_insert('tester',$args{'tester'});
 &TRANSACTION_END;
 
 # commit schema:
@@ -311,7 +327,7 @@ my $testerID = $dst->enum_get_id_or_insert('testers',$args{'tester'});
 # - deleted submissions' foreign keys delete testsuites and results
 $db_common::delete_on_failure=1;
 $db_common::transaction_max_ms=2000; # default too short for RPM info
-my %submissions=();	# rpmlist_md5|hwinfo_md5 => submissionID
+my %submissions=();	# rpmlist_md5|hwinfo_md5 => submission_id
 my %destdirs=();	# subdir on local => dir in the archive
 $SIG{'INT'}=sub { $dst->die_cleanly() if defined $dst; };
 
@@ -321,11 +337,10 @@ our @stat_keys=('testcases','runs','succeeded','failed','interr','skipped', 'tim
 
 # scan for results
 
-my %rpmlist_paths = ();
-my %hwinfo_paths = ();
+my (%rpmlist_paths,%hwinfo_paths,%kernel_paths);
 my @skipped_list = ();
 
-opendir(RESULTS, $args{'resultpath'}) or die "Can't open results directory $args{'resultpath'}: $!";
+opendir(RESULTS, $args{'resultpath'}) or $dst->die_cleanly("Can't open results directory $args{'resultpath'}: $!");
 while( my $parser = readdir RESULTS) {
 	# Skip non-parsable files/dirs
 	next if $parser =~ /^\.\.?$/;	# skip . and ..
@@ -375,6 +390,7 @@ while( my $parser = readdir RESULTS) {
 		# find rpmlist+hwinfo, count MD5s, make submission hash key
 		my $rpmlist_path = $the_parser->rpmlist($tcf);
 		&log(LOG_DEBUG, "Got RPMlist path %s",$rpmlist_path);
+		&rpmlist_remove_kernel($rpmlist_path) if -w $rpmlist_path and $args{'type'}=~/^kotd/;
 		my $hwinfo_path  = $the_parser->hwinfo($tcf);
 		&log(LOG_DEBUG, "Got hwinfo path %s",$hwinfo_path);
 		&filter_hwinfo_file($hwinfo_path) or $dst->die_cleanly("Cannot filter hwinfo $hwinfo_path - insufficient rights?");
@@ -382,50 +398,73 @@ while( my $parser = readdir RESULTS) {
 		&log(LOG_DEBUG, "RPMlist md5sum is $rpmlist_md5");
 		my $hwinfo_md5  = $hwinfo_path  ? `md5sum $hwinfo_path | cut -d\\  -f1` : '';
 		&log(LOG_DEBUG, "HWinfo md5sum is $hwinfo_md5");
+		my ($kernel_path,$kernel_info,$kernel_id);
+		$kernel_path = $the_parser->kernel($tcf);
+		$kernel_info = &parse_kernel_info($kernel_path) if $kernel_path;
+		if( $kernel_info )	{
+			&log(LOG_DEBUG, "Kernel info: ".join(' ',map {"$_=$kernel_info->{$_}"} keys %{$kernel_info}));
+			$kernel_id = join('-',(map {defined $_ ? ($_) : ()} map {$kernel_info->{$_}} qw(version release)));
+		}
 		chomp($rpmlist_md5,$hwinfo_md5); 
-		my $key="$rpmlist_md5|$hwinfo_md5";
+		my $key="$rpmlist_md5|$hwinfo_md5|$kernel_id";
 	
 		# submissions
-		my $submissionID=$submissions{$key};
-		unless( $submissionID or $db_common::nodb )
+		my $submission_id=$submissions{$key};
+		unless( $submission_id or $db_common::nodb )
 		{
 			&log(LOG_DEBUG,"Preparing new submission for key $key");
-			my $rpmlist_msg = '';
-			my $hwinfo_msg = '';
-			my ($configID,$hwinfoID);
-			$rpmlist_msg = "File $rpmlist_path is different than already processed file(s):\n  ".join("\n  ", values(%rpmlist_paths))."\n\n" unless $rpmlist_paths{$rpmlist_md5};
-			$hwinfo_msg = "File $hwinfo_path is different than already processed file(s):\n  ".join("\n  ", values(%hwinfo_paths))."\n\n" unless $hwinfo_paths{$hwinfo_md5};
+			my ($config_id,$hwinfo_id);
+			my @changes;
+			push @changes,'rpmlist' unless $rpmlist_paths{$rpmlist_md5};
+			push @changes,'hwinfo' unless $hwinfo_paths{$hwinfo_md5};
+			push @changes,'kernel' unless $kernel_paths{$kernel_id};
 			# annoy the user when submitting multiple configurations
-			$dst->die_cleanly('User abort') unless keys(%submissions)!=1 or $db_common::batchmode or &annoy_user("The testsuite uses another rpminfo and/or hwinfo than the previous one(s):\n$rpmlist_msg$hwinfo_msg","Do you want to continue and have multiple submissions ?");
+			$dst->die_cleanly('User abort') unless keys(%submissions)!=1 or $db_common::batchmode or &annoy_user("The testsuite uses another rpminfo and/or hwinfo than the previous one(s) in : ".join(', ',@changes)."\n","Do you want to continue and have multiple submissions ?");
 	
 			# insert rpmlist
 			if( $rpmlist_path )	{
-				&TRANSACTION(qw(rpmConfig softwareConfig rpms rpm_basenames rpm_versions));
-				$configID = $rpmlist_path ? $dst->rpmlist_put($rpmlist_path) : undef;
+				&TRANSACTION(qw(rpm_config software_config rpm rpm_basename rpm_version));
+				$config_id = $rpmlist_path ? $dst->rpmlist_put($rpmlist_path) : undef;
 				&TRANSACTION_END;
 			}
 
 			# insert hwinfo
 			if( $hwinfo_path )	{
 				&TRANSACTION('hwinfo');
-				$hwinfoID = $hwinfo_path ? $dst->hwinfo_put($hwinfo_path) : undef;
+				$hwinfo_id = $hwinfo_path ? $dst->hwinfo_put($hwinfo_path) : undef;
 				&TRANSACTION_END;
 			}
 			
+			# query the build_promoted table for build promote
+			if( $args{'build_nr'} )	{
+				&TRANSACTION('build_promoted');
+				my $new_release_id=$dst->get_promote_release_id($arch_id,$args{'build_nr'},$product_id);
+				$release_id = $new_release_id if ($new_release_id);
+				&TRANSACTION_END;
+			}
 			# create a new submission
-			&TRANSACTION('submissions');
 			&log(LOG_INFO,"Creating a new submission");
-			$submissionID = $dst->submission_create($args{'type'},$testerID,$hostID,$args{'comment'},$archID,$productID,$releaseID,$configID,$hwinfoID);
-			$submissions{$key}=$submissionID;
+
+			&TRANSACTION('submission');
+			$submission_id = $dst->submission_create($args{'type'},$tester_id,$host_id,$args{'comment'},$arch_id,$product_id,$release_id,$config_id,$hwinfo_id,$args{'build_nr'});
+			$submissions{$key}=$submission_id;
 			&TRANSACTION_END;
+
+			# set kernel info, if available
+			if( $kernel_info )	{
+				&TRANSACTION('kernel_flavor','kernel_version','submission','kernel_branch');
+				$dst->submission_set_kernel_values($submission_id,map{$kernel_info->{$_}} qw(branch flavor revision version));
+				&TRANSACTION_END;
+			}
 	
 			# write the submission(s) type
-			&log(LOG_INFO,"Writing submission types for submission $submissionID");
-			&exec_submission_type($submissionID, $configID, $args{'type'});
+			&log(LOG_INFO,"Writing submission types for submission $submission_id");
+			&exec_submission_type($submission_id, $config_id, $args{'type'});
 		}
 	
 		$rpmlist_paths{$rpmlist_md5} = $rpmlist_path;
 		$hwinfo_paths{$hwinfo_md5} = $hwinfo_path;
+		$kernel_paths{$kernel_id} = $kernel_path;
 		&log(LOG_DEBUG, "Submission for key $key exists, going to write testsuite now");
 	
 		# testsuites
@@ -435,12 +474,12 @@ while( my $parser = readdir RESULTS) {
 		$destdirs{"$parser/$tcf"} = &get_log_dir(%args,'testsuite'=>$testsuite, 'date'=>$testdate, 'parser'=>$parser);
 
 		# insert TCF record
-		&TRANSACTION('testsuites','tcf_group');
+		&TRANSACTION('testsuite','tcf_group');
 		&log(LOG_DEBUG, "Log dir is %s",$destdirs{"$parser/$tcf"});
-		my $testsuiteID = $dst->enum_get_id_or_insert('testsuites',$testsuite);
-		&log(LOG_DEBUG, "testsuiteID is $testsuiteID");
-		my $tcfID = $dst->create_tcf( $testsuiteID, $submissionID, ($noscp ? '':$log_archive_root.'/'.$destdirs{"$parser/$tcf"}.'/'.$tcf), $testdate );
-		&log(LOG_DEBUG, "tcfID is $tcfID");
+		my $testsuite_id = $dst->enum_get_id_or_insert('testsuite',$testsuite);
+		&log(LOG_DEBUG, "testsuite_id is $testsuite_id");
+		my $tcf_id = $dst->create_tcf( $testsuite_id, $submission_id, ($noscp ? '':$log_archive_root.'/'.$destdirs{"$parser/$tcf"}.'/'.$tcf), $testdate );
+		&log(LOG_DEBUG, "tcf_id is $tcf_id");
 		&TRANSACTION_END;
 	
 		# process results
@@ -448,50 +487,62 @@ while( my $parser = readdir RESULTS) {
 		while( my ($tc_name, $res) = $the_parser->testsuite_next())
 		{
 			# results
-			&TRANSACTION('testcases','results');
+			&TRANSACTION('testcase','result');
 			&log(LOG_DEBUG, "Processing testcase $tc_name");
-			my $tcID = $dst->testcase_get_id_or_insert_with_rel_url($tc_name, $the_parser->testsuite_tc_output_rel_url());
-			my $resultsID = $dst->submit_results( $res->{times_run}, $res->{succeeded}, 
+			my $tc_id = $dst->testcase_get_id_or_insert_with_rel_url($tc_name, $the_parser->testsuite_tc_output_rel_url());
+			my $result_id = $dst->submit_results( $res->{times_run}, $res->{succeeded}, 
 				$res->{failed}, $res->{int_errors}, $res->{skipped},
-				$res->{test_time}, $tcID, $tcfID );
+				$res->{test_time}, $tc_id, $tcf_id );
 			&TRANSACTION_END;
 	
 			# benchmarks - parse testcase log + store benchmark data
+			# TODO: this needs rework, newer parsers give us more more information that we should
+			# improve the staring and displaying results in QADB!
 			my $bench_pairs = 0;
-			if( &is_bench($tc_name) )
+			if( $res->{bench_data} or &is_bench($tc_name) )
 			{
-				my $bfile=$the_parser->path()."/$tcf/".$the_parser->testsuite_tc_output_rel_url();
-				my $log;
-				if( open $log, $bfile )
-				{
-					# read and parse the testcase log
-					my $func = &bench_func($tc_name);
-					&log(LOG_INFO,"Parsing bench data from $tc_name using $func()");
-					my @parsed = &{$func}($log);
-					@parsed = &remove_duplicite_keyvals(@parsed);
-					&log(LOG_INFO,"Submitting ".(0+@parsed)." benchmark keys and values");
-					$bench_pairs=@parsed/2;
-					&log(LOG_WARNING,"No performance data in $filename.\n") unless @parsed;
-					&TRANSACTION('bench_parts','bench_data');
-					for( my $i=0; $i<@parsed-1; $i+=2 )
-					{
-						# insert one bench key/val pair into DB
-						&log(LOG_DETAIL,"\t%s\t%s",$parsed[$i],$parsed[$i+1]);
-						$dst->insert_benchmark_data( $resultsID, $parsed[$i], $parsed[$i+1] );
-					}
-					&TRANSACTION_END;
+				my @parsed;
+				if ($res->{bench_data}) {
+					# now move the new structure back to old limited format :(
+					@parsed = parse_new_bench_format($res->{bench_data});
 
-					close($log);
+				} else { # &is_bench($tc_name)
+					my $bfile=$the_parser->path()."/$tcf/".$the_parser->testsuite_tc_output_rel_url();
+					my $log;
+					if( open $log, $bfile )
+					{
+						# read and parse the testcase log - old parsing!
+						&log(LOG_WARN, "Using deprecated benchmark parsers to $tc_name, please the testsuite!");
+
+						my $func = &bench_func($tc_name);
+						&log(LOG_INFO,"Parsing bench data from $tc_name using $func()");
+						@parsed = &{$func}($log);
+	
+						close($log);
+					}
+					else
+					{	$dst->die_cleanly("Cannot open '$bfile': $!\n");	}
 				}
-				else
-				{	$dst->die_cleanly("Cannot open '$bfile': $!\n");	}
+
+				@parsed = &remove_duplicite_keyvals(@parsed);
+				&log(LOG_INFO,"Submitting ".(0+@parsed)." benchmark keys and values");
+				$bench_pairs=@parsed/2;
+				&log(LOG_WARNING,"No performance data for $tc_name.\n") unless @parsed;
+				&TRANSACTION('bench_part','bench_data');
+				for( my $i=0; $i<@parsed-1; $i+=2 )
+				{
+					# insert one bench key/val pair into DB
+					&log(LOG_DETAIL,"\t%s\t%s",$parsed[$i],$parsed[$i+1]);
+					$dst->insert_benchmark_data( $result_id, $parsed[$i], $parsed[$i+1] );
+				}
+				&TRANSACTION_END;
 			}
 	
 			# statistics
-			&TRANSACTION('tests');
-			$dst->tests_stat_update($testsuiteID,$tcID,($bench_pairs ? 1:0)); # TODO: undo if fail
+			&TRANSACTION('test');
+			$dst->tests_stat_update($testsuite_id,$tc_id,($bench_pairs ? 1:0)); # TODO: undo if fail
 			&TRANSACTION_END;
-			&log(LOG_DETAIL,"Test $tc_name, resultsID $resultsID: count ".$res->{times_run}.", fail ".$res->{failed}.", succ ".$res->{succeeded}.", fail ".$res->{failed}.", interr ".$res->{int_errors}.", skipped ".$res->{skipped}.", time ".$res->{test_time}.", bench pairs $bench_pairs ");
+			&log(LOG_DETAIL,"Test $tc_name, result_id $result_id: count ".$res->{times_run}.", fail ".$res->{failed}.", succ ".$res->{succeeded}.", fail ".$res->{failed}.", interr ".$res->{int_errors}.", skipped ".$res->{skipped}.", time ".$res->{test_time}.", bench pairs $bench_pairs ");
 			@stat_testsuite=&add_stat([@stat_testsuite],[1,$res->{times_run}, $res->{succeeded}, 
 												$res->{failed}, $res->{int_errors}, $res->{skipped},
 												$res->{test_time},$bench_pairs]);
@@ -501,8 +552,8 @@ while( my $parser = readdir RESULTS) {
 		
 		# TCF statistics
 		&log(LOG_DETAIL,  
-			 "I have submitted testsuite $testsuite tcfID $tcfID ".
-			 (defined $submissionID ? "(submissionID $submissionID) : ":': ').
+			 "I have submitted testsuite $testsuite tcf_id $tcf_id ".
+			 (defined $submission_id ? "(submission_id $submission_id) : ":': ').
 			 (join(' ',map {$stat_keys[$_].":".$stat_testsuite[$_]} (0 .. @stat_testsuite-1))));
 		@stat_total = &add_stat([@stat_total],[@stat_testsuite]);
 	}
@@ -595,7 +646,8 @@ my $msubject="[submission(s) $submissions] ".$args{'product'}."-".$args{'release
 &mail('root@'.$args{'host'},$reviewer,$args{'tester'}."\@$maildomain",$msubject,$msg);
 
 # finished
-&log(LOG_INFO, "All done - results were submitted with following submission ID(s):\n" . join("\n" , map { "ID $_: ".$qaconf{qadb_wwwroot}."/submission.php?submissionID=$_" } values %submissions));
+&log(LOG_INFO, "All done - results were submitted with following submission ID(s):\n" . join("\n" , map { "ID $_: ".$qaconf{qadb_wwwroot}."/submission.php?submission_id=$_" } values %submissions));
+exit 0;
 
 
 sub add_stat # \stat1, \stat2
@@ -604,79 +656,61 @@ sub add_stat # \stat1, \stat2
 	return map { defined $s1->[$_] ? $s1->[$_]+$s2->[$_] : $s2->[$_] } (0 .. @$s2-1);
 }
 
-sub exec_submission_type # $submissionID, $configID, $type
+sub exec_submission_type # $submission_id, $config_id, $type
 {
-	my ($submissionID,$configID) = @_;
+	my ($submission_id,$config_id) = @_;
 	my @parts = split /:/, $_[2];
-	if( $parts[0] eq 'kotd' )
-	{
-		shift @parts;
-		my ($release,$version,$branch,$flavor)=@parts;
-		
-		# check if the branch exists in QADB
-		my $branchID = $dst->enum_get_id('kernel_branches',$branch);
-		$dst->die_cleanly("The specified KotD branch \"$branch\" does not exist.\nPlease check for typos or contact the DB admin\n") unless $branchID;
-
-		&TRANSACTION('kernel_flavors','kotd_testing');
-		# check if the flavor exists in QADB
-		my $flavorID = $dst->enum_get_id_or_insert('kernel_flavors',$flavor);
-		$dst->die_cleanly("The specified KotD flavor \"$flavor\" does not exist.\nPlease check for typos or contact the DB admin\n") unless $flavorID;
-
-		# record as kotd_testing
-		$dst->kotd_testing_insert($submissionID,$branchID,$flavorID,$release,$version);
-		&TRANSACTION_END;
-	}
-	elsif( $parts[0] eq 'patch' )
+	if( $parts[0] eq 'patch' )
 	{
 		my $md5sum=$parts[1];
 		my @released_rpms=&get_patch_details($md5sum);
-		my $patchID=shift @released_rpms;
+		my $patch_id=shift @released_rpms;
 		$dst->die_cleanly("No patch submit possible") unless @released_rpms;
 
-		&TRANSACTION('rpm_basenames','softwareConfig','rpms','released_rpms','maintenance_testing');
+		&TRANSACTION('rpm_basename','software_config','rpm','released_rpm','submission');
+		$dst->submission_set_maintenance_values($submission_id, $patch_id, $md5sum);
 		foreach my $rpm( @released_rpms )
 		{
-			my $basenameID=$dst->enum_get_id('rpm_basenames',$rpm);
-			unless($basenameID)
+			my $rpm_basename_id=$dst->enum_get_id('rpm_basename',$rpm);
+			unless($rpm_basename_id)
 			{
 				&log(LOG_WARNING,"The package '$rpm' is specified in patchinfo for md5sum $md5sum, but not installed");
 				next;
 			}
-			my @versionIDs = $dst->get_rpm_versions($configID, $basenameID);
-			if( @versionIDs )
+			my @rpm_version_ids = $dst->get_rpm_versions($config_id, $rpm_basename_id);
+			if( @rpm_version_ids )
 			{
-				&log(LOG_WARNING,"Multiple versions installed for '$rpm'") if @versionIDs>1;
-				$dst->released_rpms_insert($submissionID, $basenameID, $versionIDs[0] );
+				&log(LOG_WARNING,"Multiple versions installed for '$rpm'") if @rpm_version_ids>1;
+				$dst->released_rpms_insert($submission_id, $rpm_basename_id, $rpm_version_ids[0] );
 			}
 			else
 			{	&log(LOG_WARNING,"The RPM '$rpm' was not installed, not submitting");	}
 		}
-		$dst->maintenance_testing_insert($submissionID, $patchID, $md5sum);
-		&TRANSACTION_END;
-	}
-	elsif( $parts[0] eq 'product' )
-	{
-		&TRANSACTION('product_testing');
-		$dst->product_testing_insert($submissionID);	
 		&TRANSACTION_END;
 	}
 }
 
-# returns patchID and a list of RPM basenames, if /mounts/work/built/patchinfo exists and contains needed md5summed data
+# returns patch_id and a list of RPM basenames, if /mounts/work/built/patchinfo exists and contains needed md5summed data
 sub get_patch_details # md5sum
 {
 	my $md5sum=shift;
-	my $patchID;
+	my $patch_id;
 	my $patchpath="/mounts/work/built/patchinfo";
 	my $p="$patchpath/$md5sum";
 	# patch ID file is named "satno" for SLE-11, "zyppno" for SLE-10, "patchno" for SLES-9...
 	foreach my $f( "$p/satno", "$p/zyppno", "$p/patchno" )
-	{	$patchID = `cat $f 2>/dev/null` if -r $f;	}
-	&log(LOG_WARNING,"Could not read patchnumber from $p/{satno/patchno/zyppno}") unless $patchID;
-	chomp $patchID;
+	{	$patch_id = `cat $f 2>/dev/null` if -r $f;	}
+	&log(LOG_WARNING,"Could not read patchnumber from $p/{satno/patchno/zyppno}") unless $patch_id;
+	chomp $patch_id;
 	my @released_rpms = split /,/, `grep '^PACKAGE: ' $p/patchinfo | cut -d' ' -f2-`;
 	&log(LOG_CRIT,"Could not read packages from $p/patchinfo") unless @released_rpms;
-	return ($patchID,@released_rpms);
+	return ($patch_id,@released_rpms);
+}
+
+sub rpmlist_remove_kernel($) { # path
+	my $file = shift;
+	&log(LOG_DETAIL, "Removing kernel RPMs from list in '%s'", $file);
+	system( "sed -i '/^kernel-/d' '".$file."'");
 }
 
 sub TRANSACTION	{
@@ -685,5 +719,10 @@ sub TRANSACTION	{
 
 sub TRANSACTION_END	{
 	$dst->TRANSACTION_END(@_);
+}
+
+sub log_and_die {
+	&log(LOG_CRITICAL,@_);
+	die "Exiting.";
 }
 

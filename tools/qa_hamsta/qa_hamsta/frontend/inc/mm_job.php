@@ -41,7 +41,9 @@ foreach($machines as $machine)
 #print_r($_REQUEST);
 #print "</pre>\n";
 
-$filename = request_str("filename");
+$custom_flag = request_str('customflag');
+if( $custom_flag != 1 ) # not custom define job
+	$filename = request_str("filename");
 $email = request_str('mailto');
 
 # Generate some form contents here instead of the HTML part, 
@@ -50,10 +52,10 @@ $email = request_str('mailto');
 # If everything is OK, it is sent, otherwise it is printed, 
 #   so that the user can fill in data/correct them.
 $formdata=''; 
-$error='';
+$errors = array();
 
 if( request_str('submit') && !is_readable($filename) )
-	$error = "<p>Cannot read file '$filename'</p>";
+	$errors[] = "Cannot read file '$filename'";
 else if( request_str('submit') )
 {
 	$xml = simplexml_load_file( $filename );
@@ -75,6 +77,9 @@ else if( request_str('submit') )
 	$role_map=array();
 	
 	# form HTML
+
+	# left div
+	$formdata .= "<div class=\"text-main\" style=\"float: left; width: 35%\">";
 	$formdata .= "<div class=\"text-main\"> Job <spam class=\"text-medium bold\" title=\"$test_description\">$test_name</spam> will be run on below SUT.</div>";
 	
 	foreach( $roles as $id=>$vals )
@@ -99,11 +104,11 @@ else if( request_str('submit') )
 			# validate - num_min
 			$cnt = count($data);
 			if( $num_min && $cnt<$num_min )
-				$error .= "<p>Too few machines in role $id '$name' ($cnt < $num_min)</p>\n";
+				$errors[] = "Too few machines in role $id '$name' ($cnt < $num_min)";
 
 			# validate - num_max
 			if( $num_max && $cnt>$num_max )
-				$error .= "<p>Too many machines in role $id '$name' ($cnt > $num_max)</p>\n";
+				$errors[] = "Too many machines in role $id '$name' ($cnt > $num_max)";
 
 			# map machines to roles
 			foreach( $data as $machine_id )
@@ -117,7 +122,7 @@ else if( request_str('submit') )
 
 				# validate - machine to max 1 role
 				if( isset($assigned[$machine_id]) )
-					$error .= "<p>Machine '$hostname' assigned to multiple roles</p>\n";
+					$errors[] = "Machine '$hostname' assigned to multiple roles";
 
 				# fill the mapping
 				$assigned[$machine_id] = $id;
@@ -137,8 +142,35 @@ else if( request_str('submit') )
 				)." machine(s).";
 	}
 
+	$formdata .= "<div style=\"margin-left: 20px; margin-top: 50px;\">";
+	$formdata .= "<input type=\"submit\" name=\"submit\" align=\"right\" value=\"Start multi-machine job\"/>";
+	$formdata .= "</div>";
+
+	$formdata .= '</div>'; # close of left div
+	
+	# if it is a prametrized job
+	if(isset($xml->parameters->parameter))
+	{
+		# right div
+		$formdata .= "<div class=\"text-main\" style=\"float: left; width: 45%; margin-left: 10px; margin-top: 0px;\">";
+		$formdata .= "<div class=\"text-main\">Edit <spam class=\"text-medium bold\">Additional Parameters</spam> in the form below.</div>";
+		$formdata .= "<div class=inputblock>\n<h2>for all of SUT</h2>\n</div>";
+
+		# div of table
+		$formdata .= "<div style=\"margin-top: 10px; padding: 10px 10px 20px 5px; border: 1px solid #cdcdcd\">";
+		
+		$param_map = get_parameter_maps($xml);
+	
+		# get the parameter table
+		$parameter_table = get_parameter_table($param_map, "");
+		$formdata .= $parameter_table;
+
+		$formdata .= '</div></div>';
+		$formdata .= "<div style=\"clear: left;\">&nbsp;</div>\n";
+	}
+
 	# no submit until all OK
-	if( $error || !request_str('submit') )
+	if( count($errors) != 0 || !request_str('submit') )
 		$send=0;
 	
 	if( $send )
@@ -146,9 +178,14 @@ else if( request_str('submit') )
 		# modify the XML
 		$xml->config->mail = $email;
 		roles_assign( $xml, $role_map );
-
-		# write the file
+		parameters_assign($xml, "" );
+		
+		# write the file, modify the file name, because the XML file has been modified,
+		# if not, maybe it will be override by other job
 		$path = '/tmp/' . basename($filename);
+		$path = substr($path, 0, -4);
+		$path .= "_" . genRandomString(10) . ".xml";
+
 		$xml->asXML($path);
 
 		# send job
@@ -156,21 +193,26 @@ else if( request_str('submit') )
 		{
 			$machine = Machine::get_by_id($machine_id);
 			if( !$machine )	{
-				$error .= "<p>No such machine_id : $machine_id</p>\n";
+				$errors[] = "No such machine_id : $machine_id";
 				continue;
 			}
 
 			if($machine->send_job($path)) {
 				Log::create($machine->get_id(), $machine->get_used_by(), 'JOB_START', "has sent a \"multi-machine\" job including this machine (Job name: \"" . htmlspecialchars(basename($filename)) . "\")");
 			} else {
-				$error .= '<p>' . $machine->get_hostname() . ': ' . $machine->errmsg . "</p>\n";
+				$errors[] = $machine->get_hostname() . ': ' . $machine->errmsg;
 			}
 		}
-		if (empty($error)) 
+		if (count($errors) == 0)
 			header("Location: index.php");
 	}
 }
 $html_title = "Multi-machine job details";
+
+if (count($errors) != 0) {
+	$_SESSION['message'] = implode("\n", $errors);
+	$_SESSION['mtype'] = "fail";
+}
 
 # replace with tblib/tblib_common.php/hash_get()
 function get_val($hash,$key,$default)

@@ -2,15 +2,15 @@
 # ****************************************************************************
 # Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
 # 
-# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
-# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# THIS IS AN UNPUBLISHED WORK OF SUSE.	IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.	SUSE
 # RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
 # THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
 # THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
 # TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
 # PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
 # PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
-# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND	CIVIL
 # LIABILITY.
 # 
 # SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
@@ -37,8 +37,6 @@ use Encode;
 
 use IO::Socket::INET;
 
-#to get result from hamsta
-use LWP::Simple;
 
 $0 =~ m/([^\/]*)$/;
 my $progname = $1;
@@ -57,51 +55,68 @@ my $version = "2.3";
 
 # Usage message
 sub usage {
-    print <<"EOF";
+	print <<"EOF";
 $progname version $version
 
 $progname [OPTIONS] <master>[:<port>]
 
 Options:
-    -t|--jobtype <jobtype>  set the job type(number):
-			    1 pre-define 
-			    2 qa_package
-			    3 autotest
-			    4 mult_machine
-			    5 reinstall
-    -n|--testname <testname> set test name for the job work with -t option 
-                            (only for pre-define,qa_package,autotest)
-                            seperate by ',' for qa_package&autotest job
-    -l|--listcases	    print the support test case name for each jobtype
-			    work with -t option
-    -r|--roles		    for mult-machine jobs , set roles number and host
-                 	    Assign SUT to roles "r0:host1,host2;r1:host3,host4"
+	-t|--jobtype <jobtype>  set the job type(number):
+				1 pre-define 
+				2 qa_package
+				3 autotest
+				4 mult_machine
+				5 reinstall
+	-n|--testname <testname> set test name for the job work with -t option 
+		                    (only for pre-define, qa_package, autotest, mult_machine)
+		                    seperate by ',' for qa_package&autotest job
+	-l|--listcases		print the support test case name for each jobtype
+				work with -t option
+	-r|--roles			for mult-machine jobs, set roles number and host
+		         	    Assign SUT to roles , format like:
+					-r 'r0:host1,host2;r1:host3,host4'
 
-    -u|--re_url		    set resintall url
-       --re_sdk		    set reinstall sdk
-       --pattern	    set install pattern
-       --rpms		    set extra rpm packages
+	-u|--re_url			set reinstall url
+	   --re_sdk			set reinstall sdk
+	   --pattern		set install pattern
+	   --rpms			set extra rpm packages
 
-    -x|--cmd		    set cmd for jobtype command_line
-    -m|--mail		    set emaill address for job result
-    -p|--print-active       print all active machines
-    -h|--host <ip>          set the target SUT for test
-    -g|--group <name>       set the target host group for test
-    -v|--version            print program version
-    -d|--debug <level>      set debugging level (defaults to $debug)
-       --help               print this help message
+	-x|--cmd			set cmd for jobtype command_line
+	-m|--mail			set email address for job result
+	-p|--print-active	   print all active machines
+	-h|--host <ip>	      set the target SUT for test
+	-g|--group <name>	   set the target host group for test
+	-v|--version	        print program version
+	-d|--debug <level>	  set debugging level (defaults to $debug)
+	   --help	           print this help message
 EOF
 }
 
-my $opt_help            = 0;
-my $opt_version         = 0;
+my $opt_help		    = 0;
+my $opt_version		 = 0;
 my $opt_w		= 0;
 
-my $opt_command         = "";
-my $opt_print_active    = 0;
-my $opt_job             = "";
-my $opt_host            = "";
-my $opt_group           = "";
+my $opt_command		 = "";
+my $opt_print_active	= 0;
+my $opt_job		     = "";
+my $opt_host		    = "";
+my $opt_group		   = "";
+
+#Job Type : 1)pre-define; 2)qa_package; 3)autotest; 4)mult_machine; 5)reinstall
+my $opt_jobtype		= 0;
+my $opt_testname 	= "";
+my $opt_listcases	= 0;
+#option for mult-machine job
+my $opt_roles		= "";
+#option for re-install job
+my $opt_re_url		= "";
+my $opt_re_sdk		= "";
+my $opt_re_pattern	= "";
+my $opt_re_rpms		= "";
+#option for cmd 
+my $opt_cmd		= "";
+my $opt_mail		= "";
+
 
 #Job Type : 1)pre-define ; 2)qa_package ; 3)autotest ;4)mult_machine ;5)reinstall
 my $opt_jobtype		= 0;
@@ -121,6 +136,7 @@ my $opt_mail		= "";
 
 # parse command line options
 unless (GetOptions(
+<<<<<<< HEAD
            'help'               =>  \$opt_help,
            'version|v'          =>  \$opt_version,
            'wait|w'             =>  \$opt_w,
@@ -144,24 +160,49 @@ unless (GetOptions(
           )) {
   &usage ();
   exit 1;
+=======
+		   'help'               =>  \$opt_help,
+		   'version|v'          =>  \$opt_version,
+		   'wait|w'             =>  \$opt_w,
+		   'debug|d=i'          =>  \$debug,
+		   'command|c=s'        =>  \$opt_command,
+		   'job|j=s'            =>  \$opt_job,
+		   'host|h=s'           =>  \$opt_host,
+		   'group|g=s'          =>  \$opt_group,
+		   'print-active|p'     =>  \$opt_print_active,
+		 'jobtype|t=i'	=>\$opt_jobtype,
+		 'testname|n=s'	=>\$opt_testname,
+		 'listcases|l'	=>\$opt_listcases,
+		 'roles|r=s'		=>\$opt_roles,
+		 're_url|u=s'		=>\$opt_re_url,
+		 're_sdk=s'		=>\$opt_re_sdk,
+		 'pattern=s'		=>\$opt_re_pattern,
+		 'rpms=s'		=>\$opt_re_rpms,
+		 'cmd|x=s'		=>\$opt_cmd,
+		 'mail|m=s'		=>\$opt_mail,
+		 
+		  )) {
+	&usage ();
+	exit 1;
+>>>>>>> stable
 }
 
 if ($opt_version) {
-  print "$progname version $version\n";
-  exit 0;
+	print "$progname version $version\n";
+	exit 0;
 }
 
 if ($opt_help) {
-  &usage ();
-  exit 0;
+	&usage ();
+	exit 0;
 }
 
 
 
 if ($#ARGV != 0) {
-  print "Please specify the master to connect to.\n\n";
-  &usage ();
-  exit 1;
+	print "Please specify the master to connect to.\n\n";
+	&usage ();
+	exit 1;
 }
 
 my $opt_master;
@@ -171,24 +212,29 @@ my $opt_master_port;
 $opt_master_port = 18431 unless $opt_master_port;
 
 print "Connecting to master $opt_master on $opt_master_port\n\n";
+<<<<<<< HEAD
     
+=======
+	
+>>>>>>> stable
 my $sock;
 eval {
-    $sock = IO::Socket::INET->new(
-        PeerAddr => $opt_master,
-        PeerPort => $opt_master_port,
-        Proto    => 'tcp'
-    );
+	$sock = IO::Socket::INET->new(
+		PeerAddr => $opt_master,
+		PeerPort => $opt_master_port,
+		Proto    => 'tcp'
+	);
 };
 if ($@ || !$sock) {
-    print "Could not connect to master: $@$!\n";
-    exit 2;
+	print "Could not connect to master: $@$!\n";
+	exit 2;
 }
 
 # Ignore the welcome message and wait for the prompt
 &send_command('');
 
 my $job_id="";
+<<<<<<< HEAD
 
 if ($opt_print_active) {
     print &send_command("print active\n");
@@ -286,6 +332,120 @@ if($opt_jobtype==1){
 print "jobtype not supporte\n";
 
 }
+=======
+
+if ($opt_print_active) {
+	print &send_command("print active\n");
+	exit 0;
+}
+
+#send cmd directly 
+if ($opt_command) {
+	(print "require host name/ip \n" and exit 1) unless($opt_host);
+	$job_id=&send_command($opt_command."\n");
+	print $job_id;
+}
+
+if ($opt_cmd) {
+	$opt_cmd =~ s/ /#/g;
+	(print "require host name/ip \n" and exit 1) unless($opt_host);
+	my $cmd = "send one line cmd ip $opt_host $opt_cmd $opt_mail";
+	$job_id=&send_command($cmd."\n");
+	print $job_id; 
+	exit 0;
+}
+
+#check the jobtype
+if (! $opt_jobtype) {
+	print "please specify a jobtype\n";
+	print "more help use --help\n";
+	exit 1;
+}	
+
+#list testcases 
+if ($opt_listcases) {
+	my $command="list jobtype $opt_jobtype \n";
+	my $cases=&send_command("$command");
+	print $cases;
+	exit 0;
+}
+
+
+
+if ($opt_jobtype==1) {
+	#send pre_define job
+	(print "require testcase name \n" and exit 1) unless($opt_testname);	
+	(print "require host name/ip \n" and exit 1) unless($opt_host);	
+	my $cmd = "send qa_predefine_job $opt_host $opt_testname $opt_mail";
+	$job_id=&send_command($cmd."\n");
+	print $job_id;
+} elsif ($opt_jobtype==2) {
+	#send QA package job
+	(print "require testcase name \n" and exit 1) unless($opt_testname);	
+	(print "require host name/ip \n" and exit 1) unless($opt_host);	
+	$opt_testname =~ s/,/#/g;
+	my $cmd = "send qa_package_job ip $opt_host $opt_testname $opt_mail ";
+	$job_id=&send_command($cmd."\n");
+	print $job_id;
+} elsif ($opt_jobtype==3) {
+	#send Autotest job
+	(print "require testcase name \n" and exit 1) unless($opt_testname);	
+	(print "require host name/ip \n" and exit 1) unless($opt_host);	
+	$opt_testname =~ s/,/#/g;
+	my $cmd = "send autotest_job ip $opt_host $opt_testname $opt_mail ";
+	$job_id=&send_command($cmd."\n");
+	print $job_id;
+} elsif ($opt_jobtype==4) {
+	#send mult-machine job
+	(print "require host roles \n" and exit 1) unless($opt_roles);
+	my @roles = split /;/ ,$opt_roles;
+	my $roles = grep(/r\d+:/,@roles);
+	(print "roles do not match \n" and exit 1) unless(scalar(@roles) == $roles);
+	$opt_roles =~ s/\s+//g;
+	my $cmd = "send multi_job $opt_testname $opt_roles $opt_mail ";
+	$job_id=&send_command($cmd."\n");
+	print $job_id;
+} elsif($opt_jobtype==5) {
+	#send reinstall job
+	(print "require host name/ip \n" and exit 1) unless($opt_host);	
+	(print "require install REPO \n" and exit 1) unless($opt_re_url);	
+	my $installopt="-p#$opt_re_url#";
+	$installopt.="-s#$opt_re_sdk#" if($opt_re_sdk);
+	$installopt.="-r#$opt_re_rpms#" if($opt_re_rpms);
+	$installopt.="-t#$opt_re_pattern#" if($opt_re_pattern);
+	my $cmd = "send reinstall ip $opt_host $installopt $opt_mail";
+	$job_id=&send_command($cmd."\n");
+	print $job_id;
+} else {
+	print "jobtype not supporte\n";
+}
+
+# if -w then wait for the job result
+if($opt_w) {
+	exit 0 unless($job_id=~/internal id/);
+	$job_id =~ s/.*internal id:.//s;	
+	$job_id =~ s/[^d]$//g;
+	my $url="http://$opt_master/hamsta/index.php?go=job_details&id=$job_id";
+	my $result_job="";
+	while($result_job eq "running" or $result_job eq "queued" or $result_job eq "" or $result_job eq "connecting") {
+		my $content = get $url;
+		my @content = split /\n/,$content;
+		for(my $i=0;$i<@content;$i++) {
+			if ($content[$i] =~ />Status</) {
+				$i++;
+				$result_job = $content[$i];
+				$result_job =~ s/.*<td>//;
+				$result_job =~ s/<\/td>.*//;
+				last;
+			}
+		}
+		sleep 5;
+	}
+	exit 0 if($result_job=~"passed");
+	exit 1 if($result_job!~"passed");
+}
+
+>>>>>>> stable
 
 # if -w then wait for the job result
 if($opt_w) {
@@ -314,6 +474,7 @@ if($opt_w) {
 
 
 if ($opt_job) {
+<<<<<<< HEAD
     if ($opt_host and $opt_group) {
         print "Please specify either a host or a group of hosts, not both.\n\n";
         exit 1;
@@ -327,10 +488,26 @@ if ($opt_job) {
         print "Please specify a host or a group of hosts.\n\n";
         exit 1;
     }
+=======
+	if ($opt_host and $opt_group) {
+		print "Please specify either a host or a group of hosts, not both.\n\n";
+		exit 1;
+	}
+
+	if ($opt_host) {
+		print &send_command("send job ip $opt_host $opt_job\n");
+	} elsif ($opt_group) {
+		print &send_command("send job group $opt_group $opt_job\n");
+	} else {
+		print "Please specify a host or a group of hosts.\n\n";
+		exit 1;
+	}
+>>>>>>> stable
 }
 
 
 sub send_command() {
+<<<<<<< HEAD
     my $cmd = shift;
     my $result = "";
     my $line = "";
@@ -369,5 +546,45 @@ sub send_command() {
     print "\n" if $debug > 1;
 
     return $result;
+=======
+	my $cmd = shift;
+	my $result = "";
+	my $line = "";
+	
+	eval {
+		if ($cmd) {
+		    $sock->send($cmd);
+		    print "Sent $cmd" if $debug > 0;
+		}
+	};
+	if ($@) {
+		print "Message could not be send: $@\n";
+		exit 2;
+	}
+
+	print "Recv " if $debug > 1;
+	while (1) {
+		$_ = $sock->getc(); 
+		if ($_ eq '') {
+		    print "Master possibly terminated our session. Please restart.\n";
+		    exit 2;
+		}
+		
+		print $_ if $debug > 1;
+		$line .= $_;
+		
+		if ($_ eq "\n") {
+		    $result .= $line;
+		    $line = "";
+		}
+
+		print "Recv " if ($_ eq "\n") and ($debug > 1);
+		
+		last if ($line =~ /\$>/);
+	}
+	print "\n" if $debug > 1;
+
+	return $result;
+>>>>>>> stable
 }
 

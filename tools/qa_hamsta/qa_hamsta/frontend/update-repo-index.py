@@ -108,7 +108,7 @@ def generate_index(repo_url, theFilter):
 				for arch in supported_archs:
 					if arch in item:
 						break
-				am = ''	#am means arch+media part in the url string
+				am = '' #am means arch+media part in the url string
 				result.append(append_result(repo, item, arch, am))
 			else:
 				for arch in dirs:

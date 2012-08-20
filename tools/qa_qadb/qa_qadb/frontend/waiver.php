@@ -10,8 +10,8 @@
 require_once('qadb.php');
 common_header(array('title'=>'waiver'));
 
-$waiverID=http('waiverID')+0;
-$waiver_tcID=http('waiver_tcID')+0;
+$waiver_id=http('waiver_id')+0;
+$waiver_testcase_id=http('waiver_testcase_id')+0;
 
 $submit=http('submit');
 $view  =http('view'  );
@@ -37,10 +37,10 @@ if(token_read($wtoken))
 	{	# insert / update a waiver - DB code
 		get_waiver();
 		transaction();
-		if( $waiverID )
-			update_result( waiver_update($waiverID,$testcases_got,$bugs_got,$expl_got) );
+		if( $waiver_id )
+			update_result( waiver_update($waiver_id,$testcase_got,$bugs_got,$expl_got) );
 		else
-			update_result( $waiverID=waiver_new($testcases_got,$bugs_got,$expl_got), true );
+			update_result( $waiver_id=waiver_new($testcase_got,$bugs_got,$expl_got), true );
 		commit();
 	}
 	if( $submit=='waiver_detail' || ($submit=='both' && $detail) )
@@ -48,22 +48,22 @@ if(token_read($wtoken))
 		get_detail();
 		
 		transaction();
-		if( $waiver_tcID )
-			update_result( waiver_update_detail($waiver_tcID,$products_got,$releases_got,$archs_got,$match_got) );
+		if( $waiver_testcase_id )
+			update_result( waiver_update_detail($waiver_testcase_id,$product_got,$release_got,$arch_got,$match_got) );
 		else
-			update_result( waiver_new_detail($waiverID,$products_got,$releases_got,$archs_got,$match_got), true );
+			update_result( waiver_new_detail($waiver_id,$product_got,$release_got,$arch_got,$match_got), true );
 		commit();
 	}
 	else if( $submit=='delete_waiver' )
 	{	# delete waiver record
 		transaction();
-		update_result( waiver_delete($waiverID) );
+		update_result( waiver_delete($waiver_id) );
 		commit();
 	}
 	else if( $submit=='delete_detail' )
 	{
 		transaction();
-		update_result( waiver_delete_detail($waiver_tcID) );
+		update_result( waiver_delete_detail($waiver_testcase_id) );
 		commit();
 	}
 }
@@ -85,10 +85,10 @@ else
 print steps('',$steps,$mode);
 
 # display the main contents
-if( $view=='search_waiver' || ($view=='view_waiver' && !$waiverID) )
+if( $view=='search_waiver' || ($view=='view_waiver' && !$waiver_id) )
 {	# waiver search & list	
 	get_waiver();
-	$tc=($tcname_got ? $tcname_got: ($testcases_got ? enum_get_val('testcases',$testcases_got):''));
+	$tc=($tcname_got ? $tcname_got: ($testcase_got ? enum_get_val('testcase',$testcase_got):''));
 	$what=array(
 		array('tcname','',$tc,TEXT_ROW,'testcase'),
 		array('explanation','',$expl_got,TEXT_ROW),
@@ -102,15 +102,15 @@ if( $view=='search_waiver' || ($view=='view_waiver' && !$waiverID) )
 #	if( $search )
 	{
 		if( $tcname_got )
-			$testcases_got=enum_get_id_wildcard('testcases',$tcname_got);
-		$data=search_waiver(0,array('testcaseID'=>$testcases_got,'explanation'=>$expl_got,'bugID'=>$bugs_got));
+			$testcase_got=enum_get_id_wildcard('testcase',$tcname_got);
+		$data=search_waiver(0,array('testcase_id'=>$testcase_got,'explanation'=>$expl_got,'bug_id'=>$bugs_got));
 		table_htmlspecialchars($data);
 		table_translate($data,array(
-			'enums'=>array('testcaseID'=>'testcases'),
-			'links'=>array('waiverID'=>'waiver.php?view=view_waiver&waiverID='),
+			'enums'=>array('testcase_id'=>'testcase'),
+			'links'=>array('waiver_id'=>'waiver.php?view=view_waiver&waiver_id='),
 			'ctrls'=>array(
-				'edit'=>'waiver.php?view=edit_waiver&waiverID=',
-				'delete'=>"confirm.php?confirm=w&view=search_waiver&waiverID="
+				'edit'=>'waiver.php?view=edit_waiver&waiver_id=',
+				'delete'=>"confirm.php?confirm=w&view=search_waiver&waiver_id="
 			)
 		));
 		print html_table($data,array('id'=>'waiver','sort'=>'ssss','class'=>'tbl controls'));
@@ -121,9 +121,9 @@ else if( $view=='search_detail' )
 	get_detail();
 	array_unshift($match,array('null','&lt;any&gt;'));
 	$what=array(
-		array('products',$products,$products_got,MULTI_SELECT),
-		array('releases',$releases,$releases_got,MULTI_SELECT),
-		array('architectures',$archs,$archs_got,MULTI_SELECT),
+		array('product',$product,$product_got,MULTI_SELECT),
+		array('release',$release,$release_got,MULTI_SELECT),
+		array('arch',$arch,$arch_got,MULTI_SELECT),
 		array('matchtype',$match,$match_got,SINGLE_SELECT),
 		array('view','','search_detail',HIDDEN)
 	);
@@ -131,17 +131,17 @@ else if( $view=='search_detail' )
 
 	if( $search )
 	{
-		$data=search_waiver(1,array('productID'=>$products_got,'releaseID'=>$releases_got,'archID'=>$archs_got,'matchtype'=>$match_got));
+		$data=search_waiver(1,array('product_id'=>$product_got,'release_id'=>$release_got,'arch_id'=>$arch_got,'matchtype'=>$match_got));
 		table_translate($data,array(
 			'links'=>array(
-				'waiver_tcID'=>'waiver.php?view=edit_detail&waiver_tcID=',
-				'waiverID'=>'waiver.php?view=view_waiver&waiverID='
+				'waiver_testcase_id'=>'waiver.php?view=edit_detail&waiver_testcase_id=',
+				'waiver_id'=>'waiver.php?view=view_waiver&waiver_id='
 			),
 			'enums'=>array(
-				'testcaseID'=>'testcases',
-				'productID'=>'products',
-				'releaseID'=>'releases',
-				'archID'=>'architectures'
+				'testcase_id'=>'testcase',
+				'product_id'=>'product',
+				'release_id'=>'release',
+				'arch_id'=>'arch'
 			),
 			'ctrls'=>make_detail_controls()
 		));
@@ -152,22 +152,22 @@ else if( $view=='search_detail' )
 else if( $view=='new_waiver' || $view=='edit_waiver' )
 {	# insert /  update a waiver - form
 	get_waiver();
-	if( $waiverID )
+	if( $waiver_id )
 	{
-		$data=search_waiver(0,array('waiverID'=>$waiverID,'header'=>0));
+		$data=search_waiver(0,array('waiver_id'=>$waiver_id,'header'=>0));
 		if( count($data) )
 		{
-			$testcases_got=$data[0][1];
-			$bugs_got=$data[0][2];
-			$expl_got=$data[0][3];
-			$tcse=$data[0][1];
+			$testcase_got=$data[0]['testcase_id'];
+			$bugs_got=$data[0]['bug_id'];
+			$expl_got=$data[0]['explanation'];
+			$tcse=$testcase_got;
 		}
 	}
-	$testcases=enum_list_id_val('testcases');
+	$testcase=enum_list_id_val('testcase');
 	$wtoken=token_generate();
 	$what=array(
-		array('waiverID','',$waiverID,HIDDEN),
-		array('testcases',$testcases,$testcases_got,SINGLE_SELECT),
+		array('waiver_id','',$waiver_id,HIDDEN),
+		array('testcase',$testcase,$testcase_got,SINGLE_SELECT),
 		array('bug_id','',$bugs_got,TEXT_ROW,'bug ID'),
 		array('explanation','',$expl_got,TEXT_AREA,'explanation'),
 		array('submit','','waiver',HIDDEN),
@@ -178,22 +178,22 @@ else if( $view=='new_waiver' || $view=='edit_waiver' )
 }
 else if( $view=='view_waiver' )
 {	# print waiver info, list details
-	if( $waiverID )
+	if( $waiver_id )
 	{
 		print "<h3>Waiver info</h3>\n";
-		print_waiver_info($waiverID);
+		print_waiver_info($waiver_id);
 		print "<h3>Details</h3>\n";
-		$data=search_waiver(2,array('waiverID'=>$waiverID));
+		$data=search_waiver(2,array('waiver_id'=>$waiver_id));
 		table_translate($data,array(
 			'enums'=>array(
-				'productID'=>'products',
-				'releaseID'=>'releases',
-				'archID'=>'architectures'
+				'product_id'=>'product',
+				'release_id'=>'release',
+				'arch_id'=>'arch'
 			),
 			'ctrls'=>make_detail_controls()
 		));
 		print html_table($data,array('id'=>'details','sort'=>'isssi','class'=>'tbl controls'));
-		print '<p><a class="btn" href="waiver.php?view=new_detail&waiverID='.$waiverID.'">add detail</a></p>'."\n";
+		print '<p><a class="btn" href="waiver.php?view=new_detail&amp;waiver_id='.$waiver_id.'">add detail</a></p>'."\n";
 	}
 	else
 		print "Wrong input data.<br/>\n";
@@ -201,29 +201,29 @@ else if( $view=='view_waiver' )
 else if( $view=='new_detail' || $view=='edit_detail' )
 {	# insert / update a waiver detail - form
 	get_detail();
-	array_unshift($archs,array('null','&lt;any&gt;'));
+	array_unshift($arch,array('null','&lt;any&gt;'));
 	$match_got='problem';
-	if( $waiver_tcID )
+	if( $waiver_testcase_id )
 	{
-		$waiverID=waiver_get_master($waiver_tcID);
-		$data=search_waiver(1,array('waiver_tcID'=>$waiver_tcID,'header'=>0));
+		$waiver_id=waiver_get_master($waiver_testcase_id);
+		$data=search_waiver(1,array('waiver_testcase_id'=>$waiver_testcase_id,'header'=>0));
 		if( count($data) )
 		{
-			$products_got=$data[0]['productID'];
-			$releases_got=$data[0]['releaseID'];
-			$archs_got=$data[0]['archID'];
+			$product_got=$data[0]['product_id'];
+			$release_got=$data[0]['release_id'];
+			$arch_got=$data[0]['arch_id'];
 			$match_got=$data[0]['matchtype'];
 		}
 	}
 #	print "<h2>".($view=='new_detail' ? 'New':'Edit')." detail</h2>\n";
 	$wtoken=token_generate();
 	$what=array(
-		array('products',$products,$products_got,SINGLE_SELECT),
-		array('releases',$releases,$releases_got,SINGLE_SELECT),
-		array('architectures',$archs,$archs_got,SINGLE_SELECT),
+		array('product',$product,$product_got,SINGLE_SELECT),
+		array('release',$release,$release_got,SINGLE_SELECT),
+		array('arch',$arch,$arch_got,SINGLE_SELECT),
 		array('matchtype',$match,$match_got,SINGLE_SELECT),
-		array('waiverID','',$waiverID,HIDDEN),
-		array('waiver_tcID','',$waiver_tcID,HIDDEN),
+		array('waiver_id','',$waiver_id,HIDDEN),
+		array('waiver_testcase_id','',$waiver_testcase_id,HIDDEN),
 		array('submit','','waiver_detail',HIDDEN),
 		array('view','','view_waiver',HIDDEN),
 		array('wtoken','',$wtoken,HIDDEN)
@@ -231,27 +231,27 @@ else if( $view=='new_detail' || $view=='edit_detail' )
 	print html_search_form('waiver.php',$what);
 
 	print "<br/>\n";
-	print_waiver_info($waiverID);
+	print_waiver_info($waiver_id);
 }
 else if( $view=='new_both' )
 {
 	get_waiver();
 	get_detail();
 	$wtoken=token_generate();
-	$testcases=enum_list_id_val('testcases');
+	$testcase=enum_list_id_val('testcase');
 	if( is_null($detail_got) )
 		$detail_got=1;
 	if( is_null($match_got) )
 		$match_got='problem';
 	$what=array(
-		array('testcases',$testcases,$testcases_got,SINGLE_SELECT),
+		array('testcase',$testcase,$testcase_got,SINGLE_SELECT),
 		array('bug_id','',$bugs_got,TEXT_ROW,'bug ID'),
 		array('explanation','',$expl_got,TEXT_AREA,'explanation'),
 		array('','','',HR),
 		array('detail','',$detail_got,CHECKBOX),
-		array('products',$products,$products_got,SINGLE_SELECT),
-		array('releases',$releases,$releases_got,SINGLE_SELECT),
-		array('architectures',$archs,$archs_got,SINGLE_SELECT),
+		array('product',$product,$product_got,SINGLE_SELECT),
+		array('release',$release,$release_got,SINGLE_SELECT),
+		array('arch',$arch,$arch_got,SINGLE_SELECT),
 		array('matchtype',$match,$match_got,SINGLE_SELECT),
 		array('view','','view_waiver',HIDDEN),
 		array('wtoken','',$wtoken,HIDDEN),
@@ -266,46 +266,46 @@ print html_footer();
 
 function get_waiver()
 {
-	global $bugs_got,$expl_got,$testcases_got,$tcname_got;
+	global $bugs_got,$expl_got,$testcase_got,$tcname_got;
 	$bugs_got=http('bug_id');
 	$bugs_got=($bugs_got ? 0+$bugs_got : $bugs_got);
 	$expl_got=http('explanation');
-	$testcases_got=http('testcases');
+	$testcase_got=http('testcase');
 	$tcname_got=http('tcname');
-	if( $tcname_got && !$testcases_got )
-		$testcases_got=enum_get_id('testcases',$tcname_got);
+	if( $tcname_got && !$testcase_got )
+		$testcase_got=enum_get_id('testcase',$tcname_got);
 }
 
 function get_detail()
 {
-	global $products_got,$releases_got,$archs_got,$match_got,$detail_got;
-	global $products,$releases,$archs,$match;
-	$products_got=http('products');
-	$releases_got=http('releases');
-	$archs_got=http('architectures');
+	global $product_got,$release_got,$arch_got,$match_got,$detail_got;
+	global $product,$release,$arch,$match;
+	$product_got=http('product');
+	$release_got=http('release');
+	$arch_got=http('arch');
 	$match_got=http('matchtype');
 	$detail_got=http('detail');
 
-	$products=enum_list_id_val('products');
-	$releases=enum_list_id_val('releases');
-	$archs=enum_list_id_val('architectures');
-#	array_unshift($archs,array('','<any>'));
+	$product=enum_list_id_val('product');
+	$release=enum_list_id_val('release');
+	$arch=enum_list_id_val('arch');
+#	array_unshift($arch,array('','<any>'));
 	$match=array(array('no problem','no problem'),array('problem','problem'));
 }
 
-function print_waiver_info($waiverID)
+function print_waiver_info($waiver_id)
 {
-	$data=search_waiver(0,array('waiverID'=>$waiverID));
-	enum_translate_table($data,array('testcaseID'=>'testcases'));
+	$data=search_waiver(0,array('waiver_id'=>$waiver_id));
+	enum_translate_table($data,array('testcase_id'=>'testcase'));
 	print html_table($data,array());
 }
 
 function make_detail_controls()
 {
-	global $view,$waiverID;
+	global $view,$waiver_id;
 	return array(
-		'edit'=>'waiver.php?view=edit_detail&waiver_tcID=',
-		'delete'=>"confirm.php?confirm=wd&view=$view&waiver_tcID="
+		'edit'=>'waiver.php?view=edit_detail&waiver_testcase_id=',
+		'delete'=>"confirm.php?confirm=wd&view=$view&waiver_testcase_id="
 	);
 }
 ?>
