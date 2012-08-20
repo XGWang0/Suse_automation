@@ -33,7 +33,7 @@ $go = "machines";
 if ($openid_auth && ! isset($_SESSION['OPENID_AUTH'])) {
   require_once "Zend/OpenId/Consumer.php";
   $consumer = new Zend_OpenId_Consumer();
-  if ($consumer->login($openid_url)) {
+  if ( ! $consumer->login($openid_url)) {
     die("Authentication Failed");
   }
 }
