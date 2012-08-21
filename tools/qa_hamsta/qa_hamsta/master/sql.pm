@@ -59,6 +59,9 @@ sub machine_get_status($) # machine_id
 sub machine_set_status($$) # machine_id, status
 {	return $dbc->update_query('UPDATE machine SET machine_status_id=? WHERE machine_id=?',$_[1],$_[0]);	}
 
+sub machine_set_update_status($$) # machine_id, status
+{	return $dbc->update_query('UPDATE machine SET update_status=? WHERE machine_id=?',$_[1],$_[0]);	}
+
 sub machine_set_description($$) # machine_id, description
 {	return $dbc->update_query('UPDATE machine SET description=? WHERE machine_id=?',$_[1],$_[0]);	}
 

@@ -65,7 +65,6 @@ sub hal_devices_have_changed() {
 }
 
 
-
 # main:
 # Bind to a multicast socket and then loop forever sending messages with
 # the current configuration to the master every 10 seconds
@@ -104,7 +103,10 @@ sub run() {
 			&konfiguration()."\n".
 
 			# Whether the hardware configuration has changed since the last message
-			(&hal_devices_have_changed() ? "HWINFO_CHANGE" : "");
+			(&hal_devices_have_changed() ? "HWINFO_CHANGE" : "")."\n".
+			#self check hamsta software update status
+			&get_update_status();
+			
 
 	    &log(LOG_DEBUG, "-->>$message<<--");
 

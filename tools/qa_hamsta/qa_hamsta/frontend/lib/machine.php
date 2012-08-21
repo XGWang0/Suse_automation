@@ -429,6 +429,21 @@ class Machine {
 		}
 		return 0;
 	}
+	/**
+	 * get_update_status
+	 * 
+	 *@access public
+	 *@return ture if SUT side have hamste update available
+	 * 
+	 */
+
+        function get_update_status() {
+	
+        return $this->fields["update_status"];
+
+	}
+
+
 
 	/**
 	 * get_last_used 
