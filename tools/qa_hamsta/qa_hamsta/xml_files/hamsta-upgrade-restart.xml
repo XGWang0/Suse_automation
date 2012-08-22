@@ -23,8 +23,7 @@
             <!-- Required -->
             <command execution="threaded">#!/bin/sh
 	    echo Restarting...
-	    screen setsid rchamsta restart
-	    echo Done.
+	    reboot
 	    </command>
 
             <!-- Optional -->
