@@ -197,7 +197,7 @@ sub get_update_status {
 	my $current_v=`rpm -qa|grep 'qa_hamsta\\|qa_hamsta-cmdline\\|qa_hamsta-common\\|qa_tools\\|qa_lib_perl\\|qa_lib_ctcs2\\|qa_lib_config\\|qa_lib_keys'|sed -r 's/.*-([^-]+-[^-]+)\$/\\1/'|awk '{split(\$0,a,"");for(i in a){if(a[i]~/[0-9]/)s+=a[i]}}END{print s}'`;
 	#get the hamsta version sum from repo
 	system('zypper ref &>/dev/null' );
-	my $repo_v=`zypper se -ist package qa_|grep 'qa_hamsta\\|qa_hamsta-cmdline\\|qa_hamsta-common\\|qa_tools\\|qa_lib_perl\\|qa_lib_ctcs2\\|qa_lib_config\\|qa_lib_keys'|awk -F\"|\" '{split(\$4,a,"");for(i in a){if(a[i]~/[0-9]/)s+=a[i]}}END{print s}'`;
+	my $repo_v=`zypper se -st package qa_|grep 'qa_hamsta\\|qa_hamsta-cmdline\\|qa_hamsta-common\\|qa_tools\\|qa_lib_perl\\|qa_lib_ctcs2\\|qa_lib_config\\|qa_lib_keys'|awk -F\"|\" '{split(\$4,a,"");for(i in a){if(a[i]~/[0-9]/)s+=a[i]}}END{print s}'`;
 	return 1 if($current_v!=$repo_v);
 	return 0;
 }
