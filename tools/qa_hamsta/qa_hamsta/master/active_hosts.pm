@@ -371,7 +371,7 @@ sub process_mcast() {
 	&TRANSACTION( 'machine' );
 	&machine_set_status( $machine_id, MS_UP );
 	$host->{'update'}=0 if(! defined $host->{'update'});
-	&machine_set_update_status($machine_id,$host->{'update'});
+	&machine_set_update_status($machine_id,$host->{'update'}) if($host->{'update'} ne 'skip');
 	
 	if (defined $host->{'stats_version'}) {
 

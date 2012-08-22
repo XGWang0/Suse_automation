@@ -84,6 +84,7 @@ sub run() {
 
 	my $stats_version = 0;
 	unlink '/var/lib/hamsta/stats_changed'; # Initial stats will be queried, no need to change now
+	my $self_inc = 0;
 	while (1) {
 	    my $slave_ip;
 
@@ -105,7 +106,7 @@ sub run() {
 			# Whether the hardware configuration has changed since the last message
 			(&hal_devices_have_changed() ? "HWINFO_CHANGE" : "")."\n".
 			#self check hamsta software update status
-			&get_update_status();
+			&get_update_status($self_inc);
 			
 
 	    &log(LOG_DEBUG, "-->>$message<<--");
@@ -124,6 +125,8 @@ sub run() {
 
 	    &log(LOG_DEBUG, "MCAST: identifier send $message");
 	} continue {
+	    $self_inc++;
+            $self_inc=0 if($self_inc == 180);
 	    sleep 10;
 	    # Increase stats version if somethying changed
 	    $stats_version++ if unlink '/var/lib/hamsta/stats_changed';
