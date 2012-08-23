@@ -41,7 +41,7 @@ Your user name is <b><?php echo (isset ($user) ? $user->get_name() : "unset") ?>
 Your e-mail address is <b><?php echo (isset ($user) ? $user->get_email() : "unset") ?></b>.<br />
 </p>
 
-<?php if ( $user ): ?>
+<?php if ( isset ($user) ): ?>
 <form type="post">
   <formset>
     <input type="hidden" name="go" value="register" />
