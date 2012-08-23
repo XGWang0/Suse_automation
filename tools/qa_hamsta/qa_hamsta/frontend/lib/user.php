@@ -61,8 +61,8 @@ class User {
 	 * @param string email User's email address
 	 */
 	static function add_user($openid, $name, $email) {
-		$stmt = get_pdo()->prepare('INSERT INTO user (id, name, email) VALUES(:openid, :name, :email)');
-		$stmt->bindParam(':openid', $openid);
+		$stmt = get_pdo()->prepare('INSERT INTO user (id, name, email) VALUES(:user_login, :name, :email)');
+		$stmt->bindParam(':user_login', $openid);
 		$stmt->bindParam(':name', $name);
 		$stmt->bindParam(':email', $email);
 		$stmt->execute();
@@ -76,7 +76,7 @@ class User {
 	 * @return User object with values fetched from database.
 	 */
 	static function get_by_openid($openid) {
-		if (!($stmt = get_pdo()->prepare('SELECT * FROM user WHERE id = :openid'))) {
+		if (!($stmt = get_pdo()->prepare('SELECT * FROM user WHERE user_login = :openid'))) {
 			return null;
 		}
 		$stmt->bindParam(':openid', $openid);
@@ -93,8 +93,8 @@ class User {
 	 * @return User openid url
 	 */
 	function get_openid() {
-		if( isset($this->fields["id"]) )
-			return $this->fields["id"];
+		if( isset($this->fields["user_login"]) )
+			return $this->fields["user_login"];
 		else
 			return NULL;
 	}
@@ -124,7 +124,7 @@ class User {
 	}
 
 	function set_email($email)  {
-		$stmt = get_pdo()->prepare('UPDATE user SET email = :email WHERE id = :openid');
+		$stmt = get_pdo()->prepare('UPDATE user SET email = :email WHERE user_login = :openid');
 		$id = $this->get_openid();
 		$stmt->bindParam(':openid', $id);
 		$stmt->bindParam(':email', $email);
@@ -132,7 +132,7 @@ class User {
 	}
 
 	function set_username($name) {
-		$stmt = get_pdo()->prepare('UPDATE user SET name = :name WHERE id = :openid');
+		$stmt = get_pdo()->prepare('UPDATE user SET name = :name WHERE user_login = :openid');
 		$id = $this->get_openid();
 		$stmt->bindParam(':openid', $id);
 		$stmt->bindParam(':name', $name);
