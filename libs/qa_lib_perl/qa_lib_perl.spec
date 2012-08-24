@@ -92,7 +92,6 @@ cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man1 *.1.gz
 cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man3 *.3.gz
 cp -r --target-directory=$RPM_BUILD_ROOT%{libdir} utils
 cp --target-directory=$RPM_BUILD_ROOT%{libdir} db_common.pm
-cp --target-directory=$RPM_BUILD_ROOT%{confdir} 00-qa_libperl-default 00-qa_libperl-default.us
 echo ${version} > $RPM_BUILD_ROOT%{libdir}/qa_libperl.version
 
 %clean
