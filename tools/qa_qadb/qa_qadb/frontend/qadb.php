@@ -458,14 +458,7 @@ function regression_differences($attrs,&$pager=null)
 }
 
 function search_user($username) {
-	# Create new mysqli object to access mysql database (to access the user table)
-	$mysqli = new mysqli("localhost", "qadb_guest", "", "mysql");
-	$stmt = $mysqli->prepare("SELECT Password FROM user WHERE User=?");
-	$stmt->bind_param("s", $username);
-	$stmt->execute();
-	$stmt->bind_result($password);
-	$stmt->fetch();
-	return $password;
+	return scalar_query('SELECT password FROM mysql.user WHERE user=?','s',$username);
 }
 
 
