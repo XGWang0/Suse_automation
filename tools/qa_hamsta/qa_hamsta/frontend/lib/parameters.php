@@ -129,6 +129,7 @@ function get_parameter_maps($xml)
 				$optlist[$opt_id++] = array('value'=>$optvalue, 'label'=>$opt);
 			}
 
+			$paramcont = "";
 			if($opt_id == 0)
 				$paramcont = $parameter;
 
