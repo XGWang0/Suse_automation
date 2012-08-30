@@ -31,14 +31,21 @@ if (!defined('HAMSTA_FRONTEND')) {
 	return require("index.php");
 }
 
-if ( array_key_exists('OPENID_AUTH', $_SESSION)) {
-   $user = User::get_by_openid ($_SESSION['OPENID_AUTH'] );
+if ( User::isLogged() ) {
+  $user = User::getInstance($config);
 }
+
 ?>
 
 <p>
-Your user name is <b><?php echo (isset ($user) ? $user->get_name() : "unset") ?></b>.<br />
-Your e-mail address is <b><?php echo (isset ($user) ? $user->get_email() : "unset") ?></b>.<br />
+Your user name is <b>
+<?php if ( isset ($user) )
+   echo ($user->getName());
+?></b>.<br />
+Your e-mail address is <b>
+<?php if ( isset ($user) )
+      echo ($user->getEmail());
+?></b>.<br />
 </p>
 
 <?php if ( isset ($user) ): ?>

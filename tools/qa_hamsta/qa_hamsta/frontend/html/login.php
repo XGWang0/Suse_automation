@@ -23,35 +23,31 @@
   ****************************************************************************
  */
 
-  /**
-   * Contents of the <tt>register</tt> page
-   */
-if (!defined('HAMSTA_FRONTEND')) {
-  $go = 'register';
-  return require("index.php");
-}
-
-if ( User::isLogged() ) {
-  $user = User::getInstance($config);
-  if ( $user != null ) {
-    //    $user = User::getInstance($config);
-    $user_name = $user->getName();
-    $user_email = $user->getEmail();
-  }
+if ( ! defined('HAMSTA_FRONTEND') ) {
+  $go = 'login';
+  return require ('index.php');
 }
 
 ?>
 
-<p>Please enter your full name and email address to register with Hamsta. This information will be used when reserving machines and to email you job notifications.</p>
-<div style="width: 40%">
-<form method="POST">
+<p>Use your login credentials to log in to Hamsta. Ask your administrator for valid credentials or new account.</p>
+
+<div style="width: 40%;">
+<form method="post">
   <fieldset>
-	<input type="hidden" name="go" value="register" />
-	<table>
-		<tr><td>Name</td> <td><input type="text" name="name" value="<?php echo (htmlspecialchars($user_name)) ?>" /></td></tr>
-		<tr><td>Email</td> <td><input type="text" name="email" value="<?php echo (htmlspecialchars($user_email)) ?>" /></td></tr>
-	</table><br />
-<input type="submit" value="Submit" name="submit" />
+  <legend>Password login</legend>
+  <input type="hidden" name="go" value="login" />
+  <table>
+    <tr>
+    <td><label>Login</label></td>
+    <td><input type="text" name="login" value="" /></td>
+    </tr>
+    <tr>
+    <td><label>Password</label></td>
+    <td><input type="password" name="password" value="" /></td>
+    </tr>
+  </table>
+    <input type="submit" name="action" value="Login" />
   </fieldset>
 </form>
 </div>
