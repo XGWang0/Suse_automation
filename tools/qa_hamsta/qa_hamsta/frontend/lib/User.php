@@ -39,7 +39,7 @@ class User {
   private $name;
   private $email;
   private $config;
- 
+
   private function __construct ($config, $login, $name, $email) {
     $this->auth = Authenticator::getInstance ();
     $this->config = $config;
@@ -53,7 +53,7 @@ class User {
     $ident = self::getIdent ();
     if ( isset ($ident) )
       $res = $db->fetchAll ('SELECT name FROM `user` WHERE user_login = ?', $ident);
-    
+
     return isset ($res[0]['name']) ? $res[0]['name'] : 'unset';
   }
 
@@ -62,7 +62,7 @@ class User {
     $ident = self::getIdent ();
     if ( isset ($ident) )
       $res = $db->fetchAll ('SELECT email FROM `user` WHERE user_login = ?', $ident);
-    
+
     return isset ($res[0]['email']) ? $res[0]['email'] : 'unset';
   }
 
@@ -150,7 +150,7 @@ class User {
       Authenticator::openid ($config);
       if ( self::isLogged ()
            && ! self::isRegistered ($config)) {
-        
+
         if ( isset ($_GET['openid_sreg_fullname']) ) {
           $_SESSION['user_name'] = $_GET['openid_sreg_fullname'];
         }
@@ -173,7 +173,7 @@ class User {
   public static function logout () {
     Authenticator::logout ();
   }
- 
+
   public static function isLogged () {
     $auth = Authenticator::getInstance ();
     return $auth->hasIdentity ();

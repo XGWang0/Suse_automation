@@ -39,7 +39,7 @@ unset ($_SESSION['user_email']);
 
 /* In case the Provider sent us *both* user full name and
  * email, we can use these to add user directly into our DB.
- * 
+ *
  * If that is not the case use the data to pre-fill the
  * registration form (see in html).
  */

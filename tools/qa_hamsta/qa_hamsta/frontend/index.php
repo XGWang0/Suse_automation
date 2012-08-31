@@ -46,7 +46,7 @@ require("globals.php");
 require ('lib/Conf.php');
 require ('lib/User.php');
 
-$config = Conf::getIniConfig('hamsta.ini', 'devel');
+$config = Conf::getIniConfig('hamsta.ini', 'cz');
 User::authenticate($config);
 
 require("lib/request.php");
