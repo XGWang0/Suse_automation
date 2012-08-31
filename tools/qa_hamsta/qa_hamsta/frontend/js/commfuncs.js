@@ -94,7 +94,7 @@ function checkcontents(which)
 		if (tempobj.title.substring(0,8)=="required") {
 			if ( (tempobj.type=="text") || (tempobj.type=="textarea") ) {
 				if ( (tempobj.name=="jobname") && (tempobj.value.indexOf(" ") >=0) ){
-					alert("The job name must be composed by number, letter, underscroe or dash")
+					alert("The job name must be composed by number, letter, underscore or dash")
 					return false
 				}
 				if ((tempobj.value).replace(/(^\s*)|(\s*$)/g, '')=='') {
@@ -102,7 +102,6 @@ function checkcontents(which)
 					return false
 				}
 			}
-					
 		}
 	}
 	return checkemail(which.mailto.value)
