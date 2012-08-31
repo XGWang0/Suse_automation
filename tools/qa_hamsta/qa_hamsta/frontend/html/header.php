@@ -28,7 +28,8 @@
      * title and page selection bar if needed.
      */
 
-	 require_once("include/Util.php");
+require_once("include/Util.php");
+
 ?>
 <html>
 <head>
@@ -61,24 +62,18 @@
       <div class="version text-main text-white bold">
         <em>v<?php $version = explode("-", $hamstaVersion); echo($version[2]);?></em>
       </div>
-      <div style="float: right;" class="navibar text-white text-main">
+      <div style="float: right; width=150px;" class="navibar text-white text-main">
         <?php
-           if ( isset($_SESSION['OPENID_AUTH'])) {
-             echo("Logged in as ");
-             $user = User::get_by_openid($_SESSION['OPENID_AUTH']);
-             if ($user) {
-               echo('<a href="index.php?go=user">');
-               $username = $user->get_name();
-               echo($username);
-               echo('</a>');
-             } else {
-               echo('<a href="index.php?go=register">');
-               echo("Unknown User");
-               echo('</a>');
-             }
-             echo('<a href="index.php?go=logout">Log out</a>');
-           } else {
-             echo('<a href="index.php?go=login">Log in</a>');
+           User::printStatus($config);
+           switch ($config->authentication->method) {
+           case 'openid':
+             User::printLogInOut();
+             break;
+           case 'password':
+             User::printLogInOut(true);
+             break;
+           default:
+             User::printLogInOut();
            }
            ?>
         <a class="navibar" href="index.php?go=install_client">Install Client</a>

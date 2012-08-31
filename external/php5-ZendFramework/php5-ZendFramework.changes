@@ -1,0 +1,99 @@
+-------------------------------------------------------------------
+Tue Sep  6 12:01:20 UTC 2011 - graham@andtech.eu
+
+- 1.11.10 point Release
+- http://framework.zend.com/changelog/1.11.10
+
+- On suse_version > 11.30 (php 5.3 required), Build manual using 
+  PHD instead of xsltproc, reduces build time by an order of 
+  magnitude.
+
+-------------------------------------------------------------------
+Mon May 30 16:08:33 UTC 2011 - graham@andtech.eu
+
+- 1.11.6 point Release
+- http://framework.zend.com/changelog/1.11.6 
+
+-------------------------------------------------------------------
+Fri Jan 28 06:54:04 UTC 2011 - graham@andtech.eu
+
+- 1.11.2 point Release
+- http://framework.zend.com/changelog/1.11.2
+
+-------------------------------------------------------------------
+Tue Nov  2 16:30:28 UTC 2010 - graham@andtech.eu
+
+- 1.11.0 Point Release
+- http://framework.zend.com/changelog/1.11.0
+
+- Zend_Http_UserAgent performs two responsibilities:
+    User-Agent detection
+    Device capabilities detection, based on User-Agent
+- Zend_Cloud
+- Zend_Service_Ebay
+- Zend_Config_Yaml
+- Zend_Config_Json
+- Zend_Service_ShortUrl
+- Additional view helpers
+
+-------------------------------------------------------------------
+Tue Oct  5 18:19:11 UTC 2010 - graham@andtech.eu
+
+- Bugfix release (1.10.8)
+- http://framework.zend.com/changelog/1.10.8
+
+-------------------------------------------------------------------
+Wed Jun 23 12:23:21 UTC 2010 - graham@andtech.eu
+
+- Bugfix release (1.10.6)
+- http://framework.zend.com/changelog/1.10.6
+
+-------------------------------------------------------------------
+Wed Jun  2 05:53:23 UTC 2010 - graham@andtech.eu
+
+- Bugfix release (1.10.5)
+- http://framework.zend.com/changelog/1.10.5 
+
+-------------------------------------------------------------------
+Mon May 17 11:22:32 UTC 2010 - graham@andtech.eu
+
+- Bugfix release (1.10.4)
+- http://framework.zend.com/changelog/1.10.4 
+
+-------------------------------------------------------------------
+Fri Apr  2 13:46:32 UTC 2010 - graham@andtech.eu
+
+- Revert document build to xsltproc (Phd has PHP5.3 requirement)
+- Bugfix release (1.10.3)
+- http://framework.zend.com/changelog/1.10.3 
+
+-------------------------------------------------------------------
+Sat Feb 27 00:47:07 UTC 2010 - graham@andtech.eu
+
+- Change document build process, switch from xsltproc to Phd
+- Bugfix release (1.10.2)
+- http://framework.zend.com/changelog/1.10.2 
+
+-------------------------------------------------------------------
+Tue Feb 16 15:55:54 UTC 2010 - graham@andtech.eu
+
+- Bugfix release (1.10.1)
+- http://framework.zend.com/changelog/1.10.1 
+
+-------------------------------------------------------------------
+Fri Jan 29 12:06:12 UTC 2010 - graham@andtech.eu
+
+- Update to 1.10.0, minor update, new features:
+
+- Zend_Barcode, Zend_Cache_Backend_Static
+- Zend_Cache_Backend_Static, Zend_Cache_Manager
+- Zend_Exception, Zend_Feed_Pubsubhubbub, Zend_Feed_Writer
+- Zend_Filter_Boolean,Zend_Filter_Compress/Decompress
+- Zend_Filter_Null, Zend_Log::factory(), Zend_Log_Writer_ZendMonitor
+- Zend_Markup, Zend_Oauth, Zend_Serializer
+- Zend_Service_DeveloperGarden, Zend_Service_LiveDocx
+- Zend_Service_WindowsAzure, Zend_Validate_Barcode
+- Zend_Validate_Callback, Zend_Validate_CreditCard,
+- Zend_Validate_PostCode
+
+- Many bugfixes: http://framework.zend.com/changelog/1.10.0

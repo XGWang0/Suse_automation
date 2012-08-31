@@ -30,7 +30,7 @@
 	$jobname=$_POST['jobname'];
 	if(!preg_match("/^[0-9a-zA-Z_\s\-]+$/", "$jobname"))  # validate the file name user input
 	{
-		$errors[] = "The file name you input is invalid! It must be composed by number, letter, underscroe, dash or space.";
+		$errors[] = "The file name you input is invalid! It must be composed by number, letter, underscore or dash";
 	}
 	$jobname = str_replace(' ', "\ ", "$jobname");
 

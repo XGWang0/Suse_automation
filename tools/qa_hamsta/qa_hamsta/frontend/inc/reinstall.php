@@ -71,11 +71,12 @@ if (!isset($installoptions) or $installoptions=="") {
 		}
 }
 
-# Get partition info from database
+# Get partition info from database,the function work for single machine.
 $root_partitions="";
-foreach ($machines as $machine){
-	$partitions=($machine->get_partition_bycid($machine->get_current_configuration_id()));
-	$swap=($machine->get_swap_bycid($machine->get_current_configuration_id()));
+if(count($machines)==1) {
+
+	$partitions=($machines[0]->get_partition_bycid($machines[0]->get_current_configuration_id()));
+	$swap=($machines[0]->get_swap_bycid($machines[0]->get_current_configuration_id()));
 	$swap=trim($swap);
 	if ($partitions != "")
 		foreach($partitions as $subpts){
@@ -151,7 +152,10 @@ if (request_str("proceed")) {
 	$additionalpatterns = str_replace(' ', ',', trim($gpattern));
 	$addonurl = join(",", $addonurls);
 	$regcode = join(",", TrimArray($regcodes));
-
+	# check partition prem
+	if(($repartitiondisk || $ptargs) and ! $machines[0]->has_perm('partition')) $errors['partition']="Some Machine do not have partition perm";
+	# check boot prem
+	if(($defaultboot || $setxen) and ! $machines[0]->has_perm('boot')) $errors['boot']="Some Machine do not have boot perm";
 	# Processing the job
 	if (count($errors)==0) {
 		$producturl=preg_quote($producturl, '/');

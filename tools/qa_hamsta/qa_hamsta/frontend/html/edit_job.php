@@ -101,7 +101,7 @@
     ?>
 
     <tr><td width="40%">Job name: </td>
-    <td><input type="text" size="20" name="jobname" title="required: job name" value="<?php echo $jobInfo['name']; ?>"><span class="required">*</span>
+    <td><input type="text" size="20" name="jobname" title="required: job name, must be composed by number, letter, underscore or dash" value="<?php echo $jobInfo['name']; ?>"><span class="required">*</span>
     </td></tr>
     <tr><td>Debug level:</td>
     <td>
