@@ -46,6 +46,10 @@ require("globals.php");
 require ('lib/Conf.php');
 require ('lib/User.php');
 
+/*
+ * First parameter is path to ini file. The second is name of group
+ * you want to include configuration from.
+ */
 $config = Conf::getIniConfig('hamsta.ini', 'cz');
 User::authenticate($config);
 
@@ -61,7 +65,6 @@ require("lib/roles.php");
 require("lib/Utilfunc.php");
 require("lib/parameters.php");
 require("lib/powerswitch.php");
-//require("lib/user.php");
 
 require_once("../tblib/tblib.php");
 
