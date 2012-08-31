@@ -1,7 +1,7 @@
 <?php
 /* ****************************************************************************
   Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
-  
+
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
   RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
@@ -12,7 +12,7 @@
   PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
   AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
   LIABILITY.
-  
+
   SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
   WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
@@ -23,34 +23,65 @@
   ****************************************************************************
  */
 
-    /**
-     * Logic of the register page
-     *
-     * 
-     */
-    if(!defined('HAMSTA_FRONTEND')) {
-        $go = 'register';
-        return require("index.php");
+  /**
+   * Logic of the register page
+   */
+if(!defined('HAMSTA_FRONTEND')) {
+  $go = 'register';
+  return require("index.php");
+ }
+$html_title = "Register";
+
+$user_name = isset ($_SESSION['user_name']) ? $_SESSION['user_name'] : '';
+$user_email = isset ($_SESSION['user_email']) ? $_SESSION['user_email'] : '';
+unset ($_SESSION['user_name']);
+unset ($_SESSION['user_email']);
+
+/* In case the Provider sent us *both* user full name and
+ * email, we can use these to add user directly into our DB.
+ *
+ * If that is not the case use the data to pre-fill the
+ * registration form (see in html).
+ */
+if ( User::isLogged()
+     && ! User::isRegistered($config)
+     && ! empty ($user_name)
+     && ! empty ($user_email) ) {
+  User::addUser (User::getIdent(), $user_name, $user_email);
+  $_SESSION['mtype'] = 'success';
+  $_SESSION['message'] = 'You have been successfuly registered into Hamsta.';
+
+  header ('Location: index.php');
+}
+
+if ( request_str("submit")
+     && User::isLogged() ) {
+  $name = isset ($_POST['name']) ? $_POST['name'] : '';
+  $email = isset ($_POST['email']) ? $_POST['email'] : '';
+
+  if ( empty($name) || empty($email) ) {
+    $_SESSION['mtype'] = 'failure';
+    $_SESSION['message'] = 'Fill in the form, please.';
+    header('Location: index.php?go=register');
+    exit();
+  }
+
+  /* Submit registration info to database.*/
+  if ( ! User::isRegistered($config) ) {
+    if (User::addUser(User::getIdent(), $name, $email)) {
+      $_SESSION['mtype'] = 'success';
+      $_SESSION['message'] = 'Registration was successful.';
+    } else {
+      $_SESSION['mtype'] = 'failure';
+      $_SESSION['message'] = 'There has been an registration error.';
     }
-    $html_title = "Register";
-
-if (array_key_exists('OPENID_AUTH', $_SESSION))
-	$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
-
-// Submit registration info to database.
-if (request_str("submit") && !isset($user)) {
-	User::add_user($_SESSION['OPENID_AUTH'], htmlspecialchars(request_str("name")), htmlspecialchars(request_str("email")));
-	$_SESSION['mtype'] = "success";
-	$_SESSION['message'] = "Registration was successful.";
-	header('Location: index.php?go=machines');
-	exit();
-} else if (request_str("submit") && isset($user)) {
-	$user->set_username(htmlspecialchars(request_str("name")));
-	$user->set_email(htmlspecialchars(request_str("email")));
-	$_SESSION['mtype'] = "success";
-	$_SESSION['message'] = "Successfully updated registration information.";
-	header('Location: index.php');
-	exit();
+  } else {
+    $user = User::getInstance($config);
+    $user->setName($name);
+    $user->setEmail($email);
+    $_SESSION['mtype'] = "success";
+    $_SESSION['message'] = "Successfully updated registration information.";
+  }
 }
 
 ?>

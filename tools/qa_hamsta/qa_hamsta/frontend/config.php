@@ -119,6 +119,9 @@ $smtserver="https://smt.novell.com/center/regsvc";
 # Enable/Disable openid authentication to the system.
 $openid_auth = true;
 
+# Possible values are 'openid' or 'password'
+$authentication_method = 'password';
+
 # Set the openid authentication url.
 $openid_url = "www.novell.com/openid";
 

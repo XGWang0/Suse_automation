@@ -23,35 +23,13 @@
   ****************************************************************************
  */
 
-  /**
-   * Contents of the <tt>register</tt> page
-   */
-if (!defined('HAMSTA_FRONTEND')) {
-  $go = 'register';
-  return require("index.php");
-}
+require_once ('Zend/Config/Ini.php');
 
-if ( User::isLogged() ) {
-  $user = User::getInstance($config);
-  if ( $user != null ) {
-    //    $user = User::getInstance($config);
-    $user_name = $user->getName();
-    $user_email = $user->getEmail();
+class Conf
+{
+  public static function getIniConfig($filename, $section, $options = false) {
+    return new Zend_Config_Ini($filename, $section, $options);
   }
 }
 
 ?>
-
-<p>Please enter your full name and email address to register with Hamsta. This information will be used when reserving machines and to email you job notifications.</p>
-<div style="width: 40%">
-<form method="POST">
-  <fieldset>
-	<input type="hidden" name="go" value="register" />
-	<table>
-		<tr><td>Name</td> <td><input type="text" name="name" value="<?php echo (htmlspecialchars($user_name)) ?>" /></td></tr>
-		<tr><td>Email</td> <td><input type="text" name="email" value="<?php echo (htmlspecialchars($user_email)) ?>" /></td></tr>
-	</table><br />
-<input type="submit" value="Submit" name="submit" />
-  </fieldset>
-</form>
-</div>

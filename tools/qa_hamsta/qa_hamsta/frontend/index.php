@@ -35,12 +35,23 @@
 
 error_reporting(E_ALL | E_STRICT);
 
-session_start();
+/* Now starts with authentication. */
+//session_start();
 
 define('HAMSTA_FRONTEND', 1);
 
 require("config.php");
 require("globals.php");
+
+require ('lib/Conf.php');
+require ('lib/User.php');
+
+/*
+ * First parameter is path to ini file. The second is name of group
+ * you want to include configuration from.
+ */
+$config = Conf::getIniConfig('hamsta.ini', 'cz');
+User::authenticate($config);
 
 require("lib/request.php");
 require("lib/db.php");
@@ -54,7 +65,6 @@ require("lib/roles.php");
 require("lib/Utilfunc.php");
 require("lib/parameters.php");
 require("lib/powerswitch.php");
-require("lib/user.php");
 
 require_once("../tblib/tblib.php");
 
@@ -102,26 +112,11 @@ $pages = array(
     "edit_jobs",
     "register",
     "user",
-    "login",
-    "logout"
+    "login"
 );
 
 if (!in_array($go, $pages)) {
     $go = $pages[0];
-}
-
-if ($openid_auth && ! isset($_SESSION['OPENID_AUTH'])) {
-  if (isset($_GET['openid_mode']) && $_GET['openid_mode'] == "id_res") {
-    require_once "Zend/OpenId/Consumer.php";
-    $consumer = new Zend_OpenId_Consumer();
-    if ($consumer->verify($_GET, $id)) {
-      $_SESSION['OPENID_AUTH'] = $id;
-      $user = User::get_by_openid($id);
-      if (!$user) {
-        header('Location: index.php?go=register');
-      }
-    }
-  }
 }
 
 require("inc/$go.php");
