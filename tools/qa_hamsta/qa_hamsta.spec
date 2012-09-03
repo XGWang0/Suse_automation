@@ -106,7 +106,7 @@ Authors:
 License:        SUSE Proprietary  
 Summary:        HArdware Maintenance, Setup & Test Automation  
 Group:          System/Management  
-Requires:       mod_php_any httpd php-pdo php-mysql hamsta-jobs tblib ajaxterm jquery qa_lib_openid php5-curl php5-snmp ipmitool sshpass libvirt
+Requires:       mod_php_any httpd php-pdo php-mysql hamsta-jobs tblib ajaxterm jquery php5-curl php5-snmp ipmitool sshpass libvirt php5-ZendFramework php5-gmp
 
 %if 0%{?sles_version} > 9
 Recommends:	mysql
@@ -378,6 +378,8 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %{confdir}/00-hamsta-common-default
 
 %changelog
+* Fri Aug 31 2012 pkacer@suse.com
+- Changed dependency from qa_lib_openid to php5-ZendFramework.
 * Fri Aug 17 2012 pkacer@suse.com
 - OpenID authentication only on request by user (see header.php).
 - OpenID is on by default in configuration.

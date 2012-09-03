@@ -31,7 +31,7 @@ Source1:	%name.8
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 PreReq:         coreutils
-Requires:       mod_php_any httpd php-pdo tblib php-gd mysql mysql-client php-bz2 phplot qa_lib_openid
+Requires:       mod_php_any httpd php-pdo tblib php-gd mysql mysql-client php-bz2 phplot php5-ZendFramework php5-gmp
 Provides:	qadb
 Obsoletes:	qadb
 
@@ -89,6 +89,8 @@ echo "=================== I M P O R T A N T ======================="
 %doc COPYING
 
 %changelog
+* Fri Aug 31 2012 pkacer@suse.com
+- Changed dependency from qa_lib_openid to php5-ZendFramework.
 * Fri Aug 10 2012 - llipavsky@suse.cz
 - Web user-friendly editor for jobs
 - HA Server yast2 UI Automation
