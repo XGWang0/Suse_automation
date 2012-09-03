@@ -39,12 +39,14 @@ if ( User::isLogged() ) {
 
 <p>
 Your user name is <b>
-<?php if ( isset ($user) )
-   echo ($user->getName());
+<?php echo ( ( isset ($user) )
+             ? $user->getName()
+             : 'not set');
 ?></b>.<br />
 Your e-mail address is <b>
-<?php if ( isset ($user) )
-      echo ($user->getEmail());
+<?php echo ( ( isset ($user) )
+             ? $user->getEmail()
+             : 'not set');
 ?></b>.<br />
 </p>
 
