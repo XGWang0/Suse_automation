@@ -30,8 +30,10 @@
 		$go = 'edit_machines';
 		return require("index.php");
 	}
-	if (array_key_exists('OPENID_AUTH', $_SESSION))
-		$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
+
+        if (User::isLogged()) {
+                $user = User::getInstance($config);
+        }
 
 	# We are going to output all fields and data for the machines, so first we collect it
 	$table = array();
@@ -63,10 +65,16 @@
 		if (!isset($valuer)) {
 			$valuer = $machine->get_used_by();
 		}
-		if ($valuer == "" && $openid_auth && isset($user)) {
-			$valuer = $user->get_openid();
+		if ($valuer == "" && isset($user)) {
+			$valuer = $user->getIdent();
 		}
-		$column[] = "<input name=\"used_by[".$machine->get_id()."]\" value=\"$valuer\" style=\"width: 200px;\" tabindex=".$counterAddValue++. (($openid_auth && $used_by = User::get_by_openid($valuer)) ? " type=\"hidden\">".$used_by->get_name()."</input>" : " \>");
+$column[] = "<input name=\"used_by["
+                  .$machine->get_id()
+                  ."]\" value=\"$valuer\" style=\"width: 200px;\" tabindex="
+                  .$counterAddValue++
+                  .(( $used_by = User::getByLogin($valuer, $config) )
+                    ? " type=\"hidden\">".$used_by->getName()."</input>"
+                    : " \>");
 		$valuer = NULL;
 
 		# Common columns (configurable)
