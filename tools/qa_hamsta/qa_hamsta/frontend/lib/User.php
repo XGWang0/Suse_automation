@@ -51,7 +51,7 @@ class User {
     if ( isset ($ident) )
       $res = $db->fetchAll ('SELECT name FROM `user` WHERE user_login = ?', $ident);
 
-    return isset ($res[0]['name']) ? $res[0]['name'] : 'unset';
+    return isset ($res[0]['name']) ? $res[0]['name'] : NULL;
   }
 
   private static function getDbEmail ($ident, $config) {
@@ -59,7 +59,7 @@ class User {
     if ( isset ($ident) )
       $res = $db->fetchAll ('SELECT email FROM `user` WHERE user_login = ?', $ident);
 
-    return isset ($res[0]['email']) ? $res[0]['email'] : 'unset';
+    return isset ($res[0]['email']) ? $res[0]['email'] : NULL;
   }
 
   /**
