@@ -44,7 +44,7 @@ unset ($_SESSION['user_email']);
  * registration form (see in html).
  */
 if ( User::isLogged()
-     && ! User::isRegistered($config)
+     && ! User::isRegistered(User::getIdent(), $config)
      && ! empty ($user_name)
      && ! empty ($user_email) ) {
   User::addUser (User::getIdent(), $user_name, $user_email);
@@ -67,7 +67,7 @@ if ( request_str("submit")
   }
 
   /* Submit registration info to database.*/
-  if ( ! User::isRegistered($config) ) {
+  if ( ! User::isRegistered(User::getIdent(), $config) ) {
     if (User::addUser(User::getIdent(), $name, $email)) {
       $_SESSION['mtype'] = 'success';
       $_SESSION['message'] = 'Registration was successful.';

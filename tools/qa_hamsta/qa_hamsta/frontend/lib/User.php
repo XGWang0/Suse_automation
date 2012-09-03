@@ -34,32 +34,28 @@ require_once ('Zend/Db.php');
  */
 class User {
 
-  private $auth;
   private $login;
   private $name;
   private $email;
   private $config;
 
   private function __construct ($config, $login, $name, $email) {
-    $this->auth = Authenticator::getInstance ();
     $this->config = $config;
     $this->login = $login;
     $this->name = $name;
     $this->email = $email;
   }
 
-  private static function getDbName ($config) {
+  private static function getDbName ($ident, $config) {
     $db = Zend_Db::factory ($config->database);
-    $ident = self::getIdent ();
     if ( isset ($ident) )
       $res = $db->fetchAll ('SELECT name FROM `user` WHERE user_login = ?', $ident);
 
     return isset ($res[0]['name']) ? $res[0]['name'] : 'unset';
   }
 
-  private static function getDbEmail ($config) {
+  private static function getDbEmail ($ident, $config) {
     $db = Zend_Db::factory ($config->database);
-    $ident = self::getIdent ();
     if ( isset ($ident) )
       $res = $db->fetchAll ('SELECT email FROM `user` WHERE user_login = ?', $ident);
 
@@ -69,9 +65,8 @@ class User {
   /**
    *
    */
-  private function setDbName ($newName) {
+  private function setDbName ($ident, $newName) {
     $db = Zend_Db::factory ($this->config->database);
-    $ident = self::getIdent ();
     $ident = $db->quote ($ident);
     $name = $db->quote ($newName);
     $data = array ( 'name' => $newName );
@@ -81,9 +76,11 @@ class User {
     return $res;
   }
 
-  private function setDbEmail ($newEmail) {
+  /**
+   *
+   */
+  private function setDbEmail ($ident, $newEmail) {
     $db = Zend_Db::factory ($this->config->database);
-    $ident = self::getIdent ();
     $ident = $db->quote ($ident);
     $data = array ( 'email' => $newEmail );
     if ( isset ($ident) ) {
@@ -92,26 +89,60 @@ class User {
     return $res;
   }
 
-  private function setDbPassword ($newPassword) {
+  private function setDbPassword ($ident, $newPassword) {
     $db = Zend_Db::factory ($this->config->database);
-    $ident = self::getIdent ();
-    $data = array ( 'name' => $newPassword );
+    $data = array ( 'password' => $newPassword );
     if ( isset ($ident) ) {
-      $res = $db->update ('user', $data, 'user_login = ' . $ident);
+      $res = $db->update ('user', $data, 'user_login = '
+                          . $db-quote ( htmlspecialchars ($ident) ) );
     }
+    return $res;
   }
 
   /**
-   * Returns an instance of *registered* user. That means only
-   * instances of registered users will be returned.
+   * Returns an instance of *registered* and currently loggend in
+   * user. That means only instances of registered users will be
+   * returned.
    *
    * @param config  Object of type Zend_Config
    */
   public static function getInstance ($config) {
-    return self::isRegistered ($config)
-      ? new User ( $config, self::getIdent ($config),
-                   self::getDbName ($config),
-                   self::getDbEmail ($config) )
+    $ident = self::getIdent ();
+    return self::isRegistered ($ident, $config)
+      ? new User ( $config, $ident,
+                   self::getDbName ($ident, $config),
+                   self::getDbEmail ($ident, $config) )
+      : null;
+  }
+
+  /**
+   * Returns an instance of *registered* user selected by login.
+   *
+   * @param login Login name of the user.
+   * @param config Object of type Zend_Config.
+   */
+  public static function getByLogin($login, $config) {
+    return self::isRegistered ($login, $config)
+      ? new User ($config,
+                  $login,
+                  User::getDbName($login, $config),
+                  User::getDbEmail($login, $config) )
+      : null;
+  }
+
+  /**
+   * Returns an instance of *registered* user by id.
+   *
+   * @param id Id of user (number).
+   * @param config Object of type Zend_Config.
+   */
+  public static function getById($id, $config) {
+    // TODO get login of this $id
+    return self::isRegistered ($login, $config)
+      ? new User ($config,
+                  $login,
+                  User::getDbName($login, $config),
+                  User::getDbEmail($login, $config) )
       : null;
   }
 
@@ -138,7 +169,7 @@ class User {
            && $_POST['action'] == 'Login') {
         $login = isset ($_POST['login']) ? $_POST['login'] : '';
         $password = isset ($_POST['password']) ? $_POST['password'] : '';
-        if ( ! (empty ($login) || empty ($password)) ) {
+        if ( ! ( empty($login) || empty ($password) ) ) {
           Authenticator::password ($login, $password, $config);
         } else {
           $_SESSION['mtype'] = 'failure';
@@ -149,8 +180,8 @@ class User {
     case 'openid':
       Authenticator::openid ($config);
       if ( self::isLogged ()
-           && ! self::isRegistered ($config)) {
-
+           && ! self::isRegistered (self::getIdent(), $config)) {
+        
         if ( isset ($_GET['openid_sreg_fullname']) ) {
           $_SESSION['user_name'] = $_GET['openid_sreg_fullname'];
         }
@@ -185,11 +216,12 @@ class User {
   }
 
   public static function printStatus ($config) {
+    $ident = self::getIdent();
     if ( self::isLogged () ) {
-      if ( self::isRegistered ($config) ) {
-        $outName = self::getDbName ($config);
+      if ( self::isRegistered ($ident, $config) ) {
+        $outName = self::getDbName ($ident, $config);
       } else {
-        $outName = self::getIdent ();
+        $outName = $ident;
       }
       echo ('Logged in as <a href="index.php?go=user">' . $outName . "</a>");
     }
@@ -216,39 +248,50 @@ class User {
    * @param string name User's name
    * @param string email User's email address
    *
+   * @return True if user was added successfuly. 
    */
   public static function addUser ($login, $name, $email) {
-    $stmt = get_pdo()->prepare('INSERT INTO user (user_login, name, email) VALUES(:login, :name, :email)');
+    $stmt = get_pdo ()->prepare ('INSERT INTO user (user_login, name, email) VALUES(:login, :name, :email)');
     $stmt->bindParam (':login', $login);
     $stmt->bindParam (':name', $name);
     $stmt->bindParam (':email', $email);
     $stmt->execute ();
+    return true;
     // TODO return true if added, false if not
   }
 
-  public static function isRegistered ($config) {
+  public static function isRegistered ($login, $config) {
     $auth = Authenticator::getInstance ();
     $identity = $auth->getIdentity ();
     $db = Zend_Db::factory ($config->database);
-    $res = $db->fetchCol ('SELECT user_login FROM user WHERE user_login = ?', $identity);
-    return isset ($res);
+    $res = $db->fetchAll ('SELECT user_login FROM user WHERE user_login = ?', $identity);
+    return isset ($res[0]['user_login']);
   }
-
+  
   /**
    * getName
    *
+   * Returns name of this user.
+   * 
    * @return User name
    */
   public function getName () {
     return $this->name;
   }
 
+  /**
+   * getEmail
+   *
+   * Returns email of this user.
+   *
+   * @return User email
+   */
   public function getEmail () {
     return $this->email;
   }
 
-  public function setName () {
-    if ( $this->setDbName ($name) ) {
+  public function setName ($name) {
+    if ( $this->setDbName ($this->login, $name) ) {
       $this->name = $name;
       return true;
     } else {
@@ -256,8 +299,8 @@ class User {
     }
   }
 
-  public function setEmail () {
-    if ( $this->setDbEmail ($email) ) {
+  public function setEmail ($email) {
+    if ( $this->setDbEmail ($this->login, $email) ) {
       $this->email = $email;
       return true;
     } else {
@@ -266,8 +309,7 @@ class User {
   }
 
   public function setPassword ($password) {
-    // TODO finish
-    return true;
+    return $this->setDbPassword ($this->login, $password);
   }
 
 }
