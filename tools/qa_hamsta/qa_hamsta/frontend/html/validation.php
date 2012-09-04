@@ -23,8 +23,8 @@
   ****************************************************************************
  */
 
-if (array_key_exists('OPENID_AUTH', $_SESSION))
-	$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
+if (User::isLogged())
+  $user = User::getInstance($config);
 ?>
 
 <script>
@@ -101,7 +101,7 @@ function validarch(archs) {
 		}
 	?>
 </table>
-<p>Write your email here: <input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} else if ($openid_auth && isset($user)) { echo $user->get_email(); } ?>" />
+<p>Write your email here: <input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} else if (isset($user)) { echo $user->getEmail(); } ?>" />
 <a onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('qmark','','../hamsta/images/qmark1.gif',1)">
 <img src="../hamsta/images/qmark.gif" name="qmark" id="qmark" border="0" width="18" height="20" title="click me for clues of email" onclick="window.open('../hamsta/helps/email.html','channelmode', 'width=550, height=450, top=250, left=450')"/></a>
 <br /><br />

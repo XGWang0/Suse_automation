@@ -40,12 +40,12 @@
 	}
 
 	# Verify user has rights to modify the machine
-	if ($openid_auth && array_key_exists('OPENID_AUTH', $_SESSION) && $user = User::get_by_openid($_SESSION['OPENID_AUTH'])) {
+        if ($user = User::getInstance($config)) {
 		foreach ($allmachines as $machine_id)
 		{
 			$machine = Machine::get_by_id($machine_id);
-			$used_by = User::get_by_openid($machine->get_used_by());
-			if ($used_by && $used_by->get_openid() != $user->get_openid()) {
+                        $used_by = User::getByLogin($machine->get_used_by(), $config);
+                        if (isset ($used_by) && $used_by->getIdent() != $user->getIdent()) {
 				$_SESSION['mtype'] = "fail";
 				$_SESSION['message'] = "You cannot modify a reserved machine.";
 				header('Location: index.php?go=machines');

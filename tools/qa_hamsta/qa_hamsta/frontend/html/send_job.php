@@ -30,8 +30,9 @@
         $go = 'send_job';
         return require("index.php");
     }
-	if (array_key_exists('OPENID_AUTH', $_SESSION))
-		$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
+
+if (User::isLogged())
+  $user = User::getInstance($config);
 		
 	$blockedMachines = array();
 	foreach ($machines as $machine) {
@@ -220,7 +221,7 @@ Single-machine jobs are configuration tasks or test runs that have been stored o
 </div>
 <br/>
 <span class="text-main"><b>Email address: </b></span>
-<input type="text" name="mailto" title="optional: send mail if address is given" value="<?php if ($openid_auth && isset($user)) { echo $user->get_email(); } ?>" />
+<input type="text" name="mailto" title="optional: send mail if address is given" value="<?php if (isset($user)) { echo $user->getEmail(); } ?>" />
 <a onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('qmark1','','../hamsta/images/qmark1.gif',1)">
 <img src="../hamsta/images/qmark.gif" name="qmark1" id="qmark1" border="0" width="18" height="20" title="click me for clues of email" onclick="window.open('../hamsta/helps/email.html','channelmode', 'width=550, height=450, top=250, left=450')"/></a>
 <br/><br>
@@ -347,7 +348,7 @@ if(is_dir($dir))
 </table>
 <br/>
 <span class="text-main"><b>Email address: </b></span>
-<input type="text" name="mailto" title="optional: send mail if address is given" value="<?php if ($openid_auth && isset($user)) { echo $user->get_email(); } ?>" />
+<input type="text" name="mailto" title="optional: send mail if address is given" value="<?php if (isset($user)) { echo $user->getEmail(); } ?>" />
 <a onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('qmark','','../hamsta/images/qmark1.gif',1)">
 <img src="../hamsta/images/qmark.gif" name="qmark" id="qmark" border="0" width="18" height="20" title="click me for clues of email" onclick="window.open('../hamsta/helps/email.html','channelmode', 'width=550, height=450, top=250, left=450')"/></a>
 <br/><br>
@@ -424,7 +425,7 @@ QA-packages Jobs are used to launch various test suites on your System Under Tes
 </table>
 <br/>
 <span class="text-main"><b>Email address: </b></span>
-<input type="text" name="mailto" title="optional: send mail if address is given" value="<?php if ($openid_auth && isset($user)) { echo $user->get_email(); } ?>" />
+<input type="text" name="mailto" title="optional: send mail if address is given" value="<?php if (isset($user)) { echo $user->getEmail(); } ?>" />
 <br/><br>
 <input type="submit" name="submit" value="Send QA-packages job">
 </form>
@@ -466,7 +467,7 @@ Auto test jobs. Here we only provide typic test for each autotest component. If 
 </table>
 <br/>
 <span class="text-main"><b>Email address: </b></span>
-<input type="text" name="mailto" title="optional: send mail if address is given" value="<?php if ($openid_auth && isset($user)) { echo $user->get_email(); } ?>" />
+<input type="text" name="mailto" title="optional: send mail if address is given" value="<?php if (isset($user)) { echo $user->getEmail(); } ?>" />
 <br/><br>
 <input type="submit" name="submit" value="Send Autotest job">
 </form>

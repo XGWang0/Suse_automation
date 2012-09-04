@@ -26,7 +26,7 @@
 /**
  * Contents of the <tt>machine_details</tt> page  
  */
-if (!defined('HAMSTA_FRONTEND')) {
+if ( ! defined('HAMSTA_FRONTEND') ) {
 	$go = 'user';
 	return require("index.php");
 }
@@ -35,9 +35,16 @@ if ( User::isLogged() ) {
   $user = User::getInstance($config);
 }
 
+if ( $config->authentication->method == 'openid' && isset ($user) ) {
+  echo ('<p>Your OpenId url is ');
+  echo ('<b>' . $user->getLogin() . "</b>.\n");
+  echo ('<br />');
+ } else {
+  echo ('<p>');
+ }
+
 ?>
 
-<p>
 Your user name is <b>
 <?php echo ( ( isset ($user) )
              ? $user->getName()

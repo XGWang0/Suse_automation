@@ -50,7 +50,6 @@ if ( User::isLogged()
   User::addUser (User::getIdent(), $user_name, $user_email);
   $_SESSION['mtype'] = 'success';
   $_SESSION['message'] = 'You have been successfuly registered into Hamsta.';
-
   header ('Location: index.php');
 }
 
@@ -81,6 +80,7 @@ if ( request_str("submit")
     $user->setEmail($email);
     $_SESSION['mtype'] = "success";
     $_SESSION['message'] = "Successfully updated registration information.";
+    header ('Location: index.php?go=user');
   }
 }
 

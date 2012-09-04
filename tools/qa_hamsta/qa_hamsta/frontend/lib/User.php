@@ -101,8 +101,7 @@ class User {
 
   /**
    * Returns an instance of *registered* and currently loggend in
-   * user. That means only instances of registered users will be
-   * returned.
+   * user.
    *
    * @param config  Object of type Zend_Config
    */
@@ -116,7 +115,7 @@ class User {
   }
 
   /**
-   * Returns an instance of *registered* user selected by login.
+   * Returns an instance of *registered* user by login.
    *
    * @param login Login name of the user.
    * @param config Object of type Zend_Config.
@@ -179,25 +178,38 @@ class User {
       break;
     case 'openid':
       Authenticator::openid ($config);
-      if ( self::isLogged ()
-           && ! self::isRegistered (self::getIdent(), $config)) {
+      if ( self::isLogged () ) {
+        if ( ! self::isRegistered (self::getIdent(), $config)) {
         
-        if ( isset ($_GET['openid_sreg_fullname']) ) {
-          $_SESSION['user_name'] = $_GET['openid_sreg_fullname'];
-        }
+          if ( isset ($_GET['openid_sreg_fullname']) ) {
+            $_SESSION['user_name'] = $_GET['openid_sreg_fullname'];
+          }
 
-        if ( isset ($_GET['openid_sreg_email']) ) {
-          $_SESSION['user_email'] = $_GET['openid_sreg_email'];
-        }
+          if ( isset ($_GET['openid_sreg_email']) ) {
+            $_SESSION['user_email'] = $_GET['openid_sreg_email'];
+          }
 
-        if ( ! isset ($_GET['go'])
-             || (isset ($_GET['go']) && $_GET['go'] != 'register') ) {
-          header ('Location: index.php?go=register');
+          if ( ! isset ($_GET['go'])
+               || (isset ($_GET['go']) && $_GET['go'] != 'register') ) {
+            header ('Location: index.php?go=register');
+          }
+        } else if ( self::isRegistered (self::getIdent(), $config) ) {
+          $dbName = self::getDbName(self::getIdent(), $config);
+          $dbEmail = self::getDbEmail(self::getIdent(), $config);
+
+          if ( ! isset ($dbName) || empty ($dbName)
+               || ! isset ($dbEmail) || empty($dbEmail) ) {
+            if ( ! isset ($_GET['go'])
+                 || (isset ($_GET['go']) && $_GET['go'] != 'register') ) {
+              header ('Location: index.php?go=register');
+            }
+          }
         }
       }
       break;
     default:
-      // User has to set some type of configuration.
+      /* If no or invalid authentication type is set, there is no
+       * authentication possible. */
     }
   }
 
@@ -220,9 +232,13 @@ class User {
     if ( self::isLogged () ) {
       if ( self::isRegistered ($ident, $config) ) {
         $outName = self::getDbName ($ident, $config);
+        if ( ! isset ($outName) || empty ($outName) ) {
+            $outName = $ident;
+        }
       } else {
         $outName = $ident;
       }
+      
       echo ('Logged in as <a href="index.php?go=user">' . $outName . "</a>");
     }
   }
@@ -288,6 +304,17 @@ class User {
    */
   public function getEmail () {
     return $this->email;
+  }
+
+  /**
+   * getLogin
+   *
+   * Returns login of this user.
+   *
+   * @return User login (e.g. OpenId)
+   */
+  public function getLogin() {
+    return $this->login;
   }
 
   public function setName ($name) {
