@@ -178,25 +178,38 @@ class User {
       break;
     case 'openid':
       Authenticator::openid ($config);
-      if ( self::isLogged ()
-           && ! self::isRegistered (self::getIdent(), $config)) {
+      if ( self::isLogged () ) {
+        if ( ! self::isRegistered (self::getIdent(), $config)) {
         
-        if ( isset ($_GET['openid_sreg_fullname']) ) {
-          $_SESSION['user_name'] = $_GET['openid_sreg_fullname'];
-        }
+          if ( isset ($_GET['openid_sreg_fullname']) ) {
+            $_SESSION['user_name'] = $_GET['openid_sreg_fullname'];
+          }
 
-        if ( isset ($_GET['openid_sreg_email']) ) {
-          $_SESSION['user_email'] = $_GET['openid_sreg_email'];
-        }
+          if ( isset ($_GET['openid_sreg_email']) ) {
+            $_SESSION['user_email'] = $_GET['openid_sreg_email'];
+          }
 
-        if ( ! isset ($_GET['go'])
-             || (isset ($_GET['go']) && $_GET['go'] != 'register') ) {
-          header ('Location: index.php?go=register');
+          if ( ! isset ($_GET['go'])
+               || (isset ($_GET['go']) && $_GET['go'] != 'register') ) {
+            header ('Location: index.php?go=register');
+          }
+        } else if ( self::isRegistered (self::getIdent(), $config) ) {
+          $dbName = self::getDbName(self::getIdent(), $config);
+          $dbEmail = self::getDbEmail(self::getIdent(), $config);
+
+          if ( ! isset ($dbName) || empty ($dbName)
+               || ! isset ($dbEmail) || empty($dbEmail) ) {
+            if ( ! isset ($_GET['go'])
+                 || (isset ($_GET['go']) && $_GET['go'] != 'register') ) {
+              header ('Location: index.php?go=register');
+            }
+          }
         }
       }
       break;
     default:
-      // User has to set some type of configuration.
+      /* If no or invalid authentication type is set, there is no
+       * authentication possible. */
     }
   }
 
@@ -219,9 +232,13 @@ class User {
     if ( self::isLogged () ) {
       if ( self::isRegistered ($ident, $config) ) {
         $outName = self::getDbName ($ident, $config);
+        if ( ! isset ($outName) || empty ($outName) ) {
+            $outName = $ident;
+        }
       } else {
         $outName = $ident;
       }
+      
       echo ('Logged in as <a href="index.php?go=user">' . $outName . "</a>");
     }
   }
