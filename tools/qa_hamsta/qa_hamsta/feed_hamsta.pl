@@ -267,7 +267,10 @@ if ($opt_jobtype==1) {
 	my $installopt="-p#$opt_re_url#";
 	$installopt.="-s#$opt_re_sdk#" if($opt_re_sdk);
 	$installopt.="-r#$opt_re_rpms#" if($opt_re_rpms);
-	$installopt.="-t#$opt_re_pattern#" if($opt_re_pattern);
+	if($opt_re_pattern) {
+		$opt_re_pattern="base,".$opt_re_pattern;
+		$installopt.="-t#$opt_re_pattern#";
+	}
 	my $cmd = "send reinstall ip $opt_host $installopt $opt_mail";
 	$job_id=&send_command($cmd."\n");
 	print $job_id;
