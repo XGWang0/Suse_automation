@@ -101,8 +101,7 @@ class User {
 
   /**
    * Returns an instance of *registered* and currently loggend in
-   * user. That means only instances of registered users will be
-   * returned.
+   * user.
    *
    * @param config  Object of type Zend_Config
    */
@@ -116,7 +115,7 @@ class User {
   }
 
   /**
-   * Returns an instance of *registered* user selected by login.
+   * Returns an instance of *registered* user by login.
    *
    * @param login Login name of the user.
    * @param config Object of type Zend_Config.
@@ -288,6 +287,17 @@ class User {
    */
   public function getEmail () {
     return $this->email;
+  }
+
+  /**
+   * getLogin
+   *
+   * Returns login of this user.
+   *
+   * @return User login (e.g. OpenId)
+   */
+  public function getLogin() {
+    return $this->login;
   }
 
   public function setName ($name) {

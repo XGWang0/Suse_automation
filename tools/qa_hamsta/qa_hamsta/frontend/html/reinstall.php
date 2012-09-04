@@ -27,8 +27,8 @@
 		$go = 'send_job';
 		return require("index.php");
 	}
-	if (array_key_exists('OPENID_AUTH', $_SESSION))
-		$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
+if (User::isLogged())
+  $user = User::getInstance($config);
 
 	$blockedMachines = array();
 	$virtualMachines = array();
@@ -81,7 +81,7 @@
 <?php require ("req_sut.php"); ?>
   <tr>
 	<td>Notification email address (optional):</td>
-	<td><input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} else if ($openid_auth && isset($user)) { echo $user->get_email(); } ?>" /> (if you want to be notified when the installation is finished)</td>
+	<td><input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} else if (isset($user)) { echo $user->getEmail(); } ?>" /> (if you want to be notified when the installation is finished)</td>
   </tr>
 </table>	
 <input type="submit" name="proceed" value="Proceed">
