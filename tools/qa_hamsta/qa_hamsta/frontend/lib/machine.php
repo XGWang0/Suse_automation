@@ -429,6 +429,21 @@ class Machine {
 		}
 		return 0;
 	}
+	/**
+	 * get_update_status
+	 * 
+	 *@access public
+	 *@return ture if SUT side have hamste update available
+	 * 
+	 */
+
+        function get_update_status() {
+	
+        return $this->fields["update_status"];
+
+	}
+
+
 
 	/**
 	 * get_last_used 
@@ -886,9 +901,9 @@ class Machine {
 			return NULL;
 	}
 
-	function get_used_by_name() {
-		if ($used_by = User::get_by_openid($this->get_used_by()))
-			return $used_by->get_name();
+	function get_used_by_name($config) {
+                if ($used_by = User::getByLogin($this->get_used_by(), $config))
+			return $used_by->getName();
 		else
 			return NULL;
 	}
