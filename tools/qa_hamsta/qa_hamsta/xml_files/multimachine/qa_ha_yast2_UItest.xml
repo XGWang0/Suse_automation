@@ -27,7 +27,9 @@
                 #!/bin/bash
                 /usr/share/qa/qa_test_yast_HA/setup_config.py $param_TestSuite `echo $ROLE_1_IP |sed "s/,/ /g"`
                 echo $param_TestSuite
-                /usr/share/hamsta/testscript/customtest qa_test_HA_yast-iplb
+                /usr/share/qa/tools/setupUIAutomationtest
+                sleep 60
+                /usr/share/hamsta/testscript/customtest qa_test_HA_yast-$param_TestSuite
             </command>
             <command execution="forked" role_id="1">
                 #!/bin/bash
