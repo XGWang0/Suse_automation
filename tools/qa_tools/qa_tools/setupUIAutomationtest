@@ -47,10 +47,27 @@ for p in $patterns; do
 
 	if [ "$result" = "No packages found." ]; then
 		zypper -n install -l -t pattern $p
+		rei=$?
 	else
 		echo $result
 	fi
 done
+
+# Setup X
+# change runlevel to 5
+comments="
+sed -i '/id:3:initdefault/s/3/5/' /etc/inittab |grep initdefault
+SuSEconfig
+sed -i '/DISPLAYMANAGER=\"\"/s/\"\"/\"gdm\"/' /etc/sysconfig/displaymanager
+sed -i '/DEFAULT_WM=\"\"/s/\"\"/\"gnome\"/' /etc/sysconfig/windowmanager
+rm -fr /etc/X11/xorg.conf*
+sax2 -a -V 0:1024x768@60
+sed -i '/user=\"gdm\"/s/gdm/gdm/g' /etc/dbus-1/system.d/gdm.conf
+"
+
+if [ "$rei" ]; then
+        sh -c "$comments"
+fi
 
 # Enable accessibility
 status=`gconftool-2  -g /desktop/gnome/interface/accessibility`
