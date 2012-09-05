@@ -266,7 +266,7 @@ sub decode_mcast_message {
 	my $hash;
 
 	# data : Unique-id, hostspezifics(++), IP; seperator is \n 
-	if ((my $host_id, my $host_description, my $host_ip, my $konfiguration, my $notify) = split (/\n/,$data)) {
+	if ((my $host_id, my $host_description, my $host_ip, my $konfiguration, my $notify,my $update) = split (/\n/,$data)) {
 		my $mac = (split(/\./, $host_id))[-1];
 		$hash->{'id'} = $mac;
 		$host_ip =~ s/ //g; 
@@ -274,6 +274,7 @@ sub decode_mcast_message {
 		$hash->{'konfiguration'} = $konfiguration;
 		$hash->{'description'} = $host_description;
 		$hash->{'notify'} = $notify;
+		$hash->{'update'} = $update;
 
 		if (defined($hash->{'description'})) {
 			($hash->{'hostname'}, $hash->{'kernel'}, my $arch, my $stats_version, my @rest) = split / /, $hash->{'description'}; 
@@ -369,6 +370,8 @@ sub process_mcast() {
 	
 	&TRANSACTION( 'machine' );
 	&machine_set_status( $machine_id, MS_UP );
+	$host->{'update'}=0 if(! defined $host->{'update'});
+	&machine_set_update_status($machine_id,$host->{'update'}) if($host->{'update'} ne 'skip');
 	
 	if (defined $host->{'stats_version'}) {
 
