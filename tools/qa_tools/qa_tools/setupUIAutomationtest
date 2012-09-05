@@ -47,6 +47,7 @@ for p in $patterns; do
 
 	if [ "$result" = "No packages found." ]; then
 		zypper -n install -l -t pattern $p
+		rei=$?
 	else
 		echo $result
 	fi
