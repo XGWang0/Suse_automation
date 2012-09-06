@@ -94,7 +94,8 @@ class Authenticator extends Zend_Auth
       if (isset($_GET['action']) &&
           $_GET['action'] == 'logout') {
         $auth->clearIdentity();
-        Zend_Session::destroy();
+        Zend_Session::destroy(true);
+        Zend_Session::forgetMe();
         header('Location: index.php');
       }
     }

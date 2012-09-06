@@ -46,10 +46,10 @@ foreach($machines as $m) {
 }
 
 # Verify user has rights to modify the machine
-if ($openid_auth && array_key_exists('OPENID_AUTH', $_SESSION) && $user = User::get_by_openid($_SESSION['OPENID_AUTH'])) {
+if (User::isLogged() && $user = User::getInstance($config)) {
 	foreach($machines as $machine) {
-		$used_by = User::get_by_openid($machine->get_used_by());
-		if ($used_by && $used_by->get_openid() != $user->get_openid()) {
+                $used_by = User::getByLogin($machine->get_used_by(), $config);
+		if (isset ($used_by) && $used_by->getLogin() != $user->getLogin()) {
 			$_SESSION['mtype'] = "fail";
 			$_SESSION['message'] = "You cannot reinstall a reserved machine.";
 			header('Location: index.php?go=machines');

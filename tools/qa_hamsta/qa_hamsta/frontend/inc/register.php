@@ -47,7 +47,7 @@ if ( User::isLogged()
      && ! User::isRegistered(User::getIdent(), $config)
      && ! empty ($user_name)
      && ! empty ($user_email) ) {
-  User::addUser (User::getIdent(), $user_name, $user_email);
+  User::addUser (User::getIdent(), $user_name, $user_email, $config);
   $_SESSION['mtype'] = 'success';
   $_SESSION['message'] = 'You have been successfuly registered into Hamsta.';
   header ('Location: index.php');

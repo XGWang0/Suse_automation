@@ -44,6 +44,7 @@ require("config.php");
 require("globals.php");
 
 require ('lib/Conf.php');
+require ('lib/UserRole.php');
 require ('lib/User.php');
 
 /*

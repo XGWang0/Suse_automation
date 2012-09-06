@@ -23,15 +23,21 @@
   ****************************************************************************
  */
 
-    /**
-     * Logic of the user page.
-     */
-    
-    if (!defined('HAMSTA_FRONTEND')) {
-        $go = 'user';
-        return require("index.php");
-    }
+  /**
+   * Logic of the user page.
+   */
+if (!defined('HAMSTA_FRONTEND')) {
+  $go = 'user';
+  return require("index.php");
+ }
 
-    $html_title = "User configuration";
+$html_title = "User configuration";
+
+if ( User::isLogged() ) {
+  $user = User::getInstance($config);
+  if ( isset ($_POST['role']) ) {
+    $user->setRole ($_POST['roles']);
+  }
+}
 
 ?>
