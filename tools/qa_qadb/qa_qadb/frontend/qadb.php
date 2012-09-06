@@ -238,7 +238,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 		'kernel_version'=> array('s.kernel_version_id=?',	'i'),
 		'kernel_branch'	=> array('s.kernel_branch_id=?',	'i'),
 		'kernel_flavor'	=> array('s.kernel_flavor_id=?',	'i'),
-		'refdata'	=> array('s.refdata=?',			'i'),
+		'ref'		=> array("s.ref!=''",			   ),
 		'refhost'	=> array( $rs1				   ),
 		# testcase differences - only for result search
 		'res_minus_sub'	=> array("$rd1 g2.submission_id=? $rd2",'i'),
@@ -268,7 +268,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	$sel0=array( 's.submission_id', 'r.result_id', 'g.testsuite_id','SUM(r.times_run) as runs' );
 	# $sel1[ $i_main ] -- appends for full details
 	$sel1=array( 
-/* subms */  array('s.submission_date','s.host_id','s.tester_id','s.arch_id','s.product_id','s.release_id','s.related','s.status_id','s.comment','s.rpm_config_id','s.hwinfo_id','s.type','s.refdata'),
+/* subms */  array('s.submission_date','s.host_id','s.tester_id','s.arch_id','s.product_id','s.release_id','s.related','s.status_id','s.comment','s.rpm_config_id','s.hwinfo_id','s.type','s.ref'),
 /* rslts */  array('g.tcf_id','g.testsuite_id','r.testcase_id','t.testcase','r.succeeded','r.failed','r.internal_error','r.skipped','r.times_run','r.test_time','w.waiver_id','t.relative_url','b.is_bench'),
 /* suite */  array(),
 /* regs  */  array('s.product_id','s.release_id','SUM(r.succeeded) as succ','SUM(r.failed) as fail','SUM(r.internal_error) as interr','SUM(r.skipped) as skip','SUM(r.test_time) as time')
@@ -469,8 +469,8 @@ function search_user($username) {
 ###############################################################################
 # API for submission, configuration, comments etc.
 
-function submission_set_details($submission_id, $status_id, $related, $comment, $refdata)
-{	return update_query('UPDATE submission SET status_id=?,related=?,comment=?,refdata=? WHERE submission_id=?','iisii',$status_id,$related,$comment,$refdata,$submission_id);	}
+function submission_set_details($submission_id, $status_id, $related, $comment, $ref)
+{	return update_query('UPDATE submission SET status_id=?,related=?,comment=?,ref=? WHERE submission_id=?','iissi',$status_id,$related,$comment,$ref,$submission_id);	}
 
 /**  gets ID of related submission or null */
 function submission_get_related($submission_id)

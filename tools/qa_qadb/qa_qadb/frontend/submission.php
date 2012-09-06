@@ -43,13 +43,13 @@ if( token_read(http('wtoken')) )
 		$related=http('related');
 		$related=$related ? $related:null;
 		$comment=http('comment');
-		$refdata=http('refdata') ? 1 : 0;
+		$ref=http('ref') ? 'R' : '';
 		if( $related  && !search_submission_result(1,array('submission_id'=>$related,'only_id'=>1,'header'=>0)))
 		{	
 			print html_error("No such submission_id: $related");	
 			$related=null;
 		}
-		update_result( submission_set_details($submission_id,$status_id,$related,$comment,$refdata) ); 
+		update_result( submission_set_details($submission_id,$status_id,$related,$comment,$ref) ); 
 	}
 	else if( $submit=='link' && $tcf_id )
 	{
@@ -94,7 +94,7 @@ if(!$submission_id)
 	$kernel_branch_got	=http('kernel_branch');
 	$kernel_flavor_got	=http('kernel_flavor');
 	$refhost_got		=http('refhost');
-	$refdata_got		=http('refdata');
+	$ref_got		=http('ref');
 
 	# modes for submission select
 	$modes=array(
@@ -125,7 +125,7 @@ if(!$submission_id)
 		array('kernel_branch',$kernel_branch,$kernel_branch_got,SINGLE_SELECT),
 		array('kernel_flavor',$kernel_flavor,$kernel_flavor_got,SINGLE_SELECT),
 		array('refhost','',$refhost_got,CHECKBOX,'ref. host'),
-		array('refdata','',$refdata_got,CHECKBOX,'ref. data'),
+		array('ref','',$ref_got,CHECKBOX,'ref. data'),
 	);
 	$what0=$what;
 
@@ -231,8 +231,8 @@ if(!$submission_id)
 		);
 		if( $refhost_got )
 			$attrs['refhost']=1;
-		if( $refdata_got )
-			$attrs['refdata']=1;
+		if( $ref_got )
+			$attrs['ref']=1;
 		if( $step=='reg' )	{
 			$mode_got=($group_by_got==2 ? 12 : 11);
 			unset($attrs['order_nr']);
@@ -311,7 +311,7 @@ else if( $action=='edit' )
 			array('status',$status,$row['status_id'],SINGLE_SELECT),
 			array('comment','',$row['comment'],TEXT_AREA),
 			array('related','',$row['related'],TEXT_ROW),
-			array('refdata','',$row['refdata'],CHECKBOX,'ref. data'),
+			array('ref','',$row['ref'],CHECKBOX,'ref. data'),
 			array('submission_id','',$submission_id,HIDDEN),
 			array('submit','','comment',HIDDEN),
 			array('wtoken','',token_generate(),HIDDEN)
