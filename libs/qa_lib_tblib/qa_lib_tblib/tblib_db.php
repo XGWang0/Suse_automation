@@ -51,7 +51,7 @@ function search_common( $sel, $from, &$attrs, &$attrs_known, &$pager=null )
 {
 	global $first;
 	$header   = hash_get($attrs,'header',true,true);	# return table header ?
-	$limit    = hash_get($attrs,'limit',null,true);		# row nr. limit (array)
+	$limit    = hash_get($attrs,'limit',-1,true);		# row nr. limit (array)
 	$order_nr = hash_get($attrs,'order_nr',0,true);		# index of ORDER BY columns
 	$order_by = hash_get($attrs,'order_by',null,true);	# columns for ORDER BY
 	$page     = hash_get($attrs,'page',$first,true);	# page number
@@ -99,8 +99,10 @@ function search_common( $sel, $from, &$attrs, &$attrs_known, &$pager=null )
 			foreach( $vals as $val )
 			{
 				$sql_part[] = $a[0];
-				$format    .= $a[1];
-				$args[]    .= $val;
+				if( isset($a[1]) )	{
+					$format    .= $a[1];
+					$args[]    .= $val;
+				}
 			}
 		}
 		if( count($sql_part) == 1 )
@@ -133,7 +135,7 @@ function search_common( $sel, $from, &$attrs, &$attrs_known, &$pager=null )
 
 		$limit = limit_from_pager($pager,$count);
 	}
-	if( !isset($limit) )
+	if( $limit==-1  )
 		$limit = array(5000);
 	
 	# query data

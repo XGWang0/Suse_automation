@@ -37,7 +37,7 @@ if( isset($_SESSION['user']) ) {
 	elseif( (time()-1200) > $_SESSION['last_access'] ) {
 		destroySession("Session Timed Out");
 	}
-	
+
 	# after we made sure that the user is ok, let's check if he can access the database
 	if ( ! connect_to_mydb() ){
 		if ( $openid_auth ) {
@@ -121,10 +121,9 @@ elseif ((!isset($_POST['user']) || !isset($_POST['pass'])) && !isset($_GET['open
 </form>
 <?php
 }
-else{
-
-	$_SESSION['user']   		= $_POST['user'];
-	$_SESSION['email']  		= "john.doe@mysite.com";
+else	{
+	$_SESSION['user']		= $_POST['user'];
+	$_SESSION['email']		= "john.doe@mysite.com";
 	$_SESSION['ip_address']		= $_SERVER['REMOTE_ADDR'];
 	$_SESSION['user_agent']		= $_SERVER['HTTP_USER_AGENT'];
 	$_SESSION['last_access']	= time();

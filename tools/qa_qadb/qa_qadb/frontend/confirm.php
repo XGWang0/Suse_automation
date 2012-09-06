@@ -24,6 +24,13 @@ else if( $confirm=='s' )
 	$msg.='to delete submission_id '.http('submission_id').' and all its results';
 else if( $confirm=='sd' )
 	$msg.='to delete all results for tcf_id '.http('tcf_id').' from submission '.http('submission_id');
+else if( $confirm=='rh' )	{
+	$reference = reference_host_search(array('reference_host_id'=>http('reference_host_id')));
+	if( $reference )	{
+		table_translate($reference,array('enums'=>array('host_id'=>'host','arch_id'=>'arch','product_id'=>'product')));
+		$msg.='to remove reference '.$reference[1]['host_id'].' / '.$reference[1]['arch_id'].' / '.$reference[1]['product_id'];
+	}
+}
 $msg.=' ?';
 
 # The script is controlled by the variable 'confirm', which is used as key for following fields.
@@ -31,7 +38,7 @@ $msg.=' ?';
 # For 'Yes', write token (variable 'wtoken') is created
 
 # For 'Yes', the script sets a variable 'submit' with following value :
-$submit=array( 'b'=>'delete_board', 'w'=>'delete_waiver', 'wd'=>'delete_detail', 's'=>'delete_submission', 'sd'=>'delete_tcf' );
+$submit=array( 'b'=>'delete_board', 'w'=>'delete_waiver', 'wd'=>'delete_detail', 's'=>'delete_submission', 'sd'=>'delete_tcf', 'rh'=>'delete_ref' );
 
 # For 'Yes', all $_REQUEST[] variables are copied
 # For 'No', following are copied:
@@ -40,7 +47,8 @@ $cancel=array(
 	'w'=>array('view'),
 	'wd'=>array('view','waiver_id'),
 	's'=>array('submission_id'),
-	'sd'=>array('submission_id')
+	'sd'=>array('submission_id'),
+	'rh'=>array('reference_host_id'),
 );
 
 # Page to go back (both 'Yes' and 'No')
@@ -50,9 +58,10 @@ $back=array(
 	'wd'=>'waiver.php',
 	's'=>'submission.php',
 	'sd'=>'submission.php',
+	'rh'=>'reference.php',
 );
 
-foreach( $_REQUEST as $key=>$val )
+foreach( array_merge($_GET,$_POST) as $key=>$val )
 	$what[]=array($key,'',$val,HIDDEN);
 if( $submit[$confirm] )
 	$what[]=array('submit','',$submit[$confirm],HIDDEN);

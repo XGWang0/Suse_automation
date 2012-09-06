@@ -824,18 +824,22 @@ function base_select($name, $args, $size, $multiple, $set=null, $class='notset')
   * Prints card-like structure that can be used to divide something into steps.
   * @param array $what array of array( <label>, <link> )
   * @param int $selected index of selected card
+  * @param array $alt alternative cards, only displayed those who match $selected
   **/
-function steps( $base, $what, $selected )
+function steps( $base, $what, $selected, $alt=array() )
 {
 	$r ='';
-	$step = http('step');
-	for($i=0; $i<count($what); $i++)
+	if( isset($alt[$selected]) )
+		$what[$selected] = $alt[$selected];
+	foreach($what as $key=>$val)
 	{
-		if( $what[$i][1] )
-			$tag=sprintf('<a href="%s%s">%s</a>',$base,$what[$i][1],$what[$i][0]);
+		if( ! is_array($val) )
+			$val = array($val);
+		if( !isset($val[1]) || $val[1] || ($key==$selected) )
+			$tag=sprintf('<a href="%s%s">%s</a>',$base,$key,$val[0]);
 		else
-			$tag=$what[$i][0];
-		$r .=  html_span( ($i==$selected ? 'sel':'nosel'), $tag );
+			$tag=$val[0];
+		$r .=  html_span( ($key==$selected ? 'sel':'nosel'), $tag );
 	}
 	$r = html_div('steps', $r);
 	$r.= html_div('steps2', '&nbsp;');

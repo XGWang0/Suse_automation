@@ -17,7 +17,7 @@ $search = http('search');
 $action = http('action');
 $submit = http('submit');
 $tcf_id  = http('tcf_id');
-$step   = http('step');
+$step   = http('step','sub');
 $what0   = array();
 
 # commit changes
@@ -43,12 +43,13 @@ if( token_read(http('wtoken')) )
 		$related=http('related');
 		$related=$related ? $related:null;
 		$comment=http('comment');
+		$refdata=http('refdata') ? 1 : 0;
 		if( $related  && !search_submission_result(1,array('submission_id'=>$related,'only_id'=>1,'header'=>0)))
 		{	
 			print html_error("No such submission_id: $related");	
 			$related=null;
 		}
-		update_result( submission_set_details($submission_id,$status_id,$related,$comment) ); 
+		update_result( submission_set_details($submission_id,$status_id,$related,$comment,$refdata) ); 
 	}
 	else if( $submit=='link' && $tcf_id )
 	{
@@ -92,6 +93,8 @@ if(!$submission_id)
 	$kernel_version_got	=http('kernel_version');
 	$kernel_branch_got	=http('kernel_branch');
 	$kernel_flavor_got	=http('kernel_flavor');
+	$refhost_got		=http('refhost');
+	$refdata_got		=http('refdata');
 
 	# modes for submission select
 	$modes=array(
@@ -121,6 +124,8 @@ if(!$submission_id)
 		array('kernel_version',$kernel_version,$kernel_version_got,SINGLE_SELECT),
 		array('kernel_branch',$kernel_branch,$kernel_branch_got,SINGLE_SELECT),
 		array('kernel_flavor',$kernel_flavor,$kernel_flavor_got,SINGLE_SELECT),
+		array('refhost','',$refhost_got,CHECKBOX,'ref. host'),
+		array('refdata','',$refdata_got,CHECKBOX,'ref. data'),
 	);
 	$what0=$what;
 
@@ -176,18 +181,12 @@ if(!$submission_id)
 # cardset
 $mode=0;
 $steps=array(
-	array('submissions','sub'),
-	array('TCFs','tcf'),
-	array('benchmarks','bench'),
-	array('ext. regressions','reg')
+	'sub'=>'submissions',
+	'tcf'=>'TCFs',
+	'bench'=>'benchmarks',
+	'reg'=>'ext. regressions'
 );
-for( $i=0; $i<count($steps); $i++ )
-{
-	if( $steps[$i][1] == $step )
-		$mode=$i;
-#	$steps[$i][1]='submission.php?step='.$steps[$i][1];
-}
-print steps(form_to_url('submission.php',$what0,0).'&amp;step=',$steps,$mode);
+print steps(form_to_url('submission.php',$what0,0).'&amp;step=',$steps,$step);
 
 # main content
 if(!$submission_id)
@@ -230,6 +229,10 @@ if(!$submission_id)
 			'kernel_flavor'		=>$kernel_flavor_got,
 			'order_nr'		=>-1,
 		);
+		if( $refhost_got )
+			$attrs['refhost']=1;
+		if( $refdata_got )
+			$attrs['refdata']=1;
 		if( $step=='reg' )	{
 			$mode_got=($group_by_got==2 ? 12 : 11);
 			unset($attrs['order_nr']);
@@ -301,12 +304,14 @@ else if( $action=='edit' )
 	$detail=print_submission_details($submission_id);
 	if( count($detail) > 1 )
 	{
+		$row=$detail[1];
 		$status=enum_list_id_val('status');
 		array_unshift($status,array('null',''));
 		$what=array(
-			array('status',$status,$detail[1]['status_id'],SINGLE_SELECT),
-			array('comment','',$detail[1]['comment'],TEXT_AREA),
-			array('related','',$detail[1]['related'],TEXT_ROW),
+			array('status',$status,$row['status_id'],SINGLE_SELECT),
+			array('comment','',$row['comment'],TEXT_AREA),
+			array('related','',$row['related'],TEXT_ROW),
+			array('refdata','',$row['refdata'],CHECKBOX,'ref. data'),
 			array('submission_id','',$submission_id,HIDDEN),
 			array('submit','','comment',HIDDEN),
 			array('wtoken','',token_generate(),HIDDEN)
@@ -349,7 +354,7 @@ else if( $submission_id)
 		echo "</div>\n";
 		echo "<div class=\"screen\">\n";
 		echo "<div class=\"controls\">Controls :";
-		echo html_text_button('edit comment/status/related',"$base3&action=edit");
+		echo html_text_button('edit comment/status/related/ref',"$base3&action=edit");
 		echo html_text_button('delete submission',"$base2&confirm=s");
 		echo "</div>\n</div>\n";
 		echo "<h2>Included testsuites</h2>\n";

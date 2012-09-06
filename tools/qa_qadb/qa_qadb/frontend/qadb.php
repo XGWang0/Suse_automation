@@ -209,6 +209,8 @@ function insert_update_promoted($arch_id,$product_id,$build_nr,$release_id)
   **/
 function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 {
+	# base SQL for reference searches
+	$rs1='EXISTS( SELECT * FROM reference_host rh WHERE s.host_id=rh.host_id AND s.arch_id=rh.arch_id AND s.product_id=rh.product_id )';
 	# base SQL for result difference
 	$rd1='NOT EXISTS( SELECT * FROM result r2 JOIN tcf_group g2 USING(tcf_id) WHERE';
 	$rd2='AND r.testcase_id=r2.testcase_id)';
@@ -236,8 +238,10 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 		'kernel_version'=> array('s.kernel_version_id=?',	'i'),
 		'kernel_branch'	=> array('s.kernel_branch_id=?',	'i'),
 		'kernel_flavor'	=> array('s.kernel_flavor_id=?',	'i'),
+		'refdata'	=> array('s.refdata=?',			'i'),
+		'refhost'	=> array( $rs1				   ),
 		# testcase differences - only for result search
-		'res_minus_sub'	=> array("$rd1 g2.submission_id=? $rd2",	'i'),
+		'res_minus_sub'	=> array("$rd1 g2.submission_id=? $rd2",'i'),
 		'res_minus_tcf'	=> array("$rd1 g2.tcf_id=? $rd2",	'i'),
 	);
 
@@ -264,7 +268,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	$sel0=array( 's.submission_id', 'r.result_id', 'g.testsuite_id','SUM(r.times_run) as runs' );
 	# $sel1[ $i_main ] -- appends for full details
 	$sel1=array( 
-/* subms */  array('s.submission_date','s.host_id','s.tester_id','s.arch_id','s.product_id','s.release_id','s.related','s.status_id','s.comment','s.rpm_config_id','s.hwinfo_id','s.type'),
+/* subms */  array('s.submission_date','s.host_id','s.tester_id','s.arch_id','s.product_id','s.release_id','s.related','s.status_id','s.comment','s.rpm_config_id','s.hwinfo_id','s.type','s.refdata'),
 /* rslts */  array('g.tcf_id','g.testsuite_id','r.testcase_id','t.testcase','r.succeeded','r.failed','r.internal_error','r.skipped','r.times_run','r.test_time','w.waiver_id','t.relative_url','b.is_bench'),
 /* suite */  array(),
 /* regs  */  array('s.product_id','s.release_id','SUM(r.succeeded) as succ','SUM(r.failed) as fail','SUM(r.internal_error) as interr','SUM(r.skipped) as skip','SUM(r.test_time) as time')
@@ -465,8 +469,8 @@ function search_user($username) {
 ###############################################################################
 # API for submission, configuration, comments etc.
 
-function submission_set_details($submission_id, $status_id, $related, $comment)
-{	return update_query('UPDATE submission SET status_id=?,related=?,comment=? WHERE submission_id=?','iisi',$status_id,$related,$comment,$submission_id);	}
+function submission_set_details($submission_id, $status_id, $related, $comment, $refdata)
+{	return update_query('UPDATE submission SET status_id=?,related=?,comment=?,refdata=? WHERE submission_id=?','iisii',$status_id,$related,$comment,$refdata,$submission_id);	}
 
 /**  gets ID of related submission or null */
 function submission_get_related($submission_id)
@@ -637,10 +641,11 @@ $glob_dest=array(
 	'log' => array(), 
 	array("result.php", "Results"), 
 	array("submission.php", "Submissions"), 
-	array("promote.php", "Promote"),
 	array("regression.php", "Regressions"), 
 	array("waiver.php", "Waiver"), 
 	'board' => array("board.php", "Board"),
+	array("reference.php","Ref. host"),
+	array("promote.php", "BuildNr."),
 #	array("trends.php", "Trend Graphs"), 
 #	array("bench/search.php", 'Benchmarks'), 
 #	array(" "," "), 
@@ -775,13 +780,13 @@ function result_process_print(&$data,$sub_info,$transl,$pager,$id)
 		$waiver_id=$data[$i]['waiver_id'];
 		if( $waiver_id )
 		{	# waiver exists
-			$data[$i]['waiver']=html_text_button("show","waiver.php?view=view_waiver&waiver_id=$waiver_id");
+			$data[$i]['waiver']=html_text_button("show","waiver.php?view=vw&waiver_id=$waiver_id");
 			$classes.=' w';
 		}
 		else
 		{	# waiver does not exist
 			$matchtype=($data[$i]['failed'] || $data[$i]['internal_error'] ? 'problem' : 'no+problem');
-			$data[$i]['waiver']=html_text_button("create","waiver.php?view=new_both&detail=1&testcase=".$data[$i]['testcase_id'].'&arch='.$sub_info[1]['arch_id'].'&product='.$sub_info[1]['product_id'].'&release='.$sub_info[1]['release_id']."&matchtype=$matchtype");
+			$data[$i]['waiver']=html_text_button("create","waiver.php?view=nwd&detail=1&testcase=".$data[$i]['testcase_id'].'&arch='.$sub_info[1]['arch_id'].'&product='.$sub_info[1]['product_id'].'&release='.$sub_info[1]['release_id']."&matchtype=$matchtype");
 		}
 		unset($data[$i]['waiver_id']);
 
@@ -824,10 +829,44 @@ function schema_get_version()
 # standard highlight function - returns last column (to be used as class)
 function highlight_result()
 {	# return last nonprintable column of the table
-	global $data;
 	$row=func_get_args();
 	return $row[count($row)-1];
 }
+
+function reference_host_search($attrs,&$transl=array(),&$pager=null)
+{
+	$attrs_known = array(
+		'reference_host_id'=>array('reference_host_id=?','i'),
+		'host_id'=>array('host_id=?','i'),
+		'arch_id'=>array('arch_id=?','i'),
+		'product_id'=>array('product_id=?','i')
+	);
+	$transl['enums'] = array(
+		'host_id'=>'host',
+		'arch_id'=>'arch',
+		'product_id'=>'product',
+	);
+	$transl['ctrls'] = array(
+		'edit'=>'reference.php?step=edit&reference_host=',
+		'delete'=>'confirm.php?confirm=rh&reference_host='
+	);
+	return search_common(
+		array('reference_host_id','host_id','arch_id','product_id'),
+		'reference_host',
+		$attrs,
+		$attrs_known,
+		$pager
+	);
+}
+
+function reference_host_insert($host_id,$arch_id,$product_id)	{
+	return insert_query('INSERT INTO reference_host(host_id,arch_id,product_id) VALUES(?,?,?)', 'iii', $host_id, $arch_id, $product_id );
+}
+
+function reference_host_delete($reference_host_id)	{
+	return update_query('DELETE FROM reference_host WHERE reference_host_id=?', 'i', $reference_host_id );
+}
+
 
 
 ?>
