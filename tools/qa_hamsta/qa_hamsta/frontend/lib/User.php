@@ -295,16 +295,25 @@ class User {
    * @param string name User's name
    * @param string email User's email address
    *
-   * @return True if user was added successfuly. 
+   * @return integer Number greater than zero if user has been added, zero otherwise.
    */
-  public static function addUser ($login, $name, $email) {
-    $stmt = get_pdo ()->prepare ('INSERT INTO user (user_login, name, email) VALUES(:login, :name, :email)');
-    $stmt->bindParam (':login', $login);
-    $stmt->bindParam (':name', $name);
-    $stmt->bindParam (':email', $email);
-    $stmt->execute ();
-    return true;
-    // TODO return true if added, false if not
+  public static function addUser ($login, $name, $email, $config) {
+    $db = Zend_Db::factory ($config->database);
+    $data = Array (
+                   'user_login' => $login,
+                   'name' => $name,
+                   'email' => $email
+                   );
+    $added = $db->insert ('user', $data);
+    if ($added > 0) {
+      $user = User::getByLogin ($login, $config);
+      $defRole = UserRole::getByName(self::DEFAULT_ROLE, $config);
+      if ( isset ($defRole) ) {
+        $defRole->addUser ($user);
+      }
+    }
+
+    return $added;
   }
 
   public static function isRegistered ($login, $config) {

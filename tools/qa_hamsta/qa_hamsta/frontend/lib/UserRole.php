@@ -47,16 +47,24 @@ class UserRole
   private $description;
 
   /**
+   * config
+   *
+   * @var config An instance of class Zend_Config.
+   */
+  private $config;
+
+  /**
    * __construct
    *
    * Implicit constructor
    *
    * @param name Name of the role to be created.
    */
-  private function __construct ($name, $description)
+  private function __construct ($name, $description, $config)
   {
     $this->name = $name;
     $this->description = $description;
+    $this->config = $config;
   }
 
   /**
@@ -76,7 +84,7 @@ class UserRole
     $res = $db->fetchAll ('SELECT * FROM user_role WHERE role = ?', $name);
     
     $db->closeConnection ();
-    return isset ($res[0]) ? new UserRole ($res[0]['role'], $res[0]['descr']) : NULL;
+    return isset ($res[0]) ? new UserRole ($res[0]['role'], $res[0]['descr'], $config) : NULL;
   }
 
   /**
@@ -91,7 +99,8 @@ class UserRole
    * @return An instance of new user role or null if some error occurs
    * (e.g. role of that name already exists).
    */
-  public static function add ($name, $description, $config) {
+  public static function add ($name, $description, $config)
+  {
     $db = Zend_Db::factory ($config->database);
     // TODO fill in method body
     $db->closeConnection ();
@@ -122,7 +131,7 @@ class UserRole
    */
   public function setName ($newName)
   {
-    $db = Zend_Db::factory ($config->database);
+    $db = Zend_Db::factory ($this->config->database);
     $data = array ( 'role' => $newName );
     if ( isset ($ident) ) {
       $res = $db->update ('user_role', $data, 'role = '
@@ -135,6 +144,35 @@ class UserRole
 
     $db->closeConnection ();
     return $res;
+  }
+
+  /**
+   * addUser
+   *
+   * Cast user into this role.
+   *
+   * @param userLogin An instance of class User.
+   *
+   * @return integer Number greater than zero if user has been added, zero otherwise.
+   */
+  public function addUser ($user)
+  {
+    if ( isset ($user)
+      && ! in_array ($this->getName(), $user->getRoleList()) )
+      {
+        $db = Zend_Db::factory ($this->config->database);
+        $roleId = $db->fetchCol ('SELECT role_id FROM user_role WHERE role = ?', $this->getName ());
+        $userId = $db->fetchCol ('SELECT user_id FROM user WHERE user_login = ?', $user->getLogin ());
+        if ( isset ($roleId[0]) && isset ($userId[0]) )
+          {
+            $data = Array (
+                           'user_id' => $userId[0],
+                           'role_id' => $roleId[0]
+                           );
+            return $db->insert ('user_in_role', $data);
+          }
+      }
+    return 0;
   }
 
 }
