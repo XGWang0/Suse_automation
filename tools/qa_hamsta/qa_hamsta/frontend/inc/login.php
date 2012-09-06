@@ -26,18 +26,11 @@
   /**
    * This file contains logic of the user authentication.
    */
+if (!defined('HAMSTA_FRONTEND')) {
+  $go = 'module_details';
+  return require("index.php");
+ }
 
-$go = "machines";
-
-/* Login if OpenID is required and we are not already logged in. */
-if ($openid_auth && ! isset($_SESSION['OPENID_AUTH'])) {
-  require_once "Zend/OpenId/Consumer.php";
-  $consumer = new Zend_OpenId_Consumer();
-  if ( ! $consumer->login($openid_url)) {
-    die("Authentication Failed");
-  }
-}
-
-header('Location: index.php');
+$html_title = 'Login';
 
 ?>
