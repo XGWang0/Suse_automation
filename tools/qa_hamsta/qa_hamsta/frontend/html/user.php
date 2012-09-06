@@ -31,9 +31,8 @@ if ( ! defined('HAMSTA_FRONTEND') ) {
 	return require("index.php");
 }
 
-if ( User::isLogged() ) {
-  $user = User::getInstance($config);
-}
+/* Variable $user is set in inc/user.php file which is always loaded
+ * by index.php file. */
 
 if ( $config->authentication->method == 'openid' && isset ($user) ) {
   echo ('<p>Your OpenId url is ');
@@ -65,3 +64,38 @@ Your e-mail address is <b>
   </formset>
 </form>
 <?php endif; ?>
+
+<?php
+if ( isset ($user) ) {
+  echo ('<div>');
+  echo ('Your current role is <b>');
+  
+  $curRole = $user->getCurrentRole();
+  if ( isset ($curRole) ) {
+    echo ($curRole->getName());
+  }
+  echo ('</b>.<br />');
+
+  $list = $user->getRoleList();
+
+  /* Display selection only if user has more than 2 roles available. The
+   * first is current role which is not displayed in the selection. */
+  if ( count($list) > 1 ) {
+    echo ('<p>You can select another current role from the list.</p>');
+    echo ('<form method="POST" action="index.php?go=user">');
+    echo ('<select name="roles">');
+
+    foreach ($user->getRoleList() as $roleName) {
+      if ( isset ($curRole) && $curRole->getName() != $roleName) {
+        echo ("<option value=\"$roleName\">" . $roleName . "</option>\n");
+      }
+    }
+    echo ('</select>');
+    echo ('<input type="hidden" name="go" value="user" />');
+    echo ('<input type="submit" name="role" value="Change" />');
+    echo ('</form>');
+  }
+}
+
+?>
+</div>

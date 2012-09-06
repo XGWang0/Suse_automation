@@ -25,6 +25,7 @@
 
 require_once ('Authenticator.php');
 require_once ('Zend/Db.php');
+require_once ('Zend/Session.php');
 
 /**
  * Class represents authenticated user and provides several methods
@@ -34,16 +35,21 @@ require_once ('Zend/Db.php');
  */
 class User {
 
+  const DEFAULT_ROLE = 'user';
+  const ROLE_SESSION_NAMESPACE = 'roles';
+
   private $login;
   private $name;
   private $email;
+  private $currentRole;
   private $config;
 
-  private function __construct ($config, $login, $name, $email) {
+  private function __construct ($config, $login, $name, $email, $role) {
     $this->config = $config;
     $this->login = $login;
     $this->name = $name;
     $this->email = $email;
+    $this->currentRole = $role;
   }
 
   private static function getDbName ($ident, $config) {
@@ -51,6 +57,7 @@ class User {
     if ( isset ($ident) )
       $res = $db->fetchAll ('SELECT name FROM `user` WHERE user_login = ?', $ident);
 
+    $db->closeConnection ();
     return isset ($res[0]['name']) ? $res[0]['name'] : NULL;
   }
 
@@ -59,6 +66,7 @@ class User {
     if ( isset ($ident) )
       $res = $db->fetchAll ('SELECT email FROM `user` WHERE user_login = ?', $ident);
 
+    $db->closeConnection ();
     return isset ($res[0]['email']) ? $res[0]['email'] : NULL;
   }
 
@@ -73,6 +81,7 @@ class User {
     if ( isset ($ident) ) {
       $res = $db->update ('user', $data, 'user_login = ' . $ident);
     }
+    $db->closeConnection ();
     return $res;
   }
 
@@ -86,6 +95,7 @@ class User {
     if ( isset ($ident) ) {
       $res = $db->update ('user', $data, 'user_login = ' . $ident);
     }
+    $db->closeConnection ();
     return $res;
   }
 
@@ -96,21 +106,40 @@ class User {
       $res = $db->update ('user', $data, 'user_login = '
                           . $db-quote ( htmlspecialchars ($ident) ) );
     }
+    $db->closeConnection ();
     return $res;
+  }
+
+  /**
+   * getCachedOrDefaultRole
+   *
+   * Returns role name that this user has cached or default role name
+   * if no role name is cached.
+   *
+   * @return string Role name.
+   */
+  private static function getCachedOrDefaultRole() {
+    $ns = new Zend_Session_Namespace (self::ROLE_SESSION_NAMESPACE);
+    if ( isset($ns->curRole) ) {
+      return $ns->curRole;
+    } else {
+      return self::DEFAULT_ROLE;
+    }
   }
 
   /**
    * Returns an instance of *registered* and currently loggend in
    * user.
    *
-   * @param config  Object of type Zend_Config
+   * @param Zend_Config  Instance of Zend_Config class.
    */
   public static function getInstance ($config) {
     $ident = self::getIdent ();
     return self::isRegistered ($ident, $config)
       ? new User ( $config, $ident,
                    self::getDbName ($ident, $config),
-                   self::getDbEmail ($ident, $config) )
+                   self::getDbEmail ($ident, $config),
+                   UserRole::getByName(self::getCachedOrDefaultRole(), $config) )
       : null;
   }
 
@@ -125,7 +154,8 @@ class User {
       ? new User ($config,
                   $login,
                   User::getDbName($login, $config),
-                  User::getDbEmail($login, $config) )
+                  User::getDbEmail($login, $config),
+                  UserRole::getByName(self::getCachedOrDefaultRole(), $config) )
       : null;
   }
 
@@ -141,7 +171,8 @@ class User {
       ? new User ($config,
                   $login,
                   User::getDbName($login, $config),
-                  User::getDbEmail($login, $config) )
+                  User::getDbEmail($login, $config),
+                  UserRole::getByName(self::getCachedOrDefaultRole(), $config) )
       : null;
   }
 
@@ -281,6 +312,7 @@ class User {
     $identity = $auth->getIdentity ();
     $db = Zend_Db::factory ($config->database);
     $res = $db->fetchAll ('SELECT user_login FROM user WHERE user_login = ?', $identity);
+    $db->closeConnection ();
     return isset ($res[0]['user_login']);
   }
   
@@ -337,6 +369,65 @@ class User {
 
   public function setPassword ($password) {
     return $this->setDbPassword ($this->login, $password);
+  }
+
+  public function getCurrentRole () {
+    return $this->currentRole;
+  }
+
+  /**
+   * setRole
+   *
+   * Set current role of this user to roleName.
+   *
+   * @param roleName Name of new role.
+   *
+   * @return True if change was succesfull, false otherwise.
+   */
+  public function setRole ($roleName) {
+    if ( ! $this->isInRole($roleName)
+         && $this->couldBeInRole ($roleName)) {
+      $newRole = UserRole::getByName($roleName, $this->config);
+      if ( isset($newRole) ) {
+        $ns = new Zend_Session_Namespace (self::ROLE_SESSION_NAMESPACE);
+        $ns->curRole = $roleName;
+        $this->currentRole = $newRole;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * isInRole
+   *
+   * Returns comparison of current role name with provided roleName
+   * parameter.
+   *
+   * @param roleName String name of the role to compare.
+   *
+   * @return True if user is in role with the same name as in
+   * parameter.
+   */
+  public function isInRole ($roleName) {
+    return $this->getCurrentRole ()->getName () == $roleName;
+  }
+
+  public function couldBeInRole($roleName) {
+    return in_array ($roleName, $this->getRoleList ());
+  }
+
+  /**
+   * getRoleList
+   *
+   * @return Array List of roles this user is cast in.
+   */
+  public function getRoleList () {
+    $db = Zend_Db::factory ($this->config->database);
+    $sql = 'SELECT role FROM user NATURAL JOIN user_in_role NATURAL JOIN user_role WHERE user_login = ?';
+    $res = $db->fetchCol ($sql, $this->login);
+    $db->closeConnection ();
+    return $res;
   }
 
 }
