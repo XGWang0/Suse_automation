@@ -6,7 +6,7 @@
  * @package Logging
  * @author Dan Collingridge <dcollingridge@novell.com>
  * @version 1.0.0
- * 
+ *
  * @copyright
  * Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.<br />
  * <br />

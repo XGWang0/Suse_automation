@@ -11,7 +11,7 @@ define ("MS_UNKNOWN", 6);
  * @package Machine
  * @author Kevin Wolf <kwolf@suse.de> 
  * @version $Rev: 1841 $
- * 
+ *
  * @copyright
  * Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.<br />
  * <br />

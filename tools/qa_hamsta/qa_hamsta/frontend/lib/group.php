@@ -6,7 +6,7 @@
  * @package Machine
  * @author Kevin Wolf <kwolf@suse.de> 
  * @version $Rev: 1615 $
- * 
+ *
  * @copyright
  * Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.<br />
  * <br />

@@ -9,7 +9,7 @@ require_once ('Zend/Config/Ini.php');
  * @package Configuration
  * @author Pavel Kačer <pkacer@suse.com>
  * @version 1.0.0
- * 
+ *
  * @copyright
  * Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.<br />
  * <br />
