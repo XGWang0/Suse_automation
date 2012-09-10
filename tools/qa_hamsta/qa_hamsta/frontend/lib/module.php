@@ -1,57 +1,53 @@
 <?php
-/* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
-  
-  THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
-  CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
-  RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
-  THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
-  THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
-  TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
-  PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
-  PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
-  AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
-  LIABILITY.
-  
-  SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
-  WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
-  AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
-  LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
-  OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
-  WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
-  ****************************************************************************
- */
 
 /**
- * Module 
+ * Represents a module of a configuration.
  *
- * Represents a module of a configuration
- * 
- * @version $Rev: 1638 $
+ * @package Configuration
  * @author Kevin Wolf <kwolf@suse.de> 
+ * @version $Rev: 1638 $
+ * 
+ * @copyright
+ * Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.<br />
+ * <br />
+ * THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+ * CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+ * RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+ * THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+ * THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+ * TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+ * PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+ * PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+ * AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+ * LIABILITY.<br />
+ * <br />
+ * SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+ * AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+ * LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+ * WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
  */
 class Module {
 
     /**
-     * name 
-     * 
-     * @var string Name of the module (e.g. "netcard")
+     * @var string Name of the module (e.g. "netcard").
      */
     private $name;
 
     /**
-     * version 
-     * 
-     * @var int Version of the module
+     * @var int Version of the module.
      */
     private $version;
 
     /**
-     * elements
-     *
-     * Example structure:
-     * <code>
+     * @var array Associative array where keys are part IDs und values are
+     *      another associative array where keys are element names and values
+     *      are element values.
+     * <br />
+     * @example Example structure:
+     * <pre>
      *  $elements = array(
      *      0 => array(
      *          "Description" => "36: None 00.0: 11300 Partition",
@@ -62,26 +58,23 @@ class Module {
      *          "Device File" => "/dev/sda2"
      *      )
      *  );
-     * </code>
-     * 
-     * @var array Associative array where keys are part IDs und values are
-     *      another associative array where keys are element names and values
-     *      are element values.
+     * </pre>
+     *      
      */
     private $elements;
 
     /**
-     * __construct 
+     * Creates a new instance of Module.
      *
-     * Creates a new instance of Module. The constructor is meant to be called 
-     * only by functions that directly access the database and have to get an
-     * object from their query result.
-     * 
-     * @param mixed $name Name of the module
-     * @param mixed $version Version of the module
-     * @param mixed $elements Associative array of the elements of the modules 
-     *      (keys are element names and values are element values)
-     * @access public
+     * The constructor is meant to be called only by functions that
+     * directly access the database and have to get an object from
+     * their query result.
+     *
+     * @param string $name Name of the module.
+     * @param int $version Version of the module.
+     * @param array $elements Associative array of the elements of the modules
+     *      (keys are element names and values are element values).
+     *
      * @return void
      */
     public function __construct($name, $version, $elements) {
@@ -96,12 +89,12 @@ class Module {
     }
 
     /**
-     * get_by_name_version 
-     * 
-     * @param mixed $name Name of the module to get
-     * @param mixed $version Version of the module to get
+     * Creates an instance of Module class by name and version.
+     *
+     * @param string $name Name of the module to get.
+     * @param int $version Version of the module to get.
      * @access public
-     * @return Module Module corresponding to the given name and version
+     * @return Module Module corresponding to the given name and version.
      */
     static function get_by_name_version($name, $version) {
         if (!($stmt = get_pdo()->prepare('SELECT * FROM module JOIN module_name USING(module_name_id) JOIN module_part USING(module_id) WHERE module_name = :name AND module_version = :version ORDER BY element'))) {
@@ -117,39 +110,39 @@ class Module {
     }
 
     /**
-     * get_name 
+     * Getter for the name of this module.
      * 
      * @access public
-     * @return string Name of the module
+     * @return string Name of the module.
      */
     function get_name() {
         return $this->name;
     }
 
     /**
-     * get_version 
+     * Getter for the version of this module.
      * 
      * @access public
-     * @return string Version of the module
+     * @return int|string Version of the module.
      */
     function get_version() {
         return $this->version;
     }
     
     /**
-     * get_elements 
+     * Getter for elements of this module.
      * 
-     * @param int $part ID of the part to return the elements of
+     * @param int $part ID of the part to return the elements of.
      * @access public
      * @return array Elements of the module (keys are element names and values
-     *      are element values.)
+     *      are element values).
      */
     function get_elements($part) {
         return $this->elements[$part];
     }
     
     /**
-     * get_parts
+     * Getter for parts of this module.
      * 
      * @access public
      * @return array Array of the parts of the module. Each part is an associative
@@ -160,26 +153,24 @@ class Module {
     }
     
     /**
-     * get_element 
+     * Getter for specific element of some part.
      * 
-     * @param string $part Part ID of the element
-     * @param string $element Element to get the value of
+     * @param string $part Part ID of the element.
+     * @param string $element Element to get the value of.
      * @access public
-     * @return string Value of the given element of the module
+     * @return string Value of the given element of the module.
      */
     function get_element($part, $element) {
         return empty($this->elements[$part][$element]) ? '' : $this->elements[$part][$element];
     }
     
     /**
-     * get_element_from_any_part 
-     *
      * Searches for an element in all parts of a module.
      * 
-     * @param string $element Element to get the value of
+     * @param string $element Element to get the value of.
      * @access public
      * @return string Value of the given element of the module or empty string
-     * if the module could not be found
+     * if the module could not be found.
      */
     function get_element_from_any_part($element) {
         foreach($this->elements as $part) {
@@ -192,21 +183,21 @@ class Module {
     }
 
     /**
-     * get_driver 
+     * Getter for the driver of this module.
      * 
      * @access public
      * @return string Name of the driver of the module or empty string if the
-     * driver cannot be determined
+     * driver cannot be determined.
      */
     function get_driver() {
         return $this->get_element_from_any_part("Driver");
     }
 
     /**
-     * __toString 
-     * 
+     * Returns a string representation of this module.
+     *
      * @access public
-     * @return string Description of the module
+     * @return string Description of the module.
      */
     public function __toString() {
         switch($this->get_name()) {
@@ -228,14 +219,12 @@ class Module {
     }
 
     /**
-     * contains_text 
-     *
      * Checks if a given text is contained in the name or value of an element
      * of this module.
      * 
-     * @param string $text Text to search for
+     * @param string $text Text to search for.
      * @access public
-     * @return boolean true if the name or value of an element of this module
+     * @return boolean True if the name or value of an element of this module
      * contains the given text, false otherwise. If the text is empty, returns
      * always false.
      */
@@ -256,13 +245,11 @@ class Module {
     }
 
     /**
-     * element_contains_text 
-     *
-     * Checks if a given text is contained in a given element of the module
+     * Checks if a given text is contained in a given element of the module.
      * 
-     * @param int $part ID of the part to which the element belongs
-     * @param string $element Name of the element
-     * @param string $text Text to search for
+     * @param int $part ID of the part to which the element belongs.
+     * @param string $element Name of the element.
+     * @param string $text Text to search for.
      * @access public
      * @return boolean true if the name or value of the given element contain
      * the given text, false otherwise. If the text is empty, returns always

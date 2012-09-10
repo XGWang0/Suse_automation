@@ -1,27 +1,4 @@
 <?php
-/* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
-  
-  THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
-  CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
-  RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
-  THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
-  THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
-  TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
-  PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
-  PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
-  AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
-  LIABILITY.
-  
-  SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
-  WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
-  AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
-  LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
-  OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
-  WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
-  ****************************************************************************
- */
 
 define ("MS_UP", 1);
 define ("MS_DOWN", 2);
@@ -29,65 +6,76 @@ define ("MS_NOT_RESPONDING", 5);
 define ("MS_UNKNOWN", 6);
 
 /**
- * Machine 
+ * Represents a single machine.
  *
- * Represents a single machine
- * 
- * @version $Rev: 1841 $
+ * @package Machine
  * @author Kevin Wolf <kwolf@suse.de> 
+ * @version $Rev: 1841 $
+ * 
+ * @copyright
+ * Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.<br />
+ * <br />
+ * THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+ * CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+ * RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+ * THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+ * THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+ * TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+ * PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+ * PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+ * AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+ * LIABILITY.<br />
+ * <br />
+ * SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+ * AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+ * LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+ * WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
  */
 class Machine {
 
 	/**
-	 * fields 
-	 * 
 	 * @var array Associative array containing the values of all database 
-	 *	  fields of this machine
+	 *	  fields of this machine.
 	 */
 	private $fields;
 
 	/**
-	 * master_socket 
-	 * 
-	 * @var resource Socket to the master command line interface
+	 * @var resource Socket to the master command line interface.
 	 */
 	private static $master_socket = null;
 
 	
 	/**
-	 * errmsg 
-	 * 
-	 * @var string Error message returned by the master
+	 * @var string Error message returned by the master.
 	 */
 	public $errmsg = "";
 
 	/**
-	 * readerr 
-	 * 
-	 * static @var string Error message returned by the master
+	 * static @var string Error message returned by the master.
 	 */
 	private static $readerr = "";
 
 	/**
-	 * children
-	 *
-	 * @var array containing the machines which are running on this machine.
+	 * @var array An array containing the machines which are
+	 * running on this machine.
 	 * 
-	 * This is null if the machine is not Virtualization Host (role VH)
-	 *
+	 * This is null if the machine is not Virtualization Host (role VH).
 	 * If the machine is VH, this variable is filled by the first call 
 	 * function get_children.
 	 */
 	private $children = null;
 
 	/**
-	 * __construct 
+	 * Creates a new instance of Machine.
 	 *
-	 * Creates a new instance of Machine. The constructor is meant to be called 
-	 * only by functions that directly access the database and have to get an
-	 * object from their query result.
+	 * The constructor is meant to be called only by functions
+	 * that directly access the database and have to get an object
+	 * from their query result.
 	 * 
-	 * @param array $fields Values of all database fields
+	 * @param array $fields Values of all database fields.
 	 */
 	function __construct($fields) {
 		$this->fields = $fields;
@@ -95,12 +83,12 @@ class Machine {
 	}
 
 	/**
-	 * get_by_hostname 
-	 * 
-	 * @param string $hostname Hostname of the machine to get
+	 * Gets a machine by hostname.
+	 *
+	 * @param string $hostname Hostname of the machine to get.
 	 * @access public
-	 * @return Machine Machine with the given hostname
-	 *	  or null if no matching machine is found
+	 * @return \Machine Machine with the given hostname
+	 *	  or null if no matching machine is found.
 	 */
 	static function get_by_hostname($hostname) {
 		if (!($stmt = get_pdo()->prepare('SELECT * FROM machine WHERE name = :hostname'))) {
@@ -115,12 +103,12 @@ class Machine {
 	}
 	
 	/**
-	 * get_by_id 
+	 * Gets a machine by its id.
 	 * 
-	 * @param int $id Database ID of the machine
+	 * @param int $id Database ID of the machine.
 	 * @access public
 	 * @return Machine Machine with the given database ID
-	 *	  or null if no matching machine is found
+	 *	  or null if no matching machine is found.
 	 */
 	static function get_by_id($id) {
 		if (!($stmt = get_pdo()->prepare('SELECT * FROM machine WHERE machine_id = :id'))) {
@@ -135,12 +123,12 @@ class Machine {
 	}
 
 	/**
-	 * get_by_ip
+	 * Gets a machine by IP address.
 	 * 
-	 * @param int $ip Database IP of the machine
+	 * @param int $ip Database IP address of the machine.
 	 * @access public
 	 * @return Machine Machine with the given database IP
-	 *	  or null if no matching machine is found
+	 *	  or null if no matching machine is found.
 	 */
 	static function get_by_ip($ip) {
 		if (!($stmt = get_pdo()->prepare('SELECT * FROM machine WHERE ip = :ip'))) {
@@ -155,10 +143,10 @@ class Machine {
 	}
 
 	/**
-	 * get_id 
+	 * Gets an ID of this machine.
 	 * 
 	 * @access public
-	 * @return int Database ID of the machine
+	 * @return int Database ID of the machine.
 	 */
 	function get_id() {
 		if( isset($this->fields["id"]) )
@@ -169,10 +157,10 @@ class Machine {
 	}
 
 	/**
-	 * get_hostname 
+	 * Gets a hostname of this machine.
 	 * 
 	 * @access public
-	 * @return string Hostname of the machine
+	 * @return string Hostname of the machine.
 	 */
 	function get_hostname() {
 		if( isset($this->fields["name"]) )
@@ -182,10 +170,10 @@ class Machine {
 	}
 
 	/**
-	 * get_ip_address 
+	 * Gets an IP address of this machine.
 	 * 
 	 * @access public
-	 * @return string IP address of the machine
+	 * @return string IP address of the machine.
 	 */
 	function get_ip_address() {
 		if( isset($this->fields["ip"]) )
@@ -195,10 +183,10 @@ class Machine {
 	}
 
     /**
-     * get_group 
+     * Gets group this machine is in.
      * 
      * @access public
-     * @return string machines' group name
+     * @return string Group name of this machine.
      */
     function get_group() {
     	if( isset($this->fields["id"]) ) {
@@ -211,14 +199,14 @@ class Machine {
     }
 
 	/**
-	 * get_architecture 
+	 * Gets architecture of this machine.
 	 *
-	 * Note: This gets the *current* architecture of the machine (i.e. what it is currently installed to.
-	 * To get the *real* (capable) architecture of a machine, use get_architecture_capable().
+	 * Note: This gets the <b>current</b> architecture of the machine (i.e. what it is currently installed to.
+	 * To get the <b>real</b> (capable) architecture of a machine, use get_architecture_capable().
 	 *
 	 * @access public
-	 * @return string Architecture of the machine, if no variable in
-	 * @return ID Architecture of the machine, if $need_id variable in
+	 * @return string Architecture of the machine, if no variable in.
+	 * @return ID Architecture of the machine, if $need_id variable in.
 	 */
 	function get_architecture() {
 	if( isset($this->fields["product_arch_id"]) )
@@ -233,14 +221,14 @@ class Machine {
 	}
 
 	/**
-	 * get_architecture_capable
+	 * Gets capable architecture of this machine.
 	 *
-	 * Note: This gets the *real* architecture of the machine (i.e. what it is capable of), but not necessarily installed to.
-	 * To get the *current* (installed) architecture of a machine, use get_architecture().
+	 * Note: This gets the <b>real</b> architecture of the machine (i.e. what it is capable of), but not necessarily installed to.
+	 * To get the <b>current</b> (installed) architecture of a machine, use get_architecture().
 	 *
 	 * @access public
-	 * @return *real* string Architecture of the machine, if no parameter in
-	 * @return *real* ID Architecture of the machine, if $need_id parameter in
+	 * @return string Real architecture of the machine, if no parameter in.
+	 * @return in Real id architecture of the machine, if $need_id parameter in.
 	 */
 	function get_architecture_capable() {
 	if( isset($this->fields["arch_id"]) )
@@ -255,10 +243,10 @@ class Machine {
 	}
 
 	/**
-	 * get_hwelement
+	 * Gets latest hardware element of this machine.
 	 * 
 	 * @access public
-	 * @return latest hardware element values of this machine
+	 * @return string Latest hardware element values of this machine.
 	 */
 	function get_hwelement($module_name, $element_name) {
 		if (!($stmt = get_pdo()->prepare('select max(config_id) from config,machine where machine.machine_id=:machineid and machine.machine_id=config.machine_id'))) {
@@ -327,7 +315,7 @@ class Machine {
 	 * get_devel_tools()
 	 *
 	 * @access public
-	 * @return int(bool) indicating whether client is running devel tools.
+	 * @return int(bool) Indicating whether client is running devel tools.
 	 */
 	function get_devel_tools() {
 		$devel_tools = $this->get_hwelement("devel_tools", "DevelTools");
@@ -338,7 +326,7 @@ class Machine {
 	 * get_rpm_list()
 	 *
 	 * @access public
-	 * @return string list of client installed packages.
+	 * @return string List of client installed packages.
 	 */
 	function get_rpm_list() {
 		$stmt = get_pdo()->prepare('SELECT rpm_list FROM machine WHERE machine_id = :id');
@@ -351,8 +339,8 @@ class Machine {
 	 * get_tools_out_of_date
 	 *
 	 * @access public
-	 * @return array containing list of outdated packages.
-	 * @return bool false if no packages were outdated.
+	 * @return array Containing list of outdated packages.
+	 * @return bool False if no packages were outdated.
 	 */
 	function get_tools_out_of_date() {
 		$rpm_str = $this->get_rpm_list();
@@ -429,28 +417,25 @@ class Machine {
 		}
 		return 0;
 	}
+
 	/**
-	 * get_update_status
+	 * Gets update status of this machine.
 	 * 
 	 *@access public
 	 *@return ture if SUT side have hamste update available
-	 * 
 	 */
-
         function get_update_status() {
 	
         return $this->fields["update_status"];
 
 	}
 
-
-
 	/**
-	 * get_last_used 
+	 * Gets timestamp this machine was last used.
 	 * 
 	 * @access public
 	 * @return string Date string as returned by the database indicating 
-	 *	  the last usage of the machine
+	 *	  the last usage of the machine.
 	 */
 	function get_last_used() {
 	if( isset($this->fields["last_used"]) )
@@ -460,10 +445,10 @@ class Machine {
 	}
 	
 	/**
-	 * get_unique_id 
+	 * Gets unique identifier of this machine.
 	 * 
 	 * @access public
-	 * @return string Unique ID if the machine
+	 * @return string Unique ID if the machine.
 	 */
 	function get_unique_id() {
 	if( isset($this->fields["unique_id"]) )
@@ -473,7 +458,7 @@ class Machine {
 	}
  
 	/**
-	 * get_powerswitch 
+	 * Gets power switch of this machine.
 	 * 
 	 * @access public
 	 * @return string Unique ID if the machine
@@ -486,11 +471,9 @@ class Machine {
 	}
 	
 	/**
-	 * set_powerswitch 
-	 *
-	 * Sets the powerswitch description of the machine
+	 * Sets the powerswitch description of the machine.
 	 * 
-	 * @param string $powerswitch has the configuration of the connected powerwitch
+	 * @param string $powerswitch The configuration of the connected powerwitch.
 	 * @access public
 	 * @return void
 	 */
@@ -514,11 +497,9 @@ class Machine {
         }
 
         /**
-         * set_powertype
-         *
          * Sets the powertype description of the machine
          * 
-         * @param string $powertype has the configuration of the connected powerswitch
+         * @param string $powertype The configuration of the connected powerswitch.
          * @access public
          * @return void
          */
@@ -535,11 +516,9 @@ class Machine {
         }
 
         /**
-         * check_powertype
-         *
          * Checks if powertype is supported
          * 
-         * @param string $powertype has the configuration of the connected powerswitch
+         * @param string $powertype The configuration of the connected powerswitch.
          * @access public
          * @return bool 
          */
@@ -567,9 +546,7 @@ class Machine {
         }
 
         /**
-         * set_powerslot
-         *
-         * Sets the powerslot description of the machine
+         * Sets the powerslot description of the machine.
          * 
          * @param string $powerslot has the slot of the connected powerswitch
          * @access public
@@ -657,11 +634,9 @@ class Machine {
 	}
 	
 	/**
-	 * set_serialconsole 
-	 *
-	 * Sets the serialconsole description of the machine
+	 * Sets the serialconsole description of the machine.
 	 * 
-	 * @param string $serialconsole has the configuration of the connected serialswitch (for remote control)
+	 * @param string $serialconsole The configuration of the connected serialswitch (for remote control).
 	 * @access public
 	 * @return void
 	 */
@@ -672,8 +647,7 @@ class Machine {
 		$stmt->execute();
 	}
 
-	/** Add by csxia
-	*/
+	/* Add by csxia	*/
 	/**
 	 * get_consoledevice
 	 * 
@@ -688,9 +662,7 @@ class Machine {
 	}
 
 	/**
-	 * set_consoledevice 
-	 *
-	 * Sets the serialdevice
+	 * Sets the serialdevice.
 	 * 
 	 * @param string $consoledevice is device name of console point e.g ttyS0 
 	 * @access public
@@ -747,9 +719,7 @@ class Machine {
 	}
 
 	/**
-	 * set_consolesetdefault
-	 *
-	 * Sets the serail console at reinstallation
+	 * Sets the serail console at reinstallation.
 	 * 
 	 * @param int 
 	 *		0 disable console direction
@@ -780,9 +750,7 @@ class Machine {
 	}
 
 	/**
-	 *	set_def_inst_opt 
-	 *
-	 * Sets the default installation option 
+	 * Sets the default installation option.
 	 * 
 	 * @param  string default installation option
 	 * @access public
@@ -841,11 +809,9 @@ class Machine {
 	}
 
 	/**
-	 * set_status_id
-	 *
-	 * Sets the status of the machine
+	 * Sets the status of the machine.
 	 * 
-	 * @param int $status_id ID of the new status
+	 * @param int $status_id ID of the new status.
 	 * @access public
 	 * @return void
 	 */
@@ -873,11 +839,9 @@ class Machine {
 	}
 
 	/**
-	 * set_maintainer_id 
-	 *
 	 * Sets the maintainer of the machine
 	 * 
-	 * @param mixed $maintainer ID of the new maintainer
+	 * @param mixed $maintainer ID of the new maintainer.
 	 * @access public
 	 * @return void
 	 */
@@ -909,8 +873,6 @@ class Machine {
 	}
 	
 	/**
-	 * set_used_by 
-	 *
 	 * Marks a machine as reserved for a user
 	 * 
 	 * @param string $user Login of the user to reserve the machine for
@@ -1162,8 +1124,6 @@ class Machine {
 	}
 	
 	/**
-	 * set_anomaly 
-	 *
 	 * Sets the anomalies description of the machine
 	 * 
 	 * @param string $anomaly Description of the anomalies
@@ -1209,8 +1169,6 @@ class Machine {
 	}
 	
 	/**
-	 * set_busy
-	 *
 	 * Sets the busy flag of the machine
 	 * 
 	 * @param int $busy 0 for free, 1 for job running.
@@ -1225,12 +1183,12 @@ class Machine {
 	}
 	
 	/**
-	 * update_busy
+	 * Updates the busy flag of the machine.
 	 *
-	 * Updates the busy flag of the machine. If the busy flag is set to 2
-	 * (manually blocked), the flag will not be changed. Otherwise it will be
-	 * set to 1 if there are still jobs running or 0 if no more jobs are
-	 * running on the machine.
+	 * If the busy flag is set to 2 (manually blocked), the flag
+	 * will not be changed. Otherwise it will be set to 1 if there
+	 * are still jobs running or 0 if no more jobs are running on
+	 * the machine.
 	 * 
 	 * @access public
 	 * @return void
@@ -1262,9 +1220,7 @@ class Machine {
         }
 
         /**
-         * set_perm
-         *
-         * Sets the perm flag of the machine
+         * Sets the perm flag of the machine.
          * 
          * @param str $perm_str : job,install,partition,boot
          * @access public
@@ -1733,7 +1689,6 @@ class Machine {
 
 
 	/**
-	 * _purge
 	 * Purges one sort of the related records - hwinfo history, logs, jobs, or groups.
 	 *
 	 * @param string $table (group_machine|log|job_on_machine|config)
@@ -1750,8 +1705,7 @@ class Machine {
 	}
 
 	/**
-	 * purge_config_history()
-	 * Purges machine's hwinfo history
+	 * Purges machine's hwinfo history.
 	 *
 	 * @access public
 	 * @return bool true if succeeded
@@ -1767,8 +1721,7 @@ class Machine {
 	}
 
 	/**
-	 * purge_group_membership()
-	 * Purges machine's group memberships
+	 * Purges machine's group memberships.
 	 *
 	 * @access public
 	 * @return bool true if succeeded
@@ -1778,11 +1731,10 @@ class Machine {
 	}
 
 	/**
-	 * purge_job_history()
 	 * Purges machine's job history
 	 *
 	 * @access public
-	 * @return bool true if succeeded
+	 * @return bool True if succeeded.
 	 */
 	function purge_job_history() {
 		if( !$this->_purge('job_on_machine') )
@@ -1795,11 +1747,10 @@ class Machine {
 	}
 
 	/**
-	 * purge_log()
 	 * Purges machine's logs
 	 *
 	 * @access public
-	 * @return bool true if succeeded
+	 * @return bool True if succeeded.
 	 */
 	function purge_log() {
 		return $this->_purge('log');
@@ -1845,14 +1796,12 @@ class Machine {
 	);
 
 	/**
-	 * get
-	 *
-	 * Generic getter function
+	 * Generic getter function.
 	 *
 	 * @param string $field Name of the field to get, as in the DB.
 	 *
 	 * @access public
-	 * @return string the value of the field, or null if NULL/error/unknown field
+	 * @return string The value of the field, or null if NULL/error/unknown field.
 	 */
 	function get($field)	{
 		if( !isset(self::$field_types[$field]) )
@@ -1866,9 +1815,7 @@ class Machine {
 	}
 
 	/**
-	 * set
-	 *
-	 * Generic setter function
+	 * Generic setter function.
 	 *
 	 * @param string $field Name of the field to set, as in the DB.
 	 * @param string $value Value to be set here (caller responsible for proper value).
@@ -1891,10 +1838,10 @@ class Machine {
 	}
 
 	/**
-	 * enumerte
+	 * Reads enum values.
 	 *
-	 * Reads enum values. This can be used to list all combinations, its matching subset,
-	 * 	or just a single value.
+	 * This can be used to list all combinations, its matching
+	 * subset, or just a single value.
 	 *
 	 * @access public
 	 * @param string $field Name of the field to enumerate (must have the proper type)
