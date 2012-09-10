@@ -43,8 +43,7 @@ class Authenticator extends Zend_Auth
 
       if ( isset ($_GET['action'])
            && $_GET['action'] == 'logout') {
-        $auth->clearIdentity();
-        Zend_Session::destroy();
+        self::logout();
       } else {
         if ( isset($_GET['openid_identity'] ) ) {
           $adapter = new Zend_Auth_Adapter_OpenId();
@@ -54,10 +53,13 @@ class Authenticator extends Zend_Auth
 
         $result = $auth->authenticate($adapter);
 
-        if ( ! $result->isValid() ) {
+        if ( ! isset($_GET['action'])
+             && ! $result->isValid() ) {
           $auth->clearIdentity();
+          Zend_Session::destroy(true);
+          Zend_Session::forgetMe();
           foreach ($result->getMessages() as $message) {
-            echo ("$message\n");
+            echo ("$message<br />\n");
           }
         } else {
           header ('Location: index.php');
