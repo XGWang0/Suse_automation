@@ -1,4 +1,16 @@
 #!/bin/bash
+
+# makedoc.sh
+#
+# Author: Pavel Kacer <pkacer@suse.com>
+# Time-stamp: <2012-09-11 10:18:40 draculus>
+# Version: 1.0.0
+#
+# Use this script to generate phpdoc documentation for your library.
+#
+# To run this script you need a `phpdoc' program. You can get it from
+# `http://phpdoc.org/'.
+
 # ****************************************************************************
 # Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
 # 
@@ -21,99 +33,32 @@
 # OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
 # WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
 # ****************************************************************************
-#
 
-# $Id: makedoc.sh,v 1.1 2005/10/17 18:37:43 jeichorn Exp $ 
+# Title of generated documentation, default is 'Generated Documentation'.
+TITLE="Hamsta Web Frontend Documentation"
 
-#/**
-#  * makedoc - PHPDocumentor script to save your settings
-#  * 
-#  * Put this file inside your PHP project homedir, edit its variables and run whenever you wants to
-#  * re/make your project documentation.
-#  * 
-#  * The version of this file is the version of PHPDocumentor it is compatible.
-#  * 
-#  * It simples run phpdoc with the parameters you set in this file.
-#  * NOTE: Do not add spaces after bash variables.
-#  *
-#  * @copyright         makedoc.sh is part of PHPDocumentor project {@link http://freshmeat.net/projects/phpdocu/} and its LGPL
-#  * @author            Roberto Berto <darkelder (inside) users (dot) sourceforge (dot) net>
-#  * @version           Release-1.1.0
-#  */
+# Name to use for the default package. If not specified, uses 'default'.
+DEFAULT_PACKAGE="Hamsta"
 
+# Name of a directory(s) to parse directory1,directory2
+# $PWD is the working directory where makedoc.sh starts.
+PATH_PROJECT=$PWD/lib
 
-##############################
-# should be edited
-##############################
+# Path of PHPDoc executable.
+PATH_PHPDOC=/usr/bin/phpdoc
 
-#/**
-#  * title of generated documentation, default is 'Generated Documentation'
-#  * 
-#  * @var               string TITLE
-#  */
-TITLE="HASTA Web Frontend Documentation"
+# Where documentation will be put.
+PATH_DOCS=$PWD/doc/lib
 
-#/** 
-#  * name to use for the default package. If not specified, uses 'default'
-#  *
-#  * @var               string PACKAGES
-#  */
-PACKAGES="hamsta_frontend"
+# Template to use.
+TEMPLATE='new-black'
 
-#/** 
-#  * name of a directory(s) to parse directory1,directory2
-#  * $PWD is the directory where makedoc.sh 
-#  *
-#  * @var               string PATH_PROJECT
-#  */
-PATH_PROJECT=$PWD
+# Check if phpdoc is available.
+if [ ! -x $PATH_PHPDOC ]; then
+    echo "$0: Error: The 'phpdoc' package is not properly installed.";
+    exit 1;
+fi
 
-#/**
-#  * path of PHPDoc executable
-#  *
-#  * @var               string PATH_PHPDOC
-#  */
-PATH_PHPDOC="php5 /usr/share/php5/PEAR/PhpDocumentor/phpDocumentor/phpdoc.inc"
-
-#/**
-#  * where documentation will be put
-#  *
-#  * @var               string PATH_DOCS
-#  */
-PATH_DOCS=$PWD/doc
-
-#/**
-#  * what outputformat to use (html/pdf)
-#  *
-#  * @var               string OUTPUTFORMAT
-#  */
-OUTPUTFORMAT=HTML
-
-#/** 
-#  * converter to be used
-#  *
-#  * @var               string CONVERTER
-#  */
-CONVERTER=Smarty
-
-#/**
-#  * template to use
-#  *
-#  * @var               string TEMPLATE
-#  */
-TEMPLATE=default
-
-#/**
-#  * parse elements marked as private
-#  *
-#  * @var               bool (on/off)           PRIVATE
-#  */
-PRIVATE=off
-
-# make documentation
-$PATH_PHPDOC -d $PATH_PROJECT -t $PATH_DOCS -ti "$TITLE" -dn $PACKAGES \
--o $OUTPUTFORMAT:$CONVERTER:$TEMPLATE -pp $PRIVATE
-
-
-# vim: set expandtab :
-
+# Make documentation.
+$PATH_PHPDOC -d $PATH_PROJECT -t $PATH_DOCS --title "$TITLE" \
+    --defaultpackagename "$DEFAULT_PACKAGE" --template $TEMPLATE;

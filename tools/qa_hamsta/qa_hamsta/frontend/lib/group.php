@@ -1,68 +1,62 @@
 <?php
-/* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
-  
-  THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
-  CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
-  RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
-  THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
-  THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
-  TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
-  PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
-  PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
-  AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
-  LIABILITY.
-  
-  SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
-  WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
-  AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
-  LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
-  OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
-  WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
-  ****************************************************************************
- */
 
 /**
- * Group 
+ * Represents a group of machines.
  *
- * Represents a group of machines
- * 
- * @version $Rev: 1615 $
+ * @package Machine
  * @author Kevin Wolf <kwolf@suse.de> 
+ * @version $Rev: 1615 $
+ *
+ * @copyright
+ * Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.<br />
+ * <br />
+ * THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+ * CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+ * RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+ * THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+ * THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+ * TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+ * PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+ * PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+ * AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+ * LIABILITY.<br />
+ * <br />
+ * SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+ * AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+ * LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+ * WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
  */
 class Group {
 
     /**
-     * fields 
-     * 
-     * @var array Associative array containing the values of all database 
+     * @var array Associative array containing the values of all database
      *      fields of this group
      */
     private $fields;
 
     /**
-     * __construct 
+     * Creates a new instance of Group.
      *
-     * Creates a new instance of Group. The constructor is meant to be called 
-     * only by functions that directly access the database and have to get an
-     * object from their query result.
+     * The constructor is meant to be called only by functions that
+     * directly access the database and have to get an object from
+     * their query result.
      * 
-     * @param array $fields Values of all database fields
+     * @param array $fields Values of all database fields.
      */
     public function __construct($fields) {
         $this->fields = $fields;
     }
     
     /**
-     * create 
-     *
      * Creates a new group. 
      * 
-     * @param string $name Name of the new group
-     * @param string $description Description of the new group
-     * @param array $machines Array of Machine objects which form 
-     *      the new group
+     * @param string $name Name of the new group.
+     * @param string $description Description of the new group.
+     * @param array $machines Array of Machine objects which form
+     *      the new group.
      * @return void
      */
     public static function create($name, $description, $machines) {
@@ -110,13 +104,11 @@ class Group {
         $stmt->execute();
     }
 
-	/**
-     * edit
-     *
+    /**
      * Edits a group's information.
      *
-     * @param string $name New name for the group
-     * @param string $description New description for the group
+     * @param string $name New name for the group.
+     * @param string $description New description for the group.
      * @return void
      */
     public function edit($name, $description)
@@ -151,13 +143,12 @@ class Group {
     }
 
     /**
-     * get_by_name 
-     *
      * Get a Group object by the group name from the database.
-     * 
-     * @param string $name Name of the group to get
-     * @return Group Requested group object or null if no group matches 
-     *      the name; null if a database error occurs
+     *
+     * @param string $name Name of the group to get.
+     *
+     * @return \Group Requested group object or null if no group matches
+     *      the name; null if a database error occurs.
      */
     public static function get_by_name($name) {
         if (!($stmt = get_pdo()->prepare('SELECT * FROM `group` WHERE `group` = :name'))) {
@@ -172,14 +163,12 @@ class Group {
         return $row ? new Group($row) : null;
     }
 
-	/**
-     * get_by_id
-     *
+    /**
      * Get a Group object by the group id from the database.
      *
-     * @param int $id ID of the group to get
-     * @return Group Requested group object or null if no group matches
-     *      the ID; null if a database error occurs
+     * @param int $id ID of the group to get.
+     * @return \Group Requested group object or null if no group matches
+     *      the ID; null if a database error occurs.
      */
     public static function get_by_id($id) {
         if (!($stmt = get_pdo()->prepare('SELECT * FROM `group` WHERE group_id = :group_id'))) {
@@ -195,10 +184,10 @@ class Group {
     }
 
     /**
-     * get_all 
+     * Gets Group objects containing all available groups.
      * 
      * @return array Array of Group objects containing all available groups;
-     *      null if a database error occurs
+     *      null if a database error occurs.
      */
     public static function get_all() {
         if (!($stmt = get_pdo()->prepare('SELECT * FROM `group`'))) {
@@ -217,36 +206,36 @@ class Group {
     }
 
     /**
-     * get_id
+     * Gets id of this group.
      *
-     * @return int ID of the group
+     * @return int ID of the group.
      */
     public function get_id() {
         return $this->fields["group_id"];
     }
 
     /**
-     * get_name 
+     * Gets name of this group.
      * 
-     * @return string Name of the group
+     * @return string Name of the group.
      */
     public function get_name() {
         return $this->fields["group"];
     }
     
     /**
-     * get_description 
+     * Gets description of this group.
      * 
-     * @return string Description of the group
+     * @return string Description of the group.
      */
     public function get_description() {
         return $this->fields["description"];
     }
 
     /**
-     * get_machines 
+     * Gets list of machines in this group.
      * 
-     * @return array Array of Machine objects for all machines belonging 
+     * @return array Array of Machine objects for all machines belonging
      *      to the group; null if a database error occurcs.
      */
     public function get_machines() {
@@ -275,8 +264,6 @@ class Group {
     }
     
     /**
-     * delete 
-     *
      * Deletes the group from the database.
      * 
      * @return void
@@ -295,17 +282,14 @@ class Group {
         $stmt->execute();
     }
 
-
     /**
-     * add_machine
-     *
      * Adds a machine to the group.
      *
-     * @param Machine $machine Machine to add to the group
+     * @param \Machine $machine Machine to add to the group.
      *
-     * @return boolean true if the machine could be added, false if the 
+     * @return boolean True if the machine could be added, false if the
      * machine was already member of the group. On other errors, a
-     * PDOExeception is thrown.
+     * PDOException is thrown.
      */
     public function add_machine(Machine $machine) { 
         $machine_id = $machine->get_id();
@@ -329,13 +313,11 @@ class Group {
     }
     
     /**
-     * del_machine
-     *
      * Removes a machine from the group.
      *
-     * @param Machine $machine Machine to remove from the group
+     * @param \Machine $machine Machine to remove from the group.
      *
-     * @return boolean true if the machine could be deleted, false if no
+     * @return boolean True if the machine could be deleted, false if no
      * machine has been deleted.
      */
     public function del_machine(Machine $machine) { 
@@ -351,36 +333,34 @@ class Group {
         return ($stmt->rowCount() > 0);
     }
 	
-	/**
-	 * get_groups_by_machine
-	 *
-	 * Find groups a machine belongs to.
-	 *
-	 * @param Machine $machine Machine to find groups
-	 *
-	 * @return an hash array of "group_id:group" if the machine belongs to 
-	 * group(s), null if a database error occurcs.
-	*/
-	public static function get_groups_by_machine(Machine $machine) {
-		$machine_id = $machine->get_id();
-		$result = array();
+    /**
+     * Find groups a machine belongs to.
+     *
+     * @param Machine $machine Machine to find groups.
+     *
+     * @return an hash array of "group_id:group" if the machine belongs to
+     * group(s), null if a database error occurcs.
+     */
+    public static function get_groups_by_machine(Machine $machine) {
+        $machine_id = $machine->get_id();
+        $result = array();
 
-		if (!($stmt = get_pdo()->prepare('select group.group_id,group.group from hamsta_db.group,group_machine where group.group_id=group_machine.group_id and machine_id=:machine_id'))) {
-			return null;
-		}
-		$stmt->bindParam(':machine_id', $machine_id);
-		$stmt->execute();
+        if (!($stmt = get_pdo()->prepare('select group.group_id,group.group from hamsta_db.group,group_machine where group.group_id=group_machine.group_id and machine_id=:machine_id'))) {
+            return null;
+        }
+        $stmt->bindParam(':machine_id', $machine_id);
+        $stmt->execute();
 		
-		$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-		foreach ($rows as $row) {
-			$group_id = $row["group_id"];
-			$group_name = $row["group"];
-			if ($group_id != null and $group_name !=null) {
-				$result[$group_id] = $group_name;
-			}
-		}
-		return $result;
-	}
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($rows as $row) {
+            $group_id = $row["group_id"];
+            $group_name = $row["group"];
+            if ($group_id != null and $group_name !=null) {
+                $result[$group_id] = $group_name;
+            }
+        }
+        return $result;
+    }
 }
 
 ?>
