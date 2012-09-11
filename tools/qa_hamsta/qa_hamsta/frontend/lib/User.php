@@ -153,10 +153,10 @@ class User {
    */
   private function setDbPassword ($ident, $newPassword) {
     $db = Zend_Db::factory ($this->config->database);
+    $ident = $db->quote ($ident);
     $data = array ( 'password' => $newPassword );
     if ( isset ($ident) ) {
-      $res = $db->update ('user', $data, 'user_login = '
-                          . $db-quote ( htmlspecialchars ($ident) ) );
+      $res = $db->update ('user', $data, 'user_login = ' .  $ident);
     }
     $db->closeConnection ();
     return $res;

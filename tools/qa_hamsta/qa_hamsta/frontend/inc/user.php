@@ -37,6 +37,18 @@ if ( User::isLogged() ) {
   $user = User::getInstance($config);
   if ( isset ($_POST['role']) ) {
     $user->setRole ($_POST['roles']);
+  } else if ( isset ($_POST['chngpswd']) ) {
+    if ( isset ($_POST['pswd']) && isset ($_POST['pswdcheck'])
+         && ! (empty ($_POST['pswd'])
+               || empty ($_POST['pswdcheck']))
+         && $_POST['pswd'] == $_POST['pswdcheck']) {
+      $user->setPassword ($_POST['pswd']);
+      $_SESSION['mtype'] = 'success';
+      $_SESSION['message'] = 'Your password has been successfuly changed.';
+    } else {
+      $_SESSION['mtype'] = 'fail';
+      $_SESSION['message'] = 'The password and checked password have to be the same and cannot be empty.';
+    }
   }
 }
 
