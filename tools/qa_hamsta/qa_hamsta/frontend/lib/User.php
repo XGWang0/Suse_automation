@@ -153,11 +153,9 @@ class User {
    */
   private function setDbPassword ($ident, $newPassword) {
     $db = Zend_Db::factory ($this->config->database);
-    $ident = $db->quote ($ident);
-    $data = array ( 'password' => $newPassword );
-    if ( isset ($ident) ) {
-      $res = $db->update ('user', $data, 'user_login = ' .  $ident);
-    }
+    $stmt = $db->query ('UPDATE user SET password = SHA1(?) WHERE user_login = ?',
+                        Array ($newPassword, $ident));
+    $res = $stmt->execute();
     $db->closeConnection ();
     return $res;
   }

@@ -100,7 +100,7 @@ class Authenticator extends Zend_Auth
   public static function password($login, $password, $config) {
     $auth = parent::getInstance();
     $db = Zend_Db::factory($config->database);
-    $adapter = new Zend_Auth_Adapter_DbTable($db, 'user', 'user_login', 'password', null);
+    $adapter = new Zend_Auth_Adapter_DbTable($db, 'user', 'user_login', 'password', 'SHA1(?)');
     $adapter->setIdentity($login);
     $adapter->setCredential($password);
     $result = $auth->authenticate($adapter);
