@@ -717,6 +717,7 @@ define('CHECKBOX',4);
 define('CHECK_BOX',4);
 define('HIDDEN',5);
 define('HR',6);
+define('TEXT',7);
 
 /**
   * Returns HTML code for a common search form.
@@ -752,8 +753,8 @@ function html_search_form( $url, $data, $attrs=array() )
 	if($div ) $r.=sprintf('<div class="%s">'."\n", $div);
 	foreach( $data as $d )
 	{
-		$cls = (is_numeric($d[2])||!empty($d[2]) ? 'set' : 'notset');
-		$visible = ( $d[3]!=HR && $d[3]!=HIDDEN );
+		$cls = (isset($d[2]) && (is_numeric($d[2])||!empty($d[2])) ? 'set' : 'notset');
+		$visible = ( $d[3]!=HR && $d[3]!=HIDDEN && $d[3]!=TEXT );
 		if( !isset($d[4]) )
 			$d[4]=$d[0];
 		if( $visible )
@@ -776,6 +777,8 @@ function html_search_form( $url, $data, $attrs=array() )
 		}
 		else if($d[3]==HR)
 			$r.="\n<hr/>\n";
+		else if($d[3]==TEXT)
+			$r.='<div class="inputblock text notset">'.$d[4]."</div>\n";
 		if( $visible )
 			$r.="</div></div>\n";
 	}

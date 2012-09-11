@@ -31,6 +31,10 @@ else if( $confirm=='rh' )	{
 		$msg.='to remove reference '.$reference[1]['host_id'].' / '.$reference[1]['arch_id'].' / '.$reference[1]['product_id'];
 	}
 }
+else if( $confirm=='pr' )	{
+	$build_promoted_got=http('build_promoted_id');
+	$msg.='to remove promotion with ID='.$build_promoted_got;
+}
 $msg.=' ?';
 
 # The script is controlled by the variable 'confirm', which is used as key for following fields.
@@ -38,7 +42,7 @@ $msg.=' ?';
 # For 'Yes', write token (variable 'wtoken') is created
 
 # For 'Yes', the script sets a variable 'submit' with following value :
-$submit=array( 'b'=>'delete_board', 'w'=>'delete_waiver', 'wd'=>'delete_detail', 's'=>'delete_submission', 'sd'=>'delete_tcf', 'rh'=>'delete_ref' );
+$submit=array( 'b'=>'delete_board', 'w'=>'delete_waiver', 'wd'=>'delete_detail', 's'=>'delete_submission', 'sd'=>'delete_tcf', 'rh'=>'delete_ref', 'pr'=>'delete_prom' );
 
 # For 'Yes', all $_REQUEST[] variables are copied
 # For 'No', following are copied:
@@ -48,7 +52,8 @@ $cancel=array(
 	'wd'=>array('view','waiver_id'),
 	's'=>array('submission_id'),
 	'sd'=>array('submission_id'),
-	'rh'=>array('reference_host_id'),
+	'rh'=>array(),
+	'pr'=>array(),
 );
 
 # Page to go back (both 'Yes' and 'No')
@@ -59,6 +64,7 @@ $back=array(
 	's'=>'submission.php',
 	'sd'=>'submission.php',
 	'rh'=>'reference.php',
+	'pr'=>'promote.php',
 );
 
 foreach( array_merge($_GET,$_POST) as $key=>$val )

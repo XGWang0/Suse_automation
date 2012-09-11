@@ -8,7 +8,7 @@
   **/
 
 /** library functions - common DB and HTML functions */
-require_once('../tblib/tblib.php');
+require_once($_SERVER['DOCUMENT_ROOT'].'/tblib/tblib.php');
 
 $enums = array(
 	'arch'			=> array('arch_id','arch'),
@@ -166,19 +166,24 @@ function get_bench_numbers($result_id,$limit=null)
 /** Lists all testsuite that contain benchmark data. Uses the statistical table 'test'. */
 function bench_list_testsuite($limit=null)
 {	return matrix_query(0,$limit,'SELECT DISTINCT testsuite_id,testsuite FROM test JOIN testsuite USING(testsuite_id) WHERE is_bench ORDER BY testsuite');	}
+
 ###############################################################################
-# API for promote data
-function list_promoted($limit=null)
+# API for build promote data
+function build_promoted_list($limit=null)
 {
-       return matrix_query(0,$limit,'SELECT build_promoted_id,arch.arch,build_nr,product.product,release.release FROM build_promoted JOIN arch USING(arch_id) JOIN product USING(product_id) JOIN `release` USING(release_id) ORDER BY build_promoted_id');
+       return matrix_query(1,$limit,'SELECT build_promoted_id,arch,build_nr,product,`release` FROM build_promoted JOIN arch USING(arch_id) JOIN product USING(product_id) JOIN `release` USING(release_id) ORDER BY build_promoted_id');
 }
 
-function insert_update_promoted($arch_id,$product_id,$build_nr,$release_id)
+function build_promoted_insert_update($arch_id,$product_id,$build_nr,$release_id)
 {
         $insert=insert_query('INSERT INTO build_promoted (arch_id,build_nr,product_id,release_id) VALUES (?,?,?,?)','iiii',$arch_id ,$build_nr,$product_id,$release_id);
         $update=update_query('UPDATE submission SET release_id = ? WHERE arch_id=? AND build_nr=? AND product_id=?','iiii',$release_id,$arch_id,$build_nr,$product_id);
 	return array ($insert,$update);
 
+}
+
+function build_promoted_delete($build_promoted_id)	{
+	return update_query('DELETE FROM build_promoted WHERE build_promoted_id=?','i',$build_promoted_id);
 }
 
 /** searches for submission, testsuite, or result
@@ -644,8 +649,7 @@ $glob_dest=array(
 	array("regression.php", "Regressions"), 
 	array("waiver.php", "Waiver"), 
 	'board' => array("board.php", "Board"),
-	array("reference.php","Ref. host"),
-	array("promote.php", "BuildNr."),
+	array("admin.php","Admin"),
 #	array("trends.php", "Trend Graphs"), 
 #	array("bench/search.php", 'Benchmarks'), 
 #	array(" "," "), 
