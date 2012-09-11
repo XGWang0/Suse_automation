@@ -1,5 +1,5 @@
-<?php
-/* ****************************************************************************
+/*
+****************************************************************************
   Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
 
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
@@ -23,33 +23,8 @@
   ****************************************************************************
  */
 
-  /**
-   * Logic of the user page.
-   */
-if (!defined('HAMSTA_FRONTEND')) {
-  $go = 'user';
-  return require("index.php");
- }
+ALTER TABLE user_in_role DROP FOREIGN KEY user_in_role_ibfk_1;
+ALTER TABLE user_in_role DROP FOREIGN KEY user_in_role_ibfk_2;
 
-$html_title = "User configuration";
-
-if ( User::isLogged() ) {
-  $user = User::getInstance($config);
-  if ( isset ($_POST['role']) ) {
-    $user->setRole ($_POST['roles']);
-  } else if ( isset ($_POST['chngpswd']) ) {
-    if ( isset ($_POST['pswd']) && isset ($_POST['pswdcheck'])
-         && ! (empty ($_POST['pswd'])
-               || empty ($_POST['pswdcheck']))
-         && $_POST['pswd'] == $_POST['pswdcheck']) {
-      $user->setPassword ($_POST['pswd']);
-      $_SESSION['mtype'] = 'success';
-      $_SESSION['message'] = 'Your password has been successfuly changed.';
-    } else {
-      $_SESSION['mtype'] = 'fail';
-      $_SESSION['message'] = 'The password and checked password have to be the same and cannot be empty.';
-    }
-  }
-}
-
-?>
+ALTER TABLE user_in_role ADD CONSTRAINT user_in_role_ibfk_1 FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE;
+ALTER TABLE user_in_role ADD CONSTRAINT user_in_role_ibfk_2 FOREIGN KEY (`role_id`) REFERENCES `user_role` (`role_id`) ON DELETE CASCADE;

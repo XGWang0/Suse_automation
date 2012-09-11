@@ -39,7 +39,9 @@ if ( $config->authentication->method == 'openid' && isset ($user) ) {
   echo ('<b>' . $user->getLogin() . "</b>.\n");
   echo ('<br />');
  } else {
-  echo ('<p>');
+  echo ('<p>Your login is ');
+  echo ('<b>' . $user->getLogin() . "</b>.\n");
+  echo ('<br />');
  }
 
 ?>
@@ -58,11 +60,35 @@ Your e-mail address is <b>
 
 <?php if ( isset ($user) ): ?>
 <form type="post">
-  <formset>
-    <input type="hidden" name="go" value="register" />
-    <input type="submit" value="Change"/>
-  </formset>
+   <input type="hidden" name="go" value="register" />
+   <input type="submit" value="Change" />
 </form>
+<?php endif; ?>
+
+<?php if ( isset ($user)
+           && $config->authentication->method == 'password' ): ?>
+<!-- Form for changing user password. -->
+<div style="width: 40%">
+<form method="post" action="index.php?go=user">
+  <fieldset>
+  <legend>Change your password here</legend>
+  <input type="hidden" name="chngpswd" value="new" />
+    <table>
+      <tr>
+        <td><label>New password: </label></td>
+        <td><input type="password" name="pswd" /><br /></td>
+      </tr>
+      <tr>
+        <td><label>And for check: </label></td>
+        <td><input type="password" name="pswdcheck" /></td>
+      </tr>
+      <tr>
+       <td colspan="2"><input type="submit" value="Change" /></td>
+      </tr>
+    </table>
+  </fieldset>
+</form>
+</div>
 <?php endif; ?>
 
 <?php
@@ -73,6 +99,8 @@ if ( isset ($user) ) {
   $curRole = $user->getCurrentRole();
   if ( isset ($curRole) ) {
     echo ($curRole->getName());
+  } else {
+    echo ('not set');
   }
   echo ('</b>.<br />');
 
@@ -81,19 +109,19 @@ if ( isset ($user) ) {
   /* Display selection only if user has more than 2 roles available. The
    * first is current role which is not displayed in the selection. */
   if ( count($list) > 1 ) {
-    echo ('<p>You can select another current role from the list.</p>');
-    echo ('<form method="POST" action="index.php?go=user">');
-    echo ('<select name="roles">');
+    echo ("<p>You can select another current role from the list.</p>\n");
+    echo ("<form method=\"post\" action=\"index.php?go=user\">\n");
+    echo ("<select name=\"roles\">\n");
 
     foreach ($user->getRoleList() as $roleName) {
       if ( isset ($curRole) && $curRole->getName() != $roleName) {
         echo ("<option value=\"$roleName\">" . $roleName . "</option>\n");
       }
     }
-    echo ('</select>');
-    echo ('<input type="hidden" name="go" value="user" />');
-    echo ('<input type="submit" name="role" value="Change" />');
-    echo ('</form>');
+    echo ("</select>\n");
+    echo ("<input type=\"hidden\" name=\"go\" value=\"user\" />\n");
+    echo ("<input type=\"submit\" name=\"role\" value=\"Change\" />\n");
+    echo ("</form>\n");
   }
 }
 
