@@ -197,12 +197,15 @@ sub get_update_status {
 	#this will generate competition with system zypper
         my $num=shift;
         return "skip" if($num%180!=0);
+	my $run_ck = `ps -ef|grep "[r]un_job\.pl"|tail -1`;
+	chomp($run_ck);
+	return "skip" if($run_ck);
 	#get the hamsta version sum from local
 	my $current_v=`rpm -qa|grep 'qa_hamsta\\|qa_hamsta-cmdline\\|qa_hamsta-common\\|qa_tools\\|qa_lib_perl\\|qa_lib_ctcs2\\|qa_lib_config\\|qa_lib_keys'|sed -r 's/.*-([^-]+-[^-]+)\$/\\1/'|awk '{split(\$0,a,"");for(i in a){if(a[i]~/[0-9]/)s+=a[i]}}END{print s}'`;
 	chomp($current_v);
 	#get the hamsta version sum from repo
 	system('zypper ref &>/dev/null' );
-	my $repo_v=`zypper se -st package qa_|grep 'qa_hamsta[^-]\\|qa_hamsta-cmdline\\|qa_hamsta-common\\|qa_tools\\|qa_lib_perl\\|qa_lib_ctcs2\\|qa_lib_config\\|qa_lib_keys'|awk -F\"|\" '{split(\$4,a,"");for(i in a){if(a[i]~/[0-9]/)s+=a[i]}}END{print s}'`;
+	my $repo_v=`zypper se -st package qa_|grep 'qa_hamsta[^-]\\|qa_hamsta-cmdline\\|qa_hamsta-common\\|qa_tools\\|qa_lib_perl\\|qa_lib_ctcs2\\|qa_lib_config\\|qa_lib_keys'|awk -F\"|\" '!b[\$2]++{split(\$4,a,"");for(i in a){if(a[i]~/[0-9]/)s+=a[i]}}END{print s}'`;
 	chomp($repo_v);
 	return 1 if($current_v!=$repo_v);
 	return 0;
