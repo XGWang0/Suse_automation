@@ -1,49 +1,67 @@
 <?php
-/* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
-
-  THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
-  CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
-  RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
-  THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
-  THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
-  TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
-  PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
-  PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
-  AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
-  LIABILITY.
-
-  SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
-  WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
-  AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
-  LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
-  OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
-  WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
-  ****************************************************************************
- */
 
 require_once ('Authenticator.php');
 require_once ('Zend/Db.php');
 require_once ('Zend/Session.php');
 
 /**
- * Class represents authenticated user and provides several methods
- * for checking user status.
+ * Class represents authenticated user and provides several methods to
+ * operate on user.
  *
- * @author Pavel Kacer <pkacer@suse.com>
+ * @package User
+ * @author Pavel Kačer <pkacer@suse.com>
+ * @version 1.0.0
+ *
+ * @copyright
+ * Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.<br />
+ * <br />
+ * THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+ * CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+ * RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+ * THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+ * THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+ * TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+ * PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+ * PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+ * AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+ * LIABILITY.<br />
+ * <br />
+ * SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+ * AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+ * LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+ * WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
  */
 class User {
 
+  /** @var string Default role for the user on login. */
   const DEFAULT_ROLE = 'user';
+  /** @var string Namespace for the \Zend_Session_Namespace to save
+   * current role in session. */
   const ROLE_SESSION_NAMESPACE = 'roles';
 
+  /** @var string Login name of the user. */
   private $login;
+  /** @var string Full name of the user. */
   private $name;
+  /** @var string Email of the user. */
   private $email;
+  /** @var \UserRole Current role of the user. */
   private $currentRole;
+  /** @var \Zend_Config Application configuration. */
   private $config;
 
+  /**
+   * Creates new instance.
+   *
+   * @param \Zend_Config $config Application configuration.
+   * @param string $login Login of the user.
+   * @param string $name Full name of the user.
+   * @param string $email E-mail of the user.
+   * @param \UserRole $role Role to set for the user.
+   */
   private function __construct ($config, $login, $name, $email, $role) {
     $this->config = $config;
     $this->login = $login;
@@ -52,6 +70,14 @@ class User {
     $this->currentRole = $role;
   }
 
+  /**
+   * Get name of the user from database.
+   *
+   * @param string $ident Login identification of the user.
+   * @param \Zend_Config $config Instance of the application configuration.
+   *
+   * @return mixed Name of the user if found or NULL.
+   */
   private static function getDbName ($ident, $config) {
     $db = Zend_Db::factory ($config->database);
     if ( isset ($ident) )
@@ -61,6 +87,14 @@ class User {
     return isset ($res[0]['name']) ? $res[0]['name'] : NULL;
   }
 
+  /**
+   * Get email of the user from database.
+   *
+   * @param string $ident Login identification of the user.
+   * @param \Zend_Config $config Instance of the application configuration.
+   *
+   * @return mixed Email of the user if found or NULL.
+   */
   private static function getDbEmail ($ident, $config) {
     $db = Zend_Db::factory ($config->database);
     if ( isset ($ident) )
@@ -71,7 +105,12 @@ class User {
   }
 
   /**
+   * Set name of the user in the database.
    *
+   * @param string $ident Login indentification of the user.
+   * @param string $newName Name to be set.
+   *
+   * @return integer Number greater than zero on success, zero otherwise.
    */
   private function setDbName ($ident, $newName) {
     $db = Zend_Db::factory ($this->config->database);
@@ -86,7 +125,12 @@ class User {
   }
 
   /**
+   * Set email of the user in the database.
    *
+   * @param string $ident Login indentification of the user.
+   * @param string $newEmail E-mail to be set.
+   *
+   * @return integer Number greater than zero on success, zero otherwise.
    */
   private function setDbEmail ($ident, $newEmail) {
     $db = Zend_Db::factory ($this->config->database);
@@ -99,6 +143,14 @@ class User {
     return $res;
   }
 
+  /**
+   * Set password of the user in the database.
+   *
+   * @param string $ident Login indentification of the user.
+   * @param string $newPassword Plain string password. It will be hashed on the insertion into DB.
+   *
+   * @return integer Number greater than zero on success, zero otherwise.
+   */
   private function setDbPassword ($ident, $newPassword) {
     $db = Zend_Db::factory ($this->config->database);
     $data = array ( 'password' => $newPassword );
@@ -111,12 +163,12 @@ class User {
   }
 
   /**
-   * getCachedOrDefaultRole
+   * Returns role name that this user has cached.
    *
-   * Returns role name that this user has cached or default role name
-   * if no role name is cached.
+   * Default role name is returned, if no role name is cached. The
+   * cached role name is stored in session.
    *
-   * @return string Role name.
+   * @return string Cached role name or ROLE_SESSION_NAMESPACE.
    */
   private static function getCachedOrDefaultRole() {
     $ns = new Zend_Session_Namespace (self::ROLE_SESSION_NAMESPACE);
@@ -128,10 +180,12 @@ class User {
   }
 
   /**
-   * Returns an instance of *registered* and currently loggend in
+   * Returns an instance of <b>registered and currently logged in</b>
    * user.
    *
-   * @param Zend_Config  Instance of Zend_Config class.
+   * @param \Zend_Config $config Application configuration.
+   *
+   * @return \User|null Returns the user if she is registered.
    */
   public static function getInstance ($config) {
     $ident = self::getIdent ();
@@ -144,10 +198,12 @@ class User {
   }
 
   /**
-   * Returns an instance of *registered* user by login.
+   * Returns an instance of <b>registered</b> user by login.
    *
-   * @param login Login name of the user.
-   * @param config Object of type Zend_Config.
+   * @param string $login Login name of the user.
+   * @param \Zend_Config $config Object of type Zend_Config.
+   *
+   * @return \User|null Returns the user if she is registered.
    */
   public static function getByLogin($login, $config) {
     return self::isRegistered ($login, $config)
@@ -160,10 +216,12 @@ class User {
   }
 
   /**
-   * Returns an instance of *registered* user by id.
+   * Returns an instance of <b>registered</b> user by id.
    *
-   * @param id Id of user (number).
-   * @param config Object of type Zend_Config.
+   * @param string $id Id of user (number).
+   * @param \Zend_Config $config Application configuration.
+   * 
+   * @return \User|null Returns the user if she is registered.
    */
   public static function getById($id, $config) {
     // TODO get login of this $id
@@ -179,8 +237,7 @@ class User {
   /**
    * Authenticates this user using method set in configuration.
    *
-   * @param
-   *   $config   Object of type Zend_Config.
+   * @param \Zend_Config $config Application configuration.
    */
   public static function authenticate ($config) {
 
@@ -244,20 +301,42 @@ class User {
     }
   }
 
+  /**
+   * Log out the user.
+   */
   public static function logout () {
     Authenticator::logout ();
   }
 
+  /**
+   * Returns the logged status of this user.
+   *
+   * @return boolean True if logged in. False otherwise.
+   */
   public static function isLogged () {
     $auth = Authenticator::getInstance ();
     return $auth->hasIdentity ();
   }
 
+  /**
+   * Returns login identity of this user.
+   *
+   * @return string Login identification.
+   */
   public static function getIdent () {
     $auth = Authenticator::getInstance ();
     return $auth->getIdentity ();
   }
 
+  /**
+   * Prints user status.
+   *
+   * Prints message with user status with clickable user name
+   * redirecting to user configuration page. If the she is not logged
+   * in the message is not printed.
+   *
+   * @param \Zend_Config $config Application configuration.
+   */
   public static function printStatus ($config) {
     $ident = self::getIdent();
     if ( self::isLogged () ) {
@@ -274,6 +353,15 @@ class User {
     }
   }
 
+  /**
+   * Prints login or logout link.
+   *
+   * If the user is not logged in prints login link. If she is logged
+   * in prints logout link.
+   *
+   * @param boolean $form Set to true if you want to redirect user to
+   * login form.
+   */
   public static function printLogInOut ($form = false) {
     if ( self::isLogged () ) {
       echo ('<a href="index.php?action=logout">Logout</a>' . "\n");
@@ -287,13 +375,15 @@ class User {
   }
 
   /**
-   * add_user
-   *
    * Adds a user to the database.
    *
-   * @param string login (e.g. openid url or login)
-   * @param string name User's name
-   * @param string email User's email address
+   * It is recommended to check if the user is not already registered
+   * before calling this method (see isRegistered ()).
+   * 
+   * @param string $login Login identification of the user (e.g. openid url or login).
+   * @param string $name User's name.
+   * @param string $email User's e-mail address.
+   * @param \Zend_Config $config Application configuration.
    *
    * @return integer Number greater than zero if user has been added, zero otherwise.
    */
@@ -312,10 +402,19 @@ class User {
         $defRole->addUser ($user);
       }
     }
+    $db->closeConnection ();
 
     return $added;
   }
 
+  /**
+   * Checks if the user is registered in Hamsta.
+   *
+   * It simply asks database if the login is already there.
+   *
+   * @param string $login Login identification of the user.
+   * @param \Zend_Config $config Application configuration.
+   */
   public static function isRegistered ($login, $config) {
     $auth = Authenticator::getInstance ();
     $identity = $auth->getIdentity ();
@@ -326,38 +425,39 @@ class User {
   }
   
   /**
-   * getName
+   * Returns full name of this user.
    *
-   * Returns name of this user.
-   * 
-   * @return User name
+   * @return string Full user name.
    */
   public function getName () {
     return $this->name;
   }
 
   /**
-   * getEmail
+   * Returns e-mail of this user.
    *
-   * Returns email of this user.
-   *
-   * @return User email
+   * @return string User e-mail.
    */
   public function getEmail () {
     return $this->email;
   }
 
   /**
-   * getLogin
+   * Returns login identifier of this user.
    *
-   * Returns login of this user.
-   *
-   * @return User login (e.g. OpenId)
+   * @return string User login (e.g. OpenID or login).
    */
   public function getLogin() {
     return $this->login;
   }
 
+  /**
+   * Set new full name for this user.
+   *
+   * @param string $name New full name for this user.
+   * 
+   * @return boolean True if name has been changed, false otherwise. 
+   */
   public function setName ($name) {
     if ( $this->setDbName ($this->login, $name) ) {
       $this->name = $name;
@@ -367,6 +467,13 @@ class User {
     }
   }
 
+  /**
+   * Set new e-mail for this user.
+   *
+   * @param string $email New user e-mail.
+   *
+   * @return boolean True if e-mail has been changed, false otherwise.
+   */
   public function setEmail ($email) {
     if ( $this->setDbEmail ($this->login, $email) ) {
       $this->email = $email;
@@ -376,20 +483,31 @@ class User {
     }
   }
 
+  /**
+   * Set new user password.
+   *
+   * @param string $password New user password. Plain text, no
+   * hashing.
+   *
+   * @return integer Number greater than zero on success, zero otherwise.
+   */
   public function setPassword ($password) {
     return $this->setDbPassword ($this->login, $password);
   }
 
+  /**
+   * Return current role of this user.
+   *
+   * @return \UserRole Current role this user is cast to.
+   */
   public function getCurrentRole () {
     return $this->currentRole;
   }
 
   /**
-   * setRole
-   *
    * Set current role of this user to roleName.
    *
-   * @param roleName Name of new role.
+   * @param string roleName Name of new role.
    *
    * @return True if change was succesfull, false otherwise.
    */
@@ -408,28 +526,35 @@ class User {
   }
 
   /**
-   * isInRole
+   * Returns result of comparison of current role name with provided
+   * roleName parameter.
    *
-   * Returns comparison of current role name with provided roleName
-   * parameter.
+   * @param string $roleName Name of the role to compare.
    *
-   * @param roleName String name of the role to compare.
-   *
-   * @return True if user is in role with the same name as in
+   * @return boolean True if user is in role with the same name as in
    * parameter.
    */
   public function isInRole ($roleName) {
     return $this->getCurrentRole ()->getName () == $roleName;
   }
 
+  /**
+   * Returns true if user can be cast in the role with name provided
+   * in parameter roleName.
+   *
+   * @param string $roleName Name of the role to search.
+   *
+   * @return boolean True if user can be cast in the role with
+   * provided name.
+   */
   public function couldBeInRole($roleName) {
     return in_array ($roleName, $this->getRoleList ());
   }
 
   /**
-   * getRoleList
+   * Return list of roles this user can be cast in.
    *
-   * @return Array List of roles this user is cast in.
+   * @return string[] List of roles this user can be cast in.
    */
   public function getRoleList () {
     $db = Zend_Db::factory ($this->config->database);

@@ -1,64 +1,52 @@
 <?php
-/* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
 
-  THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
-  CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
-  RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
-  THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
-  THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
-  TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
-  PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
-  PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
-  AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
-  LIABILITY.
-
-  SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
-  WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
-  AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
-  LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
-  OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
-  WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
-  ****************************************************************************
+/**
+ * Class represents user role.
+ *
+ * @package User
+ * @author Pavel Kačer <pkacer@suse.com>
+ * @version 1.0.0
+ *
+ * @copyright
+ * Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.<br />
+ * <br />
+ * THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+ * CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+ * RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+ * THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+ * THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+ * TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+ * PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+ * PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+ * AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+ * LIABILITY.<br />
+ * <br />
+ * SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+ * AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+ * LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+ * WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
  */
-
-
-  /**
-   * Class representing an user role.
-   *
-   * @author Pavel Kacer <pkacer@suse.com>
-   */
 class UserRole
 {
 
-  /**
-   * name
-   *
-   * @var name Name of this role.
-   */
+  /** @var string Name of this role. */
   private $name;
 
-  /**
-   * description
-   *
-   * @var description Description of this role.
-   */
+  /** @var string Description of this role. */
   private $description;
 
-  /**
-   * config
-   *
-   * @var config An instance of class Zend_Config.
-   */
+  /** @var \Zend_Config Application configuration. */
   private $config;
 
   /**
-   * __construct
+   * Creates new instance of the UserRole.
    *
-   * Implicit constructor
-   *
-   * @param name Name of the role to be created.
+   * @param string $name Name of the role to be created.
+   * @param string $description Description of the role.
+   * @param \Zend_Config $config Application configuration.
    */
   private function __construct ($name, $description, $config)
   {
@@ -68,15 +56,13 @@ class UserRole
   }
 
   /**
-   * getByName
-   *
-   * Returns a UserRole object if found in database, NULL otherwise.
+   * Gets a role by its name.
    * 
-   * @param  name Name of the role.
-   * @param  config An instance of  Zend_Config class.
+   * @param string $name Name of the role to retrieve.
+   * @param \Zend_Config $config Application configuration.
    * 
-   * @return New UserRole object if name is found in database. NULL is
-   * returned otherwise.
+   * @return \UserRole|null New UserRole instance if name is found in
+   * database. NULL is returned otherwise.
    */
   public static function getByName ($name, $config)
   {
@@ -88,13 +74,11 @@ class UserRole
   }
 
   /**
-   * add
-   *
    * Adds new role into the system.
    *
-   * @param name Name of the new role.
-   * @param description Description of new role.
-   * @param config And instance of Zend_Config class.
+   * @param string $name Name of the new role.
+   * @param string $description Description of new role.
+   * @param \Zend_Config $config And instance of Zend_Config class.
    *
    * @return An instance of new user role or null if some error occurs
    * (e.g. role of that name already exists).
@@ -108,11 +92,9 @@ class UserRole
   }
   
   /**
-   * getName
-   *
    * Returns name of this Role.
    *
-   * @return Role name as String.
+   * @return string Name of this role.
    */
   public function getName ()
   {
@@ -120,14 +102,12 @@ class UserRole
   }
 
   /**
-   * setName
+   * Changes name of this role to provided new name.
    *
-   * Changes name of this role to new_name.
-   *
-   * @param new_name New name for this role.
+   * @param string $newName New name for this role.
    * 
-   * @return Number greater than 0 if the name was successfuly
-   * changed, 0 othewise.
+   * @return integer Number greater than zero if the name was
+   * successfuly changed, zero otherwise.
    */
   public function setName ($newName)
   {
@@ -147,11 +127,9 @@ class UserRole
   }
 
   /**
-   * addUser
+   * Casts user into this role.
    *
-   * Cast user into this role.
-   *
-   * @param userLogin An instance of class User.
+   * @param \User $user An instance of User.
    *
    * @return integer Number greater than zero if user has been added, zero otherwise.
    */
