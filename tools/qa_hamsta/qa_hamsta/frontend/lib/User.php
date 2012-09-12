@@ -4,6 +4,8 @@ require_once ('Authenticator.php');
 require_once ('Zend/Db.php');
 require_once ('Zend/Session.php');
 
+require_once ('Notificator.php');
+
 /**
  * Class represents authenticated user and provides several methods to
  * operate on user.
@@ -257,8 +259,7 @@ class User {
         if ( ! ( empty($login) || empty ($password) ) ) {
           Authenticator::password ($login, $password, $config);
         } else {
-          $_SESSION['mtype'] = 'failure';
-          $_SESSION['message'] = 'Please fill in your credentials.';
+          Notificator::setErrorMessage ('Please fill in your credentials.');
         }
       }
       break;

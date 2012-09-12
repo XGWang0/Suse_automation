@@ -32,8 +32,7 @@
 		if(request_str("interval") && !preg_match("/^[0-9]+$/", request_str("interval")))
 		{
 			$pre_value = request_int("pre_value");
-			$_SESSION['message'] = 'The refresh interval must be a positive number!';
-			$_SESSION['mtype'] = "fail";
+                        Notificator::setErrorMessage ('The refresh interval must be a positive number!');
 		};
 
 		if(request_int("interval")&&(request_int("interval")>0))
