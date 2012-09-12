@@ -329,25 +329,31 @@ class User {
   /**
    * Prints user status.
    *
-   * Prints message with user status with clickable user name
+   * Prints message with user status with clickable user name and role
    * redirecting to user configuration page. If the she is not logged
    * in the message is not printed.
    *
    * @param \Zend_Config $config Application configuration.
    */
   public static function printStatus ($config) {
-    $ident = self::getIdent();
     if ( self::isLogged () ) {
+      $ident = self::getIdent();
       if ( self::isRegistered ($ident, $config) ) {
-        $outName = self::getDbName ($ident, $config);
+        $user = self::getByLogin ($ident, $config);
+        $outName = $user->getName ();
         if ( ! isset ($outName) || empty ($outName) ) {
             $outName = $ident;
         }
+        $outRoleName = $user->getCurrentRole ()->getName ();
       } else {
         $outName = $ident;
       }
       
-      echo ('Logged in as <a href="index.php?go=user">' . $outName . "</a>");
+      echo ("Logged in as <a class=\"bold\" href=\"index.php?go=user\">"
+            . $outName
+            . "</a> (<a href=\"index.php?go=user\">"
+            . $outRoleName
+            . "</a>)\n");
     }
   }
 

@@ -62,7 +62,7 @@ require_once("include/Util.php");
       <div class="version text-main text-white bold">
         <em>v<?php $version = explode("-", $hamstaVersion); echo($version[2]);?></em>
       </div>
-      <div style="float: right; width=150px;" class="navibar text-white text-main">
+      <div style="float: right; width=150px;" class="topright text-white text-main">
         <?php
            User::printStatus($config);
            switch ($config->authentication->method) {
@@ -76,7 +76,7 @@ require_once("include/Util.php");
              User::printLogInOut();
            }
            ?>
-        <a class="navibar" href="index.php?go=install_client">Install Client</a>
+        <a href="index.php?go=install_client">Install Client</a>
       </div>
     </div>
 
