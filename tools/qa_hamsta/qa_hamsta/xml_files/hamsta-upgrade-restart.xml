@@ -22,9 +22,8 @@
         <worker>
             <!-- Required -->
             <command execution="threaded">#!/bin/sh
-	    echo Restarting...
-	    screen setsid rchamsta restart
-	    echo Done.
+	    echo SUT is gong to reboot to take effect 
+	    reboot
 	    </command>
 
             <!-- Optional -->
