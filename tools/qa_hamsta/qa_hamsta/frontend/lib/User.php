@@ -1,9 +1,9 @@
 <?php
 
-require_once ('Authenticator.php');
 require_once ('Zend/Db.php');
 require_once ('Zend/Session.php');
 
+require_once ('Authenticator.php');
 require_once ('Notificator.php');
 
 /**
@@ -531,6 +531,16 @@ class User {
   }
 
   /**
+   * Getter for the current role of this user.
+   *
+   * @return \UserRole Current role instance of this user. 
+   */
+  public function getRole ()
+  {
+    return $this->currentRole;
+  }
+
+  /**
    * Returns result of comparison of current role name with provided
    * roleName parameter.
    *
@@ -567,6 +577,19 @@ class User {
     $res = $db->fetchCol ($sql, $this->login);
     $db->closeConnection ();
     return $res;
+  }
+
+  /**
+   * Checks if the user in current role has Privilege $privilege.
+   *
+   * @param string $privilege Privilege name.
+   *
+   * @return boolean True if user in current role has the privilege,
+   * false otherwise.
+   */
+  public function isAllowed ($privilege)
+  {
+    return $this->getRole ()->isAllowed ($privilege);
   }
 
 }
