@@ -421,9 +421,8 @@ class User {
    * @param \Zend_Config $config Application configuration.
    */
   public static function isRegistered ($login, $config) {
-    $identity = $login;
     $db = Zend_Db::factory ($config->database);
-    $res = $db->fetchAll ('SELECT user_login FROM user WHERE user_login = ?', $identity);
+    $res = $db->fetchAll ('SELECT user_login FROM user WHERE user_login = ?', $login);
     $db->closeConnection ();
     return isset ($res[0]['user_login']);
   }
