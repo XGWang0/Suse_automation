@@ -419,8 +419,12 @@ sub start_job() {
 	my $current_time=0;
 	while ($current_time < $sut_timeout) {
 	    goto OUT if(waitpid($fork_re, WNOHANG));
-	    sleep 5;
-	    $current_time += 5;
+	    #check the hang status : result is submit to QADB ,but job was hung.
+	    my $hangstatus = `pstree $fork_re|head -1|awk -F'-+' '{if(NF==4 && \$NF=="perl")print "Stop"}'`;
+	    chomp($hangstatus);
+	    goto OUT if($hangstatus);
+	    sleep 15;
+	    $current_time += 15;
 
 	}
         #timeout
