@@ -1,8 +1,10 @@
 <?php
 
-require_once ('Authenticator.php');
 require_once ('Zend/Db.php');
 require_once ('Zend/Session.php');
+
+require_once ('Authenticator.php');
+require_once ('Notificator.php');
 
 /**
  * Class represents authenticated user and provides several methods to
@@ -257,8 +259,7 @@ class User {
         if ( ! ( empty($login) || empty ($password) ) ) {
           Authenticator::password ($login, $password, $config);
         } else {
-          $_SESSION['mtype'] = 'failure';
-          $_SESSION['message'] = 'Please fill in your credentials.';
+          Notificator::setErrorMessage ('Please fill in your credentials.');
         }
       }
       break;
@@ -329,25 +330,31 @@ class User {
   /**
    * Prints user status.
    *
-   * Prints message with user status with clickable user name
+   * Prints message with user status with clickable user name and role
    * redirecting to user configuration page. If the she is not logged
    * in the message is not printed.
    *
    * @param \Zend_Config $config Application configuration.
    */
   public static function printStatus ($config) {
-    $ident = self::getIdent();
     if ( self::isLogged () ) {
+      $ident = self::getIdent();
       if ( self::isRegistered ($ident, $config) ) {
-        $outName = self::getDbName ($ident, $config);
+        $user = self::getByLogin ($ident, $config);
+        $outName = $user->getName ();
         if ( ! isset ($outName) || empty ($outName) ) {
             $outName = $ident;
         }
+        $outRoleName = $user->getCurrentRole ()->getName ();
       } else {
         $outName = $ident;
       }
       
-      echo ('Logged in as <a href="index.php?go=user">' . $outName . "</a>");
+      echo ("Logged in as <a class=\"bold\" href=\"index.php?go=user\">"
+            . $outName
+            . "</a> (<a href=\"index.php?go=user\">"
+            . $outRoleName
+            . "</a>)\n");
     }
   }
 
@@ -524,6 +531,16 @@ class User {
   }
 
   /**
+   * Getter for the current role of this user.
+   *
+   * @return \UserRole Current role instance of this user. 
+   */
+  public function getRole ()
+  {
+    return $this->currentRole;
+  }
+
+  /**
    * Returns result of comparison of current role name with provided
    * roleName parameter.
    *
@@ -560,6 +577,19 @@ class User {
     $res = $db->fetchCol ($sql, $this->login);
     $db->closeConnection ();
     return $res;
+  }
+
+  /**
+   * Checks if the user in current role has Privilege $privilege.
+   *
+   * @param string $privilege Privilege name.
+   *
+   * @return boolean True if user in current role has the privilege,
+   * false otherwise.
+   */
+  public function isAllowed ($privilege)
+  {
+    return $this->getRole ()->isAllowed ($privilege);
   }
 
 }

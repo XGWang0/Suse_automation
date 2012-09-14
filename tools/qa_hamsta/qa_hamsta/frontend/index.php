@@ -43,16 +43,10 @@ define('HAMSTA_FRONTEND', 1);
 require("config.php");
 require("globals.php");
 
-require ('lib/Conf.php');
-require ('lib/UserRole.php');
-require ('lib/User.php');
-
-/*
- * First parameter is path to ini file. The second is name of group
- * you want to include configuration from.
- */
-$config = Conf::getIniConfig('hamsta.ini', 'cz');
-User::authenticate($config);
+require_once ('lib/Notificator.php');
+require_once ('lib/Conf.php');
+require_once ('lib/UserRole.php');
+require_once ('lib/User.php');
 
 require("lib/request.php");
 require("lib/db.php");
@@ -68,6 +62,13 @@ require("lib/parameters.php");
 require("lib/powerswitch.php");
 
 require_once("../tblib/tblib.php");
+
+/*
+ * First parameter is path to ini file. The second is name of group
+ * you want to include configuration from.
+ */
+$config = Conf::getIniConfig('hamsta.ini', 'cz');
+User::authenticate($config);
 
 $go = request_str("go");
 
@@ -122,6 +123,13 @@ if (!in_array($go, $pages)) {
 
 require("inc/$go.php");
 require("html/header.php");
+
+if ( Notificator::hasMessage () )
+{
+  Notificator::printAndUnset ();
+} else {
+  Notificator::delete ();
+}
 
 if(isset($_SESSION['message']))
 {
