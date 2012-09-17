@@ -278,6 +278,9 @@ function enum_list_id($tbl, $limit=null)
 function enum_list_id_val($tbl, $header=0, $limit=null)
 {	return matrix_query($header,$limit,'SELECT '.eid($tbl).','.ename($tbl)." FROM `$tbl` ORDER BY ".ename($tbl));	}
 
+function enum_list_id_val_hash($tbl, $header=0, $limit=null)
+{	return mhash_query($header,$limit,'SELECT '.eid($tbl).','.ename($tbl)."FROM `$tbl` ORDER BY ".ename($tbl));	}
+
 /** lists all vals, sorted */
 function enum_list_val($tbl, $limit=null)
 {	return vector_query($limit,'SELECT DISTINCT '.ename($tbl)." FROM `$tbl` ORDER BY ".ename($tbl));	}
@@ -726,4 +729,72 @@ function connect_to_mydb()
 	return $mysqli;
 }
 
+function mysql_foreign_keys($header,$limit,$count=array(),$table=null,$column=null,$table_ref=null,$column_ref=null)	{
+	global $mysqldb;
+	$fields = array(
+		# array( value, column, alias ),
+		array($mysqldb,'constraint_schema',null), # should be always in condition
+		array($table,'table_name','`table`'),
+		array($column,'column_name','`column`'),
+		array($table_ref,'referenced_table_name','table_ref'),
+		array($column_ref,'referenced_column_name','column_ref'),
+	);
+	$sel=array('constraint_name' . ($count ? '':' AS name'));
+	$where=array('1');
+	$args=array();
+	foreach( $fields as $f )	{
+		if( $f[0]==null )
+			$sel[] = $f[1] . (!$count && $f[2] ? ' AS '.$f[2] : '');
+		else	{
+			$where[] = $f[1].'=?';
+			$args[] = $f[0];
+		}
+	}
+	$select = join(',',$sel);
+	if( $count )
+		$select .= ',COUNT('.(count($sel) ? 'DISTINCT '.join(',',$sel) : '*').') AS count';
+	$sql = "SELECT $select FROM information_schema.key_column_usage WHERE ".join(' AND ',$where);
+	if( $count && count($sel))
+		$sql .= ' GROUP BY '.join(',',$sel);
+	print "<pre>\n";
+	print_r($sel);
+	print_r($select);
+	print_r($where);
+	print_r($args);
+	print_r($sql);
+	print "</pre>\n";
+	$format = str_repeat('s',count($where)-1);
+	$call=array_merge(array($header,$limit,$sql,$format),$args);
+	return call_user_func_array('mhash_query',$call);
+}
+
+/**
+  * Lists foreign keys
+  **/
+function mysql_foreign_keys_list_all()	{
+	global $enums;
+	$tables="'".join("','",array_keys($enums))."'";
+	return mhash_query(1,null,"SELECT referenced_table_name AS `table`, GROUP_CONCAT(table_name,'.',column_name SEPARATOR ' ') AS reference FROM information_schema.key_column_usage WHERE referenced_table_name IN($tables) GROUP BY referenced_table_name");
+}
+
+/**
+  * Lists tables and columns referencing a table
+  **/
+function mysql_foreign_keys_list($tbl,$usage=0,$header=1,$limit=array(5000))	{
+	$data=mhash_query(1,null,"SELECT table_name AS `table`,column_name AS `column` FROM information_schema.key_column_usage WHERE referenced_table_name=?",'s',$tbl);
+	if( !$usage )
+		return $data;
+	$s=array();
+	$eid=eid($tbl);
+	$ename=ename($tbl);
+	for($i=1;$i<count($data);$i++)	{
+		$t=$data[$i]['table'];
+		$c=$data[$i]['column'];
+		$s[]="(SELECT '$t' AS `table`,'$c' AS `column`,`$tbl`.$ename AS $ename,COUNT(*) AS `count` FROM `$t` JOIN `$tbl` ON(`$t`.`$c`=`$tbl`.$eid) GROUP BY `$t`.`$c`)\n";
+	}
+	$s[]="(SELECT NULL AS `table`,NULL AS `column`,$ename,0 AS `count` FROM `$tbl`)";
+	$sql=join(' UNION ',$s)." ORDER BY $ename,count DESC";
+	print "<br/><pre>SQL=$sql</pre><br/>\n";
+	return mhash_query($header,$limit,$sql);
+}
 ?>

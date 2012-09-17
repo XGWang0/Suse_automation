@@ -19,7 +19,6 @@ $enums = array(
 	'kernel_version'	=> array('kernel_version_id','kernel_version'),
 	'testsuite'		=> array('testsuite_id','testsuite'),
 	'testcase'		=> array('testcase_id','testcase'),
-	'bench_part'		=> array('bench_part_id','bench_part'),
 	'rpm_basename'		=> array('rpm_basename_id','rpm_basename'),
 	'rpm_version'		=> array('rpm_version_id','rpm_version'),
 	'rpm_config'		=> array('rpm_config_id','md5sum'),

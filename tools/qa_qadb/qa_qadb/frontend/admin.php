@@ -9,6 +9,7 @@ common_header(array(
 $data=array(
 	html_link('View / edit reference hosts','reference.php','Reference hosts are hosts selected to do reference testing on specific products. Here you can define them.'),
 	html_link('BuildNumber &rarr; Release mapping','promote.php','Maintaining a list of what BuildNr. on what architecture belongs to what release'),
+	html_link('Viev / edit QADB enum types','enums.php','Administration of different lists - products, releases, hosts ....'),
 );
 
 print "<h3>Administration tools</h3>\n";

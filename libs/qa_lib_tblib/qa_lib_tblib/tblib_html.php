@@ -213,7 +213,7 @@ function nav_bar($destinations)
   *		NOTE: set table ID to use this feature
   *   $attrs['total']	true to print total row count</pre>
   **/
-function html_table($data,$attrs)
+function html_table($data,$attrs=array())
 {
 		
 	global $first;
@@ -329,7 +329,7 @@ function html_groupped_table($data,$args=array())
 	$args = args_defaults( $args, array(
 		'group_y'=>array(),		# Y attributes; !!! NOTE: $data must be sorted by group_y !!!
 		'group_x'=>array(),		# X attributes
-		'header'=>0,			# 1 to consider $data[0] to be a header
+		'header'=>1,			# 1 to consider $data[0] to be a header
 		'aggregate_fields'=>array(),	# fields to aggregate into one
 		'aggregate_name'=>'summary',	# name of the resulting column
 		'aggregate_callback'=>null,	# callback to aggregate fields into one
