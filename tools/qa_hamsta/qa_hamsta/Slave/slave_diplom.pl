@@ -409,11 +409,10 @@ sub start_job() {
 			$sut_timeout += $time_o ;
 		} else {
         		&log(LOG_NOTICE, "Can not found package $j timeout ,use 21600 (s)");
-			$sut_timeout += 21600;
+			$sut_timeout += 86400;  #24hours
 		}
             }
         }
-        $sut_timeout = 86400 if($sut_timeout ==0);   #24hours
         &log(LOG_NOTICE, "The Job Time out is $sut_timeout (s)");
 
 	my $current_time=0;
@@ -423,8 +422,8 @@ sub start_job() {
 	    my $hangstatus = `pstree $fork_re|head -1|awk -F'-+' '{if(NF==4 && \$NF=="perl")print "Stop"}'`;
 	    chomp($hangstatus);
 	    goto OUT if($hangstatus);
-	    sleep 15;
-	    $current_time += 15;
+	    sleep 60;
+	    $current_time += 60;
 
 	}
         #timeout
