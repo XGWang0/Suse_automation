@@ -3,8 +3,9 @@
 require_once ('Zend/Auth.php');
 require_once ('Zend/Auth/Adapter/OpenId.php');
 require_once ('Zend/Auth/Adapter/DbTable.php');
-/* Required only for password authentication */
 require_once ('Zend/Db.php');
+
+require_once ('lib/Notificator.php');
 
 /**
  * Class serves as wrapper around Zend_Auth class.
@@ -100,20 +101,14 @@ class Authenticator extends Zend_Auth
   public static function password($login, $password, $config) {
     $auth = parent::getInstance();
     $db = Zend_Db::factory($config->database);
-    $adapter = new Zend_Auth_Adapter_DbTable($db, 'user', 'user_login', 'password', null);
+    $adapter = new Zend_Auth_Adapter_DbTable($db, 'user', 'user_login', 'password', 'SHA1(?)');
     $adapter->setIdentity($login);
     $adapter->setCredential($password);
     $result = $auth->authenticate($adapter);
 
     if ( ! $result->isValid() ) {
       $auth->clearIdentity();
-      /* DEBUG
-       foreach ($result->getMessages() as $message) {
-       echo ("$message<br />\n");
-       }
-      */
-      $_SESSION['mtype'] = 'failure';
-      $_SESSION['message'] = 'Login attempt has failed. Check your credentials.';
+      Notificator::setErrorMessage ('Login attempt has failed. Check your credentials.');
     } else {
       header ('Location: index.php');
     }

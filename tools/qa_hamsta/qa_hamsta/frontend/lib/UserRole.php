@@ -41,6 +41,9 @@ class UserRole
   /** @var \Zend_Config Application configuration. */
   private $config;
 
+  /** @var string[] List of privilege names of this role. */
+  private $privileges;
+
   /**
    * Creates new instance of the UserRole.
    *
@@ -48,11 +51,12 @@ class UserRole
    * @param string $description Description of the role.
    * @param \Zend_Config $config Application configuration.
    */
-  private function __construct ($name, $description, $config)
+  private function __construct ($name, $description, $config, $privileges)
   {
     $this->name = $name;
     $this->description = $description;
     $this->config = $config;
+    $this->privileges = $privileges;
   }
 
   /**
@@ -68,9 +72,31 @@ class UserRole
   {
     $db = Zend_Db::factory ($config->database);
     $res = $db->fetchAll ('SELECT * FROM user_role WHERE role = ?', $name);
+    $priv = self::getPrivilegesFromDb ($db, $name);
     
     $db->closeConnection ();
-    return isset ($res[0]) ? new UserRole ($res[0]['role'], $res[0]['descr'], $config) : NULL;
+    return isset ($res[0])
+      ? new UserRole ($res[0]['role'],
+                      $res[0]['descr'],
+                      $config,
+                      $priv)
+      : NULL;
+  }
+
+  /**
+   * Retrieves privileges that are valid for this role and database time.
+   *
+   * @return string[] An array of privilege names.
+   */
+  private static function getPrivilegesFromDb ($db, $roleName)
+  {
+    $sql = 'SELECT p.privilege FROM user_role ur'
+      . ' INNER JOIN role_privilege rp ON ur.role_id = rp.role_id'
+      . ' INNER JOIN privilege p ON rp.privilege_id = p.privilege_id'
+      . ' WHERE ur.role = ? AND (rp.valid_until is NULL OR rp.valid_until > now())';
+
+    $res = $db->fetchCol ($sql, $roleName);
+    return $res;
   }
 
   /**
@@ -90,7 +116,7 @@ class UserRole
     $db->closeConnection ();
     return null;
   }
-  
+
   /**
    * Returns name of this Role.
    *
@@ -151,6 +177,29 @@ class UserRole
           }
       }
     return 0;
+  }
+
+  /**
+   * Getter for privileges of this role.
+   *
+   * @return string[] List of privilege objects that belongs to this role.
+   */
+  public function getPrivileges ()
+  {
+    return $this->privileges;
+  }
+
+  /**
+   * Checks if this role has specified privilege.
+   *
+   * @param string $priv Privilege name.
+   *
+   * @return boolean True if this role has privilege of specified
+   * name.
+   */
+  public function isAllowed ($priv)
+  {
+    return in_array ($priv, $this->getPrivileges());
   }
 
 }

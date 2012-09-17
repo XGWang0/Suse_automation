@@ -371,7 +371,6 @@ sub start_job() {
     #time out monitor start.
     my $sut_timeout=0;
     #find out time out value.
-    my $work_start = time;
     my $fork_re = fork ();
     if($fork_re==0) {
 	#in child, start to work;
@@ -405,23 +404,32 @@ sub start_job() {
 	        chomp $time_o;
 	        $time_o =~ s/#sut_timeout //;
 		$time_o =~ s/\D+//g;
-	        $sut_timeout += $time_o if ($time_o);
+	        if ($time_o){
+			&log(LOG_NOTICE, "Found package $j timeout $time_o (s)");
+			$sut_timeout += $time_o ;
+		} else {
+        		&log(LOG_NOTICE, "Can not found package $j timeout ,use 86400 (s)");
+			$sut_timeout += 86400;  #24hours
+		}
             }
         }
-        $sut_timeout = 86400 if($sut_timeout ==0);   #24hours
-        &log(LOG_NOTICE, "Time out is $sut_timeout (s)");
+        &log(LOG_NOTICE, "The Job Time out is $sut_timeout (s)");
 
 	my $current_time=0;
 	while ($current_time < $sut_timeout) {
 	    goto OUT if(waitpid($fork_re, WNOHANG));
-	    sleep 5;
-	    $current_time += 5;
+	    #check the hang status : result is submit to QADB ,but job was hung.
+	    my $hangstatus = `pstree $fork_re|head -1|awk -F'-+' '{if(NF==4 && \$NF=="perl")print "Stop"}'`;
+	    chomp($hangstatus);
+	    goto OUT if($hangstatus);
+	    sleep 60;
+	    $current_time += 60;
 
 	}
         #timeout
         &log(LOG_ERROR, "TIMEOUT,please logon SUT check the job manually!");
         &log(LOG_NOTICE, "Job TIMEOUT.");
-	print $sock "TIMEOUT\n";
+	print $sock "TIMEOUT running $sut_timeout seconds ,time is up \n";
         print $sock "Job ist fertig\n";
 	OUT: 
     }else{

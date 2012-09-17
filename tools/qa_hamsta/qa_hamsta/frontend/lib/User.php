@@ -1,8 +1,10 @@
 <?php
 
-require_once ('Authenticator.php');
 require_once ('Zend/Db.php');
 require_once ('Zend/Session.php');
+
+require_once ('Authenticator.php');
+require_once ('Notificator.php');
 
 /**
  * Class represents authenticated user and provides several methods to
@@ -153,11 +155,9 @@ class User {
    */
   private function setDbPassword ($ident, $newPassword) {
     $db = Zend_Db::factory ($this->config->database);
-    $data = array ( 'password' => $newPassword );
-    if ( isset ($ident) ) {
-      $res = $db->update ('user', $data, 'user_login = '
-                          . $db-quote ( htmlspecialchars ($ident) ) );
-    }
+    $stmt = $db->query ('UPDATE user SET password = SHA1(?) WHERE user_login = ?',
+                        Array ($newPassword, $ident));
+    $res = $stmt->execute();
     $db->closeConnection ();
     return $res;
   }
@@ -259,8 +259,7 @@ class User {
         if ( ! ( empty($login) || empty ($password) ) ) {
           Authenticator::password ($login, $password, $config);
         } else {
-          $_SESSION['mtype'] = 'failure';
-          $_SESSION['message'] = 'Please fill in your credentials.';
+          Notificator::setErrorMessage ('Please fill in your credentials.');
         }
       }
       break;
@@ -331,25 +330,31 @@ class User {
   /**
    * Prints user status.
    *
-   * Prints message with user status with clickable user name
+   * Prints message with user status with clickable user name and role
    * redirecting to user configuration page. If the she is not logged
    * in the message is not printed.
    *
    * @param \Zend_Config $config Application configuration.
    */
   public static function printStatus ($config) {
-    $ident = self::getIdent();
     if ( self::isLogged () ) {
+      $ident = self::getIdent();
       if ( self::isRegistered ($ident, $config) ) {
-        $outName = self::getDbName ($ident, $config);
+        $user = self::getByLogin ($ident, $config);
+        $outName = $user->getName ();
         if ( ! isset ($outName) || empty ($outName) ) {
             $outName = $ident;
         }
+        $outRoleName = $user->getCurrentRole ()->getName ();
       } else {
         $outName = $ident;
       }
       
-      echo ('Logged in as <a href="index.php?go=user">' . $outName . "</a>");
+      echo ("Logged in as <a class=\"bold\" href=\"index.php?go=user\">"
+            . $outName
+            . "</a> (<a href=\"index.php?go=user\">"
+            . $outRoleName
+            . "</a>)\n");
     }
   }
 
@@ -416,10 +421,8 @@ class User {
    * @param \Zend_Config $config Application configuration.
    */
   public static function isRegistered ($login, $config) {
-    $auth = Authenticator::getInstance ();
-    $identity = $auth->getIdentity ();
     $db = Zend_Db::factory ($config->database);
-    $res = $db->fetchAll ('SELECT user_login FROM user WHERE user_login = ?', $identity);
+    $res = $db->fetchAll ('SELECT user_login FROM user WHERE user_login = ?', $login);
     $db->closeConnection ();
     return isset ($res[0]['user_login']);
   }
@@ -526,6 +529,16 @@ class User {
   }
 
   /**
+   * Getter for the current role of this user.
+   *
+   * @return \UserRole Current role instance of this user. 
+   */
+  public function getRole ()
+  {
+    return $this->currentRole;
+  }
+
+  /**
    * Returns result of comparison of current role name with provided
    * roleName parameter.
    *
@@ -562,6 +575,19 @@ class User {
     $res = $db->fetchCol ($sql, $this->login);
     $db->closeConnection ();
     return $res;
+  }
+
+  /**
+   * Checks if the user in current role has Privilege $privilege.
+   *
+   * @param string $privilege Privilege name.
+   *
+   * @return boolean True if user in current role has the privilege,
+   * false otherwise.
+   */
+  public function isAllowed ($privilege)
+  {
+    return $this->getRole ()->isAllowed ($privilege);
   }
 
 }
