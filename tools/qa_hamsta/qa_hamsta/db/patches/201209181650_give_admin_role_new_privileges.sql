@@ -1,0 +1,11 @@
+INSERT INTO role_privilege (privilege_id, role_id) VALUES ((SELECT privilege_id FROM privilege WHERE privilege = 'machine_powerswitch_reserved'), (SELECT role_id FROM user_role WHERE role = 'admin'));
+INSERT INTO role_privilege (privilege_id, role_id) VALUES ((SELECT privilege_id FROM privilege WHERE privilege = 'machine_delete_reserved'), (SELECT role_id FROM user_role WHERE role = 'admin'));
+INSERT INTO role_privilege (privilege_id, role_id) VALUES ((SELECT privilege_id FROM privilege WHERE privilege = 'machine_reinstall_reserved'), (SELECT role_id FROM user_role WHERE role = 'admin'));
+INSERT INTO role_privilege (privilege_id, role_id) VALUES ((SELECT privilege_id FROM privilege WHERE privilege = 'machine_edit_reserved'), (SELECT role_id FROM user_role WHERE role = 'admin'));
+INSERT INTO role_privilege (privilege_id, role_id) VALUES ((SELECT privilege_id FROM privilege WHERE privilege = 'machine_free_reserved'), (SELECT role_id FROM user_role WHERE role = 'admin'));
+INSERT INTO role_privilege (privilege_id, role_id) VALUES ((SELECT privilege_id FROM privilege WHERE privilege = 'machine_send_job_reserved'), (SELECT role_id FROM user_role WHERE role = 'admin'));
+INSERT INTO role_privilege (privilege_id, role_id) VALUES ((SELECT privilege_id FROM privilege WHERE privilege = 'machine_vnc_reserved'), (SELECT role_id FROM user_role WHERE role = 'admin'));
+INSERT INTO role_privilege (privilege_id, role_id) VALUES ((SELECT privilege_id FROM privilege WHERE privilege = 'machine_terminal_reserved'), (SELECT role_id FROM user_role WHERE role = 'admin'));
+INSERT INTO role_privilege (privilege_id, role_id) VALUES ((SELECT privilege_id FROM privilege WHERE privilege = 'machine_merge_reserved'), (SELECT role_id FROM user_role WHERE role = 'admin'));
+INSERT INTO role_privilege (privilege_id, role_id) VALUES ((SELECT privilege_id FROM privilege WHERE privilege = 'machine_add_to_group_reserved'), (SELECT role_id FROM user_role WHERE role = 'admin'));
+INSERT INTO role_privilege (privilege_id, role_id) VALUES ((SELECT privilege_id FROM privilege WHERE privilege = 'machine_remove_from_group_reserved'), (SELECT role_id FROM user_role WHERE role = 'admin'));
