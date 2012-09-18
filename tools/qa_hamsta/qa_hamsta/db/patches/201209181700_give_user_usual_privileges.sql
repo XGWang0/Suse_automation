@@ -1,0 +1,12 @@
+INSERT INTO role_privilege (privilege_id, role_id) VALUES ((SELECT privilege_id FROM privilege WHERE privilege = 'machine_powerswitch'), (SELECT role_id FROM user_role WHERE role = 'user'));
+INSERT INTO role_privilege (privilege_id, role_id) VALUES ((SELECT privilege_id FROM privilege WHERE privilege = 'machine_delete'), (SELECT role_id FROM user_role WHERE role = 'user'));
+INSERT INTO role_privilege (privilege_id, role_id) VALUES ((SELECT privilege_id FROM privilege WHERE privilege = 'machine_reinstall'), (SELECT role_id FROM user_role WHERE role = 'user'));
+INSERT INTO role_privilege (privilege_id, role_id) VALUES ((SELECT privilege_id FROM privilege WHERE privilege = 'machine_edit_reserve'), (SELECT role_id FROM user_role WHERE role = 'user'));
+INSERT INTO role_privilege (privilege_id, role_id) VALUES ((SELECT privilege_id FROM privilege WHERE privilege = 'machine_free'), (SELECT role_id FROM user_role WHERE role = 'user'));
+INSERT INTO role_privilege (privilege_id, role_id) VALUES ((SELECT privilege_id FROM privilege WHERE privilege = 'machine_send_job'), (SELECT role_id FROM user_role WHERE role = 'user'));
+INSERT INTO role_privilege (privilege_id, role_id) VALUES ((SELECT privilege_id FROM privilege WHERE privilege = 'machine_vnc'), (SELECT role_id FROM user_role WHERE role = 'user'));
+INSERT INTO role_privilege (privilege_id, role_id) VALUES ((SELECT privilege_id FROM privilege WHERE privilege = 'machine_terminal'), (SELECT role_id FROM user_role WHERE role = 'user'));
+INSERT INTO role_privilege (privilege_id, role_id) VALUES ((SELECT privilege_id FROM privilege WHERE privilege = 'machine_merge'), (SELECT role_id FROM user_role WHERE role = 'user'));
+INSERT INTO role_privilege (privilege_id, role_id) VALUES ((SELECT privilege_id FROM privilege WHERE privilege = 'machine_add_to_group'), (SELECT role_id FROM user_role WHERE role = 'user'));
+INSERT INTO role_privilege (privilege_id, role_id) VALUES ((SELECT privilege_id FROM privilege WHERE privilege = 'machine_remove_from_group'), (SELECT role_id FROM user_role WHERE role = 'user'));
+INSERT INTO role_privilege (privilege_id, role_id) VALUES ((SELECT privilege_id FROM privilege WHERE privilege = 'autopxe_start'), (SELECT role_id FROM user_role WHERE role = 'user'));
