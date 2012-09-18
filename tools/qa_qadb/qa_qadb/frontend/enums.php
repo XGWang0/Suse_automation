@@ -23,14 +23,7 @@ if( $step=='d' )	{
 else if( $step=='stat' )	{
 	$table=http('table');
 	$data=mysql_foreign_keys_list($table,1);
-	if(1)	{
-		print html_groupped_table($data,array(
-			'group_y'=>array($enums[$table][1]),
-			'group_x'=>array('table','column'),
-		));
-	} else {
-		print html_table($data);
-	}
+	print html_table($data,array('total'=>1,'id'=>'stat','sort'=>'s'.str_repeat('i',count($data[0])-1)));
 }
 else	{
 	$data = mysql_foreign_keys_list_all();

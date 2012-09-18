@@ -779,22 +779,28 @@ function mysql_foreign_keys_list_all()	{
 
 /**
   * Lists tables and columns referencing a table
+  * When $usage=1, prints a statistics instead
   **/
 function mysql_foreign_keys_list($tbl,$usage=0,$header=1,$limit=array(5000))	{
-	$data=mhash_query(1,null,"SELECT table_name AS `table`,column_name AS `column` FROM information_schema.key_column_usage WHERE referenced_table_name=?",'s',$tbl);
+	$data=mhash_query($header,$limit,"SELECT table_name AS `table`,column_name AS `column` FROM information_schema.key_column_usage WHERE referenced_table_name=?",'s',$tbl);
 	if( !$usage )
 		return $data;
-	$s=array();
 	$eid=eid($tbl);
 	$ename=ename($tbl);
-	for($i=1;$i<count($data);$i++)	{
+
+	$c=array();
+	$sub=array();
+	for( $i=($header ? 1:0); $i<count($data); $i++ )	{
 		$t=$data[$i]['table'];
-		$c=$data[$i]['column'];
-		$s[]="(SELECT '$t' AS `table`,'$c' AS `column`,`$tbl`.$ename AS $ename,COUNT(*) AS `count` FROM `$t` JOIN `$tbl` ON(`$t`.`$c`=`$tbl`.$eid) GROUP BY `$t`.`$c`)\n";
+		$a=$data[$i]['column'];
+		$ci='c'.$i;
+		$c[$ci] = "$ci AS '$t<br/>$a'";
+		$sub[] = "(SELECT COUNT(*) FROM `$t` WHERE t.$eid=`$t`.`$a`) AS $ci";
 	}
-	$s[]="(SELECT NULL AS `table`,NULL AS `column`,$ename,0 AS `count` FROM `$tbl`)";
-	$sql=join(' UNION ',$s)." ORDER BY $ename,count DESC";
-	print "<br/><pre>SQL=$sql</pre><br/>\n";
+	$fields = "$ename,".join(',',array_values($c)).','.join('+',array_keys($c)).' AS total';
+	$sql = "SELECT $fields FROM ( SELECT t.$ename,".join(',',$sub)." FROM `$tbl` t ) x";
+	$sql .= ' ORDER BY total DESC';
+#	print "<br/><pre>SQL=$sql</pre><br/>\n";
 	return mhash_query($header,$limit,$sql);
 }
 ?>
