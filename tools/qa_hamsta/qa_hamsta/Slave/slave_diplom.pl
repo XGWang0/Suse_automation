@@ -411,7 +411,9 @@ sub start_job() {
         		&log(LOG_NOTICE, "Can not found package $j timeout ,use 86400 (s)");
 			$sut_timeout += 86400;  #24hours
 		}
-            }
+            }else {
+		$sut_timeout = 86400;  #24hours
+	    }
         }
         &log(LOG_NOTICE, "The Job Time out is $sut_timeout (s)");
 
