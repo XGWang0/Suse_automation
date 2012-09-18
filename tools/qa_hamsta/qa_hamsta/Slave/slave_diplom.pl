@@ -412,7 +412,9 @@ sub start_job() {
 			$sut_timeout += 86400;  #24hours
 		}
             }
-        }
+        }else {
+		$sut_timeout = 86400;
+	}
         &log(LOG_NOTICE, "The Job Time out is $sut_timeout (s)");
 
 	my $current_time=0;
@@ -421,7 +423,11 @@ sub start_job() {
 	    #check the hang status : result is submit to QADB ,but job was hung.
 	    my $hangstatus = `pstree $fork_re|head -1|awk -F'-+' '{if(NF==4 && \$NF=="perl")print "Stop"}'`;
 	    chomp($hangstatus);
-	    goto OUT if($hangstatus);
+	    if($hangstatus){
+		print $sock "Job was done , some process need to clean manually \n";
+		print $sock "Job ist fertig\n";
+		goto OUT;
+	    }
 	    sleep 60;
 	    $current_time += 60;
 
@@ -430,6 +436,7 @@ sub start_job() {
         &log(LOG_ERROR, "TIMEOUT,please logon SUT check the job manually!");
         &log(LOG_NOTICE, "Job TIMEOUT.");
 	print $sock "TIMEOUT running $sut_timeout seconds ,time is up \n";
+	print $sock "Please logon SUT check the job manually!";
         print $sock "Job ist fertig\n";
 	OUT: 
     }else{
