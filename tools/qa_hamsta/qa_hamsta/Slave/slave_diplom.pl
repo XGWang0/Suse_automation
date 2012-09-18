@@ -408,22 +408,19 @@ sub start_job() {
 			&log(LOG_NOTICE, "Found package $j timeout $time_o (s)");
 			$sut_timeout += $time_o ;
 		} else {
-        		&log(LOG_NOTICE, "Can not found package $j timeout ,use 86400 (s)");
-			$sut_timeout += 86400;  #24hours
+        		&log(LOG_NOTICE, "Can not found package $j timeout ,use 21600 (s)");
+			$sut_timeout += 21600;
 		}
             }
         }
+        $sut_timeout = 86400 if($sut_timeout ==0);   #24hours
         &log(LOG_NOTICE, "The Job Time out is $sut_timeout (s)");
 
 	my $current_time=0;
 	while ($current_time < $sut_timeout) {
 	    goto OUT if(waitpid($fork_re, WNOHANG));
-	    #check the hang status : result is submit to QADB ,but job was hung.
-	    my $hangstatus = `pstree $fork_re|head -1|awk -F'-+' '{if(NF==4 && \$NF=="perl")print "Stop"}'`;
-	    chomp($hangstatus);
-	    goto OUT if($hangstatus);
-	    sleep 60;
-	    $current_time += 60;
+	    sleep 5;
+	    $current_time += 5;
 
 	}
         #timeout
