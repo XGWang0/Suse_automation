@@ -171,12 +171,22 @@ class User {
    * @return string Cached role name or ROLE_SESSION_NAMESPACE.
    */
   private static function getCachedOrDefaultRole() {
-    $ns = new Zend_Session_Namespace (self::ROLE_SESSION_NAMESPACE);
-    if ( isset($ns->curRole) ) {
-      return $ns->curRole;
-    } else {
-      return self::DEFAULT_ROLE;
-    }
+    try
+      {
+        $ns = new Zend_Session_Namespace (self::ROLE_SESSION_NAMESPACE);
+        if ( isset($ns->curRole) )
+          {
+            return $ns->curRole;
+          }
+        else
+          {
+            return self::DEFAULT_ROLE;
+          }
+      }
+    catch (Zend_Session_Exception $e)
+      {
+        return self::DEFAULT_ROLE;
+      }
   }
 
   /**
