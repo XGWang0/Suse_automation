@@ -60,9 +60,24 @@ class Notificator
     /* No instance creation allowed. */
   }
 
-  private static function getNamepace ($ns)
+  /**
+   * Get session namespace with messages.
+   *
+   * @param string $ns Name of the session namespace to retrieve.
+   *
+   * @return \Zend_Session_Namespace Returns instance of the namespace
+   * from parameter or null if some error occurs.
+   */
+  private static function getNamespace ($ns)
   {
-    return new Zend_Session_Namespace ($ns);
+    try
+      {
+        return new Zend_Session_Namespace ($ns);
+      }
+    catch (Zend_Session_Exception $e)
+      {
+        return null;
+      }
   }
 
   /**
@@ -73,7 +88,7 @@ class Notificator
    */
   public static function setMessage ($message, $type)
   {
-    $ns = self::getNamepace (self::MESSAGE_SESSION_NAMESPACE);
+    $ns = self::getNamespace (self::MESSAGE_SESSION_NAMESPACE);
     $ns->message = $message;
     $ns->messType = $type;
   }
@@ -105,8 +120,10 @@ class Notificator
    */
   public static function hasMessage ()
   {
-    $ns = self::getNamepace (self::MESSAGE_SESSION_NAMESPACE);
-    return ( isset ($ns->message) && isset ($ns->messType) );
+    $ns = self::getNamespace (self::MESSAGE_SESSION_NAMESPACE);
+    return isset ($ns)
+      ? ( isset ($ns->message) && isset ($ns->messType) )
+      : null;
   }
 
   /**
@@ -117,19 +134,25 @@ class Notificator
    */
   public static function getMessage ()
   {
-    $ns = self::getNamepace (self::MESSAGE_SESSION_NAMESPACE);
-    return $ns->message;
+    $ns = self::getNamespace (self::MESSAGE_SESSION_NAMESPACE);
+    return isset ($ns)
+      ? $ns->message
+      : null;
   }
 
   /**
    * Returns type of the message.
    *
    * You can check against some of the constants provided by this class.
+   *
+   * @return string Type of message or null if none is saved.
    */
   public static function getMessageType ()
   {
-    $ns = self::getNamepace (self::MESSAGE_SESSION_NAMESPACE);
-    return $ns->messType;
+    $ns = self::getNamespace (self::MESSAGE_SESSION_NAMESPACE);
+    return isset ($ns)
+      ? $ns->messType
+      : null;
   }
 
   /**
@@ -139,23 +162,26 @@ class Notificator
   {
     $msg = self::getMessage ();
     $type = self::getMessageType ();
-    /* A unique identifier for the message (so that there can
-     * potentially be more than one on a page). */
-    $id = mt_rand(100000, 999999);
-    /** This was stolen directly from the TBLib. It is total mess and
-     * should be cleaned up and made more generic (maybe create some
-     * container for a notifications). */
-    /* The main dialog box */
-    echo ('<div class="message ' . $type . '" id="message-' . $id . '">' . "\n");
-    /* The close button */
-    echo ('  <img src="/tblib/icons/close.png" class="close"'
-          . ' id="message-close-' . $id
-          . '" alt="Close this Message" title="Close this Message" />' . "\n");
-    /* The message itself */
-    echo ('  <div class="text-main">' . htmlspecialchars($msg) . '</div>'
-          . "\n</div>\n");
-    /* Jquery effect */
-    echo ('<script type="text/javascript">
+    if ( isset ($msg) && isset ($type) )
+      {
+
+        /* A unique identifier for the message (so that there can
+         * potentially be more than one on a page). */
+        $id = mt_rand(100000, 999999);
+        /** This was stolen directly from the TBLib. It is total mess and
+         * should be cleaned up and made more generic (maybe create some
+         * container for a notifications). */
+        /* The main dialog box */
+        echo ('<div class="message ' . $type . '" id="message-' . $id . '">' . "\n");
+        /* The close button */
+        echo ('  <img src="/tblib/icons/close.png" class="close"'
+              . ' id="message-close-' . $id
+              . '" alt="Close this Message" title="Close this Message" />' . "\n");
+        /* The message itself */
+        echo ('  <div class="text-main">' . htmlspecialchars($msg) . '</div>'
+              . "\n</div>\n");
+        /* Jquery effect */
+        echo ('<script type="text/javascript">
   $("#message-close-' . $id . '").click(
   function()
   {
@@ -166,6 +192,7 @@ class Notificator
     });
   });
 </script>' . "\n");
+      }
   }
 
   /**
@@ -173,8 +200,9 @@ class Notificator
    */
   public static function delete ()
   {
-    $ns = self::getNamepace (self::MESSAGE_SESSION_NAMESPACE);
-    $ns->unsetAll ();
+    $ns = self::getNamespace (self::MESSAGE_SESSION_NAMESPACE);
+    if ( isset ($ns) )
+         $ns->unsetAll ();
   }
 
   /**
