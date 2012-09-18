@@ -412,7 +412,9 @@ sub start_job() {
 			$sut_timeout += 86400;  #24hours
 		}
             }
-        }
+        }else {
+		$sut_timeout = 86400;
+	}
         &log(LOG_NOTICE, "The Job Time out is $sut_timeout (s)");
 
 	my $current_time=0;
