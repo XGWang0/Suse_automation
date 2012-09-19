@@ -55,7 +55,8 @@
               $used_by = User::getByLogin($machine->get_used_by_login(), $config);
               if ( isset ($used_by) && $used_by->getLogin() != $user->getLogin()
                    && ! $user->isAllowed ('machine_edit_reserved') ) {
-                Notificator::setErrorMessage ('You cannot modify a machine reserved by other user.');
+                Notificator::setErrorMessage ('You cannot modify a machine'
+                                              . ' that is reserved by other user.');
                 header('Location: index.php?go=machines');
                 exit ();
               }
