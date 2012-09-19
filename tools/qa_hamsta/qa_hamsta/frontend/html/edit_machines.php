@@ -63,7 +63,7 @@
 			$valuer = $item_list[$machine->get_id()];
 		}
 		if (!isset($valuer)) {
-			$valuer = $machine->get_used_by();
+			$valuer = $machine->get_used_by_login();
 		}
 		if ($valuer == "" && isset($user)) {
 			$valuer = $user->getIdent();
