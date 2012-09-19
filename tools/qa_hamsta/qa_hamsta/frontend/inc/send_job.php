@@ -122,7 +122,7 @@ else
 		foreach ($machines as $machine) {
 			foreach ($jobfilenames as $filename) {
 				if ($machine->send_job($filename)) {
-				    Log::create($machine->get_id(), $machine->get_used_by(), 'JOB_START', "has sent a \"pre-defined\" job to this machine (Job name: \"" . htmlspecialchars(basename($filename)) . "\")");
+				    Log::create($machine->get_id(), $machine->get_used_by_login(), 'JOB_START', "has sent a \"pre-defined\" job to this machine (Job name: \"" . htmlspecialchars(basename($filename)) . "\")");
 				} else {
 					$error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
 				}

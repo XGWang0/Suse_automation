@@ -64,7 +64,7 @@
 	if( request_str("submit") )
 		foreach( $machines as $machine ) {
 			if($machine->send_job($autotestjobfile)) {
-				Log::create($machine->get_id(), $machine->get_used_by(), 'JOB_START', "has sent an \"autotest\" job to this machine (Job name: \"" . htmlspecialchars($jobname) . "\")");
+				Log::create($machine->get_id(), $machine->get_used_by_login(), 'JOB_START', "has sent an \"autotest\" job to this machine (Job name: \"" . htmlspecialchars($jobname) . "\")");
 			} else {
 				$error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
 			}
