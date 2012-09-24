@@ -23,15 +23,36 @@
   ****************************************************************************
  */
 
-	/**
-	 * Logic of the validation test page 
-	 */
+  /**
+   * Logic of the validation test page 
+   */
 
-	if (!defined('HAMSTA_FRONTEND')) {
-		$go = 'validation';
-		return require("../index.php");
-	}
-	$html_title="Validation test";
+if (!defined('HAMSTA_FRONTEND')) {
+  $go = 'validation';
+  return require("index.php");
+ }
+$html_title="Validation test";
+
+/* First check if the user has privileges to run this functionality. */
+if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
+  {
+    $user = User::getInstance ($config);
+    if ( ! $user->isAllowed ('validation_start') )
+      {
+        Notificator::setErrorMessage ("You do not have privileges to "
+                                      . "run validation tests.");
+        header ("Location: index.php");
+        exit ();
+      }
+  }
+else
+  {
+    Notificator::setErrorMessage ("You have to logged in and registered to "
+                                  . "run validation tests.");
+    header ("Location: index.php");
+    exit ();
+  }
+
 	$json = file_get_contents(REPO_INDEX_URL);
 	if ($json == ""){
 		echo json_encode(array());
