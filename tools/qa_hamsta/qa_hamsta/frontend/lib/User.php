@@ -54,6 +54,8 @@ class User {
   private $currentRole;
   /** @var \Zend_Config Application configuration. */
   private $config;
+  /** @var string[] List of role names this user is cast in. */
+  private $userRoles = null;
 
   /**
    * Creates new instance.
@@ -70,6 +72,7 @@ class User {
     $this->name = $name;
     $this->email = $email;
     $this->currentRole = $role;
+    $this->userRoles = $this->getRoleList ();
   }
 
   /**
@@ -340,9 +343,9 @@ class User {
   /**
    * Prints user status.
    *
-   * Prints message with user status with clickable user name and role
-   * redirecting to user configuration page. If the she is not logged
-   * in the message is not printed.
+   * Prints message displaying user status with clickable user name
+   * and role redirecting to user configuration page. If the she is
+   * not logged in the message is not printed.
    *
    * @param \Zend_Config $config Application configuration.
    */
@@ -361,10 +364,12 @@ class User {
       }
       
       echo ("Logged in as <a class=\"bold\" href=\"index.php?go=user\">"
-            . $outName
-            . "</a> (<a href=\"index.php?go=user\">"
-            . $outRoleName
-            . "</a>)\n");
+            . $outName . "</a>"
+            . (count ($user->getRoleList ()) > 1
+               ? ("(<a href=\"index.php?go=user\">" . $outRoleName
+                  . "</a>)")
+               : "")
+            . "\n");
     }
   }
 
@@ -580,11 +585,18 @@ class User {
    * @return string[] List of roles this user can be cast in.
    */
   public function getRoleList () {
-    $db = Zend_Db::factory ($this->config->database);
-    $sql = 'SELECT role FROM user NATURAL JOIN user_in_role NATURAL JOIN user_role WHERE user_login = ?';
-    $res = $db->fetchCol ($sql, $this->login);
-    $db->closeConnection ();
-    return $res;
+    if ( isset ($this->userRoles) )
+      {
+        return $this->userRoles;
+      }
+    else
+      {
+        $db = Zend_Db::factory ($this->config->database);
+        $sql = 'SELECT role FROM user NATURAL JOIN user_in_role NATURAL JOIN user_role WHERE user_login = ?';
+        $res = $db->fetchCol ($sql, $this->login);
+        $db->closeConnection ();
+        return $res;
+      }
   }
 
   /**
