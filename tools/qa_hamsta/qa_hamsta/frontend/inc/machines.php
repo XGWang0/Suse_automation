@@ -36,6 +36,13 @@
 		return require("index.php");
 	}
 
+/* Retrieve an user instance if we can. */
+$user = null;
+if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
+  {
+    $user = User::getInstance ($config);
+  }
+
 	switch (request_str("action")) {
 		case "edit":
 			$go = "edit_machines";
