@@ -178,5 +178,4 @@ $qadb_web = exec('/usr/share/qa/tools/get_qa_config qadb_wwwroot');
 $virtdisktypes = array("def", "file", "tap:aio", "tap:qcow", "tap:qcow2");
 
 $hamstaVersion = htmlspecialchars(`rpm -q qa_hamsta-master`);
-$packageVersions = explode("\n", htmlspecialchars(`REPO=$(zypper lr -u | grep ibs/QA:/Head | awk '{FS="|"; print $3}'); zypper se -sr \$REPO | awk '{FS="|"; gsub(" ", "", $2); gsub(" ", "", $4); print $2 " " $4}'`));
 ?>
