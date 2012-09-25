@@ -35,9 +35,12 @@
             $existFileName = $real_file;
 
         # define the default data of job XML file
-        $jobInfo = array( 'name'=>'yourjobname',               'level'=>'3',
-                          'description'=>"your job descption", 'motd'=>'your job motd message',
-                          'mailto'=>'hamsta@suse.com',         'rpmlist'=>'');
+        $jobInfo = array( 'name'=>'yourjobname',
+                          'level'=>'3',
+                          'description'=>"your job descption",
+                          'motd'=>'your job motd message',
+                          'mailto'=>(isset($user) ? $user->getEmail() : 'hamsta@suse.com'),
+                          'rpmlist'=>'');
 
         $roleCount = 0;
         $paramCount = 0;
