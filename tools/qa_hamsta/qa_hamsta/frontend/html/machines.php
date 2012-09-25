@@ -60,7 +60,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 	<?php $used_by_name = $machine->get_used_by_name($config);
                         echo ('<td>' . ( isset ($used_by_name)
                                              ? $used_by_name
-                                             : $machine->get_used_by())
+                                             : $machine->get_used_by_login())
                               . "</td>\n"); ?>
 <?php
   foreach ($fields_list as $key=>$value)
