@@ -63,20 +63,25 @@ if (!defined('HAMSTA_FRONTEND')) {
 		if (array_key_exists($machine->get_id(), $item_list)) {
 			$valuer = $item_list[$machine->get_id()];
 		}
+
 		if (!isset($valuer)) {
 			$valuer = $machine->get_used_by_login();
 		}
-		if ($valuer == "" && isset($user)) {
+
+		if (!isset($valuer) && isset($user)) {
 			$valuer = $user->getIdent();
 		}
 
+                $used_by = User::getByLogin($valuer, $config);
 		$column[] = "<input name=\"used_by["
                   .$machine->get_id()
                   ."]\" value=\"$valuer\" style=\"width: 200px;\" tabindex="
                   .$counterAddValue++
-                  .(( $used_by = User::getByLogin($valuer, $config) )
-                    ? " type=\"hidden\" />".$used_by->getName()
-                    : " \>");
+                  . " type=\"hidden\" />"
+                  .(( isset ($used_by)
+                      && $used_by->getName() != '')
+                        ? $used_by->getName()
+                        : $valuer);
 		$valuer = NULL;
 
 		# Common columns (configurable)
