@@ -42,18 +42,46 @@ $search = new MachineSearch();
 $search->filter_in_array(request_array("a_machines"));
 $machines = $search->query();
 
-# Verify user has rights to modify the machine
-if (User::isLogged() && $user = User::getInstance($config)) {
-       	foreach ($machines as $machine) {
-                $used_by = User::getByLogin($machine->get_used_by(), $config);
-                if (isset ($used_by) && $used_by->getLogin() != $user->getLogin()) {
-			$_SESSION['mtype'] = "fail";
-			$_SESSION['message'] = "You cannot reinstall a reserved machine.";
-			header('Location: index.php?go=qacloud');
-			exit();
-		}
-	}
-}
+/* Check if user is logged in, registered and have sufficient privileges. */
+if ( $config->authentication->use
+     && ( ! User::isLogged() || ! User::isRegistered (User::getIdent (), $config) ) )
+  {
+    Notificator::setErrorMessage ('You have to be logged in to reinstall a machine.');
+    header('Location: index.php');
+    exit ();
+  }
+
+/* Now check if the user tries to reinstall only her machines or if
+ * she can reinstall also reserved machines. */
+if ( $config->authentication->use )
+  {
+    if ( $user = User::getInstance($config) )
+      {
+        if ( ($user->isAllowed ('machine_reinstall')
+              || $user->isAllowed ('machine_reinstall_reserved')) )
+          {
+            foreach($machines as $machine)
+              {
+                $used_by = User::getByLogin ($machine->get_used_by_login (), $config);
+                if ( ! isset ($used_by) || isset ($used_by)
+                     && $used_by->getLogin () != $user->getLogin ()
+                     && ! $user->isAllowed ('machine_reinstall_reserved') )
+                  {
+                    Notificator::setErrorMessage ('You cannot reinstall a machine'
+                                                  . ' that is not reserved or is reserved by other user.');
+                    header('Location: index.php');
+                    exit();
+                  }
+              }
+          }
+        else
+          {
+            Notificator::setErrorMessage ('You do not have permission to reinstall a machine.');
+            header('Location: index.php');
+            exit ();
+          }
+      }
+  }
 
 foreach($machines as $m) {
 	$m->get_children();
