@@ -95,10 +95,10 @@ tsRegister();
   <option value="create_group">Add to group</option>
   <option value="group_del_machines">Remove from group</option>
   <option value="vhreinstall">Reinstall as Virtualization Host</option> 
-  <option value="upgrade">upgrade to higher</option> 
+  <option value="upgrade">Upgrade to higher</option> 
 <!--   <option value="create_autobuild">Add to Autobuild</option> -->
 <!--   <option value="delete_autobuild">Remove from Autobuild</option> -->
-  <option value="merge_machines">Merge machines (experimental)</option>
+  <option value="merge_machines">Merge machines</option>
   <option value="delete">Delete</option>
 </select>
 <input type="submit" value="Go">
