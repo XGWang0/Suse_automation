@@ -34,23 +34,26 @@ if (!defined('HAMSTA_FRONTEND')) {
 $html_title="Validation test";
 
 /* First check if the user has privileges to run this functionality. */
-if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
+if ( $config->authentication->use )
   {
-    $user = User::getInstance ($config);
-    if ( ! $user->isAllowed ('validation_start') )
+    if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
       {
-        Notificator::setErrorMessage ("You do not have privileges to "
+        $user = User::getInstance ($config);
+        if ( ! $user->isAllowed ('validation_start') )
+          {
+            Notificator::setErrorMessage ("You do not have privileges to "
+                                          . "run validation tests.");
+            header ("Location: index.php");
+            exit ();
+          }
+      }
+    else
+      {
+        Notificator::setErrorMessage ("You have to logged in and registered to "
                                       . "run validation tests.");
         header ("Location: index.php");
         exit ();
       }
-  }
-else
-  {
-    Notificator::setErrorMessage ("You have to logged in and registered to "
-                                  . "run validation tests.");
-    header ("Location: index.php");
-    exit ();
   }
 
 	$json = file_get_contents(REPO_INDEX_URL);

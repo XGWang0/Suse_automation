@@ -40,33 +40,36 @@
 	}
 
         /* Verify user has rights to modify the machine. */
-        if ( User::isLogged() && User::isRegistered (User::getIdent (), $config) )
+        if ( $config->authentication->use )
           {
-            $user = User::getInstance($config);
-            if ( ! ($user->isAllowed ('machine_edit_reserve')
-                    || $user->isAllowed ('machine_edit_reserved')) ) {
-              Notificator::setErrorMessage ('You do not have permission to edit/reserve a machine.');
-              header('Location: index.php?go=machines');
-              exit ();
-            }
-
-            foreach ($allmachines as $machine_id)
+            if ( User::isLogged() && User::isRegistered (User::getIdent (), $config) )
               {
-                $machine = Machine::get_by_id($machine_id);
-                $used_by = User::getByLogin($machine->get_used_by_login(), $config);
-                if ( isset ($used_by) && $used_by->getLogin() != $user->getLogin()
-                     && ! $user->isAllowed ('machine_edit_reserved') ) {
-                  Notificator::setErrorMessage ('You cannot modify a machine'
-                                                . ' that is reserved by other user.');
+                $user = User::getInstance($config);
+                if ( ! ($user->isAllowed ('machine_edit_reserve')
+                        || $user->isAllowed ('machine_edit_reserved')) ) {
+                  Notificator::setErrorMessage ('You do not have permission to edit/reserve a machine.');
                   header('Location: index.php?go=machines');
                   exit ();
                 }
-              }
-          } else {
-          Notificator::setErrorMessage ('You have to be logged in to modify a machine.');
-          header('Location: index.php?go=machines');
-          exit ();
-        }
+
+                foreach ($allmachines as $machine_id)
+                  {
+                    $machine = Machine::get_by_id($machine_id);
+                    $used_by = User::getByLogin($machine->get_used_by_login(), $config);
+                    if ( isset ($used_by) && $used_by->getLogin() != $user->getLogin()
+                         && ! $user->isAllowed ('machine_edit_reserved') ) {
+                      Notificator::setErrorMessage ('You cannot modify a machine'
+                                                    . ' that is reserved by other user.');
+                      header('Location: index.php?go=machines');
+                      exit ();
+                    }
+                  }
+              } else {
+              Notificator::setErrorMessage ('You have to be logged in to modify a machine.');
+              header('Location: index.php?go=machines');
+              exit ();
+            }
+          }
 
         /* If they are doing the shortcut field clearing */
 	if (request_str("action") == "clear")

@@ -82,36 +82,39 @@
     $machines = $search->query();
 
 /* Check if user has privileges to delete a machines. */
-if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
+if ( $config->authentication->use )
   {
-    $user = User::getInstance ($config);
-    if ( $user->isAllowed ('machine_delete') || $user->isAllowed ('machine_delete_reserved') )
+    if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
       {
-        foreach ($machines as $machine)
+        $user = User::getInstance ($config);
+        if ( $user->isAllowed ('machine_delete') || $user->isAllowed ('machine_delete_reserved') )
           {
-            if ( ! ( $machine->get_used_by_login () == $user->getLogin () 
-                     || $user->isAllowed ('machine_delete_reserved')) )
+            foreach ($machines as $machine)
               {
-                Notificator::setErrorMessage ("You cannot delete a machine that is not reserved"
-                                              . " or is reserved by other user.");
-                header ("Location: index.php?go=machines");
-                exit ();
+                if ( ! ( $machine->get_used_by_login () == $user->getLogin () 
+                         || $user->isAllowed ('machine_delete_reserved')) )
+                  {
+                    Notificator::setErrorMessage ("You cannot delete a machine that is not reserved"
+                                                  . " or is reserved by other user.");
+                    header ("Location: index.php?go=machines");
+                    exit ();
+                  }
               }
+          }
+        else
+          {
+            Notificator::setErrorMessage ("You do not have privileges to delete a machine.");
+            header ("Location: index.php?go=machines");
+            exit ();
           }
       }
     else
       {
-        Notificator::setErrorMessage ("You do not have privileges to delete a machine.");
+        Notificator::setErrorMessage ("You have to be logged in and registered to delete a machine.");
         header ("Location: index.php?go=machines");
         exit ();
       }
   }
- else
-   {
-     Notificator::setErrorMessage ("You have to be logged in and registered to delete a machine.");
-     header ("Location: index.php?go=machines");
-     exit ();
-   }
     
     $html_title = "Delete machines";
 ?>

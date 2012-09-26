@@ -32,21 +32,24 @@ if (!defined('HAMSTA_FRONTEND')) {
 }
 
 /* First check if the user has privileges to run this functionality. */
-if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
+if ( $config->authentication->use )
   {
-    $user = User::getInstance ($config);
-    if ( ! $user->isAllowed ('autopxe_start') )
+    if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
       {
-        Notificator::setErrorMessage ("You do not have privileges to use AutoPXE.");
+        $user = User::getInstance ($config);
+        if ( ! $user->isAllowed ('autopxe_start') )
+          {
+            Notificator::setErrorMessage ("You do not have privileges to use AutoPXE.");
+            header ("Location: index.php");
+            exit ();
+          }
+      }
+    else
+      {
+        Notificator::setErrorMessage ("You have to logged in and registered to use AutoPXE.");
         header ("Location: index.php");
         exit ();
       }
-  }
-else
-  {
-    Notificator::setErrorMessage ("You have to logged in and registered to use AutoPXE.");
-    header ("Location: index.php");
-    exit ();
   }
 
 $search = new MachineSearch();
