@@ -97,11 +97,10 @@ class Log {
 	/**
 	 * Getter for a user that created this entry.
 	 *
-	 * @access public
-	 * @return string Actor of the machine log entry (currently same as "usedby"
-	 *    field in machine table).
+	 * @return string Actor of the machine log entry (the value is
+	 *    the same as "user_login" attribute in 'user' relation).
 	 */
-	function get_log_user() {
+	public function get_log_user() {
 		if( isset($this->fields["log_user"]) )
 			return $this->fields["log_user"];
 		else

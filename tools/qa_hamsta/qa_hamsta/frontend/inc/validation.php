@@ -23,15 +23,39 @@
   ****************************************************************************
  */
 
-	/**
-	 * Logic of the validation test page 
-	 */
+  /**
+   * Logic of the validation test page 
+   */
 
-	if (!defined('HAMSTA_FRONTEND')) {
-		$go = 'validation';
-		return require("../index.php");
-	}
-	$html_title="Validation test";
+if (!defined('HAMSTA_FRONTEND')) {
+  $go = 'validation';
+  return require("index.php");
+ }
+$html_title="Validation test";
+
+/* First check if the user has privileges to run this functionality. */
+if ( $config->authentication->use )
+  {
+    if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
+      {
+        $user = User::getInstance ($config);
+        if ( ! $user->isAllowed ('validation_start') )
+          {
+            Notificator::setErrorMessage ("You do not have privileges to "
+                                          . "run validation tests.");
+            header ("Location: index.php");
+            exit ();
+          }
+      }
+    else
+      {
+        Notificator::setErrorMessage ("You have to logged in and registered to "
+                                      . "run validation tests.");
+        header ("Location: index.php");
+        exit ();
+      }
+  }
+
 	$json = file_get_contents(REPO_INDEX_URL);
 	if ($json == ""){
 		echo json_encode(array());
@@ -100,7 +124,7 @@
 				}
 				foreach ( $validationfiles as &$validationfile ) {
 					if ($machine->send_job($validationfile)) {
-						Log::create($machine->get_id(), $machine->get_used_by(), 'JOB_START', "has started the automated build validation for this machine (install + tests)");
+						Log::create($machine->get_id(), $machine->get_used_by_login(), 'JOB_START', "has started the automated build validation for this machine (install + tests)");
 					} else {
 						$error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
 					}
