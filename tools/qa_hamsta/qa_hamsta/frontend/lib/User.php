@@ -66,7 +66,8 @@ class User {
    * @param string $email E-mail of the user.
    * @param \UserRole $role Role to set for the user.
    */
-  private function __construct ($config, $login, $name, $email, $role) {
+  private function __construct ($config, $login, $name, $email, $role)
+  {
     $this->config = $config;
     $this->login = $login;
     $this->name = $name;
@@ -83,13 +84,21 @@ class User {
    *
    * @return mixed Name of the user if found or NULL.
    */
-  private static function getDbName ($ident, $config) {
-    $db = Zend_Db::factory ($config->database);
-    if ( isset ($ident) )
-      $res = $db->fetchAll ('SELECT name FROM `user` WHERE user_login = ?', $ident);
+  private static function getDbName ($ident, $config)
+  {
+    try
+      {
+        $db = Zend_Db::factory ($config->database);
+        if ( isset ($ident) )
+          $res = $db->fetchAll ('SELECT name FROM `user` WHERE user_login = ?', $ident);
 
-    $db->closeConnection ();
-    return isset ($res[0]['name']) ? $res[0]['name'] : NULL;
+        $db->closeConnection ();
+        return isset ($res[0]['name']) ? $res[0]['name'] : null;
+      }
+    catch (Zend_Db_Exception $e)
+      {
+        return null;
+      }
   }
 
   /**
@@ -100,13 +109,21 @@ class User {
    *
    * @return mixed Email of the user if found or NULL.
    */
-  private static function getDbEmail ($ident, $config) {
-    $db = Zend_Db::factory ($config->database);
-    if ( isset ($ident) )
-      $res = $db->fetchAll ('SELECT email FROM `user` WHERE user_login = ?', $ident);
-
-    $db->closeConnection ();
-    return isset ($res[0]['email']) ? $res[0]['email'] : NULL;
+  private static function getDbEmail ($ident, $config)
+  {
+    try
+      {
+        $db = Zend_Db::factory ($config->database);
+        if ( isset ($ident) )
+          $res = $db->fetchAll ('SELECT email FROM `user` WHERE user_login = ?', $ident);
+        
+        $db->closeConnection ();
+        return isset ($res[0]['email']) ? $res[0]['email'] : null;
+      }
+    catch (Zend_Db_Exception $e)
+      {
+        return null;
+      }
   }
 
   /**
@@ -117,16 +134,24 @@ class User {
    *
    * @return integer Number greater than zero on success, zero otherwise.
    */
-  private function setDbName ($ident, $newName) {
-    $db = Zend_Db::factory ($this->config->database);
-    $ident = $db->quote ($ident);
-    $name = $db->quote ($newName);
-    $data = array ( 'name' => $newName );
-    if ( isset ($ident) ) {
-      $res = $db->update ('user', $data, 'user_login = ' . $ident);
-    }
-    $db->closeConnection ();
-    return $res;
+  private function setDbName ($ident, $newName)
+  {
+    try
+      {
+        $db = Zend_Db::factory ($this->config->database);
+        $ident = $db->quote ($ident);
+        $name = $db->quote ($newName);
+        $data = array ( 'name' => $newName );
+        if ( isset ($ident) ) {
+          $res = $db->update ('user', $data, 'user_login = ' . $ident);
+        }
+        $db->closeConnection ();
+        return $res;
+      }
+    catch (Zend_Db_Exception $e)
+      {
+        return 0;
+      }
   }
 
   /**
@@ -137,15 +162,23 @@ class User {
    *
    * @return integer Number greater than zero on success, zero otherwise.
    */
-  private function setDbEmail ($ident, $newEmail) {
-    $db = Zend_Db::factory ($this->config->database);
-    $ident = $db->quote ($ident);
-    $data = array ( 'email' => $newEmail );
-    if ( isset ($ident) ) {
-      $res = $db->update ('user', $data, 'user_login = ' . $ident);
-    }
-    $db->closeConnection ();
-    return $res;
+  private function setDbEmail ($ident, $newEmail)
+  {
+    try
+      {
+        $db = Zend_Db::factory ($this->config->database);
+        $ident = $db->quote ($ident);
+        $data = array ( 'email' => $newEmail );
+        if ( isset ($ident) ) {
+          $res = $db->update ('user', $data, 'user_login = ' . $ident);
+        }
+        $db->closeConnection ();
+        return $res;
+      }
+    catch (Zend_Db_Exception $e)
+      {
+        return 0;
+      }
   }
 
   /**
@@ -156,13 +189,21 @@ class User {
    *
    * @return integer Number greater than zero on success, zero otherwise.
    */
-  private function setDbPassword ($ident, $newPassword) {
-    $db = Zend_Db::factory ($this->config->database);
-    $stmt = $db->query ('UPDATE user SET password = SHA1(?) WHERE user_login = ?',
-                        Array ($newPassword, $ident));
-    $res = $stmt->execute();
-    $db->closeConnection ();
-    return $res;
+  private function setDbPassword ($ident, $newPassword)
+  {
+    try
+      {
+        $db = Zend_Db::factory ($this->config->database);
+        $stmt = $db->query ('UPDATE user SET password = SHA1(?) WHERE user_login = ?',
+                            Array ($newPassword, $ident));
+        $res = $stmt->execute();
+        $db->closeConnection ();
+        return $res;
+      }
+    catch (Zend_Db_Exception $e)
+      {
+        return 0;
+      }
   }
 
   /**
@@ -173,7 +214,8 @@ class User {
    *
    * @return string Cached role name or ROLE_SESSION_NAMESPACE.
    */
-  private static function getCachedOrDefaultRole() {
+  private static function getCachedOrDefaultRole ()
+  {
     try
       {
         $ns = new Zend_Session_Namespace (self::ROLE_SESSION_NAMESPACE);
@@ -200,13 +242,14 @@ class User {
    *
    * @return \User|null Returns the user if she is registered.
    */
-  public static function getInstance ($config) {
+  public static function getInstance ($config)
+  {
     $ident = self::getIdent ();
     return self::isRegistered ($ident, $config)
       ? new User ( $config, $ident,
                    self::getDbName ($ident, $config),
                    self::getDbEmail ($ident, $config),
-                   UserRole::getByName(self::getCachedOrDefaultRole(), $config) )
+                   UserRole::getByName (self::getCachedOrDefaultRole(), $config) )
       : null;
   }
 
@@ -218,13 +261,14 @@ class User {
    *
    * @return \User|null Returns the user if she is registered.
    */
-  public static function getByLogin($login, $config) {
+  public static function getByLogin ($login, $config)
+  {
     return self::isRegistered ($login, $config)
       ? new User ($config,
                   $login,
-                  User::getDbName($login, $config),
-                  User::getDbEmail($login, $config),
-                  UserRole::getByName(self::getCachedOrDefaultRole(), $config) )
+                  User::getDbName ($login, $config),
+                  User::getDbEmail ($login, $config),
+                  UserRole::getByName (self::getCachedOrDefaultRole(), $config) )
       : null;
   }
 
@@ -236,7 +280,8 @@ class User {
    * 
    * @return \User|null Returns the user if she is registered.
    */
-  public static function getById($id, $config) {
+  public static function getById ($id, $config)
+  {
     // TODO get login of this $id
     return self::isRegistered ($login, $config)
       ? new User ($config,
@@ -252,71 +297,87 @@ class User {
    *
    * @param \Zend_Config $config Application configuration.
    */
-  public static function authenticate ($config) {
-
+  public static function authenticate ($config)
+  {
     $auth = Authenticator::getInstance ();
-    if ($auth->hasIdentity ()) {
-      if ( isset($_GET['action'])
-           && $_GET['action'] == "logout" ) {
-        self::logout ();
-        return TRUE;
+    if ($auth->hasIdentity ())
+      {
+        if ( isset($_GET['action'])
+             && $_GET['action'] == "logout" )
+          {
+            self::logout ();
+            return TRUE;
+          }
       }
-    }
 
-    switch ($config->authentication->method) {
-    case 'password':
-      if ( isset ($_POST['action'])
-           && $_POST['action'] == 'Login') {
-        $login = isset ($_POST['login']) ? $_POST['login'] : '';
-        $password = isset ($_POST['password']) ? $_POST['password'] : '';
-        if ( ! ( empty($login) || empty ($password) ) ) {
-          Authenticator::password ($login, $password, $config);
-        } else {
-          Notificator::setErrorMessage ('Please fill in your credentials.');
-        }
+    switch ($config->authentication->method)
+      {
+      case 'password':
+        if ( isset ($_POST['action'])
+             && $_POST['action'] == 'Login')
+          {
+            $login = isset ($_POST['login']) ? $_POST['login'] : '';
+            $password = isset ($_POST['password']) ? $_POST['password'] : '';
+            if ( ! ( empty($login) || empty ($password) ) )
+              {
+                Authenticator::password ($login, $password, $config);
+              }
+            else
+              {
+                Notificator::setErrorMessage ('Please fill in your credentials.');
+              }
+          }
+        break;
+      case 'openid':
+        Authenticator::openid ($config);
+        if ( self::isLogged () )
+          {
+            if ( ! self::isRegistered (self::getIdent(), $config))
+              {
+                if ( isset ($_GET['openid_sreg_fullname']) )
+                  {
+                    $_SESSION['user_name'] = $_GET['openid_sreg_fullname'];
+                  }
+
+                if ( isset ($_GET['openid_sreg_email']) )
+                  {
+                    $_SESSION['user_email'] = $_GET['openid_sreg_email'];
+                  }
+
+                if ( ! isset ($_GET['go'])
+                     || (isset ($_GET['go']) && $_GET['go'] != 'register') )
+                  {
+                    header ('Location: index.php?go=register');
+                  }
+              }
+            else if ( self::isRegistered (self::getIdent(), $config) )
+              {
+                $dbName = self::getDbName(self::getIdent(), $config);
+                $dbEmail = self::getDbEmail(self::getIdent(), $config);
+
+                if ( ! isset ($dbName) || empty ($dbName)
+                     || ! isset ($dbEmail) || empty($dbEmail) )
+                  {
+                    if ( ! isset ($_GET['go'])
+                         || (isset ($_GET['go']) && $_GET['go'] != 'register') )
+                      {
+                        header ('Location: index.php?go=register');
+                      }
+                  }
+              }
+          }
+        break;
+      default:
+        /* If no or invalid authentication type is set, there is no
+         * authentication possible. */
       }
-      break;
-    case 'openid':
-      Authenticator::openid ($config);
-      if ( self::isLogged () ) {
-        if ( ! self::isRegistered (self::getIdent(), $config)) {
-        
-          if ( isset ($_GET['openid_sreg_fullname']) ) {
-            $_SESSION['user_name'] = $_GET['openid_sreg_fullname'];
-          }
-
-          if ( isset ($_GET['openid_sreg_email']) ) {
-            $_SESSION['user_email'] = $_GET['openid_sreg_email'];
-          }
-
-          if ( ! isset ($_GET['go'])
-               || (isset ($_GET['go']) && $_GET['go'] != 'register') ) {
-            header ('Location: index.php?go=register');
-          }
-        } else if ( self::isRegistered (self::getIdent(), $config) ) {
-          $dbName = self::getDbName(self::getIdent(), $config);
-          $dbEmail = self::getDbEmail(self::getIdent(), $config);
-
-          if ( ! isset ($dbName) || empty ($dbName)
-               || ! isset ($dbEmail) || empty($dbEmail) ) {
-            if ( ! isset ($_GET['go'])
-                 || (isset ($_GET['go']) && $_GET['go'] != 'register') ) {
-              header ('Location: index.php?go=register');
-            }
-          }
-        }
-      }
-      break;
-    default:
-      /* If no or invalid authentication type is set, there is no
-       * authentication possible. */
-    }
   }
 
   /**
    * Log out the user.
    */
-  public static function logout () {
+  public static function logout ()
+  {
     Authenticator::logout ();
   }
 
@@ -325,7 +386,8 @@ class User {
    *
    * @return boolean True if logged in. False otherwise.
    */
-  public static function isLogged () {
+  public static function isLogged ()
+  {
     $auth = Authenticator::getInstance ();
     return $auth->hasIdentity ();
   }
@@ -335,7 +397,8 @@ class User {
    *
    * @return string Login identification.
    */
-  public static function getIdent () {
+  public static function getIdent ()
+  {
     $auth = Authenticator::getInstance ();
     return $auth->getIdentity ();
   }
@@ -349,28 +412,33 @@ class User {
    *
    * @param \Zend_Config $config Application configuration.
    */
-  public static function printStatus ($config) {
-    if ( self::isLogged () ) {
-      $ident = self::getIdent();
-      if ( self::isRegistered ($ident, $config) ) {
-        $user = self::getByLogin ($ident, $config);
-        $outName = $user->getName ();
-        if ( ! isset ($outName) || empty ($outName) ) {
+  public static function printStatus ($config)
+  {
+    if ( self::isLogged () )
+      {
+        $ident = self::getIdent();
+        if ( self::isRegistered ($ident, $config) )
+          {
+            $user = self::getByLogin ($ident, $config);
+            $outName = $user->getName ();
+            if ( ! isset ($outName) || empty ($outName) ) {
+              $outName = $ident;
+            }
+            $outRoleName = $user->getCurrentRole ()->getName ();
+          }
+        else
+          {
             $outName = $ident;
-        }
-        $outRoleName = $user->getCurrentRole ()->getName ();
-      } else {
-        $outName = $ident;
-      }
+          }
       
-      echo ("Logged in as <a class=\"bold\" href=\"index.php?go=user\">"
-            . $outName . "</a>"
-            . (count ($user->getRoleList ()) > 1
-               ? ("(<a href=\"index.php?go=user\">" . $outRoleName
-                  . "</a>)")
-               : "")
-            . "\n");
-    }
+        echo ("Logged in as <a class=\"bold\" href=\"index.php?go=user\">"
+              . $outName . "</a>"
+              . (count ($user->getRoleList ()) > 1
+                 ? ("(<a href=\"index.php?go=user\">" . $outRoleName
+                    . "</a>)")
+                 : "")
+              . "\n");
+      }
   }
 
   /**
@@ -382,16 +450,23 @@ class User {
    * @param boolean $form Set to true if you want to redirect user to
    * login form.
    */
-  public static function printLogInOut ($form = false) {
-    if ( self::isLogged () ) {
-      echo ('<a href="index.php?action=logout">Logout</a>' . "\n");
-    } else {
-      if ($form) {
-        echo ('<a href="index.php?go=login">Login</a>' . "\n");
-      } else {
-        echo ('<a href="index.php?action=login">Login</a>' . "\n");
+  public static function printLogInOut ($form = false)
+  {
+    if ( self::isLogged () )
+      {
+        echo ('<a href="index.php?action=logout">Logout</a>' . "\n");
       }
-    }
+    else
+      {
+        if ($form)
+          {
+            echo ('<a href="index.php?go=login">Login</a>' . "\n");
+          }
+        else
+          {
+            echo ('<a href="index.php?action=login">Login</a>' . "\n");
+          }
+      }
   }
 
   /**
@@ -407,7 +482,8 @@ class User {
    *
    * @return integer Number greater than zero if user has been added, zero otherwise.
    */
-  public static function addUser ($login, $name, $email, $config) {
+  public static function addUser ($login, $name, $email, $config)
+  {
     $db = Zend_Db::factory ($config->database);
     $data = Array (
                    'user_login' => $login,
@@ -415,13 +491,15 @@ class User {
                    'email' => $email
                    );
     $added = $db->insert ('user', $data);
-    if ($added > 0) {
-      $user = User::getByLogin ($login, $config);
-      $defRole = UserRole::getByName(self::DEFAULT_ROLE, $config);
-      if ( isset ($defRole) ) {
-        $defRole->addUser ($user);
+    if ($added > 0)
+      {
+        $user = User::getByLogin ($login, $config);
+        $defRole = UserRole::getByName(self::DEFAULT_ROLE, $config);
+        if ( isset ($defRole) )
+          {
+            $defRole->addUser ($user);
+          }
       }
-    }
     $db->closeConnection ();
 
     return $added;
@@ -435,7 +513,8 @@ class User {
    * @param string $login Login identification of the user.
    * @param \Zend_Config $config Application configuration.
    */
-  public static function isRegistered ($login, $config) {
+  public static function isRegistered ($login, $config)
+  {
     $db = Zend_Db::factory ($config->database);
     $res = $db->fetchAll ('SELECT user_login FROM user WHERE user_login = ?', $login);
     $db->closeConnection ();
@@ -447,7 +526,8 @@ class User {
    *
    * @return string Full user name.
    */
-  public function getName () {
+  public function getName ()
+  {
     return $this->name;
   }
 
@@ -456,7 +536,8 @@ class User {
    *
    * @return string User e-mail.
    */
-  public function getEmail () {
+  public function getEmail ()
+  {
     return $this->email;
   }
 
@@ -465,7 +546,8 @@ class User {
    *
    * @return string User login (e.g. OpenID or login).
    */
-  public function getLogin() {
+  public function getLogin()
+  {
     return $this->login;
   }
 
@@ -476,13 +558,17 @@ class User {
    * 
    * @return boolean True if name has been changed, false otherwise. 
    */
-  public function setName ($name) {
-    if ( $this->setDbName ($this->login, $name) ) {
-      $this->name = $name;
-      return true;
-    } else {
-      return false;
-    }
+  public function setName ($name)
+  {
+    if ( $this->setDbName ($this->login, $name) )
+      {
+        $this->name = $name;
+        return true;
+      }
+    else
+      {
+        return false;
+      }
   }
 
   /**
@@ -492,13 +578,17 @@ class User {
    *
    * @return boolean True if e-mail has been changed, false otherwise.
    */
-  public function setEmail ($email) {
-    if ( $this->setDbEmail ($this->login, $email) ) {
-      $this->email = $email;
-      return true;
-    } else {
-      return false;
-    }
+  public function setEmail ($email)
+  {
+    if ( $this->setDbEmail ($this->login, $email) )
+      {
+        $this->email = $email;
+        return true;
+      }
+    else
+      {
+        return false;
+      }
   }
 
   /**
@@ -509,7 +599,8 @@ class User {
    *
    * @return integer Number greater than zero on success, zero otherwise.
    */
-  public function setPassword ($password) {
+  public function setPassword ($password)
+  {
     return $this->setDbPassword ($this->login, $password);
   }
 
@@ -518,7 +609,8 @@ class User {
    *
    * @return \UserRole Current role this user is cast to.
    */
-  public function getCurrentRole () {
+  public function getCurrentRole ()
+  {
     return $this->currentRole;
   }
 
@@ -529,17 +621,20 @@ class User {
    *
    * @return True if change was succesfull, false otherwise.
    */
-  public function setRole ($roleName) {
+  public function setRole ($roleName)
+  {
     if ( ! $this->isInRole($roleName)
-         && $this->couldBeInRole ($roleName)) {
-      $newRole = UserRole::getByName($roleName, $this->config);
-      if ( isset($newRole) ) {
-        $ns = new Zend_Session_Namespace (self::ROLE_SESSION_NAMESPACE);
-        $ns->curRole = $roleName;
-        $this->currentRole = $newRole;
-        return true;
+         && $this->couldBeInRole ($roleName))
+      {
+        $newRole = UserRole::getByName($roleName, $this->config);
+        if ( isset($newRole) )
+          {
+            $ns = new Zend_Session_Namespace (self::ROLE_SESSION_NAMESPACE);
+            $ns->curRole = $roleName;
+            $this->currentRole = $newRole;
+            return true;
+          }
       }
-    }
     return false;
   }
 
@@ -562,7 +657,8 @@ class User {
    * @return boolean True if user is in role with the same name as in
    * parameter.
    */
-  public function isInRole ($roleName) {
+  public function isInRole ($roleName)
+  {
     return $this->getCurrentRole ()->getName () == $roleName;
   }
 
@@ -575,7 +671,8 @@ class User {
    * @return boolean True if user can be cast in the role with
    * provided name.
    */
-  public function couldBeInRole($roleName) {
+  public function couldBeInRole($roleName)
+  {
     return in_array ($roleName, $this->getRoleList ());
   }
 
@@ -584,7 +681,8 @@ class User {
    *
    * @return string[] List of roles this user can be cast in.
    */
-  public function getRoleList () {
+  public function getRoleList ()
+  {
     if ( isset ($this->userRoles) )
       {
         return $this->userRoles;
