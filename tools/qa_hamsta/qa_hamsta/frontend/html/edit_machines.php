@@ -58,7 +58,7 @@ if (!defined('HAMSTA_FRONTEND')) {
                         "<input type=\"checkbox\" name=\"perm_" . $machine_id . "[]\" " . ($machine->has_perm("partition")?" checked=\"checked\"":"") . " value=\"partition\"  >partition".
                         "<input type=\"checkbox\" name=\"perm_" . $machine_id . "[]\" " . ($machine->has_perm("boot")?" checked=\"checked\"" : "") . " value=\"boot\"  >boot";
 
-		# Used by
+                /* Used by */
 		$item_list = request_array("used_by");
 		if (array_key_exists($machine->get_id(), $item_list)) {
 			$valuer = $item_list[$machine->get_id()];
@@ -73,16 +73,50 @@ if (!defined('HAMSTA_FRONTEND')) {
 		}
 
                 $used_by = User::getByLogin($valuer, $config);
-		$column[] = "<input name=\"used_by["
-                  .$machine->get_id()
-                  ."]\" value=\"$valuer\" style=\"width: 200px;\" tabindex="
-                  .$counterAddValue++
-                  . " type=\"hidden\" />"
-                  .(( isset ($used_by)
-                      && $used_by->getName() != '')
-                        ? $used_by->getName()
-                        : $valuer);
+
+                /* If the user has privileges to modify a reserved
+                 * machine, she can change the user of the machine. */
+                if ( ! $config->authentication->use
+                     || (isset ($user) && $user->isAllowed ('machine_edit_reserved')) )
+                  {
+                    $all_users = User::getAllUsers ($config);
+                    $to_column = "<input name=\"used_by[" . $machine->get_id()
+                      . "]\" value=\"$valuer\" style=\"width: 200px;\" tabindex="
+                      . $counterAddValue++ . " type=\"text\" />";
+                    if ( count ($all_users) > 0 )
+                      $to_column = "<select name=\"used_by[" . $machine->get_id()
+                        . "]\" style=\"width: 200px;\" tabindex="
+                        . $counterAddValue . ">\n";
+
+                      foreach ($all_users as $user)
+                        {
+                          $to_column .= "      <option value=\""
+                            . $user->getLogin () . "\""
+                            . ( ($user->getLogin () == $valuer)
+                                ? " selected=\"selected\"" : "" )
+                            . ">"
+                            . ( strlen ($user->getName ()) == 0
+                                ? $user->getLogin () : $user->getName () )
+                            . "</option>\n";
+                        }
+                      $to_column .= "  </select>\n";
+                    // TODO make a combobox with selection
+                    // TODO the user that is currently user of the machine should be displayed as a first option
+                    $counterAddValue++;
+                    $column[] = $to_column;
+                  }
+                else
+                  {
+                    $column[] = "<input name=\"used_by[" . $machine->get_id()
+                      . "]\" value=\"$valuer\" style=\"width: 200px;\" tabindex="
+                      . $counterAddValue++ . " type=\"hidden\" />"
+                      . ( ( isset ($used_by)
+                            && $used_by->getName() != '' )
+                          ? $used_by->getName()
+                          : $valuer );
+                  }
 		$valuer = NULL;
+
 
 		# Common columns (configurable)
 		foreach ($show_column as $item) {
