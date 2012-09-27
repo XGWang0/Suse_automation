@@ -710,6 +710,34 @@ class User {
     return $this->getRole ()->isAllowed ($privilege);
   }
 
+  /**
+   * Retrieves a list of all users in database.
+   *
+   * All users from database are returned. The function does not check
+   * anything. If the administrator you changes authentication types
+   * and there are users from all those types, you get them all.
+   *
+   * @return \User[] An array of all users in the database ordered by
+   * their logins.
+   */
+  public static function getAllUsers ($config)
+  {
+    try {
+      $db = Zend_Db::factory ($config->database);
+      $sql = 'SELECT user_login FROM user ORDER BY name';
+      $res = $db->fetchCol ($sql);
+      $users = Array();
+      foreach ($res as $login)
+        {
+          $users[] = User::getByLogin ($login, $config);
+        }
+      $db->closeConnection ();
+      return $users;
+    } catch (Zend_Db_Exception $e) {
+      return null;
+    }
+  }
+
 }
 
 ?>
