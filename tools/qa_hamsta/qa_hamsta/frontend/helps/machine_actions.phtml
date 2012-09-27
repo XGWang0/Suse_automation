@@ -92,7 +92,7 @@
 <?php
   if ( $useAuth
        && (! isset ($user)
-           || ! ( ( $machine->get_used_by () == NULL && $machine->get_usage () == ''
+           || ! ( ( $machine->get_used_by () == NULL
                     || $users_machine )
                   && $user->isAllowed('machine_edit_reserve')
                   || ( isset ($user) && $user->isAllowed ('machine_edit_reserved') ) ) ) ) {
