@@ -1,5 +1,7 @@
 <?php
 
+require_once ('Zend/Db.php');
+
 /**
  * Class represents user role.
  *

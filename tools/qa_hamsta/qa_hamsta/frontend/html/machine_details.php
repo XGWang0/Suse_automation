@@ -30,6 +30,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 	$go = 'machine_details';
 	return require("index.php");
 }
+
 ?>
 <script src="js/filter_log.js"></script>
 <h2 class="text-medium text-blue bold">Machine overview</h2>
@@ -66,81 +67,10 @@ if (!defined('HAMSTA_FRONTEND')) {
 
 <div style="margin-top: 6px; margin-left: 3px;">
 	<span class="text-main text-blue bold" style="position: relative; bottom: 6px;">Actions: </span>
+
 <?php
-	if (($machine->get_powerswitch() != NULL) and ($machine->get_powertype() != NULL) and ($machine->check_powertype() == TRUE )) {
-		echo "<img src=\"images/icon-start.png\" alt=\"Start " . $machine->get_hostname() . "\" title=\"Start ".$machine->get_hostname() . "\" border=\"0\" " .
-                	                "width=\"20\" style=\"padding-right: 3px;\" " .
-        	                        "onclick=\"";
-	        echo "var r = confirm('This will start " . $machine->get_hostname() . ". Are you sure you want to continue?');" .
-	        "if(r==true)" .
-	                "{" .
-                	        "window.location='index.php?go=power&amp;a_machines[]=" . $machine->get_id() . "&amp;action=start';" .
-        	        "}";
-	        echo "\" />";
-
-                echo "<img src=\"images/icon-restart.png\" alt=\"Restart " . $machine->get_hostname() . "\" title=\"Restart ".$machine->get_hostname() . "\" border=\"0\" " .
-                                        "width=\"20\" style=\"padding-right: 3px;\" " .
-                                        "onclick=\"";
-                echo "var r = confirm('This will restart " . $machine->get_hostname() . ". Are you sure you want to continue?');" .
-                "if(r==true)" .
-                        "{" .
-                                "window.location='index.php?go=power&amp;a_machines[]=" . $machine->get_id() . "&amp;action=restart';" .
-                        "}";
-                echo "\" />";
-
-	
-	        echo "<img src=\"images/icon-stop.png\" alt=\"Stop " . $machine->get_hostname() . "\" title=\"Stop ".$machine->get_hostname() . "\" border=\"0\" " .
-	                                "width=\"20\" style=\"padding-right: 3px;\" " .
-        	                        "onclick=\"";
-	        echo "var r = confirm('This will stop " . $machine->get_hostname() . ". Are you sure you want to continue?');" .
-	        "if(r==true)" .
-	                "{" .
-	                        "window.location='index.php?go=power&amp;a_machines[]=" . $machine->get_id() . "&amp;action=stop';" .
-	                "}";
-	        echo "\" />";
-	}
-	else {
-		echo "<img src=\"images/icon-start-grey.png\" alt=\"Powercycling for " . $machine->get_hostname(). "is not supported" . "\" title=\"Powercycling for "
-			. $machine->get_hostname() . " is not supported" . "\" border=\"0\" " .
-				"width=\"20\" style=\"padding-right: 3px;\" ";
-		echo "\" />";
-
-                echo "<img src=\"images/icon-restart-grey.png\" alt=\"Powercycling for " . $machine->get_hostname(). "is not supported" . "\" title=\"Powercycling for "
-                        . $machine->get_hostname() . " is not supported" . "\" border=\"0\" " .
-                                "width=\"20\" style=\"padding-right: 3px;\" ";
-                echo "\" />";
-
-
-		echo "<img src=\"images/icon-stop-grey.png\" alt=\"Powercycling for " . $machine->get_hostname() . "is not supported" . "\" title=\"Powercycling for "
-			. $machine->get_hostname() . " is not supported" . "\" border=\"0\" " .
-				"width=\"20\" style=\"padding-right: 3px;\" ";
-		echo "\" />";
-	}
+    require('helps/machine_actions.phtml');
 ?>
-	<a href="index.php?go=<?php echo $machine->get_role() == 'SUT' ? "reinstall" : "vhreinstall"; ?>&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-reinstall.png" alt="Reinstall this machine" title="Reinstall this machine" border="0" width="26" style="padding-left: 3px; padding-right: 3px;" /></a>
-	<a href="index.php?go=edit_machines&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-edit.png" alt="Edit/reserve this machine" title="Edit/reserve this machine" border="0" width="26" style="padding-right: 3px;" /></a>
-<?php
-			echo "<img src=\"images/icon-unlock.png\" alt=\"Free up this machine\" title=\"Free up this machine\" border=\"0\" " .
-				"width=\"26\" style=\"padding-right: 3px;\" " .
-				"onclick=\"";
-			if(trim($machine->get_used_by()) == "" and trim($machine->get_usage()) == "")
-			{
-				echo "alert('This machine is already free!');";
-			}
-			else
-			{
-				echo "var r = confirm('This will clear the \'Used by\' and \'Usage\' fields, making the selected machines free to use by anyone else. Are you sure you want to continue?');" .
-					"if(r==true)" .
-					"{" .
-						"window.location='index.php?go=edit_machines&amp;a_machines[]=" . $machine->get_id() . "&amp;action=clear';" .
-					"}";
-			}
-			echo "\" />";
-?>
-	<a href="index.php?go=send_job&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-job.png" alt="Send a job to this machine" title="Send a job to this machine" border="0" width="26" style="padding-right: 3px;" /></a>
-	<a href="http://<?php echo($machine->get_ip_address()); ?>:5801" target="_blank"><img src="images/icon-vnc.png" alt="Open a VNC viewer" title="Open a VNC viewer" border="0" width="26" style="padding-right: 3px;" /></a>
-	<a href="http://<?php echo($_SERVER['SERVER_ADDR']); ?>/ajaxterm/?host=<?php echo($machine->get_ip_address()); ?>" target="_blank"><img src="images/icon-terminal.png" alt="Access the terminal" title="Access the terminal" border="0" width="26" style="padding-right: 3px;" /></a>
-	<a href="index.php?go=del_machines&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-delete.png" alt="Delete this machine and all related data" title="Delete this machine and all related data" border="0" width="26" style="padding-right: 3px;" /></a>
 </div>
 
 <h2 class="text-medium text-blue bold">Last jobs</h2>

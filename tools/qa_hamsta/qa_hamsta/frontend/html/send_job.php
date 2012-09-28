@@ -30,9 +30,6 @@
         $go = 'send_job';
         return require("index.php");
     }
-
-if (User::isLogged())
-  $user = User::getInstance($config);
 		
 	$blockedMachines = array();
 	foreach ($machines as $machine) {
