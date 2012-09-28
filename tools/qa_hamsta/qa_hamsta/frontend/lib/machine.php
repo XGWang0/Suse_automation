@@ -189,13 +189,24 @@ class Machine {
      * @return string Group name of this machine.
      */
     function get_group() {
+	$gnames = "";
+	$result = "";
     	if( isset($this->fields["id"]) ) {
 			$stmt = get_pdo()->prepare('select .group.group from .group,group_machine where .group.group_id=group_machine.group_id and group_machine.machine_id=:machineid');
 			$stmt->bindParam(':machineid', $this->fields["id"]);
 			$stmt->execute();
-        	return $stmt->fetchAll(); }
-    	else
+			$groups=$stmt->fetchAll();
+			if ( count($groups) >= 1 ) {
+				foreach ( $groups as $gname ) {
+					$gnames .= "$gname[0], ";
+				}
+				return substr($gnames, 0, -2);
+			} else {
+				return "";
+			}
+    	} else {
     		return NULL;
+    	}
     }
 
 	/**
