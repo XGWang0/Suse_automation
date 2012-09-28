@@ -194,7 +194,8 @@ function insert_update_promoted($arch_id,$product_id,$build_nr,$release_id)
   *   8 submission + TCF
   *   9 bench search
   *  10 submission + TCF + testcase
-  *  11 extended regressions
+  *  11 extended regressions, both testsuite and testcase
+  *  12 extended regressions, just testsuites
   * $attrs['only_id']: 
   *   0 for full details
   *   1 for IDs only 
@@ -241,13 +242,13 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	);
 
 	# index into $sel0[], $sel1[] (SELECT ...), and $from0[] (FROM ...)
-	$i_main = array( 1,0,0,0,0,0,2,0,0,0,0,3 );
+	$i_main = array( 1,0,0,0,0,0,2,0,0,0,0,3,3 );
 	# index into $sel2[] (SELECT ...)
-	$i_next = array( 0,0,1,2,0,3,0,4,5,5,6,7 );
+	$i_next = array( 0,0,1,2,0,3,0,4,5,5,6,7,8 );
 	# index into $from2[] (FROM ...)
-	$i_from = array( 0,0,1,2,3,4,0,0,5,6,7,8 );
+	$i_from = array( 0,0,1,2,3,4,0,0,5,6,7,8,8 );
 	# index into $links2[] ( $transl->['links'] )
-	$i_link = array( 0,0,0,1,0,0,0,0,2,2,2,0 );
+	$i_link = array( 0,0,0,1,0,0,0,0,2,2,2,0,0 );
 
 	# should I return submission_id only?
 	$only_id  = hash_get($attrs,'only_id',false,true);
@@ -278,6 +279,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 /* TCF    */ array('g.testsuite_id','g.tcf_id'),
 /* TCF+res*/ array('g.testsuite_id','g.tcf_id','r.testcase_id'),
 /* regs	  */ array('testsuite','testcase'),
+/* regs-  */ array('testsuite'),
 	);
 
 	# $from0[ $i_main ] -- always
@@ -315,6 +317,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 /* TCF    */	array('testsuite_id'=>'testsuite'),
 /* bench  */	array('testsuite_id'=>'testsuite'),
 /* regs   */	array(),
+/* regs+  */	array(),
 	);
 
 	# $links1[ $i_main ] - for full details when $transl set
