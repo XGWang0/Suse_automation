@@ -287,10 +287,10 @@ class User {
       {
         $db = Zend_Db::factory ($config->database);
         if ( isset ($id) )
-          $res = $db->fetchCol ('SELECT login FROM `user` WHERE user_id = ?', $id);
+          $res = $db->fetchAll ('SELECT user_login, name, email FROM `user` WHERE user_id = ?', $id);
         
         $db->closeConnection ();
-        $login = isset ($res[0]) ? $res[0] : null;
+        $login = isset ($res[0]['user_login']) ? $res[0]['user_login'] : null;
       }
     catch (Zend_Db_Exception $e)
       {
@@ -301,8 +301,8 @@ class User {
              && self::isRegistered ($login, $config) )
       ? new User ($config,
                   $login,
-                  User::getDbName ($login, $config),
-                  User::getDbEmail ($login, $config),
+                  $res[0]['name'],
+                  $res[0]['email'],
                   UserRole::getByName (self::getCachedOrDefaultRole(), $config) )
       : null;
   }
