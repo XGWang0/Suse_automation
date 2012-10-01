@@ -97,7 +97,7 @@ table.list tr.small th { background-color:#aaa; }
 table.list tr.small:hover th { background-color:#888; }
 table.list tr.disabled th { background-color:#00a; }
 table.list tr.disabled:hover th { background-color:#008; }
-tr.small, tr.small input, tr.small select { font-size:50%; }
+tr.small, tr.small input, tr.small select { font-size:80%; }
 tr.disabled, tr.disabled input, tr.disabled select { font-size:50%; }
 tr.small { color: #666; }
 
