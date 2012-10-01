@@ -275,20 +275,35 @@ class User {
   /**
    * Returns an instance of <b>registered</b> user by id.
    *
-   * @param string $id Id of user (number).
+   * @param int $id Id of user.
    * @param \Zend_Config $config Application configuration.
    * 
    * @return \User|null Returns the user if she is registered.
    */
   public static function getById ($id, $config)
   {
-    // TODO get login of this $id
-    return self::isRegistered ($login, $config)
+    $login = null;
+    try
+      {
+        $db = Zend_Db::factory ($config->database);
+        if ( isset ($id) )
+          $res = $db->fetchCol ('SELECT login FROM `user` WHERE user_id = ?', $id);
+        
+        $db->closeConnection ();
+        $login = isset ($res[0]) ? $res[0] : null;
+      }
+    catch (Zend_Db_Exception $e)
+      {
+        return null;
+      }
+    
+    return ( isset ($login)
+             && self::isRegistered ($login, $config) )
       ? new User ($config,
                   $login,
-                  User::getDbName($login, $config),
-                  User::getDbEmail($login, $config),
-                  UserRole::getByName(self::getCachedOrDefaultRole(), $config) )
+                  User::getDbName ($login, $config),
+                  User::getDbEmail ($login, $config),
+                  UserRole::getByName (self::getCachedOrDefaultRole(), $config) )
       : null;
   }
 
