@@ -297,8 +297,7 @@ class User {
         return null;
       }
     
-    return ( isset ($login)
-             && self::isRegistered ($login, $config) )
+    return ( isset ($login) )
       ? new User ($config,
                   $login,
                   $res[0]['name'],
