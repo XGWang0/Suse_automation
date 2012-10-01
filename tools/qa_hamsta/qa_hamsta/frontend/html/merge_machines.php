@@ -75,8 +75,17 @@ foreach( array_keys($vals) as $key )	{
 	foreach($vals[$key] as $val)	{
 		if( $is_enum )
 			$val = Machine::enumerate($key,$val);
+
+                /* We need to display user name instead of user_id from db.  */
+                if ( $key == 'usedby' )
+                  {
+                    if ( $mach_user = User::getById ($val, $config) )
+                      $val = $mach_user->getName ();
+                  }
+
 		print "<td>$val</td>";
 	}
+
 	# print merge column
 	if(is_array($ret) || $is_enum)	{
 		# enums and 'S' (one-of) produce a select
@@ -95,10 +104,20 @@ foreach( array_keys($vals) as $key )	{
 		}
 		else	{
 			# non-enums, one-of('S'), different values -> just print them
-			foreach( $ret as $r )	{
-				$r=htmlspecialchars($r);
-				printf('<option value="%s">%s</option>',$r,$r);
-			}
+			foreach ( $ret as $r )
+                          {
+                            $rr=htmlspecialchars($r);
+
+                            if ( $key == 'usedby' )
+                              {
+                                if ( $mach_user = User::getById ($r, $config) )
+                                  {
+                                    $rr = $mach_user->getName ();
+                                  }
+                              }
+
+			    printf('<option value="%s">%s</option>',$r,$rr);
+			  }
 		}
 		print "</select></td>";
 	}
