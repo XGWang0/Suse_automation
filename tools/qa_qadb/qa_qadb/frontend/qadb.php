@@ -403,6 +403,19 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 
 function extended_regressions($is_tc,$use_res,$attrs,$transl,$pager)
 {
+	# This turned out to be the simplest way to print extended regressions
+	# in a reasonable time.
+	# If you want to really understand the construction, try dumping the
+	# output SQL and study it in-depth.
+	# Basically there are following steps to be performed by the database:
+	# - find the columns, i.e. product/release combinations
+	# - fetch all combinations of testsuites (+testcases)
+	# - for every column (i.e. product/release), create own tmp table with the results
+	# - add some statistics to these temporary tables
+	# - run the main SELECT that joins them all and does the regression filtering
+	# - clean up
+
+	# first part, just read the products/releases that go onto X
 	$a=$attrs; # copy for the main query
 	$a['order_by']=array('product','`release`');
 	unset($a['group_by']);
@@ -410,49 +423,74 @@ function extended_regressions($is_tc,$use_res,$attrs,$transl,$pager)
 	$attrs['just_sql']=1;
 #	print "<h3>X-axis</h3>\n";
 #	print html_table($xaxis);
+	
+	# we use one more temporary table than the X count
+	# this produces their names
+	$tbase='qadb_tmp.tmp_ext_reg_'.rand(1000,9999);
+	$tbase1=$tbase.'_base';
+	$tbase2=$tbase.'_t';
+
+	# SQL to clean up at the end
+	$cleanup=array("DROP TABLE IF EXISTS $tbase1");
+
+	# SQL to prepare the temporary tables
+	$commands=array(
+		$cleanup[0],
+		"CREATE TEMPORARY TABLE $tbase1 ( testsuite_id INT, ".($is_tc ? 'testcase_id INT, ':'').'INDEX(testsuite_id'.($is_tc ? ',testcase_id':'').' ))',
+	);
+
+	# prepare base table that just holds all combinations of testsuites (+testcases)
 	$product_id=array();
 	$release_id=array();
 	for($i=1; $i<count($xaxis); $i++)	{
 		$product_id[$xaxis[$i]['product_id']]=1;
 		$release_id[$xaxis[$i]['release_id']]=1;
 	}
-	$tbase='qadb_tmp.tmp_ext_reg_'.rand(1000,9999);
-	$tbase1=$tbase.'_base';
-	$tbase2=$tbase.'_t';
-
-	$cleanup=array("DROP TABLE IF EXISTS $tbase1");
-	$commands=array(
-		$cleanup[0],
-		"CREATE TEMPORARY TABLE $tbase1 ( testsuite_id INT, ".($is_tc ? 'testcase_id INT, ':'').'INDEX(testsuite_id'.($is_tc ? ',testcase_id':'').' ))',
-	);
 	$attrs['product_id']=array_keys($product_id);
 	$attrs['release_id']=array_keys($release_id);
 	$attrs['only_id']=(!$is_tc);
 	$sub_sql=search_submission_result(14,$attrs);
 	$attrs['only_id']=0;
 	$sub_sql[2]="INSERT INTO $tbase1 ".$sub_sql[2];
-	array_splice($sub_sql,0,2);
+	array_splice($sub_sql,0,2); # remove header/limit
 	$commands[]=$sub_sql;
 
+	# fields for SELECT
 	$select=array('testsuite_id'=>'base.testsuite_id');
 	if( $is_tc )
 		$select['testcase_id']='base.testcase_id';
+
+	# joined temporary tables of the FROM section
 	$from=array("$tbase1 base");
+
+	# parts of WHERE
 	$where=array();
+
+	# data columns for full statistics
 	$cols=array('status','runs','succ','fail','interr','skip','time');
+
+	# data columns for finding regressions
 	$colsr=array_slice($cols,2,4);
+
+	# parts of term to find status differences (SELECT+WHERE sections)
 	if( $use_res )	{
 		$res=array();
 		foreach($colsr as $c)
 			$res[$c]=array();
 	}
 
+	# create & fill a temporary table holding testsuites/testcases for every column
 	for($i=1; $i<count($xaxis); $i++)	{
+		# this is what we are processing now
 		$attrs['product_id']=$xaxis[$i]['product_id'];
 		$attrs['release_id']=$xaxis[$i]['release_id'];
+
+		# SQL to clean up the temporary tables
 		$clean="DROP TABLE IF EXISTS $tbase2$i";
 		$cleanup[]=$clean;
 		$commands[]=$clean;
+
+		# create table, insert data, set is_*
 		$commands[]="CREATE TEMPORARY TABLE $tbase2$i( testsuite_id INT, ".($is_tc ? 'testcase_id INT, ':'')."runs INT, succ INT, fail INT, interr INT, skip INT, time INT, status ENUM('success','skipped','interr','failed'), is_succ TINYINT, is_skip TINYINT, is_interr TINYINT, is_fail TINYINT, INDEX(testsuite_id,".($is_tc ? 'testcase_id,':'')."status) )";
 		$sub_sql=search_submission_result($is_tc ? 11:12,$attrs,$transl,$pager);
 		$sub_sql[2]="INSERT INTO $tbase2$i(testsuite_id,".($is_tc ? 'testcase_id,':'')."runs,succ,fail,interr,skip,time,status) ".$sub_sql[2];
@@ -460,23 +498,29 @@ function extended_regressions($is_tc,$use_res,$attrs,$transl,$pager)
 		$commands[]=$sub_sql;
 		$commands[]="UPDATE $tbase2$i SET is_succ=IF(status='success',1,0), is_skip=IF(status='skipped',1,0), is_interr=IF(status='interr',1,0), is_fail=IF(status='failed',1,0)";
 
+		# fields that go into the main SELECT
 		foreach( $cols as $c )
 			$select["$c$i"]="t$i.$c";
 
 		if( $use_res )	{
+			# for status differences, this is what we put there
 			foreach( $colsr as $c )	{
 				if( !isset($res[$c]) )
 					$res[$c]=array();
 				$res[$c][]="IFNULL(t$i.is_$c,0)";
 			}
 		}
-		else
+		else	{
+			# if we print just all fails, this simpler term goes directly into WHERE
 			$where[]="t$i.status IN ('interr','failed')";
+		}
 
+		# join the temporary table into the main SELECT
 		$from[]="LEFT JOIN $tbase2$i t$i ON(base.testsuite_id=t$i.testsuite_id".($is_tc ? " AND base.testcase_id=t$i.testcase_id":'').')';
 		
 	}
 
+	# when showing differences only, this builds the filter column
 	if( $use_res )	{
 		$resol=array();
 		foreach( $colsr as $c )
@@ -484,11 +528,15 @@ function extended_regressions($is_tc,$use_res,$attrs,$transl,$pager)
 		$select['res']=join('+',$resol);
 	}
 
+	# prepare SELECT fields
 	$sel=array();
 	foreach( $select as $k=>$v )
 		$sel[]="$v AS $k";
+
+	# build the base SELECT
 	$sql='SELECT '.join(',',$sel).' FROM '.join(' ',$from).($where?' WHERE '.join(' OR ',$where):'');
 	if( $use_res )	{
+		# build the construction that shows different statuses
 #		unset($select['res']);
 		$sql='SELECT '.join(',',array_keys($select))." FROM ( $sql ) t WHERE t.res>1";
 	}
@@ -499,6 +547,8 @@ function extended_regressions($is_tc,$use_res,$attrs,$transl,$pager)
 #	print "<pre>\n";
 #	print_r($cleanup);
 #	print "</pre>\n";
+
+	# run the section that creates & fills temporary tables
 	if( ($ret=update_sequence($commands)) < 0 )
 		exit;
 #	print "<h3>base</h3>\n";
@@ -507,7 +557,11 @@ function extended_regressions($is_tc,$use_res,$attrs,$transl,$pager)
 #		print "<h3>Table t$i</h3>\n";
 #		print html_table(mhash_query(1,null,"SELECT * FROM $tbase2$i"));
 #	}
+
+	# run the main query
 	$data=mhash_query(1,null,$sql);
+
+	# run the cleanup part
 	if( ($ret=update_sequence($cleanup)) < 0 )
 		exit;
 	print html_table($data);
