@@ -34,27 +34,25 @@ require_once("include/Util.php");
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-    <title><?php if(!empty($html_title)) echo($html_title." - "); ; ?>HAMSTA</title>
-        <link href="css/style.css" rel="stylesheet" type="text/css">
-        <link href="../tblib/css/common.css" rel="stylesheet" type="text/css">
-	<link href="css/layout.css" rel="stylesheet" type="text/css">
-	<link href="css/text.css" rel="stylesheet" type="text/css">
-	<link href="css/links.css" rel="stylesheet" type="text/css">
-	<link href="css/color.css" rel="stylesheet" type="text/css">
-    <link rel="icon" type="image/png" href="/hamsta/icon.png">
-    <script language="JavaScript" src="js/commfuncs.js" type="text/javascript"></script>
-    <script language="JavaScript" src="/scripts/gs_sortable.js" type="text/javascript"></script>
-    <script language="JavaScript" src="/scripts/jquery.js" type="text/javascript"></script>
-    <?php if (!empty($html_refresh_uri)): ?>
-        <meta http-equiv="refresh" content="<?php echo($html_refresh_interval.";".$html_refresh_uri); ?>">
-    <?php endif; ?>
+  <title><?php if(isset($html_title) && !empty($html_title)) echo($html_title." - "); ; ?>HAMSTA</title>
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <link href="../tblib/css/common.css" rel="stylesheet" type="text/css">
+  <link href="css/layout.css" rel="stylesheet" type="text/css">
+  <link href="css/text.css" rel="stylesheet" type="text/css">
+  <link href="css/links.css" rel="stylesheet" type="text/css">
+  <link href="css/color.css" rel="stylesheet" type="text/css">
+  <link rel="icon" type="image/png" href="/hamsta/icon.png">
+  <script src="js/commfuncs.js" type="text/javascript"></script>
+  <script src="/scripts/gs_sortable.js" type="text/javascript"></script>
+  <script src="/scripts/jquery.js" type="text/javascript"></script>
+  <?php if (!empty($html_refresh_uri)): ?>
+    <meta http-equiv="refresh" content="<?php echo($html_refresh_interval.";".$html_refresh_uri); ?>">
+  <?php endif; ?>
 </head>
 <body>
-
   <div id="header">
-
     <div id="hlogo">
-      <a href="/hamsta" border="0" style="text-decoration: none;">
+      <a href="/hamsta" style="text-decoration: none;">
 	<img src="images/logo-hamsta.png" class="logo" alt="Hamsta Logo" title="Click to return to the main page" />
 	<img src="images/logo-suse.png" class="logo" alt="Suse Logo" title="Click to return to the main page" />
 	<img src="images/header.png" class="caption" alt="SUSE QA Automation" title="Click to return to the main page" />
