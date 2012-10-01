@@ -98,10 +98,9 @@ class Machine {
 
 		$stmt->execute();
 		$row = $stmt->fetch(PDO::FETCH_ASSOC);
-
 		return $row ? new Machine($row) : null;
 	}
-	
+
 	/**
 	 * Gets a machine by its id.
 	 * 
@@ -189,13 +188,24 @@ class Machine {
      * @return string Group name of this machine.
      */
     function get_group() {
+	$gnames = "";
+	$result = "";
     	if( isset($this->fields["id"]) ) {
 			$stmt = get_pdo()->prepare('select .group.group from .group,group_machine where .group.group_id=group_machine.group_id and group_machine.machine_id=:machineid');
 			$stmt->bindParam(':machineid', $this->fields["id"]);
 			$stmt->execute();
-        	return $stmt->fetchAll(); }
-    	else
+			$groups=$stmt->fetchAll();
+			if ( count($groups) >= 1 ) {
+				foreach ( $groups as $gname ) {
+					$gnames .= "$gname[0], ";
+				}
+				return substr($gnames, 0, -2);
+			} else {
+				return "";
+			}
+    	} else {
     		return NULL;
+    	}
     }
 
 	/**
@@ -853,24 +863,58 @@ class Machine {
 	}
 	
 	/**
-	 * get_used_by 
-	 * 
-	 * @access public
-	 * @return string Login for which the machine is reserved 
+	 * Returns identifier of the user that has this machine reserved.
+	 *
+	 * @return integer Identifier in DB of the user that has this machine reserved.
 	 */
-	function get_used_by() {
+	public function get_used_by() {
 		if( isset($this->fields["usedby"]) )
 			return $this->fields["usedby"];
 		else
 			return NULL;
 	}
 
+	/**
+	 * Returns name of the user that has this machine reserved.
+	 *
+	 * @return string Name of the user that has the machine reserved.
+	 */
 	function get_used_by_name($config) {
-                if ($used_by = User::getByLogin($this->get_used_by(), $config))
+                if ($used_by = User::getByLogin($this->get_used_by_login(), $config))
 			return $used_by->getName();
 		else
 			return NULL;
 	}
+
+	/**
+	 * Getter of the login of the user that has this machine reserved.
+	 *
+	 * @return string Login of the user that has the machine
+	 * reserved or null if nothing is found.
+	 */
+        public function get_used_by_login ()
+        {
+          /* Let us retrive the value from DB only once. */
+          if ( isset ($this->fields['user_login']) ) {
+            return $this->fields['user_login'];
+          }
+
+          if ( ! $stmt = get_pdo()->prepare('SELECT u.user_login FROM machine m'
+                                            . ' INNER JOIN user u ON m.usedby = u.user_id'
+                                            . ' WHERE u.user_id = :user_id') ) {
+            return null;
+          }
+          $used = $this->get_used_by();
+          $stmt->bindParam(':user_id', $used);
+          $stmt->execute();
+          $login = $stmt->fetch(PDO::FETCH_ASSOC);
+          if ( ! isset ($login) ) {
+            return null;
+          } else {
+            $this->fields['user_login'] = $login['user_login'];
+            return $login['user_login'];
+          }
+        }
 	
 	/**
 	 * Marks a machine as reserved for a user
@@ -881,7 +925,9 @@ class Machine {
 	 */
 	function set_used_by($user) {
 		$this->fields["usedby"] = $user;
-		$stmt = get_pdo()->prepare('UPDATE machine SET usedby = :used_by WHERE machine_id = :id');
+		$stmt = get_pdo()->prepare('UPDATE machine SET usedby ='
+                                           . ' (SELECT user_id FROM user WHERE user_login = :used_by)'
+                                           . ' WHERE machine_id = :id');
 		$stmt->bindParam(':id', $this->fields["id"]);
 		$stmt->bindParam(':used_by', $this->fields["usedby"]);
 		$stmt->execute();
@@ -1776,7 +1822,7 @@ class Machine {
 		'machine_status_id'=>'machine_status',
 		'affiliation'=>'s',
 		'usage'=>'s',
-		'usedby'=>'s',
+		'usedby'=>'i',
 		'anomaly'=>'s',
 		'serialconsole'=>'s',
 		'powerswitch'=>'s',

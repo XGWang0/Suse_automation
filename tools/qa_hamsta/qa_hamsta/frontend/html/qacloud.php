@@ -50,7 +50,7 @@ if (!defined('HAMSTA_FRONTEND')) {
         echo "\t\t\t<img src=\"images/icon-unlock.png\" alt=\"Free up this machine\" title=\"Free up ". $machine->get_hostname()."\" border=\"0\" " .
           "width=\"20\" style=\"padding-right: 3px;\" " .
           "onclick=\"";
-        if(trim($machine->get_used_by()) == "" and trim($machine->get_usage()) == "") {
+        if(trim($machine->get_used_by_login()) == "" and trim($machine->get_usage()) == "") {
             echo "alert('This machine is already free!');";
         } else {
             echo "var r = confirm('This will clear the \'Used by\' and \'Usage\' fields, making the selected machines free to use by anyone else. Are you sure you want to continue?');" .
@@ -117,7 +117,7 @@ if (!defined('HAMSTA_FRONTEND')) {
             <a href="index.php?go=edit_machines&amp;a_machines[]=<?php echo($vm->get_id()); ?>"><img src="images/icon-edit.png" alt="Edit/reserve this machine" title="Edit/reserve <?php echo($vm->get_hostname()); ?>" border="0" width="20" style="padding-right: 3px;" /></a>
             <?php
                echo "\t\t\t<img src=\"images/icon-unlock.png\" alt=\"Free up this machine\" title=\"Free up ". $vm->get_hostname()."\" border=\"0\" " ."width=\"20\" style=\"padding-right: 3px;\" " . "onclick=\"";
-                 if(trim($vm->get_used_by()) == "" and trim($vm->get_usage()) == "") {
+                 if(trim($vm->get_used_by_login()) == "" and trim($vm->get_usage()) == "") {
                    echo "alert('This machine is already free!');";
                  } else {
                    echo "var r = confirm('This will clear the \'Used by\' and \'Usage\' fields, making the selected machines free to use by anyone else. Are you sure you want to continue?');" .

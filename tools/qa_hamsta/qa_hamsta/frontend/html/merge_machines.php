@@ -75,8 +75,17 @@ foreach( array_keys($vals) as $key )	{
 	foreach($vals[$key] as $val)	{
 		if( $is_enum )
 			$val = Machine::enumerate($key,$val);
+
+                /* We need to display user name instead of user_id from db.  */
+                if ( $key == 'usedby' )
+                  {
+                    if ( $mach_user = User::getById ($val, $config) )
+                      $val = $mach_user->getName ();
+                  }
+
 		print "<td>$val</td>";
 	}
+
 	# print merge column
 	if(is_array($ret) || $is_enum)	{
 		# enums and 'S' (one-of) produce a select
@@ -95,10 +104,20 @@ foreach( array_keys($vals) as $key )	{
 		}
 		else	{
 			# non-enums, one-of('S'), different values -> just print them
-			foreach( $ret as $r )	{
-				$r=htmlspecialchars($r);
-				printf('<option value="%s">%s</option>',$r,$r);
-			}
+			foreach ( $ret as $r )
+                          {
+                            $rr=htmlspecialchars($r);
+
+                            if ( $key == 'usedby' )
+                              {
+                                if ( $mach_user = User::getById ($r, $config) )
+                                  {
+                                    $rr = $mach_user->getName ();
+                                  }
+                              }
+
+			    printf('<option value="%s">%s</option>',$r,$rr);
+			  }
 		}
 		print "</select></td>";
 	}
@@ -111,36 +130,5 @@ foreach($ids as $id)
 	print '<input type="hidden" name="a_machines[]" value="'.$id."\"/>\n";
 print '<input type="submit" name="submit" value="Merge!"/>'."\n";
 print "</form>\n";
-
-# function to merge and concatenate strings ( 's' type )
-function merge_strings($s,&$ret,&$flag)	{
-	$s=array_unique($s);
-	$ret=$s[0];
-	$flag=0;
-	for( $i=1; $i<count($s); $i++ )	{
-		if( !isset($s[$i]) || !strlen($s[$i]) )
-			continue;
-		if( strlen($ret) )	{
-			$ret = $ret . ', ' . $s[$i];
-			$flag=1;
-		}
-		else
-			$ret = $s[$i];
-	}
-}
-
-# function to merge (type 'S', one-of)
-function merge_unique($s,&$ret,&$flag)	{
-	$ret=array_unique($s);
-	for( $i=0; $i<count($ret); $i++ )	{
-		if( isset($ret[$i]) )
-			rtrim($ret[$i]);
-		if( !isset($ret[$i]) || strlen($s[$i])==0 )
-			array_splice($ret,$i,1);
-	}
-	$flag = (count($ret)>1 ? 1:0);
-	if( !$flag )
-		$ret=(count($ret) ? $ret[0] : '');
-}
 
 ?>

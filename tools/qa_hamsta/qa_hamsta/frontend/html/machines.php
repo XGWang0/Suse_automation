@@ -48,111 +48,35 @@ if (!defined('HAMSTA_FRONTEND')) {
 	</tr>
   </thead>
   <tbody>
-	<?php foreach ($machines as $machine): ?>
-	   <tr
-			<?php if (($machine->get_status_id() == MS_DOWN) && ($machine->is_busy())): ?>
-			class="crashed_job"
-			<?php endif; ?>
-		>
-			<td><input type="checkbox" name="a_machines[]" value="<?php echo($machine->get_id()); ?>" <?php if (in_array($machine->get_id(), $a_machines)) echo("checked"); ?>></td>
-			<td title="<?php echo($machine->get_notes()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>&amp;highlight=<?php echo($highlight); ?>"><?php echo($machine->get_hostname()); ?></a></td>
-			<td><?php echo($machine->get_status_string()); if ($machine->get_update_status()) echo('<a href="index.php?go=send_job&a_machines[]='.$machine->get_id().'&filename[]='.XML_DIR.'/hamsta-upgrade-restart.xml&submit=1"><img src="images/exclamation_yellow.png" alt="Tools out of date!" title="Click to update" width="20" style="float:right; padding-left: 3px;"></img></a>'); if ($machine->get_devel_tools()) echo('<img src="images/gear-cog_blue.png" alt="Devel Tools" title="Devel Tools" width="20" style="float:right; padding-left: 3px;"></img>'); ?></td>
-			<?php $used_by_name = $machine->get_used_by_name($config);
-                        echo ('<td>'.( isset ($used_by_name)
-                                       ? $used_by_name
-                                       : $machine->get_used_by()).'</td>'); ?>
+    <?php foreach ($machines as $machine): ?>
+  <tr
+    <?php if (($machine->get_status_id() == MS_DOWN) && ($machine->is_busy())): ?>
+                   class="crashed_job"
+    <?php endif; ?>
+   >
+    <td><input type="checkbox" name="a_machines[]" value="<?php echo($machine->get_id()); ?>" <?php if (in_array($machine->get_id(), $a_machines)) echo("checked"); ?>></td>
+    <td title="<?php echo($machine->get_notes()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>&amp;highlight=<?php echo($highlight); ?>"><?php echo($machine->get_hostname()); ?></a></td>
+    <td><?php echo($machine->get_status_string()); if ($machine->get_update_status()) echo('<a href="index.php?go=send_job&a_machines[]='.$machine->get_id().'&filename[]='.XML_DIR.'/hamsta-upgrade-restart.xml&submit=1"><img src="images/exclamation_yellow.png" alt="Tools out of date!" title="Click to update" width="20" style="float:right; padding-left: 3px;"></img></a>'); if ($machine->get_devel_tools()) echo('<img src="images/gear-cog_blue.png" alt="Devel Tools" title="Devel Tools" width="20" style="float:right; padding-left: 3px;"></img>'); ?></td>
+	<?php $used_by_name = $machine->get_used_by_name($config);
+                        echo ('<td>' . ( isset ($used_by_name)
+                                             ? $used_by_name
+                                             : $machine->get_used_by_login())
+                              . "</td>\n"); ?>
 <?php
-			foreach ($fields_list as $key=>$value){
-				$fname = "get_".$key;
-				$res = $machine->$fname();
-				if (in_array($key, $display_fields))
-					echo ("<td>$res</td>");
-			}
+  foreach ($fields_list as $key=>$value)
+  {
+    $fname = "get_".$key;
+    $res = $machine->$fname();
+    if (in_array($key, $display_fields))
+      echo ("    <td>$res</td>\n");
+  }
 		?>
 		<td align="center">
+
 <?php
-	if (($machine->get_powerswitch() != NULL) and ($machine->get_powertype() != NULL) and ($machine->check_powertype() == TRUE )) {
-		echo "<img src=\"images/icon-start.png\" alt=\"Start " . $machine->get_hostname() . "\" title=\"Start ".$machine->get_hostname() . "\" border=\"0\" " .
-                	                "width=\"20\" style=\"padding-right: 3px;\" " .
-        	                        "onclick=\"";
-	        echo "var r = confirm('This will start " . $machine->get_hostname() . ". Are you sure you want to continue?');" .
-	        "if(r==true)" .
-	                "{" .
-                	        "window.location='index.php?go=power&amp;a_machines[]=" . $machine->get_id() . "&amp;action=start';" .
-        	        "}";
-	        echo "\" />";
-	
-		echo "<img src=\"images/icon-restart.png\" alt=\"Restart " . $machine->get_hostname() . "\" title=\"Restart ".$machine->get_hostname() . "\" border=\"0\" " .
-                	                "width=\"20\" style=\"padding-right: 3px;\" " .
-        	                        "onclick=\"";
-	        echo "var r = confirm('This will restart " . $machine->get_hostname() . ". Are you sure you want to continue?');" .
-	        "if(r==true)" .
-	                "{" .
-                	        "window.location='index.php?go=power&amp;a_machines[]=" . $machine->get_id() . "&amp;action=restart';" .
-        	        "}";
-	        echo "\" />";
-
-	        echo "<img src=\"images/icon-stop.png\" alt=\"Stop " . $machine->get_hostname() . "\" title=\"Stop ".$machine->get_hostname() . "\" border=\"0\" " .
-	                                "width=\"20\" style=\"padding-right: 3px;\" " .
-        	                        "onclick=\"";
-	        echo "var r = confirm('This will stop " . $machine->get_hostname() . ". Are you sure you want to continue?');" .
-	        "if(r==true)" .
-	                "{" .
-	                        "window.location='index.php?go=power&amp;a_machines[]=" . $machine->get_id() . "&amp;action=stop';" .
-	                "}";
-	        echo "\" />";
-	}
-	else {
-		echo "<img src=\"images/icon-start-grey.png\" alt=\"Powercycling for " . $machine->get_hostname(). "is not supported" . "\" title=\"Powercycling for "
-			. $machine->get_hostname() . " is not supported" . "\" border=\"0\" " .
-				"width=\"20\" style=\"padding-right: 3px;\" ";
-		echo "\" />";
-
-		echo "<img src=\"images/icon-restart-grey.png\" alt=\"Powercycling for " . $machine->get_hostname(). "is not supported" . "\" title=\"Powercycling for "
-			. $machine->get_hostname() . " is not supported" . "\" border=\"0\" " .
-				"width=\"20\" style=\"padding-right: 3px;\" ";
-		echo "\" />";
-
-		echo "<img src=\"images/icon-stop-grey.png\" alt=\"Powercycling for " . $machine->get_hostname() . "is not supported" . "\" title=\"Powercycling for "
-			. $machine->get_hostname() . " is not supported" . "\" border=\"0\" " .
-				"width=\"20\" style=\"padding-right: 3px;\" ";
-		echo "\" />";
-	}
+ require ('helps/machine_actions.phtml');
 ?>
-
-<?php if(preg_match ('/^vm\//', $machine->get_type())) { ?>
-			<img src="images/icon-reinstall.png" alt="Reinstall this machine" title="Reinstall <?php echo($machine->get_hostname()); ?>" border="0" width="20" style="padding-left: 3px; padding-right: 3px;" onclick="alert('It is not possible to reinstall virtual machine!');"/>
-<?php } else { ?>
-			<a href="index.php?go=reinstall&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-reinstall.png" alt="Reinstall this machine" title="Reinstall <?php echo($machine->get_hostname()); ?>" border="0" width="20" style="padding-left: 3px; padding-right: 3px;" /></a>
-<?php } ?>
-			<a href="index.php?go=edit_machines&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-edit.png" alt="Edit/reserve this machine" title="Edit/reserve <?php echo($machine->get_hostname()); ?>" border="0" width="20" style="padding-right: 3px;" /></a>
-<?php
-			echo "\t\t\t<img src=\"images/icon-unlock.png\" alt=\"Free up this machine\" title=\"Free up ". $machine->get_hostname()."\" border=\"0\" " .
-				"width=\"20\" style=\"padding-right: 3px;\" " .
-				"onclick=\"";
-			if(trim($machine->get_used_by()) == "" and trim($machine->get_usage()) == "")
-			{
-				echo "alert('This machine is already free!');";
-			}
-			else
-			{
-				echo "var r = confirm('This will clear the \'Used by\' and \'Usage\' fields, making the selected machines free to use by anyone else. Are you sure you want to continue?');" .
-					"if(r==true)" .
-					"{" .
-						"window.location='index.php?go=edit_machines&amp;a_machines[]=" . $machine->get_id() . "&amp;action=clear';" .
-					"}";
-			}
-			echo "\" />\n";
-?>
-			<a href="index.php?go=send_job&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-job.png" alt="Send a job to this machine" title="Send a job to <?php echo($machine->get_hostname()); ?>" border="0" width="20" style="padding-right: 3px;" /></a>
-			<a href="http://<?php echo($machine->get_ip_address()); ?>:5801" target="_blank"><img src="images/icon-vnc.png" alt="Open a VNC viewer" title="Open a VNC viewer on <?php echo($machine->get_hostname());?>" border="0" width="20" style="padding-right: 3px;" /></a>
-			<a href="http://<?php echo($_SERVER['SERVER_ADDR']); ?>/ajaxterm/?host=<?php echo($machine->get_ip_address()); ?>" target="_blank"><img src="images/icon-terminal.png" alt="Access the terminal" title="Access the terminal on <?php echo($machine->get_hostname());?>" border="0" width="20" style="padding-right: 3px;" /></a>
-<?php if(preg_match ('/^vm\//', $machine->get_type())) { ?>
-			<img src="images/icon-delete.png" alt="Delete this machine and all related data" title="Delete <?php echo($machine->get_hostname()); ?> and all related data" border="0" width="20" style="padding-right: 3px;" onclick="alert('It is not possible to delete virtual machine in this view! Virtual machine can only be deleted in QA Cloud view.');" /></a>
-<?php } else { ?>
-			<a href="index.php?go=del_machines&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-delete.png" alt="Delete this machine and all related data" title="Delete <?php echo($machine->get_hostname()); ?> and all related data" border="0" width="20" style="padding-right: 3px;" /></a>
-<?php } ?>
-		</td>
+          </td>
 	</tr>
 	<?php endforeach; ?>
   </tbody>
@@ -171,10 +95,10 @@ tsRegister();
   <option value="create_group">Add to group</option>
   <option value="group_del_machines">Remove from group</option>
   <option value="vhreinstall">Reinstall as Virtualization Host</option> 
-  <option value="upgrade">upgrade to higher</option> 
+  <option value="upgrade">Upgrade to higher</option> 
 <!--   <option value="create_autobuild">Add to Autobuild</option> -->
 <!--   <option value="delete_autobuild">Remove from Autobuild</option> -->
-  <option value="merge_machines">Merge machines(experimental)</option>
+  <option value="merge_machines">Merge machines</option>
   <option value="delete">Delete</option>
 </select>
 <input type="submit" value="Go">

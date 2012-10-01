@@ -1,5 +1,5 @@
-<?php
-/* ****************************************************************************
+/*
+****************************************************************************
   Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
 
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
@@ -23,31 +23,6 @@
   ****************************************************************************
  */
 
-  /**
-   * Logic of the user page.
-   */
-if (!defined('HAMSTA_FRONTEND')) {
-  $go = 'user';
-  return require("index.php");
- }
-
-$html_title = "User configuration";
-
-if ( User::isLogged() ) {
-  $user = User::getInstance($config);
-  if ( isset ($_POST['role']) ) {
-    $user->setRole ($_POST['roles']);
-  } else if ( isset ($_POST['chngpswd']) ) {
-    if ( isset ($_POST['pswd']) && isset ($_POST['pswdcheck'])
-         && ! (empty ($_POST['pswd'])
-               || empty ($_POST['pswdcheck']))
-         && $_POST['pswd'] == $_POST['pswdcheck']) {
-      $user->setPassword ($_POST['pswd']);
-      Notificator::setSuccessMessage ('Your password has been successfuly changed.');
-    } else {
-      Notificator::setErrorMessage ('The password and checked password have to be the same and cannot be empty.');
-    }
-  }
-}
-
-?>
+INSERT INTO privilege (privilege, descr) VALUES ('machine_edit_powercycling', 'Edit machine powercycling setup');
+INSERT INTO privilege (privilege, descr) VALUES ('machine_edit_console', 'Edit machine console setup');
+INSERT INTO privilege (privilege, descr) VALUES ('machine_edit_maintainer', 'Edit machine maintainer');
