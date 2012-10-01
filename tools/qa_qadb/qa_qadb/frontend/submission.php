@@ -236,17 +236,23 @@ if(!$submission_id)
 		if( $step=='reg' )	{
 			$mode_got=($group_by_got==2 ? 12 : 11);
 			unset($attrs['order_nr']);
-			$y=($group_by_got==2 ? array('testsuite') : array('testsuite','testcase'));
-			$x=array('product_id','release_id');
+#			$y=($group_by_got==2 ? array('testsuite') : array('testsuite','testcase'));
+#			$x=array('product_id','release_id');
 #			if( $group_by==2 )
 #				$x=array('product');
-			$group=array_merge($y,$x);    
-			$attrs['group_by']=$group;
-			$attrs['order_by']=$group;
+
+#			$attrs['order_by']=array('product','`release`');
+#			print html_table(search_submission_result($mode_got+2,$attrs));
+#			$group=array_merge($y,$x);    
+#			$attrs['group_by']=$group;
+#			$attrs['order_by']=$group;
 			$attrs['limit'] = array(AGR_MAX_RES);
 			$pager=null;
+			$data = extended_regressions(($group_by_got!=2),($reg_method_got!=2),$attrs,$transl,$pager);
 		}
-		$data=search_submission_result($mode_got,$attrs,$transl,$pager);
+		else	{
+			$data=search_submission_result($mode_got,$attrs,$transl,$pager);
+		}
 		$sort='sssssssis'.str_repeat('s',count($data[0])-9);
 		$class='tbl';
 		if( $step=='bench' )
@@ -267,8 +273,8 @@ if(!$submission_id)
 			if( count($data) >= AGR_MAX_RES )
 				print html_error('Only processing first '.AGR_MAX_RES.' result rows. This limitation will be removed in the next release.');
 			print html_groupped_table($data,array(
-				'group_y' => $y,
-				'group_x' => $x,
+#				'group_y' => $y,
+#				'group_x' => $x,
 				'header' => 1,
 				'aggregate_fields' => array('runs','succ','fail','interr','skip','time'),
 				'aggregate_callback'    => 'aggregate_results',

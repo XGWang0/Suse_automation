@@ -398,6 +398,28 @@ function abort($msg)
 }
 
 /**
+  * Runs a list of commands until the first failure
+  * @param array $commands list of commands (strings or arrays containing arguments)
+  * @return int number of commands successfully executed
+  **/
+function update_sequence($commands)
+{
+	for( $i=0; $i<count($commands); $i++ )	{
+		$cmd = $commands[$i];
+		if( !is_array($cmd) )
+			$cmd = array($cmd);
+#		print "<pre>\n";
+#		print_r($cmd);
+#		print "</pre>\n";
+		$ret = call_user_func_array('update_query',$cmd);
+		if( $ret<0 )
+			return $i-1;
+#		print "OK<br/>\n";
+	}
+	return count($commands);
+}
+
+/**
   * Executes a statement or fails, returns nr of affected rows.
   *  usage: update_query( $query, [$format, $param1, ...] )
   * @return int number of affected rows
