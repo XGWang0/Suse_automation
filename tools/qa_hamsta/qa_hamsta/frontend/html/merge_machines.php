@@ -112,21 +112,30 @@ foreach($ids as $id)
 print '<input type="submit" name="submit" value="Merge!"/>'."\n";
 print "</form>\n";
 
-# function to merge and concatenate strings ( 's' type )
-function merge_strings($s,&$ret,&$flag)	{
-	$s=array_unique($s);
-	$ret=$s[0];
-	$flag=0;
-	for( $i=1; $i<count($s); $i++ )	{
-		if( !isset($s[$i]) || !strlen($s[$i]) )
-			continue;
-		if( strlen($ret) )	{
-			$ret = $ret . ', ' . $s[$i];
-			$flag=1;
-		}
-		else
-			$ret = $s[$i];
-	}
+/* Merge and concatenate strings (type 's'). */
+function merge_strings ($s, &$ret, &$flag)
+{
+  $s = array_unique ($s);
+  $ret = $s[0];
+  $flag = 0;
+  $i = 1;
+
+  for ( ; $i < count ($s); $i++ )
+    {
+       if ( ! isset ($s[$i]) )
+         continue;
+
+       if ( strlen ($ret) )
+         {
+           $ret = $ret . ', ' . $s[$i];
+         }
+       else
+         {
+           $ret = $s[$i];
+         }
+    }
+
+  $flag = $i - 1;
 }
 
 # function to merge (type 'S', one-of)
