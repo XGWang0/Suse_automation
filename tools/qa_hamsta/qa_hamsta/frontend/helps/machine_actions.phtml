@@ -157,7 +157,7 @@ if ( $useAuth
   <!-- DELETE A MACHINE -->
 
 <?php if(preg_match ('/^vm\//', $machine->get_type())) { ?>
-			<img src="images/icon-delete-grey.png" alt="Delete this machine and all related data" title="I is not possible to delete <?php $machine->get_hostname () ?> in this view. Virtual machines can only be deleted in QA Cloud view." border="0" width="20" style="padding-right: 3px;" onclick="alert('It is not possible to delete virtual machine in this view. Virtual machines can only be deleted in QA Cloud view.');" /></a>
+			<img src="images/icon-delete-grey.png" alt="Delete this machine and all related data" title="I is not possible to delete <?php echo( $machine->get_hostname ()); ?> in this view. Virtual machines can only be deleted in QA Cloud view." border="0" width="20" style="padding-right: 3px;" onclick="alert('It is not possible to delete virtual machine in this view. Virtual machines can only be deleted in QA Cloud view.');" /></a>
 <?php } else if ( $useAuth
                   && (! isset ($user)
                       || ! ( $users_machine && $user->isAllowed('machine_delete')
