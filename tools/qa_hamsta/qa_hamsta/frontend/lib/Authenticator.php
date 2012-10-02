@@ -55,10 +55,11 @@ class Authenticator extends Zend_Auth
 
     $auth = parent::getInstance();
 
-    if ((isset($_GET['action'])
-         && $_GET['action'] == "login")
-        || isset($_GET['openid_mode'])
-        || isset($_POST['openid_mode'])) {
+    if ( ! $auth->hasIdentity ()
+         && ((isset($_GET['action'])
+              && $_GET['action'] == "login")
+             || isset($_GET['openid_mode'])
+             || isset($_POST['openid_mode']))) {
 
       if ( isset ($_GET['action'])
            && $_GET['action'] == 'logout') {
