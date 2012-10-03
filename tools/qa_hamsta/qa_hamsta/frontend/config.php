@@ -117,12 +117,12 @@ $pxeserver="147.2.207.240";
 $smtserver="https://smt.novell.com/center/regsvc";
 
 # Enable/Disable openid authentication to the system.
-$openid_auth = false;
+define ("USE_AUTH", "true");
 
 # Possible values are 'openid' or 'password'
-$authentication_method = 'password';
+define ("AUTHENTICATION_METHOD", 'openid');
 
 # Set the openid authentication url.
-$openid_url = "www.novell.com/openid";
+define ("OPENID_URL", "www.novell.com/openid");
 
 ?>

@@ -32,7 +32,7 @@ require_once ('Zend/Config/Ini.php');
  * OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
  * WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
  */
-class Conf
+class Conf extends Zend_Config
 {
 
   /**
@@ -49,6 +49,41 @@ class Conf
   public static function getIniConfig($filename, $section, $options = false) {
     return new Zend_Config_Ini($filename, $section, $options);
   }
+
+  /**
+   * Gets values from config.php.
+   *
+   * This should be temporary solution until all configuration is
+   * replaced by ini file. Now the crazy array just copies the
+   * hamsta.ini file.
+   */
+  function __construct ($array, $allowModifications)
+  {
+    if (! isset ($array))
+      {
+        $use_auth = (USE_AUTH == 'true') ? true : false;
+        $array = array ('database' =>
+                        array('adapter' => 'Pdo_Mysql',
+                              'params' =>
+                              array (
+                                     'host' => 'localhost',
+                                     'dbname' => 'hamsta_db',
+                                     'username' => PDO_USER,
+                                     'password' => PDO_PASSWORD
+                                     )
+                              ),
+                        'authentication' =>
+                        array ('use' => $use_auth,
+                               'method' => AUTHENTICATION_METHOD,
+                               'openid' => 
+                               array ('url' => OPENID_URL)
+                               )
+                        );
+      }
+    parent::__construct ($array, $allowModifications);
+  }
+
 }
+
 
 ?>
