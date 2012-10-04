@@ -78,13 +78,11 @@
 		# Send result to the main page
 		if(count($failedDeletions) > 0)
 		{
-			$_SESSION['message'] = "The following machines failed to delete: " . implode(", ", $failedDeletions) . ".";
-			$_SESSION['mtype'] = "error";
+                  Notificator::setErrorMessage ("The following machines failed to delete: " . implode(", ", $failedDeletions) . ".");
 		}
 		if(count($successfulDeletions) > 0)
 		{
-			$_SESSION['message'] = "The following machines were successfully deleted: " . implode(", ", $successfulDeletions) . ".";
-			$_SESSION['mtype'] = "success";
+                  Notificator::setSuccessMessage ("The following machines were successfully deleted: " . implode(", ", $successfulDeletions) . ".");
 		}
 		
 		# Redirect to the main page
@@ -93,8 +91,7 @@
     }
     else if(request_str("cancel"))
     {
-		$_SESSION['message'] = "Machine deletion was canceled.";
-		$_SESSION['mtype'] = "fail";
+              Notificator::setErrorMessage ('Machine deletion was canceled.');
 		header("Location: index.php");
 		exit();
     }

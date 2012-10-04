@@ -165,7 +165,7 @@ tsRegister();
 			  <?php
 				foreach ($fields_list as $key=>$value) {
 					echo("\t\t\t\t\t<option value=$key");
-					if (in_array($key, $display_fields))
+                                        if ( isset ($display_fields ) && in_array($key, $display_fields))
 						echo(' selected');
 					echo (" >$value</option>\n");
 				}

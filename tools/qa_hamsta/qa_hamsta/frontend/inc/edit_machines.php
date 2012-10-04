@@ -44,7 +44,7 @@
           {
             if ( User::isLogged() && User::isRegistered (User::getIdent (), $config) )
               {
-                $user = User::getInstance($config);
+                $user = User::getById (User::getIdent (), $config);
                 if ( ! ($user->isAllowed ('machine_edit_reserve')
                         || $user->isAllowed ('machine_edit_reserved')) ) {
                   Notificator::setErrorMessage ('You do not have permission to edit/reserve a machine.');

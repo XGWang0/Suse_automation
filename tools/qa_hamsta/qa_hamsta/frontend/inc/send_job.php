@@ -60,7 +60,7 @@ if ( $config->authentication->use )
   {
     if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
       {
-        $user = User::getInstance ($config);
+        $user = User::getById (User::getIdent (), $config);
         if ( $user->isAllowed ('machine_send_job')
              || $user->isAllowed ('machine_send_job_reserved') )
           {

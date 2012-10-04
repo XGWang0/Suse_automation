@@ -86,7 +86,7 @@ if ( $config->authentication->use )
   {
     if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
       {
-        $user = User::getInstance ($config);
+        $user = User::getById (User::getIdent (), $config);
         if ( $user->isAllowed ('machine_delete') || $user->isAllowed ('machine_delete_reserved') )
           {
             foreach ($machines as $machine)

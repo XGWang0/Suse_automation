@@ -38,7 +38,7 @@ if ( $config->authentication->use )
   {
     if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
       {
-        $user = User::getInstance ($config);
+        $user = User::getById (User::getIdent (), $config);
         if ( ! $user->isAllowed ('validation_start') )
           {
             Notificator::setErrorMessage ("You do not have privileges to "

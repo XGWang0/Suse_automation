@@ -28,7 +28,7 @@
 		return require("index.php");
 	}
 if (User::isLogged())
-  $user = User::getInstance($config);
+  $user = User::getById (User::getIdent (), $config);
 
 	$blockedMachines = array();
 	$virtualMachines = array();

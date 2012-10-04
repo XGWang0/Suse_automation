@@ -47,10 +47,29 @@ if ( User::isLogged()
      && ! User::isRegistered(User::getIdent(), $config)
      && ! empty ($user_name)
      && ! empty ($user_email) ) {
-  User::addUser (User::getIdent(), $user_name, $user_email, $config);
-  $_SESSION['mtype'] = 'success';
-  $_SESSION['message'] = 'You have been successfuly registered into Hamsta.';
-  header ('Location: index.php');
+  /* With OpenId we have to parse user login to add it as well.
+   * That usually means the last part of OpenId url.  */
+  $login = substr (strrchr (User::getIdent (), "/"), 1);
+  if ( ! empty ($login) )
+    {
+      if (User::addUser (User::getIdent(), $login, $user_name, $user_email, $config) > 0)
+        {
+          Notificator::setSuccessMessage ('You have been successfuly registered into Hamsta.');
+          header ('Location: index.php');
+        }
+      else
+        {
+          Notificator::setErrorMessage ('There has been an error. Contact your administrator.');
+          header ('Location: index.php?go=register');
+        }
+    }
+  else
+    {
+      User::logout ();
+      Notificator::setErrorMessage ('Your identifier is not valid OpenID url.');
+      header ('Location: index.php?go=register');
+    }
+
 }
 
 if ( request_str("submit")
@@ -59,8 +78,7 @@ if ( request_str("submit")
   $email = isset ($_POST['email']) ? $_POST['email'] : '';
 
   if ( empty($name) || empty($email) ) {
-    $_SESSION['mtype'] = 'failure';
-    $_SESSION['message'] = 'Fill in the form, please.';
+    Notificator::setErrorMessage ('Fill in the form, please.');
     header('Location: index.php?go=register');
     exit();
   }
@@ -68,18 +86,15 @@ if ( request_str("submit")
   /* Submit registration info to database.*/
   if ( ! User::isRegistered(User::getIdent(), $config) ) {
     if (User::addUser(User::getIdent(), $name, $email)) {
-      $_SESSION['mtype'] = 'success';
-      $_SESSION['message'] = 'Registration was successful.';
+      Notificator::setSuccessMessage ('Registration was successful.');
     } else {
-      $_SESSION['mtype'] = 'failure';
-      $_SESSION['message'] = 'There has been an registration error.';
+      Notificator::setErrorMessage ('There has been an registration error.');
     }
   } else {
-    $user = User::getInstance($config);
+    $user = User::getById (User::getIdent (), $config);
     $user->setName($name);
     $user->setEmail($email);
-    $_SESSION['mtype'] = "success";
-    $_SESSION['message'] = "Successfully updated registration information.";
+    Notificator::setSuccessMessage ('Successfully updated registration information.');
     header ('Location: index.php?go=user');
   }
 }

@@ -62,7 +62,7 @@ foreach($machines as $m) {
  * she can reinstall also reserved machines. */
 if ( $config->authentication->use )
   {
-    if ( $user = User::getInstance($config) )
+    if ( $user = User::getById (User::getIdent (), $config) )
       {
         if ( ($user->isAllowed ('machine_reinstall')
               || $user->isAllowed ('machine_reinstall_reserved')) )

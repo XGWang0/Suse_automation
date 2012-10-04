@@ -432,7 +432,7 @@ class Machine {
 	 * Gets update status of this machine.
 	 * 
 	 *@access public
-	 *@return ture if SUT side have hamste update available
+	 *@return true if SUT side have hamste update available
 	 */
         function get_update_status() {
 	
@@ -895,11 +895,11 @@ class Machine {
         public function get_used_by_login ()
         {
           /* Let us retrive the value from DB only once. */
-          if ( isset ($this->fields['user_login']) ) {
-            return $this->fields['user_login'];
+          if ( isset ($this->fields['login']) ) {
+            return $this->fields['login'];
           }
 
-          if ( ! $stmt = get_pdo()->prepare('SELECT u.user_login FROM machine m'
+          if ( ! $stmt = get_pdo()->prepare('SELECT u.login FROM machine m'
                                             . ' INNER JOIN user u ON m.usedby = u.user_id'
                                             . ' WHERE u.user_id = :user_id') ) {
             return null;
@@ -911,8 +911,8 @@ class Machine {
           if ( ! isset ($login) ) {
             return null;
           } else {
-            $this->fields['user_login'] = $login['user_login'];
-            return $login['user_login'];
+            $this->fields['login'] = $login['login'];
+            return $login['login'];
           }
         }
 	
@@ -926,7 +926,7 @@ class Machine {
 	function set_used_by($user) {
 		$this->fields["usedby"] = $user;
 		$stmt = get_pdo()->prepare('UPDATE machine SET usedby ='
-                                           . ' (SELECT user_id FROM user WHERE user_login = :used_by)'
+                                           . ' (SELECT user_id FROM user WHERE login = :used_by)'
                                            . ' WHERE machine_id = :id');
 		$stmt->bindParam(':id', $this->fields["id"]);
 		$stmt->bindParam(':used_by', $this->fields["usedby"]);
