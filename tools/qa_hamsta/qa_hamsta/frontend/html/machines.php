@@ -41,7 +41,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 		<th>Used by</th>
 		<?php
 			foreach ($fields_list as $key=>$value)
-				if (in_array($key, $display_fields))
+                                if (isset ($display_fields) && in_array($key, $display_fields))
 					echo("<th>$value</th>");
 		?>
 		<th id='actions'><a>Actions</a></th>
@@ -67,7 +67,7 @@ if (!defined('HAMSTA_FRONTEND')) {
   {
     $fname = "get_".$key;
     $res = $machine->$fname();
-    if (in_array($key, $display_fields))
+    if (isset ($display_fields) && in_array($key, $display_fields))
       echo ("    <td>$res</td>\n");
   }
 		?>
@@ -83,7 +83,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 </table>
 <script type="text/javascript">
 <!--
-var TSort_Data = new Array ('machines','', '0' <?php echo str_repeat(", 'h'",count($display_fields)+1); ?>);
+                          var TSort_Data = new Array ('machines','', '0' <?php echo str_repeat(", 'h'", (isset ($display_fields) ? count($display_fields)+1 : 1)); ?>);
 tsRegister();
 -->
 </script>
