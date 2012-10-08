@@ -131,7 +131,7 @@ tsRegister();
 			<select name="architecture">
 				<option value="">Any</option>
 				<?php foreach(Machine::get_architectures() as $archid => $arch): ?>
-					<option value="<?php echo($arch); ?>" <?php if (request_str("architecture") == $arch) echo('selected'); ?>><?php echo($arch); ?></option>
+					<option value="<?php echo($arch); ?>"<?php if (request_str("architecture") == $arch) echo(' selected="selected"'); ?>><?php echo($arch); ?></option>
 				<?php endforeach;?>
 			</select>
 		</td>
@@ -142,7 +142,7 @@ tsRegister();
 			<select name="architecture_capable">
 				<option value="">Any</option>
 				<?php foreach(Machine::get_architectures_capable() as $archid => $arch): ?>
-					<option value="<?php echo($arch); ?>" <?php if (request_str("architecture_capable") == $arch) echo('selected'); ?>><?php echo($arch); ?></option>
+					<option value="<?php echo($arch); ?>"<?php if (request_str("architecture_capable") == $arch) echo(' selected="selected"'); ?>><?php echo($arch); ?></option>
 				<?php endforeach;?>
 			</select>
 		</td>
@@ -153,7 +153,7 @@ tsRegister();
 			<select name="status_string">
 				<option value="">Any</option>
 				<?php foreach(Machine::get_statuses() as $status_id => $status_string): ?>
-					<option value="<?php echo($status_string); ?>" <?php if (request_str("status_string") == $status_string) echo("selected") ?>><?php echo($status_string); ?></option>
+					<option value="<?php echo($status_string); ?>"<?php if (request_str("status_string") == $status_string) echo(' selected="selected"') ?>><?php echo($status_string); ?></option>
 				<?php endforeach;?>
 			</select>
 		</td>
@@ -161,13 +161,13 @@ tsRegister();
 	<tr>
 		<th valign="top">Display fields: </th>
 		<td>
-		<select name="d_fields[]" size=<?php echo sizeof($fields_list);?> multiple>
+		<select name="d_fields[]" size=<?php echo sizeof($fields_list);?> multiple="multiple">
 			  <?php
 				foreach ($fields_list as $key=>$value) {
 					echo("\t\t\t\t\t<option value=$key");
                                         if ( isset ($display_fields ) && in_array($key, $display_fields))
-						echo(' selected');
-					echo (" >$value</option>\n");
+						echo(' selected="selected"');
+					echo (">$value</option>\n");
 				}
 			  ?>
 			</select>
@@ -175,13 +175,16 @@ tsRegister();
 	</tr>
 	<tr>
 		<td colspan="2" align="center">
-			<input type="submit" value="Search" style="background-color: #eeeeee; width: 100%; padding: 3px;" class="text-medium">
+                  <input type="submit" value="Search" style="background-color: #eeeeee; width: 100%; padding: 3px;" class="text-medium">
 		</td>
 	</tr>
 </table>
+</form>
+</div>
 <?php
-	echo "</div>";
-	# Right column, latest features (here temporarily until we get a flashy new global WebUI)
+	/* Right column, latest features (here temporarily until we get a flashy new global WebUI).
+         * PK: Will we? */
+        /* TODO fix ampersands */
 	echo "<div style=\"float: left; width: 425px; margin-left: 20px;\">\n";
 		echo "<h2 class=\"text-medium text-blue bold\">Latest Features</h2>\n";
 		echo "<div class=\"text-main\">We are always working hard to create new, useful features to make your testing easier. Below, you will find just a few of these new capabilities that have been added recently. Check back here after each release to see what's new!</div><br />\n";
