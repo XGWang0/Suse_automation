@@ -36,7 +36,7 @@ if ( ! defined('HAMSTA_FRONTEND') ) {
 
 if ( $config->authentication->method == 'openid' && isset ($user) ) {
   echo ('<p>Your OpenId url is ');
-  echo ('<b>' . $user->getLogin() . "</b>.\n");
+  echo ('<b>' . $user->getExternId() . "</b>.\n");
   echo ('<br />');
  } else {
   echo ('<p>Your login is ');

@@ -32,12 +32,11 @@ if (!defined('HAMSTA_FRONTEND')) {
 }
 
 if ( User::isLogged() ) {
-  $user = User::getInstance($config);
-  if ( $user != null ) {
-    //    $user = User::getInstance($config);
-    $user_name = $user->getName();
-    $user_email = $user->getEmail();
-  }
+  if ( $user = User::getById (User::getIdent (), $config) )
+    {
+      $user_name = $user->getName();
+      $user_email = $user->getEmail();
+    }
 }
 
 ?>

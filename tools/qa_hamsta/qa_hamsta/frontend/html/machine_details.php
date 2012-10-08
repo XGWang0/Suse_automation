@@ -129,6 +129,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 		echo '<p><a href="index.php?go=machine_purge&amp;id=' . $machine->get_id() . '&amp;purge=job">Purge job history</a></p>' . "\n";
 	}
 ?>
+<?php if ( isset($configuration) ) { ?>
 <?php if($configuration->get_id() == $machine->get_current_configuration()->get_id()): ?>
 	<h2 class="text-medium text-blue bold">Current configuration</h2>
 <?php else: ?>
@@ -154,6 +155,10 @@ if (!defined('HAMSTA_FRONTEND')) {
 		</tr>
 	<?php endforeach; ?>
 </table>
+
+<?php } else { ?>
+      <h2 class="text-medium text-blue bold">Configuration not set</h2>
+<?php } ?>
 
 <h2 class="text-medium text-blue bold">Previous configurations</h2>
 <form action="index.php?go=diff_config" method="post">

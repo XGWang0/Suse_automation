@@ -168,7 +168,7 @@ class UserRole
       {
         $db = Zend_Db::factory ($this->config->database);
         $roleId = $db->fetchCol ('SELECT role_id FROM user_role WHERE role = ?', $this->getName ());
-        $userId = $db->fetchCol ('SELECT user_id FROM user WHERE user_login = ?', $user->getLogin ());
+        $userId = $db->fetchCol ('SELECT user_id FROM user WHERE login = ?', $user->getLogin ());
         if ( isset ($roleId[0]) && isset ($userId[0]) )
           {
             $data = Array (

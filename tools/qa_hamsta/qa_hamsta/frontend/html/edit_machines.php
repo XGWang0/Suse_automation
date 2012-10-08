@@ -69,7 +69,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 		}
 
 		if (!isset($valuer) && isset($user)) {
-			$valuer = $user->getIdent();
+			$valuer = $user->getLogin();
 		}
 
                 $used_by = User::getByLogin($valuer, $config);
@@ -100,8 +100,6 @@ if (!defined('HAMSTA_FRONTEND')) {
                             . "</option>\n";
                         }
                       $to_column .= "  </select>\n";
-                    // TODO make a combobox with selection
-                    // TODO the user that is currently user of the machine should be displayed as a first option
                     $counterAddValue++;
                     $column[] = $to_column;
                   }

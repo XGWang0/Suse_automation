@@ -37,7 +37,7 @@ if ( $config->authentication->use )
   {
     if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
       {
-        $user = User::getInstance ($config);
+        $user = User::getById (User::getIdent (), $config);
         if ( ! $user->isAllowed ('machine_merge')
              && ! $user->isAllowed ('machine_merge_reserved') )
           {

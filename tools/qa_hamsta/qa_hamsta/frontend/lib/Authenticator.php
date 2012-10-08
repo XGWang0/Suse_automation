@@ -45,7 +45,7 @@ class Authenticator extends Zend_Auth
   /**
    * Authenticates user using OpenID.
    * 
-   * Uses Zend_Config for database connection.
+   * Uses Zend_Config to get configuration.
    *
    * @param Zend_Config $config Instance of class Zend_Config.
    *
@@ -102,7 +102,7 @@ class Authenticator extends Zend_Auth
   public static function password($login, $password, $config) {
     $auth = parent::getInstance();
     $db = Zend_Db::factory($config->database);
-    $adapter = new Zend_Auth_Adapter_DbTable($db, 'user', 'user_login', 'password', 'SHA1(?)');
+    $adapter = new Zend_Auth_Adapter_DbTable($db, 'user', 'login', 'password', 'SHA1(?)');
     $adapter->setIdentity($login);
     $adapter->setCredential($password);
     $result = $auth->authenticate($adapter);

@@ -44,6 +44,10 @@ class User {
    * current role in session. */
   const ROLE_SESSION_NAMESPACE = 'roles';
 
+  /** @var int User id in the database. */
+  private $user_id;
+  /** @var string External login string (e.g. OpenId url). */
+  private $extern_id;
   /** @var string Login name of the user. */
   private $login;
   /** @var string Full name of the user. */
@@ -61,14 +65,21 @@ class User {
    * Creates new instance.
    *
    * @param \Zend_Config $config Application configuration.
+   * @param int $user_id Id of the user in database.
+   * @param string $extern_id External identifier of the user (e.g. OpenId).
    * @param string $login Login of the user.
    * @param string $name Full name of the user.
    * @param string $email E-mail of the user.
    * @param \UserRole $role Role to set for the user.
    */
-  private function __construct ($config, $login, $name, $email, $role)
+  private function __construct ( $config, $user_id,
+                                 $extern_id, $login,
+                                 $name, $email,
+                                 $role)
   {
     $this->config = $config;
+    $this->user_id = $user_id;
+    $this->extern_id = $extern_id;
     $this->login = $login;
     $this->name = $name;
     $this->email = $email;
@@ -90,7 +101,7 @@ class User {
       {
         $db = Zend_Db::factory ($config->database);
         if ( isset ($ident) )
-          $res = $db->fetchAll ('SELECT name FROM `user` WHERE user_login = ?', $ident);
+          $res = $db->fetchAll ('SELECT name FROM `user` WHERE login = ?', $ident);
 
         $db->closeConnection ();
         return isset ($res[0]['name']) ? $res[0]['name'] : null;
@@ -115,7 +126,7 @@ class User {
       {
         $db = Zend_Db::factory ($config->database);
         if ( isset ($ident) )
-          $res = $db->fetchAll ('SELECT email FROM `user` WHERE user_login = ?', $ident);
+          $res = $db->fetchAll ('SELECT email FROM `user` WHERE login = ?', $ident);
         
         $db->closeConnection ();
         return isset ($res[0]['email']) ? $res[0]['email'] : null;
@@ -129,7 +140,7 @@ class User {
   /**
    * Set name of the user in the database.
    *
-   * @param string $ident Login indentification of the user.
+   * @param string $ident Login identification of the user.
    * @param string $newName Name to be set.
    *
    * @return integer Number greater than zero on success, zero otherwise.
@@ -143,7 +154,7 @@ class User {
         $name = $db->quote ($newName);
         $data = array ( 'name' => $newName );
         if ( isset ($ident) ) {
-          $res = $db->update ('user', $data, 'user_login = ' . $ident);
+          $res = $db->update ('user', $data, 'login = ' . $ident);
         }
         $db->closeConnection ();
         return $res;
@@ -157,7 +168,7 @@ class User {
   /**
    * Set email of the user in the database.
    *
-   * @param string $ident Login indentification of the user.
+   * @param string $ident Login identification of the user.
    * @param string $newEmail E-mail to be set.
    *
    * @return integer Number greater than zero on success, zero otherwise.
@@ -170,7 +181,7 @@ class User {
         $ident = $db->quote ($ident);
         $data = array ( 'email' => $newEmail );
         if ( isset ($ident) ) {
-          $res = $db->update ('user', $data, 'user_login = ' . $ident);
+          $res = $db->update ('user', $data, 'login = ' . $ident);
         }
         $db->closeConnection ();
         return $res;
@@ -184,7 +195,7 @@ class User {
   /**
    * Set password of the user in the database.
    *
-   * @param string $ident Login indentification of the user.
+   * @param string $ident Login identification of the user.
    * @param string $newPassword Plain string password. It will be hashed on the insertion into DB.
    *
    * @return integer Number greater than zero on success, zero otherwise.
@@ -194,7 +205,7 @@ class User {
     try
       {
         $db = Zend_Db::factory ($this->config->database);
-        $stmt = $db->query ('UPDATE user SET password = SHA1(?) WHERE user_login = ?',
+        $stmt = $db->query ('UPDATE user SET password = SHA1(?) WHERE login = ?',
                             Array ($newPassword, $ident));
         $res = $stmt->execute();
         $db->closeConnection ();
@@ -235,22 +246,49 @@ class User {
   }
 
   /**
-   * Returns an instance of <b>registered and currently logged in</b>
-   * user.
+   * Returns some of the fields of the user.
    *
-   * @param \Zend_Config $config Application configuration.
+   * It should return one user or null in all cases. Access to the
+   * result fields is like e.g. $res[0]['login']. Returned fields are
+   * 'user_id', 'extern_id', 'login', 'name' and 'email'.
+   * 
+   * @param \Zend_Config $config Instance of the Zend_Config class.
+   * @param string $login Login of the user to the application.
+   * @param string $extern_id External authentication identifier (e.g. OpenId).
    *
-   * @return \User|null Returns the user if she is registered.
+   * @return string[][]|null Array of hashes or null if no user was
+   * found.
    */
-  public static function getInstance ($config)
+  private static function getUserFields ($config, $login = null, $extern_id = null)
   {
-    $ident = self::getIdent ();
-    return self::isRegistered ($ident, $config)
-      ? new User ( $config, $ident,
-                   self::getDbName ($ident, $config),
-                   self::getDbEmail ($ident, $config),
-                   UserRole::getByName (self::getCachedOrDefaultRole(), $config) )
-      : null;
+    $sql = 'SELECT user_id, extern_id, login, name, email FROM `user` WHERE ';
+    $identifier = null;
+    if (isset ($login))
+      {
+        $sql .= 'login = ?';
+        $identifier = $login;
+      }
+    else if (isset ($extern_id))
+      {
+        $sql .= 'extern_id = ?';
+        $identifier = $extern_id;
+      }
+    else
+      {
+        return null;
+      }
+
+    try
+      {
+        $db = Zend_Db::factory ($config->database);
+        $res = $db->fetchAll ($sql, $identifier);
+        $db->closeConnection ();
+        return (isset ($res[0])) ? $res : null;
+      }
+    catch (Zend_Db_Exception $e)
+      {
+        return null;
+      }
   }
 
   /**
@@ -263,17 +301,23 @@ class User {
    */
   public static function getByLogin ($login, $config)
   {
-    return self::isRegistered ($login, $config)
-      ? new User ($config,
-                  $login,
-                  User::getDbName ($login, $config),
-                  User::getDbEmail ($login, $config),
-                  UserRole::getByName (self::getCachedOrDefaultRole(), $config) )
-      : null;
+    $user_fields = self::getUserFields ($config, $login, null);
+
+    if (isset ($user_fields))
+      {
+        return new User ( $config,
+                          $user_fields[0]['user_id'],
+                          $user_fields[0]['extern_id'],
+                          $user_fields[0]['login'],
+                          $user_fields[0]['name'],
+                          $user_fields[0]['email'],
+                          UserRole::getByName (self::getCachedOrDefaultRole(), $config) );
+      }
+    return null;
   }
 
   /**
-   * Returns an instance of <b>registered</b> user by id.
+   * Returns an instance of <b>registered</b> user by external id.
    *
    * @param int $id Id of user.
    * @param \Zend_Config $config Application configuration.
@@ -282,28 +326,29 @@ class User {
    */
   public static function getById ($id, $config)
   {
-    $login = null;
-    try
+    switch ($config->authentication->method)
       {
-        $db = Zend_Db::factory ($config->database);
-        if ( isset ($id) )
-          $res = $db->fetchAll ('SELECT user_login, name, email FROM `user` WHERE user_id = ?', $id);
-        
-        $db->closeConnection ();
-        $login = isset ($res[0]['user_login']) ? $res[0]['user_login'] : null;
-      }
-    catch (Zend_Db_Exception $e)
-      {
+      case "openid":
+        $user_fields = self::getUserFields ($config, null, $id);
+        break;
+      case "password":
+        $user_fields = self::getUserFields ($config, $id, null);
+        break;
+      default:
         return null;
       }
-    
-    return ( isset ($login) )
-      ? new User ($config,
-                  $login,
-                  $res[0]['name'],
-                  $res[0]['email'],
-                  UserRole::getByName (self::getCachedOrDefaultRole(), $config) )
-      : null;
+
+    if (isset ($user_fields))
+      {
+        return new User ( $config,
+                          $user_fields[0]['user_id'],
+                          $user_fields[0]['extern_id'],
+                          $user_fields[0]['login'],
+                          $user_fields[0]['name'],
+                          $user_fields[0]['email'],
+                          UserRole::getByName (self::getCachedOrDefaultRole(), $config) );
+      }
+    return null;
   }
 
   /**
@@ -366,8 +411,9 @@ class User {
               }
             else if ( self::isRegistered (self::getIdent(), $config) )
               {
-                $dbName = self::getDbName(self::getIdent(), $config);
-                $dbEmail = self::getDbEmail(self::getIdent(), $config);
+                $user = User::getById (self::getIdent (), $config);
+                $dbName = $user->getName ();
+                $dbEmail = $user->getEmail ();
 
                 if ( ! isset ($dbName) || empty ($dbName)
                      || ! isset ($dbEmail) || empty($dbEmail) )
@@ -407,14 +453,16 @@ class User {
   }
 
   /**
-   * Returns login identity of this user.
+   * Returns identity of this user that is used for authentication.
+   *
+   * For OpenId returns OpenId url and for password authentication
+   * uses login from database.
    *
    * @return string Login identification.
    */
   public static function getIdent ()
   {
-    $auth = Authenticator::getInstance ();
-    return $auth->getIdentity ();
+    return Authenticator::getInstance ()->getIdentity ();
   }
 
   /**
@@ -433,7 +481,7 @@ class User {
         $ident = self::getIdent();
         if ( self::isRegistered ($ident, $config) )
           {
-            $user = self::getByLogin ($ident, $config);
+            $user = self::getById ($ident, $config);
             $outName = $user->getName ();
             if ( ! isset ($outName) || empty ($outName) ) {
               $outName = $ident;
@@ -496,11 +544,12 @@ class User {
    *
    * @return integer Number greater than zero if user has been added, zero otherwise.
    */
-  public static function addUser ($login, $name, $email, $config)
+  public static function addUser ($extern_id, $login, $name, $email, $config)
   {
     $db = Zend_Db::factory ($config->database);
     $data = Array (
-                   'user_login' => $login,
+                   'extern_id' => $extern_id,
+                   'login' => $login,
                    'name' => $name,
                    'email' => $email
                    );
@@ -508,13 +557,12 @@ class User {
     if ($added > 0)
       {
         $user = User::getByLogin ($login, $config);
-        $defRole = UserRole::getByName(self::DEFAULT_ROLE, $config);
+        $defRole = UserRole::getByName (self::DEFAULT_ROLE, $config);
         if ( isset ($defRole) )
           {
             $defRole->addUser ($user);
           }
       }
-    $db->closeConnection ();
 
     return $added;
   }
@@ -527,14 +575,36 @@ class User {
    * @param string $login Login identification of the user.
    * @param \Zend_Config $config Application configuration.
    */
-  public static function isRegistered ($login, $config)
+  public static function isRegistered ($ident, $config)
   {
     $db = Zend_Db::factory ($config->database);
-    $res = $db->fetchAll ('SELECT user_login FROM user WHERE user_login = ?', $login);
-    $db->closeConnection ();
-    return isset ($res[0]['user_login']);
+    $sql = 'SELECT user_id FROM user WHERE ';
+
+    switch ($config->authentication->method) {
+    case "openid":
+      $sql .= 'extern_id = ?';
+      break;
+    case "password":
+      $sql .= 'login = ?';
+      break;
+    default:
+      return false;
+    }
+
+    $res = $db->fetchAll ($sql, $ident);
+    return isset ($res[0]['user_id']);
+  }
+
+  public function getId ()
+  {
+    return $this->user_id;
   }
   
+  public function getExternId ()
+  {
+    return $this->extern_id;
+  }
+
   /**
    * Returns full name of this user.
    *
@@ -704,7 +774,7 @@ class User {
     else
       {
         $db = Zend_Db::factory ($this->config->database);
-        $sql = 'SELECT role FROM user NATURAL JOIN user_in_role NATURAL JOIN user_role WHERE user_login = ?';
+        $sql = 'SELECT role FROM user NATURAL JOIN user_in_role NATURAL JOIN user_role WHERE login = ?';
         $res = $db->fetchCol ($sql, $this->login);
         $db->closeConnection ();
         return $res;
@@ -738,7 +808,7 @@ class User {
   {
     try {
       $db = Zend_Db::factory ($config->database);
-      $sql = 'SELECT user_login FROM user ORDER BY name';
+      $sql = 'SELECT login FROM user ORDER BY name';
       $res = $db->fetchCol ($sql);
       $users = Array();
       foreach ($res as $login)

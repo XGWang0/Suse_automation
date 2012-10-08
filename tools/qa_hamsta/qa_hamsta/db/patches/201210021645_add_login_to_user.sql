@@ -1,5 +1,5 @@
-<?php
-/* ****************************************************************************
+/*
+****************************************************************************
   Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
 
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
@@ -23,31 +23,9 @@
   ****************************************************************************
  */
 
-  /**
-   * Logic of the user page.
-   */
-if (!defined('HAMSTA_FRONTEND')) {
-  $go = 'user';
-  return require("index.php");
- }
+ALTER TABLE `user` CHANGE `user_login` `extern_id` varchar(255) collate utf8_bin NOT NULL DEFAULT '' COMMENT 'External user login (e.g. OpenId url).',
+ADD `login` varchar(255) collate utf8_bin NOT NULL COMMENT 'Unique user login.' AFTER `extern_id`;
 
-$html_title = "User configuration";
+UPDATE `user` SET login = substring_index(extern_id,'/',-1);
 
-if ( User::isLogged() ) {
-  $user = User::getById (User::getIdent (), $config);
-  if ( isset ($_POST['role']) ) {
-    $user->setRole ($_POST['roles']);
-  } else if ( isset ($_POST['chngpswd']) ) {
-    if ( isset ($_POST['pswd']) && isset ($_POST['pswdcheck'])
-         && ! (empty ($_POST['pswd'])
-               || empty ($_POST['pswdcheck']))
-         && $_POST['pswd'] == $_POST['pswdcheck']) {
-      $user->setPassword ($_POST['pswd']);
-      Notificator::setSuccessMessage ('Your password has been successfuly changed.');
-    } else {
-      Notificator::setErrorMessage ('The password and checked password have to be the same and cannot be empty.');
-    }
-  }
-}
-
-?>
+ALTER TABLE `user` ADD UNIQUE KEY `login` (`login`);
