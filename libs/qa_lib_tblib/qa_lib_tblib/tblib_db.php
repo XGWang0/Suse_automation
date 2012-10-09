@@ -743,7 +743,9 @@ function uncached_query($sql)
 function connect_to_mydb()
 {
 	global $mysqli,$mysqlhost,$mysqluser,$mysqlpasswd,$mysqldb;
-	require_once('myconnect.inc.php');
+	if( !isset($mysqlhost) || !isset($mysqluser) || !isset($mysqldb) )	{
+		require_once('myconnect.inc.php');
+	}
 #	print("host=$mysqlhost,user=$mysqluser,pwd=$mysqlpasswd,db=$mysqldb");
 	$mysqli=@new mysqli($mysqlhost,$mysqluser,$mysqlpasswd,$mysqldb);
 	if( mysqli_connect_error() )
