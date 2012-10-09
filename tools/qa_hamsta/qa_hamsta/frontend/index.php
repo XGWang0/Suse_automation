@@ -67,7 +67,8 @@ require_once("../tblib/tblib.php");
  * First parameter is path to ini file. The second is name of group
  * you want to include configuration from.
  */
-$config = Conf::getIniConfig('hamsta.ini', 'cz');
+//$config = Conf::getIniConfig('hamsta.ini', 'cz');
+$config = new Conf(null, false);
 User::authenticate($config);
 
 $go = request_str("go");
