@@ -516,7 +516,8 @@ function table_add_checkboxes(&$data,$name,$base_index,$to_end=0,$form_name='my_
 		array_unshift($data[0],$d);
 	for( $i=1; $i<count($data); $i++ )
 	{
-		$d='<input type="checkbox" '.($checked ? 'checked="checked" ':'').'name="'.$name.'" value="'.$data[$i][$base_index].'"/>';
+		$check = ( array_key_exists($checked,$data[$i]) ? $data[$i][$checked] : $checked );
+		$d='<input type="checkbox" '.($check ? 'checked="checked" ':'').'name="'.$name.'" value="'.$data[$i][$base_index].'"/>';
 		if( $to_end )
 			$data[$i][]=$d;
 		else
@@ -718,6 +719,7 @@ define('CHECK_BOX',4);
 define('HIDDEN',5);
 define('HR',6);
 define('TEXT',7);
+define('PASSWORD',8);
 
 /**
   * Returns HTML code for a common search form.
@@ -779,6 +781,8 @@ function html_search_form( $url, $data, $attrs=array() )
 			$r.="\n<hr/>\n";
 		else if($d[3]==TEXT)
 			$r.='<div class="inputblock text notset">'.$d[4]."</div>\n";
+		else if($d[3]==PASSWORD)
+			$r.=sprintf('<input class="%s" type="password" name="%s"/>', $cls, $d[0] );
 		if( $visible )
 			$r.="</div></div>\n";
 	}
