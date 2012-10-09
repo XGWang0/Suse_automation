@@ -11,6 +11,7 @@ $wtoken=http('wtoken');
 $user_got=http('user_id');
 $role_got=http('role_id');
 $priv_got=http('priv_id');
+$confirm=http('confirm');
 
 if( $user_got )
 	$user=user_list($user_got);
@@ -28,7 +29,7 @@ if( token_read($wtoken) )	{
 		commit();
 		$step='p';
 	}
-	else if( $submit=='newpriv')	{
+	else if( $submit=='priv_new')	{
 		$privilege=http('privilege');
 		$descr=http('descr');
 		transaction();
@@ -36,10 +37,16 @@ if( token_read($wtoken) )	{
 		commit();
 		$step='p';
 	}
+	else if( $submit=='priv_del' && $priv_got)	{
+		transaction();
+		update_result( role_privilege_delete_privilege($priv_got) );
+		update_result( privilege_delete($priv_got) );
+		commit();
+	}
 	else if( $submit=='roles' )	{
 		$checked=http('checked');
 		transaction();
-		update_result( user_in_role_delete($user_got) );
+		update_result( user_in_role_delete_user($user_got) );
 		update_result( user_in_role_insert_all($user_got,$checked) );
 		commit();
 	}
@@ -59,6 +66,12 @@ if( token_read($wtoken) )	{
 		$extern_id=http('extern_id');
 		transaction();
 		update_result( user_insert($login,$name,$email,$extern_id), 1 );
+		commit();
+	}
+	else if( $submit=='userdel' && $user )	{
+		transaction();
+		update_result( user_in_role_delete_user($user_got) );
+		update_result( user_delete($user_got) );
 		commit();
 	}
 	else if( $submit=='passwd' && $user )	{
@@ -83,7 +96,7 @@ if( token_read($wtoken) )	{
 			}
 		}
 		transaction();
-		update_result( role_privilege_delete($role_got) );
+		update_result( role_privilege_delete_role($role_got) );
 		update_result( role_privilege_insert_all($role_got,$valid_until) );
 		commit();
 	}
@@ -99,6 +112,13 @@ if( token_read($wtoken) )	{
 		$descr=http('descr');
 		transaction();
 		update_result( role_insert($role_name,$descr), 1 );
+		commit();
+	}
+	else if( $submit=='role_del' && $role )	{
+		transaction();
+		update_result( user_in_role_delete_role($role_got) );
+		update_result( role_privilege_delete_role($role_got) );
+		update_result( role_delete($role_got) );
 		commit();
 	}
 
@@ -122,7 +142,32 @@ $steps_alt=array(
 
 print steps("$page?step=",$steps,$step,$steps_alt);
 
-if( $step=='ur' )	{
+if( $confirm=='priv_del' && $priv )	{
+	# confirm privilege delete
+	$fields=array(
+		'submit'=>$confirm,
+		'priv_id'=>$priv_got,
+		'step'=>'p',
+	);
+	print html_confirm('Are you sure to delete privilege '.$priv[1]['privilege'].' ?',$fields,$page);
+}
+else if( $confirm=='userdel' && $user )	{
+	# confirm user delete
+	$fields=array(
+		'submit'=>$confirm,
+		'user_id'=>$user_got,
+	);
+	print html_confirm('Are you sure to delete user '.$user[1]['name'].' ?',$fields,$page);
+}
+else if( $confirm=='role_del' && $role )	{
+	# confirm role delete
+	$fields=array(
+		'submit'=>$confirm,
+		'role_id'=>$role_got,
+	);
+	print html_confirm('Are you sure to delete role '.$role[1]['role'].' ?',$fields,$page);
+}
+else if( $step=='ur' )	{
 	# user roles
 	print html_table($user);
 	print "<hr/>";
@@ -242,7 +287,7 @@ else if( $step=='pn' )	{
 	$what=array(
 		array('privilege','','',TEXT_ROW),
 		array('descr','','',TEXT_AREA,'Description'),
-		array('submit','','newpriv',HIDDEN),
+		array('submit','','priv_new',HIDDEN),
 		array('wtoken','',token_generate(),HIDDEN),
 	);
 	print html_search_form($page,$what);
@@ -257,7 +302,7 @@ else if( $step=='p' )	{
 		),
 		'ctrls'=>array(
 			'edit'=>"$page?step=pe&priv_id=",
-			'delete'=>"confirm.php?confirm=adp&priv_id=",
+			'delete'=>"$page?confirm=priv_del&priv_id=",
 		),
 	));
 	print html_table($data,array(
@@ -278,7 +323,7 @@ else	{
 		'ctrls'=>array(
 			'roles'=>"$page?step=ur&user_id=",
 			'edit'=>"$page?step=ue&user_id=",
-			'delete'=>"confirm.php?confirm=adu&user_id=",
+			'delete'=>"$page?confirm=userdel&user_id=",
 			'passwd'=>"$page?step=up&user_id=",
 		),
 	));
@@ -299,7 +344,7 @@ else	{
 		'ctrls'=>array(
 			'privileges'=>"$page?step=rp&role_id=",
 			'edit'=>"$page?step=re&role_id=",
-			'delete'=>"confirm.php?confirm=adr&role_id=",
+			'delete'=>"$page?confirm=role_del&role_id=",
 		),
 	));
 	print html_table($data,array(

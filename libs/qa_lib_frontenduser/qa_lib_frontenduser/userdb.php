@@ -48,6 +48,10 @@ function user_insert($login,$name,$email,$extern_id)	{
 	return insert_query('INSERT INTO `user`(login,name,email,extern_id) VALUES(?,?,?,?)','ssss',$login,$name,$email,$extern_id);
 }
 
+function user_delete($user_id)	{
+	return update_query('DELETE FROM `user` WHERE user_id=?','i',$user_id);
+}
+
 function user_set_password($user_id,$pwd)	{
 	return update_query('UPDATE `user` SET `password`=SHA1(?) WHERE user_id=?','si',($pwd ? $pwd:null),$user_id);
 }
@@ -56,8 +60,12 @@ function user_role_list($user_id)	{
 	return mhash_query(1,null,'SELECT user_role.*,EXISTS(SELECT * FROM user_in_role WHERE user_in_role.role_id=user_role.role_id AND user_id=?) AS checked FROM user_role','i',$user_id);
 }
 
-function user_in_role_delete($user_id)	{
+function user_in_role_delete_user($user_id)	{
 	return update_query('DELETE FROM user_in_role WHERE user_id=?','i',$user_id);
+}
+
+function user_in_role_delete_role($role_id)	{
+	return update_query('DELETE FROM user_in_role WHERE role_id=?','i',$role_id);
 }
 
 function user_in_role_insert_all($user_id,$roles)	{
@@ -91,12 +99,20 @@ function role_insert($role,$descr)	{
 	return insert_query('INSERT INTO user_role(`role`,descr) VALUES(?,?)','ss',$role,$descr);
 }
 
+function role_delete($role_id)	{
+	return update_query('DELETE FROM user_role WHERE role_id=?','i',$role_id);
+}
+
 function role_privilege_list($role_id)	{
 	return mhash_query(1,null,'SELECT p.privilege_id,p.privilege,p.descr,rp.valid_until,IF(rp.privilege_id,1,0) AS checked FROM privilege p LEFT JOIN (SELECT * FROM role_privilege WHERE role_id=?) rp USING(privilege_id) WHERE rp.role_id IS NULL OR rp.role_id=? ORDER BY privilege','ii',$role_id,$role_id);
 }
 
-function role_privilege_delete($role_id)	{
+function role_privilege_delete_role($role_id)	{
 	return update_query('DELETE FROM role_privilege WHERE role_id=?','i',$role_id);
+}
+
+function role_privilege_delete_privilege($priv_id)	{
+	return update_query('DELETE FROM role_privilege WHERE privilege_id=?','i',$priv_id);
 }
 
 function role_privilege_insert_all($role_id,$valid_until)	{
@@ -128,6 +144,10 @@ function privilege_update($privilege_id,$privilege,$descr)	{
 
 function privilege_insert($privilege,$descr)	{
 	return insert_query('INSERT INTO privilege(privilege,descr) VALUES(?,?)','ss',$privilege,$descr);
+}
+
+function privilege_delete($privilege_id)	{
+	return update_query('DELETE FROM privilege WHERE privilege_id=?','i',$privilege_id);
 }
 
 
