@@ -61,8 +61,8 @@ install -m 644 %{S:1} $RPM_BUILD_ROOT/usr/share/man/man8
 gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
 install -m 755 -d $RPM_BUILD_ROOT%{webdir}
 cp -a --target-directory=$RPM_BUILD_ROOT%{webdir} *.php
-cp -a -r --target-directory=$RPM_BUILD_ROOT%{webdir} class
-cp -a -r --target-directory=$RPM_BUILD_ROOT%{webdir} doc
+#cp -a -r --target-directory=$RPM_BUILD_ROOT%{webdir} class
+#cp -a -r --target-directory=$RPM_BUILD_ROOT%{webdir} doc
 rm -rf `find $RPM_BUILD_ROOT -name .svn`
 
 %clean
