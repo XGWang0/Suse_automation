@@ -74,7 +74,6 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-, root, root)
 /usr/share/man/man8/qa_lib_frontenduser.8.gz
 %{webdir}
-%doc COPYING
 
 %changelog
 * Tue Oct 09 2012 pkacer@suse.com
