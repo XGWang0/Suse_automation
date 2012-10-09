@@ -61,8 +61,8 @@ install -m 644 %{S:1} $RPM_BUILD_ROOT/usr/share/man/man8
 gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
 install -m 755 -d $RPM_BUILD_ROOT%{webdir}
 cp -a --target-directory=$RPM_BUILD_ROOT%{webdir} *.php
-cp -a -r --target-directory=$RPM_BUILD_ROOT%{webdir} class
-cp -a -r --target-directory=$RPM_BUILD_ROOT%{webdir} doc
+#cp -a -r --target-directory=$RPM_BUILD_ROOT%{webdir} class
+#cp -a -r --target-directory=$RPM_BUILD_ROOT%{webdir} doc
 rm -rf `find $RPM_BUILD_ROOT -name .svn`
 
 %clean
@@ -74,7 +74,6 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-, root, root)
 /usr/share/man/man8/qa_lib_frontenduser.8.gz
 %{webdir}
-%doc COPYING
 
 %changelog
 * Tue Oct 09 2012 pkacer@suse.com

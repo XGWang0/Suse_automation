@@ -522,11 +522,11 @@ class User {
       {
         if ($form)
           {
-            echo ('<a href="index.php?go=login">Login</a>' . "\n");
+            echo ('<a href="index.php?go=login">Log in</a>' . "\n");
           }
         else
           {
-            echo ('<a href="index.php?action=login">Login</a>' . "\n");
+            echo ('<a href="index.php?action=login">Log in</a>' . "\n");
           }
       }
   }

@@ -123,7 +123,7 @@ class Notificator
     $ns = self::getNamespace (self::MESSAGE_SESSION_NAMESPACE);
     return isset ($ns)
       ? ( isset ($ns->message) && isset ($ns->messType) )
-      : null;
+      : false;
   }
 
   /**
