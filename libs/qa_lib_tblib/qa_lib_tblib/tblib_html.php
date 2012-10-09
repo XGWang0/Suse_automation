@@ -750,8 +750,9 @@ function html_search_form( $url, $data, $attrs=array() )
 	$search=hash_get($attrs,'search',true,false);
 	$form  =hash_get($attrs,'form',true,false);
 	$div   =hash_get($attrs,'div','input',false);
+	$method=hash_get($attrs,'method','get',false);
 	$r='';
-	if($form) $r.=sprintf('<form action="%s" class="input" method="get">'."\n",$url);
+	if($form) $r.=sprintf('<form action="%s" class="input" method="%s">'."\n",$url,$method);
 	if($div ) $r.=sprintf('<div class="%s">'."\n", $div);
 	foreach( $data as $d )
 	{
@@ -997,6 +998,21 @@ function html_pager_form($what,$base,$page,$rpp,$prefix)
 	$what[] = array($prefix.'page','',$page,TEXT_ROW,'Page');
 	$what[] = array($prefix.'rpp','',$rpp,TEXT_ROW,'Display rows');
 	return html_search_form($base,$what,array('submit'=>'Set'));
+}
+
+function html_confirm($text,$fields,$yes_url,$no_url=null)	{
+	$no_url=( $no_url ? $no_url : $yes_url );
+	$what=array();
+	foreach( $fields as $key=>$val )
+		$what[]=array($key,'',$val,HIDDEN);
+	$what[]=array('wtoken','',token_generate(),HIDDEN);
+	$ret=html_div('message',$text)."\n";
+	$ret.=html_div('input', 
+		html_search_form($yes_url,$what,array('submit'=>'Yes','hr'=>false))."\n".
+		html_text_button('No',$no_url)
+	);
+	return html_div('confirm',$ret);
+	
 }
 
 ?>
