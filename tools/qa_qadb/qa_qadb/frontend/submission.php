@@ -377,13 +377,23 @@ else if( $submission_id)
 			'urls'=>array( 'log_url'=>'logs' ),
 			'enums'=>array('testsuite_id'=>'testsuite'),
 		));
-		print html_table($data,array('id'=>'tcf','sort'=>'hhiiiiiiih','class'=>'tbl controls'));
+		print html_table($data,array('id'=>'tcf','sort'=>'hhiiiiiiih','class'=>'tbl controls','callback'=>'colorize_detail'));
 	}
 }
 print "</div>\n";
 print html_footer();
 exit;
 
+function colorize_detail($tcf_id,$testsuite,$testcase,$succ,$fail,$interr,$skip,$runs,$time,$url)	{
+	if( $fail )
+		return ' failed';
+	if( $interr )
+		return ' internalerr';
+	if( $skip )
+		return ' skipped';
+	if( $succ )
+		return ' i';
+}
 
 function aggregate_results( $runs, $succ, $fail, $interr, $skip, $time, $method )
 {
