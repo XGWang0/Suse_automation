@@ -69,7 +69,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 	<span class="text-main text-blue bold" style="position: relative; bottom: 6px;">Actions: </span>
 
 <?php
-    require('helps/machine_actions.phtml');
+    require('machine_actions.phtml');
 ?>
 </div>
 
