@@ -74,7 +74,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 		<td align="center">
 
 <?php
- require ('helps/machine_actions.phtml');
+ require ('machine_actions.phtml');
 ?>
           </td>
 	</tr>
