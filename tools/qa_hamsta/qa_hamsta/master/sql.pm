@@ -81,6 +81,9 @@ sub machine_get_by_ip($) # IP address
 sub machine_get_ip($) # machine_id
 {	return $dbc->scalar_query('SELECT ip FROM machine WHERE machine_id=?',$_[0]);	}
 
+sub machine_get_info($) # ip
+{	return $dbc->row_query('SELECT `usage`,usedby,maintainer_id FROM machine WHERE ip=?',$_[0]);	}
+
 # 0 = free, 1 = busy, 2 = blocked manually)
 sub machine_get_busy($) # machine_id
 {	return $dbc->scalar_query('SELECT busy FROM machine WHERE machine_id=?',$_[0]);	}

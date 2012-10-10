@@ -295,12 +295,21 @@ sub send_job($$$) {
 
 # Pass the XML job description to the slave
 	open (FH,'<',"$job_file");
+
+	#query "Used By" and "Usage" information
+        my($usage,$usedby,$maintainer_id)=&machine_get_info($ip);
 	while (<FH>) { 
 		$_ =~ s/\n//g;
 
 		if ($_ =~ /<debuglevel>([0-9]+)<\/debuglevel>/) {
 			$loglevel = $1;
 		}
+		#add "Used By" and "Usage" "jobid" information
+
+                if(/<\/config>/) {
+                        $_="        <useinfo> USAGE: $usage \t USEDBY: $usedby \t MAINTAINER: $maintainer_id \t </useinfo> \n".$_ ;
+                        $_="        <job_id>$job_id</job_id> \n".$_ ;
+                }
 		eval {
 			&log(LOG_DEBUG, "Sent XML: $_");
 			$sock->send("$_\n");
