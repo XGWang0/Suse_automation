@@ -1,11 +1,13 @@
 <?php
 require_once('qadb.php');
 require_once('defs.php');
+$embed=http('embed');
 $pager  = pager_fill_from_http();
 common_header(array(
     'title'=>'QADB submissions',
     'id'=>'sub_html',
-    'calendar'=>1
+    'calendar'=>1,
+    'embed'=>$embed,
 ));
 
 define('AGR_MAX_RES','15000');
@@ -180,13 +182,15 @@ if(!$submission_id)
 
 # cardset
 $mode=0;
-$steps=array(
-	'sub'=>'submissions',
-	'tcf'=>'TCFs',
-	'bench'=>'benchmarks',
-	'reg'=>'ext. regressions'
-);
-print steps(form_to_url('submission.php',$what0,0).'&amp;step=',$steps,$step);
+if( !$embed )	{
+	$steps=array(
+		'sub'=>'submissions',
+		'tcf'=>'TCFs',
+		'bench'=>'benchmarks',
+		'reg'=>'ext. regressions'
+	);
+	print steps(form_to_url('submission.php',$what0,0).'&amp;step=',$steps,$step);
+}
 
 # main content
 if(!$submission_id)
@@ -380,8 +384,12 @@ else if( $submission_id)
 		print html_table($data,array('id'=>'tcf','sort'=>'hhiiiiiiih','class'=>'tbl controls','callback'=>'colorize_detail'));
 	}
 }
-print "</div>\n";
-print html_footer();
+if( !$embed )	{
+	print "</div>\n";
+	print html_footer();
+}
+else
+	print "</body></html>\n";
 exit;
 
 function colorize_detail($tcf_id,$testsuite,$testcase,$succ,$fail,$interr,$skip,$runs,$time,$url)	{

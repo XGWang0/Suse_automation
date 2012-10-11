@@ -877,7 +877,8 @@ function common_header($args=null)
 	if( $args['connect'] )
 		$conn_id=connect_to_mydb();
 	print html_header($args);
-	print_nav_bar($glob_dest);
+	if( !$args['embed'] )
+		print_nav_bar($glob_dest);
 }
 
 
