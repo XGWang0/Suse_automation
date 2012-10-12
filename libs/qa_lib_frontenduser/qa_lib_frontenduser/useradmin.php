@@ -3,6 +3,11 @@ require_once('userdb.php');
 
 $page=basename($_SERVER['PHP_SELF']);
 
+if (! isset ($page_url_extension))
+  {
+    $page_url_extension = '';
+  }
+
 print common_header(array('title'=>'user administration'));
 
 $step=http('step','v');
@@ -140,7 +145,7 @@ $steps_alt=array(
 	'pn'=>'new privilege',
 );
 
-print steps("$page?step=",$steps,$step,$steps_alt);
+print steps("$page?$page_url_extension&step=",$steps,$step,$steps_alt);
 
 if( $confirm=='priv_del' && $priv )	{
 	# confirm privilege delete
@@ -298,11 +303,11 @@ else if( $step=='p' )	{
 	$data=privilege_list();
 	table_translate($data,array(
 		'links'=>array(
-			"$page?step=pe&priv_id=",
+			"$page?$page_url_extension&step=pe&priv_id=",
 		),
 		'ctrls'=>array(
-			'edit'=>"$page?step=pe&priv_id=",
-			'delete'=>"$page?confirm=priv_del&priv_id=",
+			'edit'=>"$page?$page_url_extension&step=pe&priv_id=",
+			'delete'=>"$page?$page_url_extension&confirm=priv_del&priv_id=",
 		),
 	));
 	print html_table($data,array(
@@ -310,7 +315,7 @@ else if( $step=='p' )	{
 		'id'=>'priv',
 		'sort'=>'isss'
 	));
-	print html_text_button('new priv',"$page?step=pn");
+	print html_text_button('new priv',"$page?$page_url_extension&step=pn");
 }
 else	{
 	# view users + roles
@@ -318,13 +323,13 @@ else	{
 	$data=user_list();
 	table_translate($data,array(
 		'links'=>array(
-			'user_id'=>"$page?step=ue&user_id=",
+			'user_id'=>"$page?$page_url_extension&step=ue&user_id=",
 		),
 		'ctrls'=>array(
-			'roles'=>"$page?step=ur&user_id=",
-			'edit'=>"$page?step=ue&user_id=",
-			'delete'=>"$page?confirm=userdel&user_id=",
-			'passwd'=>"$page?step=up&user_id=",
+			'roles'=>"$page?$page_url_extension&step=ur&user_id=",
+			'edit'=>"$page?$page_url_extension&step=ue&user_id=",
+			'delete'=>"$page?$page_url_extension&confirm=userdel&user_id=",
+			'passwd'=>"$page?$page_url_extension&step=up&user_id=",
 		),
 	));
 	print html_table($data,array(
@@ -332,19 +337,19 @@ else	{
 		'id'=>'users',
 		'sort'=>'issssss',
 	));
-	print html_text_button('new user',"$page?step=un");
+	print html_text_button('new user',"$page?$page_url_extension&step=un");
 
 
 	print "<h3>Roles</h3>\n";
 	$data=role_list();
 	table_translate($data,array(
 		'links'=>array(
-			'role_id'=>"$page?step=re&role_id=",
+			'role_id'=>"$page?$page_url_extension&step=re&role_id=",
 		),
 		'ctrls'=>array(
-			'privileges'=>"$page?step=rp&role_id=",
-			'edit'=>"$page?step=re&role_id=",
-			'delete'=>"$page?confirm=role_del&role_id=",
+			'privileges'=>"$page?$page_url_extension&step=rp&role_id=",
+			'edit'=>"$page?$page_url_extension&step=re&role_id=",
+			'delete'=>"$page?$page_url_extension&confirm=role_del&role_id=",
 		),
 	));
 	print html_table($data,array(
@@ -352,7 +357,7 @@ else	{
 		'id'=>'roles',
 		'sort'=>'isss',
 	));
-	print html_text_button('new role',"$page?step=rn");
+	print html_text_button('new role',"$page?$page_url_extension&step=rn");
 }
 
 print html_footer();

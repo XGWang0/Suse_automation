@@ -115,7 +115,8 @@ $pages = array(
     "edit_jobs",
     "register",
     "user",
-    "login"
+    "login",
+    "adminusers"
 );
 
 if (!in_array($go, $pages)) {
