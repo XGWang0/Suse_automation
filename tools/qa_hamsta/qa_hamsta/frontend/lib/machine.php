@@ -1502,7 +1502,44 @@ class Machine {
 
 		return $result;
 	}
-	
+        /**
+         * count_queue_jobs 
+         * @access public
+         * @return int Number of all jobs currently queued on this machine       
+         */
+        function count_queue_jobs() {
+                $sql = 'SELECT COUNT(*) FROM job j LEFT JOIN job_on_machine k ON k.job_id = j.job_id WHERE machine_id = :machine_id AND k.job_status_id = 1 ORDER BY j.job_id DESC';
+
+                if (!($stmt = get_pdo()->prepare($sql))) {
+                        return null;
+                }
+                $stmt->bindParam(':machine_id', $this->fields["id"]);
+                $stmt->execute();
+                $result = $stmt->fetchColumn();
+                $stmt->closeCursor();
+
+                return $result;
+	}
+	/**
+	 * get_current_job
+	 *
+	 * @return return JobRun object with 'running' or 'connecting' status
+	 */
+	function get_current_job() {
+                $sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k ON k.job_id = j.job_id WHERE machine_id = :machine_id AND (k.job_status_id = 2 OR k.job_status_id = 6) ORDER BY j.job_id DESC';
+                if (!($stmt = get_pdo()->prepare($sql))) {
+                        return null;
+                }
+                $stmt->bindParam(':machine_id', $this->fields["id"]);
+                $stmt->execute();
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                if (!empty($row))
+                        $result = new JobRun($row);
+                else
+                        $result = null;
+                $stmt->closeCursor();
+                return $result;
+	}
 	/**
 	 * get_jobs_by_active 
 	 * 

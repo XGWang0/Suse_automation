@@ -104,6 +104,7 @@ if (! empty ($s_anything))
 	<tr>
 		<th><input type="checkbox" onChange='chkall("machine_list", this)'></th>
 		<th>Hostname</th>
+		<th>Job Overview</th>
 		<th>Status</th>
 		<th>Used by</th>
 		<?php
@@ -127,6 +128,29 @@ if (! empty ($s_anything))
     <td title="<?php echo($machine->get_notes()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>&amp;highlight=<?php echo($highlight); ?>"><?php echo($machine->get_hostname()); ?></a></td>
 
     <td><?php echo($machine->get_status_string()); if ($machine->get_update_status()) echo('<a href="index.php?go=send_job&a_machines[]='.$machine->get_id().'&filename[]='.XML_DIR.'/hamsta-upgrade-restart.xml&submit=1"><img src="images/exclamation_yellow.png" alt="Tools out of date!" title="Click to update" width="20" style="float:right; padding-left: 3px;"></img></a>'); if ($machine->get_devel_tools()) echo('<img src="images/gear-cog_blue.png" alt="Devel Tools" title="Devel Tools" width="20" style="float:right; padding-left: 3px;"></img>'); ?></td>
+    <td><?php
+        $run_job = $machine->get_current_job();
+        if (!empty($run_job)) {
+                if ($run_job->get_status_string() == 'connecting')
+                        echo ('<a href="index.php?go=job_details&id='.$run_job->get_id().'">Connecting</a>');
+                else {
+                        $match_str = array();
+                        $regexp = "/^.*(qa_test_[0-9a-zA-Z]*|upgrade|reinstall|Autotest|New virtual|DefaultXENGrub)/";
+                        $job_name = $run_job->get_name();
+                        if (!empty($job_name)) {
+                                preg_match($regexp,$job_name,$match_str);
+                                if (!empty($match_str))
+                                        echo ('<a href="index.php?go=job_details&id='.$run_job->get_id().'">'.$match_str[1].'</a>');
+                                else
+                                        echo ('<a href="index.php?go=job_details&id='.$run_job->get_id().'">'.substr($job_name,0,10).'</a>');
+                        }
+                }
+
+        }
+        if ($machine->count_queue_jobs())
+                echo (' Q('.$machine->count_queue_jobs().')');
+        ?>
+    </td>
 	<?php $used_by_name = $machine->get_used_by_name($config);
                         echo ('<td>' . ( isset ($used_by_name)
                                              ? $used_by_name
