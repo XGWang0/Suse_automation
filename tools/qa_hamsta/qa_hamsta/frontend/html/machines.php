@@ -104,8 +104,8 @@ if (! empty ($s_anything))
 	<tr>
 		<th><input type="checkbox" onChange='chkall("machine_list", this)'></th>
 		<th>Hostname</th>
-		<th>Job Overview</th>
 		<th>Status</th>
+		<th>Job Overview</th>
 		<th>Used by</th>
 		<?php
 			foreach ($fields_list as $key=>$value)
