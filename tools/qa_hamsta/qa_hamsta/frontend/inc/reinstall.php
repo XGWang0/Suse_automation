@@ -117,7 +117,6 @@ if (request_str("proceed")) {
 	$regcodes = array_filter($regcodes, "filter");
 	$installmethod = request_str("installmethod");
 	$setupfordesktop = request_str("setupfordesktop");
-	$kexecboot = request_str("kexecboot");
 
 	# Check for errors
 	$errors = array();
@@ -195,8 +194,6 @@ if (request_str("proceed")) {
 			$args .= " -U";
 		if ($setupfordesktop == "yes")
 			$args .= " -D";
-		if ($kexecboot == "yes")
-			$args .= " -k";
 		system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $autoyastfile");
 		system("sed -i 's/ARGS/$args/g' $autoyastfile");
 		system("sed -i 's/REPOURL/$producturl/g' $autoyastfile");

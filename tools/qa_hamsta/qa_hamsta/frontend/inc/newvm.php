@@ -67,7 +67,6 @@ if (request_str("proceed")) {
 	$smturl = request_str("update-smt-url");
 	$email = request_str("mailto");
 	$setupfordesktop = request_str("setupfordesktop");
-	$kexecboot = request_str("kexecboot");
 
 	# Deal with variables
 	$addonurls = $_POST["addon_url"];
@@ -139,8 +138,6 @@ if (request_str("proceed")) {
 			$args .= " -t $additionalpatterns";
 		if ($setupfordesktop == "yes")
 			$args .= " -D";
-		if ($kexecboot == "yes")
-			$args .= " -k";
 		if ($virtcpu)
 			$args .= " -c $virtcpu";
 		if ($virtdisksizestring and $virtdisktypestring)
