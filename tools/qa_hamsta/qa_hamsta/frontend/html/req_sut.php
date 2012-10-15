@@ -38,4 +38,8 @@
 	<td>Setup host for running desktop tests?</td>
 	<td><label><input type="checkbox" name="setupfordesktop" value="yes">Yes, setup for running desktop test.</label>
   </tr>
+  <tr>
+        <td>Load installation by Kexec?</td>
+        <td><label><input type="checkbox" name="kexecboot" value="yes">Yes, load by Kexec.</label></td>
+  </tr>
 
