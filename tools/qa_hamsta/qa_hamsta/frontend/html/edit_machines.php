@@ -44,7 +44,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 		/* If the user is not logged in or authorized, disable some fields.  */
 		$disabled_console = isset ($user) && $user->isAllowed ('machine_edit_console') ? '' : "disabled=\"disabled\"";
                 $disabled_powercycling = isset ($user) && $user->isAllowed ('machine_edit_powercycling') ? '' : "disabled=\"disabled\"";
-                $disabled_editation = isset ($user) && $user->isAllowed ('machine_edit_reserved') ? '' : "disabled=\"disabled\"";
+                $disabled_edit = isset ($user) && $user->isAllowed ('machine_edit_reserved') ? '' : "disabled=\"disabled\"";
                 $disabled_maintainer = isset ($user) && $user->isAllowed ('machine_edit_maintainer') ? '' : "disabled=\"disabled\"";
                 
 		# Hostname/ID
@@ -123,9 +123,11 @@ if (!defined('HAMSTA_FRONTEND')) {
 			if (array_key_exists($machine->get_id(), $item_list)) {
 				$valuer = $item_list[$machine->get_id()];
 			}
+
 			if (!isset($valuer)) {
 				$valuer = $machine->$getstring();
 			}
+
 			$namer = $item . "[" . $machine->get_id() . "]";
 
                         if ($item == 'maintainer_string')
@@ -142,6 +144,10 @@ if (!defined('HAMSTA_FRONTEND')) {
                           {
                             $column[] = "<input name=\"$namer\" value=\"$valuer\" $disabled_powercycling style=\"width: 200px;\" tabindex=" . $counterAddValue++ . ">";
                           }
+			else if ($item == 'affiliation')
+			  {
+			    $column[] = "<input name=\"$namer\" value=\"$valuer\" $disabled_edit style=\"width: 200px;\" tabindex=" . $counterAddValue++ . ">";
+			  }
 			else
 			  {
 			    $column[] = "<input name=\"$namer\" value=\"$valuer\" style=\"width: 200px;\" tabindex=" . $counterAddValue++ . ">";
@@ -199,7 +205,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 		if (!isset($def_inst_opt)) {
 			$def_inst_opt = $machine->get_def_inst_opt();
 		}
-		$column[] = "<input name=\"default_options[" . $machine->get_id() . "]\" $disabled_editation id=\"default_options" . $machine->get_id() . "\" value=\"" . $def_inst_opt . "\" style=\"width: 200px;\" tabindex=" . $counterAddValue++ . " onchange=\"trig_serial_console_field(" . $machine->get_id() . ");\">";
+		$column[] = "<input name=\"default_options[" . $machine->get_id() . "]\" $disabled_edit id=\"default_options" . $machine->get_id() . "\" value=\"" . $def_inst_opt . "\" style=\"width: 200px;\" tabindex=" . $counterAddValue++ . " onchange=\"trig_serial_console_field(" . $machine->get_id() . ");\">";
 
 		# Add to main table
 		$table[] = $column;
