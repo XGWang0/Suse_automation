@@ -258,7 +258,6 @@ sub make_modfile
 	my $testhome = $qaconf{install_testuser_home};
 	my $rootpass = $qaconf{install_root_password};
 
-
 	# open modfile
 	my $modfile="/tmp/modfile_$$.xml";
 	open my $f, ">$modfile" or die "Cannot create patch file '$modfile' : $!";
@@ -747,7 +746,7 @@ EOF
   </networking>  
 EOF
 	}
-	
+
 	print $f " </install>\n" if $args->{'to_version'}<10;
 	print $f "</profile>\n";
 	close $f;
