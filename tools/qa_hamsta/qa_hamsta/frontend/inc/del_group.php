@@ -37,7 +37,29 @@
     
     if (request_int("confirmed")) {
         $group->delete();
-        
+
+	/* Try to get a session namespace to store the field values
+	 * for displayed machines. */
+	try
+	  {
+	    $ns_machine_filter = new Zend_Session_Namespace ('machineDisplayFilter');
+	  }
+	catch (Zend_Session_Exception $e)
+	  {
+	    /* This is unfortunate. Might be caused by disabled cookies
+	     * or some fancy browser. */
+	    $ns_machine_filter = null;
+	  }
+
+	/* Remove the [machines page] filter of this group because it
+	 * was deleted. */
+	if (isset ($ns_machine_filter)
+	    && isset ($ns_machine_filter->fields['group'])
+	    && $ns_machine_filter->fields['group'] == $group->get_name ())
+	  {
+	    unset ($ns_machine_filter->fields['group']);
+	  }
+
         $go = "groups";
         return require('inc/groups.php');
     }

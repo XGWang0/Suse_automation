@@ -120,6 +120,6 @@
 
 </table>    
 <br />
-<input type="submit" name="submit" value="<?php echo ($action == "edit" ? "Edit" : "Add to"); ?> group">
+<input type="submit" name="submit" value="<?php echo ($action == "edit" ? "Edit" : "Create"); ?> group">
 
 </form>
