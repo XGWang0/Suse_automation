@@ -150,6 +150,7 @@ if (request_str("proceed")) {
 	$installmethod = request_str("installmethod");
 	$setupfordesktop = request_str("setupfordesktop");
 	$timezone = request_str("timezone");
+	$kexecboot = request_str("kexecboot");
 
 	# Check for errors
 	$errors = array();
@@ -229,6 +230,8 @@ if (request_str("proceed")) {
 			$args .= " -D";
 		if ($timezone)
 			$args .= " -Z " . $timezone;
+		if ($kexecboot == "yes")
+			$args .= " -k";
 		system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $autoyastfile");
 		system("sed -i 's/ARGS/$args/g' $autoyastfile");
 		system("sed -i 's/REPOURL/$producturl/g' $autoyastfile");

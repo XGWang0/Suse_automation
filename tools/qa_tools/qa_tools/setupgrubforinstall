@@ -124,27 +124,40 @@ then
 	exit 1
 fi
 
-# extract the product part from the URL, ugly but seems to work
-title=`echo $insturl | sed -e 's/\//\n/g' | grep -v '\..\+\.' | awk '{ print length, $0 }' | sort -gr | cut -d\  -f2 | head -n1`
-count=`grep "title Installation" $bootloaderconf | grep -c "$title"`
-if [ $count -gt 0 ]
-then
-	title="$title ($((count+1)))"
-fi
-echo "" >> $bootloaderconf
-echo "title Installation $title" >> $bootloaderconf
-echo "    kernel $grubpartition$imagedir/linux $params" >> $bootloaderconf
-echo "    initrd $grubpartition$imagedir/initrd" >> $bootloaderconf
-sync
+boottype="$1"
+if [ "$boottype" = "kexecboot" ]; then
+	# start the installation with kexec
+	params=`echo $params |sed "/$boottype/s/$boottype //g"`
+	comments="
+	echo \"Install booting by Kexec\"
+	echo \"kexec -d -l $imagedir/linux --initrd=$imagedir/initrd --append='$params'\"
+        kexec -l '$imagedir/linux' --initrd='$imagedir/initrd' --append='$params'"
+	sh -c "$comments"
+	sleep 5
+	echo "done."
+else
+	# extract the product part from the URL, ugly but seems to work
+	title=`echo $insturl | sed -e 's/\//\n/g' | grep -v '\..\+\.' | awk '{ print length, $0 }' | sort -gr | cut -d\  -f2 | head -n1`
+	count=`grep "title Installation" $bootloaderconf | grep -c "$title"`
+	if [ $count -gt 0 ]
+	then
+		title="$title ($((count+1)))"
+	fi
+	echo "" >> $bootloaderconf
+	echo "title Installation $title" >> $bootloaderconf
+	echo "    kernel $grubpartition$imagedir/linux $params" >> $bootloaderconf
+	echo "    initrd $grubpartition$imagedir/initrd" >> $bootloaderconf
+	sync
 
-# start the installation with reboot
-item=`grep title -c $bootloaderconf`
-item=$((item-1)) # the new config is written and then its counted
-if [ `grep '^default' $bootloaderconf | wc -l` -gt 0 ];then
-    sed  -i "s/^default.*$/default $item/" $bootloaderconf
-else # SLMS creates menu.lst without 'default'
-    sed -i "1idefault $item" $bootloaderconf
+	# start the installation with reboot
+	item=`grep title -c $bootloaderconf`
+	item=$((item-1)) # the new config is written and then its counted
+	if [ `grep '^default' $bootloaderconf | wc -l` -gt 0 ];then
+    		sed  -i "s/^default.*$/default $item/" $bootloaderconf
+	else # SLMS creates menu.lst without 'default'
+    		sed -i "1idefault $item" $bootloaderconf
+	fi
+	echo "edited menu.lst"
+	echo "done."
 fi
-echo "edited menu.lst"
-echo "done."
 
