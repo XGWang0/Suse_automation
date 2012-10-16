@@ -94,6 +94,13 @@ a {
     color:#00a;
 }
 
+h3 {
+    color: #455560;
+    font-weight: bold;
+    font-family: arial, verdana, sans-serif;
+    font-size: 1.13em;
+}
+
 .file_list a:link, .file_list a:visited { font-size:small;}
 .file_list td { padding-left:1em; padding-right:1em; }
 

@@ -33,30 +33,39 @@ if ( ! defined('HAMSTA_FRONTEND') ) {
 
 /* Variable $user is set in inc/user.php file which is always loaded
  * by index.php file. */
-
-if ( $config->authentication->method == 'openid' && isset ($user) ) {
-  echo ('<p>Your OpenId url is ');
-  echo ('<b>' . $user->getExternId() . "</b>.\n");
-  echo ('<br />');
- } else {
-  echo ('<p>Your login is ');
-  echo ('<b>' . $user->getLogin() . "</b>.\n");
-  echo ('<br />');
- }
-
 ?>
 
-Your user name is <b>
-<?php echo ( ( isset ($user) )
+<div>
+  <p>Your external identifier (OpenID URL) is <?php if (isset ($user) )
+   {
+     echo "<b>" . ($user->getExternId ()
+		   ? $user->getExternId ()
+		   : "not set") . "</b>.";
+   }
+?>
+<br />
+Your login is <?php if (isset ($user) )
+  {
+    echo "<b>" . ($user->getLogin()
+		  ? $user->getLogin ()
+		  : "not set") . "</b>.";
+  }
+?>
+
+  </p>
+</div>
+
+<div>
+  <p>Your user name is <b><?php echo ( ( isset ($user) )
              ? $user->getName()
              : 'not set');
 ?></b>.<br />
-Your e-mail address is <b>
-<?php echo ( ( isset ($user) )
+Your e-mail address is <b><?php echo ( ( isset ($user) )
              ? $user->getEmail()
              : 'not set');
 ?></b>.<br />
-</p>
+  </p>
+</div>
 
 <?php if ( isset ($user) ): ?>
 <form type="post">
@@ -93,8 +102,8 @@ Your e-mail address is <b>
 
 <?php
 if ( isset ($user) ) {
-  echo ('<div>');
-  echo ('Your current role is <b>');
+  echo ("<div>\n");
+  echo ("  <p>Your current role is <b>");
   
   $curRole = $user->getCurrentRole();
   if ( isset ($curRole) ) {
@@ -102,14 +111,14 @@ if ( isset ($user) ) {
   } else {
     echo ('not set');
   }
-  echo ('</b>.<br />');
+  echo ("</b>.<br />\n");
 
   $list = $user->getRoleList();
 
   /* Display selection only if user has more than 2 roles available. The
    * first is current role which is not displayed in the selection. */
   if ( count($list) > 1 ) {
-    echo ("<p>You can select another current role from the list.</p>\n");
+    echo ("\nYou can select another current role from the list.</p>\n");
     echo ("<form method=\"post\" action=\"index.php?go=user\">\n");
     echo ("<select name=\"roles\">\n");
 
@@ -123,6 +132,16 @@ if ( isset ($user) ) {
     echo ("<input type=\"submit\" name=\"role\" value=\"Change\" />\n");
     echo ("</form>\n");
   }
+
+  if ($user->isAllowed ('user_administration'))
+    {
+      echo ("<div>\n");
+      echo ("<p>\n");
+      echo ("<a href=\"index.php?go=adminusers\">User, roles and privileges administration</a>");
+      echo ("</p>\n");
+      echo ("</div>\n");
+    }
+
 }
 
 ?>

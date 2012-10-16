@@ -48,6 +48,10 @@ if ( User::isLogged() ) {
       Notificator::setErrorMessage ('The password and checked password have to be the same and cannot be empty.');
     }
   }
+} else {
+  Notificator::setErrorMessage ('You have to be logged in to have access to user configuration.');
+  header ('Location: index.php');
+  exit ();
 }
 
 ?>
