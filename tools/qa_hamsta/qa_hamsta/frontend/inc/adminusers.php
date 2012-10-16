@@ -23,35 +23,31 @@
   ****************************************************************************
  */
 
-  /**
-   * Logic of the user page.
-   */
 if (!defined('HAMSTA_FRONTEND')) {
-  $go = 'user';
+  $go = 'about';
   return require("index.php");
  }
 
-$html_title = "User configuration";
+$html_title = "Users, roles and privileges administration";
 
-if ( User::isLogged() ) {
-  $user = User::getById (User::getIdent (), $config);
-  if ( isset ($_POST['role']) ) {
-    $user->setRole ($_POST['roles']);
-  } else if ( isset ($_POST['chngpswd']) ) {
-    if ( isset ($_POST['pswd']) && isset ($_POST['pswdcheck'])
-         && ! (empty ($_POST['pswd'])
-               || empty ($_POST['pswdcheck']))
-         && $_POST['pswd'] == $_POST['pswdcheck']) {
-      $user->setPassword ($_POST['pswd']);
-      Notificator::setSuccessMessage ('Your password has been successfuly changed.');
-    } else {
-      Notificator::setErrorMessage ('The password and checked password have to be the same and cannot be empty.');
-    }
+if (User::isLogged ())
+  {
+    /* Name of this variable is differend due to included TBLib
+     * dependand library (frontenduser). */
+    $logged_user = User::getById (User::getIdent (), $config);
   }
-} else {
-  Notificator::setErrorMessage ('You have to be logged in to have access to user configuration.');
-  header ('Location: index.php');
-  exit ();
-}
+
+if (! isset ($logged_user) )
+  {
+    Notificator::setErrorMessage ('You have to be logged in and registered to have access to user administration.');
+    header ('Location: index.php');
+    exit ();
+  }
+else if ( ! $logged_user->isAllowed ('user_administration') )
+  {
+    Notificator::setErrorMessage ('You do not have privilege for user administration.');
+    header ('Location: index.php');
+    exit ();
+  }
 
 ?>

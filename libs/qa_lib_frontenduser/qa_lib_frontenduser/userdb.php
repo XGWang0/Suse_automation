@@ -28,7 +28,9 @@ function common_header($args=null)
 		session_start();
 	if( $args['connect'] )
 		$conn_id=connect_to_mydb();
-	print html_header($args);
+
+	if (isset ($print_header) && ! empty ($print_header))
+	  print html_header($args);
 }
 
 function user_list($user_id=null)	{

@@ -1,9 +1,18 @@
 <?php
 require_once('userdb.php');
 
-$page=basename($_SERVER['PHP_SELF']);
+if (! isset ($page))
+{
+	$page=basename($_SERVER['PHP_SELF']);
+}
 
-print common_header(array('title'=>'user administration'));
+/* Add an extension to URL for all links on the page. */
+$page = (isset ($page_url_extension) ? $page . $page_url_extension : '?');
+
+/* Do not print out primary keys in tables. */
+$no_table_id = isset ($no_table_id) ? $no_table_id : false;
+
+print common_header($header_args);
 
 $step=http('step','v');
 $submit=http('submit');
@@ -126,21 +135,21 @@ if( token_read($wtoken) )	{
 
 
 $steps=array(
-	'v'=>'overview',
-	'p'=>'privileges',
+	'v'=>'Users overview',
+	'p'=>'Privileges',
 );
 $steps_alt=array(
-	'ue'=>'edit user',
-	'un'=>'new user',
-	'ur'=>'user roles',
-	're'=>'edit role',
-	'rn'=>'new role',
-	'rp'=>'role privileges',
-	'pe'=>'edit privilege',
-	'pn'=>'new privilege',
+	'ue'=>'Edit User',
+	'un'=>'New User',
+	'ur'=>'User Roles',
+	're'=>'Edit Role',
+	'rn'=>'New Role',
+	'rp'=>'Role Privileges',
+	'pe'=>'Edit Privilege',
+	'pn'=>'New Privilege',
 );
 
-print steps("$page?step=",$steps,$step,$steps_alt);
+print steps("$page&amp;step=",$steps,$step,$steps_alt);
 
 if( $confirm=='priv_del' && $priv )	{
 	# confirm privilege delete
@@ -169,18 +178,19 @@ else if( $confirm=='role_del' && $role )	{
 }
 else if( $step=='ur' )	{
 	# user roles
-	print html_table($user);
+	print html_table($user, array ('class'=>'list text-main tbl'));
 	print "<hr/>";
 	$roles=user_role_list($user_got);
 	table_add_checkboxes($roles,'checked[]','role_id',1,'role_form','checked');
 	if(count($roles)>1)
 		print '<form action="'.$page.'" method="post" name="role_form">'."\n";
 	unset($roles[0]['checked']);
-	print html_table($roles);
+	print html_table($roles, array ('class'=>'list text-main tbl'));
 	$what=array(
 		array('user_id','',$user_got,HIDDEN),
 		array('submit','','roles',HIDDEN),
 		array('wtoken','',token_generate(),HIDDEN),
+		(isset ($page_name) ? array('go', '', $page_name, HIDDEN): null)
 	);
 	print html_search_form($page,$what,array('form'=>false,'submit'=>'update'));
 	print "</form>\n";
@@ -195,6 +205,7 @@ else if( $step=='ue' && $user )	{
 		array('user_id','',$user_got,HIDDEN),
 		array('submit','','usermod',HIDDEN),
 		array('wtoken','',token_generate(),HIDDEN),
+		(isset ($page_name) ? array('go', '', $page_name, HIDDEN): null)
 	);
 	print html_search_form($page,$what);
 }
@@ -207,19 +218,21 @@ else if( $step=='un' )	{
 		array('extern_id','','',TEXT_AREA),
 		array('submit','','useradd',HIDDEN),
 		array('wtoken','',token_generate(),HIDDEN),
+		(isset ($page_name) ? array('go', '', $page_name, HIDDEN): null)
 	);
 	print html_search_form($page,$what);
 }
 else if( $step=='up' && $user )	{
 	# user password
 	print '<h3>Changing password for '.$user[1]['name']."</h3>\n";
-	print html_table($user);
+	print html_table($user, array ('class'=>'list text-main tbl'));
 	$what=array(
 		array('pwd1','','',PASSWORD,'New password'),
 		array('pwd2','','',PASSWORD,'Confirm new password'),
 		array('user_id','',$user[1]['user_id'],HIDDEN),
 		array('submit','','passwd',HIDDEN),
 		array('wtoken','',token_generate(),HIDDEN),
+		(isset ($page_name) ? array('go', '', $page_name, HIDDEN): null)
 	);
 	print html_search_form($page,$what);
 }
@@ -231,6 +244,7 @@ else if( $step=='re' && $role )	{
 		array('role_id','',$role_got,HIDDEN),
 		array('submit','','role_update',HIDDEN),
 		array('wtoken','',token_generate(),HIDDEN),
+		(isset ($page_name) ? array('go', '', $page_name, HIDDEN): null)
 	);
 	print html_search_form($page,$what);
 }
@@ -241,12 +255,17 @@ else if( $step=='rn' )	{
 		array('descr','','',TEXT_AREA,'Description'),
 		array('submit','','role_insert',HIDDEN),
 		array('wtoken','',token_generate(),HIDDEN),
+		(isset ($page_name) ? array('go', '', $page_name, HIDDEN): null)
 	);
 	print html_search_form($page,$what);
 }
 else if( $step=='rp' && $role_got )	{
 	# role privileges
 	$data=role_privilege_list($role_got);
+	$data[0]['privilege'] = 'Privilege name';
+	$data[0]['descr'] = 'Description';
+	$data[0]['valid_until'] = 'Valid until';
+
 	table_add_checkboxes($data,'checked[]','privilege_id',1,'priv_form','checked');
 	foreach(array_keys($data) as $i)	{
 		$id=$data[$i]['privilege_id'];
@@ -262,8 +281,9 @@ else if( $step=='rp' && $role_got )	{
 		array('role_id','',$role_got,HIDDEN),
 		array('submit','','role_priv',HIDDEN),
 		array('wtoken','',token_generate(),HIDDEN),
+		(isset ($page_name) ? array('go', '', $page_name, HIDDEN): null)
 	);
-	print html_table($data);
+	print html_table($data, array ('class' => 'list text-main tbl'));
 	print html_search_form($page,$what,array('form'=>false,'submit'=>'update'));
 	print "</form>\n";
 }
@@ -276,6 +296,7 @@ else if( $step=='pe' )	{
 			array('priv_id','',$priv[1]['privilege_id'],HIDDEN),
 			array('submit','','priv',HIDDEN),
 			array('wtoken','',token_generate(),HIDDEN),
+			(isset ($page_name) ? array('go', '', $page_name, HIDDEN): null)
 		);
 		print html_search_form($page,$what);
 	}
@@ -289,6 +310,7 @@ else if( $step=='pn' )	{
 		array('descr','','',TEXT_AREA,'Description'),
 		array('submit','','priv_new',HIDDEN),
 		array('wtoken','',token_generate(),HIDDEN),
+		(isset ($page_name) ? array('go', '', $page_name, HIDDEN): null)
 	);
 	print html_search_form($page,$what);
 }
@@ -296,65 +318,103 @@ else if( $step=='p' )	{
 	# list privileges
 	print "<h3>Privileges</h3>\n";
 	$data=privilege_list();
+	$data[0]['privilege'] = 'Privilege name';
+	$data[0]['descr'] = 'Description';
+	$data[0]['roles'] = 'Roles having this privilege';
+
 	table_translate($data,array(
-		'links'=>array(
-			"$page?step=pe&priv_id=",
-		),
+		'links'=>($no_table_id
+			  ? null
+			  : array("$page&step=pe&priv_id=")),
 		'ctrls'=>array(
-			'edit'=>"$page?step=pe&priv_id=",
-			'delete'=>"$page?confirm=priv_del&priv_id=",
+			'Edit'=>"$page&step=pe&priv_id=",
+			'Delete'=>"$page&confirm=priv_del&priv_id=",
 		),
 	));
+
+	if ($no_table_id)
+	{
+		unset ($data[0]['privilege_id']);
+	}
+
 	print html_table($data,array(
-		'total'=>1,
+		'total'=>0,
 		'id'=>'priv',
-		'sort'=>'isss'
+		'class'=>'list text-main tbl',
+		'sort'=>($no_table_id ? 'sss' : 'isss')
 	));
-	print html_text_button('new priv',"$page?step=pn");
+	print html_text_button('New Privilege',"$page&step=pn");
 }
 else	{
 	# view users + roles
 	print "<h3>Users</h3>\n";
 	$data=user_list();
-	table_translate($data,array(
-		'links'=>array(
-			'user_id'=>"$page?step=ue&user_id=",
-		),
-		'ctrls'=>array(
-			'roles'=>"$page?step=ur&user_id=",
-			'edit'=>"$page?step=ue&user_id=",
-			'delete'=>"$page?confirm=userdel&user_id=",
-			'passwd'=>"$page?step=up&user_id=",
-		),
-	));
-	print html_table($data,array(
-		'total'=>1,
-		'id'=>'users',
-		'sort'=>'issssss',
-	));
-	print html_text_button('new user',"$page?step=un");
+	$data[0]['login'] = 'Login';
+	$data[0]['name'] = 'Name';
+	$data[0]['email'] = 'E-mail';
+	$data[0]['roles'] = 'Roles';
+	$data[0]['pwd'] = 'Password set';
+	$data[0]['extern_id'] = 'External identifier';
 
+	table_translate($data,array(
+		'links'=> ($no_table_id
+			   ? null
+			   : array('user_id'=>"$page&step=ue&user_id=")),
+		'ctrls'=>array(
+			'Roles'=>"$page&step=ur&user_id=",
+			'Edit'=>"$page&step=ue&user_id=",
+			'Delete'=>"$page&confirm=userdel&user_id=",
+			'Change password'=>"$page&step=up&user_id=",
+		),
+	));
+
+	if ($no_table_id)
+	{
+		unset ($data[0]['user_id']);
+	}
+
+	print html_table($data,array(
+		'total'=>0,
+		'id'=>'users',
+		'class'=>'list text-main tbl',
+		'sort'=>($no_table_id ? 'ssssss' : 'issssss')
+	));
+	print html_text_button('New User',"$page&step=un");
 
 	print "<h3>Roles</h3>\n";
 	$data=role_list();
+	$data[0]['role'] = 'Role name';
+	$data[0]['descr'] = 'Role description';
+	$data[0]['users'] = 'Users in role';
+
 	table_translate($data,array(
-		'links'=>array(
-			'role_id'=>"$page?step=re&role_id=",
-		),
+		'links'=>($no_table_id
+			  ? null
+			  : array('role_id'=>"$page&step=re&role_id=")),
 		'ctrls'=>array(
-			'privileges'=>"$page?step=rp&role_id=",
-			'edit'=>"$page?step=re&role_id=",
-			'delete'=>"$page?confirm=role_del&role_id=",
+			'Privileges'=>"$page&step=rp&role_id=",
+			'Edit'=>"$page&step=re&role_id=",
+			'Delete'=>"$page&confirm=role_del&role_id=",
 		),
 	));
+
+	if ($no_table_id)
+	{
+		unset ($data[0]['role_id']);
+	}
+
 	print html_table($data,array(
-		'total'=>1,
+		'total'=>0,
 		'id'=>'roles',
-		'sort'=>'isss',
+		'class'=>'list text-main tbl',
+		'sort'=>($no_table_id ? 'sss' : 'isss')
 	));
-	print html_text_button('new role',"$page?step=rn");
+	print html_text_button('New Role',"$page&step=rn");
 }
 
-print html_footer();
+print '</div>';
+
+if (isset ($print_footer) && ! empty ($print_footer))
+  print html_footer();
 
 ?>
