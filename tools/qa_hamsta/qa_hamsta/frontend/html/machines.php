@@ -35,6 +35,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 if (isset ($ns_machine_filter->fields)
     && count ($ns_machine_filter->fields) > 0)
   {
+    echo ("<form action=\"index.php?go=machines\" method=\"post\">\n");
     echo ("<div>\n");
     /* Styles should be in separate css files. */
     echo ("<span style=\"font-weight: bold; color: #dd4444\">Using filter</span>&nbsp;&nbsp;");
@@ -72,7 +73,12 @@ if (isset ($ns_machine_filter->fields)
 	
 	echo ("<span>$filter_description</span>&nbsp;&nbsp;");
       }
+
+
+    /* Add a button to clear the filters. */
+    echo ("  <input type=\"submit\" value=\"Reset\" name=\"reset\">\n");
     echo ("\n</div>\n");
+    echo ("</form>\n");
   }
 
 /* Getting 's_anything' and 's_anything_operator' values for later use. */
