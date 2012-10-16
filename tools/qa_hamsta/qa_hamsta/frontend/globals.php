@@ -140,6 +140,7 @@
 		'usage'=>'Usage',
 		'reserved'=>'Reserved',
 		'expires_formated'=>'Expires',
+		'job_overview'=>'Job Overview',
 		'group'=>'Group',
 		'product'=>'Product',
 		'architecture'=>'Installed Arch',

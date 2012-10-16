@@ -1541,6 +1541,37 @@ class Machine {
                 return $result;
 	}
 	/**
+	 * get_job_overview_
+	 *
+	 * @return return string "[running case] Q(JOBNUM)"
+	 */
+	function get_job_overview() {
+		$run_job = $this->get_current_job();
+		$result = "";
+	        if (!empty($run_job)) {
+	                if ($run_job->get_status_string() == 'connecting')
+        	                $result .= '<a href="index.php?go=job_details&id='.$run_job->get_id().'">Connecting</a>';
+	                else {
+	                        $match_arr = array();
+	                        $regexp = "/^.*\((qa_test_[0-9a-zA-Z]+)\)|(QA-packages)|(upgrade)|(reinstall)|(Autotest)|(New virtual)|(DefaultXENGrub)/";
+	                        $job_name = $run_job->get_name();
+	                        if (!empty($job_name)) {
+	                                preg_match($regexp,$job_name,$match_arr);
+	                                array_shift($match_arr);
+	                                $match_str = implode("",$match_arr);
+	                                if (!empty($match_str))
+	                                        $result .= '<a href="index.php?go=job_details&id='.$run_job->get_id().'">'.$match_str.'</a>';
+	                                else
+	                                        $result .= '<a href="index.php?go=job_details&id='.$run_job->get_id().'">'.substr($job_name,0,10).'</a>';
+	                        }
+	                }
+
+	        }
+	        if ($this->count_queue_jobs())
+	                $result .= ' Q('.$this->count_queue_jobs().')';
+		return $result;
+	}
+	/**
 	 * get_jobs_by_active 
 	 * 
 	 * @param bool $active true if active machines should be searched, false if 
@@ -1570,7 +1601,6 @@ class Machine {
 
 		return $result;
 	}
-
 	private static function get_master_socket() {
 		if (is_null(Machine::$master_socket)) {
 			if (!(Machine::$master_socket = fsockopen(CMDLINE_HOST, CMDLINE_PORT))) {
