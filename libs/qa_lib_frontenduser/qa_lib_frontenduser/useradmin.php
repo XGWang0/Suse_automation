@@ -31,26 +31,11 @@ if( $priv_got )
 
 if( token_read($wtoken) )	{
 	if( $submit=='priv' && $priv_got )	{
-		$privilege=http('privilege');
 		$descr=http('descr');
 		transaction();
-		update_result( privilege_update($priv_got,$privilege,$descr) );
+		update_result( privilege_update($priv_got,$descr) );
 		commit();
 		$step='p';
-	}
-	else if( $submit=='priv_new')	{
-		$privilege=http('privilege');
-		$descr=http('descr');
-		transaction();
-		update_result( privilege_insert($privilege,$descr), 1 );
-		commit();
-		$step='p';
-	}
-	else if( $submit=='priv_del' && $priv_got)	{
-		transaction();
-		update_result( role_privilege_delete_privilege($priv_got) );
-		update_result( privilege_delete($priv_got) );
-		commit();
 	}
 	else if( $submit=='roles' )	{
 		$checked=http('checked');
@@ -151,16 +136,7 @@ $steps_alt=array(
 
 print steps("$page&amp;step=",$steps,$step,$steps_alt);
 
-if( $confirm=='priv_del' && $priv )	{
-	# confirm privilege delete
-	$fields=array(
-		'submit'=>$confirm,
-		'priv_id'=>$priv_got,
-		'step'=>'p',
-	);
-	print html_confirm('Are you sure to delete privilege '.$priv[1]['privilege'].' ?',$fields,$page);
-}
-else if( $confirm=='userdel' && $user )	{
+if( $confirm=='userdel' && $user )	{
 	# confirm user delete
 	$fields=array(
 		'submit'=>$confirm,
@@ -289,9 +265,10 @@ else if( $step=='rp' && $role_got )	{
 }
 else if( $step=='pe' )	{
 	# edit privilege
+	print ("Edit privilege <b>" . $priv[1]['privilege'] . "</b>\n");
 	if( $priv )	{
 		$what=array(
-			array('privilege','',$priv[1]['privilege'],TEXT_ROW),
+			    //			array('privilege','',$priv[1]['privilege'],TEXT_ROW),
 			array('descr','',$priv[1]['descr'],TEXT_AREA,'Description'),
 			array('priv_id','',$priv[1]['privilege_id'],HIDDEN),
 			array('submit','','priv',HIDDEN),
@@ -302,17 +279,6 @@ else if( $step=='pe' )	{
 	}
 	else
 		print html_error("No such privilege");
-}
-else if( $step=='pn' )	{
-	# new privilege
-	$what=array(
-		array('privilege','','',TEXT_ROW),
-		array('descr','','',TEXT_AREA,'Description'),
-		array('submit','','priv_new',HIDDEN),
-		array('wtoken','',token_generate(),HIDDEN),
-		(isset ($page_name) ? array('go', '', $page_name, HIDDEN): null)
-	);
-	print html_search_form($page,$what);
 }
 else if( $step=='p' )	{
 	# list privileges
@@ -327,8 +293,7 @@ else if( $step=='p' )	{
 			  ? null
 			  : array("$page&step=pe&priv_id=")),
 		'ctrls'=>array(
-			'Edit'=>"$page&step=pe&priv_id=",
-			'Delete'=>"$page&confirm=priv_del&priv_id=",
+			'Edit'=>"$page&step=pe&priv_id="
 		),
 	));
 
@@ -343,7 +308,6 @@ else if( $step=='p' )	{
 		'class'=>'list text-main tbl',
 		'sort'=>($no_table_id ? 'sss' : 'isss')
 	));
-	print html_text_button('New Privilege',"$page&step=pn");
 }
 else	{
 	# view users + roles

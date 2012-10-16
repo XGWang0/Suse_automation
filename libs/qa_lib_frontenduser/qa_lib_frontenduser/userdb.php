@@ -140,8 +140,8 @@ function privilege_read($privilege_id)	{
 	return mhash_query(1,null,'SELECT * FROM privilege WHERE privilege_id=?','i',$privilege_id);
 }
 
-function privilege_update($privilege_id,$privilege,$descr)	{
-	return update_query('UPDATE privilege SET privilege=?,descr=? WHERE privilege_id=?','ssi',$privilege,$descr,$privilege_id);
+function privilege_update($privilege_id,$descr)	{
+	return update_query('UPDATE privilege SET descr=? WHERE privilege_id=?','ssi',$descr,$privilege_id);
 }
 
 function privilege_insert($privilege,$descr)	{
