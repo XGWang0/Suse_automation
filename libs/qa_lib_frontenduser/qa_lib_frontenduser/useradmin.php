@@ -6,8 +6,12 @@ if (! isset ($page))
 	$page=basename($_SERVER['PHP_SELF']);
 }
 
-/* Add an extension to URL for all links on the page. */
-$page = (isset ($page_url_extension) ? $page . $page_url_extension : '?');
+/* Name of the page to redirect to. */
+$page_name = isset ($page_name) ? $page_name : '';
+
+/* Add an extension to URL for all links on the page. Starts with a
+ * '?' character. */
+$page = isset ($page_url_extension) ? $page . $page_url_extension : '?';
 
 /* Do not print out primary keys in tables. */
 $no_table_id = isset ($no_table_id) ? $no_table_id : false;
@@ -118,7 +122,6 @@ if( token_read($wtoken) )	{
 
 }
 
-
 $steps=array(
 	'v'=>'Users overview',
 	'p'=>'Privileges',
@@ -129,8 +132,8 @@ $steps_alt=array(
 	'ur'=>'User Roles',
 	're'=>'Edit Role',
 	'rn'=>'New Role',
-	'rp'=>'Role Privileges',
-	'pe'=>'Edit Privilege',
+	'rp'=>'Edit Privileges' . ( isset ($role) ? ' for ' . $role[1]['role'] : ''),
+	'pe'=>'Edit Privilege' . ( isset ($priv) ? ' ' . $priv[1]['privilege'] : ''),
 	'pn'=>'New Privilege',
 );
 
@@ -141,6 +144,7 @@ if( $confirm=='userdel' && $user )	{
 	$fields=array(
 		'submit'=>$confirm,
 		'user_id'=>$user_got,
+		'go' => $page_name
 	);
 	print html_confirm('Are you sure to delete user '.$user[1]['name'].' ?',$fields,$page);
 }
@@ -149,6 +153,7 @@ else if( $confirm=='role_del' && $role )	{
 	$fields=array(
 		'submit'=>$confirm,
 		'role_id'=>$role_got,
+		'go' => $page_name
 	);
 	print html_confirm('Are you sure to delete role '.$role[1]['role'].' ?',$fields,$page);
 }
@@ -168,16 +173,16 @@ else if( $step=='ur' )	{
 		array('wtoken','',token_generate(),HIDDEN),
 		(isset ($page_name) ? array('go', '', $page_name, HIDDEN): null)
 	);
-	print html_search_form($page,$what,array('form'=>false,'submit'=>'update'));
+	print html_search_form($page,$what,array('form'=>false,'submit'=>'Update'));
 	print "</form>\n";
 }
 else if( $step=='ue' && $user )	{
 	# edit user
 	$what=array(
-		array('login','',$user[1]['login'],TEXT_ROW),
-		array('name','',$user[1]['name'],TEXT_ROW),
-		array('email','',$user[1]['email'],TEXT_ROW),
-		array('extern_id','',$user[1]['extern_id'],TEXT_AREA),
+		array('login','',$user[1]['login'],TEXT_ROW, 'Login'),
+		array('name','',$user[1]['name'],TEXT_ROW, 'Name'),
+		array('email','',$user[1]['email'],TEXT_ROW, 'E-mail'),
+		array('extern_id','',$user[1]['extern_id'],TEXT_AREA, 'External identifier'),
 		array('user_id','',$user_got,HIDDEN),
 		array('submit','','usermod',HIDDEN),
 		array('wtoken','',token_generate(),HIDDEN),
@@ -188,10 +193,10 @@ else if( $step=='ue' && $user )	{
 else if( $step=='un' )	{
 	# new user
 	$what=array(
-		array('login','','',TEXT_ROW),
-		array('name','','',TEXT_ROW),
-		array('email','','',TEXT_ROW),
-		array('extern_id','','',TEXT_AREA),
+		array('login','','',TEXT_ROW, 'Login'),
+		array('name','','',TEXT_ROW, 'Name'),
+		array('email','','',TEXT_ROW, 'E-mail'),
+		array('extern_id','','',TEXT_AREA, 'External identifier'),
 		array('submit','','useradd',HIDDEN),
 		array('wtoken','',token_generate(),HIDDEN),
 		(isset ($page_name) ? array('go', '', $page_name, HIDDEN): null)
@@ -201,7 +206,6 @@ else if( $step=='un' )	{
 else if( $step=='up' && $user )	{
 	# user password
 	print '<h3>Changing password for '.$user[1]['name']."</h3>\n";
-	print html_table($user, array ('class'=>'list text-main tbl'));
 	$what=array(
 		array('pwd1','','',PASSWORD,'New password'),
 		array('pwd2','','',PASSWORD,'Confirm new password'),
@@ -227,7 +231,7 @@ else if( $step=='re' && $role )	{
 else if( $step=='rn' )	{
 	# new role
 	$what=array(
-		array('role','','',TEXT_ROW),
+		array('role','','',TEXT_ROW, 'Role name'),
 		array('descr','','',TEXT_AREA,'Description'),
 		array('submit','','role_insert',HIDDEN),
 		array('wtoken','',token_generate(),HIDDEN),
@@ -260,15 +264,13 @@ else if( $step=='rp' && $role_got )	{
 		(isset ($page_name) ? array('go', '', $page_name, HIDDEN): null)
 	);
 	print html_table($data, array ('class' => 'list text-main tbl'));
-	print html_search_form($page,$what,array('form'=>false,'submit'=>'update'));
+	print html_search_form($page,$what,array('form'=>false,'submit'=>'Update'));
 	print "</form>\n";
 }
 else if( $step=='pe' )	{
 	# edit privilege
-	print ("Edit privilege <b>" . $priv[1]['privilege'] . "</b>\n");
-	if( $priv )	{
+	if( isset ($priv) )	{
 		$what=array(
-			    //			array('privilege','',$priv[1]['privilege'],TEXT_ROW),
 			array('descr','',$priv[1]['descr'],TEXT_AREA,'Description'),
 			array('priv_id','',$priv[1]['privilege_id'],HIDDEN),
 			array('submit','','priv',HIDDEN),
