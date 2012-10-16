@@ -30,13 +30,86 @@ if (!defined('HAMSTA_FRONTEND')) {
 	$go = 'machines';
 	return require("index.php");
 }
+
+/* Print information about filter if it is used. */
+if (isset ($ns_machine_filter->fields)
+    && count ($ns_machine_filter->fields) > 0)
+  {
+    echo ("<form action=\"index.php?go=machines\" method=\"post\">\n");
+    echo ("<div>\n");
+    /* Styles should be in separate css files. */
+    echo ("<span style=\"font-weight: bold; color: #dd4444\">Using filter</span>&nbsp;&nbsp;");
+    foreach ($ns_machine_filter->fields as $key => $value)
+      {
+	/* Fix displaying of description for filtering using hwinfo.
+	 *
+	 * WARNING! In PHP the continue statement does not work within
+	 * switch block nested in foreach loop. Hence if statemens are
+	 * used here. Just live with that. */
+	if ($key == 's_anything')
+	  {
+	    continue;
+	  }
+	else if ($key == 's_anything_operator' && isset ($ns_machine_filter->fields['s_anything']))
+	  {
+	    $filter_description = "\n\t" . '<span style="font-weight: bold;">Hwinfo</span>';
+	    switch ($value)
+	      {
+	      case "LIKE":
+		$filter_description .= ' contains "' . $ns_machine_filter->fields['s_anything'] . '"';
+		break;
+	      case "=":
+		$filter_description .= ' is "' . $ns_machine_filter->fields['s_anything'] . '"';
+		break;
+	      default:
+		/* This shoud not be displayed. Never ever. */
+		$value = ' has ';
+	      }
+	  }
+	else
+	  {
+	    $filter_description = "\n\t" . '<span style="font-weight: bold;">' . $fields_list[$key] . '</span> is "' . $value . '"';
+	  }
+	
+	echo ("<span>$filter_description</span>&nbsp;&nbsp;");
+      }
+
+
+    /* Add a button to clear the filters. */
+    echo ("  <input type=\"submit\" value=\"Reset\" name=\"reset\">\n");
+    echo ("\n</div>\n");
+    echo ("</form>\n");
+  }
+
+/* Getting 's_anything' and 's_anything_operator' values for later use. */
+if (request_str ('set') == 'Search')
+  {
+    $s_anything = request_str ('s_anything');
+  }
+else if (isset ($ns_machine_filter->fields['s_anything']))
+  {
+    $s_anything = $ns_machine_filter->fields['s_anything'];
+  }
+
+if (! empty ($s_anything))
+  {
+    $s_anything_operator = request_operator("s_anything_operator");
+
+    if (empty ($s_anything_operator)
+	&& isset ($ns_machine_filter->fields['s_anything_operator']))
+      {
+	$s_anything_operator = $ns_machine_filter->fields['s_anything_operator'];
+      }
+  }
+
 ?>
+
 <form action="index.php?go=machines" method="post" name="machine_list" onSubmit="return checkcheckbox(this)">
 <table class="list text-main" id="machines">
   <thead>
 	<tr>
 		<th><input type="checkbox" onChange='chkall("machine_list", this)'></th>
-		<th>Name</th>
+		<th>Hostname</th>
 		<th>Status</th>
 		<th>Used by</th>
 		<?php
@@ -54,8 +127,11 @@ if (!defined('HAMSTA_FRONTEND')) {
                    class="crashed_job"
     <?php endif; ?>
    >
-    <td><input type="checkbox" name="a_machines[]" value="<?php echo($machine->get_id()); ?>" <?php if (in_array($machine->get_id(), $a_machines)) echo("checked"); ?>></td>
+
+    <td><input type="checkbox" name="a_machines[]" value="<?php echo($machine->get_id()); ?>"<?php if (in_array($machine->get_id(), $a_machines)) echo(' checked="checked"'); ?>></td>
+
     <td title="<?php echo($machine->get_notes()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>&amp;highlight=<?php echo($highlight); ?>"><?php echo($machine->get_hostname()); ?></a></td>
+
     <td><?php echo($machine->get_status_string()); if ($machine->get_update_status()) echo('<a href="index.php?go=send_job&a_machines[]='.$machine->get_id().'&filename[]='.XML_DIR.'/hamsta-upgrade-restart.xml&submit=1"><img src="images/exclamation_yellow.png" alt="Tools out of date!" title="Click to update" width="20" style="float:right; padding-left: 3px;"></img></a>'); if ($machine->get_devel_tools()) echo('<img src="images/gear-cog_blue.png" alt="Devel Tools" title="Devel Tools" width="20" style="float:right; padding-left: 3px;"></img>'); ?></td>
 	<?php $used_by_name = $machine->get_used_by_name($config);
                         echo ('<td>' . ( isset ($used_by_name)
@@ -114,13 +190,33 @@ tsRegister();
 <form action="index.php?go=machines" method="post">
 <table class="sort text-main" style="border: 1px solid #cdcdcd;">
 	<tr>
-		<th valign="top">hwinfo result: </th>
+		<th>hwinfo result: </th>
 		<td>
 			<select name="s_anything_operator">
-				<option value="like" <?php if (request_str("s_anything_operator") == "like") echo('selected'); ?>>contains</option>
-				<option value="equals" <?php if (request_str("s_anything_operator") == "equals") echo('selected'); ?>>is</option>
+				<option value="like"
+   <?php if (! empty ($s_anything)
+	     && ! empty ($s_anything_operator)
+	     && $s_anything_operator == 'LIKE')
+	{
+	    echo(' selected="selected"');
+	}
+  ?>>contains</option>
+				<option value="equals"
+  <?php if (! empty ($s_anything)
+	     && ! empty ($s_anything_operator)
+	     && $s_anything_operator == "=")
+	  {
+	    echo(' selected="selected"');
+	  }
+  ?>>is</option>
 			</select>
-			<input name="s_anything" value='<?php echo(request_str("s_anything")); ?>'>
+			<input name="s_anything" value='<?php
+
+	if (!empty ($s_anything))
+	  {
+		echo ($s_anything);
+	  }
+?>'>
 			<a onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('qmark2','','../hamsta/images/qmark1.gif',1)">
 			<img src="../hamsta/images/qmark.gif" name="qmark2" id="qmark2" border="0" width="18" height="20" title="hwinfo search" onclick="window.open('../hamsta/helps/hwinfo.html', 'channelmode', 'width=550, height=450, top=250, left=450')"/></a>
 		</td>
@@ -131,7 +227,15 @@ tsRegister();
 			<select name="architecture">
 				<option value="">Any</option>
 				<?php foreach(Machine::get_architectures() as $archid => $arch): ?>
-					<option value="<?php echo($arch); ?>"<?php if (request_str("architecture") == $arch) echo(' selected="selected"'); ?>><?php echo($arch); ?></option>
+					<option value="<?php echo($arch); ?>"
+  <?php	/* Function from include/Util.php*/
+	$arch_reqest = request_str('architecture');
+	if (machine_filter_value_selected ('architecture', $arch, $ns_machine_filter))
+		{
+			echo(' selected="selected"');
+		}
+  ?>><?php echo($arch);
+  ?></option>
 				<?php endforeach;?>
 			</select>
 		</td>
@@ -142,7 +246,12 @@ tsRegister();
 			<select name="architecture_capable">
 				<option value="">Any</option>
 				<?php foreach(Machine::get_architectures_capable() as $archid => $arch): ?>
-					<option value="<?php echo($arch); ?>"<?php if (request_str("architecture_capable") == $arch) echo(' selected="selected"'); ?>><?php echo($arch); ?></option>
+					<option value="<?php echo($arch); ?>"
+  <?php	if (machine_filter_value_selected ('architecture_capable', $arch, $ns_machine_filter))
+		{
+			echo(' selected="selected"');
+		}
+  ?>><?php echo($arch); ?></option>
 				<?php endforeach;?>
 			</select>
 		</td>
@@ -153,7 +262,12 @@ tsRegister();
 			<select name="status_string">
 				<option value="">Any</option>
 				<?php foreach(Machine::get_statuses() as $status_id => $status_string): ?>
-					<option value="<?php echo($status_string); ?>"<?php if (request_str("status_string") == $status_string) echo(' selected="selected"') ?>><?php echo($status_string); ?></option>
+					<option value="<?php echo($status_string); ?>"
+  <?php if (machine_filter_value_selected ('status_string', $status_string, $ns_machine_filter))
+	{
+		echo(' selected="selected"');
+	}
+  ?>><?php echo($status_string); ?></option>
 				<?php endforeach;?>
 			</select>
 		</td>
@@ -162,20 +276,34 @@ tsRegister();
 		<th valign="top">Display fields: </th>
 		<td>
 		<select name="d_fields[]" size=<?php echo sizeof($fields_list);?> multiple="multiple">
-			  <?php
-				foreach ($fields_list as $key=>$value) {
-					echo("\t\t\t\t\t<option value=$key");
-                                        if ( isset ($display_fields ) && in_array($key, $display_fields))
-						echo(' selected="selected"');
-					echo (">$value</option>\n");
-				}
-			  ?>
-			</select>
+		  <?php
+			foreach ($fields_list as $key=>$value)
+			{
+			  /* Due to connection of displayed fields and
+			   * filters I had to add an exception
+			   * here. */
+			  if (in_array ($key, array ('hostname', 'used_by', 'status_string')))
+			    {
+			      continue;
+			    }
+
+			  echo("\t\t\t\t\t<option value=$key");
+
+			  if ( isset ($display_fields ) && in_array($key, $display_fields))
+			    {
+			      echo(' selected="selected"');
+			    }
+
+			  echo (">$value</option>\n");
+			}
+		  ?>
+		</select>
 		</td>
 	</tr>
 	<tr>
 		<td colspan="2" align="center">
-                  <input type="submit" value="Search" style="background-color: #eeeeee; width: 100%; padding: 3px;" class="text-medium">
+                  <input type="submit" value="Search" name="set" style="background-color: #eeeeee; width: 100%; padding: 3px;" class="text-medium">
+                  <input type="submit" value="Reset" name="reset" style="background-color: #eeeeee; width: 100%; padding: 3px;" class="text-medium">
 		</td>
 	</tr>
 </table>

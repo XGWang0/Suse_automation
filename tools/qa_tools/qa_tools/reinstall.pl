@@ -47,6 +47,7 @@ our $args={
 	rootfstype=>'ext3',
 	defaultboot=>'',
 	setupfordesktoptest=>'',
+        kexecboot=>'',
 };
 
 $args->{'newvm'} = ( $0 =~ /newvm(?:\.\w*)?$/ );
@@ -67,6 +68,7 @@ our $options = [
 	['P','repartitiondisk','1..100','Repartition entire disk, use so many percent of it','When you specify a number between 1-100 here, all partitions will be deleted, then root, swap, /abuild and /boot (if existing) will be recreated. These four partitions together should use the given percentage of the disk size. In the rest of the disk, you can create new partitions for testing.'],
 	['B','setup_bridge','','Configure the system network interface to bridge','Create a bridging pseudo-device associated with primary ethernet adapter. Happens automatically for virtualization hosts.'],
 	['D','setupfordesktoptest','','Configure the system to run desktop tests','Prepares for automated desktop testing. Turns off desktop access control for X, adds accessibility features, plus more.'],
+        ['k','kexecboot','','kexec load install','Use Kexec to load install'],
 	['?','help','','Print help message',''],
 	['N','manual','','Generate manual page','Used to generate this manual page and keep it up-to-date.'],
 
@@ -332,13 +334,21 @@ if( $args->{'newvm'} )	{
 	system ("touch /var/lib/hamsta/stats_changed");
 	exit $ret;
 } else { # reinstall / upgrade
-	my $cmdline = "$aytool ".$args->{'source'}.' ';
+	my $boottype = "bootloader";
+	if ( $args->{'kexecboot'} ) {
+		$boottype = "kexecboot";
+	}
+	my $cmdline = "$aytool ".$args->{'source'}.' '."$boottype".' ';
 	$cmdline .= "autoupgrade=1 " if $args->{'upgrade'};
 	$cmdline .= "autoyast=$ay_xml install=".$args->{'source'};
 	$cmdline .= ' '.$args->{'installoptions'} if defined $args->{'installoptions'};
-	print $cmdline . "\n";
 	&command($cmdline);
-	&command( "sleep 2" );
-	&command( "reboot" );
+        &command( "sleep 2" );
+
+	if ( "$boottype" eq "bootloader" ) {
+        	&command( "reboot" );
+	} else {
+		&command( "kexec -e" );
+	}
 	exit -1;
 }

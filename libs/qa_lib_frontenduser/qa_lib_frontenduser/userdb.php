@@ -28,7 +28,9 @@ function common_header($args=null)
 		session_start();
 	if( $args['connect'] )
 		$conn_id=connect_to_mydb();
-	print html_header($args);
+
+	if (isset ($print_header) && ! empty ($print_header))
+	  print html_header($args);
 }
 
 function user_list($user_id=null)	{
@@ -138,8 +140,8 @@ function privilege_read($privilege_id)	{
 	return mhash_query(1,null,'SELECT * FROM privilege WHERE privilege_id=?','i',$privilege_id);
 }
 
-function privilege_update($privilege_id,$privilege,$descr)	{
-	return update_query('UPDATE privilege SET privilege=?,descr=? WHERE privilege_id=?','ssi',$privilege,$descr,$privilege_id);
+function privilege_update($privilege_id,$descr)	{
+	return update_query('UPDATE privilege SET descr=? WHERE privilege_id=?','ssi',$descr,$privilege_id);
 }
 
 function privilege_insert($privilege,$descr)	{

@@ -24,6 +24,8 @@
  */
 if (User::isLogged())
   $user = User::getById (User::getIdent (), $config);
+
+require("timezone.php");
 ?>
 
   <tr>
@@ -121,4 +123,13 @@ if (User::isLogged())
 		print "<div id=\"additional_rcode\"></div></div>";
 ?>
     </td>
+  </tr>
+  <tr>
+    <td>Select a timezone for your SUT: </td>
+    <td><select id="timezone" name="timezone">
+    <?php
+	foreach ($arrtimezones as $zone) 
+	echo "<option value=\"$zone\">$zone</option>\n";
+    ?>
+	</select></td>
   </tr>

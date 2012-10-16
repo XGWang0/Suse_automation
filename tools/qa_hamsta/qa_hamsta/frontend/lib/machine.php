@@ -1502,7 +1502,75 @@ class Machine {
 
 		return $result;
 	}
-	
+        /**
+         * count_queue_jobs 
+         * @access public
+         * @return int Number of all jobs currently queued on this machine       
+         */
+        function count_queue_jobs() {
+                $sql = 'SELECT COUNT(*) FROM job j LEFT JOIN job_on_machine k ON k.job_id = j.job_id WHERE machine_id = :machine_id AND k.job_status_id = 1 ORDER BY j.job_id DESC';
+
+                if (!($stmt = get_pdo()->prepare($sql))) {
+                        return null;
+                }
+                $stmt->bindParam(':machine_id', $this->fields["id"]);
+                $stmt->execute();
+                $result = $stmt->fetchColumn();
+                $stmt->closeCursor();
+
+                return $result;
+	}
+	/**
+	 * get_current_job
+	 *
+	 * @return return JobRun object with 'running' or 'connecting' status
+	 */
+	function get_current_job() {
+                $sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k ON k.job_id = j.job_id WHERE machine_id = :machine_id AND (k.job_status_id = 2 OR k.job_status_id = 6) ORDER BY j.job_id DESC';
+                if (!($stmt = get_pdo()->prepare($sql))) {
+                        return null;
+                }
+                $stmt->bindParam(':machine_id', $this->fields["id"]);
+                $stmt->execute();
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                if (!empty($row))
+                        $result = new JobRun($row);
+                else
+                        $result = null;
+                $stmt->closeCursor();
+                return $result;
+	}
+	/**
+	 * get_job_overview_
+	 *
+	 * @return return string "[running case] Q(JOBNUM)"
+	 */
+	function get_job_overview() {
+		$run_job = $this->get_current_job();
+		$result = "";
+	        if (!empty($run_job)) {
+	                if ($run_job->get_status_string() == 'connecting')
+        	                $result .= '<a href="index.php?go=job_details&id='.$run_job->get_id().'">Connecting</a>';
+	                else {
+	                        $match_arr = array();
+	                        $regexp = "/^.*\((qa_test_[0-9a-zA-Z]+)\)|(QA-packages)|(upgrade)|(reinstall)|(Autotest)|(New virtual)|(DefaultXENGrub)/";
+	                        $job_name = $run_job->get_name();
+	                        if (!empty($job_name)) {
+	                                preg_match($regexp,$job_name,$match_arr);
+	                                array_shift($match_arr);
+	                                $match_str = implode("",$match_arr);
+	                                if (!empty($match_str))
+	                                        $result .= '<a href="index.php?go=job_details&id='.$run_job->get_id().'">'.$match_str.'</a>';
+	                                else
+	                                        $result .= '<a href="index.php?go=job_details&id='.$run_job->get_id().'">'.substr($job_name,0,10).'</a>';
+	                        }
+	                }
+
+	        }
+	        if ($this->count_queue_jobs())
+	                $result .= ' Q('.$this->count_queue_jobs().')';
+		return $result;
+	}
 	/**
 	 * get_jobs_by_active 
 	 * 
@@ -1533,7 +1601,6 @@ class Machine {
 
 		return $result;
 	}
-
 	private static function get_master_socket() {
 		if (is_null(Machine::$master_socket)) {
 			if (!(Machine::$master_socket = fsockopen(CMDLINE_HOST, CMDLINE_PORT))) {
