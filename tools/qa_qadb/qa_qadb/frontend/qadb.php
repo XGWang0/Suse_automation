@@ -8,7 +8,7 @@
   **/
 
 /** library functions - common DB and HTML functions */
-require_once($_SERVER['DOCUMENT_ROOT'].'/tblib/tblib.php');
+require_once('../tblib/tblib.php');
 
 $enums = array(
 	'arch'			=> array('arch_id','arch'),
@@ -877,7 +877,7 @@ function common_header($args=null)
 	if( $args['connect'] )
 		$conn_id=connect_to_mydb();
 	print html_header($args);
-	if( !$args['embed'] )
+	if( !isset($args['embed']) )
 		print_nav_bar($glob_dest);
 }
 
