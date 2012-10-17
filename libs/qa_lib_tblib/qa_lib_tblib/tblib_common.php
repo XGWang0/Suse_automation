@@ -11,7 +11,7 @@
 function hash_get(&$hash,$key,$default=null,$remove=false)
 {
 	$val=$default;
-	if( isset($hash[$key]) )
+	if( array_key_exists($key,$hash) )
 	{
 		$val=$hash[$key];
 		if($remove)

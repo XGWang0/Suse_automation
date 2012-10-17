@@ -280,8 +280,20 @@ function html_table($data,$attrs=array())
 			if( $callback )
 				$class .= call_user_func_array( $callback, $data[$i] );
 			$r.="\t<tr".($class ?  " class=\"$class\"" : '').">";
-			foreach(array_keys($header ? $data[0] : $data[$i]) as $col)
-				$r.="<td>".(isset($data[$i][$col]) ? $data[$i][$col]:'').'</td>';
+			foreach(array_keys($header ? $data[0] : $data[$i]) as $col)	{
+				$r.='<td';
+				$d=( isset($data[$i][$col]) ? $data[$i][$col] : '' );
+				if( !is_array($data[$i][$col]) )
+					$r.='>'.$d;
+				else	{
+					$text=hash_get($d,'text','',true);
+					foreach( $d as $key=>$val )
+						$r.=" $key=\"$val\"";
+					$r.='>'.$text;
+				}
+				$r.='</td>';
+#				$r.="<td>".(isset($data[$i][$col]) ? $data[$i][$col]:'').'</td>';
+			}
 			$r.="</tr>\n";
 		}
 	}

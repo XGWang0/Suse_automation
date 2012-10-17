@@ -401,7 +401,13 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	return $data;
 }
 
-function extended_regressions($is_tc,$use_res,$attrs,$transl,$pager)
+
+/**
+  * Extended regressions finder
+  *
+  *
+  **/
+function extended_regressions($is_tc,$use_res,$attrs,&$transl=null,&$pager=null)
 {
 	# This turned out to be the simplest way to print extended regressions
 	# in a reasonable time.
@@ -416,6 +422,8 @@ function extended_regressions($is_tc,$use_res,$attrs,$transl,$pager)
 	# - clean up
 
 	# first part, just read the products/releases that go onto X
+	$cell_color=hash_get($attrs,'cell_color',1,true);
+	$cell_text=hash_get($attrs,'cell_text',1,true);
 	$a=$attrs; # copy for the main query
 	$a['order_by']=array('product','`release`');
 	unset($a['group_by']);
@@ -492,7 +500,7 @@ function extended_regressions($is_tc,$use_res,$attrs,$transl,$pager)
 
 		# create table, insert data, set is_*
 		$commands[]="CREATE TEMPORARY TABLE $tbase2$i( testsuite_id INT, ".($is_tc ? 'testcase_id INT, ':'')."runs INT, succ INT, fail INT, interr INT, skip INT, time INT, status ENUM('success','skipped','interr','failed'), is_succ TINYINT, is_skip TINYINT, is_interr TINYINT, is_fail TINYINT, INDEX(testsuite_id,".($is_tc ? 'testcase_id,':'')."status) )";
-		$sub_sql=search_submission_result($is_tc ? 11:12,$attrs,$transl,$pager);
+		$sub_sql=search_submission_result($is_tc ? 11:12,$attrs,$transl);
 		$sub_sql[2]="INSERT INTO $tbase2$i(testsuite_id,".($is_tc ? 'testcase_id,':'')."runs,succ,fail,interr,skip,time,status) ".$sub_sql[2];
 		array_splice($sub_sql,0,2);
 		$commands[]=$sub_sql;
@@ -534,11 +542,15 @@ function extended_regressions($is_tc,$use_res,$attrs,$transl,$pager)
 		$sel[]="$v AS $k";
 
 	# build the base SELECT
-	$sql='SELECT '.join(',',$sel).' FROM '.join(' ',$from).($where?' WHERE '.join(' OR ',$where):'');
+	$sql_right=' FROM '.join(' ',$from).($where?' WHERE '.join(' OR ',$where):'');
+	$sql='SELECT '.join(',',$sel).$sql_right;
+	$sql_count='SELECT COUNT(*)'.$sql_right;
 	if( $use_res )	{
 		# build the construction that shows different statuses
 #		unset($select['res']);
-		$sql='SELECT '.join(',',array_keys($select))." FROM ( $sql ) t WHERE t.res>1";
+		$sql_right=" FROM ( $sql ) t WHERE t.res>1";
+		$sql='SELECT '.join(',',array_keys($select)).$sql_right;
+		$sql_count='SELECT COUNT(*)'.$sql_right;
 	}
 #	print "<pre>\n";
 #	print_r($commands);
@@ -559,13 +571,80 @@ function extended_regressions($is_tc,$use_res,$attrs,$transl,$pager)
 #	}
 
 	# run the main query
-	$data=mhash_query(1,null,$sql);
+	$limit=null;
+	$count=scalar_query($sql_count);
+	if( !is_null($pager) )	
+		$limit=limit_from_pager($pager,$count);
+	$data=mhash_query(1,$limit,$sql);
 
 	# run the cleanup part
 	if( ($ret=update_sequence($cleanup)) < 0 )
 		exit;
-	print html_table($data);
-	exit;
+#	print html_table($data);
+
+#	return $data;
+	# postprocessing
+	$ibase=( $is_tc ? 2 : 1 );
+	array_splice( $data[0], $ibase );
+	for( $j=1; $j<count($xaxis); $j++ )	{
+		$data[0]['c'.($ibase+$j-1)]=sprintf( "%s<br/>%s", $xaxis[$j]['product'], $xaxis[$j]['release'] );
+	}
+
+	$status2class=array('success'=>'i','failed'=>'failed','interr'=>'internalerr','skipped'=>'skipped',''=>'');
+	
+	for( $i=1; $i<count($data); $i++ )	{
+		$r=$data[$i];
+		for( $j=1; $j<count($xaxis); $j++ )	{
+			$status=hash_get($r,"status$j",'',true);
+			$runs=hash_get($r,"runs$j",'',true);
+			$succ=hash_get($r,"succ$j",'',true);
+			$fail=hash_get($r,"fail$j",'',true);
+			$interr=hash_get($r,"interr$j",'',true);
+			$skip=hash_get($r,"skip$j",'',true);
+			$time=hash_get($r,"time$j",'',true);
+
+			$f=array('text'=>'');
+
+			if( $runs>0 )	{
+				switch( $cell_text )	{
+				case 1:
+					$f['text']=$status;
+					break;
+				case 2:
+					$f['text']=( $runs>0 ? sprintf("%2d",100*$succ/$runs).'%' : 'N/A' );
+					break;
+				case 3:
+					$f['text']="$fail $interr $skip $succ";
+					break;
+				case 4:
+					$f['text']=( $fail || $interr ? 'X' : '' );
+					break;
+				}
+
+				$f['title']="fail:$fail interr:$interr skip:$skip success:$succ runs:$runs time:$time";
+				switch( $cell_color )	{
+				case 1: 
+					$f['class']=$status2class[$status]; 
+					break;
+				case 2: 
+					$f['style']=sprintf( "background-color: rgb(%d,%d,%d)",
+						255*$fail/$runs,
+						255*$succ/$runs,
+						255*$interr/$runs
+					); 
+					break;
+				case 3: 
+					$gray=sprintf( "%d", 255*$succ/$runs );
+					$f['style']="background-color: rgb($gray,$gray,$gray);";
+					$f['style'].=" color:".($gray>128 ? 'black':'white');
+					break;
+				}
+			}
+			$r['c'.($ibase+$j-1)]=$f;
+		}
+
+		$data[$i]=$r;
+	}
 	return $data;
 }
 
@@ -877,7 +956,7 @@ function common_header($args=null)
 	if( $args['connect'] )
 		$conn_id=connect_to_mydb();
 	print html_header($args);
-	if( !isset($args['embed']) )
+	if( !$args['embed'] )
 		print_nav_bar($glob_dest);
 }
 
@@ -905,7 +984,7 @@ function &print_submission_details($submission_id)
 			$res=search_submission_result(3,$where,$transl);
 		$res2=$res; # need to return original values
 		table_translate($res2, $transl );
-		print html_table( $res2, null, null );
+		print html_table( $res2 );
 	}
 	return $res;
 }
@@ -924,7 +1003,7 @@ function &print_tcf_details($tcf_id)
 			'enums'=>array('testsuite_id'=>'testsuite'),
 			'urls'=>array('log_url'=>'log')
 		));
-		print html_table($res2,null,null);
+		print html_table($res2);
 	}
 	return $res;
 }
