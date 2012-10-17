@@ -231,19 +231,40 @@ sub process_job($) {
 	{
 		&log(LOG_DETAIL, "Sending mail to '%s'", $job_owner);
 		my $response = &read_xml($response_xml);
-		my $data = "$ip job completed at ".`date +%F-%R`;
-		$data .= "\nJob status:".( $status==JS_FAILED ? 'Fail' : 'Pass' )."\n";
-		if( !$reboot )
-		{
-			`ifconfig` =~ /inet addr:([\d\.]*)\s*Bcast/;
-			my $loglink = "http://$1/hamsta/index.php?go=job_details&id=$job_id";
-			$data .= "Return codes: $return_codes\nLog link:\n$loglink\nQADB submission link:\n$submission_link\nSummary result:\n".join("\n",@summary);
+		my $data = "";
+		my $mailtype = "";
+		if (length($submission_link) != 0) {
+			my $embedlink = $submission_link.'&embed=1';
+			my $rand = int(rand(100000));
+			my $subhtml = '/tmp/sub'.$rand.'.html';
+			my $ret = system("wget -O $subhtml \'$embedlink\'");
+			if ($ret == 0) {
+				$data = `cat $subhtml`;
+				system("rm -rf '$subhtml'");
+				$mailtype = "text/html";
+			}
+			else {
+				$data = "------------------------------------------------------\nPlain text mail received,please check submission link.\n------------------------------------------------------\n\n";
+				goto PMAIL;
+			}
+		}
+		else {
+			PMAIL:
+			$data .= "$ip job completed at ".`date +%F-%R`;
+			$data .= "\nJob status:".( $status==JS_FAILED ? 'Fail' : 'Pass' )."\n";
+			if( !$reboot )
+			{
+				`ifconfig` =~ /inet addr:([\d\.]*)\s*Bcast/;
+				my $loglink = "http://$1/hamsta/index.php?go=job_details&id=$job_id";
+				$data .= "Return codes: $return_codes\nLog link:\n$loglink\nQADB submission link:\n$submission_link\nSummary result:\n".join("\n",@summary);
+			}
+			$mailtype = "TEXT";
 		}
 		my $msg = MIME::Lite->new(
 				From => ($qaconf{hamsta_master_mail_from} || 'hamsta-master@suse.de'),
 				To => $job_owner,
 				Subject => $message,
-				Type => "TEXT",
+				Type => $mailtype,
 				Data => $data
 				);
 		if( $response->{'config'}->{'attachment'} )
