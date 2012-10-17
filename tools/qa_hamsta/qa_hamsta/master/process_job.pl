@@ -131,6 +131,7 @@ sub process_job($) {
 	my @summary = ();
 	my %parsed;
 	my $is_xml = 0;
+	my $kexecboot = system("cat $job_file |grep -w 'k'");
 
 	$| = 1;
 	$dbc->commit();
@@ -139,6 +140,13 @@ sub process_job($) {
 		$line =~ s/\n//g;
 		next if $line =~ /^\s*$/;
 		&log(LOG_DETAIL, "$hostname: $line");
+		if ($kexecboot == 0) {
+			$line .= " ". "Send reinstall job by kexec load!"."\n";
+			&log(LOG_INFO, "$hostname: $line");
+			$return_codes .= @message_queue."\n";
+			close($sock);
+			close FH;
+		}
 		$is_xml=1 if $line =~ /<job/;
 		# This switch will keep on in the whole sock once meet <job, until next call of process_job. So the entire of job xml will go into FH.
 		last if ($line =~ /^Job ist fertig$/);
@@ -192,7 +200,11 @@ sub process_job($) {
 
 	# send e-mail that the job has finished
 	my $reboot = ( $job_file =~ /install|reboot|XENGrub|hamsta-upgrade-restart/ );
-	if( $reboot ) {
+	if ($reboot and $kexecboot == 0) {
+		sleep 10;
+		$message = "kexec reinstall\/reboot $hostname completed";
+		$status=JS_PASSED;
+	} elsif( $reboot and $kexecboot != 0 ) {
 		sleep 300;
 		while( &machine_get_status($machine_id) != MS_UP ) {		
 			# wait for reinstall/reboot jobs
@@ -219,19 +231,40 @@ sub process_job($) {
 	{
 		&log(LOG_DETAIL, "Sending mail to '%s'", $job_owner);
 		my $response = &read_xml($response_xml);
-		my $data = "$ip job completed at ".`date +%F-%R`;
-		$data .= "\nJob status:".( $status==JS_FAILED ? 'Fail' : 'Pass' )."\n";
-		if( !$reboot )
-		{
-			`ifconfig` =~ /inet addr:([\d\.]*)\s*Bcast/;
-			my $loglink = "http://$1/hamsta/index.php?go=job_details&id=$job_id";
-			$data .= "Return codes: $return_codes\nLog link:\n$loglink\nQADB submission link:\n$submission_link\nSummary result:\n".join("\n",@summary);
+		my $data = "";
+		my $mailtype = "";
+		if (length($submission_link) != 0) {
+			my $embedlink = $submission_link.'&embed=1';
+			my $rand = int(rand(100000));
+			my $subhtml = '/tmp/sub'.$rand.'.html';
+			my $ret = system("wget -O $subhtml \'$embedlink\'");
+			if ($ret == 0) {
+				$data = `cat $subhtml`;
+				system("rm -rf '$subhtml'");
+				$mailtype = "text/html";
+			}
+			else {
+				$data = "------------------------------------------------------\nPlain text mail received,please check submission link.\n------------------------------------------------------\n\n";
+				goto PMAIL;
+			}
+		}
+		else {
+			PMAIL:
+			$data .= "$ip job completed at ".`date +%F-%R`;
+			$data .= "\nJob status:".( $status==JS_FAILED ? 'Fail' : 'Pass' )."\n";
+			if( !$reboot )
+			{
+				`ifconfig` =~ /inet addr:([\d\.]*)\s*Bcast/;
+				my $loglink = "http://$1/hamsta/index.php?go=job_details&id=$job_id";
+				$data .= "Return codes: $return_codes\nLog link:\n$loglink\nQADB submission link:\n$submission_link\nSummary result:\n".join("\n",@summary);
+			}
+			$mailtype = "TEXT";
 		}
 		my $msg = MIME::Lite->new(
 				From => ($qaconf{hamsta_master_mail_from} || 'hamsta-master@suse.de'),
 				To => $job_owner,
 				Subject => $message,
-				Type => "TEXT",
+				Type => $mailtype,
 				Data => $data
 				);
 		if( $response->{'config'}->{'attachment'} )

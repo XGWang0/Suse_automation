@@ -68,16 +68,18 @@ Your e-mail address is <b><?php echo ( ( isset ($user) )
 </div>
 
 <?php if ( isset ($user) ): ?>
+<p>
 <form type="post">
    <input type="hidden" name="go" value="register" />
    <input type="submit" value="Change" />
 </form>
+</p>
 <?php endif; ?>
 
-<?php if ( isset ($user)
-           && $config->authentication->method == 'password' ): ?>
+<?php if ( isset ($user)): ?>
 <!-- Form for changing user password. -->
 <div style="width: 40%">
+<p>
 <form method="post" action="index.php?go=user">
   <fieldset>
   <legend>Change your password here</legend>
@@ -97,6 +99,7 @@ Your e-mail address is <b><?php echo ( ( isset ($user) )
     </table>
   </fieldset>
 </form>
+</p>
 </div>
 <?php endif; ?>
 

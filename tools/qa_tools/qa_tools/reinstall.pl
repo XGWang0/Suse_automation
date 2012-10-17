@@ -71,6 +71,7 @@ our $options = [
         ['k','kexecboot','','kexec load install','Use Kexec to load install'],
 	['?','help','','Print help message',''],
 	['N','manual','','Generate manual page','Used to generate this manual page and keep it up-to-date.'],
+	['Z','timezone','timezone','time zone','A time zone for SUT.'],
 
 	### Update options ###
 	['O','opensuse_update','','Add OpenSuSE update repository',"Similar to '-s', but you don't have to type in the URL, it will be generated."],
@@ -272,6 +273,11 @@ unless ($args->{'winvm'}) {
 
 		$ay_xml = 'autoinst_'.$args->{'hostname'} . ($args->{'newvm'} ? "_vm_$$" : '') . '.xml';
 		&command( "$tooldir/modify_xml.pl -m '$modfile' '$profile' '$mountpoint/autoinst/$ay_xml'" );
+		if ($args->{'timezone'}) {
+			my ($continent, $city) = split "/", $args->{'timezone'};
+			&command (" sed -i 's/Europe/$continent/' $mountpoint/autoinst/$ay_xml");
+			&command (" sed -i 's/Prague/$city/' $mountpoint/autoinst/$ay_xml");
+		}
 		$ay_xml = $qaconf{'install_profile_url_base'} . '/' . $ay_xml;
 
 		&command( "umount $mountpoint" );

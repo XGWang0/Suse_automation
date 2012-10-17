@@ -1568,7 +1568,7 @@ class Machine {
 
 	        }
 	        if ($this->count_queue_jobs())
-	                $result .= ' Q('.$this->count_queue_jobs().')';
+	                $result .= ' <span style="float:right; padding-left: 3px;" class="queued">Q('.$this->count_queue_jobs().')</span>';
 		return $result;
 	}
 	/**

@@ -43,8 +43,8 @@ require_once("include/Util.php");
   <link href="css/color.css" rel="stylesheet" type="text/css">
   <link rel="icon" type="image/png" href="/hamsta/icon.png">
   <script src="js/commfuncs.js" type="text/javascript"></script>
-  <script src="/scripts/gs_sortable.js" type="text/javascript"></script>
-  <script src="/scripts/jquery.js" type="text/javascript"></script>
+  <script src="../scripts/gs_sortable.js" type="text/javascript"></script>
+  <script src="../scripts/jquery.js" type="text/javascript"></script>
   <?php if (!empty($html_refresh_uri)): ?>
     <meta http-equiv="refresh" content="<?php echo($html_refresh_interval.";".$html_refresh_uri); ?>">
   <?php endif; ?>
