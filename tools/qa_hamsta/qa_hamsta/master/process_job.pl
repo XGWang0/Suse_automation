@@ -131,6 +131,7 @@ sub process_job($) {
 	my @summary = ();
 	my %parsed;
 	my $is_xml = 0;
+	my $kexecboot = system("cat $job_file |grep -w 'k'");
 
 	$| = 1;
 	$dbc->commit();
@@ -139,6 +140,13 @@ sub process_job($) {
 		$line =~ s/\n//g;
 		next if $line =~ /^\s*$/;
 		&log(LOG_DETAIL, "$hostname: $line");
+		if ($kexecboot == 0) {
+			$line .= " ". "Send reinstall job by kexec load!"."\n";
+			&log(LOG_INFO, "$hostname: $line");
+			$return_codes .= @message_queue."\n";
+			close($sock);
+			close FH;
+		}
 		$is_xml=1 if $line =~ /<job/;
 		# This switch will keep on in the whole sock once meet <job, until next call of process_job. So the entire of job xml will go into FH.
 		last if ($line =~ /^Job ist fertig$/);
@@ -192,7 +200,11 @@ sub process_job($) {
 
 	# send e-mail that the job has finished
 	my $reboot = ( $job_file =~ /install|reboot|XENGrub|hamsta-upgrade-restart/ );
-	if( $reboot ) {
+	if ($reboot and $kexecboot == 0) {
+		sleep 10;
+		$message = "kexec reinstall\/reboot $hostname completed";
+		$status=JS_PASSED;
+	} elsif( $reboot and $kexecboot != 0 ) {
 		sleep 300;
 		while( &machine_get_status($machine_id) != MS_UP ) {		
 			# wait for reinstall/reboot jobs
