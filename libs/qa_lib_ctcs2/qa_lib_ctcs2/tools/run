@@ -84,6 +84,14 @@ my $autoexit_endtime;
 my $autoexit_stagger_limit;
 my %daytoletter = ( "Sun","S","Mon","M","Tue","T","Wed","W","Thu","U","Fri","F","Sat","A");
 
+# Global variables to support show the case nmae and it's status
+my $opt_width = 0;                # width of console
+my $total_case = 0;               # total case number
+my $case_num = 0;                 # current case number
+my $casename_width = 0;           # width of current case name 
+my $process_foreground = 0;       # the process is foreground process or not
+my $current_case = "";            # current test case name
+
 # log directory
 my $logdir = "/var/log/qa/ctcs2";
 if ( defined($ENV{TESTS_LOGDIR}) ) {
@@ -202,13 +210,12 @@ sub display_notify {
 }
 
 sub display_clock {
-	color ("bold","fwhite");
-	print ("Running for: ");
+	#color ("bold","fwhite");
+	#print ("Running for: ");
+
 	color ("fcyan");
-	print sectotime(shift);
-	print ("\e[K\n");
+	printf("RTTT:%-18s\e[K\n\e[1A\e[${casename_width}C\e[K", sectotime(shift));
 	color ("reset");
-	print ("\e[2A\n");
 }
 
 sub timer_start {
@@ -255,6 +262,63 @@ sub process_start {
 	save_hash(\%processes, $environment{"save_directory"}."/process_state") or warn "Can't save process state!\n";
 }
 
+
+# print the case name, caculate the width of the name
+#      [<case num>/<total case num>] casename clock/status
+# the width will be caculated by the case name and the total number of the test cases
+sub ptr_n {
+	my $name = shift;
+	$case_num = $case_num + 1;
+
+	my $num_len = length($total_case) - 1;
+	my $label_len = $num_len * 2 + 4;
+
+	# if some crazy guys name his cases by a big lone string, cut it
+	my $name_max = $opt_width - 40 - $label_len;
+	if (length($name) > $name_max){
+		$name = substr($name, 0 , $name_max);
+		$name = "$name...";
+	}
+
+	my $label = sprintf("[%${num_len}d/%${num_len}d] ", $case_num, $total_case);
+	$name = "$label$name";
+
+	$casename_width = $opt_width - $label_len - 20;
+	printf("%-${casename_width}s", $name);
+}
+
+# print the result of the test case
+# For forground testing, will control the print contend by working with clock
+# For background testing, just print the result
+sub ptr_r {
+	my $color = shift;
+	my $result = shift;
+
+	if($process_foreground){
+		color ($color);
+	
+		# The string should can cover all of the time string
+		printf("%-18s\e[K\n\e[1A", "$result\n");
+        	color ("reset");
+	}
+	else{
+		printf("%-18s", "$result\n");
+	}
+}
+
+# Check it is a foreground process or not, since the forground process 
+# need show the clock, it will print some special character which should
+# be ignored for background process.
+sub process_fb {
+	my $pid = shift;
+	my $processstatus = `ps aux | grep $pid | grep -v "grep" | awk 'END{print \$7}'`;
+	chomp($processstatus);
+	if($processstatus =~ /^\?|^-/){
+		return 0;
+	}
+	return 1;
+}
+
 # called whenever a subprocess ends
 # does all bookkeeping for the process, tallying results, etc
 # All of this will be a lot easier when I do my redesign, since
@@ -274,7 +338,7 @@ sub process_stop {
 	if (!defined($key)) {
 		return;
 	}
-	
+
 	my @testarray = @{$processes{$key}};
 	
 	my $starttime = $testarray[0];
@@ -299,8 +363,25 @@ sub process_stop {
 		$count = $3;
 		$internal_err = $4;
 		$skip = $5;
+
+		# if the finish case name is not the current case name, it means that 
+		# it is a background test case, we don't care this type of cases, 
+		# and we don't print any information for them.
+		if("$key" eq "$current_case") {
+			if(($fail == 0) && ($skip == 0)) {
+				ptr_r("fgreen", "PASS");
+			}
+			if(($fail == 0) && ($skip != 0)){
+				ptr_r("fyellow", "SKIP");
+			}
+			if(($internal_err != 0) || ($fail != 0)){
+				ptr_r("fred", "FAIL");
+			}
+		}
 	} else {
-		warn ("Test result inconclusive for $key, no results found\n");
+		# no result, some error occured
+		ptr_r("fred", "FAIL") if("$key" eq "$current_case");
+		warn ("    Test result inconclusive for $key, no results found\n");
 	}
 	
 	if (defined($test_results{$key}->[0])) {
@@ -332,7 +413,6 @@ sub process_stop {
        	delete $running_pids{$pid};
 }
 
-
 sub run {
 	my $mode = shift; 
 	my $iterations = shift;
@@ -343,12 +423,15 @@ sub run {
 	my $key = $testname;
 	my $logfilename = $environment{save_directory} . "/$testname";
 	my %reversepid = reverse %running_pids;
-	
+
 	if (exists($reversepid{$key})) {
 		# we can't have two processes running with the same test name, sorry :)
 		warn ("Can't run process $testname multiple times at once \n");
 		return;
 	}
+
+	$current_case = $testname;
+	ptr_n($testname) if ($mode eq "fg");
 	
 	# make a break for the various attempts to start the program.
 	# Otherwise the current implementation will pick up results from previous
@@ -502,7 +585,12 @@ sub wait_on_tests {
 				} 
 			}
 		}
-		display_clock($current_time);
+
+		# for background process, don't print the clock
+		# or we can ignore the clock string line from slave(Command.pm +257)
+		if($process_foreground) {
+			display_clock($current_time);
+		}
 		sleep 1;
 	}
 
@@ -953,6 +1041,7 @@ sub parse_control_file {
 	
 	$l = $environment{LINE};
 
+
 	if($timestamp_file){
 		my $tmp = $environment{"save_directory"}."/timestamp_log";
 		open TIMESTAMPFILE, ">> $tmp" or die "Can't open file $tmp : $!";
@@ -1111,6 +1200,15 @@ sub disable_handlers {
 sub main {
 	my @params = @_;
 	$timestamp_file=0;
+
+	# get the width of console for output the test name and test status 
+	$opt_width = `stty size 2>/dev/null | cut -d' ' -f2`;
+	$process_foreground = process_fb($$);
+
+	if (!$opt_width or $opt_width eq ""){
+        	$opt_width = 80;
+	}
+
 	foreach $i (@_) {
 		if(($i eq "-h") or ($i eq "--help")){
 			print "usage:\n\trun -h\n\trun --help\nprint this help.\n";
@@ -1119,6 +1217,7 @@ sub main {
 			$timestamp_file=1;	
 		}elsif(not $eexit and open(DATAFILE,$i)) {
 			$filename = $i;
+			$total_case = `cat $filename | grep "^fg" | wc -l`;
 			restore_state($filename);
 			parse_control_file(DATAFILE);
 			close DATAFILE;
