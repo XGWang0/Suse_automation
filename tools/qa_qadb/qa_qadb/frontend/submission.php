@@ -231,12 +231,14 @@ if(!$submission_id)
 			'kernel_version'	=>$kernel_version_got,
 			'kernel_branch'		=>$kernel_branch_got,
 			'kernel_flavor'		=>$kernel_flavor_got,
+			'order_nr'		=>-1,
 		);
 		if( $refhost_got )
 			$attrs['refhost']=1;
 		if( $ref_got )
 			$attrs['ref']=1;
 		if( $step=='reg' )	{
+			unset($attrs['order_nr']);
 			$attrs['cell_color']=$cell_color_got;
 			$attrs['cell_text']=$cell_text_got;
 			$is_tc=($group_by_got!=2);
@@ -250,6 +252,8 @@ if(!$submission_id)
 			$sort='sssssssis'.str_repeat('s',count($data[0])-9);
 		}
 		$class='tbl';
+		if( $mode_got==10 )
+			$transl['enums']['testcase_id']='testcase';
 		if( $step=='bench' )
 		{
 			table_add_checkboxes($data,'tests[]','tcf_id',1,'bench_form',1);
