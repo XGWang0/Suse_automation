@@ -68,6 +68,6 @@ $mysqlhost = 'localhost';
 $mysqldb = 'hamsta_db';
 $mysqluser = 'hwdb';
 
-require ('../../frontenduser/useradmin.php');
+require ('../frontenduser/useradmin.php');
 
 ?>
