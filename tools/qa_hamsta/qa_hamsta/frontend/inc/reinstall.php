@@ -151,6 +151,7 @@ if (request_str("proceed")) {
 	$setupfordesktop = request_str("setupfordesktop");
 	$timezone = request_str("timezone");
 	$kexecboot = request_str("kexecboot");
+	$timezone = str_replace ("/","_",$timezone);
 
 	# Check for errors
 	$errors = array();
