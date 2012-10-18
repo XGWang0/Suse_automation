@@ -274,7 +274,7 @@ unless ($args->{'winvm'}) {
 		$ay_xml = 'autoinst_'.$args->{'hostname'} . ($args->{'newvm'} ? "_vm_$$" : '') . '.xml';
 		&command( "$tooldir/modify_xml.pl -m '$modfile' '$profile' '$mountpoint/autoinst/$ay_xml'" );
 		if ($args->{'timezone'}) {
-			my ($continent, $city) = split "/", $args->{'timezone'};
+			my ($continent, $city) = split "_", $args->{'timezone'};
 			&command (" sed -i 's/Europe/$continent/' $mountpoint/autoinst/$ay_xml");
 			&command (" sed -i 's/Prague/$city/' $mountpoint/autoinst/$ay_xml");
 		}
