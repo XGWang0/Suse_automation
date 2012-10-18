@@ -243,7 +243,7 @@ if(!$submission_id)
 			$use_res=($reg_method_got!=2);
 			$data = extended_regressions($is_tc,$use_res,$attrs,$transl,$pager);
 			$sort=str_repeat('s',($is_tc ? 2:1));
-			$sort.=str_repeat('i',count($data[0])-strlen($sort));
+			$sort.=str_repeat(($cell_text_got==2 ? 'i':'s'),count($data[0])-strlen($sort));
 		}
 		else	{
 			$data=search_submission_result($mode_got,$attrs,$transl,$pager);
