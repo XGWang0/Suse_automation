@@ -51,7 +51,7 @@ var insert_options = function (id, data, old_selected){
 var insert_checkboxes = function (id, data, typicmode, old_selected){
     $(id).empty();
     $.each(data, function(i, item){
-        $(id).append('<label style="width: 200; float: left;"><input type="checkbox" name="patterns[]" onchange="insert_modified_flag()" value=' + item + ' id=pt_' + item + ' />' + item + '</label>');
+        $(id).append('<label style="display: block; width: 200; float: left;"><input type="checkbox" name="patterns[]" onchange="insert_modified_flag()" value=' + item + ' id=pt_' + item + ' />' + item + '</label>');
     });//each
     $(id).val(old_selected);
     $(id).change();
