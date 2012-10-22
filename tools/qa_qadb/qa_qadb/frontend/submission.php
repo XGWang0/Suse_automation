@@ -262,7 +262,7 @@ if(!$submission_id)
 			table_translate($data,array('links'=>array('kernel_branch_id'=>'http://kerncvs.suse.de/kernel-overview/?b=')));
 		if( $step=='reg' )	{
 			if( count($data) >= AGR_MAX_RES )
-				print html_error('Only processing firs '.AGR_MAX_RES.' result rows. This limitation will be removed in the next release.');
+				print html_error('Only processing first '.AGR_MAX_RES.' result rows. This limitation will be removed in the next release.');
 			print html_groupped_table($data,array(
 				'group_y' => $y,
 				'group_x' => $x,
