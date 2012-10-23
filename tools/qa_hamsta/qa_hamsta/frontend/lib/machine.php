@@ -1572,6 +1572,22 @@ class Machine {
 		return $result;
 	}
 	/**
+	 * count_host_collide 
+	 *
+	 * @return return number of machines having same hostname
+	 */
+	function count_host_collide() {
+		$sql = 'SELECT count(*) FROM machine WHERE name = :name';
+		if (!($stmt = get_pdo()->prepare($sql))) {
+                        return null;
+                }
+		$stmt->bindParam(':name',$this->fields['name']);
+		$stmt->execute();
+                $result = $stmt->fetchColumn();
+		$stmt->closeCursor();
+		return $result;
+	}
+	/**
 	 * get_jobs_by_active 
 	 * 
 	 * @param bool $active true if active machines should be searched, false if 
