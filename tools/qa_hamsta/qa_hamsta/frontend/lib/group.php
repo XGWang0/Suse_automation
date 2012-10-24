@@ -361,6 +361,22 @@ class Group {
         }
         return $result;
     }
+
+    public function check_machine_in_group(Machine $machine) {
+        $machine_id = $machine->get_id();
+
+        if (!($stmt = get_pdo()->prepare('SELECT * FROM group_machine WHERE (group_id, machine_id) = (:group_id, :machine_id)' ))) {
+            return null;
+        }
+
+        $stmt->bindParam(':group_id', $this->fields["group_id"]);
+        $stmt->bindParam(':machine_id', $machine_id);
+        $stmt->execute();
+		
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return ($stmt->rowCount() > 0);
+    }
 }
 
 ?>

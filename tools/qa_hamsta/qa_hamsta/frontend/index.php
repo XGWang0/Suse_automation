@@ -99,6 +99,7 @@ $pages = array(
     "del_group",
     "group_del_machines",
     "delete_autobuild",
+    "del_group_machines",
 
     "jobruns",
     "job_details",
