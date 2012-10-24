@@ -956,7 +956,7 @@ function common_header($args=null)
 	if( $args['connect'] )
 		$conn_id=connect_to_mydb();
 	print html_header($args);
-	if( !$args['embed'] )
+	if( !hash_get($args,'embed',false,false) )
 		print_nav_bar($glob_dest);
 }
 
