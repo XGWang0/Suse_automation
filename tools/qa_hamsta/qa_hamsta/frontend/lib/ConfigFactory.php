@@ -75,6 +75,11 @@ class ConfigFactory
   public static function build ($type = "", $file = null, $section = null,
 				$options = null, $data = null)
   {
+    if (isset (self::$configuration))
+      {
+	return self::$configuration;
+      }
+
     $class = 'Zend_Config' . (empty ($type)
 			      ? ""
 			      : "_" . $type);
