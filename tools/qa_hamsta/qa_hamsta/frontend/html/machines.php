@@ -282,7 +282,7 @@ tsRegister();
 			  /* Due to connection of displayed fields and
 			   * filters I had to add an exception
 			   * here. */
-			  if (in_array ($key, array ('hostname', 'used_by', 'status_string')))
+			  if (in_array ($key, $default_fields_list))
 			    {
 			      continue;
 			    }
