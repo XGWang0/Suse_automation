@@ -164,6 +164,14 @@
 		'vh'=>'Virt. Host'
 	);
 
+	/* These fields are displayed by default. That means the user
+	 * cannot hide them nor display again. */
+	$default_fields_list = array (
+		'hostname',
+		'used_by',
+		'status_string'
+	);
+
 # header & footer links
 $qadb_web = exec('/usr/share/qa/tools/get_qa_config qadb_wwwroot');
  $naviarr = array (

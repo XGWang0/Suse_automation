@@ -250,12 +250,14 @@ if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
 			 || ($key == 'group')) )
 		  {
 		    if ( isset ($ns_machine_filter->fields)
-			 && ! in_array ($key, $ns_machine_fields->fields) )
+			 && ! (in_array ($key, $ns_machine_fields->fields)
+			       || in_array ($key, $default_fields_list)))
 		      {
 			$ns_machine_fields->fields[] = $key;
 		      }
 
-		    if (! in_array ($key, $display_fields))
+		    if (! in_array ($key, $display_fields)
+			&& ! in_array ($key, $default_fields_list))
 		      {
 			array_push ($display_fields, $key);
 		      }
