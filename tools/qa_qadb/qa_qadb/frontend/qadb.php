@@ -298,7 +298,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	# $from0[ $i_main ] -- always
 	$from0=array( 'submission s', 'submission s JOIN tcf_group g USING(submission_id) JOIN result r USING(tcf_id)', 'submission s JOIN tcf_group g USING(submission_id)', 'submission s JOIN product USING(product_id) JOIN `release` USING(release_id)' );
 	# $from1[ $i_main ] -- append for full details
-	$from1=array( '', ' JOIN testcase t USING(testcase_id) LEFT OUTER JOIN waiver w USING(testcase_id) JOIN test b USING(testcase_id)', ' JOIN `result` r USING(tcf_id)', '' );
+	$from1=array( '', ' JOIN testcase t USING(testcase_id) LEFT OUTER JOIN waiver w USING(testcase_id) LEFT JOIN test b ON(w.testcase_id=b.testcase_id)', ' JOIN `result` r USING(tcf_id)', '' );
 	# $from2[ $i_from ] -- always
 	$from2=array(
 /* simple */	'',
