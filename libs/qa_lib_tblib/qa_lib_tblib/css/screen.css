@@ -134,7 +134,6 @@ button { display: inline; }
 .benchtbl td	{ background-color:#eee; }
 .benchtbl tr:hover td { background-color:#ccc; }
 .benchtbl tr:hover th { background-color:#468; }
-img.benchimg:hover { background-color:#aaa; }
 
 p.benchimg { text-align: center; }
 #bench_graphs h1 { 
