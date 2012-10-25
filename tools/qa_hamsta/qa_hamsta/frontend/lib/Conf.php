@@ -46,7 +46,8 @@ class Conf extends Zend_Config
    *
    * @return Zend_Config_Ini An instance of that class.
    */
-  public static function getIniConfig($filename, $section, $options = false) {
+  public static function getIniConfig($filename, $section, $options = false)
+  {
     return new Zend_Config_Ini($filename, $section, $options);
   }
 
