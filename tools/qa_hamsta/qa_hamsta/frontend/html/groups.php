@@ -45,7 +45,7 @@
         <th>Name</th>
         <th>Description</th>
         <th>Machines</th>
-        <th colspan="3">&nbsp;</th>
+        <th colspan="5">Actions</th>
     </tr>
     <?php foreach ($groups as $group): ?>
         <tr>
@@ -69,8 +69,10 @@
 		$group_name = str_replace(" ","%20",$group_name);
             ?></td>
             <td><a href="index.php?go=machines&amp;group=<?php echo $group_name; ?>">List Machines</a></td>
-		<td><a href="index.php?go=create_group&amp;action=edit&amp;group=<?php echo $group_name; ?>">Edit</a></td>
-            <td><a href="index.php?go=del_group&amp;group=<?php echo $group_name; ?>">Delete</a></td>
+            <td><a href="index.php?go=create_group&amp;action=edit&amp;group=<?php echo $group_name; ?>">Edit</a></td>
+            <td><a href="index.php?go=create_group&amp;action=addmachine&amp;group=<?php echo $group_name; ?>">Add Machine</a></td>
+            <td><a href="index.php?go=del_group_machines&amp;group=<?php echo $group_name; ?>">Delete Machine</a></td>
+            <td><a href="index.php?go=del_group&amp;group=<?php echo $group_name; ?>">Delete Group</a></td>
         </tr>
     <?php endforeach; ?>
 </table>
@@ -78,4 +80,4 @@
 <?php
 	}
 ?>
-<b><a href="index.php?go=create_group">Create a new empty group</a></b>
+<b><a href="index.php?go=create_group&amp;action=add">Create a new empty group</a></b>

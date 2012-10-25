@@ -413,7 +413,8 @@ sub start_job() {
 		}
             }
         }else {
-		$sut_timeout = 86400;
+		# we do not limit the job which is not qa_package,set to a very large number.
+		$sut_timeout = 8640000;
 	}
         &log(LOG_NOTICE, "The Job Time out is $sut_timeout (s)");
 

@@ -1,6 +1,45 @@
 <?php
 require_once('userdb.php');
 
+
+/* Concatenates an array of strings using glue and adds a line
+ * break if the number of entries on that line reaches a
+ * limit.
+ *
+ * @param string[] $strings_array Array of strings that will
+ * be concatenated.
+ *
+ * @param string $glue String that is used to connect the
+ * entries. Defaults to ', '.
+ *
+ * @param integer $max_entries_per_line The number of entries
+ * per line. If the number of entries is greater, the line
+ * break is added when the number of entries reaches this
+ * value.
+ *
+ * @param string $line_break String designating a line break.
+ *
+ * @return string Concatenated array of strings glued together
+ * and with line breaks.
+ */
+function break_line_by_entries ($strings_array, $glue = ", ", $max_entries_per_line = 5, $line_break = "<br />")
+{
+	$glued_entries = "";
+	if (count ($strings_array) > $max_entries_per_line)
+	  {
+		for ($i = 0; $i < count ($strings_array); $i += $max_entries_per_line)
+		  {
+			$glued_entries .= implode ($glue, array_slice ($strings_array, $i, $max_entries_per_line)) . $line_break;
+		  }
+	  }
+	else
+	  {
+		$glued_entries = implode ($glue, $strings_array) . $line_break;
+	  }
+
+	return $glued_entries;
+}
+
 if (! isset ($page))
 {
 	$page=basename($_SERVER['PHP_SELF']);
@@ -352,6 +391,19 @@ else	{
 	$data[0]['role'] = 'Role name';
 	$data[0]['descr'] = 'Role description';
 	$data[0]['users'] = 'Users in role';
+
+	/* The users in the role can be many. So we need to print them
+	 * on multiple lines. */
+	for ($i = 1; $i < count ($data); $i++)
+	  {
+	    $users = '';
+	    if (isset ($data[$i]['users']))
+	      {
+		$users_array = explode (',', $data[$i]['users']);
+
+		$data[$i]['users'] = break_line_by_entries ($users_array, ", ", 10);
+	      }
+	  }
 
 	table_translate($data,array(
 		'links'=>($no_table_id

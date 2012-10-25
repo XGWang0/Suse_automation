@@ -49,35 +49,50 @@
 	  }
 
 	# See if this is an edit or an add
-	if(isset($_GET['action']) and $_GET['action'] == "edit")
+	if(isset($_GET['action']))
 	{
-		$action = "edit";
-		$group = Group::get_by_name($_GET['group']);
-		if($group == null)
-		{
-			echo "<div class=\"failmessage\">Unable to retrieve group data. Please try again.</div>";
+		$action = $_GET['action'];
+		if(($action == "edit") ||($action == "addmachine")){
+			$group = Group::get_by_name($_GET['group']);
+			if($group == null)
+			{
+				echo "<div class=\"failmessage\">Unable to retrieve group data. Please try again.</div>";
+			}
+			$name = $group->get_name();
+			$id = $group->get_id();
+			$description = $group->get_description();
 		}
-		$name = $group->get_name();
-		$id = $group->get_id();
-		$description = $group->get_description();
-	}
-	else
-	{
-		$action = "add";
 	}
 
+    $a_machines = request_array("a_machines");
     $search = new MachineSearch();
-    $search->filter_in_array(request_array("a_machines"));
+    if($a_machines != NULL){
+	$action = "addcertainmachine";
+    	$search->filter_in_array($a_machines);
+    }
+    else
+	$search->filter_role('SUT');
     $machines = $search->query();
-    
+
     if (request_str("submit")) {
         $failed = 0;
+	$action = request_str("action");
+
+	$machines_selected = request_array("machines_selected");
+	$search = new MachineSearch();
+	$search->filter_in_array($machines_selected);
+	$machines = $search->query();
+
         switch(request_str("action")) {
-            case "create":
+            case "add":
+            case "addcertainmachine":
                 $name = request_str("name");
                 if (!$name) {
-                    $error = "You must enter a group name.";
-                    break;
+		    $name = request_str("add_group");
+		    if(!$name){
+                        $error = "You must enter a group name.";
+                        break;
+		    }
                 }
                 
                 $description = request_str("description");
@@ -137,9 +152,13 @@
 				}
                 break;
 
-            case "add":
+            case "addmachine":
+		print "action2 = $action\n";
+    $machine_num = count($machines);
+    print "number = $machine_num\n";
                 $name = request_str("add_group");
                 $group = Group::get_by_name($name);
+    print "name = $name\n";
 
                 if (is_null($group)) {
                     $error = "The selected group to add the machines to does not exist.";
