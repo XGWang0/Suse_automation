@@ -1,6 +1,6 @@
 <?php
 
-require_once ('Zend/Config/Ini.php');
+require_once ('Zend/Config.php');
 
 /**
  * This is a factory class for creation of different types of
@@ -75,7 +75,7 @@ class ConfigFactory
   public static function build ($type = "", $file = null, $section = null,
 				$options = null, $data = null)
   {
-    if (isset (self::$configuration))
+    if (isset (self::$configuration) && empty ($type))
       {
 	return self::$configuration;
       }
@@ -83,6 +83,11 @@ class ConfigFactory
     $class = 'Zend_Config' . (empty ($type)
 			      ? ""
 			      : "_" . $type);
+
+    if (! empty ($type))
+      {
+	require_once ("Zend/Config/$type.php");	
+      }
 
     if (! class_exists ($class))
       {
