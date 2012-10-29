@@ -154,6 +154,23 @@ if ( $useAuth
      <a href="http://<?php echo($_SERVER['SERVER_ADDR']); ?>/ajaxterm/?host=<?php echo($machine->get_ip_address()); ?>" target="_blank"><img src="images/icon-terminal.png" alt="Access the terminal" title="Access the terminal on <?php echo($machine->get_hostname());?>" border="0" width="20" style="padding-right: 3px;" /></a>
 <?php } ?>
 
+<?php
+if ( $useAuth
+     && (! isset ($user)
+         || ! ( $users_machine && $user->isAllowed('machine_console')
+                || ( isset ($user) && $user->isAllowed ('machine_console_reserved') ) ) ) ) {
+?>
+     <img  src="images/icon-console-grey.png" alt="Cannot open a serial console to this machine" title="You cannot open a serial console to <?php echo ($machine->get_hostname()); ?> if not logged in or without privileges or if it is reserved by other user." border="0" width="20" style="padding-right: 3px" onclick="alert('You are not allowed to open a serial console to this machine.');" />
+<?php } else { ?>
+
+<?php
+	$console_link = "hamsta-cscreen:" . CONSOLE_SERVER . "/" . $machine->get_hostname();
+	//print "console_link = $console_link\n";
+?>
+     <a href="<?php echo $console_link; ?>" target="_blank"><img src="images/icon-console.png" alt="Access the serial console" title="Access the serial console on <?php echo($machine->get_hostname());?>" border="0" width="20" style="padding-right: 3px;" /></a>
+<?php } ?>
+
+
   <!-- DELETE A MACHINE -->
 
 <?php if(preg_match ('/^vm\//', $machine->get_type())) { ?>
