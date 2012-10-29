@@ -66,7 +66,8 @@
 	{
 		if ( (request_str('set') == 'Search'
 		      && request_str($field_name) == $searched_value)
-		     || (isset ($filter_session_namespace->fields[$field_name])
+		     || (isset ($filter_session_namespace)
+			 && isset ($filter_session_namespace->fields[$field_name])
 			 && $filter_session_namespace->fields[$field_name] == $searched_value) )
 		{
 			return true;

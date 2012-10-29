@@ -230,7 +230,7 @@ tsRegister();
 					<option value="<?php echo($arch); ?>"
   <?php	/* Function from include/Util.php*/
 	$arch_reqest = request_str('architecture');
-	if (machine_filter_value_selected ('architecture', $arch, $ns_machine_filter))
+	if (machine_filter_value_selected ('architecture', $arch, (isset ($ns_machine_filter) ? $ns_machine_filter : null)))
 		{
 			echo(' selected="selected"');
 		}
