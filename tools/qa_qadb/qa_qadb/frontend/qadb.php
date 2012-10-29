@@ -200,8 +200,8 @@ function build_promoted_delete($build_promoted_id)	{
   *  10 submission + TCF + testcase
   *  11 extended regressions, both testsuite and testcase
   *  12 extended regressions, just testsuites
-  *  13 products/releases for extended regressions
-  *  14 testsuite/testcase combinations (for regressions)
+  *  13 distinct products/releases for extended regressions
+  *  14 distinct testsuite/testcase combinations (for regressions)
   * $attrs['only_id']: 
   *   0 for full details
   *   1 for IDs only 
@@ -254,7 +254,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	);
 
 	# index into $sel0[], $sel1[] (SELECT ...), and $from0[] (FROM ...)
-	$i_main = array( 1,0,0,0,0,0,2,0,0,0,0,2,2,3,2 );
+	$i_main = array( 1,0,0,0,0,0,2,0,0,0,0,2,2,3,4 );
 	# index into $sel2[] (SELECT ...)
 	$i_next = array( 0,0,1,2,0,3,0,4,5,5,6,7,8,0,9 );
 	# index into $from2[] (FROM ...)
@@ -273,13 +273,14 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	# $from = $from0 $from2
 	# $sel0..$sel2 are done as lists - for ordering by them
 	# $sel0[ $i_main ] -- always
-	$sel0=array( 's.submission_id', 'r.result_id', 'DISTINCT testsuite_id','DISTINCT product_id' );
+	$sel0=array( 's.submission_id', 'r.result_id', 'testsuite_id','DISTINCT product_id', 'DISTINCT testsuite_id' );
 	# $sel1[ $i_main ] -- appends for full details
 	$sel1=array( 
 /* subms */  array('s.submission_date','s.host_id','s.tester_id','s.arch_id','s.product_id','s.release_id','s.related','s.status_id','s.comment','s.rpm_config_id','s.hwinfo_id','s.type','s.ref'),
 /* rslts */  array('g.tcf_id','g.testsuite_id','r.testcase_id','t.testcase','r.succeeded','r.failed','r.internal_error','r.skipped','r.times_run','r.test_time','w.waiver_id','t.relative_url','b.is_bench'),
 /* suite */  array(),
-/* reg.X */  array('product','s.release_id','`release`'),
+/* Dprod */  array('product','s.release_id','`release`'),
+/* Dsuit */  array(),
 	);
 	# $sel2[ $i_next ] -- appends for full details
 	$sel2=array( 
@@ -296,9 +297,21 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	);
 
 	# $from0[ $i_main ] -- always
-	$from0=array( 'submission s', 'submission s JOIN tcf_group g USING(submission_id) JOIN result r USING(tcf_id)', 'submission s JOIN tcf_group g USING(submission_id)', 'submission s JOIN product USING(product_id) JOIN `release` USING(release_id)' );
+	$from0=array( 
+/* subms */	'submission s', 
+/* rslts */	'submission s JOIN tcf_group g USING(submission_id) JOIN result r USING(tcf_id)',
+/* suite */	'submission s JOIN tcf_group g USING(submission_id)',
+/* Dprod */	'submission s JOIN product USING(product_id) JOIN `release` USING(release_id)',
+/* Dsuit */	'submission s JOIN tcf_group g USING(submission_id)',
+);
 	# $from1[ $i_main ] -- append for full details
-	$from1=array( '', ' JOIN testcase t USING(testcase_id) LEFT OUTER JOIN waiver w USING(testcase_id) LEFT JOIN test b ON(w.testcase_id=b.testcase_id)', ' JOIN `result` r USING(tcf_id)', '' );
+	$from1=array( 
+/* subms */	'', 
+/* rslts */	' JOIN testcase t USING(testcase_id) LEFT OUTER JOIN waiver w USING(testcase_id) LEFT JOIN test b ON(w.testcase_id=b.testcase_id)', 
+/* suite */	' JOIN `result` r USING(tcf_id)', 
+/* Dprod */	'',
+/* Dsuit */	' JOIN `result` r USING(tcf_id)',
+);
 	# $from2[ $i_from ] -- always
 	$from2=array(
 /* simple */	'',
@@ -319,7 +332,8 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 /* subms */	array(),
 /* rslts */	array(),
 /* suite */	array(),
-/* regs  */	array('testsuite_id'),
+/* Dprod */	array(),
+/* Dsuit */	array(),
 	);
 
 	# $group_by1[ $i_next ] - appends for full details
@@ -342,7 +356,8 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 /* subms */  array('host_id'=>'host','tester_id'=>'tester','arch_id'=>'arch','product_id'=>'product','release_id'=>'release','status_id'=>'status'),
 /* rslts */  array('testsuite_id'=>'testsuite'),
 /* suite */  array('testsuite_id'=>'testsuite'),
-/* regs  */  array(),
+/* Dprod */  array(),
+/* Dsuit */  array('testsuite_id'=>'testsuite'),
 	);
 
 	# $enum1[ $i_next ] - for full details when $transl set
@@ -364,7 +379,8 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 /* subms */	array('submission_id'=>'submission.php?submission_id=','related'=>'submission.php?submission_id=','rpm_config_id'=>'rpms.php?rpm_config_id=','hwinfo_id'=>'hwinfo.php?hwinfo_id='),
 /* rslts */	array('tcf_id'=>'result.php?tcf_id='),
 /* suite */	array(),
-/* regs  */	array(),
+/* Dprod */	array(),
+/* Dsuit */	array(),
 	);
 
 	# $links2[ $i_link ] - for full details when $transl set
@@ -422,15 +438,27 @@ function extended_regressions($is_tc,$use_res,$attrs,&$transl=null,&$pager=null)
 	# - clean up
 
 	# first part, just read the products/releases that go onto X
+	$debug=0;
 	$cell_color=hash_get($attrs,'cell_color',1,true);
 	$cell_text=hash_get($attrs,'cell_text',1,true);
 	$a=$attrs; # copy for the main query
 	$a['order_by']=array('product','`release`');
 	unset($a['group_by']);
+
+	if( $debug>1 )	{
+		print "<pre>"; 
+		print_r($a);
+		print "SQL="; 
+		print_r(search_submission_result(13,array_merge($a,array('just_sql'=>1)))); 
+		print "</pre>\n";
+	}
 	$xaxis=search_submission_result(13,$a);
 	$attrs['just_sql']=1;
-#	print "<h3>X-axis</h3>\n";
-#	print html_table($xaxis);
+
+	if( $debug )	{
+		print "<h3>X-axis</h3>\n";
+		print html_table($xaxis);
+	}
 	
 	# we use one more temporary table than the X count
 	# this produces their names
@@ -552,23 +580,36 @@ function extended_regressions($is_tc,$use_res,$attrs,&$transl=null,&$pager=null)
 		$sql='SELECT '.join(',',array_keys($select)).$sql_right;
 		$sql_count='SELECT COUNT(*)'.$sql_right;
 	}
-#	print "<pre>\n";
-#	print_r($commands);
-#	print "</pre>\n";
-#	print "\nSQL=$sql\n";
-#	print "<pre>\n";
-#	print_r($cleanup);
-#	print "</pre>\n";
+	if( $debug > 1 )	{
+		print "<pre>\n";
+		print_r($commands);
+		print "</pre>\n";
+		print "\nSQL=$sql\n";
+		print "<pre>\n";
+		print_r($cleanup);
+		print "</pre>\n";
+	}
 
 	# run the section that creates & fills temporary tables
 	if( ($ret=update_sequence($commands)) < 0 )
 		exit;
-#	print "<h3>base</h3>\n";
-#	print html_table(mhash_query(1,null,"SELECT * FROM $tbase1"));
-#	for($i=1; $i<count($xaxis); $i++)	{
-#		print "<h3>Table t$i</h3>\n";
-#		print html_table(mhash_query(1,null,"SELECT * FROM $tbase2$i"));
-#	}
+
+	if( $debug )	{
+		$e=array('testsuite_id'=>'testsuite');
+		if( $is_tc )
+			$e['testcase_id']='testcase';
+		$transl=array('enums'=>$e);
+		print "<h3>base</h3>\n";
+		$data=mhash_query(1,null,"SELECT * FROM $tbase1");
+		table_translate($data,$transl);
+		print html_table($data);
+		for($i=1; $i<count($xaxis); $i++)	{
+			print "<h3>Table t$i</h3>\n";
+			$data=mhash_query(1,null,"SELECT * FROM $tbase2$i");
+			table_translate($data,$transl);
+			print html_table($data);
+		}
+	}
 
 	# run the main query
 	$limit=null;
