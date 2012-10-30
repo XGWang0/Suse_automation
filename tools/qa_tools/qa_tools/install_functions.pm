@@ -776,7 +776,7 @@ sub _print_profile_partitions
 			$abuildsize = 0 if !$abuildid;
 			$bootsize = 0 if !$bootid;
 			my $sizepercent = $args->{'repartitiondisk'} ? $args->{'repartitiondisk'}*0.01 : 1;
-			$swapsize = int($swapsize/1024);
+			$swapsize = int($swapsize)/1024;
 			my $rootusesize = int(($disksize - $abuildsize - $bootsize - $swapsize)*$sizepercent);
 
 			my %fs = ( '/'=>$args->{'rootfstype'}, 'swap'=>'swap', '/boot/efi'=>'vfat', '/abuild'=>'ext3', 'NULL' => 'ext3');
