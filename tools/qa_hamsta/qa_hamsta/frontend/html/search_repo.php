@@ -27,15 +27,17 @@
 
 Used by Ajax.
 
-Repo index is loaded from $REPO_INDEX_URL.
-
 FIXME: it's better done from database
 */
 
 require("../config.php");
+require_once ('../lib/ConfigFactory.php');
+/* We need to build it here because this is not evaluated within the
+ * index page but using JSON. */
+$conf = ConfigFactory::build("Ini", "../hamsta.ini", $configuration_group);
 
 // Load repo index
-$json = file_get_contents(REPO_INDEX_URL);
+$json = file_get_contents($conf->url->index->repo);
 if ($json == ""){
 	echo json_encode(array());
 	return;

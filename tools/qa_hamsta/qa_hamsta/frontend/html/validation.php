@@ -54,7 +54,7 @@ function validarch(archs) {
 <p>
 <b>Validate this build: </b>
 <?php
-	$json = file_get_contents(REPO_INDEX_URL);
+	$json = file_get_contents($config->url->index->repo);
 	if ($json != "") {
 	    $products = array();
 	    $archs = array();

@@ -43,6 +43,7 @@ define('HAMSTA_FRONTEND', 1);
 require("config.php");
 require("globals.php");
 
+require_once ('lib/ConfigFactory.php');
 require_once ('lib/Notificator.php');
 require_once ('lib/Conf.php');
 require_once ('lib/UserRole.php');
@@ -64,11 +65,17 @@ require("lib/powerswitch.php");
 require_once("../tblib/tblib.php");
 
 /*
- * First parameter is path to ini file. The second is name of group
- * you want to include configuration from.
+ * Initialize global configuration. All subsequent calls to
+ * ConfigFactory can be done without parameters and will receive the
+ * same configuration.
+ *
+ * The group checking is here for safety reasons. For now it is set in
+ * the config.php file.
  */
-//$config = Conf::getIniConfig('hamsta.ini', 'cz');
-$config = new Conf(null, false);
+$config = ConfigFactory::build ("Ini", 'hamsta.ini',
+				(isset ($configuration_group)
+				 ? $configuration_group
+				 : 'production'));
 User::authenticate($config);
 
 $go = request_str("go");

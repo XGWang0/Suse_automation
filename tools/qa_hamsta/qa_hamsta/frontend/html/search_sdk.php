@@ -27,15 +27,17 @@
 
 Used by Ajax.
 
-sdk index is loaded from $SDK_INDEX_URL.
-
 FIXME: it's better done from database
 */
 
 require("../config.php");
+require_once ('../lib/ConfigFactory.php');
+/* We need to build it here because this is not evaluated within the
+ * index page but using JSON. */
+$conf = ConfigFactory::build("Ini", "../hamsta.ini", $configuration_group);
 
 // Load sdk index
-$json = file_get_contents(SDK_INDEX_URL);
+$json = file_get_contents($conf->url->index->sdk);
 if ($json == ""){
 	echo json_encode(array());
 	return;

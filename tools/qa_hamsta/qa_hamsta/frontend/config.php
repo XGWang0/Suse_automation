@@ -125,4 +125,6 @@ define ("AUTHENTICATION_METHOD", 'openid');
 # Set the openid authentication url.
 define ("OPENID_URL", "www.novell.com/openid");
 
+$configuration_group = "cz";
+
 ?>
