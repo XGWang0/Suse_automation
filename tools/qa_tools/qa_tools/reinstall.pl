@@ -39,6 +39,7 @@ use Getopt::Long qw(:config no_ignore_case no_getopt_compat);
 
 use qaconfig;
 use install_functions;
+use log;
 
 $ENV{'LC_ALL'}='en_US';
 
