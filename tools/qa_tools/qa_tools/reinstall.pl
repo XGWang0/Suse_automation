@@ -353,8 +353,16 @@ if( $args->{'newvm'} )	{
 
 	if ( "$boottype" eq "bootloader" ) {
         	&command( "reboot" );
+		exit -1;
 	} else {
-		&command( "kexec -e" );
+		my $pid = fork();
+		if ( $pid > 0 ) {
+			$SIG{CHLD} = 'IGNORE';
+			exit 0;
+		} else {
+			&log(LOG_RETURN, "$? (".$cmdline.')');
+       			system("sleep 20");
+			exec("/sbin/kexec -e >/dev/null");
+		}
 	}
-	exit -1;
 }
