@@ -34,7 +34,7 @@ require("../config.php");
 require_once ('../lib/ConfigFactory.php');
 /* We need to build it here because this is not evaluated within the
  * index page but using JSON. */
-$conf = ConfigFactory::build("Ini", "../hamsta.ini", $configuration_group);
+$conf = ConfigFactory::build("Ini", "../config.ini", $configuration_group);
 
 // Load sdk index
 $json = file_get_contents($conf->url->index->sdk);

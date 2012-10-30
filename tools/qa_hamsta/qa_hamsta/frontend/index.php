@@ -72,7 +72,7 @@ require_once("../tblib/tblib.php");
  * The group checking is here for safety reasons. For now it is set in
  * the config.php file.
  */
-$config = ConfigFactory::build ("Ini", 'hamsta.ini',
+$config = ConfigFactory::build ("Ini", 'config.ini',
 				(isset ($configuration_group)
 				 ? $configuration_group
 				 : 'production'));
