@@ -159,7 +159,7 @@ if (! empty ($s_anything))
 </table>
 <script type="text/javascript">
 <!--
-                          var TSort_Data = new Array ('machines','', '0' <?php echo str_repeat(", 'h'", (isset ($display_fields) ? count($display_fields)+1 : 1)); ?>);
+                          var TSort_Data = new Array ('machines','', '0' <?php echo str_repeat(", 'h'", (isset ($display_fields) ? count($display_fields)+2 : 1)); ?>);
 tsRegister();
 -->
 </script>
