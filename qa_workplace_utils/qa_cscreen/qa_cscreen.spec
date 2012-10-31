@@ -52,6 +52,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Provides:       cscreen
 Obsoletes:      cscreen
 Requires:       xterm desktop-file-utils
+BuildRequires:  desktop-file-utils
 BuildArch:	noarch
 
 %description
