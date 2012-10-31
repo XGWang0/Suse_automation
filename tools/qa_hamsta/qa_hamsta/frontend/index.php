@@ -117,6 +117,7 @@ $pages = array(
     "register",
     "user",
     "login",
+    "addsut",
     "adminusers"
 );
 

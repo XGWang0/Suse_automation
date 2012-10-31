@@ -39,6 +39,7 @@ use Getopt::Long qw(:config no_ignore_case no_getopt_compat);
 
 use qaconfig;
 use install_functions;
+use log;
 
 $ENV{'LC_ALL'}='en_US';
 
@@ -353,8 +354,16 @@ if( $args->{'newvm'} )	{
 
 	if ( "$boottype" eq "bootloader" ) {
         	&command( "reboot" );
+		exit -1;
 	} else {
-		&command( "kexec -e" );
+		my $pid = fork();
+		if ( $pid > 0 ) {
+			$SIG{CHLD} = 'IGNORE';
+			exit 0;
+		} else {
+			&log(LOG_RETURN, "$? (".$cmdline.')');
+       			system("sleep 20");
+			exec("/sbin/kexec -e >/dev/null");
+		}
 	}
-	exit -1;
 }

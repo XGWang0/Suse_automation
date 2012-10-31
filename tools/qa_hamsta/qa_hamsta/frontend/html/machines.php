@@ -159,7 +159,7 @@ if (! empty ($s_anything))
 </table>
 <script type="text/javascript">
 <!--
-                          var TSort_Data = new Array ('machines','', '0' <?php echo str_repeat(", 'h'", (isset ($display_fields) ? count($display_fields)+1 : 1)); ?>);
+                          var TSort_Data = new Array ('machines','', '0' <?php echo str_repeat(", 'h'", (isset ($display_fields) ? count($display_fields)+2 : 1)); ?>);
 tsRegister();
 -->
 </script>
@@ -230,7 +230,7 @@ tsRegister();
 					<option value="<?php echo($arch); ?>"
   <?php	/* Function from include/Util.php*/
 	$arch_reqest = request_str('architecture');
-	if (machine_filter_value_selected ('architecture', $arch, $ns_machine_filter))
+	if (machine_filter_value_selected ('architecture', $arch, (isset ($ns_machine_filter) ? $ns_machine_filter : null)))
 		{
 			echo(' selected="selected"');
 		}
