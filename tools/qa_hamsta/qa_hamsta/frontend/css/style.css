@@ -210,3 +210,32 @@ div.soo_button:hover, div.soo_button_chosen {
 	background: rgb(128,128,128);
 	background: rgba(128,128,128,0.1);
 }
+
+img.no-border {
+	border: 0em;
+}
+
+img.icon-small {
+	height: 27px;
+	width: 27px;
+	margin-top: -0.2em;
+	margin-bottom: -0.3em;
+	margin-left: -0.1em;
+	margin-right: -0.1em;
+}
+
+img.icon-big {
+	height: 35px;
+	width: 35px;
+}
+
+img.powerswitch {
+	height: 20px;
+	width: 20px;
+}
+
+img.notifications {
+	width: 20;
+	float: right;
+	padding-left: 3px;
+}
