@@ -38,6 +38,10 @@
 	}
 	else
 	{
+		if(isset($user)){
+			$user_id = $user->get_id();
+
+		}
 ?>
 
 <table class="list text-main">
@@ -68,11 +72,11 @@
 		$group_name = str_replace("&","%26",$group_name);
 		$group_name = str_replace(" ","%20",$group_name);
             ?></td>
-            <td><a href="index.php?go=machines&amp;group=<?php echo $group_name; ?>">List Machines</a></td>
-            <td><a href="index.php?go=create_group&amp;action=edit&amp;group=<?php echo $group_name; ?>">Edit</a></td>
-            <td><a href="index.php?go=create_group&amp;action=addmachine&amp;group=<?php echo $group_name; ?>">Add Machine</a></td>
-            <td><a href="index.php?go=del_group_machines&amp;group=<?php echo $group_name; ?>">Delete Machine</a></td>
-            <td><a href="index.php?go=del_group&amp;group=<?php echo $group_name; ?>">Delete Group</a></td>
+            <td><a href="index.php?go=machines&amp;group=<?php echo $group_name; ?>"><img src="images/icon-group-list-machine.png" alt="List machines" title="List machines of group" border="0" width="20" style="padding-right: 3px;" /></a></td>
+            <td><a href="index.php?go=create_group&amp;action=edit&amp;group=<?php echo $group_name; ?>"><img src="images/icon-edit-group.png" alt="Edit group" title="Edit this group" border="0" width="20" style="padding-right: 3px;" /></a></td>
+            <td><a href="index.php?go=create_group&amp;action=addmachine&amp;group=<?php echo $group_name; ?>"><img src="images/icon-group-add-machine.png" alt="Add machines" title="Add machines to this group" border="0" width="20" style="padding-right: 3px;" /></a></td>
+            <td><a href="index.php?go=del_group_machines&amp;group=<?php echo $group_name; ?>"><img src="images/icon-group-delete-machine.png" alt="Delete machines" title="Delete machines from this group" border="0" width="20" style="padding-right: 3px;" /></a></td>
+            <td><a href="index.php?go=del_group&amp;group=<?php echo $group_name; ?>"><img src="images/icon-delete.png" alt="Delete group" title="Delete this group" border="0" width="20" style="padding-right: 3px;" /></a></td>
         </tr>
     <?php endforeach; ?>
 </table>
