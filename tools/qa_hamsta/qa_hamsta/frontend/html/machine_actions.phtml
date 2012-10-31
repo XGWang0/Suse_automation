@@ -14,7 +14,7 @@
                && ( $users_machine && $user->isAllowed('machine_terminal')
                     || ( isset ($user) && $user->isAllowed ('machine_terminal_reserved') ) ) ) ) {
 ?>
-    <img src="images/icon-start.png" class="machine-actions powerswitch" alt="Start <?php echo( $machine->get_hostname()) ?>"
+    <img src="images/icon-start.png" class="machine-actions icon-small" alt="Start <?php echo( $machine->get_hostname()) ?>"
          title="Start <?php echo ($machine->get_hostname()) ?>"
          onclick="var r = confirm('This will start <?php echo ( $machine->get_hostname() ); ?>. Are you sure you want to continue?');
                   if(r==true)
@@ -22,7 +22,7 @@
                     window.location='index.php?go=power&amp;a_machines[]=<?php echo ($machine->get_id()); ?>&amp;action=start';
                   }" />
 
-    <img src="images/icon-restart.png" class="machine-actions powerswitch" alt="Restart <?php echo($machine->get_hostname()); ?>"
+    <img src="images/icon-restart.png" class="machine-actions icon-small" alt="Restart <?php echo($machine->get_hostname()); ?>"
          title="Restart <?php echo ($machine->get_hostname()); ?>"
          onclick="var r = confirm('This will restart <?php echo( $machine->get_hostname()); ?>. Are you sure you want to continue?');
                   if(r==true)
@@ -30,7 +30,7 @@
                     window.location='index.php?go=power&amp;a_machines[]=<?php echo ($machine->get_id()); ?>&amp;action=restart';
                   }" />
 
-    <img src="images/icon-stop.png" class="machine-actions powerswitch" alt="Stop <?php echo ($machine->get_hostname()); ?>"
+    <img src="images/icon-stop.png" class="machine-actions icon-small" alt="Stop <?php echo ($machine->get_hostname()); ?>"
          title="Stop <?php echo ($machine->get_hostname()); ?>"
          onclick="var r = confirm('This will stop <?php echo ($machine->get_hostname()); ?>. Are you sure you want to continue?');
 	          if(r==true)
@@ -39,7 +39,7 @@
                   }" />
 <?php      } else { /* If user does not have privilege. */
             foreach (Array ('start', 'restart', 'stop') as $action_name) { ?>
-    <img src="images/icon-<?php echo($action_name); ?>-grey.png" class="machine-actions powerswitch"
+    <img src="images/icon-<?php echo($action_name); ?>-grey.png" class="machine-actions icon-small"
          alt="Cannot use powercycling on <?php echo ($machine->get_hostname()); ?> if you are not logged in or without privileges or this machine is reserved by another user."
          title="Cannot use powercycling on <?php echo ($machine->get_hostname()); ?> if you are not logged in or without privileges or this machine is reserved by another user."
          border="0" width="20" style="" />
@@ -58,7 +58,7 @@
      <?php } ?>
 <?php } else { /* Powerswitch is not supported */
           foreach (Array ('start', 'restart', 'stop') as $action_name) { ?>
-    <img src="images/icon-<?php echo ($action_name); ?>-grey.png" class="machine-actions powerswitch"
+    <img src="images/icon-<?php echo ($action_name); ?>-grey.png" class="machine-actions icon-small"
          alt="Powercycling for <?php echo ($machine->get_hostname()); ?> is not supported"
          title="Powercycling for <?php echo ( $machine->get_hostname()); ?> is not supported"
          border="0" width="20" style="" />
