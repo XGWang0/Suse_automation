@@ -51,7 +51,7 @@ Source1:	%name.8
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Provides:       cscreen
 Obsoletes:      cscreen
-Requires:       xterm
+Requires:       xterm desktop-file-utils
 BuildArch:	noarch
 
 %description
@@ -94,7 +94,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 desktop-file-install --rebuild-mime-info-cache $RPM_BUILD_ROOT/tmp/hamsta-cscreen.desktop
-rm -f $RPM_BUILD_ROOT/tmp/hamsta-cscreen.desktop
 
 %files
 %defattr(-,root,root)
@@ -107,6 +106,6 @@ rm -f $RPM_BUILD_ROOT/tmp/hamsta-cscreen.desktop
 rm -f $RPM_BUILD_ROOT/usr/share/applications/hamsta-cscreen.desktop
 
 %changelog
-* Tue Oct 25 2012 - jyao@suse.com
+* Tue Oct 31 2012 - jyao@suse.com
 - Package (v.1.0) created automatically using qa_sdk_spec_generator
 
