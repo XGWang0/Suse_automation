@@ -74,7 +74,7 @@ Author:
 %setup -q -n hamsta-cscreen
 
 %build
-make install
+#make install
 
 %install
 install -m 755 -d $RPM_BUILD_ROOT/usr/share/man/man8
