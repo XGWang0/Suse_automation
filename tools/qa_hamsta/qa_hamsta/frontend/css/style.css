@@ -224,12 +224,20 @@ img.icon-small {
 	margin-right: -0.1em;
 }
 
+img.icon-notification {
+	height: 1.5em;
+	width: 1.5em;
+	padding-top: 0.2em;
+	margin-top: -0.2em;
+	margin-bottom: -0.3em;
+	margin-left: -0.1em;
+	margin-right: -0.1em;
+	float: right;
+	padding-left: 3px;
+
+}
+
 img.icon-big {
 	height: 35px;
 	width: 35px;
-}
-
-img.notifications {
-	float: right;
-	padding-left: 3px;
 }
