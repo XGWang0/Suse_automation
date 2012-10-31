@@ -1097,6 +1097,7 @@ function result_process_print(&$data,$sub_info,$transl,$pager,$id)
 	{
 		# highlight
 		$classes='';
+		if( $data[$i]['succeeded'] ) $classes=' i';
 		if( $data[$i]['skipped'] ) $classes=' skipped';
 		if( $data[$i]['internal_error'] ) $classes=' internalerr';
 		if( $data[$i]['failed'] ) $classes=' failed';
