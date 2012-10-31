@@ -46,6 +46,9 @@ my $ctrlc = 0;
 # table
 my %running_pids;
 
+# get sub pids from pstree
+my @previous_pids = ();
+
 # hash of arrays for test results, indexed by the Friendly test name
 my %test_results = ();
 # order in which tests completed
@@ -549,6 +552,19 @@ sub wait_on_tests {
 	if (defined(POSIX::nice(-10))) {
 		++$nice;
 	}
+	#kill the previous process tree before monitor running status
+	&clean_pre;
+
+	#find the processtree of pid
+	if($waitfor) {
+		sleep 3;
+		my $cmd = q^ |sed 's/`\||\|+/#/g'|awk -F# '{if($2~/([0-9]+)/){gsub(/.*\(/,"",$2);gsub(/\).*/,"",$2);printf $2" " }}'^;
+		$cmd = "pstree -Acp $waitfor" . $cmd;
+		my $sub_pids=`$cmd`; 
+		chomp($sub_pids); $sub_pids =~ s/.$//;
+		@previous_pids=split(/[[:space:]]+/,$sub_pids);
+	}
+	
 
 	# this allows us to switch between waiting for a specific process or all processes.
 	if (defined($waitfor)) {
@@ -608,6 +624,13 @@ sub wait_on_tests {
 	# Write processes - so we see what is running
 	save_hash(\%processes, $environment{"save_directory"}."/process_state") or warn "Can't save process state!\n";
 }
+#kill the previous pstree
+
+sub clean_pre {
+	map { kill 15, $_ } @previous_pids if($#previous_pids >= 0);
+	@previous_pids = ();
+}
+
 
 # kill off all subprocesses
 sub cleanup {
