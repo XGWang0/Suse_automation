@@ -84,27 +84,28 @@ gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
 install -m 755 -d $RPM_BUILD_ROOT/usr/bin
 install -m 755 -d $RPM_BUILD_ROOT/usr/share/applications
 install -m 755 -d $RPM_BUILD_ROOT/etc
-install -m 755 -d $RPM_BUILD_ROOT/tmp
+install -m 755 -d $RPM_BUILD_ROOT/usr/share
 install -m 644 hcscreenrc $RPM_BUILD_ROOT/etc
 cp hs_cscreen $RPM_BUILD_ROOT/usr/bin
 chmod 755 $RPM_BUILD_ROOT/usr/bin/hs_cscreen
-cp hamsta-cscreen.desktop $RPM_BUILD_ROOT/tmp
+cp hamsta-cscreen.desktop $RPM_BUILD_ROOT/usr/share
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %post
-desktop-file-install --rebuild-mime-info-cache $RPM_BUILD_ROOT/tmp/hamsta-cscreen.desktop
+desktop-file-install --rebuild-mime-info-cache /usr/share/hamsta-cscreen.desktop
+rm -f /usr/share/hamsta-cscreen.desktop
 
 %files
 %defattr(-,root,root)
 /usr/share/man/man8/%{name}.8.gz
 /usr/bin/hs_cscreen
-/tmp/hamsta-cscreen.desktop
+/usr/share/hamsta-cscreen.desktop
 /etc/hcscreenrc
 
 %postun
-rm -f $RPM_BUILD_ROOT/usr/share/applications/hamsta-cscreen.desktop
+rm -f /usr/share/applications/hamsta-cscreen.desktop
 
 %changelog
 * Tue Oct 31 2012 - jyao@suse.com
