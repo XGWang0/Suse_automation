@@ -180,7 +180,7 @@ function upmethod(myvar)
 	<td><input type="checkbox" value="yes" name="startvalidation"<?php if(isset($_POST['startvalidation']) and $_POST['startvalidation'] == "yes"){echo " checked=\"checked\"";} ?> />Yes, run validation tests automatically after the installation</td>
   </tr>
 	<td>Notification email address (optional):</td>
-	<td><input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} ?>" /> (if you want to be notified when the installation is finished)</td>
+	<td><input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])) {echo $_POST["mailto"];} else if (isset ($user)) { echo ($user->getEmail ());} ?>" /> (if you want to be notified when the installation is finished)</td>
   </tr>
 </table>	
 <input type="submit" name="proceed" value="proceed" id="proceed">
