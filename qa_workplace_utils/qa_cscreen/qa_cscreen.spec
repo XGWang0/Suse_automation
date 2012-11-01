@@ -86,22 +86,22 @@ install -m 755 -d $RPM_BUILD_ROOT/usr/share/applications
 install -m 755 -d $RPM_BUILD_ROOT/etc
 install -m 755 -d $RPM_BUILD_ROOT/usr/share
 install -m 644 hcscreenrc $RPM_BUILD_ROOT/etc
+install -m 644 hamsta-cscreen.desktop $RPM_BUILD_ROOT/etc
 cp hs_cscreen $RPM_BUILD_ROOT/usr/bin
 chmod 755 $RPM_BUILD_ROOT/usr/bin/hs_cscreen
-cp hamsta-cscreen.desktop $RPM_BUILD_ROOT/usr/share
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %post
-desktop-file-install --rebuild-mime-info-cache /usr/share/hamsta-cscreen.desktop
-rm -f /usr/share/hamsta-cscreen.desktop
+desktop-file-install --rebuild-mime-info-cache /etc/hamsta-cscreen.desktop
+#rm -f /etc/hamsta-cscreen.desktop
 
 %files
 %defattr(-,root,root)
 /usr/share/man/man8/%{name}.8.gz
 /usr/bin/hs_cscreen
-/usr/share/hamsta-cscreen.desktop
+/etc/hamsta-cscreen.desktop
 /etc/hcscreenrc
 
 %postun
