@@ -143,18 +143,19 @@ if(!$submission_id)
 	}
 	else if( $step=='reg' )
 	{
-		$group_by_got = http('group_by',1);
+		$group_by_got = http('group_by',2);
 		$reg_method_got = http('reg_method',1);
 		$cell_text_got = http('cell_text',1);
 		$cell_color_got = http('cell_color',1);
 
 		$group_by = array(
-			array(1,'testsuite + testcase'),
 			array(2,'testsuite'),
+			array(1,'testsuite + testcase'),
 		);
 		$reg_method = array(
 			array(1,'different status'),
 			array(2,'fail+interr'),
+			array(3,'all'),
 		);
 		$cell_text = array(
 			array(1,'status'),
@@ -242,8 +243,7 @@ if(!$submission_id)
 			$attrs['cell_color']=$cell_color_got;
 			$attrs['cell_text']=$cell_text_got;
 			$is_tc=($group_by_got!=2);
-			$use_res=($reg_method_got!=2);
-			$data = extended_regressions($is_tc,$use_res,$attrs,$transl,$pager);
+			$data = extended_regression($is_tc,$reg_method_got,$attrs,$transl,$pager);
 			$sort=str_repeat('s',($is_tc ? 2:1));
 			$sort.=str_repeat(($cell_text_got==2 ? 'i':'s'),count($data[0])-strlen($sort));
 		}

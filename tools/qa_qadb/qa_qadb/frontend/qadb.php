@@ -420,10 +420,13 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 
 /**
   * Extended regressions finder
-  *
-  *
+  * @param $is_tc boolean true to show testcases
+  * @param $method int 1: different status, 2: fails+interrs, 3: everything
+  * @param $attrs the search attributes
+  * @param &$transl array enum translation table
+  * @param &$pager array pager
   **/
-function extended_regressions($is_tc,$use_res,$attrs,&$transl=null,&$pager=null)
+function extended_regression($is_tc,$method,$attrs,&$transl=null,&$pager=null)
 {
 	# This turned out to be the simplest way to print extended regressions
 	# in a reasonable time.
@@ -439,6 +442,7 @@ function extended_regressions($is_tc,$use_res,$attrs,&$transl=null,&$pager=null)
 
 	# first part, just read the products/releases that go onto X
 	$debug=0;
+	$use_res=($method==1);
 	$cell_color=hash_get($attrs,'cell_color',1,true);
 	$cell_text=hash_get($attrs,'cell_text',1,true);
 	$a=$attrs; # copy for the main query
@@ -546,7 +550,7 @@ function extended_regressions($is_tc,$use_res,$attrs,&$transl=null,&$pager=null)
 				$res[$c][]="IFNULL(t$i.is_$c,0)";
 			}
 		}
-		else	{
+		else if( $method==2 )	{
 			# if we print just all fails, this simpler term goes directly into WHERE
 			$where[]="t$i.status IN ('interr','failed')";
 		}
