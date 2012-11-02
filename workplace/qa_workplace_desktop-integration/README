@@ -1,0 +1,9 @@
+Tools and helpers for the desktop integration of QA Automation tools
+
+       hamsta-cscreen:
+         Tools for a web link to open the serial console of a machine in the local
+         terminal emulator, The link can look like this:
+           hamsta-cscreen:qaserial.qa/ix64ph043
+         The qaserial.qa is the console server, the ix64ph043 is the hamsta client
+         machine which link the console server with serial cable.
+

@@ -38,29 +38,31 @@
 
 # norootforbuild
 
-Name:           qa_cscreen
+Name:           qa_workplace_desktop-integration
 License:        SUSE Proprietary
 Group:          SuSE internal
 AutoReqProv:    on
-Version:        1.0
+Version:        @@VERSION@@
 Release:        1
-Summary:        qa_cscreen
+Summary:        Tools and helpers for the desktop integration of QA Automation tools
 Url:            http://www.novell.com/
-Source0:        hamsta-cscreen.tgz
+Source0:        %{name}-%{version}.tar.bz2
 Source1:	%name.8
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
-Provides:       cscreen
-Obsoletes:      cscreen
 Requires:       xterm desktop-file-utils
 BuildRequires:  desktop-file-utils
 BuildArch:	noarch
 
 %description
-Tools for a web link to open the serial console of a machine in the local
-terminal emulator, The link can look like this:
-   hamsta-cscreen:qaserial.qa/ix64ph043
-The qaserial.qa is the console server, the ix64ph043 is the hamsta client
-machine which link the console server with serial cable.
+Tools and helpers for the desktop integration of QA Automation tools:
+
+hamsta-cscreen:
+  Tools for a web link to open the serial console of a machine in the local
+  terminal emulator, The link can look like this:
+    hamsta-cscreen:qaserial.qa/ix64ph043
+
+  The qaserial.qa is the console server, the ix64ph043 is the hamsta client
+  machine which link the console server with serial cable.
 
 Author:
 --------
@@ -72,10 +74,9 @@ Author:
 #    Oct 26, 2012
 
 %prep
-%setup -q -n hamsta-cscreen
+%setup -q -n %{name}
 
 %build
-#make install
 
 %install
 install -m 755 -d $RPM_BUILD_ROOT/usr/share/man/man8
@@ -85,10 +86,14 @@ install -m 755 -d $RPM_BUILD_ROOT/usr/bin
 install -m 755 -d $RPM_BUILD_ROOT/usr/share/applications
 install -m 755 -d $RPM_BUILD_ROOT/etc
 install -m 755 -d $RPM_BUILD_ROOT/usr/share
+
+# hamsta-cscreen
+pushd hamsta-cscreen
 install -m 644 hcscreenrc $RPM_BUILD_ROOT/etc
 install -m 644 hamsta-cscreen.desktop $RPM_BUILD_ROOT/etc
 cp hs_cscreen $RPM_BUILD_ROOT/usr/bin
 chmod 755 $RPM_BUILD_ROOT/usr/bin/hs_cscreen
+popd
 
 %clean
 rm -rf $RPM_BUILD_ROOT

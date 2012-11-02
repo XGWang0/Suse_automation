@@ -1,0 +1,15 @@
+# to ${PREFIX-~/.local}/share/applications
+[Desktop Entry]
+X-SuSE-translate=false
+Name=Hamsta cscreen shell
+GenericName=Hamsta cscreen shell
+Comment=Open shell
+Exec=/usr/bin/hs_cscreen %U
+Icon=utilities-terminal
+Terminal=false
+X-MultipleArgs=false
+Type=Application
+MimeType=x-scheme-handler/hamsta-cscreen;
+Categories=System;RemoteAccess;Network;
+NoDisplay=true
+X-KDE-StartupNotify=false
