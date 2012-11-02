@@ -97,7 +97,7 @@
                   && $user->isAllowed('machine_edit_reserve')
                   || ( isset ($user) && $user->isAllowed ('machine_edit_reserved') ) ) ) ) {
 ?>
-     <img src="images/icon-edit-grey.png" class="machine-actions icon-small" alt="Cannot edit this machine" title="You cannot edit <?php echo($machine->get_hostname()); ?> if not logged in or without privileges or if it is reserved by other user."onclick="alert('You are not allowed to to edit this machine.');" />
+     <img src="images/icon-edit-grey.png" class="machine-actions icon-small" alt="Cannot edit this machine" title="You cannot edit <?php echo($machine->get_hostname()); ?> if not logged in or without privileges or if it is reserved by other user." onclick="alert('You are not allowed to to edit this machine.');" />
 <?php } else { ?>
      <a href="index.php?go=edit_machines&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-edit.png" class="machine-actions icon-small" alt="Edit/reserve this machine" title="Edit/reserve <?php echo($machine->get_hostname()); ?>" /></a>
 <?php } ?>
@@ -154,6 +154,7 @@ if ( $useAuth
      <a href="http://<?php echo($_SERVER['SERVER_ADDR']); ?>/ajaxterm/?host=<?php echo($machine->get_ip_address()); ?>" target="_blank"><img src="images/icon-terminal.png" class="machine-actions icon-small" alt="Access the terminal" title="Access the terminal on <?php echo($machine->get_hostname());?>" /></a>
 <?php } ?>
 
+  <!-- CONSOLE_SERVER -->
 <?php
 if ( $useAuth
      && (! isset ($user)
