@@ -153,6 +153,21 @@
 
 </table>    
 <br />
-<input type="submit" name="submit" value="<?php echo ($action == "edit" ? "Edit" : "Create"); ?> group">
+<?php
+	switch($action) {
+		case "add":
+			$button_title = "Create group";
+			break;
+		case "addmachine":
+		case "addcertainmachine":
+			$button_title = "Add machine";
+			break;
+		case "edit":
+			$button_title = "Edit group";
+			break;
+	}
+?>	
+
+<input type="submit" name="submit" value="<?php echo $button_title;?>">
 
 </form>
