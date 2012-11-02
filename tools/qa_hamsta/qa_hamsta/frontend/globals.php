@@ -164,6 +164,10 @@
 		'vh'=>'Virt. Host'
 	);
 
+# Hidden fields
+# select 0+ from: 'hostname','status_string','used_by','usage','group','product','architecture','architecture_capable','kernel','cpu_numbers','memory_size','disk_size','cpu_vendor','affiliation','ip_address','maintainer_string','notes','unique_id','serialconsole','powerswitch','role','type','vh'
+$fields_hidden=array('unique_id');
+
 # header & footer links
 $qadb_web = exec('/usr/share/qa/tools/get_qa_config qadb_wwwroot');
  $naviarr = array (
@@ -180,4 +184,12 @@ $qadb_web = exec('/usr/share/qa/tools/get_qa_config qadb_wwwroot');
 $virtdisktypes = array("def", "file", "tap:aio", "tap:qcow", "tap:qcow2");
 
 $hamstaVersion = htmlspecialchars(`rpm -q qa_hamsta-master`);
+
+/* Set configuration group. Should be stored somewhere (e.g. session)
+ * so the command is run only once later.
+ * 
+ * This should be one of 'cz', 'us', 'cn' or 'de' from the global
+ * configuration files. */
+$configuration_group = exec ("/usr/share/qa/tools/location.pl");
+
 ?>
