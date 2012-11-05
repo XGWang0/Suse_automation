@@ -349,6 +349,7 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %{webdir}
 %attr(-,wwwrun,www) %{webdir}/profiles
 %config(noreplace) %{webdir}/config.php
+%config(noreplace) %{webdir}/config.ini
 %dir %{destdir}
 
 %files multicast-forward
@@ -378,6 +379,8 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %{confdir}/00-hamsta-common-default
 
 %changelog
+* Mon Nov  5 2012 pkacer@suse.com
+- Changed the configuration to be read only from config.ini file.
 * Fri Aug 31 2012 pkacer@suse.com
 - Changed dependency from qa_lib_openid to php5-ZendFramework.
 * Fri Aug 17 2012 pkacer@suse.com
