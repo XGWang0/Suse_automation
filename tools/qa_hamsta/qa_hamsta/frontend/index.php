@@ -40,7 +40,6 @@ error_reporting(E_ALL | E_STRICT);
 
 define('HAMSTA_FRONTEND', 1);
 
-require("config.php");
 require("globals.php");
 
 require_once ('lib/ConfigFactory.php');

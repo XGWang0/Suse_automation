@@ -69,6 +69,7 @@ if ( $config->authentication->use )
 	}
 
 	if (request_str("submit")) {
+		$vmlist = $config->vmlist->toArray ();
 		$buildnr = $_POST['buildnumber'];
 		$baseurl = "$newdic[$buildnr]" . "$buildnr";
 		foreach( $_POST['validationmachine'] as $vm ) {

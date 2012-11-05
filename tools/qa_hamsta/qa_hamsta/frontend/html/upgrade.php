@@ -165,7 +165,7 @@ function upmethod(myvar)
 
 	# The additional update options are whether to update with SMT or regcode
 	print "<div id=\"updateoptions-smt\" class=\"text-small\" style=\"margin: 5px; padding: 5px; border: 1px solid red; display: " . ((isset($_POST['startupdate']) and $_POST['startupdate'] == "update-smt") ? "block" : "none") . ";\">" .
-		"SMT server: <strong>$smtserver</strong> (<strong>Note:</strong> This must be configured in config.ini by an admin)." .
+		"SMT server: <strong>$smtserver</strong> (<strong>Note:</strong> This must be configured in config.ini by an admin.)." .
 		"<input type=\"hidden\" name=\"update-smt-url\" value=\"$smtserver\" />" .
 	"</div>";
 	print "<div id=\"updateoptions-reg\" class=\"text-small\" style=\"margin: 5px; padding: 5px; border: 1px solid red; display: " . ((isset($_POST['startupdate']) and $_POST['startupdate'] == "update-reg") ? "block" : "none") . ";\">" .

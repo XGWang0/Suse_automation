@@ -103,8 +103,8 @@ require("timezone.php");
 
         # The additional update options are whether to update with SMT or regcode
         print "<div id=\"updateoptions-smt\" class=\"text-small\" style=\"margin: 5px; padding: 5px; border: 1px solid red; display: " . ((isset($_POST['startupdate']) and $_POST['startupdate'] == "update-smt") ? "block" : "none") . ";\">" .
-                "SMT server: <strong>$smtserver</strong> (<strong>Note:</strong> This must be configured in config.php by an admin)." .
-                "<input type=\"hidden\" name=\"update-smt-url\" value=\"$smtserver\" />" .
+                "SMT server: <strong>$config->smtserver</strong> (<strong>Note:</strong> This has to be configured in config.ini by admin.)." .
+                "<input type=\"hidden\" name=\"update-smt-url\" value=\"$config->smtserver\" />" .
         "</div>";
         print "<div id=\"updateoptions-reg\" class=\"text-small\" style=\"margin: 5px; padding: 5px; border: 1px solid red; display: " . ((isset($_POST['startupdate']) and $_POST['startupdate'] == "update-reg") ? "block" : "none") . ";\">" .
         "Registration Email: <input type=\"text\" name=\"update-reg-email\" value=\"";

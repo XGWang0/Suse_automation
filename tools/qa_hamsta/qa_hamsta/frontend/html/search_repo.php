@@ -30,7 +30,7 @@ Used by Ajax.
 FIXME: it's better done from database
 */
 
-require("../config.php");
+require("../globals.php");
 require_once ('../lib/ConfigFactory.php');
 /* We need to build it here because this is not evaluated within the
  * index page but using JSON. */
