@@ -23,6 +23,12 @@
   ****************************************************************************
  */
 
+  /* This file is no longer used for configuration. Please move your
+   * custom configuration to proper groups in `config.ini' .
+   *
+   * This file will be deleted in the future.
+   */
+
 # Database login
 
 define("PDO_DATABASE", "mysql:host=localhost;dbname=hamsta_db");

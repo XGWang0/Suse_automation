@@ -165,7 +165,7 @@ if ( $useAuth
 <?php } else { ?>
 
 <?php
-	$console_link = "hamsta-cscreen:" . CONSOLE_SERVER . "/" . $machine->get_hostname();
+	$console_link = "hamsta-cscreen:" . $config->cscreen->console->server . "/" . $machine->get_hostname();
 	//print "console_link = $console_link\n";
 ?>
      <a href="<?php echo $console_link; ?>" target="_blank"><img src="images/icon-console.png" class="machine-actions icon-small" alt="Access the serial console" title="Access the serial console on <?php echo($machine->get_hostname());?>" /></a>

@@ -29,7 +29,7 @@ FIXME: it's better done from database
 Return: ["products": $products] or Nothing
 */
 
-require("../config.php");
+require("../globals.php");
 
 $page_pd = file_get_contents(INSTALLATION_REPO_URL);
 $page_sdk = file_get_contents(SDK_REPO_URL);

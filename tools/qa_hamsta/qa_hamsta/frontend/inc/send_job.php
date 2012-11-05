@@ -38,7 +38,7 @@
     
     if($option == "delete") # only custom defined file can be deleted
     {
-    	$custom_file = XML_DIR . "/" . $custom_file;
+    	$custom_file = $config->xml->dir->default . "/" . $custom_file;
 
 	if(file_exists($custom_file))
             unlink($custom_file);

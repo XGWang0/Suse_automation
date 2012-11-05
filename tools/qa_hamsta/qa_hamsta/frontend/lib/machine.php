@@ -1619,7 +1619,8 @@ class Machine {
 	}
 	private static function get_master_socket() {
 		if (is_null(Machine::$master_socket)) {
-			if (!(Machine::$master_socket = fsockopen(CMDLINE_HOST, CMDLINE_PORT))) {
+			$conf = ConfigFactory::build();
+			if (!(Machine::$master_socket = fsockopen($conf->cmdline->host, $conf->cmdline->port))) {
 				return false;
 			}
 			stream_set_blocking(Machine::$master_socket, false);

@@ -164,13 +164,24 @@
 		'vh'=>'Virt. Host'
 	);
 
-	/* These fields are displayed by default. That means the user
-	 * cannot hide them nor display again. */
-	$default_fields_list = array (
-		'hostname',
-		'used_by',
-		'status_string'
-	);
+/* These fields are displayed by default. That means the user
+ * cannot hide them nor display again. */
+$default_fields_list = array (
+	'hostname',
+	'used_by',
+	'status_string'
+);
+
+/* Hidden fields
+ *
+ * select 0+ from:
+ * 'hostname','status_string','used_by','usage','group',
+ * 'product','architecture','architecture_capable','kernel',
+ * 'cpu_numbers','memory_size','disk_size','cpu_vendor',
+ * 'affiliation','ip_address','maintainer_string','notes',
+ * 'unique_id','serialconsole','powerswitch','role','type','vh'
+ */
+$fields_hidden=array('unique_id');
 
 # header & footer links
 $qadb_web = exec('/usr/share/qa/tools/get_qa_config qadb_wwwroot');
@@ -188,4 +199,30 @@ $qadb_web = exec('/usr/share/qa/tools/get_qa_config qadb_wwwroot');
 $virtdisktypes = array("def", "file", "tap:aio", "tap:qcow", "tap:qcow2");
 
 $hamstaVersion = htmlspecialchars(`rpm -q qa_hamsta-master`);
+
+/* Set configuration group. Should be stored somewhere (e.g. session)
+ * so the command is run only once later.
+ *
+ * This should be one of 'cz', 'us', 'cn' or 'de' from the global
+ * configuration files. */
+$configuration_group = exec ("/usr/share/qa/tools/location.pl");
+
+require_once ('lib/ConfigFactory.php');
+/*
+ * Initialize global configuration. All subsequent calls to
+ * ConfigFactory can be done without parameters and will receive the
+ * same configuration.
+ *
+ * This configuration is accesible in the default namespace. If you
+ * need to create it somewhere else, just call
+ * `ConfigFactory::build()' without parameters.
+ *
+ * This works from anywhere provided this file stays in the same
+ * directory as config.ini file.
+ */
+$config = ConfigFactory::build ("Ini", dirname(__FILE__) . '/config.ini',
+				(isset ($configuration_group)
+				 ? $configuration_group
+				 : 'production'));
+
 ?>

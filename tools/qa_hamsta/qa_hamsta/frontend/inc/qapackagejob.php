@@ -62,7 +62,7 @@
 
 	# Check UI test cases
 	$UISetupComm = "\/usr\/share\/qa\/tools\/setupUIAutomationtest; sleep 60";
-	$UIlist = UILIST;
+	$UIlist = $config->lists->uilist;
 	$UIarr = split(" ", $UIlist);
 	foreach ( $UIarr as $case ) {
 		if ( in_array($case, $tslist) ) {

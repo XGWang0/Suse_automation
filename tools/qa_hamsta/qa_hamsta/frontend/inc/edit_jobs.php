@@ -41,7 +41,7 @@
 
     if($file != "")
     {
-        $real_file = XML_DIR . "/" . $file;
+        $real_file = $config->xml->dir->default . "/" . $file;
         $file_dir = dirname($real_file);
 
         if(substr($file_dir, -6) != "custom")

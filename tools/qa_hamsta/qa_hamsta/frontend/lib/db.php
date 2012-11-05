@@ -36,10 +36,18 @@ function get_pdo() {
     static $pdo = null;
 
     if ($pdo == null) {
+	$conf = ConfigFactory::build();
         try {
-            $pdo = new PDO(PDO_DATABASE, PDO_USER, PDO_PASSWORD);
+	    $connection_string = "mysql:host=" . $conf->database->params->host
+	      . ";dbname=" . $conf->database->params->dbname;
+
+            $pdo = new PDO($connection_string,
+			   $conf->database->params->username,
+			   $conf->database->params->password);
+
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
+	    print $e->getMessage () . "\n";
             die("Could not connect to database.");
         }
     }

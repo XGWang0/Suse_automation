@@ -54,7 +54,7 @@ function validarch(archs) {
 <p>
 <b>Validate this build: </b>
 <?php
-	$json = file_get_contents(REPO_INDEX_URL);
+	$json = file_get_contents($config->url->index->repo);
 	if ($json != "") {
 	    $products = array();
 	    $archs = array();
@@ -83,6 +83,7 @@ function validarch(archs) {
 	<?php
 		echo "Please choose which arch(s) you want to validate:<br/></p>\n";
 		$i=0;
+		$vmlist = $config->vmlist->toArray ();
 		while (list($key, $value) = each($vmlist)) {
 			if ($i%4==0) {echo "<tr>";}
 			if ($value != "N/A") {

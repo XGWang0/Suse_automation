@@ -61,7 +61,7 @@ if (request_str("submit")) {
 	$type = request_str("type");
 	$address = request_str("address");
 	$is_hamsta = request_str("hamsta");
-	$cmd = 'sudo ssh -o StrictHostKeyChecking=no rd-qa@'.$pxeserver." \"autopxe.pl $repourl $type $address $is_hamsta 1>/dev/null \"";
+	$cmd = 'sudo ssh -o StrictHostKeyChecking=no rd-qa@'.$config->pxeserver." \"autopxe.pl $repourl $type $address $is_hamsta 1>/dev/null \"";
 	system($cmd, $ret);
 	$errors = array();
 	if ($ret == 0) {

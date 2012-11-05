@@ -40,6 +40,7 @@ function filter($var) {
 $search = new MachineSearch();
 $search->filter_in_array(request_array("a_machines"));
 $machines = $search->query();
+$smtserver = $config->smtserver;
 
 foreach($machines as $m) {
 	$m->get_children();

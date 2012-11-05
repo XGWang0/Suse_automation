@@ -26,8 +26,8 @@
 
 <script>
 var sled_text = ["desktop-base"];
-var sled_gnome = ["<?php echo implode("\", \"", $default_gnome_pattern);?>"];
-var sled_kde = ["<?php echo implode("\", \"", $default_kde_pattern);?>"];
+var sled_gnome = ["<?php echo (str_replace (" ", "\", \"", $config->lists->gnome->default));?>"];
+var sled_kde = ["<?php echo (str_replace (" ", "\", \"", $config->lists->kde->default));?>"];
 var old_repo_product = "<?php if(isset($_POST["repo_products"])){echo $_POST["repo_products"];}?>";
 var old_repo_arch = "<?php if(isset($_POST["repo_archs"])){echo $_POST["repo_archs"];}?>";
 var old_sdk_product = "<?php if(isset($_POST["sdk_products"])){echo $_POST["sdk_products"];}?>";

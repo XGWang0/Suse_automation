@@ -56,7 +56,7 @@ if ( $config->authentication->use )
       }
   }
 
-	$json = file_get_contents(REPO_INDEX_URL);
+	$json = file_get_contents($config->url->index->repo);
 	if ($json == ""){
 		echo json_encode(array());
 		return;
@@ -69,6 +69,7 @@ if ( $config->authentication->use )
 	}
 
 	if (request_str("submit")) {
+		$vmlist = $config->vmlist->toArray ();
 		$buildnr = $_POST['buildnumber'];
 		$baseurl = "$newdic[$buildnr]" . "$buildnr";
 		foreach( $_POST['validationmachine'] as $vm ) {
@@ -97,7 +98,7 @@ if ( $config->authentication->use )
 			if (!$ret){
 				$rand = rand();
 				$autoyastfile = "/tmp/reinstall_$rand.xml";
-				$validationfiles = split (" ", XML_VALIDATION);
+				$validationfiles = split (" ", $config->xml->validation);
 				foreach ( $validationfiles as &$validationfile ) {
 					$rand = rand();
 					$randfile= "/tmp/validation_$rand.xml";

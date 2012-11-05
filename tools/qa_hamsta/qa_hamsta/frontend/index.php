@@ -40,11 +40,9 @@ error_reporting(E_ALL | E_STRICT);
 
 define('HAMSTA_FRONTEND', 1);
 
-require("config.php");
 require("globals.php");
 
 require_once ('lib/Notificator.php');
-require_once ('lib/Conf.php');
 require_once ('lib/UserRole.php');
 require_once ('lib/User.php');
 
@@ -63,12 +61,6 @@ require("lib/powerswitch.php");
 
 require_once("../tblib/tblib.php");
 
-/*
- * First parameter is path to ini file. The second is name of group
- * you want to include configuration from.
- */
-//$config = Conf::getIniConfig('hamsta.ini', 'cz');
-$config = new Conf(null, false);
 User::authenticate($config);
 
 $go = request_str("go");
