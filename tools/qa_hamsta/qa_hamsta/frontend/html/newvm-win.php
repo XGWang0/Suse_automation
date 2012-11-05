@@ -77,7 +77,7 @@ if (User::isLogged())
 
 ?>
 
-<h5>You are trying to create new virtual machines on following virtualizaion hosts:<br />
+<h5>You are trying to create new virtual machines on following virtualization hosts:<br />
 
 <ul>
 <?php foreach ($machines as $machine): ?>
