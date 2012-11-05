@@ -31,13 +31,9 @@ FIXME: it's better done from database
 */
 
 require("../globals.php");
-require_once ('../lib/ConfigFactory.php');
-/* We need to build it here because this is not evaluated within the
- * index page but using JSON. */
-$conf = ConfigFactory::build("Ini", "../config.ini", $configuration_group);
 
 // Load sdk index
-$json = file_get_contents($conf->url->index->sdk);
+$json = file_get_contents($config->url->index->sdk);
 if ($json == ""){
 	echo json_encode(array());
 	return;

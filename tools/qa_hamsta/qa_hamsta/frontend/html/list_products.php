@@ -30,10 +30,6 @@ Return: ["products": $products] or Nothing
 */
 
 require("../globals.php");
-require_once ('../lib/ConfigFactory.php');
-/* We need to build it here because this is not evaluated within the
- * index page but using JSON. */
-$conf = ConfigFactory::build("Ini", "../config.ini", $configuration_group);
 
 $page_pd = file_get_contents(INSTALLATION_REPO_URL);
 $page_sdk = file_get_contents(SDK_REPO_URL);

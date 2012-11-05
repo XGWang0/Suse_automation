@@ -42,9 +42,7 @@ define('HAMSTA_FRONTEND', 1);
 
 require("globals.php");
 
-require_once ('lib/ConfigFactory.php');
 require_once ('lib/Notificator.php');
-require_once ('lib/Conf.php');
 require_once ('lib/UserRole.php');
 require_once ('lib/User.php');
 
@@ -63,18 +61,6 @@ require("lib/powerswitch.php");
 
 require_once("../tblib/tblib.php");
 
-/*
- * Initialize global configuration. All subsequent calls to
- * ConfigFactory can be done without parameters and will receive the
- * same configuration.
- *
- * The group checking is here for safety reasons. For now it is set in
- * the config.php file.
- */
-$config = ConfigFactory::build ("Ini", 'config.ini',
-				(isset ($configuration_group)
-				 ? $configuration_group
-				 : 'production'));
 User::authenticate($config);
 
 $go = request_str("go");
