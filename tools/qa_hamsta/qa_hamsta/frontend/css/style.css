@@ -241,3 +241,36 @@ img.icon-big {
 	height: 35px;
 	width: 35px;
 }
+
+/* These are from TBLib */
+div.steps {
+	padding: 0.5em 2em 0em 2em;
+}
+
+.sel,.nosel {
+	border-radius: 25px;
+	border-style: dotted;
+	padding-left: 1.5em;
+	padding-right: 1.5em;
+	margin-bottom: -2em;
+}
+
+span.sel {
+	background-color: #e78f08;
+	border-style: dotted;
+}
+
+span.nosel {
+	background-color: #ffffff;
+}
+
+div.card {
+	border-style: solid;
+	border-width: 2px;
+}
+
+#card {
+	margin: 0em 1em 1em 1em;
+}
+
+a.btn { }
