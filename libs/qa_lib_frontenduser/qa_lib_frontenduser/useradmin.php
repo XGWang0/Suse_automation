@@ -22,14 +22,18 @@ require_once('userdb.php');
  * @return string Concatenated array of strings glued together
  * and with line breaks.
  */
-function break_line_by_entries ($strings_array, $glue = ", ", $max_entries_per_line = 5, $line_break = "<br />")
+function break_line_by_entries ($strings_array, $glue = ", ", $max_entries_per_line = 5, $line_break = "<br />\n")
 {
 	$glued_entries = "";
-	if (count ($strings_array) > $max_entries_per_line)
+	$sa_entries = count ($strings_array);
+
+	if ($sa_entries > $max_entries_per_line)
 	  {
-		for ($i = 0; $i < count ($strings_array); $i += $max_entries_per_line)
+		for ($i = 0; $i < $sa_entries; $i += $max_entries_per_line)
 		  {
-			$glued_entries .= implode ($glue, array_slice ($strings_array, $i, $max_entries_per_line)) . $line_break;
+		    $glued_entries .= implode ($glue, array_slice ($strings_array, $i, $max_entries_per_line))
+		      . ($i < ($sa_entries - $max_entries_per_line) ? $glue : '')
+		      . $line_break;
 		  }
 	  }
 	else
