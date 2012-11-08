@@ -1,7 +1,7 @@
  <!-- POWERSWITCH -->
 <?php
   /*
-   * This is a page snippet to display action icons for a machine. Is
+   * This is a page snippet to display action icons for a machine. It
    * is required by machines.php and machine_detail.php.
    */
 
@@ -154,7 +154,7 @@ if ( $useAuth
      <a href="http://<?php echo($_SERVER['SERVER_ADDR']); ?>/ajaxterm/?host=<?php echo($machine->get_ip_address()); ?>" target="_blank"><img src="images/icon-terminal.png" class="machine-actions icon-small" alt="Access the terminal" title="Access the terminal on <?php echo($machine->get_hostname());?>" /></a>
 <?php } ?>
 
-  <!-- CONSOLE_SERVER -->
+  <!-- SERIAL CONSOLE -->
 <?php
 if ( $useAuth
      && (! isset ($user)

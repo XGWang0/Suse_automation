@@ -128,11 +128,27 @@ if (! empty ($s_anything))
     <?php endif; ?>
    >
 
-    <td><input type="checkbox" name="a_machines[]" value="<?php echo($machine->get_id()); ?>"<?php if (in_array($machine->get_id(), $a_machines)) echo(' checked="checked"'); ?>></td>
+		<td><input type="checkbox" name="a_machines[]" value="<?php echo($machine->get_id()); ?>"<?php if (isset ($a_machines) && in_array($machine->get_id(), $a_machines)) echo(' checked="checked"'); ?>></td>
 
     <td title="<?php echo($machine->get_notes()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>&amp;highlight=<?php echo($highlight); ?>"><?php echo($machine->get_hostname()); ?></a><?php if ($machine->count_host_collide() >= 2) echo '<img src="images/host-collide.png" class="icon-notification" title="Hostnames collide! Merge or delete machine if MAC was changed, otherwise rename it.">'; ?></td>
+		    
+    <td><?php echo($machine->get_status_string());
+	$users_machine = isset ($user) && $user->getId () == $machine->get_used_by ();
+	if ($machine->get_update_status())
+	  {
+	    if ($config->authentication->use && ! (isset ($user)
+			       && (($users_machine && $user->isAllowed ('machine_reinstall'))
+				   || ($user->isAllowed ('machine_reinstall_reserved')))))
+	      {
+		echo('<img src="images/exclamation_gray.png" class="icon-notification" alt="Tools out of date!" title="Tools out of date. You cannot update ' . $machine->get_hostname () . ' if not logged in, without privileges or if it is reserved by another user." onclick="alert(\'You cannot update this machine.\');">');
+	      }
+	    else
+	      {
+		echo('<a href="index.php?go=send_job&a_machines[]='.$machine->get_id().'&filename[]='.$config->xml->dir->default.'/hamsta-upgrade-restart.xml&submit=1"><img src="images/exclamation_yellow.png" class="icon-notification" alt="Tools out of date!" title="Click to update ' . $machine->get_hostname () . '"></a>');
+	      }
+	  }
 
-    <td><?php echo($machine->get_status_string()); if ($machine->get_update_status()) echo('<a href="index.php?go=send_job&a_machines[]='.$machine->get_id().'&filename[]='.$config->xml->dir->default.'/hamsta-upgrade-restart.xml&submit=1"><img src="images/exclamation_yellow.png" class="icon-notification" alt="Tools out of date!" title="Click to update"></a>'); if ($machine->get_devel_tools()) echo('<img src="images/gear-cog_blue.png" class="icon-notification" alt="Devel Tools" title="Devel Tools">'); ?></td>
+	if ($machine->get_devel_tools()) echo('<img src="images/gear-cog_blue.png" class="icon-notification" alt="Devel Tools" title="Devel Tools">'); ?></td>
 	<?php $used_by_name = $machine->get_used_by_name($config);
                         echo ('<td>' . ( isset ($used_by_name)
                                              ? $used_by_name
@@ -230,7 +246,7 @@ tsRegister();
 					<option value="<?php echo($arch); ?>"
   <?php	/* Function from include/Util.php*/
 	$arch_reqest = request_str('architecture');
-	if (machine_filter_value_selected ('architecture', $arch, (isset ($ns_machine_filter) ? $ns_machine_filter : null)))
+	if (isset ($ns_machine_filter) && machine_filter_value_selected ('architecture', $arch, $ns_machine_filter))
 		{
 			echo(' selected="selected"');
 		}
@@ -247,7 +263,7 @@ tsRegister();
 				<option value="">Any</option>
 				<?php foreach(Machine::get_architectures_capable() as $archid => $arch): ?>
 					<option value="<?php echo($arch); ?>"
-  <?php	if (machine_filter_value_selected ('architecture_capable', $arch, $ns_machine_filter))
+	  <?php	if (isset ($ns_machine_filter) && machine_filter_value_selected ('architecture_capable', $arch, $ns_machine_filter))
 		{
 			echo(' selected="selected"');
 		}
@@ -263,7 +279,7 @@ tsRegister();
 				<option value="">Any</option>
 				<?php foreach(Machine::get_statuses() as $status_id => $status_string): ?>
 					<option value="<?php echo($status_string); ?>"
-  <?php if (machine_filter_value_selected ('status_string', $status_string, $ns_machine_filter))
+	  <?php if (isset ($ns_machine_filter) && machine_filter_value_selected ('status_string', $status_string, $ns_machine_filter))
 	{
 		echo(' selected="selected"');
 	}
