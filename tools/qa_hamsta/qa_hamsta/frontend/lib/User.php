@@ -3,8 +3,8 @@
 require_once ('Zend/Db.php');
 require_once ('Zend/Session.php');
 
-require_once ('Authenticator.php');
 require_once ('Notificator.php');
+require_once ('../frontenduser/Authenticator.php');
 
 /**
  * Class represents authenticated user and provides several methods to
@@ -365,7 +365,7 @@ class User {
              && $_GET['action'] == "logout" )
           {
             self::logout ();
-            return TRUE;
+            return true;
           }
       }
 
@@ -373,22 +373,27 @@ class User {
       {
       case 'password':
         if ( isset ($_POST['action'])
-             && $_POST['action'] == 'Login')
+             && $_POST['action'] == 'login')
           {
             $login = isset ($_POST['login']) ? $_POST['login'] : '';
             $password = isset ($_POST['password']) ? $_POST['password'] : '';
             if ( ! ( empty($login) || empty ($password) ) )
               {
-                Authenticator::password ($login, $password, $config);
+                $res = Authenticator::password ($login, $password, $config);
+		if (! $res)
+		  {
+		    Notificator::setErrorMessage ('Login attempt has failed. Check your credentials.');
+		  }
               }
             else
               {
                 Notificator::setErrorMessage ('Please fill in your credentials.');
               }
           }
+	header ('Location: index.php');
         break;
       case 'openid':
-        Authenticator::openid ($config);
+	Authenticator::openid ($config->authentication->openid->url);
         if ( self::isLogged () )
           {
             if ( ! self::isRegistered (self::getIdent(), $config))
@@ -403,8 +408,7 @@ class User {
                     $_SESSION['user_email'] = $_GET['openid_sreg_email'];
                   }
 
-                if ( ! isset ($_GET['go'])
-                     || (isset ($_GET['go']) && $_GET['go'] != 'register') )
+                if ( ! isset ($_GET['go']) || $_GET['go'] != 'register')
                   {
                     header ('Location: index.php?go=register');
                   }
@@ -416,14 +420,12 @@ class User {
                 $dbEmail = $user->getEmail ();
 
                 if ( ! isset ($dbName) || empty ($dbName)
-                     || ! isset ($dbEmail) || empty($dbEmail) )
-                  {
-                    if ( ! isset ($_GET['go'])
-                         || (isset ($_GET['go']) && $_GET['go'] != 'register') )
-                      {
-                        header ('Location: index.php?go=register');
-                      }
-                  }
+                     || ! isset ($dbEmail) || empty($dbEmail)
+		     && ( ! isset ($_GET['go'])
+			  || $_GET['go'] != 'register') )
+		  {
+		    header ('Location: index.php?go=register');
+		  }
               }
           }
         break;
@@ -438,7 +440,12 @@ class User {
    */
   public static function logout ()
   {
-    Authenticator::logout ();
+    if (self::isLogged ()
+	&& isset($_GET['action'])
+	&& $_GET['action'] == 'logout') {
+      Authenticator::logout ();
+      header ('Location: index.php');
+    }
   }
 
   /**

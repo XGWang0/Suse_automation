@@ -1,11 +1,10 @@
 <?php
 
+require_once ('Zend/Config.php');
 require_once ('Zend/Auth.php');
 require_once ('Zend/Auth/Adapter/OpenId.php');
 require_once ('Zend/Auth/Adapter/DbTable.php');
 require_once ('Zend/Db.php');
-
-require_once ('lib/Notificator.php');
 
 /**
  * Class serves as wrapper around Zend_Auth class.
@@ -44,48 +43,46 @@ class Authenticator extends Zend_Auth
 
   /**
    * Authenticates user using OpenID.
-   * 
-   * Uses Zend_Config to get configuration.
    *
-   * @param Zend_Config $config Instance of class Zend_Config.
+   * WARNING: This implementation works with Novell OpenId server. It
+   * was not tested with other types of servers.
+   *
+   * @param string $url URL of the authentication server.
    *
    * @return boolean True if succeded, false otherwise.
    */
-  public static function openid($config) {
+  public static function openid ($url) {
 
     $auth = parent::getInstance();
 
-    if ( ! $auth->hasIdentity ()
+    if (! $auth->hasIdentity ()
          && ((isset($_GET['action'])
               && $_GET['action'] == "login")
              || isset($_GET['openid_mode'])
              || isset($_POST['openid_mode']))) {
 
-      if ( isset ($_GET['action'])
-           && $_GET['action'] == 'logout') {
-        self::logout();
+      if (isset($_GET['openid_identity']))
+	{
+          $adapter = new Zend_Auth_Adapter_OpenId ();
+        }
+      else
+	{
+	  $adapter = new Zend_Auth_Adapter_OpenId ($url);
+	}
+
+      $result = $auth->authenticate($adapter);
+
+      if ( ! isset($_GET['action'])
+	   && ! $result->isValid() ) {
+	$auth->clearIdentity();
+	Zend_Session::destroy(true);
+	Zend_Session::forgetMe();
+	foreach ($result->getMessages() as $message) {
+	  echo ("$message<br />\n");
+	}
+	return false;
       } else {
-        if ( isset($_GET['openid_identity'] ) ) {
-          $adapter = new Zend_Auth_Adapter_OpenId();
-        } else {
-          $adapter = new Zend_Auth_Adapter_OpenId($config->authentication->openid->url);
-        }
-
-        $result = $auth->authenticate($adapter);
-
-        if ( ! isset($_GET['action'])
-             && ! $result->isValid() ) {
-          $auth->clearIdentity();
-          Zend_Session::destroy(true);
-          Zend_Session::forgetMe();
-          foreach ($result->getMessages() as $message) {
-            echo ("$message<br />\n");
-          }
-          return false;
-        } else {
-          return true;
-          header ('Location: index.php');
-        }
+	return true;
       }
     }
   }
@@ -93,11 +90,14 @@ class Authenticator extends Zend_Auth
   /**
    * Authenticates user using password.
    *
-   * Uses Zend_Config for database connection.
+   * Uses Zend_Config for database connection. This depends on the
+   * structure of the 'user' DB relation.
    *
    * @param string $login Login name of the user.
    * @param string $password Password of the user.
    * @param Zend_Config $config Instance of the class Zend_Config.
+   *
+   * @return boolean True if authentication was succesfull.
    */
   public static function password($login, $password, $config) {
     $auth = parent::getInstance();
@@ -109,30 +109,27 @@ class Authenticator extends Zend_Auth
 
     if ( ! $result->isValid() ) {
       $auth->clearIdentity();
-      Notificator::setErrorMessage ('Login attempt has failed. Check your credentials.');
+      return false;
     } else {
-      header ('Location: index.php');
+      return true;
     }
   }
 
   /**
    * Logs the user out of the application.
    *
-   * Destroys the current sesion if the user is logged in. It will not
-   * do anything if the user is not logged in.
+   * Clear user identity and destroy current sesion.
    *
    */
-  public static function logout() {
-    $auth = parent::getInstance();
-    if ($auth->hasIdentity()) {
-      if (isset($_GET['action']) &&
-          $_GET['action'] == 'logout') {
-        $auth->clearIdentity();
-        Zend_Session::destroy(true);
-        Zend_Session::forgetMe();
-        header('Location: index.php');
+  public static function logout ()
+  {
+    $auth = parent::getInstance ();
+    if ($auth->hasIdentity ())
+      {
+	$auth->clearIdentity ();
       }
-    }
+    Zend_Session::destroy (true);
+    Zend_Session::forgetMe ();
   }
 
 }
