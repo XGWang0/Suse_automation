@@ -132,11 +132,10 @@
 				#update perm here
                                 $perms = request_array("perm_".$machine_id);
                                 $perm_str="";
-                                foreach ( $perms as $perm )
-                                {
-                                        $perm_str = $perm_str . ",$perm";
-                                }
-                                preg_replace("^.","",$perm_str);
+				if (count ($perms))
+				  {
+				    $perm_str = implode (",", $perms);
+				  }
                                 $machine->set_perm($perm_str);
 			}
 			foreach ( $edit_fields as $row)
