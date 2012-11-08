@@ -3,8 +3,8 @@
 require_once ('Zend/Db.php');
 require_once ('Zend/Session.php');
 
-require_once ('Authenticator.php');
 require_once ('Notificator.php');
+require_once ('../frontenduser/Authenticator.php');
 
 /**
  * Class represents authenticated user and provides several methods to
