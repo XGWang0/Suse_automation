@@ -122,17 +122,15 @@ class Authenticator extends Zend_Auth
    * do anything if the user is not logged in.
    *
    */
-  public static function logout() {
-    $auth = parent::getInstance();
-    if ($auth->hasIdentity()) {
-      if (isset($_GET['action']) &&
-          $_GET['action'] == 'logout') {
-        $auth->clearIdentity();
-        Zend_Session::destroy(true);
-        Zend_Session::forgetMe();
-        header('Location: index.php');
+  public static function logout ()
+  {
+    $auth = parent::getInstance ();
+    if ($auth->hasIdentity ())
+      {
+	$auth->clearIdentity ();
+        Zend_Session::destroy (true);
+        Zend_Session::forgetMe ();
       }
-    }
   }
 
 }

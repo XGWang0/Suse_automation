@@ -438,7 +438,12 @@ class User {
    */
   public static function logout ()
   {
-    Authenticator::logout ();
+    if (self::isLogged ()
+	&& isset($_GET['action'])
+	&& $_GET['action'] == 'logout') {
+      Authenticator::logout ();
+      header ('Location: index.php');
+    }
   }
 
   /**
