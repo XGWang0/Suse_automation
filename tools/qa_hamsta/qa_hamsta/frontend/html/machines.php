@@ -246,7 +246,7 @@ tsRegister();
 					<option value="<?php echo($arch); ?>"
   <?php	/* Function from include/Util.php*/
 	$arch_reqest = request_str('architecture');
-	if (machine_filter_value_selected ('architecture', $arch, (isset ($ns_machine_filter) ? $ns_machine_filter : null)))
+	if (isset ($ns_machine_filter) && machine_filter_value_selected ('architecture', $arch, $ns_machine_filter))
 		{
 			echo(' selected="selected"');
 		}
@@ -263,7 +263,7 @@ tsRegister();
 				<option value="">Any</option>
 				<?php foreach(Machine::get_architectures_capable() as $archid => $arch): ?>
 					<option value="<?php echo($arch); ?>"
-  <?php	if (machine_filter_value_selected ('architecture_capable', $arch, $ns_machine_filter))
+	  <?php	if (isset ($ns_machine_filter) && machine_filter_value_selected ('architecture_capable', $arch, $ns_machine_filter))
 		{
 			echo(' selected="selected"');
 		}
@@ -279,7 +279,7 @@ tsRegister();
 				<option value="">Any</option>
 				<?php foreach(Machine::get_statuses() as $status_id => $status_string): ?>
 					<option value="<?php echo($status_string); ?>"
-  <?php if (machine_filter_value_selected ('status_string', $status_string, $ns_machine_filter))
+	  <?php if (isset ($ns_machine_filter) && machine_filter_value_selected ('status_string', $status_string, $ns_machine_filter))
 	{
 		echo(' selected="selected"');
 	}
