@@ -128,7 +128,7 @@ if (! empty ($s_anything))
     <?php endif; ?>
    >
 
-    <td><input type="checkbox" name="a_machines[]" value="<?php echo($machine->get_id()); ?>"<?php if (in_array($machine->get_id(), $a_machines)) echo(' checked="checked"'); ?>></td>
+		<td><input type="checkbox" name="a_machines[]" value="<?php echo($machine->get_id()); ?>"<?php if (isset ($a_machines) && in_array($machine->get_id(), $a_machines)) echo(' checked="checked"'); ?>></td>
 
     <td title="<?php echo($machine->get_notes()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>&amp;highlight=<?php echo($highlight); ?>"><?php echo($machine->get_hostname()); ?></a><?php if ($machine->count_host_collide() >= 2) echo '<img src="images/host-collide.png" class="icon-notification" title="Hostnames collide! Merge or delete machine if MAC was changed, otherwise rename it.">'; ?></td>
 		    
@@ -136,7 +136,7 @@ if (! empty ($s_anything))
 	$users_machine = isset ($user) && $user->getId () == $machine->get_used_by ();
 	if ($machine->get_update_status())
 	  {
-	    if ($useAuth && ! (isset ($user)
+	    if ($config->authentication->use && ! (isset ($user)
 			       && (($users_machine && $user->isAllowed ('machine_reinstall'))
 				   || ($user->isAllowed ('machine_reinstall_reserved')))))
 	      {
