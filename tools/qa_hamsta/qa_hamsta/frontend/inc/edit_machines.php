@@ -48,7 +48,7 @@
                 if ( ! ($user->isAllowed ('machine_edit_reserve')
                         || $user->isAllowed ('machine_edit_reserved')) ) {
                   Notificator::setErrorMessage ('You do not have permission to edit/reserve a machine.');
-                  header('Location: index.php?go=machines');
+                  header('Location: index.php');
                   exit ();
                 }
 
@@ -60,13 +60,13 @@
                          && ! $user->isAllowed ('machine_edit_reserved') ) {
                       Notificator::setErrorMessage ('You cannot modify a machine'
                                                     . ' that is reserved by other user.');
-                      header('Location: index.php?go=machines');
+                      header('Location: index.php');
                       exit ();
                     }
                   }
               } else {
               Notificator::setErrorMessage ('You have to be logged in to modify a machine.');
-              header('Location: index.php?go=machines');
+              header('Location: index.php');
               exit ();
             }
           }
@@ -168,8 +168,7 @@
 				}
 			}
 
-			$machine->get_role() == "VH" ? $go = "qacloud" : $go = "machines";
-			header("Location: index.php?go=$go");
+			$go = ($machine->get_role() == "VH") ? "qacloud" : "edit_machines";
 		}
 		
 		# If there were errors, we set the fail message
