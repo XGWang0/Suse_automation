@@ -164,7 +164,7 @@ if (request_str("proceed")) {
 		}
 		# Check if a validation test is needed
 		if ($validation) {
-			$validationfiles = split (" ", XML_VALIDATION);
+			$validationfiles = split (" ", $config->xml->validation);
 			foreach ( $validationfiles as &$validationfile ) {
 				$randfile= "/tmp/validation_$rand.xml";
 				system("cp $validationfile $randfile");
