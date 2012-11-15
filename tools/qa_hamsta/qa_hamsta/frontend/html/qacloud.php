@@ -149,8 +149,8 @@ if (!defined('HAMSTA_FRONTEND')) {
 <!--  <option value="delete">Delete</option> -->
     </select>
     <input type="submit" value="Go">
-    <a onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('qmark1','','../hamsta/images/qmark1.gif',1)">
-    <img src="../hamsta/images/qmark.gif" name="qmark1" id="qmark1" border="0" width="18" height="20" title="actions to selected machine(s)" onclick="window.open('../hamsta/helps/actions.html', 'channelmode', 'width=550, height=450, top=250, left=450')"/></a>
+    <a href="../hamsta/helps/actions.html" target="_blank">
+      <img src="../hamsta/images/qmark.png" class="icon-small" name="qmark1" id="qmark1" title="actions to selected machine(s)" /></a>
   </div>
   <script type="text/javascript">
   <!--
@@ -178,8 +178,8 @@ if (!defined('HAMSTA_FRONTEND')) {
         <option value="equals" <?php if (request_str("s_anything_operator") == "equals") echo('selected'); ?>>is</option>
       </select>
       <input name="s_anything" value="<?php echo(request_str("s_anything")); ?>">
-      <a onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('qmark2','','../hamsta/images/qmark1.gif',1)">
-      <img src="../hamsta/images/qmark.gif" name="qmark2" id="qmark2" border="0" width="18" height="20" title="hwinfo search" onclick="window.open('../hamsta/helps/hwinfo.html', 'channelmode', 'width=550, height=450, top=250, left=450')"/></a>
+      <a href="../hamsta/helps/hwinfo.html" target="_blank">
+        <img src="../hamsta/images/qmark.png" class="icon-small" name="qmark2" id="qmark2" title="hwinfo search" /></a>
     </td>
   </tr>
 <!--  <tr>

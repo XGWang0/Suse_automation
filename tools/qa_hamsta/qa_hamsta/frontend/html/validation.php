@@ -79,29 +79,32 @@ function validarch(archs) {
 <br><b>SDK repo URL (only required by some test suites): </b>
 <input type="text" name="sdk_producturl" id="sdk_producturl" size="55" value="<?php if(isset($_POST["sdk_producturl"])){echo $_POST["sdk_producturl"];}?>" />
 </p>
+
+<p>Please choose which arch(s) you want to validate:</p>
 <table>
 	<?php
-		echo "Please choose which arch(s) you want to validate:<br/></p>\n";
 		$i=0;
 		$vmlist = $config->vmlist->toArray ();
 		while (list($key, $value) = each($vmlist)) {
-			if ($i%4==0) {echo "<tr>";}
+			if ($i%4==0) {echo "\t<tr>\n";}
 			if ($value != "N/A") {
 				$machine=Machine::get_by_ip($value);
 				if ($machine) { 
-					echo "<td><div id=\"$key\"><input name=\"validationmachine[]\" type=\"checkbox\" value=\"$key\" />$key,(".$machine->get_hostname()." IP: ".$value.")&nbsp;&nbsp</div></td>\n";
+					echo "\t<td><div id=\"$key\"><input name=\"validationmachine[]\" type=\"checkbox\" value=\"$key\" />$key,(".$machine->get_hostname()." IP: ".$value.")&nbsp;&nbsp</div></td>\n";
 				} else {
-					echo "<td><b>Please check if $value is reachable!</b></td>\n";
+					echo "\t\t<td><b>Please check if $value is reachable!</b></td>\n";
 				}
 			}
-			if ($i%4==3) {echo "</tr>";}
-			if ($i==count($vmlist)) {echo "</tr>";}
+			if ($i%4==3) {echo "\t</tr>\n";}
+			if ($i==count($vmlist)) {echo "\t</tr>\n";}
 			$i++;
 		}
 	?>
+	</tr>
 </table>
-<p>Write your email here: <input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} else if (isset($user)) { echo $user->getEmail(); } ?>" />
-<a onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('qmark','','../hamsta/images/qmark1.gif',1)">
-<img src="../hamsta/images/qmark.gif" name="qmark" id="qmark" border="0" width="18" height="20" title="click me for clues of email" onclick="window.open('../hamsta/helps/email.html','channelmode', 'width=550, height=450, top=250, left=450')"/></a>
-<br /><br />
-<input type="submit" name="submit" value="Start Validation"></form>
+  <p>Write your email here: <input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} else if (isset($user)) { echo $user->getEmail(); } ?>" />
+  <a href="../hamsta/helps/email.html" target="_blank">
+    <img src="../hamsta/images/qmark.png" class="icon-small" name="qmark" id="qmark" title="click me for clues of email" /></a>
+  </p>
+  <input type="submit" name="submit" value="Start Validation">
+</form>
