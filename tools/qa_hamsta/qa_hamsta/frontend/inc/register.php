@@ -41,7 +41,7 @@ unset ($_SESSION['user_email']);
  * email, we can use these to add user directly into our DB.
  *
  * If that is not the case use the data to pre-fill the
- * registration form (see in html).
+ * registration form (see in html/).
  */
 if ( User::isLogged()
      && ! User::isRegistered(User::getIdent(), $config)
@@ -72,8 +72,7 @@ if ( User::isLogged()
 
 }
 
-if ( request_str("submit")
-     && User::isLogged() ) {
+if ( request_str("submit") && User::isLogged() ) {
   $name = isset ($_POST['name']) ? $_POST['name'] : '';
   $email = isset ($_POST['email']) ? $_POST['email'] : '';
 
@@ -83,12 +82,12 @@ if ( request_str("submit")
     exit();
   }
 
-  /* Submit registration info to database.*/
+  /* Submit registration data to database.*/
   if ( ! User::isRegistered(User::getIdent(), $config) ) {
     if (User::addUser(User::getIdent(), $name, $email)) {
       Notificator::setSuccessMessage ('Registration was successful.');
     } else {
-      Notificator::setErrorMessage ('There has been an registration error.');
+      Notificator::setErrorMessage ('There has been a registration error.');
     }
   } else {
     $user = User::getById (User::getIdent (), $config);
@@ -97,6 +96,10 @@ if ( request_str("submit")
     Notificator::setSuccessMessage ('Successfully updated registration information.');
     header ('Location: index.php?go=user');
   }
+} else {
+  Notificator::setErrorMessage ('You cannot register without being logged in.');
+  header ('Location: index.php');
+  exit ();
 }
 
 ?>

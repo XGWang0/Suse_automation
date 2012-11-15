@@ -50,13 +50,12 @@ $search = new MachineSearch();
 $search->filter_in_array(request_array("a_machines"));
 $machines = $search->query();
 
-/* Pavel Kacer:
- * This code does nothing.
- * Uncomment if it does something useful.
+/* pkacer@suse.com
+ * TODO This code seems not to do anything. Remove?
+ */
 foreach($machines as $m) {
 	$m->get_children();
 }
-*/
 
 /* Now check if the user tries to reinstall only her machines or if
  * she can reinstall also reserved machines. */

@@ -24,9 +24,9 @@
  */
 
 /**
- * Logic of the del_machines page
+ * Logic of the machine_purge page
  *
- * Deletes the selected machines.
+ * Purges history of a machine
  */
 if(!defined('HAMSTA_FRONTEND')) {
 	$go = 'machine_purge';
@@ -41,6 +41,22 @@ if( $id )	{
 	$machine = Machine::get_by_id($id);
 }
 if( $machine )	{
+	/* Check the user is logged in. */
+	$user = null;
+	if ($config->authentication->use)
+	{
+		if (User::isLogged () && User::isRegistered (User::getIdent (), $config))
+		{
+			$user = User::getById (User::getIdent (), $config);
+		}
+		else
+		{
+			Notificator::setErrorMessage ('You have to log in to be allowed to purge machine history.');
+			header ('Location: index.php?go=machine_details&id=' . $machine->get_id ());
+			exit ();
+		}
+	}
+
 	if( !strcmp($purge,'log') )	{
 		$msg = "log";
 		$ret = $machine->purge_log();

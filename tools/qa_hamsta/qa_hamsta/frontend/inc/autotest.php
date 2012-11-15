@@ -33,6 +33,13 @@
 		return require("../index.php");
 	}
 
+	$a_machines = request_array("a_machines");
+	if (! isset ($a_machines) || count ($a_machines) < 1)
+	  {
+	    header ('Location: index.php');
+	    exit ();
+	  }
+
 	$search = new MachineSearch();
 	$search->filter_in_array(request_array("a_machines"));
 	$machines = $search->query();

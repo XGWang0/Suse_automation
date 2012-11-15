@@ -24,7 +24,7 @@
  */
 
 /**
- * Logic of the reinstall page 
+ * Logic of the upgrade page
  */
 if (!defined('HAMSTA_FRONTEND')) {
 	$go = 'reinstall';
@@ -35,13 +35,36 @@ function filter($var) {
 	if($var == '')
 		return false;
 	return true;
-} 
+}
+
+$user = null;
+/* Check if user is logged in, registered and have sufficient privileges. */
+if ($config->authentication->use) {
+	if (User::isLogged() && User::isRegistered (User::getIdent (), $config)) {
+		$user = User::getById (User::getIdent (), $config);
+	} else {
+		Notificator::setErrorMessage ('You have to be logged in to update a machine.');
+		header('Location: index.php');
+		exit ();
+	}
+
+	if (! (isset ($user)
+	       && (($users_machine && $user->isAllowed ('machine_reinstall'))
+		   || ($user->isAllowed ('machine_reinstall_reserved'))))) {
+		Notificator::setErrorMessage ('You do not have privileges to update a machine.');
+		header ('Location: index.php');
+		exit ();
+	}
+}
 
 $search = new MachineSearch();
 $search->filter_in_array(request_array("a_machines"));
 $machines = $search->query();
 $smtserver = $config->smtserver;
 
+/* pkacer@suse.com
+ * TODO Does this code something useful?
+ */
 foreach($machines as $m) {
 	$m->get_children();
 }
