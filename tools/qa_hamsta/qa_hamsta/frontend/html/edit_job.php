@@ -266,9 +266,17 @@
 	{
             # When changing single-machie job to multiple-machine job, because it hasn't rols map information,
             # set it's name to role0, and min and max number to 1 and 2
-            $name = ($jobRoleMap[$i]['name'] == "")?"role0":$jobRoleMap[$i]['name'];
-            $min = ($jobRoleMap[$i]['min'] == "")?1:$jobRoleMap[$i]['min'];
-            $max = ($jobRoleMap[$i]['max'] == "")?2:$jobRoleMap[$i]['max'];
+	    if($i < $roleCount) {
+            	$name = ($jobRoleMap[$i]['name'] == "")?"role0":$jobRoleMap[$i]['name'];
+            	$min = ($jobRoleMap[$i]['min'] == "")?1:$jobRoleMap[$i]['min'];
+            	$max = ($jobRoleMap[$i]['max'] == "")?2:$jobRoleMap[$i]['max'];
+	    }
+	    else
+	    {
+		$name = "role" . $i;
+                $min = 1;
+                $max = 2;
+            }
 
             $commands = $jobCommandMap[$i]['commands'];
         }
