@@ -373,24 +373,27 @@ class User {
       {
       case 'password':
         if ( isset ($_POST['action'])
-             && $_POST['action'] == 'login')
+             && $_POST['action'] == 'Login')
           {
             $login = isset ($_POST['login']) ? $_POST['login'] : '';
             $password = isset ($_POST['password']) ? $_POST['password'] : '';
-            if ( ! ( empty($login) || empty ($password) ) )
+            if ( empty($login) || empty ($password) )
+              {
+                Notificator::setErrorMessage ('Please fill in your credentials.');
+              }
+	    else
               {
                 $res = Authenticator::password ($login, $password, $config);
-		if (! $res)
+		if ($res)
+		  {
+		    header ('Location: index.php');
+		  }
+		else
 		  {
 		    Notificator::setErrorMessage ('Login attempt has failed. Check your credentials.');
 		  }
               }
-            else
-              {
-                Notificator::setErrorMessage ('Please fill in your credentials.');
-              }
           }
-	header ('Location: index.php');
         break;
       case 'openid':
 	Authenticator::openid ($config->authentication->openid->url);
