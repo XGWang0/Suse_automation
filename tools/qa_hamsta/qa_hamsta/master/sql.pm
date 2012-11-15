@@ -264,7 +264,7 @@ sub group_machine_new($$) # group_id, machine_id
 {	return $dbc->insert_query('INSERT IGNORE INTO group_machine(group_id,machine_id) VALUES(?,?)',$_[0],$_[1]);	}
 
 sub group_machine_delete($$) # group_id, machine_id
-{	return $dbc->update_query('DELETE FROM group_machine WHERE group_id=? AND machine_id=?',$_[0],$_[1]);	}
+{	return $dbc->update_query('DELETE IGNORE FROM group_machine WHERE group_id=? AND machine_id=?',$_[0],$_[1]);	}
 
 ### module functions
 
@@ -312,6 +312,15 @@ sub group_list_status($) # group_id
 
 sub group_list_ip($) # group_id
 {	return $dbc->vector_query('SELECT ip FROM machine JOIN group_machine USING(machine_id) WHERE group_id=?',$_[0]);	}
+
+sub group_insert($$) # group, desc
+{	return $dbc->insert_query('INSERT INTO `group`(`group`,description) VALUES(?,?)',@_);	}
+
+sub group_devel_create()	{
+	my $id=&group_insert('devel','Machines having devel tools installed.');
+	$dbc->update_query('UPDATE `group` SET group_id=0 WHERE group_id=?',$id);
+	return $dbc->enum_get_id('group','devel');
+}
 
 ### log functions
 
