@@ -35,10 +35,10 @@ if ( ! defined('HAMSTA_FRONTEND') ) {
  * by index.php file. */
 ?>
 
-<div>
-  <p>Your external identifier (OpenID URL) is <?php if (isset ($user) )
+<div class="content">
+Your external identifier (like OpenID URL) is <?php if (isset ($user) )
    {
-     echo "<b>" . ($user->getExternId ()
+     echo "<b>" . (strlen ($user->getExternId ())
 		   ? $user->getExternId ()
 		   : "not set") . "</b>.";
    }
@@ -51,8 +51,6 @@ Your login is <?php if (isset ($user) )
 		  : "not set") . "</b>.";
   }
 ?>
-
-  </p>
 </div>
 
 <div>
@@ -68,12 +66,10 @@ Your e-mail address is <b><?php echo ( ( isset ($user) )
 </div>
 
 <?php if ( isset ($user) ): ?>
-<p>
 <form type="post">
    <input type="hidden" name="go" value="register" />
    <input type="submit" value="Change" />
 </form>
-</p>
 <?php endif; ?>
 
 <?php if ( isset ($user)): ?>
@@ -82,16 +78,17 @@ Your e-mail address is <b><?php echo ( ( isset ($user) )
 <p>
 <form method="post" action="index.php?go=user">
   <fieldset>
-  <legend>Change your password here</legend>
+  <legend>Change your Hamsta password here</legend>
   <input type="hidden" name="chngpswd" value="new" />
+    <label id="notice">This password is only for Hamsta. Changes here do not have impact on other systems.</label>
     <table>
       <tr>
-        <td><label>New password: </label></td>
-        <td><input type="password" name="pswd" /><br /></td>
+        <td><label id="password">New password: </label></td>
+        <td><input id="password" type="password" name="pswd" /><br /></td>
       </tr>
       <tr>
-        <td><label>And for check: </label></td>
-        <td><input type="password" name="pswdcheck" /></td>
+        <td><label id="pswdcheck">And for check: </label></td>
+        <td><input id="pswdcheck" type="password" name="pswdcheck" /></td>
       </tr>
       <tr>
        <td colspan="2"><input type="submit" value="Change" /></td>
@@ -138,14 +135,14 @@ if ( isset ($user) ) {
 
   if ($user->isAllowed ('user_administration'))
     {
-      echo ("<div>\n");
-      echo ("<p>\n");
-      echo ("<a href=\"index.php?go=adminusers\">User, roles and privileges administration</a>");
-      echo ("</p>\n");
-      echo ("</div>\n");
-    }
-
-}
-
 ?>
-</div>
+  <div>
+    <p>
+      <a href=\"index.php?go=adminusers\">User, roles and privileges administration</a>
+    </p>
+  </div>
+<?php
+    }
+    echo ("</div>\n");
+}
+?>

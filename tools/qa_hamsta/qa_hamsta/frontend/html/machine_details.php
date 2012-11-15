@@ -125,7 +125,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 
 <a href="index.php?go=jobruns&amp;machine=<?php echo($machine->get_id()); ?>" class="text-small">Show complete list</a>
 <?php 
-	if( (count($active_jobs) + count($nonactive_jobs)) > 0 )	{
+	if( (count($active_jobs) + count($nonactive_jobs)) > 0 && isset ($user) )	{
 		echo '<p><a href="index.php?go=machine_purge&amp;id=' . $machine->get_id() . '&amp;purge=job">Purge job history</a></p>' . "\n";
 	}
 ?>
@@ -186,7 +186,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 </form>
 <?php
 
-	if( count($configs) > 1 ) {
+	if( count($configs) > 1 && isset ($user)) {
 		echo '<p><a href="index.php?go=machine_purge&amp;id=' . $machine->get_id() . '&amp;purge=config">Purge configuration history</a></p>' . "\n";
 	}
 	echo "<h2 class=\"text-medium text-blue bold\">Action history</h2>";
@@ -220,7 +220,10 @@ if (!defined('HAMSTA_FRONTEND')) {
 		if($machine_logs_number == 20) {
 			echo "<span class=\"text-small\">Only the last 20 entries are shown,</span> <a href=\"index.php?go=action_history&amp;id=" . $machine->get_id() . "\" class=\"text-small\">click here to see the complete list</a>.";
 		}
+		if (isset ($user))
+		  {
 		echo '<p><a href="index.php?go=machine_purge&amp;id=' . $machine->get_id() . '&amp;purge=log">Purge log history</a></p>' . "\n";
+		  }
 
 	}
 

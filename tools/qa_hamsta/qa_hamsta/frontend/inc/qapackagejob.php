@@ -37,6 +37,42 @@
 	$search->filter_in_array(request_array("a_machines"));
 	$machines = $search->query();
 
+	/* Check if user has privileges to send a job to machine. */
+	if ( $config->authentication->use )
+	  {
+	    if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
+	      {
+		$user = User::getById (User::getIdent (), $config);
+		if ( $user->isAllowed ('machine_send_job')
+		     || $user->isAllowed ('machine_send_job_reserved') )
+		  {
+		    foreach ($machines as $machine)
+		      {
+			if ( ! ( $machine->get_used_by_login () == $user->getLogin ()
+				 || $user->isAllowed ('machine_send_job_reserved')) )
+			  {
+			    Notificator::setErrorMessage ("You cannot send a job to a machine that is not reserved"
+							  . " or is reserved by other user.");
+			    header ("Location: index.php?go=machines");
+			    exit ();
+			  }
+		      }
+		  }
+		else
+		  {
+		    Notificator::setErrorMessage ("You do not have privileges to send a job to a machine.");
+		    header ("Location: index.php?go=machines");
+		    exit ();
+		  }
+	      }
+	    else
+	      {
+		Notificator::setErrorMessage ("You have to be logged in and registered to send a job to a machine.");
+		header ("Location: index.php");
+		exit ();
+	      }
+	  }
+
 	$tslist = $_POST['testsuite'];
 	$rand = rand();
 	$qapackagejobfile = "/tmp/qapackagejob_$rand.xml";
