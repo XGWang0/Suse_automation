@@ -71,12 +71,15 @@
 		$group_name = $group->get_name();
 		$group_name = str_replace("&","%26",$group_name);
 		$group_name = str_replace(" ","%20",$group_name);
+		$group_id = $group->get_id();
             ?></td>
-            <td><a href="index.php?go=machines&amp;group=<?php echo $group_name; ?>"><img src="images/icon-group-list-machine.png" class="icon-small" alt="List machines" title="List machines of group" /></a></td>
+	    <td<?php if($group_id==0) print ' colspan="5"' ?>><a href="index.php?go=machines&amp;group=<?php echo $group_name; ?>"><img src="images/icon-group-list-machine.png" class="icon-small" alt="List machines" title="List machines of group" /></a></td>
+<?php 		if( $group_id )	{ ?>
             <td><a href="index.php?go=create_group&amp;action=edit&amp;group=<?php echo $group_name; ?>"><img src="images/icon-edit.png" class="icon-small" alt="Edit group" title="Edit this group" /></a></td>
             <td><a href="index.php?go=create_group&amp;action=addmachine&amp;group=<?php echo $group_name; ?>"><img src="images/icon-group-add-machine.png" class="icon-small" alt="Add machines" title="Add machines to this group" /></a></td>
             <td><a href="index.php?go=del_group_machines&amp;group=<?php echo $group_name; ?>"><img src="images/icon-group-delete-machine.png" class="icon-small" alt="Delete machines" title="Delete machines from this group" /></a></td>
-            <td><a href="index.php?go=del_group&amp;group=<?php echo $group_name; ?>"><img src="images/icon-delete.png" class="icon-small" alt="Delete group" title="Delete this group" /></a></td>
+	    <td><a href="index.php?go=del_group&amp;group=<?php echo $group_name; ?>"><img src="images/icon-delete.png" class="icon-small" alt="Delete group" title="Delete this group" /></a></td>
+<?php } ?>
         </tr>
     <?php endforeach; ?>
 </table>
