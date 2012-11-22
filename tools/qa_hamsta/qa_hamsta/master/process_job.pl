@@ -180,6 +180,13 @@ sub process_job($) {
 				&log(LOG_NOTICE, "$hostname: Job ($job_file) exits with ".$parsed{'text'}); 
 				$return_codes .= $parsed{'text'}."\n";
 			}	
+
+			if ($parsed{'test'} =~ /Please logon SUT check the job manually/)	{
+				&log(LOG_NOTICE, "$hostname: TIMTOUT Job ($job_file) ); 
+				$return_codes .= "6\n";
+			}	
+
+
 			push @summary,$1 if $parsed{'text'} =~ /^\| (.*)$/;
 		}
 	}
