@@ -396,40 +396,28 @@ class User {
           }
         break;
       case 'openid':
-	if (isset ($_GET['action']) && $_GET['action'] == 'login'
-	    || isset ($_GET['openid_mode']) && $_GET['openid_mode'] == 'id_res')
+	if (self::isLogged ())
 	  {
-	    Authenticator::openid ($config->authentication->openid->url);
-	  }
-	elseif (isset ($_GET['openid_mode']) && $_GET['openid_mode'] != 'id_res'
-		&& ! self::isLogged ())
-	  {
-	    self::logout ();
-	    Notificator::setErrorMessage ('Your OpenId provider has denied to authorize you. The provider URL is "' . $config->authentication->openid->url . '".');
-	    header ('Location: index.php');
-	    exit ();
-	  }
-        elseif (self::isLogged ())
-          {
-            if ( ! self::isRegistered (self::getIdent(), $config))
+	    /* If the user is logging in for the first time he has to
+	     * be registered in the database.
+	     *
+	     * If there is enough data from the OpenId provider, try
+	     * to register automatically. Otherwise the user has to
+	     * fill out the registration form. */
+            if (! self::isRegistered (self::getIdent(), $config))
               {
-                if ( isset ($_GET['openid_sreg_fullname']) )
-                  {
-                    $_SESSION['user_name'] = $_GET['openid_sreg_fullname'];
-                  }
+		error_log ('Going to register new user "' . User::getIdent () . '".');
 
-                if ( isset ($_GET['openid_sreg_email']) )
-                  {
-                    $_SESSION['user_email'] = $_GET['openid_sreg_email'];
-                  }
-
-                if ( ! isset ($_GET['go']) || $_GET['go'] != 'register')
+                if (! isset ($_GET['go']) || $_GET['go'] != 'register')
                   {
                     header ('Location: index.php?go=register');
+		    exit ();
                   }
               }
             else if ( self::isRegistered (self::getIdent(), $config) )
               {
+		/* Check if all data of the user are consistent. It
+		 * can change any time during the application use. */
                 $user = User::getById (self::getIdent (), $config);
                 $dbName = $user->getName ();
                 $dbEmail = $user->getEmail ();
@@ -442,7 +430,33 @@ class User {
 		    header ('Location: index.php?go=register');
 		  }
               }
-          }
+	  }
+	elseif (isset ($_GET['action']) && $_GET['action'] == 'login'
+	    || isset ($_GET['openid_mode']) && $_GET['openid_mode'] == 'id_res')
+	  {
+	    $res = Authenticator::openid ($config->authentication->openid->url);
+	    /* Store user data in the session for registration. */
+	    if (isset ($_GET['openid_sreg_fullname']))
+	      {
+		$_SESSION['user_name'] = $_GET['openid_sreg_fullname'];
+	      }
+
+	    if (isset ($_GET['openid_sreg_email']))
+	      {
+		$_SESSION['user_email'] = $_GET['openid_sreg_email'];
+	      }
+	    header ('Location: index.php');
+	    exit ();
+	  }
+	elseif (isset ($_GET['openid_mode']) && $_GET['openid_mode'] != 'id_res'
+		&& ! self::isLogged ())
+	  {
+	    self::logout ();
+	    error_log ('OpenId user authentication failed. The OpenId provider has not sent openid_mode="id_res"');
+	    Notificator::setErrorMessage ('Your OpenId provider has denied to authorize you. The provider URL is "' . $config->authentication->openid->url . '".');
+	    header ('Location: index.php');
+	    exit ();
+	  }
         break;
       default:
         /* If no or invalid authentication type is set, there is no
@@ -501,7 +515,8 @@ class User {
     if ( self::isLogged () )
       {
         $ident = self::getIdent();
-        if ( self::isRegistered ($ident, $config) )
+	$registered = self::isRegistered ($ident, $config);
+        if ( $registered )
           {
             $user = self::getById ($ident, $config);
             $outName = $user->getName ();
@@ -517,7 +532,7 @@ class User {
       
         echo ("Logged in as <a class=\"bold\" href=\"index.php?go=user\">"
               . $outName . "</a>"
-              . (count ($user->getRoleList ()) > 1
+              . (($registered && count ($user->getRoleList ()) > 1)
                  ? ("(<a href=\"index.php?go=user\">" . $outRoleName
                     . "</a>)")
                  : "")
