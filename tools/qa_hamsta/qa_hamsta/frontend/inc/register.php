@@ -66,6 +66,7 @@ if ( User::isLogged()
   else
     {
       User::logout ();
+      error_log ('The identifier "' . User::getIdent () . '" is not valid OpenId URL');
       Notificator::setErrorMessage ('Your identifier is not valid OpenID url.');
       header ('Location: index.php?go=register');
     }
@@ -96,7 +97,7 @@ if ( request_str("submit") && User::isLogged() ) {
     Notificator::setSuccessMessage ('Successfully updated registration information.');
     header ('Location: index.php?go=user');
   }
-} else {
+} elseif (! User::isLogged ())  {
   Notificator::setErrorMessage ('You cannot register without being logged in.');
   header ('Location: index.php');
   exit ();
