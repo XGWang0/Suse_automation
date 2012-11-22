@@ -396,8 +396,20 @@ class User {
           }
         break;
       case 'openid':
-	Authenticator::openid ($config->authentication->openid->url);
-        if ( self::isLogged () )
+	if (isset ($_GET['action']) && $_GET['action'] == 'login'
+	    || isset ($_GET['openid_mode']) && $_GET['openid_mode'] == 'id_res')
+	  {
+	    Authenticator::openid ($config->authentication->openid->url);
+	  }
+	elseif (isset ($_GET['openid_mode']) && $_GET['openid_mode'] != 'id_res'
+		&& ! self::isLogged ())
+	  {
+	    self::logout ();
+	    Notificator::setErrorMessage ('Your OpenId provider has denied to authorize you. The provider URL is "' . $config->authentication->openid->url . '".');
+	    header ('Location: index.php');
+	    exit ();
+	  }
+        elseif (self::isLogged ())
           {
             if ( ! self::isRegistered (self::getIdent(), $config))
               {

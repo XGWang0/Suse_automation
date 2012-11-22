@@ -47,43 +47,44 @@ class Authenticator extends Zend_Auth
    * WARNING: This implementation works with Novell OpenId server. It
    * was not tested with other types of servers.
    *
-   * @param string $url URL of the authentication server.
+   * @param string $url URL of the OpenID provider.
    *
    * @return boolean True if succeded, false otherwise.
    */
   public static function openid ($url) {
 
     $auth = parent::getInstance();
-
-    if (! $auth->hasIdentity ()
-         && ((isset($_GET['action'])
-              && $_GET['action'] == "login")
-             || isset($_GET['openid_mode'])
-             || isset($_POST['openid_mode']))) {
-
-      if (isset($_GET['openid_identity']))
-	{
-          $adapter = new Zend_Auth_Adapter_OpenId ();
-        }
-      else
-	{
-	  $adapter = new Zend_Auth_Adapter_OpenId ($url);
-	}
-
-      $result = $auth->authenticate($adapter);
-
-      if ( ! isset($_GET['action'])
-	   && ! $result->isValid() ) {
-	$auth->clearIdentity();
-	Zend_Session::destroy(true);
-	Zend_Session::forgetMe();
-	foreach ($result->getMessages() as $message) {
-	  echo ("$message<br />\n");
-	}
-	return false;
-      } else {
+    if ($auth->hasIdentity ())
+      {
+	/* User is already logged in. */
 	return true;
       }
+    else
+      {
+	if (isset($_GET['openid_identity']))
+	  {
+	    /* This is second request to validate identity. */
+	    $adapter = new Zend_Auth_Adapter_OpenId ();
+	  }
+	else
+	  {
+	    /* This is first request to obtain identity. */
+	    $adapter = new Zend_Auth_Adapter_OpenId ($url);
+	  }
+      }
+
+    $result = $auth->authenticate ($adapter);
+
+    if (! $result->isValid() ) {
+      $auth->clearIdentity();
+      Zend_Session::destroy(true);
+      Zend_Session::forgetMe();
+      foreach ($result->getMessages() as $message) {
+	print ("$message<br />\n");
+      }
+      return false;
+    } else {
+      return true;
     }
   }
 
