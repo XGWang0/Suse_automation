@@ -26,6 +26,7 @@
 hn=`cat /etc/HOSTNAME`
 cache="/tmp/cache"
 ARCH=$HOSTTYPE
+date=`date +%Y-%m-%d-%H-%M-%S`
 if [ "$ARCH" != "" ]; then
         case $ARCH in
         i[3-9]86)  ARCH="i386";;
@@ -45,6 +46,17 @@ then
 fi
 
 >/tmp/autotest_$$
+
+#clean 
+
+if [ -f /var/log/qa/autotest/status ];then
+
+	rtime=`cat /var/log/qa/autotest/status |head -1|sed 's/.*timestamp=//;s/\t.*//'`
+	mkdir -p /var/log/qa/oldlogs/autotest/
+	mv /var/log/qa/autotest /var/log/qa/oldlogs/autotest/$rtime
+fi
+
+
 rm -rf /usr/lib/autotest/results/autotest
 for i in $@;do
 	[ -d /usr/lib/autotest/tests/$i ] && cat /usr/lib/autotest/tests/$i/control >> /tmp/autotest_$$
@@ -52,6 +64,20 @@ done
 /usr/lib/autotest/bin/autotest -t autotest /tmp/autotest_$$
 returnvalue=$?
 cp -ar /usr/lib/autotest/results/autotest /var/log/qa/
+#generate rpmlist
+rpm -qa --qf "%{NAME} %{VERSION}-%{RELEASE}\n" | sort > /var/log/qa/autotest/rpmlist
+#generate hwinfo
+/usr/sbin/hwinfo --all > /var/log/qa/autotest/hwinfo
+
+#generate kernel
+kernel_v=`uname -r`
+kernel_rpm=`rpm -qf /boot/System.map-$kernel_v`
+if [ -n "$kernel_rpm" ];then       
+	rpm -qi "$kernel_rpm" > /var/log/qa/autotest/kernel
+else
+	uname -r > /var/log/qa/autotest/kernel
+fi
+
 rm -rf /etc/init.d/autotest
 rm -rf /usr/lib/autotest/results/autotest
 /usr/share/qa/tools/remote_qa_db_report.pl -c "autotest results on $hn-$ARCH"

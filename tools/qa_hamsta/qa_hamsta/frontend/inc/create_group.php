@@ -153,12 +153,8 @@
                 break;
 
             case "addmachine":
-		print "action2 = $action\n";
-    $machine_num = count($machines);
-    print "number = $machine_num\n";
                 $name = request_str("add_group");
                 $group = Group::get_by_name($name);
-    print "name = $name\n";
 
                 if (is_null($group)) {
                     $error = "The selected group to add the machines to does not exist.";

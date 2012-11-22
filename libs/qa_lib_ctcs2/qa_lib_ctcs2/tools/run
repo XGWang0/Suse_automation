@@ -217,7 +217,8 @@ sub display_clock {
 	#print ("Running for: ");
 
 	color ("fcyan");
-	printf("RTTT:%-18s\e[K\n\e[1A\e[${casename_width}C\e[K", sectotime(shift));
+	print("\n\e[1A\e[K");  # Avoid user push any key when job is running
+	printf("\e[1A\e[${casename_width}C\e[KRTTT: %-18s\n", sectotime(shift));
 	color ("reset");
 }
 
@@ -287,7 +288,7 @@ sub ptr_n {
 	$name = "$label$name";
 
 	$casename_width = $opt_width - $label_len - 20;
-	printf("%-${casename_width}s", $name);
+	printf("%-${casename_width}s\n", $name);
 }
 
 # print the result of the test case
@@ -296,12 +297,15 @@ sub ptr_n {
 sub ptr_r {
 	my $color = shift;
 	my $result = shift;
+	my $cursor = shift;
 
 	if($process_foreground){
 		color ($color);
 	
 		# The string should can cover all of the time string
-		printf("%-18s\e[K\n\e[1A", "$result\n");
+		print("\n\e[1A\e[K");  # Avoid user push any key when job is running
+		printf("\e[1A\e[${casename_width}C\e[K%-18s\n", $result) if ($cursor == 0);
+		printf("\e[2A\e[${casename_width}C\e[K%-18s\n\n", $result) if ($cursor == 1);
         	color ("reset");
 	}
 	else{
@@ -371,19 +375,23 @@ sub process_stop {
 		# it is a background test case, we don't care this type of cases, 
 		# and we don't print any information for them.
 		if("$key" eq "$current_case") {
-			if(($fail == 0) && ($skip == 0)) {
-				ptr_r("fgreen", "PASS");
+			if(($fail == 0) && ($skip == 0) && ($internal_err == 0)) {
+				if ($ENV{RUNIN_VERBOSE}){
+					ptr_r("fgreen", "PASS", 1);
+				}else {
+					ptr_r("fgreen", "PASS", 0);
+				}
 			}
-			if(($fail == 0) && ($skip != 0)){
-				ptr_r("fyellow", "SKIP");
+			if(($fail == 0) && ($internal_err == 0) && ($skip != 0)){
+				ptr_r("fyellow", "SKIP", 1);
 			}
 			if(($internal_err != 0) || ($fail != 0)){
-				ptr_r("fred", "FAIL");
+				ptr_r("fred", "FAIL", 1);
 			}
 		}
 	} else {
 		# no result, some error occured
-		ptr_r("fred", "FAIL") if("$key" eq "$current_case");
+		ptr_r("fred", "FAIL" , 0) if("$key" eq "$current_case");
 		warn ("    Test result inconclusive for $key, no results found\n");
 	}
 	

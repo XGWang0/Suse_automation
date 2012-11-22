@@ -36,7 +36,10 @@
 <h2 class="text-medium text-blue"><?php echo ($action == "edit" ? "Edit group" : "Select machines to add them to group"); ?></h2>
 
 <?php
-	echo "<form action=\"index.php?go=create_group\" method=\"post\">";
+	if($action == "add")
+		echo "<form action=\"index.php?go=create_group\" method=\"post\">";
+	else
+		echo "<form action=\"index.php?go=create_group\" method=\"post\" onSubmit=\"return checkcheckbox(this)\">";
 
 	if($action == "edit")
 	{
@@ -63,7 +66,7 @@
 					continue;
 				$machine_enable_add++;
 				echo "<td style=\"padding: 5px;\">" .
-				"<input name=machines_selected[] type=checkbox value=$machine_id title=\"check one machine at least to add the group below\" $machine_select_flag/>" .
+				"<input name=machines_selected[] type=checkbox value=$machine_id title=\"check one machine at least to add the group below\"/>" .
 					"$machine_name " .
 				"</td>";
 				
@@ -110,7 +113,7 @@
     </tr>
     <tr>
         <td>Name: </td>
-        <td><input name="name" onFocus="document.getElementsByName('action')[0].checked=true" value="<?php echo $name ?>" /></td>
+	<td><input name="name" onFocus="document.getElementsByName('action')[0].checked=true"<?php echo ($action == "edit" ? " value=\"$name\"" : ""); ?> /></td>
     </tr>
     <tr>
         <td>Description: </td>
