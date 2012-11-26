@@ -36,16 +36,17 @@ if (!defined('HAMSTA_FRONTEND')) {
 	$tableHeadings = array("Name", "*Perm", "Used By", "Usage", "Usage Expires (days)", "Maintainer", "Affiliation", "Notes", "Power Switch", "Power type", "Power slot", "Serial Console", "Console Device", "Console Speed", "Enable Console", "Default Install Options");
 	$show_column = array("usage", "expires", "maintainer_string", "affiliation", "anomaly", "powerswitch", "powertype", "powerslot", "serialconsole");	
 	$machineCounter = 0;
+	$useAuth = $config->authentication->use;
 	foreach ($machines as $machine) {
 
 		$machine_id = $machine->get_id();
 		$counterAddValue = $machineCounter*count($tableHeadings) + 1;
 		$column = array();
 		/* If the user is not logged in or authorized, disable some fields.  */
-		$disabled_console = isset ($user) && $user->isAllowed ('machine_edit_console') ? '' : "disabled=\"disabled\"";
-                $disabled_powercycling = isset ($user) && $user->isAllowed ('machine_edit_powercycling') ? '' : "disabled=\"disabled\"";
-                $disabled_edit = isset ($user) && $user->isAllowed ('machine_edit_reserved') ? '' : "disabled=\"disabled\"";
-                $disabled_maintainer = isset ($user) && $user->isAllowed ('machine_edit_maintainer') ? '' : "disabled=\"disabled\"";
+		$disabled_console = (! $useAuth || (isset ($user) && $user->isAllowed ('machine_edit_console'))) ? '' : "disabled=\"disabled\"";
+                $disabled_powercycling = (! $useAuth || (isset ($user) && $user->isAllowed ('machine_edit_powercycling'))) ? '' : "disabled=\"disabled\"";
+                $disabled_edit = (! $useAuth || (isset ($user) && $user->isAllowed ('machine_edit_reserved'))) ? '' : "disabled=\"disabled\"";
+                $disabled_maintainer = (! $useAuth || (isset ($user) && $user->isAllowed ('machine_edit_maintainer'))) ? '' : "disabled=\"disabled\"";
                 
 		# Hostname/ID
 		$hostname = $machine->get_hostname();
