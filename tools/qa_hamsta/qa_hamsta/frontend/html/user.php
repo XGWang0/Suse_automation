@@ -138,7 +138,7 @@ if ( isset ($user) ) {
 ?>
   <div>
     <p>
-      <a href=\"index.php?go=adminusers\">User, roles and privileges administration</a>
+      <a href="index.php?go=adminusers">User, roles and privileges administration</a>
     </p>
   </div>
 <?php
