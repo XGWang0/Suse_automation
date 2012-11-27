@@ -394,13 +394,13 @@ function power_virsh($powerswitch, $powerslot, $action) {
 function power_esx($powerswitch, $powerslot, $action) {
 	$esx_url_array = preg_split('/[:@]/', $powerswitch);
 
-	if(sizeof($esx_url_array == "2")) {
+	if(sizeof($esx_url_array) == "2") {
 		$esx_user = $esx_url_array[0];
 		$esx_password = NULL;
 		$esx_host = $esx_url_array[1];
 	}
 
-	else if(sizeof($esx_url_array == "3")) {
+	else if(sizeof($esx_url_array) == "3") {
 		$esx_user = $esx_url_array[0];
 		$esx_password = $esx_url_array[1];
 		$esx_host = $esx_url_array[2];
@@ -427,9 +427,13 @@ function power_esx($powerswitch, $powerslot, $action) {
 	
 	if ($action == "status") {
 		$esx_status = esx_command($esx_user, $esx_password, $esx_host, $vmid, 'power.getstate');
-		if (preg_match("//", $esx_status))
+		
+		# Here we need to convert array (multiline result) to string
+		$esx_status = implode($esx_status);
+
+		if (preg_match("/on/", $esx_status))
 			$status = "on";
-		else if (preg_match("//", $esx_status))
+		else if (preg_match("/off/", $esx_status))
 			$status = "off";
 		else
 			$status = "unknown";

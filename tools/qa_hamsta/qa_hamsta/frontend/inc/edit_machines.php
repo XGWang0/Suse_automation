@@ -167,15 +167,14 @@
 					Log::create($machine->get_id(), $machine->get_used_by_login(), 'CONFIG', "has set the default install options to \"$default_option_per_machine\"");
 				}
 			}
-
+			Notificator::setSuccessMessage ('The requested actions were successfully completed.');
 			$go = ($machine->get_role() == "VH") ? "qacloud" : "edit_machines";
 		}
 		
 		# If there were errors, we set the fail message
 		else
 		{
-			$_SESSION['message'] = implode("\n", $errors);
-			$_SESSION['mtype'] = "fail";
+			Notificator::setErrorMessage (implode("\n", $errors));
 		}
    	}
 
