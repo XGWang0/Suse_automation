@@ -59,8 +59,8 @@ common_header(array(
 ));
 
 # 6. clear old images from the image directory
-$imgdir_rel = '/qadb/output';
-$imgdir = $_SERVER['DOCUMENT_ROOT'].$imgdir_rel;
+$imgdir_rel = 'output';
+$imgdir = dirname(__FILE__) . '/' . $imgdir_rel;
 if( $handle = opendir($imgdir) )
 {
 	while (false !== ($file = readdir($handle))) {
