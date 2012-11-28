@@ -182,7 +182,7 @@ sub process_job($) {
 			}	
 
 			if ($parsed{'test'} =~ /Please logon SUT check the job manually/)	{
-				&log(LOG_NOTICE, "$hostname: TIMTOUT Job ($job_file) ); 
+				&log(LOG_NOTICE, "$hostname: TIMTOUT Job ($job_file)" ); 
 				$return_codes .= "6\n";
 			}	
 
