@@ -137,6 +137,14 @@ function check_result () {
 	return $1
 }
 
+# when we print some more information on terminal, because it is difficult 
+# to get where the cursor is, just erase the time clock, and print the result in new line
+function move_cursor () {
+	if [ "$PROCESSFOREGROUND" = "1" ]; then
+		echo -e "\033[1A\033[${CASENAMEWIDTH}C\033[K" >&2
+	fi
+}
+
 
 trap interrupt EXIT
 trap interrupt SIGUSR1
@@ -158,6 +166,7 @@ if [ -x $ttrun-info ] ; then
         failed=$[$failed + 1]
 	count=$[$count + 1]
 	xx=`date`
+	move_cursor
 	echo -e "$MAGBLINK$xx: $key $count/$iterations TEST INITIALIZATION ERROR$RESET" >&2
 	echo "$xx: $key $count/$iterations TEST INITIALIZATION ERROR"
 	do_on_event
@@ -180,11 +189,14 @@ while [ $iterations -lt 1 -o $count -lt $iterations ] ; do
 		count=$[$count + 1]
 		echo "$xx: $key success: on $count/$iterations after $et"
 		if [ "$RUNIN_VERBOSE" = "1" ] ; then
+			move_cursor
 			echo "$xx: $key success: on $count/$iterations after $et" >&2
+			
 		fi
 	elif [ $result = 2 ] ; then
 	        interr=$[$interr + 1]
 		count=$[$count + 1]
+		move_cursor
 		echo -e "$MAGBLINK$xx: $key TEST INTERNAL ERROR (DEPRECATED RETURN VALUE - PLEASE REPORT): on $count/$iterations after $et$RESET" >&2
 		echo "$xx: $key TEST INTERNAL ERROR (DEPRECATED RETURN VALUE - PLEASE REPORT): on $count/$iterations after $et"
 		do_on_event
@@ -193,6 +205,7 @@ while [ $iterations -lt 1 -o $count -lt $iterations ] ; do
 	elif [ $result = 11 ] ; then
 	        interr=$[$interr + 1]
 		count=$[$count + 1]
+		move_cursor
 		echo -e "$MAGBLINK$xx: $key TEST INTERNAL ERROR: on $count/$iterations after $et$RESET" >&2
 		echo "$xx: $key TEST INTERNAL ERROR: on $count/$iterations after $et"
 		do_on_event
@@ -201,6 +214,7 @@ while [ $iterations -lt 1 -o $count -lt $iterations ] ; do
 	elif [ $result = 22 ] ; then
 	        skipped=$[$skipped + 1]
 		count=$[$count + 1]
+		move_cursor
 		echo -e "$BLUEBLINK$xx: $key SKIPPED: on $count/$iterations after $et$RESET" >&2
 		echo "$xx: $key SKIPPED: on $count/$iterations after $et"
 		do_on_event
@@ -211,6 +225,7 @@ while [ $iterations -lt 1 -o $count -lt $iterations ] ; do
 	else
 	        failed=$[$failed + 1]
 		count=$[$count + 1]
+		move_cursor
 		echo -e "$REDBLINK$xx: $key FAILED: on $count/$iterations after $et$RESET" >&2
 		echo "$xx: $key FAILED: on $count/$iterations after $et"
 		do_on_event

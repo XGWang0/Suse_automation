@@ -288,13 +288,18 @@ sub ptr_n {
 	$name = "$label$name";
 
 	$casename_width = $opt_width - $label_len - 20;
-	printf("%-${casename_width}s\n", $name);
+	$ENV{CASENAMEWIDTH} = $casename_width;
+
+	if($process_foreground) {
+		printf("%-${casename_width}s\n", $name);
+	}
 }
 
 # print the result of the test case
 # For forground testing, will control the print contend by working with clock
 # For background testing, just print the result
 sub ptr_r {
+	my $case = shift;
 	my $color = shift;
 	my $result = shift;
 	my $cursor = shift;
@@ -305,11 +310,11 @@ sub ptr_r {
 		# The string should can cover all of the time string
 		print("\n\e[1A\e[K");  # Avoid user push any key when job is running
 		printf("\e[1A\e[${casename_width}C\e[K%-18s\n", $result) if ($cursor == 0);
-		printf("\e[2A\e[${casename_width}C\e[K%-18s\n\n", $result) if ($cursor == 1);
+		printf("\e[${casename_width}C\e[K%-18s\n", $result) if ($cursor == 1);
         	color ("reset");
 	}
 	else{
-		printf("%-18s", "$result\n");
+		printf("%s ... ... %s", $case,  "$result\n");
 	}
 }
 
@@ -377,22 +382,23 @@ sub process_stop {
 		if("$key" eq "$current_case") {
 			if(($fail == 0) && ($skip == 0) && ($internal_err == 0)) {
 				if ($ENV{RUNIN_VERBOSE}){
-					ptr_r("fgreen", "PASS", 1);
+					ptr_r($key, "fgreen", "PASS", 1);
 				}else {
-					ptr_r("fgreen", "PASS", 0);
+					ptr_r($key, "fgreen", "PASS", 0);
 				}
 			}
 			if(($fail == 0) && ($internal_err == 0) && ($skip != 0)){
-				ptr_r("fyellow", "SKIP", 1);
+				ptr_r($key, "fyellow", "SKIP", 1);
 			}
 			if(($internal_err != 0) || ($fail != 0)){
-				ptr_r("fred", "FAIL", 1);
+				ptr_r($key, "fred", "FAIL", 1);
 			}
 		}
 	} else {
 		# no result, some error occured
-		ptr_r("fred", "FAIL" , 0) if("$key" eq "$current_case");
+		print("\e[1A\e[${casename_width}C\e[K\n");
 		warn ("    Test result inconclusive for $key, no results found\n");
+		ptr_r($key, "fred", "FAIL" , 1) if("$key" eq "$current_case");
 	}
 	
 	if (defined($test_results{$key}->[0])) {
@@ -1235,6 +1241,7 @@ sub main {
 	# get the width of console for output the test name and test status 
 	$opt_width = `stty size 2>/dev/null | cut -d' ' -f2`;
 	$process_foreground = process_fb($$);
+	$ENV{PROCESSFOREGROUND} = $process_foreground;
 
 	if (!$opt_width or $opt_width eq ""){
         	$opt_width = 80;
