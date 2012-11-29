@@ -571,7 +571,6 @@ sub wait_on_tests {
 
 	#find the processtree of pid
 	if($waitfor) {
-		sleep 3;
 		my $cmd = q^ |sed 's/`\||\|+/#/g'|awk -F# '{if($2~/([0-9]+)/){gsub(/.*\(/,"",$2);gsub(/\).*/,"",$2);printf $2" " }}'^;
 		$cmd = "pstree -Acp $waitfor" . $cmd;
 		my $sub_pids=`$cmd`; 
