@@ -62,6 +62,9 @@ if ($config->authentication->use) {
 		header ("Location: index.php");
 		exit ();
 	}
+} else {
+	foreach($machines as $machine)
+		$machine_names[] = array( $machine->get_id(), $machine->get_hostname() );
 }
 
 #print "<pre>\n"; 
