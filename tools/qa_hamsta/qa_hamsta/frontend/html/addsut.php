@@ -24,7 +24,7 @@
  */
 
 if (!defined('HAMSTA_FRONTEND')) {
-	$go = 'send_job';
+	$go = 'addsut';
 	return require("index.php");
 }
 

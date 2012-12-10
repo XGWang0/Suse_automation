@@ -182,6 +182,7 @@ tsRegister();
 <select name="action">
 <!--  <option value="">No action</option> -->
   <option value="send_job">Send job</option>
+  <option value="addsut">Add SUT</option>
   <option value="edit">Edit/reserve</option>
   <option value="reinstall">Reinstall</option> 
   <option value="create_group">Add to group</option>

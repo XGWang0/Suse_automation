@@ -44,6 +44,7 @@ function checkemail(emailvalue)
 
 function checkcheckbox(which){
 	var ckpass=false
+	if (which.action.options[which.action.selectedIndex].value == "addsut") return true;
 	for (i=0;i<which.length;i++) {
                 var tempobj=which.elements[i]
                 if (tempobj.type=="checkbox" && tempobj.checked) {
