@@ -67,9 +67,8 @@ if (request_str("proceed")) {
 
 	# Check for errors
 	$errors = array();
-
 	# Processing the job
-	$cmd = "sshpass -p \"novell\" ssh -o StrictHostKeyChecking=no root@147.2.207.184 ";
+	$cmd = "sshpass -p \"$rootpwd\" ssh -o StrictHostKeyChecking=no root@$sutname ";
 	$mycmd = $cmd . "\"grep -qi openSUSE /etc/issue\"";
 	system($mycmd, $ret);
 	if ($ret != 0) { //SLE
@@ -84,25 +83,39 @@ if (request_str("proceed")) {
 			$repo .= $OSVer;
 		}
 	} else {
+		$repo = "openSUSE_";
 		$mycmd = $cmd . "\"cat /etc/SuSE-release | grep -i VERSION | sed -e 's/[A-Za-z =]//g'\"";
 		$OSVer = system($mycmd);
 		$repo .= $OSVer;
 	}
 	$repo_url = "http://dist.ext.suse.de/ibs/QA:/Head:/Devel/" . $repos[$repo] . "/";
-	$mycmd = $cmd . " zypper --no-gpg-checks -n ar $repo_url hamsta";
+	$mycmd = $cmd . " zypper --no-gpg-checks -n ar $repo_url hamsta 1>/dev/null";
 	system($mycmd, $ret);
 	if ($ret != 0) {
 		$errors["repo_add"] = "Cannot add hamsta repo as $repo_url to SUT.";
 	}
-	$mycmd = $cmd . " zypper in -y qa_hamsta";
+	$mycmd = $cmd . " zypper --gpg-auto-import-keys in -y qa_hamsta 1>/dev/null";
 	system($mycmd, $ret);
 	if ($ret != 0) {
 		$errors["hamsta_inst"] = "qa_hamsta cannot be added to SUT.";
 	}
-	
+	$mycmd = $cmd . " /usr/share/qa/tools/get_net_addr.pl";
+	$sut_net_addr = system($mycmd);
+	if ( $sut_net_addr != system("/usr/share/qa/tools/get_net_addr.pl") ) {
+		$master_ip = $_SERVER['SERVER_ADDR'];
+		$mycmd =$cmd . "\"sed -i s/hamsta_multicast_address=\'239.192.10.10\'/hamsta_multicast_address=\'$master_ip\'/ /etc/qa/00-hamsta-common-default\"";
+		system($mycmd, $ret);
+		if ($ret != 0) {
+			$errors["unicast"] = "config unicast failed.";
+		}
+	}
+	$mycmd = $cmd . "rchamsta start";
+	system($mycmd, $ret);
+	if ($ret != 0) {
+		$errors["hamsta_start"] = "Cannot start hamsta service on SUT.";
+	}
 	if (count($errors)==0) {
 		# deploy multicast
-		
 	} else {
 		$_SESSION['message'] = implode("\n", $errors);
 		$_SESSION['mtype'] = "fail";
