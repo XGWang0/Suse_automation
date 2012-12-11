@@ -33,8 +33,17 @@ use XML::Simple;
 use hwinfo_xml_sql;
 use threads;
 
+use Config::IniFiles;
 use qaconfig;
 require sql;
+
+# Usual location of the Hamsta front-end configuration file
+
+# pkacer@suse.com: TODO This should not be hard-coded but I have no
+# idea where to put this, yet. Perhaps it would be better if requried
+# values were moved to the general configuration. For now it would be
+# duplication.
+my $config_file_path = "/srv/www/htdocs/hamsta/config.ini";
 
 # Master->command_line_server()
 # 
@@ -402,7 +411,7 @@ sub list_testcases() {
       print $sock_handle "not support for the type * $jobtype *\n";
       return;
     }
-    
+
     my $return="";
     if($jobtype==1) {
     #for predefine job
@@ -414,41 +423,33 @@ sub list_testcases() {
     return;
     }
 
-    if($jobtype==2) {
-    #for qa package job
-    print $sock_handle "----QA package job list----\n";
-    my $rs=0;
-    open my $tmpfh,"/srv/www/htdocs/hamsta/config.php" || (print $sock_handle "can't open config file\n" and return);
-    while(my $qa_p=<$tmpfh>){
-      next unless($qa_p =~ /TSLIST/);
-      $qa_p =~ s/.*,\s*\"//;
-      $qa_p =~ s/\".*//;
-      map { $rs++;$return.="$_ ";$return.="\n" if($rs%4==0) } split /\s+/,$qa_p;
-      last;
+    if ($jobtype==2) {
+	#for qa package job
+	print $sock_handle "----QA package job list----\n";
+	my $rs=0;
+	# Read Hamsta front-end config file
+	my $cfg = Config::IniFiles->new ( -file => $config_file_path, -default => "production" );
+	print $sock_handle "Command not completed.\nUnable to read config file '$config_file_path'.\n" and return unless $cfg;
+	# Get list of packages
+	my $tslist = $cfg->val ('production', 'lists.tslist');
+	# Make it nicer for printing
+	map { $rs++; $return.="$_ "; $return.="\n" if($rs % 4 == 0) } split /\s+/, $tslist;
+	print $sock_handle $return;
+	return;
     }
-    close $tmpfh;
-    print $sock_handle $return;
-    return;
-    
 
-
-    }
     if($jobtype==3) {
-    #for autotest job
-    print $sock_handle "----Autotest job list----\n";
-    my $rs=0;
-    open my $tmpfh,"/srv/www/htdocs/hamsta/config.php" || (print $sock_handle "can't open config file\n" and return);
-    while(my $qa_p=<$tmpfh>){
-      next unless($qa_p =~ /ATLIST/);
-      $qa_p =~ s/.*,\s*\"//;
-      $qa_p =~ s/\".*//;
-      map { $rs++;$return.="$_ ";$return.="\n" if($rs%4==0) } split /\s+/,$qa_p;
-      last;
-    }
-    close $tmpfh;
-    print $sock_handle $return;
-    return;
-
+	#for autotest job
+	print $sock_handle "----Autotest job list----\n";
+	my $rs=0;
+	# Read Hamsta front-end config file
+	my $cfg = Config::IniFiles->new ( -file => $config_file_path, -default => "production" );
+	print $sock_handle "Command not completed.\nUnable to read config file '$config_file_path'.\n" and return unless $cfg;
+	# Get list of packages
+	my $atlist = $cfg->val ('production', 'lists.atlist');
+	map { $rs++; $return.="$_ "; $return.="\n" if($rs % 4 == 0) } split /\s+/, $atlist_p;
+	print $sock_handle $return;
+	return;
     }
 	
    if($jobtype==4) {
@@ -466,8 +467,6 @@ sub list_testcases() {
     return;
     } 
     
-
-
 }
 sub send_predefine_job_to_host() {
     my $sock_handle = shift @_; 
