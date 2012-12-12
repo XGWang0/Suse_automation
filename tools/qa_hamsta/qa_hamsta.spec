@@ -348,7 +348,7 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %defattr(-, root, root)
 %{webdir}
 %attr(-,wwwrun,www) %{webdir}/profiles
-%config(noreplace) %{webdir}/config.php
+#%config(noreplace) %{webdir}/config.php
 %config(noreplace) %{webdir}/config.ini
 %dir %{destdir}
 
@@ -381,6 +381,7 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %changelog
 * Tue Dec 11 2012 pkacer@suse.com
 - Added dependency on perl-Config-IniFiles and fixed command line to read ini file.
+- Removed config.php file.
 * Mon Nov  5 2012 pkacer@suse.com
 - Changed the configuration to be read only from config.ini file.
 * Fri Aug 31 2012 pkacer@suse.com
