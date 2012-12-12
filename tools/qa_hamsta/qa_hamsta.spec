@@ -44,9 +44,9 @@ Source3:	qa_hamsta.8
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 %if 0%{?sles_version} == 9
-Requires:       perl perl-Net-Server perl-URI perl-XML-Dumper perl-IO-Socket-Multicast perl-Proc-Fork perl-XML-Simple qa_tools qa_libperl hamsta-common hamsta-cmdline screen 
+Requires:       perl perl-Net-Server perl-URI perl-XML-Dumper perl-IO-Socket-Multicast perl-Proc-Fork perl-XML-Simple qa_tools qa_libperl hamsta-common hamsta-cmdline screen
 %else
-Requires:       perl perl-Net-Server perl-URI perl-XML-Dumper perl-IO-Socket-Multicast perl-Proc-Fork perl-XML-Simple qa_tools qa_libperl hamsta-common
+Requires:       perl perl-Net-Server perl-URI perl-XML-Dumper perl-IO-Socket-Multicast perl-Proc-Fork perl-XML-Simple perl-Config-IniFiles qa_tools qa_libperl hamsta-common
 Recommends:	hamsta-cmdline screen
 %endif
 Provides:	hamsta
@@ -78,7 +78,7 @@ Group:          System/Management
 %if 0%{?sles_version} == 9
 Requires:       perl perl-DBD-mysql perl-IO-Socket-Multicast perl-XML-Dumper perl-XML-Simple perl-Proc-Fork perl-MIME-Lite screen hamsta-cmdline hamsta-jobs qa_libperl perl-URI
 %else
-Requires:       perl perl-DBD-mysql perl-IO-Socket-Multicast perl-XML-Dumper perl-XML-Simple perl-Proc-Fork perl-MIME-Lite screen hamsta-jobs qa_libperl hamsta-common perl-URI
+Requires:       perl perl-DBD-mysql perl-IO-Socket-Multicast perl-XML-Dumper perl-XML-Simple perl-Proc-Fork perl-MIME-Lite screen hamsta-jobs qa_libperl hamsta-common perl-URI perl-Config-IniFiles
 Recommends:	hamsta-cmdline
 %endif
 Provides:	hamsta-master
@@ -348,7 +348,7 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %defattr(-, root, root)
 %{webdir}
 %attr(-,wwwrun,www) %{webdir}/profiles
-%config(noreplace) %{webdir}/config.php
+#%config(noreplace) %{webdir}/config.php
 %config(noreplace) %{webdir}/config.ini
 %dir %{destdir}
 
@@ -379,6 +379,9 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %{confdir}/00-hamsta-common-default
 
 %changelog
+* Tue Dec 11 2012 pkacer@suse.com
+- Added dependency on perl-Config-IniFiles and fixed command line to read ini file.
+- Removed config.php file.
 * Mon Nov  5 2012 pkacer@suse.com
 - Changed the configuration to be read only from config.ini file.
 * Fri Aug 31 2012 pkacer@suse.com

@@ -308,7 +308,7 @@ sub config_get_last # machine_id
 ### group functions
 
 sub group_list_status($) # group_id
-{	return $dbc->matrix_query('SELECT name,machine_status FROM machine JOIN group_machine USING(machine_id) JOIN machine_status USING(machine_status_id WHERE group_id=?',$_[0]);	}
+{	return $dbc->matrix_query('SELECT name, machine_status FROM machine NATURAL JOIN group_machine NATURAL JOIN machine_status WHERE group_id=?',$_[0]);	}
 
 sub group_list_ip($) # group_id
 {	return $dbc->vector_query('SELECT ip FROM machine JOIN group_machine USING(machine_id) WHERE group_id=?',$_[0]);	}
