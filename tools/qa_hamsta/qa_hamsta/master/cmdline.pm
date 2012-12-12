@@ -447,7 +447,7 @@ sub list_testcases() {
 	print $sock_handle "Command not completed.\nUnable to read config file '$config_file_path'.\n" and return unless $cfg;
 	# Get list of packages
 	my $atlist = $cfg->val ('production', 'lists.atlist');
-	map { $rs++; $return.="$_ "; $return.="\n" if($rs % 4 == 0) } split /\s+/, $atlist_p;
+	map { $rs++; $return.="$_ "; $return.="\n" if($rs % 4 == 0) } split /\s+/, $atlist;
 	print $sock_handle $return;
 	return;
     }
