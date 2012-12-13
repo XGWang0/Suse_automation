@@ -97,6 +97,9 @@ if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
 	   case "upgrade":
 			$go = "upgrade";
 			return require("inc/upgrade.php");
+	   case "addsut":
+			$go = "addsut";
+			return require("inc/addsut.php");
 	}
 
 	$searched_fields = array();

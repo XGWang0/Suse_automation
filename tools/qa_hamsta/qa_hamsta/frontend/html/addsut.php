@@ -39,10 +39,6 @@ if (User::isLogged())
   <tr>
     <td>Provide the machine's IP or hostname:</td>
     <td>
-      <select name="hostnametype" id="hostnametype">
-        <option value="ip" selected="selected">IP Address</option>
-        <option value="hostname">hostname</option>
-      </select>&nbsp;&nbsp;
       <input type="text" name="sutname" id="sutname" /><span class="required">*</span></td>
   </tr>
   <tr>

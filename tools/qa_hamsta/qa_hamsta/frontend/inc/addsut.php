@@ -46,7 +46,7 @@ if (request_str("proceed")) {
 	//$hostnametype = request_str("hostnametype");
 	$sutname = request_str("sutname");
 	$rootpwd = request_str("rootpwd");
-
+	$conn_type = 'multicast';
 	$repos = array(
 			"SLE_10_SP1" => "SLE_10_SP1_Head",
 			"SLE_10_SP2" => "SLE_10_SP2_Head",
@@ -105,6 +105,7 @@ if (request_str("proceed")) {
 		$master_ip = $_SERVER['SERVER_ADDR'];
 		$mycmd =$cmd . "\"sed -i s/hamsta_multicast_address=\'239.192.10.10\'/hamsta_multicast_address=\'$master_ip\'/ /etc/qa/00-hamsta-common-default\"";
 		system($mycmd, $ret);
+		$conn_type = 'unicast';
 		if ($ret != 0) {
 			$errors["unicast"] = "config unicast failed.";
 		}
@@ -115,7 +116,8 @@ if (request_str("proceed")) {
 		$errors["hamsta_start"] = "Cannot start hamsta service on SUT.";
 	}
 	if (count($errors)==0) {
-		# deploy multicast
+		$_SESSION['message'] = "$sutname is connected by $conn_type";
+		$_SESSION['mtype'] = "success";
 	} else {
 		$_SESSION['message'] = implode("\n", $errors);
 		$_SESSION['mtype'] = "fail";
