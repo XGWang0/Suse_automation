@@ -46,6 +46,7 @@ if (request_str("proceed")) {
 	//$hostnametype = request_str("hostnametype");
 	$sutname = request_str("sutname");
 	$rootpwd = request_str("rootpwd");
+	$mailto = request_str("mailto");
 	$conn_type = 'multicast';
 	$repos = array(
 			"SLE_10_SP1" => "SLE_10_SP1_Head",
@@ -101,8 +102,8 @@ if (request_str("proceed")) {
 	}
 	$mycmd = $cmd . " /usr/share/qa/tools/get_net_addr.pl";
 	$sut_net_addr = system($mycmd);
+	$master_ip = $_SERVER['SERVER_ADDR'];
 	if ( $sut_net_addr != system("/usr/share/qa/tools/get_net_addr.pl") ) {
-		$master_ip = $_SERVER['SERVER_ADDR'];
 		$mycmd =$cmd . "\"sed -i s/hamsta_multicast_address=\'239.192.10.10\'/hamsta_multicast_address=\'$master_ip\'/ /etc/qa/00-hamsta-common-default\"";
 		system($mycmd, $ret);
 		$conn_type = 'unicast';
@@ -118,10 +119,14 @@ if (request_str("proceed")) {
 	if (count($errors)==0) {
 		$_SESSION['message'] = "$sutname is connected by $conn_type";
 		$_SESSION['mtype'] = "success";
+		$mailsub = "\"Add SUT:$sutname to master:$master_ip success\"";
 	} else {
 		$_SESSION['message'] = implode("\n", $errors);
 		$_SESSION['mtype'] = "fail";
+		$mailsub = "\"Add SUT:$sutname to master:$master_ip failed\"";
 	}
+	$mailtext = "\"".$_SESSION['message']."\"";
+	system("echo $mailtext | mailx $mailto -s $mailsub -r hamsta-master@suse.de");
 }
 $html_title = "Add_SUT";
 ?>
