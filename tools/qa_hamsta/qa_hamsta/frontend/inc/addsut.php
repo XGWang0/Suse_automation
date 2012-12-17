@@ -125,8 +125,10 @@ if (request_str("proceed")) {
 		$_SESSION['mtype'] = "fail";
 		$mailsub = "\"Add SUT:$sutname to master:$master_ip failed\"";
 	}
-	$mailtext = "\"".$_SESSION['message']."\"";
-	system("echo $mailtext | mailx $mailto -s $mailsub -r hamsta-master@suse.de");
+	if (!empty($mailto)) {
+		$mailtext = "\"".$_SESSION['message']."\"";
+		system("echo $mailtext | mailx $mailto -s $mailsub -r hamsta-master@suse.de");
+	}
 }
 $html_title = "Add_SUT";
 ?>
