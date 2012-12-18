@@ -345,7 +345,7 @@ function power_virsh($powerswitch, $powerslot, $action) {
 
 	$virsh_domain_array = preg_split('/-/', $powerslot, '2');
 
-	if(sizeof($virsh_domain_array) == "2") {
+	if(sizeof($virsh_domain_array) >= "2") {
 		$virsh_scheme = $virsh_domain_array[0];
 		$virsh_domain = $virsh_domain_array[1];
 	}
