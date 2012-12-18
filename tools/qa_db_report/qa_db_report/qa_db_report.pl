@@ -168,6 +168,7 @@ print
 "	-D	No writing to the database\n",
 "	-A	Do not scp the submitted data to the archive\n",
 "	-C	commit after every TCF is inserted\n",
+"	-X	output XML format result in /tmp\n",
 "\n",
 "	PRODUCT:	e.g. SLES-10-beta1 | SLES-9-SP4-RC1\n",
 "	ARCH:		QADB architecture, e.g. i586,ia64,x86_64,ppc,ppc64,s390x,xen0-*...\n",
