@@ -3,4 +3,4 @@ ALTER TABLE `tester`
 	ADD COLUMN `ext_ident` varchar(255) COMMENT 'External identifier',
 	ADD COLUMN `name` varchar(100) COMMENT 'Name of the tester',
 	ADD COLUMN `email` varchar(80) COMMENT 'Email contact',
-	ADD COLUMN `password` varchar(60) NOT NULL COMMENT 'Testers password';
+	ADD COLUMN `password` varchar(60) COMMENT 'Testers password';
