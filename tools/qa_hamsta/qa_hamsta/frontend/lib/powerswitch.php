@@ -354,11 +354,36 @@ function power_virsh($powerswitch, $powerslot, $action) {
 		return "powerslot_description_error";
 
 	function virsh_command($virsh_user, $virsh_password, $virsh_host, $virsh_scheme, $virsh_domain, $command) {
-		
-		if ($virsh_password == NULL)
-			$virsh_command = "virsh -c ".$virsh_scheme."+ssh://".$virsh_user."@".$virsh_host." ".$command." ".$virsh_domain;
-		else 
-			$virsh_command = "sshpass -p ".$virsh_password." virsh -c ".$virsh_scheme."+ssh://".$virsh_user."@".$virsh_host." ".$command." ".$virsh_domain;
+
+		/*
+		 * If no password is provided, we do not use sshpass as wrapper, however if ssh keys are not in use we will fail.
+		 *
+		 */
+
+		if ($virsh_password ==NULL)
+			$sshpass = NULL;
+		else
+			$sshpass = "sshpass -p";
+
+		if ($virsh_scheme == "qemu")
+			
+			/*
+			 * For qemu, commad looks like
+			 * virsh -c qemu+ssh://user@host/system dominfo virtual_machine_id
+			 *
+			 */
+
+			$virsh_command = $sshpass." ".$virsh_password." virsh -c ".$virsh_scheme."+ssh://".$virsh_user."@".$virsh_host."/system ".$command." ".$virsh_domain;
+
+		else if ($virsh_scheme == "xen")
+
+			/*
+			 * For xen, command looks like
+			 * virsh -c xen+ssh://user@host dominfo virtual_machine_id
+			 *
+			 */
+
+			$virsh_command = $sshpass." ".$virsh_password." virsh -c ".$virsh_scheme."+ssh://".$virsh_user."@".$virsh_host." ".$command." ".$virsh_domain;
 		
 		exec($virsh_command, $result );
 		$result = implode($result);
