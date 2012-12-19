@@ -204,8 +204,17 @@ $hamstaVersion = htmlspecialchars(`rpm -q qa_hamsta-master`);
  * so the command is run only once later.
  *
  * This should be one of 'cz', 'us', 'cn' or 'de' from the global
- * configuration files. */
+ * configuration files.
+ *
+ * The default should be 'production'.
+ */
 $configuration_group = exec ("/usr/share/qa/tools/location.pl");
+
+/* If the location is not detected by the script, use the default one. */
+if (! isset ($configuration_group) || strcmp($configuration_group, "(unknown)") == 0)
+{
+	$configuration_group = 'production';
+}
 
 require_once ('lib/ConfigFactory.php');
 /*
@@ -221,8 +230,6 @@ require_once ('lib/ConfigFactory.php');
  * directory as config.ini file.
  */
 $config = ConfigFactory::build ("Ini", dirname(__FILE__) . '/config.ini',
-				(isset ($configuration_group)
-				 ? $configuration_group
-				 : 'production'));
+				  $configuration_group);
 
 ?>
