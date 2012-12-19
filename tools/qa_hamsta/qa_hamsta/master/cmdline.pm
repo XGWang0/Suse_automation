@@ -33,8 +33,17 @@ use XML::Simple;
 use hwinfo_xml_sql;
 use threads;
 
+use Config::IniFiles;
 use qaconfig;
 require sql;
+
+# Usual location of the Hamsta front-end configuration file
+
+# pkacer@suse.com: TODO This should not be hard-coded but I have no
+# idea where to put this, yet. Perhaps it would be better if requried
+# values were moved to the general configuration. For now it would be
+# duplication.
+my $config_file_path = "/srv/www/htdocs/hamsta/config.ini";
 
 # Master->command_line_server()
 # 
@@ -114,29 +123,27 @@ sub parse_cmd() {
     my $sock_handle = shift @_;
 
     switch ($cmd) {
-        case /^print active/ 	    { &cmd_print_active($sock_handle); }
-#        case /^which job where/		{ &which_job_where(); }
-#        case /^search hardware/		{ &which_hardware_where($sock_handle, $cmd); }
-        case /^print groups/	 	{ &cmd_print_groups($sock_handle, $cmd); }
+        case /^(print|list) active/     { &cmd_print_active($sock_handle); }
+#        case /^which job where/    	{ &which_job_where(); }
+#        case /^search hardware/	{ &which_hardware_where($sock_handle, $cmd); }
+        case /^(print|list) groups/ 	{ &cmd_print_groups($sock_handle, $cmd); }
 #        case /^group add host/		{ &group_add_host($sock_handle, $cmd); } 
 #        case /^group del host/		{ &group_delete_host($sock_handle, $cmd); }
-#        case /^group_add/			{ &create_group($sock_handle, $cmd); }
-#        case /^group_del/			{ &delete_group($sock_handle, $cmd); }
+#        case /^group_add/		{ &create_group($sock_handle, $cmd); }
+#        case /^group_del/		{ &delete_group($sock_handle, $cmd); }
 #        case /^send job group/		{ &send_job_to_group($sock_handle, $cmd); }
-        case /^send job ip/			{ &send_job_to_host($sock_handle, $cmd); }
-        case /^send qa_predefine_job/			{ &send_predefine_job_to_host($sock_handle, $cmd); }
-        case /^send qa_package_job ip/			{ &send_qa_package_job_to_host($sock_handle, $cmd); }
-        case /^send autotest_job ip/			{ &send_autotest_job_to_host($sock_handle, $cmd); }
-        case /^send multi_job /			{ &send_multi_job_to_host($sock_handle, $cmd); }
-        case /^send xen set ip/			{ &send_xen_set_to_host($sock_handle, $cmd); }
-        case /^send reinstall ip/		{ &send_re_job_to_host($sock_handle, $cmd); }
-        case /^send one line cmd ip/		{ &send_line_job_to_host($sock_handle, $cmd); }
+        case /^send job ip/		{ &send_job_to_host($sock_handle, $cmd); }
+        case /^send qa_predefine_job/	{ &send_predefine_job_to_host($sock_handle, $cmd); }
+        case /^send qa_package_job ip/	{ &send_qa_package_job_to_host($sock_handle, $cmd); }
+        case /^send autotest_job ip/	{ &send_autotest_job_to_host($sock_handle, $cmd); }
+        case /^send multi_job /		{ &send_multi_job_to_host($sock_handle, $cmd); }
+        case /^send xen set ip/		{ &send_xen_set_to_host($sock_handle, $cmd); }
+        case /^send reinstall ip/	{ &send_re_job_to_host($sock_handle, $cmd); }
+        case /^send one line cmd ip/	{ &send_line_job_to_host($sock_handle, $cmd); }
         case /^send job anywhere/	{ $cmd =~ s/anywhere/ip none/; &send_job_to_host($sock_handle, $cmd); }
-	case /^list jobtype/		{ &list_testcases($sock_handle,$cmd); }
-
-
-        case /^help/			    { &cmd_help($sock_handle); }
-        else 			{ 
+	case /^(print|list) jobtype/	{ &list_testcases($sock_handle,$cmd); }
+        case /^help/			{ &cmd_help($sock_handle); }
+        else {
             if ($cmd eq '') {
                 print $sock_handle "no command entered, try >help< \n"; 
             } else {
@@ -154,27 +161,27 @@ sub cmd_help() {
     my $sock_handle = shift @_;
     select ($sock_handle);
 
-    print "Following commands are implemented: \n";
-    print "syntax = 'command' : explaination \n ";
-    print "\t 'print active' : prints all reachable hosts \n";
-    print "\t 'search hardware <perl-pattern (Regular Expression) oder string>' : prints all hosts which hwinfo-output matches the desired string/pattern \n";
+    print "Following commands are available. 'list' can be used instead of 'print'.\n";
+    print "syntax = 'command' : explanation \n ";
+    print "\t 'print active' : prints reachable hosts \n";
+#    print "\t 'search hardware <perl-pattern (Regular Expression) oder string>' : prints all hosts which hwinfo-output matches the desired string/pattern \n";
     print "\t 'save groups to </path/file>' : save (dumps) the groups as XML in the specific file (relativ to Master root-directory) \n";
     print "\t 'load groups from </path/file>' : loads the specified XML-groups-file \n";
     print "\t 'print groups' : prints groups (from SQL) \n";
-    print "\t 'group_add <name>' : creates a new group \n";
-    print "\t 'group_del <name>' : be aware, deletes group (with all members)  \n";
-    print "\t 'group add host <group> <IP>' : adds <IP> to the group, no wildcards (atm.) \n";
-    print "\t 'group del host <group> <IP>' : removes <IP> from the group, no wildcards (atm.) \n";
-    print "\t 'send job group <group> <file>' : submits the job to all members in the group  \n";
+#    print "\t 'group_add <name>' : creates a new group \n";
+#    print "\t 'group_del <name>' : be aware, deletes group (with all members)  \n";
+#    print "\t 'group add host <group> <IP>' : adds <IP> to the group, no wildcards (atm.) \n";
+#    print "\t 'group del host <group> <IP>' : removes <IP> from the group, no wildcards (atm.) \n";
+#    print "\t 'send job group <group> <file>' : submits the job to all members in the group  \n";
     print "\t 'send job ip <IP> <file>' : submits the job to the IP  \n";
     print "\t 'send qa_package_job ip <IP> <PACKAGE NAME> <Email> <Tag>' : submits the job to the IP  \n";
     print "\t 'send xen set ip <IP> <Tag>' : submits the job to the IP  \n";
     print "\t 'send reinstall ip <IP> <Reinstall_repo> <Email> <Tag> ' : submits the reinstall job to the IP  \n";
     print "\t 'send one line cmd ip <IP> <cmd> <Email> <Tag>' : submits the one line job to the IP (replace space with # in cmd)  \n";
+    print "\t 'send job anywhere <file>' : submits the job to one of the available machines \n";
+    print "\t 'print jobtype <number>' : lists available jobs of the given type (1 - pre-defined jobs, 2 - qa-package jobs, 3 - autotest jobs, 4 - multi-machine jobs) \n";
     print "\n end of help \n";
-
 }
-
 
 # Master->cmd_print_active
 # 
@@ -185,28 +192,30 @@ sub cmd_print_active()  {
     my $machines = &machine_search('fields'=>[qw(ip name description)],'return'=>'matrix','machine_status_id'=>MS_UP);
 
     foreach my $machine (@$machines) {
-        print $sock_handle "IP: ".$machine->[0]."\t".$machine->[1].":\t".$machine->[2]."\n";
+        printf $sock_handle "IP: %15s %10s: %s\n", $machine->[0], $machine->[1], $machine->[2];
     }
 }
 
 sub cmd_print_groups() {
     my $sock_handle = shift @_;
-    
-    my @groups = $dbc->enum_list_vals('group');
+    my @groups = $dbc->enum_list_vals ('group');
+    local $" = ", "; # Use this to interpolate list values
+    print $sock_handle "There are following groups: @groups.\nEmpty groups are not listed below.\n\n";
     foreach my $group (@groups) {
-        print $sock_handle $group->[0] . ": ";
-
-	my $group_id = $dbc->enum_get_id('group',$group->[0]);
-	unless( $group_id )
-	{	print $sock_handle "Unknown group ".$group->[0]."\n";	}
-	else
-	{
-		my $data = &group_list_status($group->[0]);
-		foreach my $row(@$data)
-		{	print $sock_handle, join("\t",@$row);	}
+	my $group_id = $dbc->enum_get_id ('group', $group);
+	unless (defined ($group_id)) {
+	    print $sock_handle "Oops, the group '${$group}' has been probably deleted.";
+	} else {
+	    my $data = group_list_status ($group_id);
+	    if ((scalar @$data) > 0) {
+		print $sock_handle "${group}: ";
+		foreach my $row (@$data) {
+		    # Output: machine_name (machine_status)
+		    print $sock_handle "@{$row}[0] (@{$row}[1]) ";
+		}
+		print $sock_handle "\n";
+	    }
         }
-
-        print $sock_handle "\n";
     }
 }
 
@@ -402,7 +411,7 @@ sub list_testcases() {
       print $sock_handle "not support for the type * $jobtype *\n";
       return;
     }
-    
+
     my $return="";
     if($jobtype==1) {
     #for predefine job
@@ -414,41 +423,33 @@ sub list_testcases() {
     return;
     }
 
-    if($jobtype==2) {
-    #for qa package job
-    print $sock_handle "----QA package job list----\n";
-    my $rs=0;
-    open my $tmpfh,"/srv/www/htdocs/hamsta/config.php" || (print $sock_handle "can't open config file\n" and return);
-    while(my $qa_p=<$tmpfh>){
-      next unless($qa_p =~ /TSLIST/);
-      $qa_p =~ s/.*,\s*\"//;
-      $qa_p =~ s/\".*//;
-      map { $rs++;$return.="$_ ";$return.="\n" if($rs%4==0) } split /\s+/,$qa_p;
-      last;
+    if ($jobtype==2) {
+	#for qa package job
+	print $sock_handle "----QA package job list----\n";
+	my $rs=0;
+	# Read Hamsta front-end config file
+	my $cfg = Config::IniFiles->new ( -file => $config_file_path, -default => "production" );
+	print $sock_handle "Command not completed.\nUnable to read config file '$config_file_path'.\n" and return unless $cfg;
+	# Get list of packages
+	my $tslist = $cfg->val ('production', 'lists.tslist');
+	# Make it nicer for printing
+	map { $rs++; $return.="$_ "; $return.="\n" if($rs % 4 == 0) } split /\s+/, $tslist;
+	print $sock_handle $return;
+	return;
     }
-    close $tmpfh;
-    print $sock_handle $return;
-    return;
-    
 
-
-    }
     if($jobtype==3) {
-    #for autotest job
-    print $sock_handle "----Autotest job list----\n";
-    my $rs=0;
-    open my $tmpfh,"/srv/www/htdocs/hamsta/config.php" || (print $sock_handle "can't open config file\n" and return);
-    while(my $qa_p=<$tmpfh>){
-      next unless($qa_p =~ /ATLIST/);
-      $qa_p =~ s/.*,\s*\"//;
-      $qa_p =~ s/\".*//;
-      map { $rs++;$return.="$_ ";$return.="\n" if($rs%4==0) } split /\s+/,$qa_p;
-      last;
-    }
-    close $tmpfh;
-    print $sock_handle $return;
-    return;
-
+	#for autotest job
+	print $sock_handle "----Autotest job list----\n";
+	my $rs=0;
+	# Read Hamsta front-end config file
+	my $cfg = Config::IniFiles->new ( -file => $config_file_path, -default => "production" );
+	print $sock_handle "Command not completed.\nUnable to read config file '$config_file_path'.\n" and return unless $cfg;
+	# Get list of packages
+	my $atlist = $cfg->val ('production', 'lists.atlist');
+	map { $rs++; $return.="$_ "; $return.="\n" if($rs % 4 == 0) } split /\s+/, $atlist;
+	print $sock_handle $return;
+	return;
     }
 	
    if($jobtype==4) {
@@ -466,8 +467,6 @@ sub list_testcases() {
     return;
     } 
     
-
-
 }
 sub send_predefine_job_to_host() {
     my $sock_handle = shift @_; 

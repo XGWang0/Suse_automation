@@ -794,6 +794,9 @@ function search_user($username) {
 	return scalar_query('SELECT password FROM mysql.user WHERE user=?','s',$username);
 }
 
+function get_user_role ($username) {
+	return scalar_query ('SELECT role FROM tester NATURAL JOIN tester_role NATURAL JOIN role WHERE tester = ?;', 's', $username);
+}
 
 ###############################################################################
 # API for submission, configuration, comments etc.

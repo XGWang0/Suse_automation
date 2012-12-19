@@ -1,6 +1,10 @@
 <?php
 	//myconnect.inc.php
-if( !isset( $_SESSION['user'] ) || !isset($_SESSION['pass']) ){
+if (isset($_SESSION['role'])) {
+	$mysqluser = $_SESSION['role'];
+	$mysqlpasswd = '';
+}
+elseif( !isset( $_SESSION['user'] ) || !isset($_SESSION['pass']) ){
 	$mysqluser="qadb_guest";
 	$mysqlpasswd="";
 }

@@ -1086,7 +1086,7 @@ sub parse_control_file {
 	# so we are sure that this file will exist from the beggining
 	save_hash(\%test_results, $environment{"save_directory"}."/test_results", @test_order) or warn "Can't save test results!\n";
 
-      DATALOOP: while ($l < $#lines and $_ = $lines[$l] and not $eexit) {
+      DATALOOP: while ($l <= $#lines and $_ = $lines[$l] and not $eexit) {
 		# if we are finished with a timer, we need to skip to the next
 		# wait command.  Putting this here works because even if we are interrupted
 		# during a finished state, we are still guaranteed to resume processing
