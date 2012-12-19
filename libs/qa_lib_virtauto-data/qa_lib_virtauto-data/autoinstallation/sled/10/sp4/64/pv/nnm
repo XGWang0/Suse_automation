@@ -64,7 +64,7 @@
         <xen_append></xen_append>
       </section>
       <section>
-        <append>showopts ide=nodma apm=off acpi=off noresume nosmp noapic maxcpus=0 edd=off 3</append>
+        <append>showopts ide=nodma apm=off acpi=off noresume nosmp maxcpus=0 edd=off 3</append>
         <image>/boot/vmlinuz</image>
         <initrd>/boot/initrd</initrd>
         <kernel>/boot/vmlinuz</kernel>
