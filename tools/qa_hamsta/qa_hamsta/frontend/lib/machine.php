@@ -1955,16 +1955,31 @@ class Machine {
 	 */
 	function set($field,$value)	{
 		$type = self::$field_types[$field];
+		$retval = FALSE;
 		if( !isset($type) )
 			return null;
-		if( !($stmt = get_pdo()->prepare("UPDATE machine SET `$field`=:val WHERE machine_id=:id")) )
+		if( !($stmt = get_pdo()->prepare("UPDATE machine SET `$field` = :val WHERE machine_id = :id")) )
 			return null;
-		if( strlen($type)>1 && strlen($value)==0 )
-			$value=null;
-		$stmt->bindParam(':val',$value);
-		$stmt->bindParam(':id',$this->fields['machine_id']);
-		$this->fields[$field]=$value;
-		return $stmt->execute();
+		if( strlen($type)>1 && strlen($value)==0 ) {
+		  $value=null;
+		}
+		/* pkacer@suse.com: This fixes issue when a field
+		 * requires NULL value. For backward compatibility
+		 * some fields are not nullable, so the empty string
+		 * '' resulting from `null' is set. */
+		try {
+		  $retval = $stmt->execute (array(':val' => $value, ':id' => $this->fields['machine_id']));
+		} catch (PDOException $e) {
+		  if (is_null ($value) ) {
+		    /* There IS a difference between `null' and `NULL'. */
+		    $retval = $stmt->execute (array(':val' => NULL, ':id' => $this->fields['machine_id']));
+		  }
+		}
+
+		if ($retval) {
+		  $this->fields[$field]=$value;
+		}
+		return $retval;
 	}
 
 	/**
