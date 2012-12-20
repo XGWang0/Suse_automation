@@ -23,9 +23,9 @@ CREATE TABLE qaconf_row	(
 ) ENGINE InnoDB DEFAULT CHARSET=utf8 COMMENT 'Rows of QA configurations';
 
 ALTER TABLE machine ADD COLUMN qaconf_id INT NULL COMMENT 'QA config';
-ALTER TABLE machine ADD FOREIGN KEY fk_machine_qaconf(qaconf_id) REFERENCES qaconf(qaconf_id) ON DELETE RESTRICT;
+ALTER TABLE machine ADD CONSTRAINT fk_machine_qaconf FOREIGN KEY(qaconf_id) REFERENCES qaconf(qaconf_id) ON DELETE RESTRICT;
 ALTER TABLE `group` ADD COLUMN qaconf_id INT NULL COMMENT 'QA config';
-ALTER TABLE `group` ADD FOREIGN KEY fk_group_qaconf(qaconf_id) REFERENCES qaconf(qaconf_id) ON DELETE RESTRICT;
+ALTER TABLE `group` ADD CONSTRAINT fk_group_qaconf FOREIGN KEY(qaconf_id) REFERENCES qaconf(qaconf_id) ON DELETE RESTRICT;
 
 INSERT INTO qaconf(`desc`) VALUES('site global');
 UPDATE qaconf SET qaconf_id=0 WHERE `desc`='site global';
