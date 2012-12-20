@@ -7,7 +7,8 @@ CREATE TABLE qaconf_key	(
 
 CREATE TABLE qaconf	(
 	qaconf_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-	`desc` VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'Description of the configuration'
+	`desc` VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'Description of the configuration',
+	UNIQUE(`desc`)
 ) ENGINE InnoDB DEFAULT CHARSET=utf8 COMMENT 'Different QA configuration entities';
 
 CREATE TABLE qaconf_row	(
@@ -25,3 +26,6 @@ ALTER TABLE machine ADD COLUMN qaconf_id INT NULL COMMENT 'QA config';
 ALTER TABLE machine ADD FOREIGN KEY fk_machine_qaconf(qaconf_id) REFERENCES qaconf(qaconf_id) ON DELETE RESTRICT;
 ALTER TABLE `group` ADD COLUMN qaconf_id INT NULL COMMENT 'QA config';
 ALTER TABLE `group` ADD FOREIGN KEY fk_group_qaconf(qaconf_id) REFERENCES qaconf(qaconf_id) ON DELETE RESTRICT;
+
+INSERT INTO qaconf(`desc`) VALUES('site global');
+UPDATE qaconf SET qaconf_id=0 WHERE `desc`='site global';
