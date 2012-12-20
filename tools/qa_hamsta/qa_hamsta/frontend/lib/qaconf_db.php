@@ -2,7 +2,7 @@
 
 
 /** library functions - common DB and HTML functions */
-require_once($_SERVER['DOCUMENT_ROOT'].'/tblib/tblib.php');
+require_once('../tblib/tblib.php');
 
 if( !isset($enums) )
 	$enums=array();
