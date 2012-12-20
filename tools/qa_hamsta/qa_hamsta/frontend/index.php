@@ -110,7 +110,8 @@ $pages = array(
     "user",
     "login",
     "addsut",
-    "adminusers"
+    "adminusers",
+    "qa_netconf",
 );
 
 if (!in_array($go, $pages)) {

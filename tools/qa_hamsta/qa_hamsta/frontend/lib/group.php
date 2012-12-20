@@ -222,6 +222,15 @@ class Group {
     public function get_name() {
         return $this->fields["group"];
     }
+
+    /**
+      * Gets name of this group.
+      *
+      * @return string Name of the group.
+      **/
+    public function __toString()	{
+	    return $this->fields["group"];
+    }
     
     /**
      * Gets description of this group.
@@ -230,6 +239,29 @@ class Group {
      */
     public function get_description() {
         return $this->fields["description"];
+    }
+
+    /**
+      * Gets qaconf_id
+      * @return int qaconf_id
+      **/
+    public function get_qaconf_id() {
+	    return $this->fields["qaconf_id"];
+    }
+
+    public function set_qaconf_id($qaconf_id) {
+	if(!($stmt = get_pdo()->prepare('UPDATE `group` set qaconf_id=:qaconf_id WHERE group_id = :group_id')))	{
+		return null;
+	}
+	$stmt->bindParam(':qaconf_id', $qaconf_id);
+	$stmt->bindParam(':group_id', $this->fields["group_id"]);
+	try	{
+		$stmt->execute();
+	}
+	catch(Exception $e)	{
+		return -1;
+	}
+	$fields["qaconf_id"]=$qaconf_id;
     }
 
     /**

@@ -23,44 +23,18 @@
   ****************************************************************************
  */
 
-  /* This page uses TBLib heavily which is quite unusual to see in
-   * Hamsta code. We have decided to use TBLib for this page because
-   * of the maintenance relief for the page having the same
-   * functionality in Hamsta and QADB.
-   *
-   * Unfortunatelly this brings also all backsides of the mutual code
-   * like model dependency issues, need for more careful edits and
-   * many custom changes to the TBLib. If ever moving to more flexible
-   * Zend framework and MVC architecture these dependecies should be
-   * dropped completely.
-   */
+if (!defined('HAMSTA_FRONTEND')) {
+  $go = 'about';
+  return require("index.php");
+}
 
-/* Set some values controlling behavior of the page. */
-$header_args = array (
-		   'session' => false,
-		   'connect' => true,
-		   'icon' => null
-		   );
+$html_title = "QA network configuration";
 
-/* We do not want to print header because we would have two headers on
- * the page. */
-$print_header = false;
-
-/* Print fancy footer (only some statistics displayed). */
-$print_footer = false;
-
-/* Do not print primary keys in tables. */
-$no_table_id = true;
-
-/* Name of the page to redirect to. */
-$page = 'index.php';
-
-$page_name = 'adminusers';
-
-/* Introduced to controll the behavior of the TBLib functions for
- * Hamsta. */
-$page_url_extension = "?go=$page_name";
-
+if (User::isLogged ())	{
+    /* Name of this variable is differend due to included TBLib
+     * dependand library (frontenduser). */
+    $logged_user = User::getById (User::getIdent (), $config);
+}
 /* Yet another library using DB connection. This should be unified
  * some time. I propose some library which we do not have to
  * maintain. */
@@ -69,6 +43,30 @@ $mysqldb = $config->database->params->dbname;
 $mysqluser = $config->database->params->username;
 $mysqlpasswd = $config->database->params->password;
 
-require ('../frontenduser/useradmin.php');
+require( 'lib/qaconf_db.php' );
 
+$conn_id=connect_to_mydb();
+$step=http('step','l');
+if( $step=='list' )	{
+	header('Content-Type: text/plain');
+	$ip=http('ip',$_SERVER['REMOTE_ADDR']);
+	print "# IP address is $ip\n";
+	$configs=array(); # TODO: global, site
+	$machine=Machine::get_by_ip($ip);
+	if( $machine )	{
+		$groups=Group::get_groups_by_machine($machine);
+		foreach( array_keys($groups) as $group_id )	{
+			$group=Group::get_by_id($group_id);
+			$qaconf_id=$group->get_qaconf_id();
+			if( $qaconf_id )
+				$configs[]=$qaconf_id;
+		}
+		$qaconf_id=$machine->get('qaconf_id');
+		if( $qaconf_id )
+			$configs[]=$qaconf_id;
+	}
+	print "# qaconf_ids are: ".join(',',$configs)."\n";
+	print qaconf_format_data(qaconf_merge($configs));
+	exit;
+}
 ?>

@@ -169,6 +169,15 @@ class Machine {
 	}
 
 	/**
+	  * Alias for get_hostname()
+	  * @access public
+	  * @return string Hostname of the machine.
+	  **/
+	function __toString()	{
+		return $this->get_hostname();
+	}
+
+	/**
 	 * Gets an IP address of this machine.
 	 * 
 	 * @access public
@@ -1922,7 +1931,8 @@ class Machine {
 		'vh_id'=>'machine',
 		'reserved'=>'d',
 		'expires'=>'d',
-		'rpm_list'=>'s'
+		'rpm_list'=>'s',
+		'qaconf_id'=>'qaconf',
 	);
 
 	/**
