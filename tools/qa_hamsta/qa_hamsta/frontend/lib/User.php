@@ -255,11 +255,12 @@ class User {
    * @param \Zend_Config $config Instance of the Zend_Config class.
    * @param string $login Login of the user to the application.
    * @param string $extern_id External authentication identifier (e.g. OpenId).
+   * @param int $id Database id of the user record.
    *
    * @return string[][]|null Array of hashes or null if no user was
    * found.
    */
-  private static function getUserFields ($config, $login = null, $extern_id = null)
+  private static function getUserFields ($config, $login = null, $extern_id = null, $id = null)
   {
     $sql = 'SELECT user_id, extern_id, login, name, email FROM `user` WHERE ';
     $identifier = null;
@@ -272,6 +273,11 @@ class User {
       {
         $sql .= 'extern_id = ?';
         $identifier = $extern_id;
+      }
+    else if (isset ($id))
+      {
+	$sql .= 'user_id = ?';
+	$identifier = $id;
       }
     else
       {
@@ -301,7 +307,7 @@ class User {
    */
   public static function getByLogin ($login, $config)
   {
-    $user_fields = self::getUserFields ($config, $login, null);
+    $user_fields = self::getUserFields ($config, $login, null, null);
 
     if (isset ($user_fields))
       {
@@ -319,23 +325,30 @@ class User {
   /**
    * Returns an instance of <b>registered</b> user by external id.
    *
-   * @param int $id Id of user.
+   * @param int $id Id of user. Can be either login for password identification or 
    * @param \Zend_Config $config Application configuration.
    * 
    * @return \User|null Returns the user if she is registered.
    */
   public static function getById ($id, $config)
   {
-    switch ($config->authentication->method)
+    if (is_numeric ($id))
       {
-      case "openid":
-        $user_fields = self::getUserFields ($config, null, $id);
-        break;
-      case "password":
-        $user_fields = self::getUserFields ($config, $id, null);
-        break;
-      default:
-        return null;
+	$user_fields = self::getUserFields ($config, null, null, $id);
+      }
+    else
+      {
+	switch ($config->authentication->method)
+	  {
+	  case "openid":
+	    $user_fields = self::getUserFields ($config, null, $id, null);
+	    break;
+	  case "password":
+	    $user_fields = self::getUserFields ($config, $id, null, null);
+	    break;
+	  default:
+	    return null;
+	  }
       }
 
     if (isset ($user_fields))

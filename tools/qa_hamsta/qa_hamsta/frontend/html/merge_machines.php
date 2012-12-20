@@ -80,10 +80,14 @@ foreach( array_keys($vals) as $key )	{
                 if ( $key == 'usedby' )
                   {
                     if ( $mach_user = User::getById ($val, $config) )
-                      $val = $mach_user->getName ();
+                      $print_val = $mach_user->getLogin ();
                   }
+		else
+		  {
+		      $print_val = $val;
+		  }
 
-		print "<td>$val</td>";
+		print "<td>$print_val</td>";
 	}
 
 	# print merge column
@@ -112,7 +116,7 @@ foreach( array_keys($vals) as $key )	{
                               {
                                 if ( $mach_user = User::getById ($r, $config) )
                                   {
-                                    $rr = $mach_user->getName ();
+                                    $rr = $mach_user->getLogin ();
                                   }
                               }
 
