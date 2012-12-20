@@ -124,6 +124,7 @@ if( $step=='e' )	{
 }
 
 $what=array(
+	array('go','','qa_netconf',HIDDEN),
 	array('desc','',$desc,TEXT_ROW),
 	array('body','',$body,TEXT_AREA),
 );
