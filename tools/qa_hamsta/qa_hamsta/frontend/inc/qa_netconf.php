@@ -51,7 +51,7 @@ if( $step=='list' )	{
 	header('Content-Type: text/plain');
 	$ip=http('ip',$_SERVER['REMOTE_ADDR']);
 	print "# IP address is $ip\n";
-	$configs=array(); # TODO: global, site
+	$configs=array(0); # TODO: global
 	$machine=Machine::get_by_ip($ip);
 	if( $machine )	{
 		$groups=Group::get_groups_by_machine($machine);
