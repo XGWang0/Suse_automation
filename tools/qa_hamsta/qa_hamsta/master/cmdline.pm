@@ -34,16 +34,22 @@ use hwinfo_xml_sql;
 use threads;
 
 use Config::IniFiles;
+use Digest::SHA1 qw(sha1_hex);
 use qaconfig;
 require sql;
 
 # Usual location of the Hamsta front-end configuration file
 
 # pkacer@suse.com: TODO This should not be hard-coded but I have no
-# idea where to put this, yet. Perhaps it would be better if requried
+# idea where to put this, yet. Perhaps it would be better if required
 # values were moved to the general configuration. For now it would be
 # duplication.
 my $config_file_path = "/srv/www/htdocs/hamsta/config.ini";
+
+# Here we store user login and current role. Values should be set only
+# if the user is authenticated.
+my $user_login;
+my $user_role;
 
 # Master->command_line_server()
 # 
@@ -142,6 +148,11 @@ sub parse_cmd() {
         case /^send one line cmd ip/	{ &send_line_job_to_host($sock_handle, $cmd); }
         case /^send job anywhere/	{ $cmd =~ s/anywhere/ip none/; &send_job_to_host($sock_handle, $cmd); }
 	case /^(print|list) jobtype/	{ &list_testcases($sock_handle,$cmd); }
+	case /^log in/			{ log_in ($sock_handle, $cmd); }
+	case /^log out/			{ log_out ($sock_handle, $cmd); }
+	case /^(print|list) status/	{ print_status ($sock_handle, $cmd); }
+	case /^(print|list) roles/	{ print_roles ($sock_handle, $cmd); }
+	case /^set role/		{ set_role($sock_handle, $cmd); }
         case /^help/			{ &cmd_help($sock_handle); }
         else {
             if ($cmd eq '') {
@@ -162,7 +173,12 @@ sub cmd_help() {
     select ($sock_handle);
 
     print "Following commands are available. 'list' can be used instead of 'print'.\n";
-    print "syntax = 'command' : explanation \n ";
+    print "syntax = 'command' : explanation \n";
+    print "\t 'print status' : prints users status, reserved machines and possibly other information \n";
+    print "\t 'log in <username> <password> [<role>]' : authenticate the user (this CLI session only) optionally setting role (default 'user' is set if not provided) \n";
+    print "\t 'log out' : log out from the Hamsta \n";
+    print "\t 'print roles [<username>]' : list available roles, with username only roles for that user\n";
+    print "\t 'set role <role>' : set current (active) user role to <role> \n";
     print "\t 'print active' : prints reachable hosts \n";
 #    print "\t 'search hardware <perl-pattern (Regular Expression) oder string>' : prints all hosts which hwinfo-output matches the desired string/pattern \n";
     print "\t 'save groups to </path/file>' : save (dumps) the groups as XML in the specific file (relativ to Master root-directory) \n";
@@ -199,8 +215,8 @@ sub cmd_print_active()  {
 sub cmd_print_groups() {
     my $sock_handle = shift @_;
     my @groups = $dbc->enum_list_vals ('group');
-    local $" = ", "; # Use this to interpolate list values
-    print $sock_handle "There are following groups: @groups.\nEmpty groups are not listed below.\n\n";
+    local $" = "', '"; # Use this to interpolate list values
+    print $sock_handle "There are following groups: '@groups'.\nEmpty groups are not listed below.\n\n";
     foreach my $group (@groups) {
 	my $group_id = $dbc->enum_get_id ('group', $group);
 	unless (defined ($group_id)) {
@@ -923,8 +939,6 @@ sub send_qa_package_job_to_host () {
     my $job_id = &transation($ref,$host,$qpt_xml);
     &log(LOG_INFO,"MASTER::FUNCTIONS cmdline QA package Job send to scheduler, at $host internal id: $job_id");
     print $sock_handle "MASTER::FUNCTIONS cmdline QA package Job send to scheduler, at $host internal id: $job_id\n";
-
-
 }
 
 
@@ -1010,4 +1024,164 @@ sub nitoi(){
     }
     return $host;
 }
+
+# Checks the user exists in Hamsta and provides correct password.
+sub log_in ($$) { # socket handle, command line
+    my $sock_handle = shift;
+    # log in <login> <passwd> [<role>]
+    my @cmd = split / /, shift (@_);
+    unless (@cmd > 3) {
+	print $sock_handle "Not enough parameters. Try `help'.\n";
+	return 0;
+    }
+    my $login = $cmd[2];
+    my $passwd = $cmd[3];
+    my $role;
+    if ( @cmd > 4) {
+	$role = $cmd[4];
+    }
+    my $user_id = user_get_id ($login);
+
+    if ( defined ($user_id) ) {
+	my $db_passwd = user_get_password ($login);
+	# Sometimes we get the password sent already hashed (like from
+	# the Hamsta web)
+	if ( defined ($db_passwd)
+		 && (sha1_hex ($passwd) eq $db_passwd
+			 || $passwd eq $db_passwd) ) {
+	    my @user_roles = user_get_roles ($user_id);
+	    my $role_name = (defined ($role) ? $role : 'user');
+	    my $role_id = role_get_id ($role_name);
+	    if (! defined ($role_id)) {
+		# The requested role does not exist
+		print $sock_handle "The role '${role_name}' does not exist. You have not been logged in. Try again using existing role.\n";
+	    } elsif (! is_in_array ($role_name, @user_roles)) {
+		# User does not have this role assigned
+		print $sock_handle "The user '${login}' is not cast in the role '${role}'.\n";
+	    } else {
+		$user_login = $login;
+		$user_role = $role_name;
+		print $sock_handle "You were authenticated as '${user_login}' in role '${role_name}'. Send your commands.\n";
+		log (LOG_INFO, "The user ${$login} has logged in using role ${role}.");
+		return 1;
+	    }
+	} else {
+	    print $sock_handle "Wrong password. Try again.\n";
+	}
+    } else {
+	print $sock_handle "Unknown Hamsta user '${$login}'. Try again.\n";
+    }
+    return 0;
+}
+
+# Print status of current user, reserved machines and possibly other
+# information
+sub print_status () {
+    my $sock_handle = shift;
+    if (get_logged_status ()) {
+	print $sock_handle "You are logged in as '${user_login}' using role '${user_role}'.\n";
+	my $user_id = user_get_id ($user_login);
+	if (defined ($user_id)) {
+	    my @res_machines = user_get_reserved_machines ($user_id);
+	    local $" = "', '";
+	    print $sock_handle "You have reserved machines '@res_machines'.\n";
+	}
+    } else {
+	print $sock_handle "You have to be logged in to print your status.\n";
+    }
+}
+
+sub set_role ()
+{
+    my $sock_handle = shift;
+    my @cmd = split / /, shift (@_);
+    if (@cmd < 3) {
+	print $sock_handle "Not enough parameters. Try `help'.\n";
+	return;
+    }
+    if (!get_logged_status ()) {
+	print $sock_handle "You have to be logged in to be able to set role.\n";
+	return;
+    }
+    my $role_name = $cmd[2];
+    my $role_id;
+    $role_id = role_get_id ($role_name);
+    if (! defined ($role_id)) {
+	# The requested role does not exist
+	print $sock_handle "The role '${role_name}' does not exist. Try again using existing role.\n";
+    } else {
+	my @user_roles = user_get_roles (user_get_id($user_login));
+	if (is_in_array ($role_name, @user_roles)) {
+	    $user_role = $role_name;
+	    print $sock_handle "Your current role has been set to '${role_name}'.\n";
+	} else {
+	    print $sock_handle "You cannot be cast in the role '${role_name}'. Try 'list roles ${user_login}'.\n";
+	}
+    }
+}
+
+# With parameter prints only roles of the user, all roles otherwise
+sub print_roles () # [user_login]
+{
+    my $sock_handle = shift;
+    my @cmd = split / /, shift (@_);
+    my $login;
+    if (@cmd > 2) {
+	$login = $cmd[2];
+    }
+    local $" = "', '";
+    if (defined ($login)) {
+	my $user_id = user_get_id ($login);
+	if (defined($user_id)) {
+	    my @user_roles = user_get_roles ($user_id);
+	    print $sock_handle "Roles available to user '${login}': '@user_roles'.\n";
+	} else {
+	    print $sock_handle "Unknown user '${login}'.\n";
+	}
+    } else {
+	my @all_roles = role_list_all ();
+	print $sock_handle "Available roles: '@all_roles'.\n";
+    }
+}
+
+sub log_out () {
+    my $sock_handle = shift;
+    undef $user_login;
+    undef $user_role;
+    print $sock_handle "You have been succesfully logged out.\n";
+    return 1;
+}
+
+### Support functions for user authentication
+
+# Returns 1 when user is logged in, 0 otherwise.
+sub get_logged_status ()
+{
+    return defined ($user_login) && length ($user_login) > 0;
+}
+
+# Returns 1 if the value is in array, 0 otherwise.
+sub is_in_array ($$) # value, array
+{
+    my $val = shift;
+    my @arr = shift;
+    foreach ( @arr ) {
+	return 1 if ($_ eq $val || $_ == $val);
+    }
+    return 0;
+}
+
+# Returns 1 if the role has access to the privilege, 0 otherwise.
+sub is_allowed ($$) # role, privilege
+{
+    my $role_name = shift;
+    my $privilege_name = shift;
+    my $role_id = role_get_id ($role_name);
+    if (defined($role_id)) {
+	my @privileges = role_get_privileges ($role_id);
+	return 1 if is_in_array ($privilege_name, @privileges);
+    }
+    return 0;
+}
+
 1;

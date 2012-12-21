@@ -322,6 +322,45 @@ sub group_devel_create()	{
 	return $dbc->enum_get_id('group','devel');
 }
 
+### user functions
+
+sub user_get_id($) # login
+{
+	return $dbc->scalar_query ('SELECT user_id FROM user WHERE login = ?', $_[0]);
+}
+    
+sub user_get_password($) # login
+{
+	return $dbc->scalar_query ('SELECT password FROM user WHERE login = ?', $_[0]);
+}
+
+sub user_get_roles($) # user_id
+{
+	return $dbc->vector_query ('SELECT `role` FROM `user_role` NATURAL JOIN `user_in_role` NATURAL JOIN `user` WHERE user_id = ?', $_[0]);
+}
+
+sub user_get_reserved_machines($) # user_id
+{
+	return $dbc->vector_query ('SELECT name FROM machine WHERE usedby = ?', $_[0]);
+}
+
+### user role functions
+
+sub role_get_id($) # role name
+{
+	return $dbc->scalar_query ('SELECT role_id FROM `user_role` WHERE `role` = ?', $_[0]);
+}
+
+sub role_list_all()
+{
+	return $dbc->vector_query ('SELECT `role` FROM `user_role`');
+}	
+
+sub role_get_privileges($) # role_id
+{
+	return $dbc->vector_query ('SELECT privilege FROM `privilege` p JOIN `role_privilege` rp ON (p.privilege_id = rp.privilege_id) WHERE rp.role_id = ?', $_[0]);
+}    
+
 ### log functions
 
 sub log_insert($$$$$$$) # machine_id, job_on_machine_id, log_time, log_type, log_user, log_what, log_text
