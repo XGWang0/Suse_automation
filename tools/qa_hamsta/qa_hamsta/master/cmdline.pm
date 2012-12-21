@@ -1062,7 +1062,6 @@ sub log_in ($$) { # socket handle, command line
 		$user_login = $login;
 		$user_role = $role_name;
 		print $sock_handle "You were authenticated as '${user_login}' in role '${role_name}'. Send your commands.\n";
-		log (LOG_INFO, "The user ${$login} has logged in using role ${role}.");
 		return 1;
 	    }
 	} else {
@@ -1157,7 +1156,11 @@ sub log_out () {
 # Returns 1 when user is logged in, 0 otherwise.
 sub get_logged_status ()
 {
-    return defined ($user_login) && length ($user_login) > 0;
+    if (defined ($user_login) && length ($user_login) > 0
+	    && defined($user_role) && length ($user_role) > 0) {
+	return 1;
+    }
+    return 0;
 }
 
 # Returns 1 if the value is in array, 0 otherwise.
