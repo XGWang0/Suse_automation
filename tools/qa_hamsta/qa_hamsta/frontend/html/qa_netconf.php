@@ -147,7 +147,7 @@ else if( $step=='e' || $step=='n' )	{
 else if( $step=='v' )	{
 	# view details
 	$data=qaconf_get_rows_translated($id);
-	print html_table($data,array('id'=>'qaconf_view','sort'=>'sss'));
+	print html_table($data,array('id'=>'qaconf_view','sort'=>'sss','class'=>'list text-main tbl'));
 }
 else if( $a_machines || $group )	{
 	$qaconf=array_merge(array(array('null','')),enum_list_id_val('qaconf'));
@@ -195,7 +195,7 @@ else	{
 		'links'=>array('qaconf_id'=>"$page&step=v&id="),
 		'ctrls'=>array('edit'=>"$page&step=e&id="),
 	));
-	print html_table($data,array('total'=>1,'id'=>'qaconf_list','sort'=>'is'));
+	print html_table($data,array('total'=>1,'id'=>'qaconf_list','sort'=>'is','class'=>'list text-main tbl'));
 }
 
 
