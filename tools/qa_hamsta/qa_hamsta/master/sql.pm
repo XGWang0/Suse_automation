@@ -114,8 +114,7 @@ sub machine_get_role_type($) # machine_id
 
 sub machine_get_id_by_ip_usedby($$) # ip, usedby
 {
-    my ($ip, $usedby) = shift;
-    return $dbc->vector_query ('SELECT machine_id FROM `machine` WHERE ip = ? AND usedby = ?', $ip, $usedby);
+    return $dbc->scalar_query ('SELECT machine_id FROM `machine` WHERE ip = ? AND usedby = ?', $_[0], $_[1]);
 }
 
 sub machine_get_known_unique_ids(@) # list of mac addresses

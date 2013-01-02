@@ -1660,7 +1660,23 @@ class Machine {
 			$this->errmsg = (empty(Machine::$readerr)?"cannot connect to master!":Machine::$readerr);
 			return false;
 		}
-		
+
+		global $config;
+		if ($config->authentication->use) {
+			$user = User::getById (User::getIdent (), $config);
+			fputs ($sock, "log in " . $user->getLogin() . " "
+			       . $user->getPassword() . " "
+			       . $user->getCurrentRole ()->getName () . "\n");
+			$response = "";
+			while (($s = fgets($sock, 4096)) != "$>") {
+				$response .= $s;
+			}
+			if (!stristr($response, "you were authenticated")) {
+				$this->errmsg = $response;
+				return false;
+			}
+		}
+
 		fputs($sock, "send job ip ".$this->get_ip_address()." ".$filename."\n");
 
 		$response = "";

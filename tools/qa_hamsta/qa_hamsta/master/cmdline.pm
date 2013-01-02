@@ -156,6 +156,7 @@ sub parse_cmd() {
 	case /^set role/		{ set_role ($sock_handle, $cmd); }
 	case /^(print|list) privileges/ { print_privileges ($sock_handle, $cmd); }
 	case /^can i/			{ print_can_user ($sock_handle, $cmd); }
+	case /^can send/		{ print_user_can_send_jobs ($sock_handle, $cmd); }
         case /^help/			{ cmd_help($sock_handle); }
         else {
             if ($cmd eq '') {
@@ -485,8 +486,8 @@ sub list_testcases() {
     print $sock_handle $return;
     return;
     }
-
 }
+
 sub send_predefine_job_to_host() {
     my $sock_handle = shift @_;
     my $cmd = shift @_ ;
@@ -497,6 +498,12 @@ sub send_predefine_job_to_host() {
     my $host = $cmd_line[2];
     my $email = "";
     $email = $cmd_line[4] if(@cmd_line >= 5);
+
+    if (! can_send_job_to_machine ($host)) {
+	&log(LOG_WARNING, "User does not have privileges to send a job to '${host}'");
+	print $sock_handle "User does not have privileges to send a job to '${host}'.\n";
+	return;
+    }
 
     print $sock_handle "Pre-define job:$file \n\n";
 
@@ -533,8 +540,8 @@ sub send_predefine_job_to_host() {
     &log(LOG_INFO,"MASTER::FUNCTIONS cmdline Pre-define Job $file send to scheduler, at $host internal id: $job_id");
     print $sock_handle "MASTER::FUNCTIONS cmdline Pre-define Job $file send to scheduler, at $host internal id: $job_id\n";
     return;
-
 }
+
 sub send_autotest_job_to_host() {
     my $sock_handle = shift @_;
     my $cmd = shift @_ ;
@@ -585,9 +592,6 @@ sub send_autotest_job_to_host() {
     &log(LOG_INFO,"MASTER::FUNCTIONS cmdline Autotest Job $at_name send to scheduler, at $host internal id: $job_id");
     print $sock_handle "MASTER::FUNCTIONS cmdline Autotest Job $at_name send to scheduler, at $host internal id: $job_id\n";
     return;
-
-
-
 }
 
 sub send_multi_job_to_host () {
@@ -614,6 +618,12 @@ sub send_multi_job_to_host () {
 
     #check host live
     for my $host (@hosts) {
+      if (! can_send_job_to_machine ($host)) {
+	  &log(LOG_WARNING, "User does not have privileges to send a job to '${host}'");
+	  print $sock_handle "User does not have privileges to send a job to '${host}'.\n";
+	  return;
+      }
+
       if( not &check_host($host)){
         &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
         print $sock_handle "$host is not active, maybe IP address misspelled\n";
@@ -664,8 +674,6 @@ sub send_multi_job_to_host () {
     close $m_tmp;
     close $m_ori;
 
-
-
     my $ref = &parse_xml($sock_handle, $mul_xml);
     return if( not defined $ref );
     # set the default values
@@ -675,7 +683,6 @@ sub send_multi_job_to_host () {
       print $sock_handle "MASTER::FUNCTIONS cmdline Multi_Machine Job $mul_name send to scheduler, at $host internal id: $job_sid\n";
     }
     return;
-
 }
 
 sub send_job_to_host () {
@@ -713,10 +720,7 @@ sub send_job_to_host () {
 
     &log(LOG_INFO,"MASTER::FUNCTIONS Job send to scheduler, at $host internal id: $job_id");
     print $sock_handle "MASTER::FUNCTIONS Job send to scheduler, at $host internal id: $job_id\n";
-
-
 }
-
 
 sub send_re_job_to_host () {
     my $sock_handle = shift @_;
@@ -851,8 +855,6 @@ sub send_line_job_to_host () {
 
     &log(LOG_INFO,"MASTER::FUNCTIONS cmdline one line Job send to scheduler, at $host internal id: $job_id");
     print $sock_handle "MASTER::FUNCTIONS cmdline one line Job send to scheduler, at $host internal id: $job_id\n";
-
-
 }
 
 sub send_xen_set_to_host () {
@@ -900,9 +902,8 @@ sub send_xen_set_to_host () {
 
     &log(LOG_INFO,"MASTER::FUNCTIONS cmdline xen set Job send to scheduler, at $host internal id: $job_id");
     print $sock_handle "MASTER::FUNCTIONS cmdline xen set Job send to scheduler, at $host internal id: $job_id\n";
-
-
 }
+
 sub send_qa_package_job_to_host () {
     my $sock_handle = shift @_;
     my $cmd = shift @_ ;
@@ -919,13 +920,13 @@ sub send_qa_package_job_to_host () {
     $qpt_name =~ s/#/ /g;
     my $host = $cmd_line[3];
 
-    print $sock_handle "qa package job:$qpt_name \n";
-
     if (! can_send_job_to_machine ($host)) {
 	&log(LOG_WARNING, "User does not have privileges to send a job to '${host}'");
 	print $sock_handle "User does not have privileges to send a job to '${host}'.\n";
 	return;
     }
+
+    print $sock_handle "qa package job:$qpt_name \n";
 
     if( not &check_host($host)){
       &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
@@ -967,7 +968,6 @@ sub send_qa_package_job_to_host () {
     &log(LOG_INFO,"MASTER::FUNCTIONS cmdline QA package Job send to scheduler, at $host internal id: $job_id");
     print $sock_handle "MASTER::FUNCTIONS cmdline QA package Job send to scheduler, at $host internal id: $job_id\n";
 }
-
 
 sub send_job_to_group() {
 
@@ -1263,13 +1263,45 @@ sub can_send_jobs_to_reserved ()
 		&& is_allowed ($user_role, 'machine_send_job_reserved'));
 }
 
+sub use_master_authentication ()
+{
+    return get_qa_config ("hamsta_master_authentication");
+}
+
+sub print_user_can_send_jobs ($)
+{
+    my $sock_handle = shift;
+    my @cmd = split / /, shift (@_);
+    my $m_ip = $cmd[2];
+
+    print $sock_handle "You can "
+	. (can_send_job_to_machine ($m_ip) ? "" : "not ")
+	. "send jobs to machine '${m_ip}'.";
+}
+
 sub can_send_job_to_machine ($) # machine ip
 {
+#    return 1 unless use_master_authentication ();
     my $m_ip = shift;
     my $user_id = user_get_id ($user_login);
-    my @machines = machine_get_id_by_ip_usedby ($m_ip, $user_id);
-    if ((can_send_jobs () && @machines > 0)
-	    || can_send_jobs_to_reserved ()) {
+    return 0 unless (defined ($m_ip) && defined ($user_id));
+    my $my_machine = machine_get_id_by_ip_usedby ($m_ip, $user_id);
+    if (is_allowed ($user_role, 'machine_send_job') && defined $my_machine
+	    || is_allowed ($user_role, 'machine_send_job_reserved')) {
+	return 1;
+    }
+    return 0;
+}
+
+sub can_reinstall ($) # machine ip
+{
+    return 1 unless use_master_authentication ();
+    my $m_ip = shift;
+    my $user_id = user_get_id ($user_login);
+    return 0 unless (defined ($m_ip) && defined ($user_id));
+    if (is_allowed ($user_role, 'machine_reinstall')
+	    && machine_get_id_by_ip_usedby ($m_ip, $user_id)
+		|| is_allowed ($user_role, 'machine_reinstall_reserved')) {
 	return 1;
     }
     return 0;
