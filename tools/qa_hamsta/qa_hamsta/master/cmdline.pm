@@ -528,7 +528,7 @@ sub send_predefine_job_to_host() {
     my $ref = &parse_xml($sock_handle, $ofile);
     return if( not defined $ref );
     # set the default values
-    my $job_id = &transation($ref,$host,$ofile);
+    my $job_id = &transaction($ref,$host,$ofile);
 
     &log(LOG_INFO,"MASTER::FUNCTIONS cmdline Pre-define Job $file send to scheduler, at $host internal id: $job_id");
     print $sock_handle "MASTER::FUNCTIONS cmdline Pre-define Job $file send to scheduler, at $host internal id: $job_id\n";
@@ -580,7 +580,7 @@ sub send_autotest_job_to_host() {
     my $ref = &parse_xml($sock_handle, $at_xml);
     return if( not defined $ref );
     # set the default values
-    my $job_id = &transation($ref,$host,$at_xml);
+    my $job_id = &transaction($ref,$host,$at_xml);
 
     &log(LOG_INFO,"MASTER::FUNCTIONS cmdline Autotest Job $at_name send to scheduler, at $host internal id: $job_id");
     print $sock_handle "MASTER::FUNCTIONS cmdline Autotest Job $at_name send to scheduler, at $host internal id: $job_id\n";
@@ -670,7 +670,7 @@ sub send_multi_job_to_host () {
     return if( not defined $ref );
     # set the default values
     for my $host (@hosts) {
-      my $job_sid = &transation($ref,$host,$mul_xml);
+      my $job_sid = &transaction($ref,$host,$mul_xml);
       &log(LOG_INFO,"MASTER::FUNCTIONS cmdline Multi_Machine Job $mul_name send to scheduler, at $host internal id: $job_sid");
       print $sock_handle "MASTER::FUNCTIONS cmdline Multi_Machine Job $mul_name send to scheduler, at $host internal id: $job_sid\n";
     }
@@ -709,7 +709,7 @@ sub send_job_to_host () {
     return if( not defined $ref );
     # set the default values
 
-    my $job_id = &transation($ref,$host,$file);
+    my $job_id = &transaction($ref,$host,$file);
 
     &log(LOG_INFO,"MASTER::FUNCTIONS Job send to scheduler, at $host internal id: $job_id");
     print $sock_handle "MASTER::FUNCTIONS Job send to scheduler, at $host internal id: $job_id\n";
@@ -771,7 +771,7 @@ sub send_re_job_to_host () {
     return if( not defined $ref );
     # set the default values
 
-    my $job_id = &transation($ref,$host,$cmd_reinstall_xml);
+    my $job_id = &transaction($ref,$host,$cmd_reinstall_xml);
 
     &log(LOG_INFO,"MASTER::FUNCTIONS cmdline Reinstall Job send to scheduler, at $host internal id: $job_id");
     print $sock_handle "MASTER::FUNCTIONS cmdline Reinstall Job send to scheduler, at $host internal id: $job_id\n";
@@ -847,7 +847,7 @@ sub send_line_job_to_host () {
     return if( not defined $ref );
     # set the default values
 
-    my $job_id = &transation($ref,$host,$one_line_xml);
+    my $job_id = &transaction($ref,$host,$one_line_xml);
 
     &log(LOG_INFO,"MASTER::FUNCTIONS cmdline one line Job send to scheduler, at $host internal id: $job_id");
     print $sock_handle "MASTER::FUNCTIONS cmdline one line Job send to scheduler, at $host internal id: $job_id\n";
@@ -896,7 +896,7 @@ sub send_xen_set_to_host () {
     return if( not defined $ref );
     # set the default values
 
-    my $job_id = &transation($ref,$host,$xen_set_xml);
+    my $job_id = &transaction($ref,$host,$xen_set_xml);
 
     &log(LOG_INFO,"MASTER::FUNCTIONS cmdline xen set Job send to scheduler, at $host internal id: $job_id");
     print $sock_handle "MASTER::FUNCTIONS cmdline xen set Job send to scheduler, at $host internal id: $job_id\n";
@@ -963,7 +963,7 @@ sub send_qa_package_job_to_host () {
     return if( not defined $ref );
     # set the default values
 
-    my $job_id = &transation($ref,$host,$qpt_xml);
+    my $job_id = &transaction($ref,$host,$qpt_xml);
     &log(LOG_INFO,"MASTER::FUNCTIONS cmdline QA package Job send to scheduler, at $host internal id: $job_id");
     print $sock_handle "MASTER::FUNCTIONS cmdline QA package Job send to scheduler, at $host internal id: $job_id\n";
 }
@@ -1022,7 +1022,7 @@ sub check_host() {
     }
 }
 
-sub transation(){
+sub transaction(){
     my $ref=shift;
     my $host=shift;
     my $xml=shift;
@@ -1157,7 +1157,7 @@ sub set_role ($$) # socket, command
 }
 
 # With parameter prints only roles of the user, all roles otherwise
-sub print_roles () # [user_login]
+sub print_roles ($$) # socket handle, [user_login]
 {
     my $sock_handle = shift;
     my @cmd = split / /, shift (@_);
@@ -1210,7 +1210,7 @@ sub is_in_array ($$) # value, array
 }
 
 # Prints list of user privileges
-sub print_privileges ()
+sub print_privileges ($) # socket handle
 {
     my $sock_handle = shift;
     if (get_logged_status ()) {
