@@ -130,6 +130,7 @@ sub parse_cmd() {
     my $sock_handle = shift @_;
 
     switch ($cmd) {
+	case /^(print|list) all/	{ cmd_print_all_machines ($sock_handle); }
         case /^(print|list) active/     { cmd_print_active($sock_handle); }
 #        case /^which job where/    	{ which_job_where(); }
 #        case /^search hardware/	{ which_hardware_where($sock_handle, $cmd); }
@@ -184,6 +185,7 @@ sub cmd_help() {
     print "\t 'print roles [<username>]' : list available roles, with username only roles for that user\n";
     print "\t 'set role <role>' : set current (active) user role to <role> \n";
     print "\t 'print active' : prints reachable hosts \n";
+    print "\t 'print all' : prints all available hosts \n";
 #    print "\t 'search hardware <perl-pattern (Regular Expression) oder string>' : prints all hosts which hwinfo-output matches the desired string/pattern \n";
     print "\t 'save groups to </path/file>' : save (dumps) the groups as XML in the specific file (relativ to Master root-directory) \n";
     print "\t 'load groups from </path/file>' : loads the specified XML-groups-file \n";
@@ -1306,5 +1308,18 @@ sub can_reinstall ($) # machine ip
     }
     return 0;
 }
+
+sub cmd_print_all_machines ($) # socket
+{
+    my $sock_handle = shift;
+    my @cmd = shift;
+    my $machinesref = machine_list_all ();
+    use Data::Dumper;
+    print $sock_handle "List of all available machines.\n";
+    printf $sock_handle "%15s : %s\n", "machine", "ip address";
+    foreach (@{$machinesref}) {
+	printf $sock_handle "%15s : %s\n", ${$_}[0], ${$_}[1];
+    }
+}	
 
 1;

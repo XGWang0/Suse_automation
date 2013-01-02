@@ -169,6 +169,11 @@ sub machine_blocked($) # machine_id
 sub machine_list_free()
 {	return $dbc->vector_query("SELECT machine_id FROM machine WHERE busy=0 AND machine_status_id=1 ORDER BY (ISNULL(usedby) OR usedby='') DESC, RAND()");	}
 
+sub machine_list_all()
+{
+	return $dbc->matrix_query ('SELECT name, ip FROM machine');
+}
+
 sub busy_machines_without_jobs()	{
 	return $dbc->vector_query("SELECT machine_id FROM machine WHERE busy=1 AND NOT EXISTS(SELECT * FROM job_on_machine WHERE machine.machine_id=job_on_machine.machine_id AND (job_status_id=2 OR job_status_id=6))");
 }
