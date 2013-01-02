@@ -112,6 +112,12 @@ sub machine_get_ipname($) # machine_id
 sub machine_get_role_type($) # machine_id
 {   return $dbc->row_query('SELECT role,type FROM machine WHERE machine_id=?',$_[0]); }
 
+sub machine_get_id_by_ip_usedby($$) # ip, usedby
+{
+    my ($ip, $usedby) = shift;
+    return $dbc->vector_query ('SELECT machine_id FROM `machine` WHERE ip = ? AND usedby = ?', $ip, $usedby);
+}
+
 sub machine_get_known_unique_ids(@) # list of mac addresses
 {
 	my @unique_ids = @_;
@@ -358,7 +364,7 @@ sub role_list_all()
 
 sub role_get_privileges($) # role_id
 {
-	return $dbc->vector_query ('SELECT privilege FROM `privilege` p JOIN `role_privilege` rp ON (p.privilege_id = rp.privilege_id) WHERE rp.role_id = ?', $_[0]);
+	return $dbc->vector_query ('SELECT privilege FROM `privilege` p JOIN `role_privilege` rp ON (p.privilege_id = rp.privilege_id) WHERE rp.role_id = ? AND (rp.valid_until IS NULL OR rp.valid_until > NOW())', $_[0]);
 }    
 
 ### log functions
