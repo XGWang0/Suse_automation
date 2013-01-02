@@ -38,7 +38,7 @@ use IO::Socket::Multicast;
 use Time::HiRes qw{usleep};
 use Slave::functions;
 
-require 'Slave/config_slave';
+require 'Slave/config_slave.pm';
 
 my $debug = $Slave::debug;
 my $constant_unique_id = "";

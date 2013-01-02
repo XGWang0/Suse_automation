@@ -36,7 +36,7 @@ use log;
 use IO::Socket::Multicast;
 use Slave::Multicast::hwinfo_unique;
 
-require 'Slave/config_slave';
+require 'Slave/config_slave.pm';
 
 # hal_devices_have_changed() : boolean
 # Checks if some devices have been attached or removed since the last call

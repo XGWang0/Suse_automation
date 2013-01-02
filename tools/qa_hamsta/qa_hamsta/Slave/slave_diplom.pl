@@ -51,7 +51,7 @@ use Slave::stats_xml;
 use Slave::Multicast::mcast;
 use Slave::functions;
 
-require 'Slave/config_slave';
+require 'Slave/config_slave.pm';
 
 @ISA = qw(Net::Server::PreFork);
 
@@ -317,7 +317,7 @@ sub process_request {
                     last if ($incoming =~ /<\/job>/);
                     last if ($incoming =~ /%3C\/job%3E/);
                 }
-                &start_job($job, $sock);
+                &start_job($job, $sock, $ip_addr);
 		last;
             }
         }
@@ -335,8 +335,7 @@ sub process_request {
 # Starts the execution of the job described by $xml_job
 # The output of the job is forwarded to the master
 sub start_job() {
-    my $xml_job = shift @_; 	
-    my $sock = shift;
+    my ($xml_job, $sock, $ip_addr) = @_; 	
 
     # If the incoming data is uri_escaped (should be), unescape it
     if ($xml_job =~ /\%3Cjob$/) {
@@ -375,6 +374,7 @@ sub start_job() {
     if($fork_re==0) {
 	#in child, start to work;
 	#close share socket in child
+	&command("/usr/share/qa/tools/sync_qa_config $ip_addr");
         my $pid_main = open (FILE, "/usr/bin/perl Slave/run_job.pl $filename 2>&1|");
         my $count = 0;
         while (<FILE>) {
