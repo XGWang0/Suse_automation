@@ -56,7 +56,18 @@ if (!defined('HAMSTA_FRONTEND')) {
 				foreach ($arr_res as $res)
 					echo ("<a href=index.php?go=machines&amp;".$key."=".urlencode($res).">Search_".$res."</a> ");
 		} else {
-			echo ("<tr><td>$value</td><td>$valuer</td><td>");
+			if (! strcmp ($key, "used_by")) {
+				$cur_user = User::getById ($valuer, $config);
+				if (isset ($cur_user)) {
+					$user_name = $cur_user->getName();
+					$user_name = (strlen ($user_name) < 1) ? $cur_user->getLogin() : $user_name;
+				} else {
+					$user_name = $valuer;
+				}
+				echo ("<tr><td>$value</td><td>$user_name</td><td>");
+			} else {
+				echo ("<tr><td>$value</td><td>$valuer</td><td>");
+			}
 			if ($valuer != NULL && method_exists('MachineSearch',"filter_$key"))
 				echo("<a href=index.php?go=machines&amp;".$key."=".urlencode($valuer).">Search</a>");
 		}
