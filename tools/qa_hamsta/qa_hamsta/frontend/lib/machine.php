@@ -1199,8 +1199,13 @@ class Machine {
 	 * @return string Notes for the machine (consisting of affiliation and anomalies, if any)
 	 */
 	function get_notes() {
-	$anomaly=$this->get_anomaly();
-		return $this->get_affiliation() . ($anomaly ? ".&#10;&#10;ANOMALIES: " . $anomaly : "");
+		$retstr = strlen ($this->get_affiliation()) > 0
+		  ? $this->get_affiliation() : "";
+		$retstr .= strlen ($this->get_anomaly()) > 0
+		  ? (strlen ($this->get_affiliation()) > 0
+		     ? " " : "")
+		  . "ANOMALIES: " . $this->get_anomaly() : "";
+		return $retstr;
 	}
 
 	/**
@@ -1669,7 +1674,23 @@ class Machine {
 			$this->errmsg = (empty(Machine::$readerr)?"cannot connect to master!":Machine::$readerr);
 			return false;
 		}
-		
+
+		global $config;
+		if ($config->authentication->use) {
+			$user = User::getById (User::getIdent (), $config);
+			fputs ($sock, "log in " . $user->getLogin() . " "
+			       . $user->getPassword() . " "
+			       . $user->getCurrentRole ()->getName () . "\n");
+			$response = "";
+			while (($s = fgets($sock, 4096)) != "$>") {
+				$response .= $s;
+			}
+			if (!stristr($response, "you were authenticated")) {
+				$this->errmsg = $response;
+				return false;
+			}
+		}
+
 		fputs($sock, "send job ip ".$this->get_ip_address()." ".$filename."\n");
 
 		$response = "";
