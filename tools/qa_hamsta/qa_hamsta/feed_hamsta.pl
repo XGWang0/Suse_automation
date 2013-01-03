@@ -67,40 +67,43 @@ Options:
 				3 autotest
 				4 mult_machine
 				5 reinstall
-	-n|--testname <testname> set test name for the job work with -t option 
-		                    (only for pre-define, qa_package, autotest, mult_machine)
-		                    seperate by ',' for qa_package&autotest job
+	-n|--testname <testname>
+				set test name for the job work with -t option 
+		                (only for pre-define, qa_package, autotest, mult_machine)
+		                seperate by ',' for qa_package&autotest job
 	-l|--listcases		print the support test case name for each jobtype
 				work with -t option
-	-r|--roles			for mult-machine jobs, set roles number and host
-		         	    Assign SUT to roles , format like:
+	-r|--roles		for mult-machine jobs, set roles number and host
+		         	Assign SUT to roles , format like:
 					-r 'r0:host1,host2;r1:host3,host4'
 
-	-u|--re_url			set reinstall url
-	   --re_sdk			set reinstall sdk
+	-u|--re_url		set reinstall url
+	   --re_sdk		set reinstall sdk
 	   --pattern		set install pattern
-	   --rpms			set extra rpm packages
+	   --rpms		set extra rpm packages
 
-	-x|--cmd			set cmd for jobtype command_line
-	-m|--mail			set email address for job result
-	-p|--print-active	   print all active machines
-	-h|--host <ip>	      set the target SUT for test
-	-g|--group <name>	   set the target host group for test
+	-U|--user		log in as user
+	-P|--password		use password (use with --user option)
+	-x|--cmd		set cmd for jobtype command_line
+	-m|--mail		set email address for job result
+	-p|--print-active	print all active machines
+	-h|--host <ip>	        set the target SUT for test
+	-g|--group <name>	set the target host group for test
 	-v|--version	        print program version
-	-d|--debug <level>	  set debugging level (defaults to $debug)
-	   --help	           print this help message
+	-d|--debug <level>	set debugging level (defaults to $debug)
+	   --help	        print this help message
 EOF
 }
 
-my $opt_help		    = 0;
-my $opt_version		 = 0;
+my $opt_help		= 0;
+my $opt_version		= 0;
 my $opt_w		= 0;
 
-my $opt_command		 = "";
+my $opt_command		= "";
 my $opt_print_active	= 0;
-my $opt_job		     = "";
-my $opt_host		    = "";
-my $opt_group		   = "";
+my $opt_job		= "";
+my $opt_host		= "";
+my $opt_group		= "";
 
 #Job Type : 1)pre-define; 2)qa_package; 3)autotest; 4)mult_machine; 5)reinstall
 my $opt_jobtype		= 0;
@@ -116,30 +119,34 @@ my $opt_re_rpms		= "";
 #option for cmd 
 my $opt_cmd		= "";
 my $opt_mail		= "";
-
+my $opt_user		= "";
+my $opt_password	= "";
+my $opt_userrole	= "";
 
 # parse command line options
 unless (GetOptions(
-		   'help'               =>  \$opt_help,
-		   'version|v'          =>  \$opt_version,
-		   'wait|w'             =>  \$opt_w,
-		   'debug|d=i'          =>  \$debug,
-		   'command|c=s'        =>  \$opt_command,
-		   'job|j=s'            =>  \$opt_job,
-		   'host|h=s'           =>  \$opt_host,
-		   'group|g=s'          =>  \$opt_group,
-		   'print-active|p'     =>  \$opt_print_active,
-		 'jobtype|t=i'	=>\$opt_jobtype,
-		 'testname|n=s'	=>\$opt_testname,
-		 'listcases|l'	=>\$opt_listcases,
-		 'roles|r=s'		=>\$opt_roles,
-		 're_url|u=s'		=>\$opt_re_url,
-		 're_sdk=s'		=>\$opt_re_sdk,
-		 'pattern=s'		=>\$opt_re_pattern,
-		 'rpms=s'		=>\$opt_re_rpms,
-		 'cmd|x=s'		=>\$opt_cmd,
-		 'mail|m=s'		=>\$opt_mail,
-		 
+		   'help'               => \$opt_help,
+		   'version|v'          => \$opt_version,
+		   'wait|w'             => \$opt_w,
+		   'debug|d=i'          => \$debug,
+		   'command|c=s'        => \$opt_command,
+		   'job|j=s'            => \$opt_job,
+		   'host|h=s'           => \$opt_host,
+		   'group|g=s'          => \$opt_group,
+		   'print-active|p'     => \$opt_print_active,
+		   'jobtype|t=i'	=> \$opt_jobtype,
+		   'testname|n=s'	=> \$opt_testname,
+		   'listcases|l'	=> \$opt_listcases,
+		   'roles|r=s'		=> \$opt_roles,
+		   're_url|u=s'		=> \$opt_re_url,
+		   're_sdk=s'		=> \$opt_re_sdk,
+		   'pattern=s'		=> \$opt_re_pattern,
+		   'rpms=s'		=> \$opt_re_rpms,
+		   'cmd|x=s'		=> \$opt_cmd,
+		   'mail|m=s'		=> \$opt_mail,
+		   'user|U=s'		=> \$opt_user,
+		   'password|P=s'	=> \$opt_password,
+		   'userrole|R=s'	=> \$opt_userrole
 		  )) {
 	&usage ();
 	exit 1;
@@ -155,11 +162,16 @@ if ($opt_help) {
 	exit 0;
 }
 
-
-
 if ($#ARGV != 0) {
 	print "Please specify the master to connect to.\n\n";
 	&usage ();
+	exit 1;
+}
+
+if ($opt_password && ! $opt_user) {
+	print STDERR "${progname} error: Use option"
+	    . " --user with --password if you want to log in.\n\n";
+	usage ();
 	exit 1;
 }
 
@@ -188,6 +200,20 @@ if ($@ || !$sock) {
 &send_command('');
 
 my $job_id="";
+
+if ($opt_user && $opt_password) {
+    my $cmd = "log in ${opt_user} ${opt_password}";
+    if ($opt_userrole) {
+	$cmd .= " ${opt_userrole}";
+    }
+    my $output = send_command ($cmd . "\n");
+    if ($output !~ "[Yy]ou were authenticated") {
+	print STDERR $output;
+	exit 1;
+    } else {
+	print $output;
+    }
+}
 
 if ($opt_print_active) {
 	print &send_command("print active\n");
@@ -321,7 +347,7 @@ if ($opt_job) {
 }
 
 
-sub send_command() {
+sub send_command {
 	my $cmd = shift;
 	my $result = "";
 	my $line = "";
