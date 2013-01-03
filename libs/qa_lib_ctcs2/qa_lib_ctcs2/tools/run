@@ -482,11 +482,12 @@ sub run {
 	# runtest.
 	open(T, ">>$logfilename");
 	print T "--\n";
+	print T "INFO: synchronous logging activated\n" if $environment{"SYNC_LOGGING"};
 	close T;
 
 	# set synchronous writes.  Failure may only indicate that it's already done,
 	# so who cares.
-	system("chattr +S $logfilename >>/dev/null 2>&1");
+	system("chattr +S $logfilename >>/dev/null 2>&1") if $environment{"SYNC_LOGGING"};
 
 	# set this log to be parsed by the bench parser if some is set
 	$benchparsers{$logfilename} = $benchparser if $benchparser;
@@ -883,11 +884,18 @@ sub report {
 
 sub init_environment {
 	# all initialization for the environment hash should be here.
-	set_environment("LINE",0);
-	set_environment("runin_directory","./runin");
-	set_environment("WAIT",0);
-	set_environment("verbose",0);
-	set_environment("LOOP",0);
+	set_environment("LINE", 0);
+	set_environment("runin_directory", "./runin");
+	set_environment("WAIT", 0);
+	set_environment("verbose", 0);
+	set_environment("LOOP", 0);
+
+	# SYNC_LOGGING overrrides the synclog and asynclog commands
+	if (defined($ENV{SYNC_LOGGING})) {
+		set_environment("SYNC_LOGGING", 2);
+	} else {
+		set_environment("SYNC_LOGGING", 0);
+	}
 }
 
 sub init_timer {
@@ -1189,6 +1197,14 @@ sub parse_control_file {
 			$environment{WAIT} = 1;
 			wait_on_tests();
 			if (not $eexit) { $environment{WAIT} = 0 };
+		} elsif (/^\s*synclog/i) {
+			if ($environment{SYNC_LOGGING} != 2) {
+				set_environment("SYNC_LOGGING", 1);
+			}
+		} elsif (/^\s*asynclog/i) {
+			if ($environment{SYNC_LOGGING} != 2) {
+				set_environment("SYNC_LOGGING", 0);
+			}
 		} elsif (/^\s*begin/i) {
 			# infinite loop construct
 			print "begin\n";
