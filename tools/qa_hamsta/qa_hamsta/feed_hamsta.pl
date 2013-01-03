@@ -301,7 +301,7 @@ if ($opt_jobtype==1) {
 	$job_id=&send_command($cmd."\n");
 	print $job_id;
 } else {
-	print "jobtype not supporte\n";
+	print "jobtype not supported\n";
 }
 
 # if -w then wait for the job result
