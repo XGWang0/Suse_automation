@@ -132,7 +132,9 @@
 			}
 		}
 		if (empty($error)) {
+			Notificator::setSuccessMessage ('The job[s] has/have been successfully sent.');
 			header("Location: index.php");
+			exit ();
 		}
 	}
     $html_title = "Send job";

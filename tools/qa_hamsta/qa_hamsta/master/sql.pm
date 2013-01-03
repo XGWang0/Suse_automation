@@ -112,6 +112,11 @@ sub machine_get_ipname($) # machine_id
 sub machine_get_role_type($) # machine_id
 {   return $dbc->row_query('SELECT role,type FROM machine WHERE machine_id=?',$_[0]); }
 
+sub machine_get_id_by_ip_usedby($$) # ip, usedby
+{
+    return $dbc->scalar_query ('SELECT machine_id FROM `machine` WHERE ip = ? AND usedby = ?', $_[0], $_[1]);
+}
+
 sub machine_get_known_unique_ids(@) # list of mac addresses
 {
 	my @unique_ids = @_;
@@ -163,6 +168,11 @@ sub machine_blocked($) # machine_id
 
 sub machine_list_free()
 {	return $dbc->vector_query("SELECT machine_id FROM machine WHERE busy=0 AND machine_status_id=1 ORDER BY (ISNULL(usedby) OR usedby='') DESC, RAND()");	}
+
+sub machine_list_all()
+{
+	return $dbc->matrix_query ('SELECT m.name, m.ip, ms.machine_status FROM machine m INNER JOIN machine_status ms on (m.machine_status_id = ms.machine_status_id)');
+}
 
 sub busy_machines_without_jobs()	{
 	return $dbc->vector_query("SELECT machine_id FROM machine WHERE busy=1 AND NOT EXISTS(SELECT * FROM job_on_machine WHERE machine.machine_id=job_on_machine.machine_id AND (job_status_id=2 OR job_status_id=6))");
@@ -321,6 +331,45 @@ sub group_devel_create()	{
 	$dbc->update_query('UPDATE `group` SET group_id=0 WHERE group_id=?',$id);
 	return $dbc->enum_get_id('group','devel');
 }
+
+### user functions
+
+sub user_get_id($) # login
+{
+	return $dbc->scalar_query ('SELECT user_id FROM user WHERE login = ?', $_[0]);
+}
+    
+sub user_get_password($) # login
+{
+	return $dbc->scalar_query ('SELECT password FROM user WHERE login = ?', $_[0]);
+}
+
+sub user_get_roles($) # user_id
+{
+	return $dbc->vector_query ('SELECT `role` FROM `user_role` NATURAL JOIN `user_in_role` NATURAL JOIN `user` WHERE user_id = ?', $_[0]);
+}
+
+sub user_get_reserved_machines($) # user_id
+{
+	return $dbc->vector_query ('SELECT name FROM machine WHERE usedby = ?', $_[0]);
+}
+
+### user role functions
+
+sub role_get_id($) # role name
+{
+	return $dbc->scalar_query ('SELECT role_id FROM `user_role` WHERE `role` = ?', $_[0]);
+}
+
+sub role_list_all()
+{
+	return $dbc->vector_query ('SELECT `role` FROM `user_role`');
+}	
+
+sub role_get_privileges($) # role_id
+{
+	return $dbc->vector_query ('SELECT privilege FROM `privilege` p JOIN `role_privilege` rp ON (p.privilege_id = rp.privilege_id) WHERE rp.role_id = ? AND (rp.valid_until IS NULL OR rp.valid_until > NOW())', $_[0]);
+}    
 
 ### log functions
 

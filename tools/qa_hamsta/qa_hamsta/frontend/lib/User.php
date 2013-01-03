@@ -138,6 +138,29 @@ class User {
   }
 
   /**
+   * Get user password from database.
+   *
+   * @param string $ident Login identification of the user.
+   * @param \Zend_Config $config Instance of the application configuration.
+   *
+   * @return mixed Password in hexa string hash of the user if found or null.
+   */
+  public function getPassword ()
+  {
+    try
+      {
+        $db = Zend_Db::factory ($this->config->database);
+	$res = $db->fetchAll ('SELECT password FROM `user` WHERE login = ?', $this->getLogin ());
+        $db->closeConnection ();
+        return isset ($res[0]['password']) ? $res[0]['password'] : null;
+      }
+    catch (Zend_Db_Exception $e)
+      {
+        return null;
+      }
+  }
+
+  /**
    * Set name of the user in the database.
    *
    * @param string $ident Login identification of the user.
@@ -678,7 +701,7 @@ class User {
   /**
    * Returns login identifier of this user.
    *
-   * @return string User login (e.g. OpenID or login).
+   * @return string User login.
    */
   public function getLogin()
   {

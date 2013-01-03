@@ -1,6 +1,6 @@
 # ****************************************************************************
 # Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
-# 
+#
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
 # RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
@@ -11,7 +11,7 @@
 # PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
 # AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
 # LIABILITY.
-# 
+#
 # SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
 # WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
@@ -34,32 +34,38 @@ use hwinfo_xml_sql;
 use threads;
 
 use Config::IniFiles;
+use Digest::SHA1 qw(sha1_hex);
 use qaconfig;
 require sql;
 
 # Usual location of the Hamsta front-end configuration file
 
 # pkacer@suse.com: TODO This should not be hard-coded but I have no
-# idea where to put this, yet. Perhaps it would be better if requried
+# idea where to put this, yet. Perhaps it would be better if required
 # values were moved to the general configuration. For now it would be
 # duplication.
 my $config_file_path = "/srv/www/htdocs/hamsta/config.ini";
 
+# Here we store user login and current role. Values should be set only
+# if the user is authenticated.
+my $user_login;
+my $user_role;
+
 # Master->command_line_server()
-# 
+#
 # Listens on the command line server port for incoming connections. For each
 # connection a thread is created to handle the requests
 
-sub command_line_server() { 
-    
+sub command_line_server() {
+
     my $Socket=new IO::Socket::INET->new(
         LocalPort => $qaconf{hamsta_master_cli_port},
-        Proto     => 'tcp', 
-        Listen    => $qaconf{hamsta_master_max_cli_connections}, 
+        Proto     => 'tcp',
+        Listen    => $qaconf{hamsta_master_max_cli_connections},
         Timeout   => undef,
         Reuse     => 1,
     );
-    
+
     eval {
         # each client needs its own thread
         while(my $new_sock = $Socket->accept)
@@ -96,17 +102,17 @@ sub thread_auswertung () {
 
     print $sock_handle "Welcome to HAMSTA (hardware maintenance and shared testautomation), console. \n";
     &sql_get_connection();
-    
+
     while (1) {
         print $sock_handle "\n\$>";
 
         if (eof($sock_handle)) {
-            
-            &log(LOG_DETAIL, "EOF received."); 
+
+            &log(LOG_DETAIL, "EOF received.");
             last;
-            
+
         }
-        
+
         $_ = <$sock_handle>;
         s/\r?\n$//;
         &parse_cmd($_, $sock_handle);
@@ -117,41 +123,51 @@ sub thread_auswertung () {
 
 # Master->parse_cmd()
 #
-# when the command line client sends data to master, this data is parsed here
+# when the command line client sends data to master, this data is
+# parsed here and appropriate handler is executed.
 sub parse_cmd() {
     my $cmd = shift @_;
     my $sock_handle = shift @_;
 
     switch ($cmd) {
-        case /^(print|list) active/     { &cmd_print_active($sock_handle); }
-#        case /^which job where/    	{ &which_job_where(); }
-#        case /^search hardware/	{ &which_hardware_where($sock_handle, $cmd); }
-        case /^(print|list) groups/ 	{ &cmd_print_groups($sock_handle, $cmd); }
-#        case /^group add host/		{ &group_add_host($sock_handle, $cmd); } 
-#        case /^group del host/		{ &group_delete_host($sock_handle, $cmd); }
-#        case /^group_add/		{ &create_group($sock_handle, $cmd); }
-#        case /^group_del/		{ &delete_group($sock_handle, $cmd); }
-#        case /^send job group/		{ &send_job_to_group($sock_handle, $cmd); }
-        case /^send job ip/		{ &send_job_to_host($sock_handle, $cmd); }
-        case /^send qa_predefine_job/	{ &send_predefine_job_to_host($sock_handle, $cmd); }
-        case /^send qa_package_job ip/	{ &send_qa_package_job_to_host($sock_handle, $cmd); }
-        case /^send autotest_job ip/	{ &send_autotest_job_to_host($sock_handle, $cmd); }
-        case /^send multi_job /		{ &send_multi_job_to_host($sock_handle, $cmd); }
-        case /^send xen set ip/		{ &send_xen_set_to_host($sock_handle, $cmd); }
-        case /^send reinstall ip/	{ &send_re_job_to_host($sock_handle, $cmd); }
-        case /^send one line cmd ip/	{ &send_line_job_to_host($sock_handle, $cmd); }
+	case /^(print|list) all/	{ cmd_print_all_machines ($sock_handle); }
+        case /^(print|list) active/     { cmd_print_active($sock_handle); }
+#        case /^which job where/    	{ which_job_where(); }
+#        case /^search hardware/	{ which_hardware_where($sock_handle, $cmd); }
+        case /^(print|list) groups/ 	{ cmd_print_groups($sock_handle, $cmd); }
+#        case /^group add host/		{ group_add_host($sock_handle, $cmd); }
+#        case /^group del host/		{ group_delete_host($sock_handle, $cmd); }
+#        case /^group_add/		{ create_group($sock_handle, $cmd); }
+#        case /^group_del/		{ delete_group($sock_handle, $cmd); }
+#        case /^send job group/		{ send_job_to_group($sock_handle, $cmd); }
+        case /^send job ip/		{ send_job_to_host($sock_handle, $cmd); }
+        case /^send qa_predefine_job/	{ send_predefine_job_to_host($sock_handle, $cmd); }
+        case /^send qa_package_job ip/	{ send_qa_package_job_to_host($sock_handle, $cmd); }
+        case /^send autotest_job ip/	{ send_autotest_job_to_host($sock_handle, $cmd); }
+        case /^send multi_job /		{ send_multi_job_to_host($sock_handle, $cmd); }
+        case /^send xen set ip/		{ send_xen_set_to_host($sock_handle, $cmd); }
+        case /^send reinstall ip/	{ send_re_job_to_host($sock_handle, $cmd); }
+        case /^send one line cmd ip/	{ send_line_job_to_host($sock_handle, $cmd); }
         case /^send job anywhere/	{ $cmd =~ s/anywhere/ip none/; &send_job_to_host($sock_handle, $cmd); }
-	case /^(print|list) jobtype/	{ &list_testcases($sock_handle,$cmd); }
-        case /^help/			{ &cmd_help($sock_handle); }
+	case /^(print|list) jobtype/	{ list_testcases($sock_handle,$cmd); }
+	case /^log in/			{ log_in ($sock_handle, $cmd); }
+	case /^log out/			{ log_out ($sock_handle, $cmd); }
+	case /^(print|list) status/	{ print_status ($sock_handle, $cmd); }
+	case /^(print|list) roles/	{ print_roles ($sock_handle, $cmd); }
+	case /^set role/		{ set_role ($sock_handle, $cmd); }
+	case /^(print|list) privileges/ { print_privileges ($sock_handle, $cmd); }
+	case /^can i/			{ print_can_user ($sock_handle, $cmd); }
+	case /^can send/		{ print_user_can_send_jobs ($sock_handle, $cmd); }
+        case /^help/			{ cmd_help($sock_handle); }
         else {
             if ($cmd eq '') {
-                print $sock_handle "no command entered, try >help< \n"; 
+                print $sock_handle "no command entered, try >help< \n";
             } else {
-                print $sock_handle "command not found, try >help< \n"; 
+                print $sock_handle "command not found, try >help< \n";
 
             }
         }
-    } 
+    }
 }
 
 # Master->cmd_help()
@@ -162,8 +178,14 @@ sub cmd_help() {
     select ($sock_handle);
 
     print "Following commands are available. 'list' can be used instead of 'print'.\n";
-    print "syntax = 'command' : explanation \n ";
+    print "syntax = 'command' : explanation \n";
+    print "\t 'print status' : prints users status, reserved machines and possibly other information \n";
+    print "\t 'log in <username> <password> [<role>]' : authenticate the user (this CLI session only) optionally setting role (default 'user' is set if not provided) \n";
+    print "\t 'log out' : log out from the Hamsta \n";
+    print "\t 'print roles [<username>]' : list available roles, with username only roles for that user\n";
+    print "\t 'set role <role>' : set current (active) user role to <role> \n";
     print "\t 'print active' : prints reachable hosts \n";
+    print "\t 'print all' : prints all available hosts \n";
 #    print "\t 'search hardware <perl-pattern (Regular Expression) oder string>' : prints all hosts which hwinfo-output matches the desired string/pattern \n";
     print "\t 'save groups to </path/file>' : save (dumps) the groups as XML in the specific file (relativ to Master root-directory) \n";
     print "\t 'load groups from </path/file>' : loads the specified XML-groups-file \n";
@@ -184,7 +206,7 @@ sub cmd_help() {
 }
 
 # Master->cmd_print_active
-# 
+#
 # Print the IP address, hostname and description of all hosts in status "up"
 sub cmd_print_active()  {
     my $sock_handle = shift @_;
@@ -199,8 +221,8 @@ sub cmd_print_active()  {
 sub cmd_print_groups() {
     my $sock_handle = shift @_;
     my @groups = $dbc->enum_list_vals ('group');
-    local $" = ", "; # Use this to interpolate list values
-    print $sock_handle "There are following groups: @groups.\nEmpty groups are not listed below.\n\n";
+    local $" = "', '"; # Use this to interpolate list values
+    print $sock_handle "There are following groups: '@groups'.\nEmpty groups are not listed below.\n\n";
     foreach my $group (@groups) {
 	my $group_id = $dbc->enum_get_id ('group', $group);
 	unless (defined ($group_id)) {
@@ -232,12 +254,12 @@ sub parse_xml() {
         # file is encoded
         $data = uri_unescape($data);
     } elsif ($data =~/<\/(group_)?job>[ \n\r]*$/) {
-        # file in plain XML 
+        # file in plain XML
 
-    } else { 
+    } else {
         &log(LOG_DETAIL, $data);
-        &log(LOG_ERR, "file $file is neither XML, nor escaped-XML"); 
-        print $sock_handle "file $file is neither XML, nor escaped-XML \n"; 
+        &log(LOG_ERR, "file $file is neither XML, nor escaped-XML");
+        print $sock_handle "file $file is neither XML, nor escaped-XML \n";
         return undef;
     }
 
@@ -256,17 +278,17 @@ sub which_hardware_where() {
     my $ref_backbone = &read_latest_backbone();
 
     (my @cmd_line) = split / /,$cmd;
-    my $string_searching = $cmd_line[-1]; 
+    my $string_searching = $cmd_line[-1];
 
     while ((my $host, my $values) = each %{$ref_backbone->{'active'}}) {
         # directory
-        open (FH, '<', $ref_backbone->{'master_root'}."/".$host."/".$values->{'hwinfo_time'}."_hwinfo");	
+        open (FH, '<', $ref_backbone->{'master_root'}."/".$host."/".$values->{'hwinfo_time'}."_hwinfo");
         my @data = <FH>;
-        close (FH); 
+        close (FH);
         my $data;
         foreach (@data) { $data = $data.$_;}			# serialiszing
         my $xml = new XML::Dumper;
-        my $hash_ref = $xml->xml2pl($data);			
+        my $hash_ref = $xml->xml2pl($data);
         my @result = datasearch(data => $hash_ref, search => 'all', find => qr/$string_searching/i, return => 'all' );
         if (@result) {
             print $sock_handle "\n hwinfo from $values->{'ip'}
@@ -275,7 +297,7 @@ sub which_hardware_where() {
                 print $sock_handle "\t $item";
 
             }
-            print $sock_handle "\n";	# for display niceness 
+            print $sock_handle "\n";	# for display niceness
         } else {
             print $sock_handle "hwinfo from $values->{'ip'}
             $values->{'description'} does not match '$string_searching' \n";
@@ -289,7 +311,7 @@ sub machine_ip2id
 	my ($sock_handle,$host)=@_;
 	unless ($host=~ /(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/ )
 	{
-		print $sock_handle "'$host' is not a valid IP-adress.\n"; 
+		print $sock_handle "'$host' is not a valid IP-adress.\n";
 		return 0;
 	}
 
@@ -306,8 +328,8 @@ sub group_add_host() {
 	my $sock_handle = shift @_;
 	my $cmd = shift @_ ;
 	(my @cmd_line) = split / /,$cmd;
-	my $group = $cmd_line[-2]; 
-	my $host = $cmd_line[-1]; 
+	my $group = $cmd_line[-2];
+	my $host = $cmd_line[-1];
 	my $string;
 
 	my $machine_id = &machine_ip2id($sock_handle,$host);
@@ -335,8 +357,8 @@ sub group_delete_host() {
 	my $sock_handle = shift @_;
 	my $cmd = shift @_ ;
 	(my @cmd_line) = split / /,$cmd;
-	my $group = $cmd_line[-2]; 
-	my $host = $cmd_line[-1]; 
+	my $group = $cmd_line[-2];
+	my $host = $cmd_line[-1];
 
 	my $machine_id = &machine_ip2id($sock_handle,$host);
 	return unless $machine_id;
@@ -350,7 +372,7 @@ sub group_delete_host() {
 	&TRANSACTION( 'group_machine' );
 	my $ret=&group_machine_delete($group_id,$machine_id);
 	&TRANSACTION_END;
-	
+
 	if( $ret==0 )
 	{	print $sock_handle "'$host' not a member of '$group'\n";	}
 	elsif( $ret==1 )
@@ -363,7 +385,7 @@ sub create_group() {
 	my $sock_handle = shift @_;
 	my $cmd = shift @_ ;
 	(my @cmd_line) = split / /,$cmd;
-	my $group = $cmd_line[-1]; 
+	my $group = $cmd_line[-1];
 	my $group_id = $dbc->enum_get_id('group',$group);
 	if( $group_id>0 )
 	{	print $sock_handle "Group $group already exists \n";	}
@@ -373,7 +395,7 @@ sub create_group() {
 		$dbc->enum_insert_id('group',$group);
 		&TRANSACTION_END;
 
-		print $sock_handle "ADDED $group \n"; 
+		print $sock_handle "ADDED $group \n";
 	}
 }
 
@@ -381,14 +403,14 @@ sub delete_group() {
 	my $sock_handle = shift @_;
 	my $cmd = shift @_ ;
 	(my @cmd_line) = split / /,$cmd;
-	my $group = $cmd_line[-1]; 
+	my $group = $cmd_line[-1];
 	my $group_id = $dbc->enum_get_id('group',$group);
 	if( $group_id > 0 )
 	{
 		&TRANSACTION( 'group' );
 		$dbc->enum_delete_id('group',$group_id);
 		&TRANSACTION_END;
-		
+
 		print $sock_handle "DELETED $group \n";
 	}
 	else
@@ -406,7 +428,7 @@ sub list_testcases() {
     my $jobtype = shift @_;
     my @jobtype = split /\s+/,$jobtype;
     $jobtype=$jobtype[2];
-    
+
     if($jobtype !~ /^[1-4]$/) {
       print $sock_handle "not support for the type * $jobtype *\n";
       return;
@@ -451,12 +473,12 @@ sub list_testcases() {
 	print $sock_handle $return;
 	return;
     }
-	
+
    if($jobtype==4) {
     #for multi-machine job
     print $sock_handle "----Multi_machine job list----\n";
     my @mulcases=glob("/usr/share/hamsta/xml_files/multimachine/*.xml");
-    map { 
+    map {
       open my $rfh,"$_" || ($return.="$_ can't open\n");
       my @xml_cont = <$rfh>;
       close $rfh;
@@ -465,33 +487,39 @@ sub list_testcases() {
       $return.=$_."(roles number): $roles\n" } @mulcases;
     print $sock_handle $return;
     return;
-    } 
-    
+    }
 }
+
 sub send_predefine_job_to_host() {
-    my $sock_handle = shift @_; 
+    my $sock_handle = shift @_;
     my $cmd = shift @_ ;
     &log(LOG_NOTICE, "cmd = $cmd");
-    
+
     (my @cmd_line) = split / /,$cmd;
-    my $file = $cmd_line[3]; 
-    my $host = $cmd_line[2]; 
+    my $file = $cmd_line[3];
+    my $host = $cmd_line[2];
     my $email = "";
     $email = $cmd_line[4] if(@cmd_line >= 5);
+
+    if (! can_send_job_to_machine ($host)) {
+	&log(LOG_WARNING, "User does not have privileges to send a job to '${host}'");
+	print $sock_handle "User does not have privileges to send a job to '${host}'.\n";
+	return;
+    }
 
     print $sock_handle "Pre-define job:$file \n\n";
 
     if( not &check_host($host)){
-      &log(LOG_WARNING, "$host is not active, maybe IP address misspelled"); 
-      print $sock_handle "$host is not active, maybe IP address misspelled\n"; 
-      return; 
+      &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
+      print $sock_handle "$host is not active, maybe IP address misspelled\n";
+      return;
     }
-    
+
     my $ffile="/usr/share/hamsta/xml_files/".$file.".xml";
 
     if (not (-e $ffile)) {
-        &log(LOG_ERR, "file $file does not exist"); 
-        print $sock_handle "file $file does not exist\n"; 
+        &log(LOG_ERR, "file $file does not exist");
+        print $sock_handle "file $file does not exist\n";
         return;
     }
     #modify email xml file
@@ -508,37 +536,37 @@ sub send_predefine_job_to_host() {
 
     my $ref = &parse_xml($sock_handle, $ofile);
     return if( not defined $ref );
-    # set the default values 
-    my $job_id = &transation($ref,$host,$ofile);
+    # set the default values
+    my $job_id = &transaction($ref,$host,$ofile);
 
     &log(LOG_INFO,"MASTER::FUNCTIONS cmdline Pre-define Job $file send to scheduler, at $host internal id: $job_id");
     print $sock_handle "MASTER::FUNCTIONS cmdline Pre-define Job $file send to scheduler, at $host internal id: $job_id\n";
     return;
-
 }
+
 sub send_autotest_job_to_host() {
     my $sock_handle = shift @_;
     my $cmd = shift @_ ;
 
     &log(LOG_NOTICE, "cmd = $cmd");
     (my @cmd_line) = split / /,$cmd;
-    #Autotest . at 
+    #Autotest . at
     my $at_tag = "";
     $at_tag = $cmd_line[6] if(@cmd_line >= 7);
     $at_tag = "with tag ".$at_tag if($at_tag);
-    my $at_email = ""; 
+    my $at_email = "";
     $at_email = $cmd_line[5] if(@cmd_line >= 6);
-    my $at_name = $cmd_line[4]; 
+    my $at_name = $cmd_line[4];
     $at_name =~ s/#/ /g;
-    my $host = $cmd_line[3]; 
+    my $host = $cmd_line[3];
 
     print $sock_handle "Autotest job:$at_name \n";
 
-    if( not &check_host($host)){   
-      &log(LOG_WARNING, "$host is not active, maybe IP address misspelled"); 
-      print $sock_handle "$host is not active, maybe IP address misspelled\n"; 
-      return; 
-    } 
+    if( not &check_host($host)){
+      &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
+      print $sock_handle "$host is not active, maybe IP address misspelled\n";
+      return;
+    }
 
     #modify the custom autotest file
     open(my $at_template,"/usr/share/hamsta/xml_files/templates/autotest-template.xml") or ( print $sock_handle "can open Autotest job template\n" and return);
@@ -553,22 +581,19 @@ sub send_autotest_job_to_host() {
 	s#</mail>#$at_email$&#;
 	s#AT_LIST#$at_name#;
 	print $template_tmp $_;
-	
+
     }
     close $at_template;
     close $template_tmp;
 
     my $ref = &parse_xml($sock_handle, $at_xml);
     return if( not defined $ref );
-    # set the default values 
-    my $job_id = &transation($ref,$host,$at_xml);
+    # set the default values
+    my $job_id = &transaction($ref,$host,$at_xml);
 
     &log(LOG_INFO,"MASTER::FUNCTIONS cmdline Autotest Job $at_name send to scheduler, at $host internal id: $job_id");
     print $sock_handle "MASTER::FUNCTIONS cmdline Autotest Job $at_name send to scheduler, at $host internal id: $job_id\n";
     return;
-
-
-
 }
 
 sub send_multi_job_to_host () {
@@ -578,15 +603,15 @@ sub send_multi_job_to_host () {
 
     &log(LOG_NOTICE, "cmd = $cmd");
     (my @cmd_line) = split / /,$cmd;
-    my $mul_email = ""; 
+    my $mul_email = "";
     $mul_email = $cmd_line[4] if(@cmd_line >= 5);
-    my $mul_name = $cmd_line[2]; 
-    my $parser = $cmd_line[3]; 
+    my $mul_name = $cmd_line[2];
+    my $parser = $cmd_line[3];
     my @hosts;
     my @roles = split /;/,$parser;
 
     #get all host
-    map { 
+    map {
       my $h =$_;
       $h =~ s/.*://;
       my @tmphosts = split /,/,$h;
@@ -595,11 +620,17 @@ sub send_multi_job_to_host () {
 
     #check host live
     for my $host (@hosts) {
-      if( not &check_host($host)){   
-        &log(LOG_WARNING, "$host is not active, maybe IP address misspelled"); 
-        print $sock_handle "$host is not active, maybe IP address misspelled\n"; 
-        return; 
-      } 
+      if (! can_send_job_to_machine ($host)) {
+	  &log(LOG_WARNING, "User does not have privileges to send a job to '${host}'");
+	  print $sock_handle "User does not have privileges to send a job to '${host}'.\n";
+	  return;
+      }
+
+      if( not &check_host($host)){
+        &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
+        print $sock_handle "$host is not active, maybe IP address misspelled\n";
+        return;
+      }
     }
 
     print $sock_handle "Multi_machine job:$mul_name \n";
@@ -607,7 +638,7 @@ sub send_multi_job_to_host () {
     my $mfile="/usr/share/hamsta/xml_files/multimachine/".$mul_name.".xml";
     my $v=time;
     my $mul_xml="/tmp/command_line_mul_$v.xml";
-   
+
     #modify xml file , add role to machine.
     my $machine =  qq#<machine name="x" ip="y"/>#;
     my %machine;
@@ -620,17 +651,17 @@ sub send_multi_job_to_host () {
       #get role host ip
       my @rips;
       map { push @rips,&nitoi($_) } @rhosts;
-      
+
       $machine{$rn}="";
       foreach(@rips){
         my $tp=$machine;
-        my $hostname=&machine_search('fields'=>['name'],'ip'=>$_);       
+        my $hostname=&machine_search('fields'=>['name'],'ip'=>$_);
         $tp =~ s/y/$_/;
         $tp =~ s/x/$hostname/;
         $machine{$rn}.=$tp;
-      }  
+      }
     }
-    
+
     open my $m_ori,$mfile || (print $sock_handle "can open Multi-machine xml file\n" and return);
     open my $m_tmp,'>',$mul_xml || (print $sock_handle "can open Multi-machine xml file\n" and return);
     while(<$m_ori>){
@@ -645,18 +676,15 @@ sub send_multi_job_to_host () {
     close $m_tmp;
     close $m_ori;
 
-    
-
     my $ref = &parse_xml($sock_handle, $mul_xml);
     return if( not defined $ref );
-    # set the default values 
+    # set the default values
     for my $host (@hosts) {
-      my $job_sid = &transation($ref,$host,$mul_xml);
+      my $job_sid = &transaction($ref,$host,$mul_xml);
       &log(LOG_INFO,"MASTER::FUNCTIONS cmdline Multi_Machine Job $mul_name send to scheduler, at $host internal id: $job_sid");
       print $sock_handle "MASTER::FUNCTIONS cmdline Multi_Machine Job $mul_name send to scheduler, at $host internal id: $job_sid\n";
     }
     return;
-
 }
 
 sub send_job_to_host () {
@@ -665,33 +693,36 @@ sub send_job_to_host () {
 
     &log(LOG_NOTICE, "cmd = $cmd");
     (my @cmd_line) = split / /,$cmd;
-    my $file = $cmd_line[-1]; 
-    my $host = $cmd_line[-2]; 
+    my $file = $cmd_line[-1];
+    my $host = $cmd_line[-2];
 
-    if( not &check_host($host)){   
-      &log(LOG_WARNING, "$host is not active, maybe IP address misspelled"); 
-      print $sock_handle "$host is not active, maybe IP address misspelled\n"; 
-      return; 
-    } 
-    
+    if (! can_send_job_to_machine ($host)) {
+	&log(LOG_WARNING, "User does not have privileges to send a job to '${host}'");
+	print $sock_handle "User does not have privileges to send a job to '${host}'.\n";
+	return;
+    }
+
+    if( not &check_host($host)){
+      &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
+      print $sock_handle "$host is not active, maybe IP address misspelled\n";
+      return;
+    }
+
     if (not (-e $file)) {
-        &log(LOG_ERR, "file $file does not exist"); 
-        print $sock_handle "file $file does not exist\n"; 
+        &log(LOG_ERR, "file $file does not exist");
+        print $sock_handle "file $file does not exist\n";
         return;
     }
 
     my $ref = &parse_xml($sock_handle, $file);
     return if( not defined $ref );
-    # set the default values 
+    # set the default values
 
-    my $job_id = &transation($ref,$host,$file);
+    my $job_id = &transaction($ref,$host,$file);
 
     &log(LOG_INFO,"MASTER::FUNCTIONS Job send to scheduler, at $host internal id: $job_id");
     print $sock_handle "MASTER::FUNCTIONS Job send to scheduler, at $host internal id: $job_id\n";
-
-
 }
-
 
 sub send_re_job_to_host () {
     my $sock_handle = shift @_;
@@ -700,19 +731,25 @@ sub send_re_job_to_host () {
     &log(LOG_NOTICE, "cmd = $cmd");
     (my @cmd_line) = split / /,$cmd;
     my $reinstall_tag = "";
-    $reinstall_tag = $cmd_line[6] if(@cmd_line >= 7); 
+    $reinstall_tag = $cmd_line[6] if(@cmd_line >= 7);
     my $reinstall_email = "";
     $reinstall_email = $cmd_line[5] if(@cmd_line >= 6);
-    my $reinstall_opt = $cmd_line[4]; 
+    my $reinstall_opt = $cmd_line[4];
     $reinstall_opt =~ s/#/ /g;
-    my $host = $cmd_line[3]; 
+    my $host = $cmd_line[3];
 
-    if( not &check_host($host)){   
-      &log(LOG_WARNING, "$host is not active, maybe IP address misspelled"); 
-      print $sock_handle "$host is not active, maybe IP address misspelled\n"; 
-      return; 
-    } 
-    
+    if (! can_send_job_to_machine ($host)) {
+	&log(LOG_WARNING, "User does not have privileges to send a job to '${host}'");
+	print $sock_handle "User does not have privileges to send a job to '${host}'.\n";
+	return;
+    }
+
+    if( not &check_host($host)){
+      &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
+      print $sock_handle "$host is not active, maybe IP address misspelled\n";
+      return;
+    }
+
     #modify the reinstall xml file
     open(my $template_re,"/usr/share/hamsta/xml_files/templates/reinstall-template.xml") or ( print $sock_handle "can open reinstall template\n" and return);
     my $v=time;
@@ -731,16 +768,16 @@ sub send_re_job_to_host () {
 
 
     if (not (-e $cmd_reinstall_xml)) {
-        &log(LOG_ERR, "file $cmd_reinstall_xml does not exist"); 
-        print $sock_handle "file $cmd_reinstall_xml does not exist\n"; 
+        &log(LOG_ERR, "file $cmd_reinstall_xml does not exist");
+        print $sock_handle "file $cmd_reinstall_xml does not exist\n";
         return;
     }
 
     my $ref = &parse_xml($sock_handle, $cmd_reinstall_xml);
     return if( not defined $ref );
-    # set the default values 
+    # set the default values
 
-    my $job_id = &transation($ref,$host,$cmd_reinstall_xml);
+    my $job_id = &transaction($ref,$host,$cmd_reinstall_xml);
 
     &log(LOG_INFO,"MASTER::FUNCTIONS cmdline Reinstall Job send to scheduler, at $host internal id: $job_id");
     print $sock_handle "MASTER::FUNCTIONS cmdline Reinstall Job send to scheduler, at $host internal id: $job_id\n";
@@ -758,17 +795,23 @@ sub send_line_job_to_host () {
     my $ol_tag = "";
     $ol_tag = $cmd_line[8] if(@cmd_line >= 9);
     $ol_tag="with tag $ol_tag" if($ol_tag);
-    my $ol_email = "" ; 
+    my $ol_email = "" ;
     $ol_email = $cmd_line[7] if(@cmd_line >= 8);
-    my $one_line_cmd = $cmd_line[6]; 
+    my $one_line_cmd = $cmd_line[6];
     $one_line_cmd =~ s/#/ /g;
-    my $host = $cmd_line[5]; 
+    my $host = $cmd_line[5];
 
-    if( not &check_host($host)){   
-      &log(LOG_WARNING, "$host is not active, maybe IP address misspelled"); 
-      print $sock_handle "$host is not active, maybe IP address misspelled\n"; 
-      return; 
-    } 
+    if (! can_send_job_to_machine ($host)) {
+	&log(LOG_WARNING, "User does not have privileges to send a job to '${host}'");
+	print $sock_handle "User does not have privileges to send a job to '${host}'.\n";
+	return;
+    }
+
+    if( not &check_host($host)){
+      &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
+      print $sock_handle "$host is not active, maybe IP address misspelled\n";
+      return;
+    }
 
     #modify the custom xml file
     open(my $c_step1,"/usr/share/hamsta/xml_files/templates/customjob-template1.xml") or ( print $sock_handle "can open custom job step1 template\n" and return);
@@ -776,7 +819,7 @@ sub send_line_job_to_host () {
     my $v = time;
     my $one_line_xml="/tmp/one_line_job_${host}_$v.xml";
     open(my $template_tmp,">","$one_line_xml") or ( print $sock_handle "can not write custom job template\n" and return);
- 
+
     while(<$c_step1>){
 
 	s#JOBNAME#command job $ol_tag from cmdline #;
@@ -785,11 +828,11 @@ sub send_line_job_to_host () {
 	s#RPMLIST##;
 	s#MOTDMSG# one line job was running#;
 	print $template_tmp $_;
-	
+
     }
-    #add command 
+    #add command
     print $template_tmp $one_line_cmd,"\n";
-    
+
     while(<$c_step2>){
 	print $template_tmp $_;
     }
@@ -799,23 +842,21 @@ sub send_line_job_to_host () {
     close $template_tmp;
 
 
-    
+
     if (not (-e $one_line_xml)) {
-        &log(LOG_ERR, "file $one_line_xml does not exist"); 
-        print $sock_handle "file $one_line_xml does not exist\n"; 
+        &log(LOG_ERR, "file $one_line_xml does not exist");
+        print $sock_handle "file $one_line_xml does not exist\n";
         return;
     }
 
     my $ref = &parse_xml($sock_handle, $one_line_xml);
     return if( not defined $ref );
-    # set the default values 
-   
-    my $job_id = &transation($ref,$host,$one_line_xml);
+    # set the default values
+
+    my $job_id = &transaction($ref,$host,$one_line_xml);
 
     &log(LOG_INFO,"MASTER::FUNCTIONS cmdline one line Job send to scheduler, at $host internal id: $job_id");
     print $sock_handle "MASTER::FUNCTIONS cmdline one line Job send to scheduler, at $host internal id: $job_id\n";
-
-
 }
 
 sub send_xen_set_to_host () {
@@ -825,70 +866,75 @@ sub send_xen_set_to_host () {
     &log(LOG_NOTICE, "cmd = $cmd");
     (my @cmd_line) = split / /,$cmd;
     my $xen_set_tag = $cmd_line[-1];
-    my $host = $cmd_line[-2]; 
+    my $host = $cmd_line[-2];
 
-    if( not &check_host($host)){   
-      &log(LOG_WARNING, "$host is not active, maybe IP address misspelled"); 
-      print $sock_handle "$host is not active, maybe IP address misspelled\n"; 
-      return; 
-    } 
+    if( not &check_host($host)){
+      &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
+      print $sock_handle "$host is not active, maybe IP address misspelled\n";
+      return;
+    }
 
     #modify the custom xml file
     open(my $xen_set,"/usr/share/hamsta/xml_files/set_xen_default.xml") or ( print $sock_handle "can open set xen xml file\n" and return);
     my $xen_set_xml="/tmp/xen_set_$xen_set_tag.xml";
     open(my $template_tmp,">","$xen_set_xml") or ( print $sock_handle "can not write set xen template\n" and return);
- 
+
     while(<$xen_set>){
 
 	s#DefaultXENGrub#set xen with tag $xen_set_tag  #;
 	print $template_tmp $_;
-	
+
     }
     close $xen_set;
     close $template_tmp;
 
 
-    
+
     if (not (-e $xen_set_xml)) {
-        &log(LOG_ERR, "file $xen_set_xml does not exist"); 
-        print $sock_handle "file $xen_set_xml does not exist\n"; 
+        &log(LOG_ERR, "file $xen_set_xml does not exist");
+        print $sock_handle "file $xen_set_xml does not exist\n";
         return;
     }
 
     my $ref = &parse_xml($sock_handle, $xen_set_xml);
     return if( not defined $ref );
-    # set the default values 
+    # set the default values
 
-    my $job_id = &transation($ref,$host,$xen_set_xml);
+    my $job_id = &transaction($ref,$host,$xen_set_xml);
 
     &log(LOG_INFO,"MASTER::FUNCTIONS cmdline xen set Job send to scheduler, at $host internal id: $job_id");
     print $sock_handle "MASTER::FUNCTIONS cmdline xen set Job send to scheduler, at $host internal id: $job_id\n";
-
-
 }
+
 sub send_qa_package_job_to_host () {
     my $sock_handle = shift @_;
     my $cmd = shift @_ ;
 
     &log(LOG_NOTICE, "cmd = $cmd");
     (my @cmd_line) = split / /,$cmd;
-    #qa package test . qpt 
+    #qa package test . qpt
     my $qpt_tag = "";
     $qpt_tag = $cmd_line[6] if(@cmd_line >= 7);
     $qpt_tag = "with tag ".$qpt_tag if($qpt_tag);
-    my $qpt_email = ""; 
+    my $qpt_email = "";
     $qpt_email = $cmd_line[5] if(@cmd_line >= 6);
-    my $qpt_name = $cmd_line[4]; 
+    my $qpt_name = $cmd_line[4];
     $qpt_name =~ s/#/ /g;
-    my $host = $cmd_line[3]; 
+    my $host = $cmd_line[3];
+
+    if (! can_send_job_to_machine ($host)) {
+	&log(LOG_WARNING, "User does not have privileges to send a job to '${host}'");
+	print $sock_handle "User does not have privileges to send a job to '${host}'.\n";
+	return;
+    }
 
     print $sock_handle "qa package job:$qpt_name \n";
 
-    if( not &check_host($host)){   
-      &log(LOG_WARNING, "$host is not active, maybe IP address misspelled"); 
-      print $sock_handle "$host is not active, maybe IP address misspelled\n"; 
-      return; 
-    } 
+    if( not &check_host($host)){
+      &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
+      print $sock_handle "$host is not active, maybe IP address misspelled\n";
+      return;
+    }
 
     #modify the custom xml file
     open(my $qpt_template,"/usr/share/hamsta/xml_files/templates/qapackagejob-template.xml") or ( print $sock_handle "can open QA package job template\n" and return);
@@ -903,30 +949,27 @@ sub send_qa_package_job_to_host () {
 	s#</mail>#$qpt_email$&#;
 	s#TS_LIST#$qpt_name#;
 	print $template_tmp $_;
-	
+
     }
     close $qpt_template;
     close $template_tmp;
 
 
-    
+
     if (not (-e $qpt_xml)) {
-        &log(LOG_ERR, "file $qpt_xml does not exist"); 
-        print $sock_handle "file $qpt_xml does not exist\n"; 
+        &log(LOG_ERR, "file $qpt_xml does not exist");
+        print $sock_handle "file $qpt_xml does not exist\n";
         return;
     }
 
     my $ref = &parse_xml($sock_handle, $qpt_xml);
     return if( not defined $ref );
-    # set the default values 
+    # set the default values
 
-    my $job_id = &transation($ref,$host,$qpt_xml);
+    my $job_id = &transaction($ref,$host,$qpt_xml);
     &log(LOG_INFO,"MASTER::FUNCTIONS cmdline QA package Job send to scheduler, at $host internal id: $job_id");
     print $sock_handle "MASTER::FUNCTIONS cmdline QA package Job send to scheduler, at $host internal id: $job_id\n";
-
-
 }
-
 
 sub send_job_to_group() {
 
@@ -934,12 +977,12 @@ sub send_job_to_group() {
     my $sock_handle = shift @_;
     my $cmd = shift @_ ;
     (my @cmd_line) = split / /,$cmd;
-    my $group = $cmd_line[-2]; 
-    my $file = $cmd_line[-1]; 
+    my $group = $cmd_line[-2];
+    my $file = $cmd_line[-1];
 
     # file check
     if ( ! -e $file) {
-        print $sock_handle "file $file does not exist!\n"; 
+        print $sock_handle "file $file does not exist!\n";
         return;
     }
     my $group_id = $dbc->enum_get_id('group',$group);
@@ -962,7 +1005,6 @@ sub send_job_to_group() {
 }
 
 sub check_host() {
-    
     my $host = shift;
     unless ($host eq "none") {
         my @tmp_hosts = &machine_search('fields'=>['ip'], 'return'=>'vector');
@@ -982,7 +1024,7 @@ sub check_host() {
     }
 }
 
-sub transation(){
+sub transaction(){
     my $ref=shift;
     my $host=shift;
     my $xml=shift;
@@ -1005,9 +1047,279 @@ sub nitoi(){
     my $host = shift;
     unless( $host =~ /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/ )
     {
-      my @hostinfo = gethostbyname($host); 
+      my @hostinfo = gethostbyname($host);
       $host = join( '.', unpack( "C4", $hostinfo[4] )) if( @hostinfo > 4 );
     }
     return $host;
 }
+
+# Checks the user exists in Hamsta and provides correct password.
+sub log_in ($$) # socket handle, command line
+{
+    my $sock_handle = shift;
+    # log in <login> <passwd> [<role>]
+    my @cmd = split / /, shift (@_);
+    unless (@cmd > 3) {
+	print $sock_handle "Not enough parameters. Try `help'.\n";
+	return 0;
+    }
+    my $login = $cmd[2];
+    my $passwd = $cmd[3];
+    my $role;
+    if ( @cmd > 4) {
+	$role = $cmd[4];
+    }
+    my $user_id = user_get_id ($login);
+
+    if ( defined ($user_id) ) {
+	my $db_passwd = user_get_password ($login);
+	# Sometimes we get the password sent already hashed (like from
+	# the Hamsta web)
+	if ( defined ($db_passwd)
+		 && (sha1_hex ($passwd) eq $db_passwd
+			 || $passwd eq $db_passwd) ) {
+	    my @user_roles = user_get_roles ($user_id);
+	    my $role_name = (defined ($role) ? $role : 'user');
+	    my $role_id = role_get_id ($role_name);
+	    if (! defined ($role_id)) {
+		# The requested role does not exist
+		print $sock_handle
+		    "The role '${role_name}' does not exist."
+		    . " You have not been logged in."
+		    . " Try again using existing role.\n";
+	    } elsif (! is_in_array ($role_name, @user_roles)) {
+		# User does not have this role assigned
+		print $sock_handle
+		    "The user '${login}' is not cast in the role '${role}'.\n";
+	    } else {
+		$user_login = $login;
+		$user_role = $role_name;
+		print $sock_handle "You were authenticated as '${user_login}'"
+			. " in role '${role_name}'. Send your commands.\n";
+		return 1;
+	    }
+	} else {
+	    print $sock_handle "Wrong password. Try again.\n";
+	}
+    } else {
+	print $sock_handle "Unknown Hamsta user '${$login}'. Try again.\n";
+    }
+    return 0;
+}
+
+# Print status of current user, reserved machines and possibly other
+# information
+sub print_status ($) # socket
+{
+    my $sock_handle = shift;
+    if (get_logged_status ()) {
+	print $sock_handle "You are logged in as '${user_login}'"
+		. " using role '${user_role}'.\n";
+	my $user_id = user_get_id ($user_login);
+	if (defined ($user_id)) {
+	    my @res_machines = user_get_reserved_machines ($user_id);
+	    local $" = "', '";
+	    print $sock_handle "You have reserved machines '@res_machines'.\n";
+	}
+    } else {
+	print $sock_handle "You have to be logged in to print your status.\n";
+    }
+}
+
+sub set_role ($$) # socket, command
+{
+    my $sock_handle = shift;
+    my @cmd = split / /, shift (@_);
+    if (@cmd < 3) {
+	print $sock_handle "Not enough parameters. Try `help'.\n";
+	return;
+    }
+    if (!get_logged_status ()) {
+	print $sock_handle "You have to be logged in to be able to set role.\n";
+	return;
+    }
+    my $role_name = $cmd[2];
+    my $role_id;
+    $role_id = role_get_id ($role_name);
+    if (! defined ($role_id)) {
+	# The requested role does not exist
+	print $sock_handle "The role '${role_name}' does not exist."
+		. " Try again using existing role.\n";
+    } else {
+	my @user_roles = user_get_roles (user_get_id($user_login));
+	if (is_in_array ($role_name, @user_roles)) {
+	    $user_role = $role_name;
+	    print $sock_handle
+		"Your current role has been set to '${role_name}'.\n";
+	} else {
+	    print $sock_handle "You cannot be cast in the role"
+		    . " '${role_name}'. Try 'list roles ${user_login}'.\n";
+	}
+    }
+}
+
+# With parameter prints only roles of the user, all roles otherwise
+sub print_roles ($$) # socket handle, [user_login]
+{
+    my $sock_handle = shift;
+    my @cmd = split / /, shift (@_);
+    my $login;
+    if (@cmd > 2) {
+	$login = $cmd[2];
+    }
+    local $" = "', '";
+    if (defined ($login)) {
+	my $user_id = user_get_id ($login);
+	if (defined($user_id)) {
+	    my @user_roles = user_get_roles ($user_id);
+	    print $sock_handle
+		"Roles available to user '${login}': '@user_roles'.\n";
+	} else {
+	    print $sock_handle "Unknown user '${login}'.\n";
+	}
+    } else {
+	my @all_roles = role_list_all ();
+	print $sock_handle "Available roles: '@all_roles'.\n";
+    }
+}
+
+sub log_out () {
+    my $sock_handle = shift;
+    undef $user_login;
+    undef $user_role;
+    print $sock_handle "You have been succesfully logged out.\n";
+    return 1;
+}
+
+### Support functions for user authentication
+
+# Returns 1 when user is logged in, 0 otherwise.
+sub get_logged_status ()
+{
+    return (defined ($user_login) && length ($user_login) > 0
+		&& defined ($user_role) && length ($user_role) > 0);
+}
+
+# Returns 1 if the value is in array, 0 otherwise.
+sub is_in_array ($$) # value, array
+{
+    my $val = shift;
+    my @arr = shift;
+    foreach ( @arr ) {
+	return 1 if ($_ eq $val || $_ == $val);
+    }
+    return 0;
+}
+
+# Prints list of user privileges
+sub print_privileges ($) # socket handle
+{
+    my $sock_handle = shift;
+    if (get_logged_status ()) {
+	local $" = ", ";
+	my @privileges = role_get_privileges (role_get_id ($user_role));
+	print $sock_handle "@privileges";
+    } else {
+	print $sock_handle "You have to be logged in to print your privileges.";
+    }
+}
+
+sub print_can_user ($) # action
+{
+    my $sock_handle = shift;
+    my @cmd = split / /, shift (@_);
+    if (get_logged_status()) {
+	print $sock_handle "You are "
+	    . (is_allowed ($user_role, $cmd[2]) ? "" : "not ")
+	    . "allowed to do that.";
+    } else {
+	print $sock_handle "You are not logged in.";
+    }
+}
+
+# Returns 1 if the role has access to the privilege, 0 otherwise.
+sub is_allowed ($$) # role, privilege
+{
+    my $role_name = shift;
+    my $privilege_name = shift;
+    my $role_id = role_get_id ($role_name);
+    if (defined ($role_id)) {
+	my @privileges = role_get_privileges ($role_id);
+	foreach (@privileges) {
+	    return 1 if $privilege_name eq $_;
+	}
+    }
+    return 0;
+}
+
+# Checks whether the current user is logged in and can send jobs.
+sub can_send_jobs ()
+{
+    return (get_logged_status ()
+		&& is_allowed ($user_role, 'machine_send_job'));
+}
+
+sub can_send_jobs_to_reserved ()
+{
+    return (get_logged_status ()
+		&& is_allowed ($user_role, 'machine_send_job_reserved'));
+}
+
+sub use_master_authentication ()
+{
+    return get_qa_config ("hamsta_master_authentication");
+}
+
+sub print_user_can_send_jobs ($)
+{
+    my $sock_handle = shift;
+    my @cmd = split / /, shift (@_);
+    my $m_ip = $cmd[2];
+
+    print $sock_handle "You can "
+	. (can_send_job_to_machine ($m_ip) ? "" : "not ")
+	. "send jobs to machine '${m_ip}'.";
+}
+
+sub can_send_job_to_machine ($) # machine ip
+{
+#    return 1 unless use_master_authentication ();
+    my $m_ip = shift;
+    my $user_id = user_get_id ($user_login);
+    return 0 unless (defined ($m_ip) && defined ($user_id));
+    my $my_machine = machine_get_id_by_ip_usedby ($m_ip, $user_id);
+    if (is_allowed ($user_role, 'machine_send_job') && defined $my_machine
+	    || is_allowed ($user_role, 'machine_send_job_reserved')) {
+	return 1;
+    }
+    return 0;
+}
+
+sub can_reinstall ($) # machine ip
+{
+    return 1 unless use_master_authentication ();
+    my $m_ip = shift;
+    my $user_id = user_get_id ($user_login);
+    return 0 unless (defined ($m_ip) && defined ($user_id));
+    if (is_allowed ($user_role, 'machine_reinstall')
+	    && machine_get_id_by_ip_usedby ($m_ip, $user_id)
+		|| is_allowed ($user_role, 'machine_reinstall_reserved')) {
+	return 1;
+    }
+    return 0;
+}
+
+sub cmd_print_all_machines ($) # socket
+{
+    my $sock_handle = shift;
+    my @cmd = shift;
+    my $machinesref = machine_list_all ();
+    use Data::Dumper;
+    print $sock_handle "List of all available machines.\n";
+    printf $sock_handle "%15s : %15s : %s\n", "machine", "ip address", "status";
+    foreach (@{$machinesref}) {
+	printf $sock_handle "%15s : %15s : %s\n", ${$_}[0], ${$_}[1], ${$_}[2];
+    }
+}	
+
 1;
