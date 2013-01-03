@@ -171,7 +171,7 @@ sub machine_list_free()
 
 sub machine_list_all()
 {
-	return $dbc->matrix_query ('SELECT name, ip FROM machine');
+	return $dbc->matrix_query ('SELECT m.name, m.ip, ms.machine_status FROM machine m INNER JOIN machine_status ms on (m.machine_status_id = ms.machine_status_id)');
 }
 
 sub busy_machines_without_jobs()	{

@@ -1316,9 +1316,9 @@ sub cmd_print_all_machines ($) # socket
     my $machinesref = machine_list_all ();
     use Data::Dumper;
     print $sock_handle "List of all available machines.\n";
-    printf $sock_handle "%15s : %s\n", "machine", "ip address";
+    printf $sock_handle "%15s : %15s : %s\n", "machine", "ip address", "status";
     foreach (@{$machinesref}) {
-	printf $sock_handle "%15s : %s\n", ${$_}[0], ${$_}[1];
+	printf $sock_handle "%15s : %15s : %s\n", ${$_}[0], ${$_}[1], ${$_}[2];
     }
 }	
 
