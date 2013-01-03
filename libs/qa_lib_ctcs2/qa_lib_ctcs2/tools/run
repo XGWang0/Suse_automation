@@ -24,6 +24,24 @@ use lib '/usr/lib/ctcs2/lib/perl';
 use POSIX;
 use POSIX qw(:signal_h :errno_h :sys_wait_h);
 
+#
+# If PATH_PREFIX is set we use it to locate perl libraries
+# as well as path for runtest script (see bellow).
+#
+# If you want to run this script directly from git checkout do:
+#
+# PATH_PREFIX=.. ./run foo.tcf 
+#
+BEGIN {
+	if (defined($ENV{PATH_PREFIX})) {
+		$include_dir = "$ENV{PATH_PREFIX}/lib/perl/";
+	
+		print "INFO: Using perl include directory '$include_dir'\n";
+
+		push(@INC, $include_dir);
+	}
+}
+
 # this is my hacked up color library.  Eventually run should use
 # curses directly.
 use color;
@@ -105,6 +123,13 @@ if (defined($ENV{TESTS_LOGDIR})) {
 	print "INFO: Not running as root, logs will be stored in $logdir.\n";
 }
 
+# path to the runtest script
+my $runtest_path = '/usr/lib/ctcs2/bin/runtest';
+	
+if (defined($ENV{PATH_PREFIX})) {
+	$runtest_path = "$ENV{PATH_PREFIX}/bin/runtest";
+	print "INFO: Using path to runtest script '$runtest_path'\n";
+}
 
 # hash key: state_directory
 # location of the current state information
@@ -498,7 +523,7 @@ sub run {
 		open STDIN, "</dev/null" or die "Cannot set test's STDIN to /dev/null!";
 
 		# lets try letting channel 2 through
-		exec("sh","-c","exec /usr/lib/ctcs2/bin/runtest $iterations $testprogram $tp >> $logfilename") or die ("Can't exec subprocess\n");
+		exec("sh","-c","exec $runtest_path $iterations $testprogram $tp >> $logfilename") or die ("Can't exec subprocess\n");
 	} else {
 		warn("Fork error, aieeeee!\n");
 	}
