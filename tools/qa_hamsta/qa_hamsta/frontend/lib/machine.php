@@ -1199,8 +1199,13 @@ class Machine {
 	 * @return string Notes for the machine (consisting of affiliation and anomalies, if any)
 	 */
 	function get_notes() {
-	$anomaly=$this->get_anomaly();
-		return $this->get_affiliation() . ($anomaly ? ".&#10;&#10;ANOMALIES: " . $anomaly : "");
+		$retstr = strlen ($this->get_affiliation()) > 0
+		  ? $this->get_affiliation() : "";
+		$retstr .= strlen ($this->get_anomaly()) > 0
+		  ? (strlen ($this->get_affiliation()) > 0
+		     ? " " : "")
+		  . "ANOMALIES: " . $this->get_anomaly() : "";
+		return $retstr;
 	}
 
 	/**
