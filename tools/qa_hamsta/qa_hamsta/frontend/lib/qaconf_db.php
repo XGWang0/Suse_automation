@@ -15,7 +15,8 @@ $enums = array_merge( $enums, array(
 define('QACONF_GLOBAL',1);
 define('QACONF_COUNTRY',2);
 define('QACONF_SITE',3);
-define('QACONF_MAX_SYS_ID',QACONF_SITE);
+define('QACONF_MASTER',4);
+define('QACONF_MAX_SYS_ID',QACONF_MASTER);
 
 /** logs into DB, checks user, prints header, prints navigation bar */
 function common_header($args=null)
