@@ -12,6 +12,12 @@ $enums = array_merge( $enums, array(
 	'qaconf'	=> array('qaconf_id','desc'),
 ));
 
+define('QACONF_GLOBAL',1);
+define('QACONF_COUNTRY',2);
+define('QACONF_SITE',3);
+define('QACONF_MASTER',4);
+define('QACONF_MAX_SYS_ID',QACONF_MASTER);
+
 /** logs into DB, checks user, prints header, prints navigation bar */
 function common_header($args=null)
 {
@@ -35,7 +41,7 @@ function qaconf_insert($desc)	{
 }
 
 function qaconf_list($header=1,$limit=null)	{
-	return mhash_query($header,$limit,'SELECT qaconf_id,`desc` FROM qaconf');
+	return mhash_query($header,$limit,'SELECT qaconf_id,`desc`,GROUP_CONCAT(`group`) AS groups,GROUP_CONCAT(name) AS machines FROM qaconf LEFT JOIN machine USING(qaconf_id) LEFT JOIN `group` USING(qaconf_id) WHERE qaconf_id>? GROUP BY qaconf_id','i',-1);
 }
 
 function qaconf_row_insert($id,$key,$val,$cmt)	{
