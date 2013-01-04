@@ -55,10 +55,15 @@ if ( $config->authentication->use )
         exit ();
       }
   }
-
-	$json = file_get_contents($config->url->index->repo);
-	if ($json == ""){
-		echo json_encode(array());
+	/* pkacer@suse.com: I have suppressed warnings here because if
+	 * the file is not reachable, the warning is always displayed
+	 * (Hamsta displays all warnings, see 'index.php') and that
+	 * looks very ugly at the front end. For the end user that
+	 * would be annoying. Instead this file returns and in the
+	 * 'html/validation.php' there is error handling displaying
+	 * some useful error to the user in some nice way. */
+	$json = @file_get_contents($config->url->index->repo);
+	if ($json === FALSE || $json == ""){
 		return;
 	}
 	$repos = json_decode($json);
