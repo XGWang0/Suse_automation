@@ -23,6 +23,7 @@
 use lib '/usr/lib/ctcs2/lib/perl';
 use POSIX;
 use POSIX qw(:signal_h :errno_h :sys_wait_h);
+use Time::HiRes qw(usleep);
 
 #
 # If PATH_PREFIX is set we use it to locate perl libraries
@@ -620,7 +621,9 @@ sub wait_on_tests {
 	# periodically check state.
 	# Another thing -- it's not possible to rely on signal delivery under Linux
 	# while things like burn are running.  See my attempts to stop processes in cleanup()
-       	while (&$testfunc($waitfor) and (not $eexit) and (not $timers{state} eq "finished")) {
+       	$last_time = 0;
+
+	while (&$testfunc($waitfor) and (not $eexit) and (not $timers{state} eq "finished")) {
 		$current_time = $timers{gtime} + (time - $timers{gstart});
 		# this should reduce overhead in the checking area by close to 95%
 		if ($current_time >= $current_next_check) {
@@ -641,12 +644,15 @@ sub wait_on_tests {
 			}
 		}
 
+
 		# for background process, don't print the clock
 		# or we can ignore the clock string line from slave(Command.pm +257)
-		if ($process_foreground) {
+		if ($process_foreground && $current_time != $last_time) {
 			display_clock($current_time);
+			$last_time = $current_time;
 		}
-		sleep 1;
+
+		usleep(100000);
 	}
 
 	if ($eexit or $timers{state} eq "finished") { 
