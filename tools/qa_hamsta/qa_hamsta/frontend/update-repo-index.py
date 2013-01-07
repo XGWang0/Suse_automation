@@ -44,7 +44,7 @@ basename = 'default'
 def list_dir(url):
 	"""Parsing the web page and get the directory list, os.listdir clone"""
 	page = urllib2.urlopen(url).read()
-	return re.findall('<img.*?folder.gif.*?href="(.*?)/">', page)
+	return re.findall('<img.*?folder.(?:gif|png).*?href="(.*?)/">', page)
 
 def append_result(repo, product, arch, am):
 	p = {}

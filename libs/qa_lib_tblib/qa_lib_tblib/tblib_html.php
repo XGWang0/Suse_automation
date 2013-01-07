@@ -802,7 +802,12 @@ function html_search_form( $url, $data, $attrs=array() )
 	if( $search )
 		$r.='<input type="hidden" name="search" value="1"/>'."\n";
 	if($div) $r.="</div>\n";
-	$r.='<input type="submit" class="btn submit"'.($submit ? " value=\"$submit\"":'').'/>'."\n";
+	if( !$submit )
+		$submit=array('');
+	else if( !is_array($submit) )
+		$submit=array($submit);
+	foreach( $submit as $s )
+		$r.='<input type="submit" class="btn submit"'.($s ? " value=\"$s\"":'').'/>'."\n";
 	if($form) $r.="</form>\n";
 	if( $hr )	$r.="<hr/>\n";
 	return $r;
