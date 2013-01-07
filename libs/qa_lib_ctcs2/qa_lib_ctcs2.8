@@ -11,7 +11,7 @@ ctcs2
 tool
 .SH DESCRIPTION
 .B CTCS2
-is our primary test runner for automated tests. It is the engine by which most of our automated tests are run and initial results generated. Tests launched via Hamsta are executed using
+is our primary test runner for automated tests. It is the engine by which most of our automated tests are run and initial results generated. Tests launched via Hamsta are executed using.
 .B CTCS2
 .
 
@@ -37,6 +37,19 @@ if run as non-root. If environment variable \fB$TESTS_LOGDIR\fP is set, results 
 .BI $TESTS_LOGDIR /ctcs2/\<testsuite\>\-\<timestamp\>\.
 .SH COMMON PROBLEMS
 None.
+.SH ENVIRONMENT VARIABLES
+.B TESTS_LOGDIR
+overrides directory to store logs to $TESTS_LOGDIR/ctcs2/. The default is /var/log/qa/ctcs2/ for root user and $HOME/var-log-qa/ctcs2/ otherwise.
+.PP
+.B PATH_PREFIX
+overrides path to look for ctcs2 perl libraries and runtest script. To run the run script from git checkout do PATH_PREFIX=../ ./run foo.tcf.
+.PP
+.B ONE_SEC_POLLING
+sets the polling interval back to 1 second. The default was changed from 1 second to 0.1 second because of bug #789630. If you find that the
+faster polling interferes with your benchmark simply set this variable before the testing to get the old behavior back.
+.PP
+.B SYNC_LOGGING
+forces O_SYNC logging for all tests (the old behavior). The default was changed because of bug #793914.
 .SH WARNINGS
 None.
 .SH SEE ALSO
@@ -52,4 +65,4 @@ http://sourceforge.net/projects/ctcs2/
 .SH AUTHOR
 Jason T. Collins <jcollins@valinux.com>
 .SH MAINTAINER
-Lukas Lipavsky <LLipavsky@novell.com>
+Cyril Hrubis <chrubis@suse.com>

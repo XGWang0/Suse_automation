@@ -132,6 +132,15 @@ if (defined($ENV{PATH_PREFIX})) {
 	print "INFO: Using path to runtest script '$runtest_path'\n";
 }
 
+# Default polling interval is 0.1 sec = 100000 usecs
+# but it could be overridden by ONE_SEC_POLLING env variable
+# to 1 second (which was used previously)
+my $polling_interval = 100000;
+
+if (defined($ENV{ONE_SEC_POLLING})) {
+	$polling_interval = 1000000;
+}
+
 # hash key: state_directory
 # location of the current state information
 # state information hiearchy:
@@ -652,7 +661,7 @@ sub wait_on_tests {
 			$last_time = $current_time;
 		}
 
-		usleep(100000);
+		usleep($polling_interval);
 	}
 
 	if ($eexit or $timers{state} eq "finished") { 
