@@ -209,6 +209,7 @@ else if( $step=='ur' )	{
 	if(count($roles)>1)
 		print '<form action="'.$page.'" method="post" name="role_form">'."\n";
 	unset($roles[0]['checked']);
+	print "<p><b>Note</b>: Each user has to be cast in the 'user' role. Do not remove that role from users.</p>";
 	print html_table($roles, array ('class'=>'list text-main tbl'));
 	$what=array(
 		array('user_id','',$user_got,HIDDEN),
@@ -244,6 +245,7 @@ else if( $step=='un' )	{
 		array('wtoken','',token_generate(),HIDDEN),
 		(isset ($page_name) ? array('go', '', $page_name, HIDDEN): null)
 	);
+	print "<p><b>Note</b>: Each user has to be cast in the 'user' role. Do that after the user is created.</p>";
 	print html_search_form($page,$what);
 }
 else if( $step=='up' && $user )	{
