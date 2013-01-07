@@ -22,7 +22,7 @@ $tbl=array(
 	array($num_prod,'products'),
 	array($num_testsuites,'testsuites'),
 	array($num_testcases,'testcases'),
-	array('Last submission:',$last_sub[1]." ID=".$last_sub[0]),
+	array('Last submission:',$last_sub['submission_date']." ID=".$last_sub['submission_id']),
 	array('DB schema version:',$schema_version),
 );
 print html_table($tbl,array('class'=>'overview','header'=>0,'evenodd'=>false));
