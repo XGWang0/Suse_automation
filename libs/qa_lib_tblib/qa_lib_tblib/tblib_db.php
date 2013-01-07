@@ -502,6 +502,7 @@ function vector_query()
 function row_query()
 {
 	$args=func_get_args();
+	array_unshift($args,null);
 	array_unshift($args,0);
 	$data=call_user_func_array('matrix_query',$args);
 	if($data && count($data)>0)

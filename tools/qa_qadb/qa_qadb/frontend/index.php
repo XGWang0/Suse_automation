@@ -7,7 +7,7 @@ if ( !isset($_SESSION['user'] ) )
 	printf("you are currently not loged in<br/><br/>");
 else
 	printf("you are currently loged in as <i><b>%s</b></i><br/><br/>", $_SESSION['user'] == "qadb_user" ? $_SESSION['OPENID_AUTH'] : $_SESSION['user']);
-$last_sub=row_query(array(1), "SELECT submission_id, submission_date FROM submission ORDER BY submission_date DESC");
+$last_sub=row_query("SELECT submission_id, submission_date FROM submission ORDER BY submission_date DESC");
 $num_tr=scalar_query("SELECT MAX(result_id) FROM result");
 $num_prod=scalar_query("SELECT COUNT(distinct product_id, release_id) FROM submission;");
 $num_sub=scalar_query("SELECT COUNT(*) FROM submission;");

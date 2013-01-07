@@ -44,6 +44,18 @@ function qaconf_list($header=1,$limit=null)	{
 	return mhash_query($header,$limit,'SELECT qaconf_id,`desc`,GROUP_CONCAT(`group`) AS groups,GROUP_CONCAT(name) AS machines FROM qaconf LEFT JOIN machine USING(qaconf_id) LEFT JOIN `group` USING(qaconf_id) WHERE qaconf_id>? GROUP BY qaconf_id','i',-1);
 }
 
+function qaconf_get_details($id)	{
+	return row_query('SELECT `desc`,sync_url FROM qaconf WHERE qaconf_id=?','i',$id);
+}
+
+function qaconf_set_details($id,$desc,$sync_url=null)	{
+	return update_query('UPDATE qaconf SET `desc`=?,sync_url=? WHERE qaconf_id=?','ssi',$desc,$sync_url,$qaconf_id);
+}
+
+function qaconf_set_desc($qaconf_id,$desc)	{
+	return update_query('UPDATE qaconf SET `desc`=? WHERE qaconf_id=?','si',$desc,$qaconf_id);
+}
+
 function qaconf_row_insert($id,$key,$val,$cmt)	{
 	$key_id=enum_get_id_or_insert('qaconf_key',$key);
 	if( !$key_id )
@@ -53,10 +65,6 @@ function qaconf_row_insert($id,$key,$val,$cmt)	{
 		return insert_query('INSERT INTO qaconf_row(qaconf_id,qaconf_key_id,val,cmt) VALUES(?,?,?,?)','iiss',$id,$key_id,$val,$cmt);
 	else
 		return insert_query('INSERT INTO qaconf_row(qaconf_id,qaconf_key_id,val) VALUES(?,?,?)','iis',$id,$key_id,$val);
-}
-
-function qaconf_set_desc($qaconf_id,$desc)	{
-	return update_query('UPDATE qaconf SET `desc`=? WHERE qaconf_id=?','si',$desc,$qaconf_id);
 }
 
 function qaconf_write_data_parsed($qaconf_id,$parsed)	{
