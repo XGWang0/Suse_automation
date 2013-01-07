@@ -1267,7 +1267,7 @@ sub can_send_jobs_to_reserved ()
 
 sub use_master_authentication ()
 {
-    return get_qa_config ("hamsta_master_authentication");
+    return $qaconf{'hamsta_master_authentication'};
 }
 
 sub print_user_can_send_jobs ($)
@@ -1276,6 +1276,17 @@ sub print_user_can_send_jobs ($)
     my @cmd = split / /, shift (@_);
     my $m_ip = $cmd[2];
 
+    my $conf = use_master_authentication ();
+    my $user_id = user_get_id ($user_login);
+    my $my_machine = machine_get_id_by_ip_usedby ($m_ip, $user_id);
+    my $msj = is_allowed ($user_role, 'machine_send_job');
+    my $msjr = is_allowed ($user_role, 'machine_send_job_reserved');
+
+    print $sock_handle "Using configuration: ${conf}.\n";
+    print $sock_handle "User id is ${user_id}.\n";
+    print $sock_handle "Machine id is ${my_machine}.\n";
+    print $sock_handle "You have privilege to 'machine_send_job' ${msj}.\n";
+    print $sock_handle "You have privilege to 'machine_send_job_reserved' ${msjr}.\n";
     print $sock_handle "You can "
 	. (can_send_job_to_machine ($m_ip) ? "" : "not ")
 	. "send jobs to machine '${m_ip}'.";
@@ -1283,7 +1294,7 @@ sub print_user_can_send_jobs ($)
 
 sub can_send_job_to_machine ($) # machine ip
 {
-#    return 1 unless use_master_authentication ();
+    return 1 unless use_master_authentication ();
     my $m_ip = shift;
     my $user_id = user_get_id ($user_login);
     return 0 unless (defined ($m_ip) && defined ($user_id));
@@ -1314,7 +1325,6 @@ sub cmd_print_all_machines ($) # socket
     my $sock_handle = shift;
     my @cmd = shift;
     my $machinesref = machine_list_all ();
-    use Data::Dumper;
     print $sock_handle "List of all available machines.\n";
     printf $sock_handle "%15s : %15s : %s\n", "machine", "ip address", "status";
     foreach (@{$machinesref}) {

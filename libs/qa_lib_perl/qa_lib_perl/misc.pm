@@ -49,6 +49,7 @@ sub filter_hwinfo # @hwinfo_lines ; returns @filtered_hwinfo_lines
 		next if /Clock:/;
 		next if /Memory Range:/;
 		next if / events?\)/;
+		next if /BogoMips:/;
 
 		push @result, $_;
 	}
