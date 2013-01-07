@@ -763,8 +763,10 @@ function html_search_form( $url, $data, $attrs=array() )
 	$form  =hash_get($attrs,'form',true,false);
 	$div   =hash_get($attrs,'div','input',false);
 	$method=hash_get($attrs,'method','get',false);
+	$class =hash_get($attrs,'class','input',false);
+	$id    =hash_get($attrs,'id','',false);
 	$r='';
-	if($form) $r.=sprintf('<form action="%s" class="input" method="%s">'."\n",$url,$method);
+	if($form) $r.=sprintf('<form action="%s" class="%s" method="%s"%s>'."\n",$url,$class,$method,($id ? ' id="'.$id.'"':''));
 	if($div ) $r.=sprintf('<div class="%s">'."\n", $div);
 	foreach( $data as $d )
 	{
