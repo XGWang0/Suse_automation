@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jan  7 15:07:59 CET 2013 - chrubis@suse.cz
+
+- fixed bug #789630: the default polling interval has changed to 0.1
+  second. If your results differ set ONE_SEC_POLLING variable before
+  you start the testing to get the original 1 second polling back.
+
+-------------------------------------------------------------------
 Thu Jan  3 17:13:22 CET 2013 - chrubis@suse.cz
 
 - small cleanup
