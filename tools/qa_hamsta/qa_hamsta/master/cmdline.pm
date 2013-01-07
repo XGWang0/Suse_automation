@@ -1283,7 +1283,7 @@ sub print_user_can_send_jobs ($)
 
 sub can_send_job_to_machine ($) # machine ip
 {
-#    return 1 unless use_master_authentication ();
+    return 1 unless use_master_authentication ();
     my $m_ip = shift;
     my $user_id = user_get_id ($user_login);
     return 0 unless (defined ($m_ip) && defined ($user_id));
