@@ -711,11 +711,6 @@ function append_maintenance( $data, $header )
 	return $data;
 }
 
-function result_stats($submission_id,$testcase_id)
-{
-	return row_query('SELECT count(*),sum(succeeded),sum(failed),sum(internal_error),sum(skipped) FROM result r,tcf_group g WHERE r.tcf_id=g.tcf_id AND g.submission_id=? AND r.testcase_id=?','ii',$submission_id,$testcase_id);
-}
-
 function regression_differences($attrs,&$pager=null)
 {
 	# This is ugly, but comparing submission of 100k testcase was no longer possible in PHP
