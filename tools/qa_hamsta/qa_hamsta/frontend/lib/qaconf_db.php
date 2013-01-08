@@ -48,8 +48,12 @@ function qaconf_get_details($id)	{
 	return row_query('SELECT `desc`,sync_url FROM qaconf WHERE qaconf_id=?','i',$id);
 }
 
-function qaconf_set_details($id,$desc,$sync_url=null)	{
-	return update_query('UPDATE qaconf SET `desc`=?,sync_url=? WHERE qaconf_id=?','ssi',$desc,$sync_url,$qaconf_id);
+function qaconf_get_sync_url($id)	{
+	return scalar_query('SELECT sync_url FROM qaconf WHERE qaconf_id=?','i',$id);
+}
+
+function qaconf_set_sync_url($id,$sync_url)	{
+	return update_query('UPDATE qaconf SET sync_url=? WHERE qaconf_id=?','si',$sync_url,$id);
 }
 
 function qaconf_set_desc($qaconf_id,$desc)	{
@@ -86,15 +90,19 @@ function qaconf_delete_rows($qaconf_id)	{
 
 function qaconf_insert_parsed($desc,$parsed)	{
 	$qaconf_id=qaconf_insert($desc);
+	qaconf_write_data_parsed($qaconf_id,$parsed);
+	return $qaconf_id;
+}
+
+function qaconf_replace_body_parsed($qaconf_id,$parsed)	{
+	qaconf_delete_rows($qaconf_id);
 	return qaconf_write_data_parsed($qaconf_id,$parsed);
 }
 
 function qaconf_replace_parsed($qaconf_id,$desc,$parsed)	{
 	qaconf_set_desc($qaconf_id,$desc);
-	qaconf_delete_rows($qaconf_id);
-	return qaconf_write_data_parsed($qaconf_id,$parsed);
+	return qaconf_replace_body_parsed($qaconf_id,$parsed);
 }
-
 
 function preg_match_replace(&$text,$pattern,$replace)	{
 	if( !preg_match($pattern,$text,$matches)	)
@@ -133,14 +141,19 @@ function qaconf_parse_text($text,&$bad_rows=null)	{
 	return $ret;
 }
 
+function qaconf_replace_unparsed($qaconf_id,$desc,$text,&$bad_rows=null)	{
+	qaconf_set_desc($qaconf_id,$desc);
+	return qaconf_replace_body_unparsed($qaconf_id,$text,$bad_rows);
+}
+
 function qaconf_insert_unparsed($desc,$text,&$bad_rows=null)	{
 	$parsed=qaconf_parse_text($text,$bad_rows);
 	return qaconf_insert_parsed($desc,$parsed);
 }
 
-function qaconf_replace_unparsed($qaconf_id,$desc,$text,&$bad_rows=null)	{
+function qaconf_replace_body_unparsed($qaconf_id,$text,&$bad_rows=null)	{
 	$parsed=qaconf_parse_text($text,$bad_rows);
-	return qaconf_replace_parsed($qaconf_id,$desc,$parsed);
+	return qaconf_replace_body_parsed($qaconf_id,$parsed);
 }
 
 function qaconf_get_desc($qaconf_id)	{
@@ -196,5 +209,35 @@ function qaconf_merge($list)	{
 	}
 	return array_values($ret);
 }
+
+# TODO: unify DB layer
+function machine_get_qaconf_id($machine_id)	{
+	return scalar_query('SELECT qaconf_id FROM machine WHERE machine_id=?','i',$machine_id);
+}
+
+function machine_set_qaconf_id($machine_id,$qaconf_id)	{
+	return update_query('UPDATE machine SET qaconf_id=? WHERE machine_id=?','ii',$qaconf_id,$machine_id);
+}
+
+function machine_get_by_ip($ip)	{
+	return vector_query(null,'SELECT machine_id FROM machine WHERE ip=?','s',$ip);
+}
+
+function machine_get_name($machine_id)	{
+	return scalar_query('SELECT name FROM machine WHERE machine_id=?','i',$machine_id);
+}
+
+function group_get_qaconf_id_by_name($group)	{
+	return scalar_query('SELECT qaconf_id FROM `group` WHERE `group`=?','s',$group);
+}
+
+function group_set_qaconf_id_by_name($group,$qaconf_id)	{
+	return update_query('UPDATE `group` SET qaconf_id=? WHERE `group`=?','is',$qaconf_id,$group);
+}
+
+function group_machine_list_group($machine_id)	{
+	return vector_query(null,'SELECT group_id FROM group_machine WHERE machine_id=?','i',$machine_id);
+}
+
 
 ?>

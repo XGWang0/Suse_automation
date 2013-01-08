@@ -47,21 +47,22 @@ require( 'lib/qaconf_db.php' );
 
 $conn_id=connect_to_mydb();
 $step=http('step','l');
+$submit=http('submit');
+$id=http('id');
 if( $step=='list' )	{
 	header('Content-Type: text/plain');
 	$ip=http('ip',$_SERVER['REMOTE_ADDR']);
 	print "# IP address is $ip\n";
-	$configs=array(0,1,2);
-	$machine=Machine::get_by_ip($ip);
-	if( $machine )	{
-		$groups=Group::get_groups_by_machine($machine);
+	$configs=array(QACONF_GLOBAL,QACONF_COUNTRY,QACONF_SITE,QACONF_MASTER);
+	$machine_id=machine_get_by_ip($ip);
+	if( $machine_id )	{
+		$groups=group_machine_list_group($machine_id);
 		foreach( array_keys($groups) as $group_id )	{
-			$group=Group::get_by_id($group_id);
-			$qaconf_id=$group->get_qaconf_id();
+			$qaconf_id=group_get_qaconf_id($group_id);
 			if( $qaconf_id )
 				$configs[]=$qaconf_id;
 		}
-		$qaconf_id=$machine->get('qaconf_id');
+		$qaconf_id=machine_get_qaconf_id($machine_id);
 		if( $qaconf_id )
 			$configs[]=$qaconf_id;
 	}
@@ -69,4 +70,22 @@ if( $step=='list' )	{
 	print qaconf_format_data(qaconf_merge($configs));
 	exit;
 }
+else if($submit=='sync' && $id )    {
+	$sync_url=qaconf_get_sync_url($id);
+	if( $sync_url && $file=fopen($sync_url,'r'))    {
+		$text='';
+		while( !feof($file) )
+			$text.=fgets($file,4096);
+		fclose($file);
+		qaconf_replace_body_unparsed($id,$text);
+		print "OK";
+		if( http('verbose') )
+			print "<pre>$text</pre>\n";
+	}
+	else    {
+		print "ERROR: Cannot open sync URL '$sync_url'";
+	}
+	exit;
+}
+
 ?>

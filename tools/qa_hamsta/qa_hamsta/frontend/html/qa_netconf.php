@@ -45,16 +45,23 @@ $page = "$page_base?go=qa_netconf";
 $desc=http('desc','');
 $body=http('body','');
 $wtoken=http('wtoken');
-$submit=http('submit');
-$id=http('id');
 $a_machines=http('a_machines');
 $qaconf=http('qaconf');
 $group=http('group');
 
 if( token_read($wtoken) )	{
-	if( $submit=='new' && $desc )	{
+	if( ($submit=='new' && $desc) || $submit=='set' )	{
 		transaction();
-		update_result( qaconf_insert_unparsed($desc,$body), 1 );
+		if( $submit=='new' )
+		update_result( ($id=qaconf_insert_unparsed($desc,$body)), 1 );
+
+		if( $id && $a_machines )	{
+			foreach( $a_machines as $machine_id )
+				update_result(machine_set_qaconf_id($machine_id,$id));
+			}
+		if( $id && $group )	{
+			update_result(group_set_qaconf_id_by_name($group,$id));
+		}
 		commit();
 	}
 	else if( $submit=='update' && $desc )	{
@@ -62,46 +69,10 @@ if( token_read($wtoken) )	{
 		update_result( qaconf_replace_unparsed($id,$desc,$body) );
 		commit();
 	}
-	else if( $submit=='set_machine' && $a_machines )	{
-		$m=array();
-		$notfound=array();
-		$succ=array();
-		$fail=array();
-		foreach($a_machines as $machine)	{
-			$m1=Machine::get_by_id($machine);
-			if( $m1 )
-				$m[]=$m1;
-			else
-				$notfound=$m1;
-		}
-		if( count($m) )	{
-			transaction();
-			for( $i=0; $i<count($m); $i++ )	{
-				if( $m[$i]->set('qaconf_id',$qaconf) )
-					$succ[]=$m[$i];
-				else
-					$fail[]=$m[$i];
-			}
-			commit();
-		}
-		$msg='';
-		if( count($notfound) )
-			$msg .= "Could not find machine(s) ".join(',',$notfound)."<br/>\n";
-		if( count($fail) )
-			$msg .= "Update failed for machine(s) ".join(',',$fail)."<br/>\n";
-		if( $msg )
-			print html_error($msg);
-		if( $succ )
-			print html_success( "Successfully updated machine(s) ".join(',',$succ) );
-	}
-	else if( $submit=='set_group' && $group )	{
-		if( !($g=Group::get_by_name($group)) )
-			print html_error("No such group: $group");
-		else	{
-			transaction();
-			update_result($g->set_qaconf_id($qaconf));
-			commit();
-		}
+	else if( $submit=='sync_url' && $id )	{
+		transaction();
+		update_result(qaconf_set_sync_url($id,http('sync_url')));
+		commit();
 	}
 }
 
@@ -113,9 +84,9 @@ $steps_alt=array(
 	'e'=>'edit',
 	'v'=>'view',
 	'm'=>'merge',
+	'eu'=>'edit URL',
 );
 print steps("$page&step=",$steps,$step,$steps_alt);
-
 
 if( $step=='e' )	{
 	# edit config
@@ -144,49 +115,42 @@ else if( $step=='e' || $step=='n' )	{
 	print html_search_form('',$what,array('form'=>0,'submit'=>($edit ? 'Update':'Insert')));
 	print "</form>\n";
 }
+else if( $step=='eu' && $id )	{
+	$sync_url=qaconf_get_sync_url($id);
+	$what=array(
+		array('sync_url','',http('sync_url',$sync_url),TEXT_ROW),
+		array('id','',$id,HIDDEN),
+		array('wtoken','',token_generate(),HIDDEN),
+		array('submit','','sync_url',HIDDEN),
+		array('go','','qa_netconf',HIDDEN),
+	);
+	print html_search_form('',$what,array('submit'=>'Update'));
+}
 else if( $step=='v' )	{
 	# view details
 	$data=qaconf_get_rows_translated($id);
 	print html_table($data,array('id'=>'qaconf_view','sort'=>'sss','class'=>'list text-main tbl'));
 }
-else if( $a_machines || $group )	{
-	$qaconf=array_merge(array(array('null','')),enum_list_id_val('qaconf'));
-	$w=array(
-		array('go','','qa_netconf',HIDDEN),
-		array('qaconf',$qaconf,'',SINGLE_SELECT,''),
-		array('wtoken','',token_generate(),HIDDEN),
-	);
-	if( $a_machines )	{
-		$m=array();
-		foreach($a_machines as $machine)	{
-			$m1=Machine::get_by_id($machine);
-			if( $m1 )
-				$m[]=$m1;
+else if( $a_machines )	{
+	$m=array();
+	$names=array();
+	foreach( $a_machines as $machine_id )	{
+		if(( $name=machine_get_name($machine_id) ))	{
+			$names[]=$name;
+			$m[]=$machine_id;
 		}
-		if( count($m) )	{
-			print "<h3>Select config for machine(s) ".join(',',$m)."</h3>\n";
-			$what=$w;
-			$what[]=array('a_machines','',$a_machines,HIDDEN);
-			$what[]=array('submit','','set_machine',HIDDEN);
-			print html_search_form('',$what,array('submit'=>'Set'));
-		}
-		else
-			print html_error("Machine(s) ".join(',',$a_machines)." not found");
 	}
-	else	{ # group
-		$g=Group::get_by_name($group);
-		if( $g )	{
-			print "<h3>Select config for group $group</h3>\n";
-			$what=$w;
-			$what[]=array('group','',$group,HIDDEN);
-			$what[]=array('submit','','set_group',HIDDEN);
-			print html_search_form('',$what,array('submit'=>'Set'));
-		}
-		else
-			print html_error("Group $group not found");
+	if( count($m) )	{
+		$id=machine_get_qaconf_id($m[0]);
+#		print "ID=$id<br/>\n";
+		view_delete_create_assign('Config for '.join(',',$names),$id,$m,null);
 	}
-
-	
+	print_global_configs();
+}
+else if( $group )	{
+	$id=group_get_qaconf_id_by_name($group);
+	view_delete_create_assign('Config for '.$group,$id,null,$group);
+	print_global_configs();
 }
 else	{
 	# view configuration
@@ -196,6 +160,56 @@ else	{
 		'ctrls'=>array('edit'=>"$page&step=e&id="),
 	));
 	print html_table($data,array('total'=>1,'id'=>'qaconf_list','sort'=>'is','class'=>'list text-main tbl'));
+}
+
+function print_global_configs()	{
+	view_delete_create_assign('Master configuration',QACONF_MASTER,0,0);
+	view_delete_create_assign('Site configuration',QACONF_SITE,0,0);
+	view_delete_create_assign('Country configuration',QACONF_COUNTRY,0,0);
+	view_delete_create_assign('Global configuration',QACONF_GLOBAL,0,0);
+}
+
+function view_delete_create_assign($title,$id,$machine_id,$group)	{
+	global $page;
+	print "<h3>$title</h3>\n";
+	print "<div class=\"qaconf\">\n";
+	if( $id && ($conf=qaconf_get_details($id) ))	{
+		$data=qaconf_get_rows_translated($id);
+		print html_table($data,array('total'=>0,'id'=>'qaconf_'.$title,'sort'=>'iss','class'=>'list text-main tbl'));
+#		print "<pre>"; print_r($conf); print "</pre>\n";
+		if( isset($conf['sync_url']) )	{
+			print html_text_button('sync',"$page&submit=sync&id=$id")."\n";
+			print html_text_button('edit URL',"$page&step=eu&id=$id")."\n";
+		}
+		else	{
+			print html_text_button('edit',"$page&step=e&id=$id")."\n";
+			if( $id>QACONF_MAX_SYS_ID )
+				print html_text_button('delete',"$page&step=d&id=$id")."\n";
+		}
+	}
+	else	{
+		$w=array(
+			array('wtoken','',token_generate(),HIDDEN),
+			array('go','','qa_netconf',HIDDEN),
+		);
+		if( $machine_id )
+			$w[]=array('a_machines','',$machine_id,HIDDEN);
+		if( $group )
+			$w[]=array('group','',$group,HIDDEN);
+		$what=array_merge($w,array(
+			array('desc','',http('desc'),TEXT_ROW),
+			array('body','',http('body'),TEXT_AREA),
+			array('submit','','new',HIDDEN),
+		));
+		print html_search_form('',$what,array('submit'=>'Insert','hr'=>false));
+		$qaconf=array_merge(array(array('null','')),enum_list_id_val('qaconf'));
+		$what=array_merge($w,array(
+			array('id',$qaconf,'',SINGLE_SELECT,'another config'),
+			array('submit','','set',HIDDEN),
+		));
+		print html_search_form('',$what,array('submit'=>'Set','hr'=>false));
+	}
+	print "</div>\n";
 }
 
 

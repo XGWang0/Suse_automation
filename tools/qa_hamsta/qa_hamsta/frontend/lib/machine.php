@@ -1953,7 +1953,7 @@ class Machine {
 		'reserved'=>'d',
 		'expires'=>'d',
 		'rpm_list'=>'s',
-		'qaconf_id'=>'qaconf',
+		'qaconf_id'=>'i',
 	);
 
 	/**
