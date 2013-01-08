@@ -86,7 +86,7 @@ install -m 755 -d $RPM_BUILD_ROOT%{confdir}
 gzip -9 *.1
 gzip -9 *.3
 
-cp -r --target-directory=$RPM_BUILD_ROOT%{libdir} log.pm detect.pm results results.pm misc.pm benchxml.pm
+cp -r --target-directory=$RPM_BUILD_ROOT%{libdir} log.pm detect.pm results results.pm misc.pm benchxml.pm xmlout.pm
 cp --target-directory=$RPM_BUILD_ROOT%{bindir} arch.pl location.pl product.pl hwinfo.pl location_detect_impl.pl
 cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man1 *.1.gz
 cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man3 *.3.gz
