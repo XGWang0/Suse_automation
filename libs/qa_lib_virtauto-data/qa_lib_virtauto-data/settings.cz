@@ -59,4 +59,4 @@ network.network=10.100.96.0
 network.bcast=10.100.127.255
 network.domain=qa.suse.cz
 MOUNT1.addr=fallback.suse.cz
-MOUNT2.addr=ak.qa.suse.cz
+MOUNT2.addr=hamsta.qa.suse.cz
