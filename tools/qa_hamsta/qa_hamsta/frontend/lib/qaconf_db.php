@@ -227,6 +227,10 @@ function machine_get_name($machine_id)	{
 	return scalar_query('SELECT name FROM machine WHERE machine_id=?','i',$machine_id);
 }
 
+function group_get_details($group_id)	{
+	return row_query('SELECT `group`,qaconf_id FROM `group` WHERE group_id=?','i',$group_id);
+}
+
 function group_get_qaconf_id_by_name($group)	{
 	return scalar_query('SELECT qaconf_id FROM `group` WHERE `group`=?','s',$group);
 }

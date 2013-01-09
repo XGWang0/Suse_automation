@@ -144,8 +144,16 @@ else if( $a_machines )	{
 		$id=machine_get_qaconf_id($m[0]);
 #		print "ID=$id<br/>\n";
 		view_delete_create_assign('Config for '.join(',',$names),$id,$m,null);
+		foreach(group_machine_list_group($m[0]) as $group_id)	{
+			$g=group_get_details($group_id);
+			if( $g )
+				view_delete_create_assign('Config for group '.$g['group'],$g['qaconf_id'],null,$g['group']);
 	}
 	print_global_configs();
+	}
+	else	{
+		print html_error("No such machine(s).");
+	}
 }
 else if( $group )	{
 	$id=group_get_qaconf_id_by_name($group);
