@@ -89,7 +89,8 @@ if (request_str("proceed")) {
 		$OSVer = system($mycmd);
 		$repo .= $OSVer;
 	}
-	$repo_url = "http://dist.ext.suse.de/ibs/QA:/Head:/Devel/" . $repos[$repo] . "/";
+	$repo_url = `/usr/share/qa/tools/get_qa_config install_qa_repository`;
+	$repo_url = rtrim($repo_url) . "/" . $repos[$repo] . "/";
 	$mycmd = $cmd . " zypper --no-gpg-checks -n ar $repo_url hamsta 1>/dev/null";
 	system($mycmd, $ret);
 	if ($ret != 0) {
