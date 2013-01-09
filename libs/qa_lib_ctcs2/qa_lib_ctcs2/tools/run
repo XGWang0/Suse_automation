@@ -356,13 +356,11 @@ sub ptr_r {
 # need show the clock, it will print some special character which should
 # be ignored for background process.
 sub process_fb {
-	my $pid = shift;
-	my $processstatus = `ps aux | grep $pid | grep -v "grep" | awk 'END{print \$7}'`;
-	chomp($processstatus);
-	if ($processstatus =~ /^\?|^-/) {
+	if(-t STDOUT) {
+		return 1;
+	} else {
 		return 0;
 	}
-	return 1;
 }
 
 # called whenever a subprocess ends

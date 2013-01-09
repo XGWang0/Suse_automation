@@ -240,6 +240,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 
 ?>
 <script type="text/javascript">
-	var TSort_Data = new Array ('lastjobs','i','s','s','s','s');
+	var TSort_Data = new Array ('lastjobs','i','s','s','d','d');
+	var TSort_Initial = "0D";
 	tsRegister();
 </script> 

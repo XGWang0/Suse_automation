@@ -1457,7 +1457,7 @@ class Machine {
 	 *	  pending jobs
 	 */
 	function get_all_jobs($limit = 0, $start = 0) {
-		$sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k ON k.job_id = j.job_id WHERE machine_id = :machine_id ORDER BY j.job_status_id ASC, j.job_id DESC';
+		$sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k ON k.job_id = j.job_id WHERE machine_id = :machine_id ORDER BY j.job_id DESC, j.job_status_id ASC';
 		if ($limit) {
 			$sql .= ' LIMIT '.((int) $start).','.((int) $limit);
 		}

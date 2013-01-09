@@ -28,6 +28,7 @@
      * title and page selection bar if needed.
      */
 
+header('Content-Type: text/html; charset=utf-8');
 require_once("include/Util.php");
 
 ?>
