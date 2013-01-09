@@ -220,7 +220,7 @@ function machine_set_qaconf_id($machine_id,$qaconf_id)	{
 }
 
 function machine_get_by_ip($ip)	{
-	return vector_query(null,'SELECT machine_id FROM machine WHERE ip=?','s',$ip);
+	return scalar_query('SELECT machine_id FROM machine WHERE ip=?','s',$ip);
 }
 
 function machine_get_name($machine_id)	{
@@ -237,6 +237,10 @@ function group_set_qaconf_id_by_name($group,$qaconf_id)	{
 
 function group_machine_list_group($machine_id)	{
 	return vector_query(null,'SELECT group_id FROM group_machine WHERE machine_id=?','i',$machine_id);
+}
+
+function group_get_qaconf_id($group_id)	{
+	return scalar_query('SELECT qaconf_id FROM `group` WHERE group_id=?','i',$group_id);
 }
 
 
