@@ -11,8 +11,8 @@ function destroySession($p_strMessage) {
 	session_destroy();
 	print html_error($p_strMessage);
 	flush();
-	header ('Location: index.php');
-	exit ();
+#	header ('Location: index.php');
+#	exit ();
 }
 
 $openid_auth = false;
@@ -41,18 +41,18 @@ if( isset($_SESSION['user']) ) {
 
 	# after we made sure that the user is ok, let's check if he can access the database
 	if (! connect_to_mydb() ) {
-		if (! $openid_auth ) {
-			$mysqluser = 'qadb';
-			$password = search_user ($_SESSION['user']);
-			if ( count($password) == 0 ) {
-				error_log ('Empty password!');
+#		if (! $openid_auth ) {
+#			$mysqluser = 'qadb';
+#			$password = search_user ($_SESSION['user']);
+#			if ( count($password) == 0 ) {
+#				error_log ('Empty password!');
 				destroySession ('Wrong user name or user without password.');
+#			}
+#		}
 			}
-		}
-	}
-	else  {
-		header("Location: index.php");
-	}
+#	else  {
+#		header("Location: index.php");
+#	}
 }
 elseif ((!isset($_POST['user']) || !isset($_POST['pass'])) && !isset($_GET['openid_mode'])) {
 
