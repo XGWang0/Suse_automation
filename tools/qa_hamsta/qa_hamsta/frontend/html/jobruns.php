@@ -32,7 +32,7 @@
     }
 ?>
 
-<table class="list text-main">
+<table class="list text-main" id="machinealljobs">
     <tr>
         <th>ID</th>
         <th>Status</th>
@@ -78,4 +78,3 @@ else
 if(! isset($html_refresh_interval)){$html_refresh_interval = 0;};
 echo showRefresh("index.php?go=jobruns" .$refresh_page.$refresh_machine  , $html_refresh_interval);
 ?>
-
