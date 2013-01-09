@@ -186,4 +186,10 @@ if ( $useAuth
 <?php } ?>
 
 <!-- QA network configuration -->
-<a href="index.php?go=qa_netconf&amp;a_machines[]=<?php echo ($machine->get_id()); ?>"><img src="images/icon-config.png" class="machine-actions icon-small" alt="QA_netconf" title="View or edit the QA configuration"/></a>
+<?php 
+if( !$useAuth || isset($user) && ( ($users_machine && $user->isAllowed('machine_config')) || $user->isAllowed('machine_config_reserved') ) )
+	print '<a href="index.php?go=qa_netconf&amp;a_machines[]='.$machine->get_id().'"><img src="images/icon-config.png" class="machine-actions icon-small" alt="QA_netconf" title="View or edit the QA configuration"/></a>'."\n";
+else
+	print '<a href="index.php?go=qa_netconf&amp;a_machines[]='.$machine->get_id().'"><img src="images/icon-config-grey.png" class="machine-actions icon-small" alt="QA_netconf" title="Login to edit the QA configuration"/></a>'."\n";
+
+?>
