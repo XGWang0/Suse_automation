@@ -112,7 +112,7 @@
 	}
 
 	# get other input data
-	$addtoCustomJob = $_POST['addtoCustomJob'];
+	$addtoCustomJob = request_str("addtoCustomJob");
 	$roleName = request_array("rolename");
 	$minNumber = request_array("minnumber");
 	$maxNumber = request_array("maxnumber");
@@ -251,7 +251,7 @@
 
 	# save the custom job
         # For "SAVEING" custom job when send job  OR "EDITING" job
-	if (($addtoCustomJob == "addtoCustomJob") || ($opt == "edit"))
+	if (($addtoCustomJob == "addtoCustomJob") || (isset ($opt) && $opt == "edit"))
 	{
 		if($roleNumber > 1)
 			$fileDir = "/usr/share/hamsta/xml_files/multimachine/custom";
