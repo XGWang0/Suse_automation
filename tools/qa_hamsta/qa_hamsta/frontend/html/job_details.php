@@ -48,7 +48,13 @@
     </tr>
     <tr>
         <td>Hostname</td>
-        <td><?php if ($job->get_machine()) echo($job->get_machine()->get_hostname()); ?></td>
+        <td><?php if ($job->get_machine())
+		{
+		  echo('<a href="index.php?go=machine_details&amp;id='
+		       . $job->get_machine()->get_id() . '">'
+		       . $job->get_machine()->get_hostname()
+		       . '</a>');
+		} ?></td>
     </tr>
     <tr>
         <td>Name</td>
