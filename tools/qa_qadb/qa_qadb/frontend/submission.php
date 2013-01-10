@@ -2,6 +2,8 @@
 require_once('qadb.php');
 require_once('defs.php');
 $embed=http('embed');
+$root=( $embed ? 'http://'.$_SERVER['SERVER_NAME'] : '' );
+$dir=( $embed ? $root.dirname($_SERVER['SCRIPT_NAME']).'/' : '' );
 $pager  = pager_fill_from_http();
 common_header(array(
     'title'=>'QADB submissions',
@@ -9,6 +11,7 @@ common_header(array(
     'calendar'=>1,
     'embed'=>$embed,
 ));
+
 
 define('AGR_MAX_RES','15000');
 
@@ -190,7 +193,7 @@ if( !$embed )	{
 		'bench'=>'benchmarks',
 		'reg'=>'ext. regressions'
 	);
-	print steps(form_to_url('submission.php',$what0,0).'&amp;step=',$steps,$step);
+	print steps(form_to_url($dir.'submission.php',$what0,0).'&amp;step=',$steps,$step);
 }
 
 # main content
@@ -198,7 +201,7 @@ if(!$submission_id)
 {
 	# main search form
 	$what[] = array('step','',$step,HIDDEN);
-	print html_search_form('submission.php',$what);
+	print html_search_form($dir.'submission.php',$what);
 
 	# print search results
 	echo '<div class="data">'."\n";
@@ -258,7 +261,7 @@ if(!$submission_id)
 		{
 			table_add_checkboxes($data,'tests[]','tcf_id',1,'bench_form',1);
 			if( count($data)>1 )
-				print '<form action="benchmarks.php" method="get" name="bench_form">'."\n";
+				print '<form action="'.$dir.'benchmarks.php" method="get" name="bench_form">'."\n";
 			$class.=' controls';
 		}
 		table_translate($data,$transl); 
@@ -301,7 +304,7 @@ else if( $action=='edit' )
 			array('wtoken','',token_generate(),HIDDEN)
 		);
 		print "<h2>Editing submission $submission_id</h2>\n";
-		print html_search_form('submission.php',$what);
+		print html_search_form($dir.'submission.php',$what);
 	}
 #	print "<h3>
 }
@@ -320,7 +323,7 @@ else if( $action=='edit_link' && $submission_id && $tcf_id )
 		array('wtoken','',token_generate(),HIDDEN),
 	);
 	print "<h2>Editing link to logs</h2>\n";
-	print html_search_form('submission.php',$what);
+	print html_search_form($dir.'submission.php',$what);
 }
 else if( $submission_id)
 {	# detail list
@@ -329,12 +332,12 @@ else if( $submission_id)
 	if( count($detail1) > 1 )
 	{
 		echo "<div class=\"screen allresults\">&rarr; See ";
-		$base1="result.php?submission_id=$submission_id&search=1";
-		$base2="confirm.php?submission_id=$submission_id";
-		$base3="submission.php?submission_id=$submission_id";
+		$base1=$dir."result.php?submission_id=$submission_id&search=1";
+		$base2=$dir."confirm.php?submission_id=$submission_id";
+		$base3=$dir."submission.php?submission_id=$submission_id";
 		echo html_text_button('all results',$base1);
-		echo html_text_button('RPM list',"rpms.php?rpm_config_id=".$detail1[1]['rpm_config_id']);
-		echo html_text_button('hwinfo',"hwinfo.php?hwinfo_id=".$detail1[1]['hwinfo_id']);
+		echo html_text_button('RPM list',$dir."rpms.php?rpm_config_id=".$detail1[1]['rpm_config_id']);
+		echo html_text_button('hwinfo',$dir."hwinfo.php?hwinfo_id=".$detail1[1]['hwinfo_id']);
 		echo "</div>\n";
 		echo "<div class=\"screen\">\n";
 		echo "<div class=\"controls\">Controls :";
