@@ -980,7 +980,7 @@ $glob_dest=array(
 		array("http://hamsta.qa.suse.cz/hamsta/", "Cz"),
 		array("http://hamsta.sled.lab.novell.com/hamsta/","Us"),
 		array("http://147.2.207.30/hamsta/index.php","Cn"),
-		), 'Hamsta'),
+		), 'Hamsta:'),
 	array("doc.php","Docs")); 
 
 /** logs into DB, checks user, prints header, prints navigation bar */
