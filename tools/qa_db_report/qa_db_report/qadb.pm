@@ -212,7 +212,7 @@ sub submission_set_kernel_values # submission_id, kernel_branch_id, kernel_flavo
 			$best_match=$b if length($b)>length($best_match) and $kernel_branch =~ /^$b/;
 		}
 		my $kernel_branch_id = $self->enum_get_id('kernel_branch',$best_match);
-		$self->die_cleanly("The specified KotD branch \"$kernel_branch\" does not exist.\nPlease check for typos or contact the DB admin\n") unless $kernel_branch_id;
+		$self->die_cleanly("The specified KotD branch \"$kernel_branch\" does not exist.\nPlease check for typos or contact the DB admin\n") if $kernel_branch and !$kernel_branch_id;
 		$sql{'kernel_branch_id'}=$kernel_branch_id;
 	}
 
