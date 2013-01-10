@@ -43,11 +43,11 @@ mkdir -p /abuild $logdir/
 
 # move the old log to oldlog directory
 oldlogdir="${logdir%/*}/oldlogs/`date '+%F-%H-%M-%S'`/ctcs2"
-for oldlog in `find $logdir -maxdepth 1 -type d -name "qa_*"`; do
-	if [ ! -d $oldlogdir ]; then
-		mkdir -p $oldlogdir
-	fi
+if [ ! -d $oldlogdir ]; then
+	mkdir -p $oldlogdir
+fi
 
+for oldlog in `find $logdir -maxdepth 1 -type d`; do
 	# hope the previous job has done
 	if [ -f $oldlog/done ]; then
 		mv $oldlog $oldlogdir/
