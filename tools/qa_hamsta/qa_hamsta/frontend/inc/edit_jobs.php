@@ -35,9 +35,17 @@
         $go = 'edit_jobs';
         return require("index.php");
     }
-    
+
     $errors = array();
     $file = request_str("file");
+    $opt = request_str("opt");
+    $machine_list = request_str("machine_list");
+
+    if (request_str("cancel") == "Cancel")
+    {
+	header("Location: index.php?go=send_job&machine_list=$machine_list");
+	exit ();
+    }
 
     if($file != "")
     {
@@ -56,9 +64,6 @@
     else
         $errors[] = "You didn't define any file to be edit.";
 
-    $opt = request_str("opt");
-    $machine_list = request_str("machine_list");
-
     if($opt != "edit")
         $errors[] = "The option is not what is expected: $edit";
     $file_content = "";
@@ -70,8 +75,11 @@
     {
         require("inc/job_create.php");
 
-	if(count($errors) == 0)
+	if(count($errors) == 0) {
             header("Location: index.php?go=send_job&machine_list=$machine_list");
+	    Notificator::setSuccessMessage ('A custom job has been created.');
+	    exit ();
+	}
     }
 
     $html_title = "Edit jobs";
