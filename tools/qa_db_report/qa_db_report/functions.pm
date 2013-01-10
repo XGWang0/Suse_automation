@@ -121,7 +121,7 @@ sub get_log_dir	# directory basename
 		'testsuite'=>'',
 		'date'=>'',
 		'md5sum'=>'',
-		'kernel_branch'=>'',
+		'branch'=>'',
 		'product'=>'',
 		'release'=>'',
 		@_
@@ -140,9 +140,9 @@ sub get_log_dir	# directory basename
 	{
 		# TODO - is this correct??? Seems that it will get extra level testsuite[-date]/testsuite ? maybe delete last part?
 		if( $ltp )
-		{	$logdir='kotd/'.$args{'kernel_branch'}.'/'.$args{'arch'}.'/'.$args{'host'}.'/'.$args{'kernel'}.'/ltp/'.$args{'testsuite'}.'-'.$args{'date'};	}
+		{	$logdir='kotd/'.$args{'branch'}.'/'.$args{'arch'}.'/'.$args{'host'}.'/'.$args{'kernel'}.'/ltp/'.$args{'testsuite'}.'-'.$args{'date'};	}
 		else
-		{	$logdir='kotd/'.$args{'kernel_branch'}.'/'.$args{'arch'}.'/'.$args{'host'}.'/'.$args{'kernel'}.'/'.$args{'testsuite'};	}
+		{	$logdir='kotd/'.$args{'branch'}.'/'.$args{'arch'}.'/'.$args{'host'}.'/'.$args{'kernel'}.'/'.$args{'testsuite'};	}
 	}
 #	elsif( $type eq 'regression' )
 #	{	$logdir=$args{'arch'}.'/'.$args{'host'}.'/'.$args{'kernel'}.'/'.$args{'testsuite'}.'-'.$args{'date'};	}
