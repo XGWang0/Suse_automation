@@ -897,4 +897,21 @@ class User {
 
 }
 
+function capable ()
+{
+        global $config;
+        $cap=func_get_args();
+        if( !$config->authentication->use )
+                return true;
+        $ident=User::getIdent();
+        if( !User::isLogged() || !User::isRegistered($ident,$config) )
+                return false;
+        $user=User::getById($ident,$config);
+        foreach($cap as $c) {
+                if( $user->isAllowed($c) )
+                        return true;
+        }
+        return false;
+}
+
 ?>
