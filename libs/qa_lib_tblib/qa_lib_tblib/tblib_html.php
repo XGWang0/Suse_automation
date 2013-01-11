@@ -10,6 +10,10 @@
 /** shared utils */
 require_once("tblib_common.php");
 
+$embed=http('embed');
+$root=( $embed ? 'http://'.$_SERVER['SERVER_NAME'] : '' );
+$dir=( $embed ? $root.dirname($_SERVER['SCRIPT_NAME']).'/' : '' );
+
 /**
   * Prints HTML page header.
   * @param string $title page title
@@ -17,6 +21,7 @@ require_once("tblib_common.php");
   **/
 function html_header($args=null)
 {
+	global $root;
 	$defaults=array(
 		'calendar'=>0,			# if to initialize the Epoch calendar
 		'charset'=>'utf-8',		# page charset
@@ -45,26 +50,26 @@ function html_header($args=null)
 	# Default CSS files
 	if( $args['default_css'] )
 	{
-		$args['css_screen'][]='/tblib/css/screen.css';
-		$args['css_screen'][]='/tblib/css/common.css';
-		$args['css_print'][] ='/tblib/css/print.css';
+		$args['css_screen'][]=$root.'/tblib/css/screen.css';
+		$args['css_screen'][]=$root.'/tblib/css/common.css';
+		$args['css_print'][] =$root.'/tblib/css/print.css';
 	}
 
 	# Table sorting support
 	if( $args['gs_sortable'] )
-		$args['script'][]='/scripts/gs_sortable.js';
+		$args['script'][]=$root.'/scripts/gs_sortable.js';
 
 	# Jquery support
 	if($args['jquery'])
 	{
-		$args['script'][]='/scripts/jquery.js';
+		$args['script'][]=$root.'/scripts/jquery.js';
 	}
 
 	# Calendar support part 1
 	if( $args['calendar'] )
 	{
-		$args['script'][]='/epoch/epoch_classes.js';
-		$args['css_screen'][]='/epoch/epoch_styles.css';
+		$args['script'][]=$root.'/epoch/epoch_classes.js';
+		$args['css_screen'][]=$root.'/epoch/epoch_styles.css';
 	}
 
 	# DOCTYPE, header start
