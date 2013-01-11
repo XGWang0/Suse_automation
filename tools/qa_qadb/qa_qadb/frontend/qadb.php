@@ -215,6 +215,7 @@ function build_promoted_delete($build_promoted_id)	{
   **/
 function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 {
+	global $dir;
 	# base SQL for reference searches
 	$rs1='EXISTS( SELECT * FROM reference_host rh WHERE s.host_id=rh.host_id AND s.arch_id=rh.arch_id AND s.product_id=rh.product_id )';
 	# base SQL for result difference
@@ -376,8 +377,8 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 
 	# $links1[ $i_main ] - for full details when $transl set
 	$links1=array(
-/* subms */	array('submission_id'=>'submission.php?submission_id=','related'=>'submission.php?submission_id=','rpm_config_id'=>'rpms.php?rpm_config_id=','hwinfo_id'=>'hwinfo.php?hwinfo_id='),
-/* rslts */	array('tcf_id'=>'result.php?tcf_id='),
+/* subms */	array('submission_id'=>$dir.'submission.php?submission_id=','related'=>$dir.'submission.php?submission_id=','rpm_config_id'=>$dir.'rpms.php?rpm_config_id=','hwinfo_id'=>$dir.'hwinfo.php?hwinfo_id='),
+/* rslts */	array('tcf_id'=>$dir.'result.php?tcf_id='),
 /* suite */	array(),
 /* Dprod */	array(),
 /* Dsuit */	array(),
@@ -387,7 +388,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	$links2=array(	
 		array(),
 /* KOTD */	array('md5sum'=>'http://kerncvs.suse.de/gitweb/?p=kernel-source.git;a=commit;h='), 
-/* TCF data */	array('tcf_id'=>'result.php?tcf_id=') 
+/* TCF data */	array('tcf_id'=>$dir.'result.php?tcf_id=') 
 	);
 	
 	# make the SQL base SELECT
@@ -964,24 +965,24 @@ function rpms_num($rpm_config_id)
 }
 
 $glob_dest=array( 
-	array("index.php", "Home"), 
+	array($dir.'index.php', 'Home'), 
 	'log' => array(), 
-	array("result.php", "Results"), 
-	array("submission.php", "Submissions"), 
-	array("regression.php", "Regressions"), 
-	array("waiver.php", "Waiver"), 
-	'board' => array("board.php", "Board"),
-	array("admin.php","Admin"),
-#	array("trends.php", "Trend Graphs"), 
-#	array("bench/search.php", 'Benchmarks'), 
-#	array(" "," "), 
+	array($dir.'result.php', 'Results'), 
+	array($dir.'submission.php', 'Submissions'), 
+	array($dir.'regression.php', 'Regressions'), 
+	array($dir.'waiver.php', 'Waiver'), 
+	'board' => array($dir.'board.php', 'Board'),
+	array($dir.'admin.php','Admin'),
+#	array('trends.php', 'Trend Graphs'), 
+#	array('bench/search.php', 'Benchmarks'), 
+#	array(' ',' '), 
 	array( array(
 		array("http://qadb.suse.de/hamsta/", "De"),
 		array("http://hamsta.qa.suse.cz/hamsta/", "Cz"),
 		array("http://hamsta.sled.lab.novell.com/hamsta/","Us"),
 		array("http://147.2.207.30/hamsta/index.php","Cn"),
 		), 'Hamsta:'),
-	array("doc.php","Docs")); 
+	array($dir.'doc.php','Docs')); 
 
 /** logs into DB, checks user, prints header, prints navigation bar */
 function common_header($args=null)
@@ -1035,6 +1036,7 @@ function &print_submission_details($submission_id)
 /** Prints one-row table with TCF details. */
 function &print_tcf_details($tcf_id)
 {
+	global $dir;
 	$res=tcf_details($tcf_id,1);
 	if( count($res)<2 )
 		print "No such tcf_id: $tcf_id<br/>\n";
@@ -1042,7 +1044,7 @@ function &print_tcf_details($tcf_id)
 	{
 		$res2=$res; # preserve to return
 		table_translate($res2,array(
-			'links'=>array('tcf_id'=>'result.php?search=1&tcf_id='),
+			'links'=>array('tcf_id'=>$dir.'result.php?search=1&tcf_id='),
 			'enums'=>array('testsuite_id'=>'testsuite'),
 			'urls'=>array('log_url'=>'log')
 		));
@@ -1064,7 +1066,7 @@ function get_script_versions($name=null)
 /** converts dynamical menu items, prints the menu */
 function print_nav_bar($dest)
 {
-	global $conn_id;
+	global $conn_id,$dir;
 	foreach( array_keys($dest) as $key )
 	{
 		if( is_numeric($key) ) continue;
@@ -1072,9 +1074,9 @@ function print_nav_bar($dest)
 		{
 			case 'log':
 				if( isset($_SESSION['user']) && isset($_SESSION['pass']) )
-					$dest[$key]=array( "logout.php", "Logout");
+					$dest[$key]=array( $dir.'logout.php', "Logout");
 				else
-					$dest[$key]=array("login.php", "Login");
+					$dest[$key]=array($dir.'login.php', "Login");
 				break;
 
 			case 'board':
@@ -1091,6 +1093,8 @@ function print_nav_bar($dest)
 # $data should contain fields: '
 function result_process_print(&$data,$sub_info,$transl,$pager,$id)
 {
+	global $dir;
+
 	# links to logs
 	$tcf_id_url=array();
 
@@ -1108,13 +1112,13 @@ function result_process_print(&$data,$sub_info,$transl,$pager,$id)
 		$waiver_id=$data[$i]['waiver_id'];
 		if( $waiver_id )
 		{	# waiver exists
-			$data[$i]['waiver']=html_text_button("show","waiver.php?view=vw&waiver_id=$waiver_id");
+			$data[$i]['waiver']=html_text_button("show",$dir."waiver.php?view=vw&waiver_id=$waiver_id");
 			$classes.=' w';
 		}
 		else
 		{	# waiver does not exist
 			$matchtype=($data[$i]['failed'] || $data[$i]['internal_error'] ? 'problem' : 'no+problem');
-			$data[$i]['waiver']=html_text_button("create","waiver.php?view=nwd&detail=1&testcase=".$data[$i]['testcase_id'].'&arch='.$sub_info[1]['arch_id'].'&product='.$sub_info[1]['product_id'].'&release='.$sub_info[1]['release_id']."&matchtype=$matchtype");
+			$data[$i]['waiver']=html_text_button("create",$dir."waiver.php?view=nwd&detail=1&testcase=".$data[$i]['testcase_id'].'&arch='.$sub_info[1]['arch_id'].'&product='.$sub_info[1]['product_id'].'&release='.$sub_info[1]['release_id']."&matchtype=$matchtype");
 		}
 		unset($data[$i]['waiver_id']);
 
@@ -1127,8 +1131,8 @@ function result_process_print(&$data,$sub_info,$transl,$pager,$id)
                 #Display Graphs for benchmark results.
 		if( $data[$i]['is_bench'] )
 		{
-			require_once('defs.php');
-		        $graphlink="benchmarks.php?tests[]=".$my_tcf_id."&testcase=".$data[$i]['testcase']."&group_by=0&graph_x=".$bench_def_width."&graph_y=".$bench_def_height."&legend_pos=".$bench_def_pos."&font_size=".$bench_def_font."&search=1";
+			require_once($dir.'defs.php');
+		        $graphlink=$dir."benchmarks.php?tests[]=".$my_tcf_id."&testcase=".$data[$i]['testcase']."&group_by=0&graph_x=".$bench_def_width."&graph_y=".$bench_def_height."&legend_pos=".$bench_def_pos."&font_size=".$bench_def_font."&search=1";
 			$data[$i]['testcase']= html_link($data[$i]['testcase'],$graphlink);
 		}
 		unset($data[$i]['testcase_id']);
@@ -1163,6 +1167,8 @@ function highlight_result()
 
 function reference_host_search($attrs,&$transl=array(),&$pager=null)
 {
+	global $dir;
+
 	$attrs_known = array(
 		'reference_host_id'=>array('reference_host_id=?','i'),
 		'host_id'=>array('host_id=?','i'),
@@ -1175,8 +1181,8 @@ function reference_host_search($attrs,&$transl=array(),&$pager=null)
 		'product_id'=>'product',
 	);
 	$transl['ctrls'] = array(
-		'edit'=>'reference.php?step=edit&reference_host=',
-		'delete'=>'confirm.php?confirm=rh&reference_host='
+		'edit'=>$dir.'reference.php?step=edit&reference_host=',
+		'delete'=>$dir.'confirm.php?confirm=rh&reference_host='
 	);
 	return search_common(
 		array('reference_host_id','host_id','arch_id','product_id'),

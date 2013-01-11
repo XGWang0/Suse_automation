@@ -2,8 +2,6 @@
 require_once('qadb.php');
 require_once('defs.php');
 $embed=http('embed');
-$root=( $embed ? 'http://'.$_SERVER['SERVER_NAME'] : '' );
-$dir=( $embed ? $root.dirname($_SERVER['SCRIPT_NAME']).'/' : '' );
 $pager  = pager_fill_from_http();
 common_header(array(
     'title'=>'QADB submissions',
