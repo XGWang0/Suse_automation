@@ -37,7 +37,7 @@
 
 
 /* Name of the page to redirect to. */
-$page_base = 'index.php';
+$page_base = $dir.'index.php';
 $page = "$page_base?go=qa_netconf";
 
 
@@ -70,8 +70,17 @@ if( token_read($wtoken) )	{
 		commit();
 	}
 	else if( $submit=='sync_url' && $id )	{
+		if( capable('master_administration') )	{
 		transaction();
 		update_result(qaconf_set_sync_url($id,http('sync_url')));
+		commit();
+	}
+		else
+			print html_error("Insufficent privileges, need to be logged in and be administrator");
+	}
+	else if( $submit=='delete' && $id )	{
+		transaction();
+		update_result(qaconf_delete($id));
 		commit();
 	}
 }
@@ -131,6 +140,22 @@ else if( $step=='v' )	{
 	$data=qaconf_get_rows_translated($id);
 	print html_table($data,array('id'=>'qaconf_view','sort'=>'sss','class'=>'list text-main tbl'));
 }
+else if( $step=='d' && $id )	{
+	$desc=qaconf_get_desc($id);
+	if( $desc )	{
+		print "<h3>Delete configuration $desc ($id) ?</h3>\n";
+	$what=array(
+		array('id','',$id,HIDDEN),
+		array('wtoken','',token_generate(),HIDDEN),
+			array('submit','','delete',HIDDEN),
+			array('go','','qa_netconf',HIDDEN),
+	);
+		print html_search_form('',$what,array('submit'=>'Confirm delete','hr'=>false));
+	print html_text_button('Go back',$page);
+	}
+	else
+		html_error("No such configuration: $id");
+}
 else if( $a_machines )	{
 	$m=array();
 	$names=array();
@@ -165,7 +190,7 @@ else	{
 	$data=qaconf_list();
 	table_translate($data,array(
 		'links'=>array('qaconf_id'=>"$page&step=v&id="),
-		'ctrls'=>array('edit'=>"$page&step=e&id="),
+		'ctrls'=>array('edit'=>"$page&step=e&id=",'delete'=>"$page&step=d&id="),
 	));
 	print html_table($data,array('total'=>1,'id'=>'qaconf_list','sort'=>'is','class'=>'list text-main tbl'));
 }
