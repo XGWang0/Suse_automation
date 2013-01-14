@@ -106,7 +106,7 @@ my $autoexit_endtime;
 my $autoexit_stagger_limit;
 my %daytoletter = ("Sun","S","Mon","M","Tue","T","Wed","W","Thu","U","Fri","F","Sat","A");
 
-# Global variables to support show the case nmae and it's status
+# Global variables to support show the case name and it's status
 my $opt_width = 0;                # width of console
 my $total_case = 0;               # total case number
 my $case_num = 0;                 # current case number
