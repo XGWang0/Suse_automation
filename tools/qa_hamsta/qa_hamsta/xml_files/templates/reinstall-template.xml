@@ -7,8 +7,8 @@
         <parallel>0</parallel>
         <mail notify="1"></mail>
         <logdir>/tmp</logdir>
-        <rpm upgrade="1">qa_hamsta</rpm>
-        <rpm>qa_tools qa_lib_perl</rpm>
+        <rpm>qa_hamsta</rpm>
+        <rpmi upgrade="1">qa_tools qa_lib_perl</rpm>
         <description>Reinstalls the machine from REPOURL</description>
         <motd>Machine being reinstalled</motd>
     </config>
