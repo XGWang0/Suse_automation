@@ -51,7 +51,6 @@ $log::loginfo = 'process_job';
 $SIG{'HUP'} = 'IGNORE';
 $SIG{'INT'} = 'IGNORE';
 
-
 # process_job(job_id)
 #
 # Sends a job to one (TODO: or more) slaves, gathers the slave output and 
@@ -333,6 +332,7 @@ sub send_job($$$) {
 			PeerPort => $qaconf{hamsta_client_port},
 			Proto	=> 'tcp'
 			);
+	my $local_addr = $sock->sockhost();
 	my $loglevel = $log::loglevel;
 	if (not defined($sock)) {
 		&log(LOG_NOTICE, "PROCESS_JOB: send_job $!");
@@ -354,7 +354,7 @@ sub send_job($$$) {
 
                 if(/<\/config>/) {
                         $_="        <useinfo> USAGE: $usage \t USEDBY: $usedby \t MAINTAINER: $maintainer_id \t </useinfo> \n".$_ ;
-                        $_="        <job_id>$job_id</job_id> \n".$_ ;
+                        $_="        <job_id>http://$local_addr/hamsta/index.php?go=job_details&amp;id=$job_id</job_id> \n".$_ ;
                 }
 		eval {
 			&log(LOG_DEBUG, "Sent XML: $_");
