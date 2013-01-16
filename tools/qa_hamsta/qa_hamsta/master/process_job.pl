@@ -51,7 +51,6 @@ $log::loginfo = 'process_job';
 $SIG{'HUP'} = 'IGNORE';
 $SIG{'INT'} = 'IGNORE';
 
-
 # process_job(job_id)
 #
 # Sends a job to one (TODO: or more) slaves, gathers the slave output and 
@@ -204,7 +203,8 @@ sub process_job($) {
 	my $status=JS_FAILED;
 
 	# send e-mail that the job has finished
-	my $reboot = ( $job_file =~ /install|reboot|XENGrub|hamsta-upgrade-restart/ );
+	my $reboot = ( $job_file =~ /install|reboot|XENGrub/ );
+	my $update_sut = ( $job_file =~ /hamsta-upgrade-restart/ );
 	if( $reboot ) {
 		sleep 300;
 		while( &machine_get_status($machine_id) != MS_UP ) {		
@@ -214,6 +214,17 @@ sub process_job($) {
 		}
 		$message = "reinstall\/reboot $hostname completed";
 		$status=JS_PASSED;
+
+	} elsif($update_sut) {
+		foreach my $ret ( split /\n/, $return_codes )
+		{	$status=JS_PASSED if $ret=~/^(\d+)/ and $1==0;	}
+		sleep 300;
+		while( &machine_get_status($machine_id) != MS_UP ) {		
+			# wait for reinstall/reboot jobs
+			$dbc->commit(); # workaround of a DBI bug that would loop the statement
+			sleep 60;	
+		}
+		$message = "hamsta updating on $hostname succeed" if($status == JS_PASSED);
 	} else {
 		foreach my $ret ( split /\n/, $return_codes )
 		{	$status=JS_PASSED if $ret=~/^(\d+)/ and $1==0;	}
@@ -321,6 +332,7 @@ sub send_job($$$) {
 			PeerPort => $qaconf{hamsta_client_port},
 			Proto	=> 'tcp'
 			);
+	my $local_addr = $sock->sockhost();
 	my $loglevel = $log::loglevel;
 	if (not defined($sock)) {
 		&log(LOG_NOTICE, "PROCESS_JOB: send_job $!");
@@ -342,7 +354,7 @@ sub send_job($$$) {
 
                 if(/<\/config>/) {
                         $_="        <useinfo> USAGE: $usage \t USEDBY: $usedby \t MAINTAINER: $maintainer_id \t </useinfo> \n".$_ ;
-                        $_="        <job_id>$job_id</job_id> \n".$_ ;
+                        $_="        <job_id>http://$local_addr/hamsta/index.php?go=job_details&amp;id=$job_id</job_id> \n".$_ ;
                 }
 		eval {
 			&log(LOG_DEBUG, "Sent XML: $_");
