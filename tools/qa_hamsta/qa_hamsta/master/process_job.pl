@@ -204,7 +204,8 @@ sub process_job($) {
 	my $status=JS_FAILED;
 
 	# send e-mail that the job has finished
-	my $reboot = ( $job_file =~ /install|reboot|XENGrub|hamsta-upgrade-restart/ );
+	my $reboot = ( $job_file =~ /install|reboot|XENGrub/ );
+	my $update_sut = ( $job_file =~ /hamsta-upgrade-restart/ );
 	if( $reboot ) {
 		sleep 300;
 		while( &machine_get_status($machine_id) != MS_UP ) {		
@@ -214,6 +215,17 @@ sub process_job($) {
 		}
 		$message = "reinstall\/reboot $hostname completed";
 		$status=JS_PASSED;
+
+	} elsif($update_sut) {
+		foreach my $ret ( split /\n/, $return_codes )
+		{	$status=JS_PASSED if $ret=~/^(\d+)/ and $1==0;	}
+		sleep 300;
+		while( &machine_get_status($machine_id) != MS_UP ) {		
+			# wait for reinstall/reboot jobs
+			$dbc->commit(); # workaround of a DBI bug that would loop the statement
+			sleep 60;	
+		}
+		$message = "hamsta updating on $hostname succeed" if($status == JS_PASSED);
 	} else {
 		foreach my $ret ( split /\n/, $return_codes )
 		{	$status=JS_PASSED if $ret=~/^(\d+)/ and $1==0;	}
