@@ -79,6 +79,7 @@ foreach( array_keys($vals) as $key )	{
                 /* We need to display user name instead of user_id from db.  */
                 if ( $key == 'usedby' )
                   {
+		    $print_val = $val;
                     if ( $mach_user = User::getById ($val, $config) )
                       $print_val = $mach_user->getLogin ();
                   }
@@ -91,41 +92,49 @@ foreach( array_keys($vals) as $key )	{
 	}
 
 	# print merge column
-	if(is_array($ret) || $is_enum)	{
+	if(is_array($ret) || $is_enum || $key == 'usedby')	{
 		# enums and 'S' (one-of) produce a select
 		print "<td><select name=\"$key\">";
-		if( $is_enum )	{
+		if( $is_enum ) {
 			if( is_array($ret) ) # enum, different values -> select one of them
 				$enum = Machine::enumerate($key,$ret);
 			else # enum, same values -> preselected, alternatives listed
 				$enum = Machine::enumerate($key);
 
 			# print the options
-			foreach( $enum as $k=>$v )	{
-				$selected = ((!is_array($ret) && $k==$ret) || (is_array($ret) && $k==$vals[$key][0]) ? 'selected="yes"' : '');
+			foreach ( $enum as $k=>$v ) {
+				$selected = ((!is_array($ret) && $k==$ret) || (is_array($ret) && $k==$vals[$key][0]) ? ' selected="yes"' : '');
 				printf('<option value="%s"%s>%s</option>',htmlspecialchars($k),$selected,htmlspecialchars($v));
 			}
+		} else if (! strcmp ($key, 'usedby')) {
+			# We need to print user login instead of number
+			if (is_array ($ret)) {
+				foreach ( $ret as $r ) {
+					$ulogin = $r;
+					if ( $mach_user = User::getById ($r, $config) ) {
+					  $ulogin = $mach_user->getLogin ();
+					}
+					printf('<option value="%s">%s</option>', $r, htmlspecialchars ($ulogin));
+				}
+			} else {
+				printf ('<option value=""></option>');
+				$ulogin = $ret;
+				if ( $mach_user = User::getById ($ulogin, $config) ) {
+					$ulogin = $mach_user->getLogin ();
+				}
+				printf ('<option value="%s" selected="selected">%s</option>', $val, $ulogin);
+			}
 		}
-		else	{
+		else {
 			# non-enums, one-of('S'), different values -> just print them
 			foreach ( $ret as $r )
                           {
-                            $rr=htmlspecialchars($r);
-
-                            if ( $key == 'usedby' )
-                              {
-                                if ( $mach_user = User::getById ($r, $config) )
-                                  {
-                                    $rr = $mach_user->getLogin ();
-                                  }
-                              }
-
-			    printf('<option value="%s">%s</option>',$r,$rr);
+			     printf('<option value="%s">%s</option>',$r,htmlspecialchars($r));
 			  }
 		}
-		print "</select></td>";
+		print "</select></td>\n";
 	}
-	else # non-enums, same values or concatenation('s') -> text box
+	else  # non-enums, same values or concatenation('s') -> text box
 		printf("<td><input name=\"%s\" type=\"text\" %s value=\"%s\"/></td>",$key,(strlen($ret)>20 ? 'size="'.strlen($ret).'"' : ''),$ret);
 	print "</tr>\n";
 }
