@@ -213,7 +213,7 @@ function power_hmc($powerswitch, $powerslot, $action) {
 	if (sizeof($hmc_url_array) == "2") {
 		$hmc_user = $hmc_url_array[0];
 		$hmc_pass = NULL;
-		$hmc_host = $hmc_url_array[2];
+		$hmc_host = $hmc_url_array[1];
 	}
 
 	else if (sizeof($hmc_url_array) == "3") {
@@ -238,7 +238,7 @@ function power_hmc($powerswitch, $powerslot, $action) {
 	function hmc_lssyscfg($hmc_user, $hmc_pass, $hmc_host, $machine_name, $lpar_id) {
 		$lssyscfg_command = "lssyscfg -m $machine_name -r lpar --filter \"\"lpar_ids=$lpar_id\"\" -F name:state";
 		
-		if ($hmc_pass =- NULL)
+		if ($hmc_pass == NULL)
 			$lssyscfg_command_ssh = "ssh -o StrictHostKeyChecking=no --user $hmc_user"."@"."$hmc_host \"$lssyscfg_command\" ";
 		else
 			$lssyscfg_command_ssh = "sshpass -p $hmc_pass ssh -o StrictHostKeyChecking=no --user $hmc_user"."@"."$hmc_host \"$lssyscfg_command\" ";
@@ -249,7 +249,12 @@ function power_hmc($powerswitch, $powerslot, $action) {
 
 	function hmc_chsysstate($hmc_user, $hmc_pass, $hmc_host, $machine_name, $lpar_id, $action) {
 		$chsysstate_command = "chsysstate -m $machine_name -r lpar --id $lpar_id -o $action";
-		$chsysstate_command_ssh = "sshpass -p $hmc_pass ssh -o StrictHostKeyChecking=no --user $hmc_user"."@"."$hmc_host \"$chsysstate_command\" ";
+		
+		if ($hmc_pass == NULL)
+			$chsysstate_command_ssh = "ssh -o StrictHostKeyChecking=no --user $hmc_user"."@"."$hmc_host \"$chsysstate_command\" ";
+		else
+			$chsysstate_command_ssh = "sshpass -p $hmc_pass ssh -o StrictHostKeyChecking=no --user $hmc_user"."@"."$hmc_host \"$chsysstate_command\" ";
+
 		exec ($chsysstate_command_ssh);
 	}
 
