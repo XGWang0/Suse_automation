@@ -43,7 +43,7 @@ function power_s390($powerswitch, $powerslot, $action) {
 		/*
 	 	* URL of web interface for controlling s390 VM's
 	 	*/
-		$s390_controller = 'http://s390zvi33.suse.de/zvm/formaction.php';
+		$s390_controller = 'http://s390icv33.suse.de/zvm/formaction.php';
 		$command = array(
 			'count' => urlencode('0'),
 			'ipl_device[0]' => urlencode('0150'),
