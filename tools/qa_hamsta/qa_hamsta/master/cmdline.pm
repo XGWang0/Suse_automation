@@ -502,8 +502,8 @@ sub send_predefine_job_to_host() {
     $email = $cmd_line[4] if(@cmd_line >= 5);
 
     if (! can_send_job_to_machine ($host)) {
-	&log(LOG_WARNING, "User does not have privileges to send a job to '${host}'");
-	print $sock_handle "User does not have privileges to send a job to '${host}'.\n";
+	&log(LOG_NOTICE, "User '${user_login}' does not have privileges to send a job to '${host}'");
+	print $sock_handle "You do not have privileges to send a job to '${host}'.\n";
 	return;
     }
 
@@ -621,8 +621,8 @@ sub send_multi_job_to_host () {
     #check host live
     for my $host (@hosts) {
       if (! can_send_job_to_machine ($host)) {
-	  &log(LOG_WARNING, "User does not have privileges to send a job to '${host}'");
-	  print $sock_handle "User does not have privileges to send a job to '${host}'.\n";
+	  &log(LOG_NOTICE, "User '${user_login}' does not have privileges to send a job to '${host}'");
+	  print $sock_handle "You do not have privileges to send a job to '${host}'.\n";
 	  return;
       }
 
@@ -697,8 +697,8 @@ sub send_job_to_host () {
     my $host = $cmd_line[-2];
 
     if (! can_send_job_to_machine ($host)) {
-	&log(LOG_WARNING, "User does not have privileges to send a job to '${host}'");
-	print $sock_handle "User does not have privileges to send a job to '${host}'.\n";
+	&log(LOG_NOTICE, "User '${user_login}' does not have privileges to send a job to '${host}'");
+	print $sock_handle "You do not have privileges to send a job to '${host}'.\n";
 	return;
     }
 
@@ -739,8 +739,8 @@ sub send_re_job_to_host () {
     my $host = $cmd_line[3];
 
     if (! can_send_job_to_machine ($host)) {
-	&log(LOG_WARNING, "User does not have privileges to send a job to '${host}'");
-	print $sock_handle "User does not have privileges to send a job to '${host}'.\n";
+	&log(LOG_NOTICE, "User '${user_login}' does not have privileges to send a job to '${host}'");
+	print $sock_handle "You do not have privileges to send a job to '${host}'.\n";
 	return;
     }
 
@@ -802,8 +802,8 @@ sub send_line_job_to_host () {
     my $host = $cmd_line[5];
 
     if (! can_send_job_to_machine ($host)) {
-	&log(LOG_WARNING, "User does not have privileges to send a job to '${host}'");
-	print $sock_handle "User does not have privileges to send a job to '${host}'.\n";
+	&log(LOG_NOTICE, "User '${user_login}' does not have privileges to send a job to '${host}'");
+	print $sock_handle "You do not have privileges to send a job to '${host}'.\n";
 	return;
     }
 
@@ -923,8 +923,8 @@ sub send_qa_package_job_to_host () {
     my $host = $cmd_line[3];
 
     if (! can_send_job_to_machine ($host)) {
-	&log(LOG_WARNING, "User does not have privileges to send a job to '${host}'");
-	print $sock_handle "User does not have privileges to send a job to '${host}'.\n";
+	&log(LOG_NOTICE, "User '${user_login}' does not have privileges to send a job to '${host}'");
+	print $sock_handle "You do not have privileges to send a job to '${host}'.\n";
 	return;
     }
 

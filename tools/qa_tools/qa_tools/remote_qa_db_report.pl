@@ -279,6 +279,12 @@ die "Cannot run $cmd" if $qadb_report_res;
 # process logs - move to oldlogs/
 # TODO: when using inotify, should move just after every submit of TCFs
 my $oldlogs="$dir/oldlogs";
+
+# configure to put all the old log files by root user into the /var/log/qa/oldlogs
+if ( $> == 0) {
+	$oldlogs = "/var/log/qa/oldlogs";
+}
+
 my $savedir="$oldlogs/" . strftime ("%F-%H-%M-%S", localtime);
 unless( $nomove )
 {

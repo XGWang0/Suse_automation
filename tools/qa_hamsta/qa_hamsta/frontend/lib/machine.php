@@ -1642,10 +1642,10 @@ class Machine {
 			$count = 0;
 			while (($s = fgets(Machine::$master_socket, 4096)) != "$>") {
 				if (!$s) {
-					if (($count++) > 3) {
+					if (($count++) > 10) {
 						fclose(Machine::$master_socket);
 						Machine::$master_socket = null;
-						Machine::$readerr = "Giving up after 3 empty reads from master";
+						Machine::$readerr = "Could not get the master command prompt. Giving up after 10 empty reads from master.";
 						return null;
 					}
 					sleep(1);
