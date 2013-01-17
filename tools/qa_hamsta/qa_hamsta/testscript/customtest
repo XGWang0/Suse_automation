@@ -34,25 +34,15 @@ if ((`id -u`!=0));then
 fi
 rm -rf $output
 
+# set the working directory
+export TESTS_LOGDIR="${logdir%/*}/hamsta"
+
 if [ "x$TESTS_LOGDIR" != "x" ]; then
 	logdir=$TESTS_LOGDIR/ctcs2
 fi
 
 mkdir -p /abuild $logdir/
 #((`ls $logdir/ | wc -l`==0)) || (cd $logdir/../ && tar zcf Oldlog-`date +%F-%H-%M-%S`.tgz ctcs2 && rm -rf $logdir/*)
-
-# move the old log to oldlog directory
-oldlogdir="${logdir%/*}/oldlogs/`date '+%F-%H-%M-%S'`/ctcs2"
-if [ ! -d $oldlogdir ]; then
-	mkdir -p $oldlogdir
-fi
-
-for oldlog in `find $logdir -maxdepth 1 -type d`; do
-	# hope the previous job has done
-	if [ -f $oldlog/done ]; then
-		mv $oldlog $oldlogdir/
-	fi
-done
 
 returncode=0
 # Check qa_lib_ctcs2, qa_hamsta, qa_tools, qa_lib_perl
