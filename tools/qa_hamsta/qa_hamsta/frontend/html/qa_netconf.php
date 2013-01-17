@@ -79,9 +79,16 @@ if( token_read($wtoken) )	{
 			print html_error("Insufficent privileges, need to be logged in and be administrator");
 	}
 	else if( $submit=='delete' && $id )	{
-		transaction();
-		update_result(qaconf_delete($id));
-		commit();
+		$usage=qaconf_usage_count($id);
+		if( !$usage )
+			print html_error("No such configuration: $id");
+		else if( $usage['machines'] || $usage['groups'] )
+			print html_error("Configuration in use, please detach first");
+		else	{
+			transaction();
+			update_result(qaconf_delete($id));
+			commit();
+		}
 	}
 }
 
@@ -94,6 +101,7 @@ $steps_alt=array(
 	'v'=>'view',
 	'm'=>'merge',
 	'eu'=>'edit URL',
+	'd'=>'delete',
 );
 print steps("$page&step=",$steps,$step,$steps_alt);
 
@@ -188,10 +196,19 @@ else if( $group )	{
 else	{
 	# view configuration
 	$data=qaconf_list();
+	# FIXME: store ID into another field, so that it won't be HTML-formatted
+	for( $i=1; $i<count($data); $i++ )	{
+		$data[$i]['id']=$data[$i]['qaconf_id'];
+	}
 	table_translate($data,array(
 		'links'=>array('qaconf_id'=>"$page&step=v&id="),
-		'ctrls'=>array('edit'=>"$page&step=e&id=",'delete'=>"$page&step=d&id="),
+		'ctrls'=>array('edit'=>"$page&step=e&id="),
 	));
+	for( $i=1; $i<count($data); $i++ )	{
+		$row=$data[$i];
+		if( !($row['groups'] || $row['machines'] && isset($row[0]) /*FIXME*/ ) )
+			$data[$i][0].=' '.html_text_button('delete',"$page&step=d&id=".$row['id']);
+	}
 	print html_table($data,array('total'=>1,'id'=>'qaconf_list','sort'=>'is','class'=>'list text-main tbl'));
 }
 
@@ -216,8 +233,8 @@ function view_delete_create_assign($title,$id,$machine_id,$group)	{
 		}
 		else	{
 			print html_text_button('edit',"$page&step=e&id=$id")."\n";
-			if( $id>QACONF_MAX_SYS_ID )
-				print html_text_button('delete',"$page&step=d&id=$id")."\n";
+#			if( $id>QACONF_MAX_SYS_ID )
+#				print html_text_button('delete',"$page&step=d&id=$id")."\n";
 		}
 	}
 	else	{

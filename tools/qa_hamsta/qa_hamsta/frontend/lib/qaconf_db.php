@@ -95,6 +95,10 @@ function qaconf_delete($qaconf_id)	{
 	return $ret;
 }
 
+function qaconf_usage_count($qaconf_id)	{
+	return row_query('SELECT (SELECT COUNT(*) FROM machine WHERE qaconf_id=?) AS machines, (SELECT COUNT(*) FROM `group` WHERE qaconf_id=?) AS groups','ii',$qaconf_id,$qaconf_id);
+}
+
 function qaconf_insert_parsed($desc,$parsed)	{
 	$qaconf_id=qaconf_insert($desc);
 	qaconf_write_data_parsed($qaconf_id,$parsed);
