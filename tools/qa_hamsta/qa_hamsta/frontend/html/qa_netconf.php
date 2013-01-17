@@ -209,7 +209,7 @@ else	{
 		if( !($row['groups'] || $row['machines'] && isset($row[0]) /*FIXME*/ ) )
 			$data[$i][0].=' '.html_text_button('delete',"$page&step=d&id=".$row['id']);
 	}
-	print html_table($data,array('total'=>1,'id'=>'qaconf_list','sort'=>'is','class'=>'list text-main tbl'));
+	print html_table($data,array('total'=>1,'id'=>'qaconf_list','sort'=>'isss','class'=>'list text-main tbl'));
 }
 
 function print_global_configs()	{
