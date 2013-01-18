@@ -26,7 +26,11 @@
 	# Keep this structure (for now), especially the " -- " between the feature title and description
 	$latestFeatures = array(
 			"2.5.0" => array(
-				'11 Aug 2012 -- TODO'
+				'18 Jan 2013 -- Authentication and Authorization -- password and OpenID login and access rights added to Hamsta ',
+				'18 Jan 2013 -- Centralized configuration of SUTs -- it is no longer needed to rebuild rpm for persistent individual configuration changes',
+				'18 Jan 2013 -- Reinstall improvements -- It is now possible to set timezone and use kexec',
+				'18 Jan 2013 -- Connect new SUT from hamsta -- New SUT can be added to Hamsta from hamsta web interface (it is not needed to ssh to the SUT and install qa_hamsta manually)',
+				'18 Jan 2013 -- AutoPXE now supports ia64 architecture',
 			),
 			"2.4.0" => array(
 				'10 Aug 2012 -- Web user-friendly editor for jobs',
