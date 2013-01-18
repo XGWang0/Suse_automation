@@ -67,6 +67,8 @@ install -m 755 -d $RPM_BUILD_ROOT/usr/share/qa/lib
 cp -a config $RPM_BUILD_ROOT/usr/share/qa/lib
 cp -a qaconfig.pm $RPM_BUILD_ROOT/usr/share/qa/lib
 cp -a dump_qa_config $RPM_BUILD_ROOT/usr/share/qa/tools
+cp -a get_qa_config $RPM_BUILD_ROOT/usr/share/qa/tools
+cp -a sync_qa_config $RPM_BUILD_ROOT/usr/share/qa/tools
 cp -a 00-automation-default $RPM_BUILD_ROOT/etc/qa
 
 %clean

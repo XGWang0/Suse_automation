@@ -33,8 +33,39 @@ $search->filter_in_array(request_array("a_machines"));
 $machines = $search->query();
 
 $machine_names = array();
-foreach($machines as $machine)
-	$machine_names[] = array( $machine->get_id(), $machine->get_hostname() );
+
+/* Check the user is logged in and has privileges to send job to
+ * selected machines. */
+if ($config->authentication->use) {
+	if (User::isLogged () && User::isRegistered (User::getIdent (), $config)) {
+		$user = User::getById (User::getIdent (), $config);
+		if ( $user->isAllowed ('machine_send_job')
+		     || $user->isAllowed ('machine_send_job_reserved') ) {
+			foreach($machines as $machine) {
+				if ( ! ( $machine->get_used_by_login () == $user->getLogin ()
+				   || $user->isAllowed ('machine_send_job_reserved')) ) {
+					Notificator::setErrorMessage ("You cannot send a job to a machine that is not reserved"
+								      . " or is reserved by other user.");
+					header ("Location: index.php");
+					exit ();
+				}
+				/* Do actually what we need to do here. */
+				$machine_names[] = array( $machine->get_id(), $machine->get_hostname() );
+			}
+		} else {
+			Notificator::setErrorMessage ("You do not have privileges to send a job to a machine.");
+			header ("Location: index.php");
+			exit ();
+		}
+	} else {
+		Notificator::setErrorMessage ("You have to be logged in and registered to send a job to a machine.");
+		header ("Location: index.php");
+		exit ();
+	}
+} else {
+	foreach($machines as $machine)
+		$machine_names[] = array( $machine->get_id(), $machine->get_hostname() );
+}
 
 #print "<pre>\n"; 
 #print_r(request_array('a_machines')); 
@@ -198,7 +229,7 @@ else if( request_str('submit') )
 			}
 
 			if($machine->send_job($path)) {
-				Log::create($machine->get_id(), $machine->get_used_by(), 'JOB_START', "has sent a \"multi-machine\" job including this machine (Job name: \"" . htmlspecialchars(basename($filename)) . "\")");
+				Log::create($machine->get_id(), $machine->get_used_by_login(), 'JOB_START', "has sent a \"multi-machine\" job including this machine (Job name: \"" . htmlspecialchars(basename($filename)) . "\")");
 			} else {
 				$errors[] = $machine->get_hostname() . ': ' . $machine->errmsg;
 			}

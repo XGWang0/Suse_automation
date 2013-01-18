@@ -51,7 +51,7 @@ use Slave::stats_xml;
 use Slave::Multicast::mcast;
 use Slave::functions;
 
-require 'Slave/config_slave';
+require 'Slave/config_slave.pm';
 
 @ISA = qw(Net::Server::PreFork);
 
@@ -317,7 +317,7 @@ sub process_request {
                     last if ($incoming =~ /<\/job>/);
                     last if ($incoming =~ /%3C\/job%3E/);
                 }
-                &start_job($job, $sock);
+                &start_job($job, $sock, $ip_addr);
 		last;
             }
         }
@@ -335,8 +335,7 @@ sub process_request {
 # Starts the execution of the job described by $xml_job
 # The output of the job is forwarded to the master
 sub start_job() {
-    my $xml_job = shift @_; 	
-    my $sock = shift;
+    my ($xml_job, $sock, $ip_addr) = @_; 	
 
     # If the incoming data is uri_escaped (should be), unescape it
     if ($xml_job =~ /\%3Cjob$/) {
@@ -375,6 +374,7 @@ sub start_job() {
     if($fork_re==0) {
 	#in child, start to work;
 	#close share socket in child
+	&command("/usr/share/qa/tools/sync_qa_config $ip_addr");
         my $pid_main = open (FILE, "/usr/bin/perl Slave/run_job.pl $filename 2>&1|");
         my $count = 0;
         while (<FILE>) {
@@ -421,6 +421,14 @@ sub start_job() {
 	my $current_time=0;
 	while ($current_time < $sut_timeout) {
 	    goto OUT if(waitpid($fork_re, WNOHANG));
+	    #check the hang status : result is submit to QADB ,but job was hung.
+	    my $hangstatus = `pstree $fork_re|head -1|awk -F'-+' '{if(NF==4 && \$NF=="perl")print "Stop"}'`;
+	    chomp($hangstatus);
+	    if($hangstatus){
+		print $sock "Job was done , some process need to clean manually \n";
+		print $sock "Job ist fertig\n";
+		goto OUT;
+	    }
 	    sleep 60;
 	    $current_time += 60;
 

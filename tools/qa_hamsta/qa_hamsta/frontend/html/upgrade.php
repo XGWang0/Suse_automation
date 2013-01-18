@@ -147,7 +147,7 @@ function upmethod(myvar)
   </tr>
   <tr>
 	<td>Additional RPMs (optional): </td>
-	<td><input type="text" name="additionalrpms" size="70" value="<?php if(isset($_POST["additionalrpms"])){echo $_POST["additionalrpms"];} else ARLIST;?>" /></td>
+	<td><input type="text" name="additionalrpms" size="70" value="<?php if(isset($_POST["additionalrpms"])){echo $_POST["additionalrpms"];} else echo ($config->lists->arlist);?>" /></td>
   </tr>
   <tr>
 	<td>Install Updates for OS?</td>
@@ -165,7 +165,7 @@ function upmethod(myvar)
 
 	# The additional update options are whether to update with SMT or regcode
 	print "<div id=\"updateoptions-smt\" class=\"text-small\" style=\"margin: 5px; padding: 5px; border: 1px solid red; display: " . ((isset($_POST['startupdate']) and $_POST['startupdate'] == "update-smt") ? "block" : "none") . ";\">" .
-		"SMT server: <strong>$smtserver</strong> (<strong>Note:</strong> This must be configured in config.php by an admin)." .
+		"SMT server: <strong>$smtserver</strong> (<strong>Note:</strong> This must be configured in config.ini by an admin.)." .
 		"<input type=\"hidden\" name=\"update-smt-url\" value=\"$smtserver\" />" .
 	"</div>";
 	print "<div id=\"updateoptions-reg\" class=\"text-small\" style=\"margin: 5px; padding: 5px; border: 1px solid red; display: " . ((isset($_POST['startupdate']) and $_POST['startupdate'] == "update-reg") ? "block" : "none") . ";\">" .
@@ -180,7 +180,7 @@ function upmethod(myvar)
 	<td><input type="checkbox" value="yes" name="startvalidation"<?php if(isset($_POST['startvalidation']) and $_POST['startvalidation'] == "yes"){echo " checked=\"checked\"";} ?> />Yes, run validation tests automatically after the installation</td>
   </tr>
 	<td>Notification email address (optional):</td>
-	<td><input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} ?>" /> (if you want to be notified when the installation is finished)</td>
+	<td><input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])) {echo $_POST["mailto"];} else if (isset ($user)) { echo ($user->getEmail ());} ?>" /> (if you want to be notified when the installation is finished)</td>
   </tr>
 </table>	
 <input type="submit" name="proceed" value="proceed" id="proceed">

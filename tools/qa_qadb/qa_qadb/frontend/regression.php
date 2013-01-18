@@ -180,7 +180,7 @@ if( isset($sub_r[1]) && isset($sub_c[1]) )
 				$hide=1;
 
 			# button to view/edit waiver details
-			$waiver=html_text_button("show","waiver.php?view=view_waiver&waiver_id=$waiver_id");
+			$waiver=html_text_button("show","waiver.php?view=vw&waiver_id=$waiver_id");
 			
 			# display mode, weaken the status
 			$info .= ', waiver';
@@ -189,7 +189,7 @@ if( isset($sub_r[1]) && isset($sub_c[1]) )
 			$match .= ' w';
 		} else {
 			# waiver does not exist - button
-			$waiver=html_text_button("create","waiver.php?view=new_both&testcase=$tc_id&arch=".$sub_c[1]['arch_id'].'&products='.$sub_c[1]['product_id'].'&releases='.$sub_c[1]['release_id']);
+			$waiver=html_text_button("create","waiver.php?view=nwd&testcase=$tc_id&arch=".$sub_c[1]['arch_id'].'&products='.$sub_c[1]['product_id'].'&releases='.$sub_c[1]['release_id']);
 		}
 
 		# write results, hide internal columns

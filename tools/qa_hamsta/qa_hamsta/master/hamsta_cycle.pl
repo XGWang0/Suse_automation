@@ -114,14 +114,24 @@ sub differ_release_cyclus () {
 
 sub schedule_validation () {
     my $buildpath = shift @_;
+    my $config_file_path = "/srv/www/htdocs/hamsta/config.ini";
     $buildnr = basename($buildpath);
     my $rand =  int(rand(100000));
     my $autoyastfile = "/tmp/reinstall_$rand.xml";
     my $validationjob = "/tmp/validation_$rand.xml";
-    my $command = `grep '\$vmlist=' /srv/www/htdocs/hamsta/config.php`;
-    $command =~ s/\$/%/;
-    $command =~ s/array//;
-    eval "$command";
+#    my $command = `grep '\$vmlist=' /srv/www/htdocs/hamsta/config.php`;
+#    $command =~ s/\$/%/;
+#    $command =~ s/array//;
+#    eval "$command";
+    my $conflist = `grep '^vmlist' $config_file_path`;
+    $conflist =~ s/vmlist\.//;
+    $conflist =~ s/ //g;
+    my %vmlist = ();
+    foreach ( split ("\n", $conflist) ) {
+	my @vals = split '=';
+	$vmlist{$vals[0]} = $vals[1];
+    }
+
     for my $key (keys %vmlist) {
         my $value = $vmlist{$key};
         if ($value ne "N/A") {

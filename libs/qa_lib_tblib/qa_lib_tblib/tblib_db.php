@@ -51,7 +51,7 @@ function search_common( $sel, $from, &$attrs, &$attrs_known, &$pager=null )
 {
 	global $first;
 	$header   = hash_get($attrs,'header',true,true);	# return table header ?
-	$limit    = hash_get($attrs,'limit',null,true);		# row nr. limit (array)
+	$limit    = hash_get($attrs,'limit',-1,true);		# row nr. limit (array)
 	$order_nr = hash_get($attrs,'order_nr',0,true);		# index of ORDER BY columns
 	$order_by = hash_get($attrs,'order_by',null,true);	# columns for ORDER BY
 	$page     = hash_get($attrs,'page',$first,true);	# page number
@@ -99,8 +99,10 @@ function search_common( $sel, $from, &$attrs, &$attrs_known, &$pager=null )
 			foreach( $vals as $val )
 			{
 				$sql_part[] = $a[0];
-				$format    .= $a[1];
-				$args[]    .= $val;
+				if( isset($a[1]) )	{
+					$format    .= $a[1];
+					$args[]    .= $val;
+				}
 			}
 		}
 		if( count($sql_part) == 1 )
@@ -133,7 +135,7 @@ function search_common( $sel, $from, &$attrs, &$attrs_known, &$pager=null )
 
 		$limit = limit_from_pager($pager,$count);
 	}
-	if( !isset($limit) )
+	if( $limit==-1  )
 		$limit = array(5000);
 	
 	# query data
@@ -276,6 +278,9 @@ function enum_list_id($tbl, $limit=null)
 function enum_list_id_val($tbl, $header=0, $limit=null)
 {	return matrix_query($header,$limit,'SELECT '.eid($tbl).','.ename($tbl)." FROM `$tbl` ORDER BY ".ename($tbl));	}
 
+function enum_list_id_val_hash($tbl, $header=0, $limit=null)
+{	return mhash_query($header,$limit,'SELECT '.eid($tbl).','.ename($tbl)."FROM `$tbl` ORDER BY ".ename($tbl));	}
+
 /** lists all vals, sorted */
 function enum_list_val($tbl, $limit=null)
 {	return vector_query($limit,'SELECT DISTINCT '.ename($tbl)." FROM `$tbl` ORDER BY ".ename($tbl));	}
@@ -393,6 +398,28 @@ function abort($msg)
 }
 
 /**
+  * Runs a list of commands until the first failure
+  * @param array $commands list of commands (strings or arrays containing arguments)
+  * @return int number of commands successfully executed
+  **/
+function update_sequence($commands)
+{
+	for( $i=0; $i<count($commands); $i++ )	{
+		$cmd = $commands[$i];
+		if( !is_array($cmd) )
+			$cmd = array($cmd);
+#		print "<pre>\n";
+#		print_r($cmd);
+#		print "</pre>\n";
+		$ret = call_user_func_array('update_query',$cmd);
+		if( $ret<0 )
+			return $i-1;
+#		print "OK<br/>\n";
+	}
+	return count($commands);
+}
+
+/**
   * Executes a statement or fails, returns nr of affected rows.
   *  usage: update_query( $query, [$format, $param1, ...] )
   * @return int number of affected rows
@@ -475,8 +502,9 @@ function vector_query()
 function row_query()
 {
 	$args=func_get_args();
+	array_unshift($args,null);
 	array_unshift($args,0);
-	$data=call_user_func_array('matrix_query',$args);
+	$data=call_user_func_array('mhash_query',$args);
 	if($data && count($data)>0)
 		return $data[0];
 	return array();
@@ -716,7 +744,9 @@ function uncached_query($sql)
 function connect_to_mydb()
 {
 	global $mysqli,$mysqlhost,$mysqluser,$mysqlpasswd,$mysqldb;
-	require_once('myconnect.inc.php');
+	if( !isset($mysqlhost) || !isset($mysqluser) || !isset($mysqldb) )	{
+		require_once('myconnect.inc.php');
+	}
 #	print("host=$mysqlhost,user=$mysqluser,pwd=$mysqlpasswd,db=$mysqldb");
 	$mysqli=@new mysqli($mysqlhost,$mysqluser,$mysqlpasswd,$mysqldb);
 	if( mysqli_connect_error() )
@@ -724,4 +754,78 @@ function connect_to_mydb()
 	return $mysqli;
 }
 
+function mysql_foreign_keys($header,$limit,$count=array(),$table=null,$column=null,$table_ref=null,$column_ref=null)	{
+	global $mysqldb;
+	$fields = array(
+		# array( value, column, alias ),
+		array($mysqldb,'constraint_schema',null), # should be always in condition
+		array($table,'table_name','`table`'),
+		array($column,'column_name','`column`'),
+		array($table_ref,'referenced_table_name','table_ref'),
+		array($column_ref,'referenced_column_name','column_ref'),
+	);
+	$sel=array('constraint_name' . ($count ? '':' AS name'));
+	$where=array('1');
+	$args=array();
+	foreach( $fields as $f )	{
+		if( $f[0]==null )
+			$sel[] = $f[1] . (!$count && $f[2] ? ' AS '.$f[2] : '');
+		else	{
+			$where[] = $f[1].'=?';
+			$args[] = $f[0];
+		}
+	}
+	$select = join(',',$sel);
+	if( $count )
+		$select .= ',COUNT('.(count($sel) ? 'DISTINCT '.join(',',$sel) : '*').') AS count';
+	$sql = "SELECT $select FROM information_schema.key_column_usage WHERE ".join(' AND ',$where);
+	if( $count && count($sel))
+		$sql .= ' GROUP BY '.join(',',$sel);
+	print "<pre>\n";
+	print_r($sel);
+	print_r($select);
+	print_r($where);
+	print_r($args);
+	print_r($sql);
+	print "</pre>\n";
+	$format = str_repeat('s',count($where)-1);
+	$call=array_merge(array($header,$limit,$sql,$format),$args);
+	return call_user_func_array('mhash_query',$call);
+}
+
+/**
+  * Lists foreign keys
+  **/
+function mysql_foreign_keys_list_all()	{
+	global $enums;
+	$tables="'".join("','",array_keys($enums))."'";
+	return mhash_query(1,null,"SELECT referenced_table_name AS `table`, GROUP_CONCAT(table_name,'.',column_name SEPARATOR ' ') AS reference FROM information_schema.key_column_usage WHERE referenced_table_name IN($tables) GROUP BY referenced_table_name");
+}
+
+/**
+  * Lists tables and columns referencing a table
+  * When $usage=1, prints a statistics instead
+  **/
+function mysql_foreign_keys_list($tbl,$usage=0,$header=1,$limit=array(5000))	{
+	$data=mhash_query($header,$limit,"SELECT table_name AS `table`,column_name AS `column` FROM information_schema.key_column_usage WHERE referenced_table_name=?",'s',$tbl);
+	if( !$usage )
+		return $data;
+	$eid=eid($tbl);
+	$ename=ename($tbl);
+
+	$c=array();
+	$sub=array();
+	for( $i=($header ? 1:0); $i<count($data); $i++ )	{
+		$t=$data[$i]['table'];
+		$a=$data[$i]['column'];
+		$ci='c'.$i;
+		$c[$ci] = "$ci AS '$t<br/>$a'";
+		$sub[] = "(SELECT COUNT(*) FROM `$t` WHERE t.$eid=`$t`.`$a`) AS $ci";
+	}
+	$fields = "$ename,".join(',',array_values($c)).','.join('+',array_keys($c)).' AS total';
+	$sql = "SELECT $fields FROM ( SELECT t.$ename,".join(',',$sub)." FROM `$tbl` t ) x";
+	$sql .= ' ORDER BY total DESC';
+#	print "<br/><pre>SQL=$sql</pre><br/>\n";
+	return mhash_query($header,$limit,$sql);
+}
 ?>

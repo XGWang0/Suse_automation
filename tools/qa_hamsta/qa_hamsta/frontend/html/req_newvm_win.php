@@ -30,7 +30,7 @@
       <label for="win_products">Product:</label>
       <!-- Will update this part later -->
 	<?php
-        $content = file_get_contents(WIN_INDEX_URL);
+        $content = file_get_contents($config->url->index->win);
         $getJson = json_decode($content,true);
 		echo "<select name=\"win_products\" id=\"win_products\">\n";
 		foreach ($getJson as $item)

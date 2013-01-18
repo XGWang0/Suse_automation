@@ -23,8 +23,6 @@
   ****************************************************************************
  */
 
-if (array_key_exists('OPENID_AUTH', $_SESSION))
-	$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
 ?>
 
 <script>
@@ -52,57 +50,80 @@ function validarch(archs) {
 	}
 }
 </script>
-<form action="index.php?go=validation" method="post" name="validation" onsubmit="return checkcheckbox(this);">
-<p>
-<b>Validate this build: </b>
+
 <?php
-	$json = file_get_contents(REPO_INDEX_URL);
-	if ($json != "") {
-	    $products = array();
-	    $archs = array();
-	    foreach(json_decode($json) as $iso) {
-	        $products[] = $iso->{"product"};
+$error_occured=false;
+$json = @file_get_contents($config->url->index->repo);
+if ($json !== FALSE && $json != "") {
+?>
+
+<p>
+<form action="index.php?go=validation" method="post" name="validation" onsubmit="return checkcheckbox(this);">
+
+<?php
+	print "<b>Validate this build: </b>";
+	$products = array();
+	$archs = array();
+	foreach(json_decode($json) as $iso) {
+		$products[] = $iso->{"product"};
 			if (array_key_exists($iso->{"product"}, $archs)) {
 				$archs[$iso->{"product"}] .= "," . $iso->{"arch"};
 			} else {
 				$archs[$iso->{"product"}] = $iso->{"arch"};
 			}
-	    }
-		echo "<select name=\"buildnumber\" id=\"buildnumber\" style=\"width: 200px;\">\n";
-		echo "<option selected=\"\"></option>\n";
-		foreach(array_unique($products) as $buildnr) {
-			$arch = $archs["$buildnr"];
-			echo "<option value=\"$buildnr\" onclick=\"validarch('$arch')\">$buildnr</option>\n";	
-		}
-		echo "</select>\n";
+	}
+	echo "<select name=\"buildnumber\" id=\"buildnumber\" style=\"width: 200px;\">\n";
+	echo "<option selected=\"\"></option>\n";
+	foreach(array_unique($products) as $buildnr) {
+		$arch = $archs["$buildnr"];
+		echo "<option value=\"$buildnr\" onclick=\"validarch('$arch')\">$buildnr</option>\n";
+	}
+	echo "</select>\n";
+	} else {
+		$error_occured=true;
+		print "<p>\n\t<b>ERROR</b>: The content of the file '<b>" . htmlspecialchars($config->url->index->repo) . "</b>' could not be retrieved. Check the file is present and readable at this location.\n</p>\n";
+		
 	}
 ?>
-	
+
+<?php
+if (! $error_occured) {
+?>
 <br><b>SDK repo URL (only required by some test suites): </b>
 <input type="text" name="sdk_producturl" id="sdk_producturl" size="55" value="<?php if(isset($_POST["sdk_producturl"])){echo $_POST["sdk_producturl"];}?>" />
 </p>
+
+<h3>Please choose which arch(s) you want to validate:</h3>
+
+<div>
 <table>
 	<?php
-		echo "Please choose which arch(s) you want to validate:<br/></p>\n";
 		$i=0;
+		$vmlist = $config->vmlist->toArray ();
 		while (list($key, $value) = each($vmlist)) {
-			if ($i%4==0) {echo "<tr>";}
-			if ($value != "N/A") {
+			if ($i%4==0) {echo "\t<tr>\n";}
+			if ($value != "N/A" && $value != "") {
 				$machine=Machine::get_by_ip($value);
 				if ($machine) { 
-					echo "<td><div id=\"$key\"><input name=\"validationmachine[]\" type=\"checkbox\" value=\"$key\" />$key,(".$machine->get_hostname()." IP: ".$value.")&nbsp;&nbsp</div></td>\n";
+					echo "\t<td><div id=\"$key\"><input name=\"validationmachine[]\" type=\"checkbox\" value=\"$key\" />$key,(".$machine->get_hostname()." IP: ".$value.")&nbsp;&nbsp</div></td>\n";
 				} else {
-					echo "<td><b>Please check if $value is reachable!</b></td>\n";
+					echo "\t\t<td><b>Please check if $value is reachable!</b></td>\n";
 				}
 			}
-			if ($i%4==3) {echo "</tr>";}
-			if ($i==count($vmlist)) {echo "</tr>";}
+			if ($i%4==3) {echo "\t</tr>\n";}
+			if ($i==count($vmlist)) {echo "\t</tr>\n";}
 			$i++;
 		}
 	?>
+	</tr>
 </table>
-<p>Write your email here: <input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} else if ($openid_auth && isset($user)) { echo $user->get_email(); } ?>" />
-<a onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('qmark','','../hamsta/images/qmark1.gif',1)">
-<img src="../hamsta/images/qmark.gif" name="qmark" id="qmark" border="0" width="18" height="20" title="click me for clues of email" onclick="window.open('../hamsta/helps/email.html','channelmode', 'width=550, height=450, top=250, left=450')"/></a>
-<br /><br />
-<input type="submit" name="submit" value="Start Validation"></form>
+</div>
+  <p>Write your email here: <input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} else if (isset($user)) { echo $user->getEmail(); } ?>" />
+  <a href="../hamsta/helps/email.html" target="_blank">
+    <img src="../hamsta/images/qmark.png" class="icon-small" name="qmark" id="qmark" title="click me for clues of email" /></a>
+  </p>
+  <input type="submit" name="submit" value="Start Validation">
+</form>
+<?php
+}
+?>

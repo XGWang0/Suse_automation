@@ -39,32 +39,49 @@
 		return require("index.php");
 	}
 
-	# Verify user has rights to modify the machine
-	if ($openid_auth && array_key_exists('OPENID_AUTH', $_SESSION) && $user = User::get_by_openid($_SESSION['OPENID_AUTH'])) {
-		foreach ($allmachines as $machine_id)
-		{
-			$machine = Machine::get_by_id($machine_id);
-			$used_by = User::get_by_openid($machine->get_used_by());
-			if ($used_by && $used_by->get_openid() != $user->get_openid()) {
-				$_SESSION['mtype'] = "fail";
-				$_SESSION['message'] = "You cannot modify a reserved machine.";
-				header('Location: index.php?go=machines');
-				exit();
-			}
-		}
-	}
+        /* Verify user has rights to modify the machine. */
+        if ( $config->authentication->use )
+          {
+            if ( User::isLogged() && User::isRegistered (User::getIdent (), $config) )
+              {
+                $user = User::getById (User::getIdent (), $config);
+                if ( ! ($user->isAllowed ('machine_edit_reserve')
+                        || $user->isAllowed ('machine_edit_reserved')) ) {
+                  Notificator::setErrorMessage ('You do not have permission to edit/reserve a machine.');
+                  header('Location: index.php');
+                  exit ();
+                }
 
-	# If they are doing the shortcut field clearing	
+                foreach ($allmachines as $machine_id)
+                  {
+                    $machine = Machine::get_by_id($machine_id);
+                    $used_by = User::getByLogin($machine->get_used_by_login(), $config);
+                    if ( isset ($used_by) && $used_by->getLogin() != $user->getLogin()
+                         && ! $user->isAllowed ('machine_edit_reserved') ) {
+                      Notificator::setErrorMessage ('You cannot modify a machine'
+                                                    . ' that is reserved by other user.');
+                      header('Location: index.php');
+                      exit ();
+                    }
+                  }
+              } else {
+              Notificator::setErrorMessage ('You have to be logged in to modify a machine.');
+              header('Location: index.php');
+              exit ();
+            }
+          }
+
+        /* If they are doing the shortcut field clearing */
 	if (request_str("action") == "clear")
 	{
 		foreach ($allmachines as $machine_id)
 		{
 			$machine = Machine::get_by_id($machine_id);
-			$machine->set_used_by("");
+			$machine->set_used_by(NULL);
 			$machine->set_expires(NULL);
 			$machine->set_reserved(NULL);
 			$machine->set_usage("");
-			Log::create($machine->get_id(), $machine->get_used_by(), 'RELEASE', "has unreserved this machine");
+			Log::create($machine->get_id(), $machine->get_used_by_login(), 'RELEASE', "has unreserved this machine");
 		}
 		$go = "machines";
 		return require('inc/machines.php');
@@ -115,11 +132,10 @@
 				#update perm here
                                 $perms = request_array("perm_".$machine_id);
                                 $perm_str="";
-                                foreach ( $perms as $perm )
-                                {
-                                        $perm_str = $perm_str . ",$perm";
-                                }
-                                preg_replace("^.","",$perm_str);
+				if (count ($perms))
+				  {
+				    $perm_str = implode (",", $perms);
+				  }
                                 $machine->set_perm($perm_str);
 			}
 			foreach ( $edit_fields as $row)
@@ -132,11 +148,11 @@
 					$machine->$sfunc($r_value);
 					if ($r_value == "")
 					{
-						Log::create($machine->get_id(), $machine->get_used_by(), 'RELEASE', "has cleared the $row field");
+						Log::create($machine->get_id(), $machine->get_used_by_login(), 'RELEASE', "has cleared the $row field");
 					}
 					else
 					{
-						Log::create($machine->get_id(), $machine->get_used_by(), 'CONFIG', "has set the $row as $r_value");
+						Log::create($machine->get_id(), $machine->get_used_by_login(), 'CONFIG', "has set the $row as $r_value");
 					}
 				}
 			}
@@ -148,19 +164,17 @@
 				if ($machine->get_def_inst_opt() != trim($default_option_per_machine))
 				{
 					$machine->set_def_inst_opt(trim($default_option_per_machine));
-					Log::create($machine->get_id(), $machine->get_used_by(), 'CONFIG', "has set the default install options to \"$default_option_per_machine\"");
+					Log::create($machine->get_id(), $machine->get_used_by_login(), 'CONFIG', "has set the default install options to \"$default_option_per_machine\"");
 				}
 			}
-
-			$machine->get_role() == "VH" ? $go = "qacloud" : $go = "machines";
-			header("Location: index.php?go=$go");
+			Notificator::setSuccessMessage ('The requested actions were successfully completed.');
+			$go = ($machine->get_role() == "VH") ? "qacloud" : "edit_machines";
 		}
 		
 		# If there were errors, we set the fail message
 		else
 		{
-			$_SESSION['message'] = implode("\n", $errors);
-			$_SESSION['mtype'] = "fail";
+			Notificator::setErrorMessage (implode("\n", $errors));
 		}
    	}
 

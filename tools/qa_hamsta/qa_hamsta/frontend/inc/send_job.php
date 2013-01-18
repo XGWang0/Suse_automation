@@ -38,7 +38,7 @@
     
     if($option == "delete") # only custom defined file can be deleted
     {
-    	$custom_file = XML_DIR . "/" . $custom_file;
+    	$custom_file = $config->xml->dir->default . "/" . $custom_file;
 
 	if(file_exists($custom_file))
             unlink($custom_file);
@@ -55,18 +55,41 @@
         $search->filter_in_array($machines_id_array);
         $machines = $search->query();
 
-	# Verify user has rights to modify the machine
-	if ($openid_auth && array_key_exists('OPENID_AUTH', $_SESSION) && $user = User::get_by_openid($_SESSION['OPENID_AUTH'])) {
-		foreach ($machines as $machine) {
-			$used_by = User::get_by_openid($machine->get_used_by());
-			if ($used_by && $used_by->get_openid() != $user->get_openid()) {
-				$_SESSION['mtype'] = "fail";
-				$_SESSION['message'] = "You cannot send jobs to a reserved machine.";
-				header('Location: index.php?go=machines');
-				exit();
-			}
-		}
-	}
+	/* Check if user has privileges to send a job to machine. */
+	if ( $config->authentication->use )
+	  {
+	    if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
+	      {
+		$user = User::getById (User::getIdent (), $config);
+		if ( $user->isAllowed ('machine_send_job')
+		     || $user->isAllowed ('machine_send_job_reserved') )
+		  {
+		    foreach ($machines as $machine)
+		      {
+			if ( ! ( $machine->get_used_by_login () == $user->getLogin ()
+				 || $user->isAllowed ('machine_send_job_reserved')) )
+			  {
+			    Notificator::setErrorMessage ("You cannot send a job to a machine that is not reserved"
+							  . " or is reserved by other user.");
+			    header ("Location: index.php?go=machines");
+			    exit ();
+			  }
+		      }
+		  }
+		else
+		  {
+		    Notificator::setErrorMessage ("You do not have privileges to send a job to a machine.");
+		    header ("Location: index.php?go=machines");
+		    exit ();
+		  }
+	      }
+	    else
+	      {
+		Notificator::setErrorMessage ("You have to be logged in and registered to send a job to a machine.");
+		header ("Location: index.php");
+		exit ();
+	      }
+	  }
 
         $resend_job=request_str("xml_file_name");
         $filenames =request_array("filename");
@@ -102,14 +125,16 @@
 		foreach ($machines as $machine) {
 			foreach ($jobfilenames as $filename) {
 				if ($machine->send_job($filename)) {
-				    Log::create($machine->get_id(), $machine->get_used_by(), 'JOB_START', "has sent a \"pre-defined\" job to this machine (Job name: \"" . htmlspecialchars(basename($filename)) . "\")");
+				    Log::create($machine->get_id(), $machine->get_used_by_login(), 'JOB_START', "has sent a \"pre-defined\" job to this machine (Job name: \"" . htmlspecialchars(basename($filename)) . "\")");
 				} else {
 					$error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
 				}
 			}
 		}
 		if (empty($error)) {
+			Notificator::setSuccessMessage ('The job[s] has/have been successfully sent.');
 			header("Location: index.php");
+			exit ();
 		}
 	}
     $html_title = "Send job";

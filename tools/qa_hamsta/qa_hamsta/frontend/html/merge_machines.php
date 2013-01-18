@@ -75,34 +75,66 @@ foreach( array_keys($vals) as $key )	{
 	foreach($vals[$key] as $val)	{
 		if( $is_enum )
 			$val = Machine::enumerate($key,$val);
-		print "<td>$val</td>";
+
+                /* We need to display user name instead of user_id from db.  */
+                if ( $key == 'usedby' )
+                  {
+		    $print_val = $val;
+                    if ( $mach_user = User::getById ($val, $config) )
+                      $print_val = $mach_user->getLogin ();
+                  }
+		else
+		  {
+		      $print_val = $val;
+		  }
+
+		print "<td>$print_val</td>";
 	}
+
 	# print merge column
-	if(is_array($ret) || $is_enum)	{
+	if(is_array($ret) || $is_enum || $key == 'usedby')	{
 		# enums and 'S' (one-of) produce a select
 		print "<td><select name=\"$key\">";
-		if( $is_enum )	{
+		if( $is_enum ) {
 			if( is_array($ret) ) # enum, different values -> select one of them
 				$enum = Machine::enumerate($key,$ret);
 			else # enum, same values -> preselected, alternatives listed
 				$enum = Machine::enumerate($key);
 
 			# print the options
-			foreach( $enum as $k=>$v )	{
-				$selected = ((!is_array($ret) && $k==$ret) || (is_array($ret) && $k==$vals[$key][0]) ? 'selected="yes"' : '');
+			foreach ( $enum as $k=>$v ) {
+				$selected = ((!is_array($ret) && $k==$ret) || (is_array($ret) && $k==$vals[$key][0]) ? ' selected="yes"' : '');
 				printf('<option value="%s"%s>%s</option>',htmlspecialchars($k),$selected,htmlspecialchars($v));
 			}
-		}
-		else	{
-			# non-enums, one-of('S'), different values -> just print them
-			foreach( $ret as $r )	{
-				$r=htmlspecialchars($r);
-				printf('<option value="%s">%s</option>',$r,$r);
+		} else if (! strcmp ($key, 'usedby')) {
+			# We need to print user login instead of number
+			if (is_array ($ret)) {
+				foreach ( $ret as $r ) {
+					$ulogin = $r;
+					if ( $mach_user = User::getById ($r, $config) ) {
+					  $ulogin = $mach_user->getLogin ();
+					}
+					printf('<option value="%s">%s</option>', $r, htmlspecialchars ($ulogin));
+				}
+			} else {
+				printf ('<option value=""></option>');
+				$ulogin = $ret;
+				if ( $mach_user = User::getById ($ulogin, $config) ) {
+					$ulogin = $mach_user->getLogin ();
+				}
+				printf ('<option value="%s" selected="selected">%s</option>', $val, $ulogin);
 			}
 		}
-		print "</select></td>";
+		else {
+			# non-enums, one-of('S'), different values -> just print them
+			foreach ( $ret as $r )
+                          {
+			     printf('<option value="%s">%s</option>',$r,htmlspecialchars($r));
+			  }
+		}
+		print "</select></td>\n";
 	}
-	else # non-enums, same values or concatenation('s') -> text box
+	else  # non-enums, same values or concatenation('s') -> text box
 		printf("<td><input name=\"%s\" type=\"text\" %s value=\"%s\"/></td>",$key,(strlen($ret)>20 ? 'size="'.strlen($ret).'"' : ''),$ret);
 	print "</tr>\n";
 }
@@ -111,36 +143,5 @@ foreach($ids as $id)
 	print '<input type="hidden" name="a_machines[]" value="'.$id."\"/>\n";
 print '<input type="submit" name="submit" value="Merge!"/>'."\n";
 print "</form>\n";
-
-# function to merge and concatenate strings ( 's' type )
-function merge_strings($s,&$ret,&$flag)	{
-	$s=array_unique($s);
-	$ret=$s[0];
-	$flag=0;
-	for( $i=1; $i<count($s); $i++ )	{
-		if( !isset($s[$i]) || !strlen($s[$i]) )
-			continue;
-		if( strlen($ret) )	{
-			$ret = $ret . ', ' . $s[$i];
-			$flag=1;
-		}
-		else
-			$ret = $s[$i];
-	}
-}
-
-# function to merge (type 'S', one-of)
-function merge_unique($s,&$ret,&$flag)	{
-	$ret=array_unique($s);
-	for( $i=0; $i<count($ret); $i++ )	{
-		if( isset($ret[$i]) )
-			rtrim($ret[$i]);
-		if( !isset($ret[$i]) || strlen($s[$i])==0 )
-			array_splice($ret,$i,1);
-	}
-	$flag = (count($ret)>1 ? 1:0);
-	if( !$flag )
-		$ret=(count($ret) ? $ret[0] : '');
-}
 
 ?>

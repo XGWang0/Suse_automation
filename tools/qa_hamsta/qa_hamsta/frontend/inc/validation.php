@@ -23,18 +23,47 @@
   ****************************************************************************
  */
 
-	/**
-	 * Logic of the validation test page 
-	 */
+  /**
+   * Logic of the validation test page 
+   */
 
-	if (!defined('HAMSTA_FRONTEND')) {
-		$go = 'validation';
-		return require("../index.php");
-	}
-	$html_title="Validation test";
-	$json = file_get_contents(REPO_INDEX_URL);
-	if ($json == ""){
-		echo json_encode(array());
+if (!defined('HAMSTA_FRONTEND')) {
+  $go = 'validation';
+  return require("index.php");
+ }
+$html_title="Validation test";
+
+/* First check if the user has privileges to run this functionality. */
+if ( $config->authentication->use )
+  {
+    if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
+      {
+        $user = User::getById (User::getIdent (), $config);
+        if ( ! $user->isAllowed ('validation_start') )
+          {
+            Notificator::setErrorMessage ("You do not have privileges to "
+                                          . "run validation tests.");
+            header ("Location: index.php");
+            exit ();
+          }
+      }
+    else
+      {
+        Notificator::setErrorMessage ("You have to logged in and registered to "
+                                      . "run validation tests.");
+        header ("Location: index.php");
+        exit ();
+      }
+  }
+	/* pkacer@suse.com: I have suppressed warnings here because if
+	 * the file is not reachable, the warning is always displayed
+	 * (Hamsta displays all warnings, see 'index.php') and that
+	 * looks very ugly at the front end. For the end user that
+	 * would be annoying. Instead this file returns and in the
+	 * 'html/validation.php' there is error handling displaying
+	 * some useful error to the user in some nice way. */
+	$json = @file_get_contents($config->url->index->repo);
+	if ($json === FALSE || $json == ""){
 		return;
 	}
 	$repos = json_decode($json);
@@ -45,6 +74,7 @@
 	}
 
 	if (request_str("submit")) {
+		$vmlist = $config->vmlist->toArray ();
 		$buildnr = $_POST['buildnumber'];
 		$baseurl = "$newdic[$buildnr]" . "$buildnr";
 		foreach( $_POST['validationmachine'] as $vm ) {
@@ -73,7 +103,7 @@
 			if (!$ret){
 				$rand = rand();
 				$autoyastfile = "/tmp/reinstall_$rand.xml";
-				$validationfiles = split (" ", XML_VALIDATION);
+				$validationfiles = split (" ", $config->xml->validation);
 				foreach ( $validationfiles as &$validationfile ) {
 					$rand = rand();
 					$randfile= "/tmp/validation_$rand.xml";
@@ -100,7 +130,7 @@
 				}
 				foreach ( $validationfiles as &$validationfile ) {
 					if ($machine->send_job($validationfile)) {
-						Log::create($machine->get_id(), $machine->get_used_by(), 'JOB_START', "has started the automated build validation for this machine (install + tests)");
+						Log::create($machine->get_id(), $machine->get_used_by_login(), 'JOB_START', "has started the automated build validation for this machine (install + tests)");
 					} else {
 						$error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
 					}

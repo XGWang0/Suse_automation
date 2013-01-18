@@ -34,36 +34,65 @@
         return require("index.php");
     }
 
+	/* Try to get a session namespace to store the field values
+	 * for displayed machines. This is needed to update filter on
+	 * List Machines page. */
+	try
+	  {
+	    $ns_machine_filter = new Zend_Session_Namespace ('machineDisplayFilter');
+	  }
+	catch (Zend_Session_Exception $e)
+	  {
+	    /* This is unfortunate. Might be caused by disabled cookies
+	     * or some fancy browser. */
+	    $ns_machine_filter = null;
+	  }
+
 	# See if this is an edit or an add
-	if(isset($_GET['action']) and $_GET['action'] == "edit")
+	if(isset($_GET['action']))
 	{
-		$action = "edit";
-		$group = Group::get_by_name($_GET['group']);
-		if($group == null)
-		{
-			echo "<div class=\"failmessage\">Unable to retrieve group data. Please try again.</div>";
+		$action = $_GET['action'];
+		if(($action == "edit") ||($action == "addmachine")){
+			$group = Group::get_by_name($_GET['group']);
+			if($group == null)
+			{
+				echo "<div class=\"failmessage\">Unable to retrieve group data. Please try again.</div>";
+			}
+			$name = $group->get_name();
+			$id = $group->get_id();
+			$description = $group->get_description();
 		}
-		$name = $group->get_name();
-		$id = $group->get_id();
-		$description = $group->get_description();
-	}
-	else
-	{
-		$action = "add";
 	}
 
+    $a_machines = request_array("a_machines");
     $search = new MachineSearch();
-    $search->filter_in_array(request_array("a_machines"));
+    if($a_machines != NULL){
+	$action = "addcertainmachine";
+    	$search->filter_in_array($a_machines);
+    }
+    else
+	$search->filter_role('SUT');
     $machines = $search->query();
-    
+
     if (request_str("submit")) {
         $failed = 0;
+	$action = request_str("action");
+
+	$machines_selected = request_array("machines_selected");
+	$search = new MachineSearch();
+	$search->filter_in_array($machines_selected);
+	$machines = $search->query();
+
         switch(request_str("action")) {
-            case "create":
+            case "add":
+            case "addcertainmachine":
                 $name = request_str("name");
                 if (!$name) {
-                    $error = "You must enter a group name.";
-                    break;
+		    $name = request_str("add_group");
+		    if(!$name){
+                        $error = "You must enter a group name.";
+                        break;
+		    }
                 }
                 
                 $description = request_str("description");
@@ -113,11 +142,17 @@
 					else
 					{
 						echo "<div class=\"successmessage\">Group modified!</div>";
+						if (isset ($ns_machine_filter)
+						    && isset ($ns_machine_filter->fields['group'])
+						    && $ns_machine_filter->fields['group'] == $group->get_name ())
+						{
+							$ns_machine_filter->fields['group'] = $name;
+						}
 					}
 				}
                 break;
 
-            case "add":
+            case "addmachine":
                 $name = request_str("add_group");
                 $group = Group::get_by_name($name);
 

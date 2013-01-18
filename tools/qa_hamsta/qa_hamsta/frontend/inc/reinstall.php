@@ -37,26 +37,57 @@ function filter($var) {
 	return true;
 } 
 
+/* Check if user is logged in, registered and have sufficient privileges. */
+if ( $config->authentication->use
+     && ( ! User::isLogged() || ! User::isRegistered (User::getIdent (), $config) ) )
+  {
+    Notificator::setErrorMessage ('You have to be logged in to reinstall a machine.');
+    header('Location: index.php');
+    exit ();
+  }
+
 $search = new MachineSearch();
 $search->filter_in_array(request_array("a_machines"));
 $machines = $search->query();
 
+/* pkacer@suse.com
+ * TODO This code seems not to do anything. Remove?
+ */
 foreach($machines as $m) {
 	$m->get_children();
 }
 
-# Verify user has rights to modify the machine
-if ($openid_auth && array_key_exists('OPENID_AUTH', $_SESSION) && $user = User::get_by_openid($_SESSION['OPENID_AUTH'])) {
-	foreach($machines as $machine) {
-		$used_by = User::get_by_openid($machine->get_used_by());
-		if ($used_by && $used_by->get_openid() != $user->get_openid()) {
-			$_SESSION['mtype'] = "fail";
-			$_SESSION['message'] = "You cannot reinstall a reserved machine.";
-			header('Location: index.php?go=machines');
-			exit();
-		}
-	}
-}
+/* Now check if the user tries to reinstall only her machines or if
+ * she can reinstall also reserved machines. */
+if ( $config->authentication->use )
+  {
+    if ( $user = User::getById (User::getIdent (), $config) )
+      {
+        if ( ($user->isAllowed ('machine_reinstall')
+              || $user->isAllowed ('machine_reinstall_reserved')) )
+          {
+            foreach($machines as $machine)
+              {
+                $used_by = User::getByLogin ($machine->get_used_by_login (), $config);
+                if ( ! isset ($used_by) || isset ($used_by)
+                     && $used_by->getLogin () != $user->getLogin ()
+                     && ! $user->isAllowed ('machine_reinstall_reserved') )
+                  {
+                    Notificator::setErrorMessage ('You cannot reinstall a machine'
+                                                  . ' that is not reserved or is reserved by other user.');
+                    header('Location: index.php');
+                    exit();
+                  }
+              }
+          }
+        else
+          {
+            Notificator::setErrorMessage ('You do not have permission to reinstall a machine.');
+            header('Location: index.php');
+            exit ();
+          }
+      }
+  }
 
 # If the install options are empty, we use the ones from the DB, else we see if options are different between machines. If different, don't use them
 $installoptions_warning="";
@@ -71,11 +102,12 @@ if (!isset($installoptions) or $installoptions=="") {
 		}
 }
 
-# Get partition info from database
+# Get partition info from database,the function work for single machine.
 $root_partitions="";
-foreach ($machines as $machine){
-	$partitions=($machine->get_partition_bycid($machine->get_current_configuration_id()));
-	$swap=($machine->get_swap_bycid($machine->get_current_configuration_id()));
+if(count($machines)==1) {
+
+	$partitions=($machines[0]->get_partition_bycid($machines[0]->get_current_configuration_id()));
+	$swap=($machines[0]->get_swap_bycid($machines[0]->get_current_configuration_id()));
 	$swap=trim($swap);
 	if ($partitions != "")
 		foreach($partitions as $subpts){
@@ -116,6 +148,9 @@ if (request_str("proceed")) {
 	$regcodes = array_filter($regcodes, "filter");
 	$installmethod = request_str("installmethod");
 	$setupfordesktop = request_str("setupfordesktop");
+	$timezone = request_str("timezone");
+	$kexecboot = request_str("kexecboot");
+	$timezone = str_replace ("/","_",$timezone);
 
 	# Check for errors
 	$errors = array();
@@ -151,7 +186,10 @@ if (request_str("proceed")) {
 	$additionalpatterns = str_replace(' ', ',', trim($gpattern));
 	$addonurl = join(",", $addonurls);
 	$regcode = join(",", TrimArray($regcodes));
-
+	# check partition prem
+	if(($repartitiondisk || $ptargs) and ! $machines[0]->has_perm('partition')) $errors['partition']="Some Machine do not have partition perm";
+	# check boot prem
+	if(($defaultboot || $setxen) and ! $machines[0]->has_perm('boot')) $errors['boot']="Some Machine do not have boot perm";
 	# Processing the job
 	if (count($errors)==0) {
 		$producturl=preg_quote($producturl, '/');
@@ -190,12 +228,16 @@ if (request_str("proceed")) {
 			$args .= " -U";
 		if ($setupfordesktop == "yes")
 			$args .= " -D";
+		if ($timezone)
+			$args .= " -Z " . $timezone;
+		if ($kexecboot == "yes")
+			$args .= " -k";
 		system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $autoyastfile");
 		system("sed -i 's/ARGS/$args/g' $autoyastfile");
 		system("sed -i 's/REPOURL/$producturl/g' $autoyastfile");
 		foreach ($machines as $machine) {
 			if ($machine->send_job($autoyastfile)) {
-				Log::create($machine->get_id(), $machine->get_used_by(), 'REINSTALL', "has reinstalled this machine using $producturl_raw (Addon: " . ($addonurl ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
+				Log::create($machine->get_id(), $machine->get_used_by_login(), 'REINSTALL', "has reinstalled this machine using $producturl_raw (Addon: " . ($addonurl ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
 			} else {
 				$errors['autoyastjob']=$machine->get_hostname().": ".$machine->errmsg;
 			}
@@ -204,7 +246,7 @@ if (request_str("proceed")) {
 			if ($setupfordesktop == "yes")  # Needs reboot so accesible technologies starts correctly (bnc#710624)
 				$machine->send_job("/usr/share/hamsta/xml_files/reboot.xml") or $errors['setxenjob']=$machine->get_hostname().": ".$machine->errmsg;
 			if ($validation) {
-				$validationfiles = split (" ", XML_VALIDATION);
+				$validationfiles = split (" ", $config->xml->validation);
 				foreach ( $validationfiles as &$validationfile ) {
 					$rand = rand();
 					$randfile= "/tmp/validation_$rand.xml";

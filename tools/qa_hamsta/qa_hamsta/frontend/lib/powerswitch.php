@@ -43,7 +43,7 @@ function power_s390($powerswitch, $powerslot, $action) {
 		/*
 	 	* URL of web interface for controlling s390 VM's
 	 	*/
-		$s390_controller = 'http://s390zvi33.suse.de/zvm/formaction.php';
+		$s390_controller = 'http://s390icv033.suse.de/zvm/formaction.php';
 		$command = array(
 			'count' => urlencode('0'),
 			'ipl_device[0]' => urlencode('0150'),
@@ -213,7 +213,7 @@ function power_hmc($powerswitch, $powerslot, $action) {
 	if (sizeof($hmc_url_array) == "2") {
 		$hmc_user = $hmc_url_array[0];
 		$hmc_pass = NULL;
-		$hmc_host = $hmc_url_array[2];
+		$hmc_host = $hmc_url_array[1];
 	}
 
 	else if (sizeof($hmc_url_array) == "3") {
@@ -238,7 +238,7 @@ function power_hmc($powerswitch, $powerslot, $action) {
 	function hmc_lssyscfg($hmc_user, $hmc_pass, $hmc_host, $machine_name, $lpar_id) {
 		$lssyscfg_command = "lssyscfg -m $machine_name -r lpar --filter \"\"lpar_ids=$lpar_id\"\" -F name:state";
 		
-		if ($hmc_pass =- NULL)
+		if ($hmc_pass == NULL)
 			$lssyscfg_command_ssh = "ssh -o StrictHostKeyChecking=no --user $hmc_user"."@"."$hmc_host \"$lssyscfg_command\" ";
 		else
 			$lssyscfg_command_ssh = "sshpass -p $hmc_pass ssh -o StrictHostKeyChecking=no --user $hmc_user"."@"."$hmc_host \"$lssyscfg_command\" ";
@@ -249,7 +249,12 @@ function power_hmc($powerswitch, $powerslot, $action) {
 
 	function hmc_chsysstate($hmc_user, $hmc_pass, $hmc_host, $machine_name, $lpar_id, $action) {
 		$chsysstate_command = "chsysstate -m $machine_name -r lpar --id $lpar_id -o $action";
-		$chsysstate_command_ssh = "sshpass -p $hmc_pass ssh -o StrictHostKeyChecking=no --user $hmc_user"."@"."$hmc_host \"$chsysstate_command\" ";
+		
+		if ($hmc_pass == NULL)
+			$chsysstate_command_ssh = "ssh -o StrictHostKeyChecking=no --user $hmc_user"."@"."$hmc_host \"$chsysstate_command\" ";
+		else
+			$chsysstate_command_ssh = "sshpass -p $hmc_pass ssh -o StrictHostKeyChecking=no --user $hmc_user"."@"."$hmc_host \"$chsysstate_command\" ";
+
 		exec ($chsysstate_command_ssh);
 	}
 
@@ -345,7 +350,7 @@ function power_virsh($powerswitch, $powerslot, $action) {
 
 	$virsh_domain_array = preg_split('/-/', $powerslot, '2');
 
-	if(sizeof($virsh_domain_array) == "2") {
+	if(sizeof($virsh_domain_array) >= "2") {
 		$virsh_scheme = $virsh_domain_array[0];
 		$virsh_domain = $virsh_domain_array[1];
 	}
@@ -354,11 +359,36 @@ function power_virsh($powerswitch, $powerslot, $action) {
 		return "powerslot_description_error";
 
 	function virsh_command($virsh_user, $virsh_password, $virsh_host, $virsh_scheme, $virsh_domain, $command) {
-		
-		if ($virsh_password == NULL)
-			$virsh_command = "virsh -c ".$virsh_scheme."+ssh://".$virsh_user."@".$virsh_host." ".$command." ".$virsh_domain;
-		else 
-			$virsh_command = "sshpass -p ".$virsh_password." virsh -c ".$virsh_scheme."+ssh://".$virsh_user."@".$virsh_host." ".$command." ".$virsh_domain;
+
+		/*
+		 * If no password is provided, we do not use sshpass as wrapper, however if ssh keys are not in use we will fail.
+		 *
+		 */
+
+		if ($virsh_password ==NULL)
+			$sshpass = NULL;
+		else
+			$sshpass = "sshpass -p";
+
+		if ($virsh_scheme == "qemu")
+			
+			/*
+			 * For qemu, commad looks like
+			 * virsh -c qemu+ssh://user@host/system dominfo virtual_machine_id
+			 *
+			 */
+
+			$virsh_command = $sshpass." ".$virsh_password." virsh -c ".$virsh_scheme."+ssh://".$virsh_user."@".$virsh_host."/system ".$command." ".$virsh_domain;
+
+		else if ($virsh_scheme == "xen")
+
+			/*
+			 * For xen, command looks like
+			 * virsh -c xen+ssh://user@host dominfo virtual_machine_id
+			 *
+			 */
+
+			$virsh_command = $sshpass." ".$virsh_password." virsh -c ".$virsh_scheme."+ssh://".$virsh_user."@".$virsh_host." ".$command." ".$virsh_domain;
 		
 		exec($virsh_command, $result );
 		$result = implode($result);
@@ -394,13 +424,13 @@ function power_virsh($powerswitch, $powerslot, $action) {
 function power_esx($powerswitch, $powerslot, $action) {
 	$esx_url_array = preg_split('/[:@]/', $powerswitch);
 
-	if(sizeof($esx_url_array == "2")) {
+	if(sizeof($esx_url_array) == "2") {
 		$esx_user = $esx_url_array[0];
 		$esx_password = NULL;
 		$esx_host = $esx_url_array[1];
 	}
 
-	else if(sizeof($esx_url_array == "3")) {
+	else if(sizeof($esx_url_array) == "3") {
 		$esx_user = $esx_url_array[0];
 		$esx_password = $esx_url_array[1];
 		$esx_host = $esx_url_array[2];
@@ -427,9 +457,13 @@ function power_esx($powerswitch, $powerslot, $action) {
 	
 	if ($action == "status") {
 		$esx_status = esx_command($esx_user, $esx_password, $esx_host, $vmid, 'power.getstate');
-		if (preg_match("//", $esx_status))
+		
+		# Here we need to convert array (multiline result) to string
+		$esx_status = implode($esx_status);
+
+		if (preg_match("/on/", $esx_status))
 			$status = "on";
-		else if (preg_match("//", $esx_status))
+		else if (preg_match("/off/", $esx_status))
 			$status = "off";
 		else
 			$status = "unknown";

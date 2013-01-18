@@ -163,10 +163,12 @@ sub run {
     if (defined($self->{'data'}->{'config'}->{'motd'}->{'content'})) {
         if (open(MOTD, ">>", "/etc/motd")) {
             &log(LOG_DETAIL, "Writing to MOTD");
-            $self->{'motd_id'} = time;
+	    $self->{'motd_id'} = $self->{'data'}->{'config'}->{'job_id'}->{'content'};
             print MOTD "HAMSTA (HArdware Maintenance and Shared Test Automation) is using this host. See http://qa.suse.de/hamsta and look for JobID at 'List jobs' \n"; 
 	    print MOTD "HAMSTA (ID from running Job: ".$self->{'motd_id'}."): Job '".$self->{'data'}->{'config'}->{'name'}->{'content'}."' running\n";
             print MOTD $self->{'data'}->{'config'}->{'motd'}->{'content'}."\n";
+	    print MOTD "\n";
+            print MOTD $self->{'data'}->{'config'}->{'useinfo'}->{'content'}."\n";
             print MOTD " contact ".$self->{'data'}->{'config'}->{'mail'}->{'content'}."!\n" if defined ($self->{'data'}->{'config'}->{'mail'}->{'content'});
             print MOTD "HAMSTA (".$self->{'motd_id'}."): End of MOTD message\n\n";
             close(MOTD);

@@ -4,25 +4,52 @@
 .SH NAME
 ctcs2
 .SH SYNOPSIS
-/usr/lib/ctcs2/tools/run [-t] <testsuite.tcf>
+.B /usr/lib/ctcs2/tools/run
+.RB [ \-t ]
+.I testsuite\.tcf
 .SH TYPE
 tool
 .SH DESCRIPTION
-CTCS2 is our primary test runner for automated tests. It is the engine by which most of our automated tests are run and initial results generated. Tests launched via Hamsta are executed using CTCS2.
-.br
+.B CTCS2
+is our primary test runner for automated tests. It is the engine by which most of our automated tests are run and initial results generated. Tests launched via Hamsta are executed using.
+.B CTCS2
+.
+
 It was based on upstream project, however now it is a completely different tool.
 .SH README
 None.
 .SH OPTIONS
-.B \-t
-.br
-.B \--timestamp Switch on logging timestamps to file timestamp_log in log directory.
+.TP
+.BI \-t,\ \-\-timestamp
+Switch on logging timestamps to file
+.I timestamp_log
+in log directory.
 .SH WHAT IT DOES
-The CTCS2 framework executes all tests according to provided TCF (test control file) file.
-.br
-Results are stored in /var/log/qa/ctcs2/<testsuite>-<timestamp> if run as root, or in $HOME/var-log-qa/ctcs2/<testsuite>-<timestamp> if run as non-root. If env. variable TESTS_LOGDIR is set, results are stored in $TESTS_LOGDIR/ctcs2/<testsuite>-<timestamp>.
+The
+.B CTCS2
+framework executes all tests according to provided
+.B TCF (Test Control File)
+file.
+
+Results are stored in \fI/var/log/qa/ctcs2/\<testsuite\>\-\<timestamp\>\fP if run as root, or in
+.BI $HOME /var\-log\-qa/ctcs2/\<testsuite\>\-\<timestamp\>
+if run as non-root. If environment variable \fB$TESTS_LOGDIR\fP is set, results are stored in
+.BI $TESTS_LOGDIR /ctcs2/\<testsuite\>\-\<timestamp\>\.
 .SH COMMON PROBLEMS
 None.
+.SH ENVIRONMENT VARIABLES
+.B TESTS_LOGDIR
+overrides directory to store logs to $TESTS_LOGDIR/ctcs2/. The default is /var/log/qa/ctcs2/ for root user and $HOME/var-log-qa/ctcs2/ otherwise.
+.PP
+.B PATH_PREFIX
+overrides path to look for ctcs2 perl libraries and runtest script. To run the run script from git checkout do PATH_PREFIX=../ ./run foo.tcf.
+.PP
+.B ONE_SEC_POLLING
+sets the polling interval back to 1 second. The default was changed from 1 second to 0.1 second because of bug #789630. If you find that the
+faster polling interferes with your benchmark simply set this variable before the testing to get the old behavior back.
+.PP
+.B SYNC_LOGGING
+forces O_SYNC logging for all tests (the old behavior). The default was changed because of bug #793914.
 .SH WARNINGS
 None.
 .SH SEE ALSO
@@ -30,7 +57,7 @@ None.
 .SH BUGS
 No known bugs.
 .SH DISTRIBUTION
-It is an open-source project that we have taken internally and to which we have made significant modifications. As such, it remains under an open-source license, however, we have not yet distributed our own internal changes to the community yet, but we are in the process of doing so, but it is difficult due to the many changes that we've made (so we weill either release it fully as a separate project, try to merge it into the original upstream project somehow, or at the very least just as a fork).
+It is an open-source project that we have taken internally and to which we have made significant modifications. As such, it remains under an open-source license, however, we have not yet distributed our own internal changes to the community yet. We are in the process of doing so, but it is difficult due to the many changes that we've made (so we will either release it as a separate project, try to merge it into the original upstream project somehow, or at the very least just as a fork).
 .SH LICENSE
 GPL v2 or later
 .SH UPSTREAM
@@ -38,4 +65,4 @@ http://sourceforge.net/projects/ctcs2/
 .SH AUTHOR
 Jason T. Collins <jcollins@valinux.com>
 .SH MAINTAINER
-Lukas Lipavsky <LLipavsky@novell.com>
+Cyril Hrubis <chrubis@suse.com>

@@ -51,7 +51,6 @@ $log::loginfo = 'process_job';
 $SIG{'HUP'} = 'IGNORE';
 $SIG{'INT'} = 'IGNORE';
 
-
 # process_job(job_id)
 #
 # Sends a job to one (TODO: or more) slaves, gathers the slave output and 
@@ -170,10 +169,23 @@ sub process_job($) {
 			);
 			&TRANSACTION_END;
 
+			if ($parsed{'text'} =~ /Start Kexec booting/) {
+				&log(LOG_NOTICE, "$hostname: Job ($job_file) exits with ".$parsed{'text'}); 
+				$return_codes .= $parsed{'text'}."\n";
+				last;
+			}
+
 			if ($parsed{'level'} eq 'RETURN')	{
 				&log(LOG_NOTICE, "$hostname: Job ($job_file) exits with ".$parsed{'text'}); 
 				$return_codes .= $parsed{'text'}."\n";
 			}	
+
+			if ($parsed{'test'} =~ /Please logon SUT check the job manually/)	{
+				&log(LOG_NOTICE, "$hostname: TIMTOUT Job ($job_file)" ); 
+				$return_codes .= "6\n";
+			}	
+
+
 			push @summary,$1 if $parsed{'text'} =~ /^\| (.*)$/;
 		}
 	}
@@ -191,7 +203,8 @@ sub process_job($) {
 	my $status=JS_FAILED;
 
 	# send e-mail that the job has finished
-	my $reboot = ( $job_file =~ /install|reboot|XENGrub|hamsta-upgrade-restart/ );
+	my $reboot = ( $job_file =~ /install|reboot|XENGrub/ );
+	my $update_sut = ( $job_file =~ /hamsta-upgrade-restart/ );
 	if( $reboot ) {
 		sleep 300;
 		while( &machine_get_status($machine_id) != MS_UP ) {		
@@ -201,6 +214,17 @@ sub process_job($) {
 		}
 		$message = "reinstall\/reboot $hostname completed";
 		$status=JS_PASSED;
+
+	} elsif($update_sut) {
+		foreach my $ret ( split /\n/, $return_codes )
+		{	$status=JS_PASSED if $ret=~/^(\d+)/ and $1==0;	}
+		sleep 300;
+		while( &machine_get_status($machine_id) != MS_UP ) {		
+			# wait for reinstall/reboot jobs
+			$dbc->commit(); # workaround of a DBI bug that would loop the statement
+			sleep 60;	
+		}
+		$message = "hamsta updating on $hostname succeed" if($status == JS_PASSED);
 	} else {
 		foreach my $ret ( split /\n/, $return_codes )
 		{	$status=JS_PASSED if $ret=~/^(\d+)/ and $1==0;	}
@@ -219,19 +243,40 @@ sub process_job($) {
 	{
 		&log(LOG_DETAIL, "Sending mail to '%s'", $job_owner);
 		my $response = &read_xml($response_xml);
-		my $data = "$ip job completed at ".`date +%F-%R`;
-		$data .= "\nJob status:".( $status==JS_FAILED ? 'Fail' : 'Pass' )."\n";
-		if( !$reboot )
-		{
-			`ifconfig` =~ /inet addr:([\d\.]*)\s*Bcast/;
-			my $loglink = "http://$1/hamsta/index.php?go=job_details&id=$job_id";
-			$data .= "Return codes: $return_codes\nLog link:\n$loglink\nQADB submission link:\n$submission_link\nSummary result:\n".join("\n",@summary);
+		my $data = "";
+		my $mailtype = "";
+		if (length($submission_link) != 0) {
+			my $embedlink = $submission_link.'&embed=1';
+			my $rand = int(rand(100000));
+			my $subhtml = '/tmp/sub'.$rand.'.html';
+			my $ret = system("wget -O $subhtml \'$embedlink\'");
+			if ($ret == 0) {
+				$data = `cat $subhtml`;
+				system("rm -rf '$subhtml'");
+				$mailtype = "text/html";
+			}
+			else {
+				$data = "------------------------------------------------------\nPlain text mail received,please check submission link.\n------------------------------------------------------\n\n";
+				goto PMAIL;
+			}
+		}
+		else {
+			PMAIL:
+			$data .= "$ip job completed at ".`date +%F-%R`;
+			$data .= "\nJob status:".( $status==JS_FAILED ? 'Fail' : 'Pass' )."\n";
+			if( !$reboot )
+			{
+				`ifconfig` =~ /inet addr:([\d\.]*)\s*Bcast/;
+				my $loglink = "http://$1/hamsta/index.php?go=job_details&id=$job_id";
+				$data .= "Return codes: $return_codes\nLog link:\n$loglink\nQADB submission link:\n$submission_link\nSummary result:\n".join("\n",@summary);
+			}
+			$mailtype = "TEXT";
 		}
 		my $msg = MIME::Lite->new(
 				From => ($qaconf{hamsta_master_mail_from} || 'hamsta-master@suse.de'),
 				To => $job_owner,
 				Subject => $message,
-				Type => "TEXT",
+				Type => $mailtype,
 				Data => $data
 				);
 		if( $response->{'config'}->{'attachment'} )
@@ -287,6 +332,7 @@ sub send_job($$$) {
 			PeerPort => $qaconf{hamsta_client_port},
 			Proto	=> 'tcp'
 			);
+	my $local_addr = $sock->sockhost();
 	my $loglevel = $log::loglevel;
 	if (not defined($sock)) {
 		&log(LOG_NOTICE, "PROCESS_JOB: send_job $!");
@@ -295,12 +341,21 @@ sub send_job($$$) {
 
 # Pass the XML job description to the slave
 	open (FH,'<',"$job_file");
+
+	#query "Used By" and "Usage" information
+        my($usage,$usedby,$maintainer_id)=&machine_get_info($ip);
 	while (<FH>) { 
 		$_ =~ s/\n//g;
 
 		if ($_ =~ /<debuglevel>([0-9]+)<\/debuglevel>/) {
 			$loglevel = $1;
 		}
+		#add "Used By" and "Usage" "jobid" information
+
+                if(/<\/config>/) {
+                        $_="        <useinfo> USAGE: $usage \t USEDBY: $usedby \t MAINTAINER: $maintainer_id \t </useinfo> \n".$_ ;
+                        $_="        <job_id>http://$local_addr/hamsta/index.php?go=job_details&amp;id=$job_id</job_id> \n".$_ ;
+                }
 		eval {
 			&log(LOG_DEBUG, "Sent XML: $_");
 			$sock->send("$_\n");

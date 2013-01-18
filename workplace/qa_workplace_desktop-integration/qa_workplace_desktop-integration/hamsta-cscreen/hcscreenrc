@@ -1,0 +1,2 @@
+TERMINAL="xterm -e"
+#TERMINAL="urxvt -title 'QA-TTY' -e"

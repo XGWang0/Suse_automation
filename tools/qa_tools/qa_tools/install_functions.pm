@@ -126,6 +126,10 @@ sub disk_stats
 			$dev="/dev/hd".$short;
 		}
 	}
+	### ignore above if segment, because sometimes disk judgement by "_has_libsata" is not correct, see bug #745785.
+	$dev=`cat /proc/diskstats | sed -n \'1p\' | awk \'{print \$3}\'`;
+	chomp($dev);
+	$dev="/dev/" . $dev;
 	return ($dev,$num);
 }
 
@@ -253,7 +257,6 @@ sub make_modfile
 	my $testname = $qaconf{install_testuser_fullname};
 	my $testhome = $qaconf{install_testuser_home};
 	my $rootpass = $qaconf{install_root_password};
-
 
 	# open modfile
 	my $modfile="/tmp/modfile_$$.xml";
@@ -743,7 +746,7 @@ EOF
   </networking>  
 EOF
 	}
-	
+
 	print $f " </install>\n" if $args->{'to_version'}<10;
 	print $f "</profile>\n";
 	close $f;
@@ -773,7 +776,7 @@ sub _print_profile_partitions
 			$abuildsize = 0 if !$abuildid;
 			$bootsize = 0 if !$bootid;
 			my $sizepercent = $args->{'repartitiondisk'} ? $args->{'repartitiondisk'}*0.01 : 1;
-			$swapsize = int($swapsize/1024);
+			$swapsize = int($swapsize)/1024;
 			my $rootusesize = int(($disksize - $abuildsize - $bootsize - $swapsize)*$sizepercent);
 
 			my %fs = ( '/'=>$args->{'rootfstype'}, 'swap'=>'swap', '/boot/efi'=>'vfat', '/abuild'=>'ext3', 'NULL' => 'ext3');

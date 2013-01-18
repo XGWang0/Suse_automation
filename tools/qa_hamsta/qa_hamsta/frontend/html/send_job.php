@@ -30,8 +30,6 @@
         $go = 'send_job';
         return require("index.php");
     }
-	if (array_key_exists('OPENID_AUTH', $_SESSION))
-		$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
 		
 	$blockedMachines = array();
 	foreach ($machines as $machine) {
@@ -87,9 +85,9 @@ Single-machine jobs are configuration tasks or test runs that have been stored o
 	</tr>
         </thead>
     <?php
-# see XML_DIR and XML_WEB_DIR in config.php
 
-    $dir=XML_DIR;
+    /* See 'hamsta.ini' file for description. */
+    $dir=$config->xml->dir->default;
     if(is_dir($dir))
     {
         if($handle = opendir($dir))
@@ -113,8 +111,8 @@ Single-machine jobs are configuration tasks or test runs that have been stored o
 		    echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"Single-machine job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
                     echo "        <td title=\"$jobdescription\">$file</td>\n";
                     echo "        <td class=\"viewXml\" align=\"center\">\n";
-                    echo "            <a href=\"".XML_WEB_DIR."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/icon-vnc.png\" alt=\"view\" title=\"view the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>\n";
-                    echo "            <a href=\"index.php?go=edit_jobs&amp;file=$file&amp;opt=edit&amp;machine_list=$machine_list\" title=\"edit $file\"><img src=\"images/icon-edit.png\" alt=\"edit\" title=\"Edit the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>\n";
+                    echo "            <a href=\"".$config->xml->dir->web->default."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/xml_green.png\" class=\"icon-small\" alt=\"view\" title=\"view the job XML $file\" /></a>\n";
+                    echo "            <a href=\"index.php?go=edit_jobs&amp;file=$file&amp;opt=edit&amp;machine_list=$machine_list\" title=\"edit $file\"><img src=\"images/icon-edit.png\" class=\"icon-small\"alt=\"edit\" title=\"Edit the job XML $file\" /></a>\n";
                     echo "        </td>";
 		    echo "     </tr>\n";
                     echo "     <tr class=\"file_list\">\n";
@@ -155,8 +153,9 @@ Single-machine jobs are configuration tasks or test runs that have been stored o
 	</tr>
 	</thead>
     <?php
-# see XML_DIR and XML_WEB_DIR in config.php
-    $dir=XML_DIR_CUSTOM;
+
+    /* See 'hamsta.ini' file for description. */
+    $dir=$config->xml->dir->custom;
     if(is_dir($dir))
     {
         if($handle = opendir($dir))
@@ -180,9 +179,9 @@ Single-machine jobs are configuration tasks or test runs that have been stored o
 		    echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"Single-machine custom job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
                     echo "        <td title=\"$jobdescription\">$file</td>\n";
                     echo "        <td class=\"viewXml\" align=\"center\">\n";
-                    echo "            <a href=\"".XML_WEB_DIR_CUSTOM."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/icon-vnc.png\" alt=\"view\" title=\"view the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>\n";
-                    echo "            <a href=\"index.php?go=edit_jobs&amp;file=custom/$file&amp;opt=edit&amp;machine_list=$machine_list\" title=\"edit $file\"><img src=\"images/icon-edit.png\" alt=\"edit\" title=\"Edit the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>\n";
-                    echo "            <a href=\"index.php?go=send_job&amp;file=custom/$file&amp;opt=delete&amp;machine_list=$machine_list\" onclick=\"if(confirm('WARNING: You will delete the custom job XML file, are you sure?')) return true; else return false;\" title=\"delete $file\"><img src=\"images/icon-delete.png\" alt=\"delete\" title=\"Delete the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>\n";
+                    echo "            <a href=\"".$config->xml->dir->web->custom."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/xml_green.png\" class=\"icon-small\" alt=\"view\" title=\"view the job XML $file\" /></a>\n";
+                    echo "            <a href=\"index.php?go=edit_jobs&amp;file=custom/$file&amp;opt=edit&amp;machine_list=$machine_list\" title=\"edit $file\"><img src=\"images/icon-edit.png\" class=\"icon-small\" alt=\"edit\" title=\"Edit the job XML $file\" /></a>\n";
+                    echo "            <a href=\"index.php?go=send_job&amp;file=custom/$file&amp;opt=delete&amp;machine_list=$machine_list\" onclick=\"if(confirm('WARNING: You will delete the custom job XML file, are you sure?')) return true; else return false;\" title=\"delete $file\"><img src=\"images/icon-delete.png\" class=\"icon-small\" alt=\"delete\" title=\"Delete the job XML $file\" /></a>\n";
                     echo "    </tr class=\"file_list\">\n";
                     echo "    <tr>\n";
 		    echo "        <td colspan=\"3\">\n";
@@ -220,9 +219,9 @@ Single-machine jobs are configuration tasks or test runs that have been stored o
 </div>
 <br/>
 <span class="text-main"><b>Email address: </b></span>
-<input type="text" name="mailto" title="optional: send mail if address is given" value="<?php if ($openid_auth && isset($user)) { echo $user->get_email(); } ?>" />
-<a onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('qmark1','','../hamsta/images/qmark1.gif',1)">
-<img src="../hamsta/images/qmark.gif" name="qmark1" id="qmark1" border="0" width="18" height="20" title="click me for clues of email" onclick="window.open('../hamsta/helps/email.html','channelmode', 'width=550, height=450, top=250, left=450')"/></a>
+<input type="text" name="mailto" title="optional: send mail if address is given" value="<?php if (isset($user)) { echo $user->getEmail(); } ?>" />
+<a href="../hamsta/helps/email.html" target="_blank">
+  <img src="../hamsta/images/qmark.png" class="icon-small" name="qmark1" id="qmark1" title="click me for clues of email" /></a>
 <br/><br>
 <!-- tell js how much single machine jobs there are. -->
 <input type="hidden" id="smj_count" value="<?php echo "$sortcount" ?>">
@@ -276,8 +275,9 @@ Jobs in this category have different roles for different machines, you will be a
 	</tr>
     </thead>
     <?php
-# see XML_MULTIMACHINE_DIR and XML_MULTIMACHINE_WEB_DIR in config.php
-    $dir=XML_MULTIMACHINE_DIR;
+
+    /* See 'hamsta.ini' for description. */
+    $dir=$config->xml->dir->multimachine->default;
     if(is_dir($dir))
     {
         if($handle = opendir($dir))
@@ -290,8 +290,8 @@ Jobs in this category have different roles for different machines, you will be a
 		    echo "        <td><input type=\"radio\" name=\"filename\" value=\"$dir/$file\" title=\"Multi-machine job:$file\"></td>\n";
                     echo "        <td>$file</td>\n";
                     echo "        <td align=\"center\">";
-                    echo "            <a href=\"".XML_MULTIMACHINE_WEB_DIR."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/icon-vnc.png\" alt=\"view\" title=\"view the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>";
-                    echo "            <a href=\"index.php?go=edit_jobs&amp;file=multimachine/$file&amp;opt=edit&amp;machine_list=$machine_list\" title=\"edit $file\"><img src=\"images/icon-edit.png\" alt=\"edit\" title=\"Edit the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>";
+                    echo "            <a href=\"".$config->xml->dir->multimachine->web->default."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/xml_green.png\" class=\"icon-small\" alt=\"view\" title=\"view the job XML $file\" /></a>";
+                    echo "            <a href=\"index.php?go=edit_jobs&amp;file=multimachine/$file&amp;opt=edit&amp;machine_list=$machine_list\" title=\"edit $file\"><img src=\"images/icon-edit.png\" class=\"icon-small\" alt=\"edit\" title=\"Edit the job XML $file\" /></a>";
                     echo "        </td>\n";
                     echo "    </tr>\n";
                 }
@@ -304,7 +304,7 @@ Jobs in this category have different roles for different machines, you will be a
 
 <?php
 
-$dir=XML_MULTIMACHINE_DIR_CUSTOM;
+$dir=$config->xml->dir->multimachine->custom;
 if(is_dir($dir))
 {
 ?>
@@ -317,7 +317,7 @@ if(is_dir($dir))
         </tr>
     </thead>
     <?php
-# see XML_MULTIMACHINE_DIR and XML_MULTIMACHINE_WEB_DIR in config.php
+
     #print "$dir <br />";
     //print "<br /> 2 ----------------------------- <br />machine_targets = $machine_targets <br />";
     if(is_dir($dir))
@@ -332,7 +332,7 @@ if(is_dir($dir))
                     echo "        <td><input type=\"radio\" name=\"filename\" value=\"$dir/$file\" title=\"Multi-machine custom job:$file\"></td>\n";
                     echo "        <td>$file</td>\n";
                     echo "        <td align=\"center\">";
-                    echo "            <a href=\"".XML_MULTIMACHINE_WEB_DIR_CUSTOM."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/icon-vnc.png\" alt=\"vire\" title=\"View the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>";
+                    echo "            <a href=\"".$config->xml->dir->multimachine->web->custom."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/icon-vnc.png\" alt=\"vire\" title=\"View the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>";
                     echo "            <a href=\"index.php?go=edit_jobs&amp;file=multimachine/custom/$file&amp;opt=edit&amp;machine_list=$machine_list\" title=\"edit $file\"><img src=\"images/icon-edit.png\" alt=\"edit\" title=\"Edit the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>";
                     echo "            <a href=\"index.php?go=send_job&amp;file=multimachine/custom/$file&amp;opt=delete&amp;machine_list=$machine_list\" onclick=\"if(confirm('WARNING: You will delete the custom job XML file, are you sure?')) return true; else return false;\" title=\"delete $file\"><img src=\"images/icon-delete.png\" alt=\"delete\" title=\"Delete the job XML $file\" border=\"0\" width=\"20\" style=\"padding-right: 3px;\" /></a>";
                     echo "        </td>\n";
@@ -347,9 +347,9 @@ if(is_dir($dir))
 </table>
 <br/>
 <span class="text-main"><b>Email address: </b></span>
-<input type="text" name="mailto" title="optional: send mail if address is given" value="<?php if ($openid_auth && isset($user)) { echo $user->get_email(); } ?>" />
-<a onmouseout="MM_swapImgRestore()" onmouseover="MM_swapImage('qmark','','../hamsta/images/qmark1.gif',1)">
-<img src="../hamsta/images/qmark.gif" name="qmark" id="qmark" border="0" width="18" height="20" title="click me for clues of email" onclick="window.open('../hamsta/helps/email.html','channelmode', 'width=550, height=450, top=250, left=450')"/></a>
+<input type="text" name="mailto" title="optional: send mail if address is given" value="<?php if (isset($user)) { echo $user->getEmail(); } ?>" />
+    <a href="../hamsta/helps/email.html" target="_blank">
+      <img src="../hamsta/images/qmark.png" class="icon-small" name="qmark" id="qmark" title="click me for clues of email" /></a>
 <br/><br>
 <input type="submit" name="submit" value="Send multi-machine job">
 </form>
@@ -380,7 +380,7 @@ QA-packages Jobs are used to launch various test suites on your System Under Tes
         endforeach;
         echo "</td></tr></table><table class=\"text-main\">";
 
-	$tslist=TSLIST;
+	$tslist=$config->lists->tslist;
 	$test_suites="";
 	$arr=split (" ", $tslist);
         $i=0;
@@ -403,7 +403,7 @@ QA-packages Jobs are used to launch various test suites on your System Under Tes
 <tr><td></td></tr>
 <tr><td><b>UI tests:</b></td></tr>
 	<?php
-		$UIlist=UILIST;
+		$UIlist=$config->lists->uilist;
 		$arr=split(" ", $UIlist);
 		sort($arr);
 		$i=0;
@@ -424,7 +424,9 @@ QA-packages Jobs are used to launch various test suites on your System Under Tes
 </table>
 <br/>
 <span class="text-main"><b>Email address: </b></span>
-<input type="text" name="mailto" title="optional: send mail if address is given" value="<?php if ($openid_auth && isset($user)) { echo $user->get_email(); } ?>" />
+<input type="text" name="mailto" title="optional: send mail if address is given" value="<?php if (isset($user)) { echo $user->getEmail(); } ?>" />
+<a href="../hamsta/helps/email.html" target="_blank">
+  <img src="../hamsta/images/qmark.png" class="icon-small" name="qmark1" id="qmark1" title="click me for clues of email" /></a>
 <br/><br>
 <input type="submit" name="submit" value="Send QA-packages job">
 </form>
@@ -447,7 +449,7 @@ Auto test jobs. Here we only provide typic test for each autotest component. If 
         endforeach;
         echo "</td></tr></table><table class=\"text-main\">";
 
-    $atlist=ATLIST;
+    $atlist=$config->lists->atlist;
     $test_suites="";
     $arr=split (" ", $atlist);
     $i=0;
@@ -466,7 +468,7 @@ Auto test jobs. Here we only provide typic test for each autotest component. If 
 </table>
 <br/>
 <span class="text-main"><b>Email address: </b></span>
-<input type="text" name="mailto" title="optional: send mail if address is given" value="<?php if ($openid_auth && isset($user)) { echo $user->get_email(); } ?>" />
+<input type="text" name="mailto" title="optional: send mail if address is given" value="<?php if (isset($user)) { echo $user->getEmail(); } ?>" /><a href="../hamsta/helps/email.html" target="_blank"><img src="../hamsta/images/qmark.png" class="icon-small" name="qmark1" id="qmark1" title="click me for clues of email" /></a>
 <br/><br>
 <input type="submit" name="submit" value="Send Autotest job">
 </form>

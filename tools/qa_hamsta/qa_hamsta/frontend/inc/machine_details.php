@@ -45,6 +45,13 @@
 
     }
 
+/* Retrieve an user instance if we can. */
+$user = null;
+if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
+  {
+    $user = User::getById (User::getIdent (), $config);
+  }
+
     $html_title = $machine->get_hostname();
 
 ?>

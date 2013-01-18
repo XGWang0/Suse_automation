@@ -19,7 +19,6 @@ $enums = array(
 	'kernel_version'	=> array('kernel_version_id','kernel_version'),
 	'testsuite'		=> array('testsuite_id','testsuite'),
 	'testcase'		=> array('testcase_id','testcase'),
-	'bench_part'		=> array('bench_part_id','bench_part'),
 	'rpm_basename'		=> array('rpm_basename_id','rpm_basename'),
 	'rpm_version'		=> array('rpm_version_id','rpm_version'),
 	'rpm_config'		=> array('rpm_config_id','md5sum'),
@@ -166,19 +165,24 @@ function get_bench_numbers($result_id,$limit=null)
 /** Lists all testsuite that contain benchmark data. Uses the statistical table 'test'. */
 function bench_list_testsuite($limit=null)
 {	return matrix_query(0,$limit,'SELECT DISTINCT testsuite_id,testsuite FROM test JOIN testsuite USING(testsuite_id) WHERE is_bench ORDER BY testsuite');	}
+
 ###############################################################################
-# API for promote data
-function list_promoted($limit=null)
+# API for build promote data
+function build_promoted_list($limit=null)
 {
-       return matrix_query(0,$limit,'SELECT build_promoted_id,arch.arch,build_nr,product.product,release.release FROM build_promoted JOIN arch USING(arch_id) JOIN product USING(product_id) JOIN `release` USING(release_id) ORDER BY build_promoted_id');
+       return matrix_query(1,$limit,'SELECT build_promoted_id,arch,build_nr,product,`release` FROM build_promoted JOIN arch USING(arch_id) JOIN product USING(product_id) JOIN `release` USING(release_id) ORDER BY build_promoted_id');
 }
 
-function insert_update_promoted($arch_id,$product_id,$build_nr,$release_id)
+function build_promoted_insert_update($arch_id,$product_id,$build_nr,$release_id)
 {
         $insert=insert_query('INSERT INTO build_promoted (arch_id,build_nr,product_id,release_id) VALUES (?,?,?,?)','iiii',$arch_id ,$build_nr,$product_id,$release_id);
         $update=update_query('UPDATE submission SET release_id = ? WHERE arch_id=? AND build_nr=? AND product_id=?','iiii',$release_id,$arch_id,$build_nr,$product_id);
 	return array ($insert,$update);
 
+}
+
+function build_promoted_delete($build_promoted_id)	{
+	return update_query('DELETE FROM build_promoted WHERE build_promoted_id=?','i',$build_promoted_id);
 }
 
 /** searches for submission, testsuite, or result
@@ -189,13 +193,15 @@ function insert_update_promoted($arch_id,$product_id,$build_nr,$release_id)
   *   3 KOTD
   *   4 product
   *   5 any
-  *   6 testsuite
+  *   6 testsuite (+testcase)
   *   7 trend graphs
   *   8 submission + TCF
   *   9 bench search
   *  10 submission + TCF + testcase
   *  11 extended regressions, both testsuite and testcase
   *  12 extended regressions, just testsuites
+  *  13 distinct products/releases for extended regressions
+  *  14 distinct testsuite/testcase combinations (for regressions)
   * $attrs['only_id']: 
   *   0 for full details
   *   1 for IDs only 
@@ -209,9 +215,14 @@ function insert_update_promoted($arch_id,$product_id,$build_nr,$release_id)
   **/
 function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 {
+	global $dir;
+	# base SQL for reference searches
+	$rs1='EXISTS( SELECT * FROM reference_host rh WHERE s.host_id=rh.host_id AND s.arch_id=rh.arch_id AND s.product_id=rh.product_id )';
 	# base SQL for result difference
 	$rd1='NOT EXISTS( SELECT * FROM result r2 JOIN tcf_group g2 USING(tcf_id) WHERE';
 	$rd2='AND r.testcase_id=r2.testcase_id)';
+	# base fields for summaries
+	$sum=array('SUM(times_run) AS runs','SUM(succeeded) AS succ', 'SUM(failed) AS fail', 'SUM(internal_error) AS interr', 'SUM(skipped) AS skip', 'SUM(test_time) AS time', "CASE WHEN SUM(failed)>0 THEN 'failed' WHEN SUM(internal_error)>0 THEN 'interr' WHEN SUM(skipped)>0 THEN 'skipped' WHEN SUM(succeeded)>0 THEN 'success' ELSE NULL END AS status");
 	# supported arguments
 	$attrs_known=array(
 		'date_from'	=> array('s.submission_date>=?',	's'),
@@ -223,7 +234,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 		'release_id'	=> array('s.release_id=?',		'i'),
 		'testsuite_id'	=> array('g.testsuite_id=?',		'i'),
 		'testcase_id'	=> array('r.testcase_id=?',		'i'),
-		'testcase'	=> array('c.testcase like ?',	's'),
+		'testcase'	=> array('c.testcase like ?',		's'),
 		'tcf_id'	=> array('r.tcf_id=?',			'i'),
 		'submission_id'	=> array('s.submission_id=?',		'i'),
 		'rpm_config_id'	=> array('s.rpm_config_id=?',		'i'),
@@ -236,19 +247,21 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 		'kernel_version'=> array('s.kernel_version_id=?',	'i'),
 		'kernel_branch'	=> array('s.kernel_branch_id=?',	'i'),
 		'kernel_flavor'	=> array('s.kernel_flavor_id=?',	'i'),
+		'ref'		=> array("s.ref!=''",			   ),
+		'refhost'	=> array( $rs1				   ),
 		# testcase differences - only for result search
-		'res_minus_sub'	=> array("$rd1 g2.submission_id=? $rd2",	'i'),
+		'res_minus_sub'	=> array("$rd1 g2.submission_id=? $rd2",'i'),
 		'res_minus_tcf'	=> array("$rd1 g2.tcf_id=? $rd2",	'i'),
 	);
 
 	# index into $sel0[], $sel1[] (SELECT ...), and $from0[] (FROM ...)
-	$i_main = array( 1,0,0,0,0,0,2,0,0,0,0,3,3 );
+	$i_main = array( 1,0,0,0,0,0,2,0,0,0,0,2,2,3,4 );
 	# index into $sel2[] (SELECT ...)
-	$i_next = array( 0,0,1,2,0,3,0,4,5,5,6,7,8 );
+	$i_next = array( 0,0,1,2,0,3,0,4,5,5,6,7,8,0,9 );
 	# index into $from2[] (FROM ...)
-	$i_from = array( 0,0,1,2,3,4,0,0,5,6,7,8,8 );
+	$i_from = array( 0,0,1,2,3,4,0,0,5,6,7,0,0,8,0 );
 	# index into $links2[] ( $transl->['links'] )
-	$i_link = array( 0,0,0,1,0,0,0,0,2,2,2,0,0 );
+	$i_link = array( 0,0,0,1,0,0,0,0,2,2,2,0,0,0,0 );
 
 	# should I return submission_id only?
 	$only_id  = hash_get($attrs,'only_id',false,true);
@@ -256,18 +269,19 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	# skip the header?
 	$header = hash_get($attrs,'header',true,false);
 
-	# SELECT $sel FROM $from
+	# SELECT $sel FROM $from GROUP BY $group_by
 	# $sel = $sel0 [ $sel1 ] [ $sel2 ]
 	# $from = $from0 $from2
 	# $sel0..$sel2 are done as lists - for ordering by them
 	# $sel0[ $i_main ] -- always
-	$sel0=array( 's.submission_id', 'r.result_id', 'g.testsuite_id','SUM(r.times_run) as runs' );
+	$sel0=array( 's.submission_id', 'r.result_id', 'testsuite_id','DISTINCT product_id', 'DISTINCT testsuite_id' );
 	# $sel1[ $i_main ] -- appends for full details
 	$sel1=array( 
-/* subms */  array('s.submission_date','s.host_id','s.tester_id','s.arch_id','s.product_id','s.release_id','s.related','s.status_id','s.comment','s.rpm_config_id','s.hwinfo_id','s.type'),
+/* subms */  array('s.submission_date','s.host_id','s.tester_id','s.arch_id','s.product_id','s.release_id','s.related','s.status_id','s.comment','s.rpm_config_id','s.hwinfo_id','s.type','s.ref'),
 /* rslts */  array('g.tcf_id','g.testsuite_id','r.testcase_id','t.testcase','r.succeeded','r.failed','r.internal_error','r.skipped','r.times_run','r.test_time','w.waiver_id','t.relative_url','b.is_bench'),
 /* suite */  array(),
-/* regs  */  array('s.product_id','s.release_id','SUM(r.succeeded) as succ','SUM(r.failed) as fail','SUM(r.internal_error) as interr','SUM(r.skipped) as skip','SUM(r.test_time) as time')
+/* Dprod */  array('product','s.release_id','`release`'),
+/* Dsuit */  array(),
 	);
 	# $sel2[ $i_next ] -- appends for full details
 	$sel2=array( 
@@ -278,14 +292,27 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 /* trend  */ array('g.testsuite_id'),
 /* TCF    */ array('g.testsuite_id','g.tcf_id'),
 /* TCF+res*/ array('g.testsuite_id','g.tcf_id','r.testcase_id'),
-/* regs	  */ array('testsuite','testcase'),
-/* regs-  */ array('testsuite'),
+/* regs	  */ array_merge(array('testcase_id'),$sum),
+/* regs-  */ $sum,
+/* tcases */ array('r.testcase_id'),
 	);
 
 	# $from0[ $i_main ] -- always
-	$from0=array( 'submission s', 'submission s JOIN tcf_group g USING(submission_id) JOIN result r USING(tcf_id)', 'submission s JOIN tcf_group g USING(submission_id)', 'submission s' );
+	$from0=array( 
+/* subms */	'submission s', 
+/* rslts */	'submission s JOIN tcf_group g USING(submission_id) JOIN result r USING(tcf_id)',
+/* suite */	'submission s JOIN tcf_group g USING(submission_id)',
+/* Dprod */	'submission s JOIN product USING(product_id) JOIN `release` USING(release_id)',
+/* Dsuit */	'submission s JOIN tcf_group g USING(submission_id)',
+);
 	# $from1[ $i_main ] -- append for full details
-	$from1=array( '', ' JOIN testcase t USING(testcase_id) LEFT OUTER JOIN waiver w USING(testcase_id) JOIN test b USING(testcase_id)', '', '' );
+	$from1=array( 
+/* subms */	'', 
+/* rslts */	' JOIN testcase t USING(testcase_id) LEFT OUTER JOIN waiver w USING(testcase_id) LEFT JOIN test b ON(w.testcase_id=b.testcase_id)', 
+/* suite */	' JOIN `result` r USING(tcf_id)', 
+/* Dprod */	'',
+/* Dsuit */	' JOIN `result` r USING(tcf_id)',
+);
 	# $from2[ $i_from ] -- always
 	$from2=array(
 /* simple */	'',
@@ -296,15 +323,42 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 /* TCF    */    ' JOIN tcf_group g USING(submission_id)',
 /* bench  */	' JOIN tcf_group g USING(submission_id) JOIN bench_suite b USING(testsuite_id)',
 /* TCF+res*/	' JOIN tcf_group g USING(submission_id) JOIN `result` r USING(tcf_id) JOIN testcase c USING(testcase_id)',
-/* regres */	' JOIN tcf_group g USING(submission_id) JOIN result r USING(tcf_id) JOIN testcase USING(testcase_id) JOIN testsuite USING(testsuite_id)', # testsuite/testcase joined to sort properly
+/* regres */	' JOIN tcf_group g USING(submission_id) JOIN result r USING(tcf_id)', # testsuite/testcase joined to sort properly
 	);
-	
+
+	# GROUP BY can be overwritten by $attrs['group_by']
+	# $group_by = [ $group_by0 ] [ $group_by1 ]
+	# $group_by0[ $i_main ] - always
+	$group_by0=array(
+/* subms */	array(),
+/* rslts */	array(),
+/* suite */	array(),
+/* Dprod */	array(),
+/* Dsuit */	array(),
+	);
+
+	# $group_by1[ $i_next ] - appends for full details
+	$group_by1=array(
+/* simple */	array(),
+/* mtnce  */	array(),
+/* KOTD   */	array(),
+/* prod   */	array(),
+/* any    */	array(),
+/* TCF    */	array(),
+/* bench  */	array(),
+/* regs   */	array('testsuite_id','testcase_id'),
+/* regs-  */	array('testsuite_id'),
+/* tcases */	array(),
+	);
+
+
 	# $enum1[ $i_main ] - for full details when $transl set
 	$enum1=array(
 /* subms */  array('host_id'=>'host','tester_id'=>'tester','arch_id'=>'arch','product_id'=>'product','release_id'=>'release','status_id'=>'status'),
 /* rslts */  array('testsuite_id'=>'testsuite'),
-/* suite */  array(),
-/* regs  */  array(),
+/* suite */  array('testsuite_id'=>'testsuite'),
+/* Dprod */  array(),
+/* Dsuit */  array('testsuite_id'=>'testsuite'),
 	);
 
 	# $enum1[ $i_next ] - for full details when $transl set
@@ -316,23 +370,25 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 /* any    */	array(),
 /* TCF    */	array('testsuite_id'=>'testsuite'),
 /* bench  */	array('testsuite_id'=>'testsuite'),
-/* regs   */	array(),
-/* regs+  */	array(),
+/* regs   */	array('testcase_id'=>'testcase'),
+/* regs-  */	array(),
+/* tcases */	array(),
 	);
 
 	# $links1[ $i_main ] - for full details when $transl set
 	$links1=array(
-/* subms */	array('submission_id'=>'submission.php?submission_id=','related'=>'submission.php?submission_id=','rpm_config_id'=>'rpms.php?rpm_config_id=','hwinfo_id'=>'hwinfo.php?hwinfo_id='),
-/* rslts */	array('tcf_id'=>'result.php?tcf_id='),
+/* subms */	array('submission_id'=>$dir.'submission.php?submission_id=','related'=>$dir.'submission.php?submission_id=','rpm_config_id'=>$dir.'rpms.php?rpm_config_id=','hwinfo_id'=>$dir.'hwinfo.php?hwinfo_id='),
+/* rslts */	array('tcf_id'=>$dir.'result.php?tcf_id='),
 /* suite */	array(),
-/* regs  */	array(),
+/* Dprod */	array(),
+/* Dsuit */	array(),
 	);
 
 	# $links2[ $i_link ] - for full details when $transl set
 	$links2=array(	
 		array(),
 /* KOTD */	array('md5sum'=>'http://kerncvs.suse.de/gitweb/?p=kernel-source.git;a=commit;h='), 
-/* TCF data */	array('tcf_id'=>'result.php?tcf_id=') 
+/* TCF data */	array('tcf_id'=>$dir.'result.php?tcf_id=') 
 	);
 	
 	# make the SQL base SELECT
@@ -340,6 +396,8 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	if( !$only_id )
 		$sel=array_merge($sel, $sel1[$i_main[$mode]], $sel2[$i_next[$mode]]);
 	$from=$from0[$i_main[$mode]].($only_id ? '' : $from1[$i_main[$mode]]).$from2[$i_from[$mode]];
+	if( !isset($attrs['group_by']) )
+		$attrs['group_by']=array_merge($group_by0[$i_main[$mode]],($only_id ? array() : $group_by1[$i_next[$mode]] ));
 
 	# prepare translation array
 	if( isset($transl) && !$only_id )
@@ -360,6 +418,282 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	return $data;
 }
 
+
+/**
+  * Extended regressions finder
+  * @param $is_tc boolean true to show testcases
+  * @param $method int 1: different status, 2: fails+interrs, 3: everything
+  * @param $attrs the search attributes
+  * @param &$transl array enum translation table
+  * @param &$pager array pager
+  **/
+function extended_regression($is_tc,$method,$attrs,&$transl=null,&$pager=null)
+{
+	# This turned out to be the simplest way to print extended regressions
+	# in a reasonable time.
+	# If you want to really understand the construction, try dumping the
+	# output SQL and study it in-depth.
+	# Basically there are following steps to be performed by the database:
+	# - find the columns, i.e. product/release combinations
+	# - fetch all combinations of testsuites (+testcases)
+	# - for every column (i.e. product/release), create own tmp table with the results
+	# - add some statistics to these temporary tables
+	# - run the main SELECT that joins them all and does the regression filtering
+	# - clean up
+
+	# first part, just read the products/releases that go onto X
+	$debug=0;
+	$use_res=($method==1);
+	$cell_color=hash_get($attrs,'cell_color',1,true);
+	$cell_text=hash_get($attrs,'cell_text',1,true);
+	$a=$attrs; # copy for the main query
+	$a['order_by']=array('product','`release`');
+	unset($a['group_by']);
+
+	if( $debug>1 )	{
+		print "<pre>"; 
+		print_r($a);
+		print "SQL="; 
+		print_r(search_submission_result(13,array_merge($a,array('just_sql'=>1)))); 
+		print "</pre>\n";
+	}
+	$xaxis=search_submission_result(13,$a);
+	$attrs['just_sql']=1;
+
+	if( $debug )	{
+		print "<h3>X-axis</h3>\n";
+		print html_table($xaxis);
+	}
+	
+	# we use one more temporary table than the X count
+	# this produces their names
+	$tbase='qadb_tmp.tmp_ext_reg_'.rand(1000,9999);
+	$tbase1=$tbase.'_base';
+	$tbase2=$tbase.'_t';
+
+	# SQL to clean up at the end
+	$cleanup=array("DROP TABLE IF EXISTS $tbase1");
+
+	# SQL to prepare the temporary tables
+	$commands=array(
+		$cleanup[0],
+		"CREATE TEMPORARY TABLE $tbase1 ( testsuite_id INT, ".($is_tc ? 'testcase_id INT, ':'').'INDEX(testsuite_id'.($is_tc ? ',testcase_id':'').' ))',
+	);
+
+	# prepare base table that just holds all combinations of testsuites (+testcases)
+	$product_id=array();
+	$release_id=array();
+	for($i=1; $i<count($xaxis); $i++)	{
+		$product_id[$xaxis[$i]['product_id']]=1;
+		$release_id[$xaxis[$i]['release_id']]=1;
+	}
+	$attrs['product_id']=array_keys($product_id);
+	$attrs['release_id']=array_keys($release_id);
+	$attrs['only_id']=(!$is_tc);
+	$sub_sql=search_submission_result(14,$attrs);
+	$attrs['only_id']=0;
+	$sub_sql[2]="INSERT INTO $tbase1 ".$sub_sql[2];
+	array_splice($sub_sql,0,2); # remove header/limit
+	$commands[]=$sub_sql;
+
+	# fields for SELECT
+	$select=array('testsuite_id'=>'base.testsuite_id');
+	if( $is_tc )
+		$select['testcase_id']='base.testcase_id';
+
+	# joined temporary tables of the FROM section
+	$from=array("$tbase1 base");
+
+	# parts of WHERE
+	$where=array();
+
+	# data columns for full statistics
+	$cols=array('status','runs','succ','fail','interr','skip','time');
+
+	# data columns for finding regressions
+	$colsr=array_slice($cols,2,4);
+
+	# parts of term to find status differences (SELECT+WHERE sections)
+	if( $use_res )	{
+		$res=array();
+		foreach($colsr as $c)
+			$res[$c]=array();
+	}
+
+	# create & fill a temporary table holding testsuites/testcases for every column
+	for($i=1; $i<count($xaxis); $i++)	{
+		# this is what we are processing now
+		$attrs['product_id']=$xaxis[$i]['product_id'];
+		$attrs['release_id']=$xaxis[$i]['release_id'];
+
+		# SQL to clean up the temporary tables
+		$clean="DROP TABLE IF EXISTS $tbase2$i";
+		$cleanup[]=$clean;
+		$commands[]=$clean;
+
+		# create table, insert data, set is_*
+		$commands[]="CREATE TEMPORARY TABLE $tbase2$i( testsuite_id INT, ".($is_tc ? 'testcase_id INT, ':'')."runs INT, succ INT, fail INT, interr INT, skip INT, time INT, status ENUM('success','skipped','interr','failed'), is_succ TINYINT, is_skip TINYINT, is_interr TINYINT, is_fail TINYINT, INDEX(testsuite_id,".($is_tc ? 'testcase_id,':'')."status) )";
+		$sub_sql=search_submission_result($is_tc ? 11:12,$attrs,$transl);
+		$sub_sql[2]="INSERT INTO $tbase2$i(testsuite_id,".($is_tc ? 'testcase_id,':'')."runs,succ,fail,interr,skip,time,status) ".$sub_sql[2];
+		array_splice($sub_sql,0,2);
+		$commands[]=$sub_sql;
+		$commands[]="UPDATE $tbase2$i SET is_succ=IF(status='success',1,0), is_skip=IF(status='skipped',1,0), is_interr=IF(status='interr',1,0), is_fail=IF(status='failed',1,0)";
+
+		# fields that go into the main SELECT
+		foreach( $cols as $c )
+			$select["$c$i"]="t$i.$c";
+
+		if( $use_res )	{
+			# for status differences, this is what we put there
+			foreach( $colsr as $c )	{
+				if( !isset($res[$c]) )
+					$res[$c]=array();
+				$res[$c][]="IFNULL(t$i.is_$c,0)";
+			}
+		}
+		else if( $method==2 )	{
+			# if we print just all fails, this simpler term goes directly into WHERE
+			$where[]="t$i.status IN ('interr','failed')";
+		}
+
+		# join the temporary table into the main SELECT
+		$from[]="LEFT JOIN $tbase2$i t$i ON(base.testsuite_id=t$i.testsuite_id".($is_tc ? " AND base.testcase_id=t$i.testcase_id":'').')';
+		
+	}
+
+	# when showing differences only, this builds the filter column
+	if( $use_res )	{
+		$resol=array();
+		foreach( $colsr as $c )
+			$resol[$c]='IF('.join('+',$res[$c]).'>0,1,0)';
+		$select['res']=join('+',$resol);
+	}
+
+	# prepare SELECT fields
+	$sel=array();
+	foreach( $select as $k=>$v )
+		$sel[]="$v AS $k";
+
+	# build the base SELECT
+	$sql_right=' FROM '.join(' ',$from).($where?' WHERE '.join(' OR ',$where):'');
+	$sql='SELECT '.join(',',$sel).$sql_right;
+	$sql_count='SELECT COUNT(*)'.$sql_right;
+	if( $use_res )	{
+		# build the construction that shows different statuses
+#		unset($select['res']);
+		$sql_right=" FROM ( $sql ) t WHERE t.res>1";
+		$sql='SELECT '.join(',',array_keys($select)).$sql_right;
+		$sql_count='SELECT COUNT(*)'.$sql_right;
+	}
+	if( $debug > 1 )	{
+		print "<pre>\n";
+		print_r($commands);
+		print "</pre>\n";
+		print "\nSQL=$sql\n";
+		print "<pre>\n";
+		print_r($cleanup);
+		print "</pre>\n";
+	}
+
+	# run the section that creates & fills temporary tables
+	if( ($ret=update_sequence($commands)) < 0 )
+		exit;
+
+	if( $debug )	{
+		$e=array('testsuite_id'=>'testsuite');
+		if( $is_tc )
+			$e['testcase_id']='testcase';
+		$transl=array('enums'=>$e);
+		print "<h3>base</h3>\n";
+		$data=mhash_query(1,null,"SELECT * FROM $tbase1");
+		table_translate($data,$transl);
+		print html_table($data);
+		for($i=1; $i<count($xaxis); $i++)	{
+			print "<h3>Table t$i</h3>\n";
+			$data=mhash_query(1,null,"SELECT * FROM $tbase2$i");
+			table_translate($data,$transl);
+			print html_table($data);
+		}
+	}
+
+	# run the main query
+	$limit=null;
+	$count=scalar_query($sql_count);
+	if( !is_null($pager) )	
+		$limit=limit_from_pager($pager,$count);
+	$data=mhash_query(1,$limit,$sql);
+
+	# run the cleanup part
+	if( ($ret=update_sequence($cleanup)) < 0 )
+		exit;
+#	print html_table($data);
+
+#	return $data;
+	# postprocessing
+	$ibase=( $is_tc ? 2 : 1 );
+	array_splice( $data[0], $ibase );
+	for( $j=1; $j<count($xaxis); $j++ )	{
+		$data[0]['c'.($ibase+$j-1)]=sprintf( "%s<br/>%s", $xaxis[$j]['product'], $xaxis[$j]['release'] );
+	}
+
+	$status2class=array('success'=>'i','failed'=>'failed','interr'=>'internalerr','skipped'=>'skipped',''=>'');
+	
+	for( $i=1; $i<count($data); $i++ )	{
+		$r=$data[$i];
+		for( $j=1; $j<count($xaxis); $j++ )	{
+			$status=hash_get($r,"status$j",'',true);
+			$runs=hash_get($r,"runs$j",'',true);
+			$succ=hash_get($r,"succ$j",'',true);
+			$fail=hash_get($r,"fail$j",'',true);
+			$interr=hash_get($r,"interr$j",'',true);
+			$skip=hash_get($r,"skip$j",'',true);
+			$time=hash_get($r,"time$j",'',true);
+
+			$f=array('text'=>'');
+
+			if( $runs>0 )	{
+				switch( $cell_text )	{
+				case 1:
+					$f['text']=$status;
+					break;
+				case 2:
+					$f['text']=( $runs>0 ? sprintf("%2d",100*$succ/$runs).'%' : 'N/A' );
+					break;
+				case 3:
+					$f['text']="$fail $interr $skip $succ";
+					break;
+				case 4:
+					$f['text']=( $fail || $interr ? 'X' : '' );
+					break;
+				}
+
+				$f['title']="fail:$fail interr:$interr skip:$skip success:$succ runs:$runs time:$time";
+				switch( $cell_color )	{
+				case 1: 
+					$f['class']=$status2class[$status]; 
+					break;
+				case 2: 
+					$f['style']=sprintf( "background-color: rgb(%d,%d,%d)",
+						255*$fail/$runs,
+						255*$succ/$runs,
+						255*$interr/$runs
+					); 
+					break;
+				case 3: 
+					$gray=sprintf( "%d", 255*$succ/$runs );
+					$f['style']="background-color: rgb($gray,$gray,$gray);";
+					$f['style'].=" color:".($gray>128 ? 'black':'white');
+					break;
+				}
+			}
+			$r['c'.($ibase+$j-1)]=$f;
+		}
+
+		$data[$i]=$r;
+	}
+	return $data;
+}
+
 function get_maintenance_rpms($submission_id)
 {
 	$data=matrix_query(0,null,"SELECT b.rpm_basename,v.rpm_version FROM released_rpm r JOIN rpm_basename b ON (r.rpm_basename_id=b.rpm_basename_id) LEFT OUTER JOIN rpm_version v ON (r.rpm_version_id=v.rpm_version_id) WHERE r.submission_id=?",'i',$submission_id);
@@ -376,11 +710,6 @@ function append_maintenance( $data, $header )
 	for( $i=($header ? 1:0); $i<count($data); $i++ )
 		$data[$i]['rpms'] = get_maintenance_rpms($data[$i]['submission_id']);
 	return $data;
-}
-
-function result_stats($submission_id,$testcase_id)
-{
-	return row_query(null,'SELECT count(*),sum(succeeded),sum(failed),sum(internal_error),sum(skipped) FROM result r,tcf_group g WHERE r.tcf_id=g.tcf_id AND g.submission_id=? AND r.testcase_id=?','ii',$submission_id,$testcase_id);
 }
 
 function regression_differences($attrs,&$pager=null)
@@ -458,22 +787,18 @@ function regression_differences($attrs,&$pager=null)
 }
 
 function search_user($username) {
-	# Create new mysqli object to access mysql database (to access the user table)
-	$mysqli = new mysqli("localhost", "qadb_guest", "", "mysql");
-	$stmt = $mysqli->prepare("SELECT Password FROM user WHERE User=?");
-	$stmt->bind_param("s", $username);
-	$stmt->execute();
-	$stmt->bind_result($password);
-	$stmt->fetch();
-	return $password;
+	return scalar_query('SELECT password FROM mysql.user WHERE user=?','s',$username);
 }
 
+function get_user_role ($username) {
+	return scalar_query ('SELECT role FROM tester NATURAL JOIN tester_role NATURAL JOIN role WHERE tester = ?;', 's', $username);
+}
 
 ###############################################################################
 # API for submission, configuration, comments etc.
 
-function submission_set_details($submission_id, $status_id, $related, $comment)
-{	return update_query('UPDATE submission SET status_id=?,related=?,comment=? WHERE submission_id=?','iisi',$status_id,$related,$comment,$submission_id);	}
+function submission_set_details($submission_id, $status_id, $related, $comment, $ref)
+{	return update_query('UPDATE submission SET status_id=?,related=?,comment=?,ref=? WHERE submission_id=?','iissi',$status_id,$related,$comment,$ref,$submission_id);	}
 
 /**  gets ID of related submission or null */
 function submission_get_related($submission_id)
@@ -640,24 +965,24 @@ function rpms_num($rpm_config_id)
 }
 
 $glob_dest=array( 
-	array("index.php", "Home"), 
+	array($dir.'index.php', 'Home'), 
 	'log' => array(), 
-	array("result.php", "Results"), 
-	array("submission.php", "Submissions"), 
-	array("promote.php", "Promote"),
-	array("regression.php", "Regressions"), 
-	array("waiver.php", "Waiver"), 
-	'board' => array("board.php", "Board"),
-#	array("trends.php", "Trend Graphs"), 
-#	array("bench/search.php", 'Benchmarks'), 
-#	array(" "," "), 
+	array($dir.'result.php', 'Results'), 
+	array($dir.'submission.php', 'Submissions'), 
+	array($dir.'regression.php', 'Regressions'), 
+	array($dir.'waiver.php', 'Waiver'), 
+	'board' => array($dir.'board.php', 'Board'),
+	array($dir.'admin.php','Admin'),
+#	array('trends.php', 'Trend Graphs'), 
+#	array('bench/search.php', 'Benchmarks'), 
+#	array(' ',' '), 
 	array( array(
 		array("http://qadb.suse.de/hamsta/", "De"),
 		array("http://hamsta.qa.suse.cz/hamsta/", "Cz"),
 		array("http://hamsta.sled.lab.novell.com/hamsta/","Us"),
 		array("http://147.2.207.30/hamsta/index.php","Cn"),
-		), 'Hamsta'),
-	array("doc.php","Docs")); 
+		), 'Hamsta:'),
+	array($dir.'doc.php','Docs')); 
 
 /** logs into DB, checks user, prints header, prints navigation bar */
 function common_header($args=null)
@@ -675,7 +1000,8 @@ function common_header($args=null)
 	if( $args['connect'] )
 		$conn_id=connect_to_mydb();
 	print html_header($args);
-	print_nav_bar($glob_dest);
+	if( !hash_get($args,'embed',false,false) )
+		print_nav_bar($glob_dest);
 }
 
 
@@ -702,7 +1028,7 @@ function &print_submission_details($submission_id)
 			$res=search_submission_result(3,$where,$transl);
 		$res2=$res; # need to return original values
 		table_translate($res2, $transl );
-		print html_table( $res2, null, null );
+		print html_table( $res2 );
 	}
 	return $res;
 }
@@ -710,6 +1036,7 @@ function &print_submission_details($submission_id)
 /** Prints one-row table with TCF details. */
 function &print_tcf_details($tcf_id)
 {
+	global $dir;
 	$res=tcf_details($tcf_id,1);
 	if( count($res)<2 )
 		print "No such tcf_id: $tcf_id<br/>\n";
@@ -717,11 +1044,11 @@ function &print_tcf_details($tcf_id)
 	{
 		$res2=$res; # preserve to return
 		table_translate($res2,array(
-			'links'=>array('tcf_id'=>'result.php?search=1&tcf_id='),
+			'links'=>array('tcf_id'=>$dir.'result.php?search=1&tcf_id='),
 			'enums'=>array('testsuite_id'=>'testsuite'),
 			'urls'=>array('log_url'=>'log')
 		));
-		print html_table($res2,null,null);
+		print html_table($res2);
 	}
 	return $res;
 }
@@ -739,7 +1066,7 @@ function get_script_versions($name=null)
 /** converts dynamical menu items, prints the menu */
 function print_nav_bar($dest)
 {
-	global $conn_id;
+	global $conn_id,$dir;
 	foreach( array_keys($dest) as $key )
 	{
 		if( is_numeric($key) ) continue;
@@ -747,9 +1074,9 @@ function print_nav_bar($dest)
 		{
 			case 'log':
 				if( isset($_SESSION['user']) && isset($_SESSION['pass']) )
-					$dest[$key]=array( "logout.php", "Logout");
+					$dest[$key]=array( $dir.'logout.php', "Logout");
 				else
-					$dest[$key]=array("login.php", "Login");
+					$dest[$key]=array($dir.'login.php', "Login");
 				break;
 
 			case 'board':
@@ -766,6 +1093,8 @@ function print_nav_bar($dest)
 # $data should contain fields: '
 function result_process_print(&$data,$sub_info,$transl,$pager,$id)
 {
+	global $dir;
+
 	# links to logs
 	$tcf_id_url=array();
 
@@ -774,6 +1103,7 @@ function result_process_print(&$data,$sub_info,$transl,$pager,$id)
 	{
 		# highlight
 		$classes='';
+		if( $data[$i]['succeeded'] ) $classes=' i';
 		if( $data[$i]['skipped'] ) $classes=' skipped';
 		if( $data[$i]['internal_error'] ) $classes=' internalerr';
 		if( $data[$i]['failed'] ) $classes=' failed';
@@ -782,13 +1112,13 @@ function result_process_print(&$data,$sub_info,$transl,$pager,$id)
 		$waiver_id=$data[$i]['waiver_id'];
 		if( $waiver_id )
 		{	# waiver exists
-			$data[$i]['waiver']=html_text_button("show","waiver.php?view=view_waiver&waiver_id=$waiver_id");
+			$data[$i]['waiver']=html_text_button("show",$dir."waiver.php?view=vw&waiver_id=$waiver_id");
 			$classes.=' w';
 		}
 		else
 		{	# waiver does not exist
 			$matchtype=($data[$i]['failed'] || $data[$i]['internal_error'] ? 'problem' : 'no+problem');
-			$data[$i]['waiver']=html_text_button("create","waiver.php?view=new_both&detail=1&testcase=".$data[$i]['testcase_id'].'&arch='.$sub_info[1]['arch_id'].'&product='.$sub_info[1]['product_id'].'&release='.$sub_info[1]['release_id']."&matchtype=$matchtype");
+			$data[$i]['waiver']=html_text_button("create",$dir."waiver.php?view=nwd&detail=1&testcase=".$data[$i]['testcase_id'].'&arch='.$sub_info[1]['arch_id'].'&product='.$sub_info[1]['product_id'].'&release='.$sub_info[1]['release_id']."&matchtype=$matchtype");
 		}
 		unset($data[$i]['waiver_id']);
 
@@ -801,8 +1131,8 @@ function result_process_print(&$data,$sub_info,$transl,$pager,$id)
                 #Display Graphs for benchmark results.
 		if( $data[$i]['is_bench'] )
 		{
-			require_once('defs.php');
-		        $graphlink="benchmarks.php?tests[]=".$my_tcf_id."&testcase=".$data[$i]['testcase']."&group_by=0&graph_x=".$bench_def_width."&graph_y=".$bench_def_height."&legend_pos=".$bench_def_pos."&font_size=".$bench_def_font."&search=1";
+			require_once($dir.'defs.php');
+		        $graphlink=$dir."benchmarks.php?tests[]=".$my_tcf_id."&testcase=".$data[$i]['testcase']."&group_by=0&graph_x=".$bench_def_width."&graph_y=".$bench_def_height."&legend_pos=".$bench_def_pos."&font_size=".$bench_def_font."&search=1";
 			$data[$i]['testcase']= html_link($data[$i]['testcase'],$graphlink);
 		}
 		unset($data[$i]['testcase_id']);
@@ -831,10 +1161,46 @@ function schema_get_version()
 # standard highlight function - returns last column (to be used as class)
 function highlight_result()
 {	# return last nonprintable column of the table
-	global $data;
 	$row=func_get_args();
 	return $row[count($row)-1];
 }
+
+function reference_host_search($attrs,&$transl=array(),&$pager=null)
+{
+	global $dir;
+
+	$attrs_known = array(
+		'reference_host_id'=>array('reference_host_id=?','i'),
+		'host_id'=>array('host_id=?','i'),
+		'arch_id'=>array('arch_id=?','i'),
+		'product_id'=>array('product_id=?','i')
+	);
+	$transl['enums'] = array(
+		'host_id'=>'host',
+		'arch_id'=>'arch',
+		'product_id'=>'product',
+	);
+	$transl['ctrls'] = array(
+		'edit'=>$dir.'reference.php?step=edit&reference_host=',
+		'delete'=>$dir.'confirm.php?confirm=rh&reference_host='
+	);
+	return search_common(
+		array('reference_host_id','host_id','arch_id','product_id'),
+		'reference_host',
+		$attrs,
+		$attrs_known,
+		$pager
+	);
+}
+
+function reference_host_insert($host_id,$arch_id,$product_id)	{
+	return insert_query('INSERT INTO reference_host(host_id,arch_id,product_id) VALUES(?,?,?)', 'iii', $host_id, $arch_id, $product_id );
+}
+
+function reference_host_delete($reference_host_id)	{
+	return update_query('DELETE FROM reference_host WHERE reference_host_id=?', 'i', $reference_host_id );
+}
+
 
 
 ?>

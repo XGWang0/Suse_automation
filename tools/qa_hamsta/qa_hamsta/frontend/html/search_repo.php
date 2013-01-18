@@ -27,15 +27,13 @@
 
 Used by Ajax.
 
-Repo index is loaded from $REPO_INDEX_URL.
-
 FIXME: it's better done from database
 */
 
-require("../config.php");
+require("../globals.php");
 
 // Load repo index
-$json = file_get_contents(REPO_INDEX_URL);
+$json = file_get_contents($config->url->index->repo);
 if ($json == ""){
 	echo json_encode(array());
 	return;

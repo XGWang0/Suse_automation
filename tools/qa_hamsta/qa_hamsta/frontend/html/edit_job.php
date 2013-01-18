@@ -35,9 +35,12 @@
             $existFileName = $real_file;
 
         # define the default data of job XML file
-        $jobInfo = array( 'name'=>'yourjobname',               'level'=>'3',
-                          'description'=>"your job descption", 'motd'=>'your job motd message',
-                          'mailto'=>'hamsta@suse.com',         'rpmlist'=>'');
+        $jobInfo = array( 'name'=>'yourjobname',
+                          'level'=>'3',
+                          'description'=>"your job descption",
+                          'motd'=>'your job motd message',
+                          'mailto'=>(isset($user) ? $user->getEmail() : 'hamsta@suse.com'),
+                          'rpmlist'=>'');
 
         $roleCount = 0;
         $paramCount = 0;
@@ -101,7 +104,7 @@
     ?>
 
     <tr><td width="40%">Job name: </td>
-    <td><input type="text" size="20" name="jobname" title="required: job name" value="<?php echo $jobInfo['name']; ?>"><span class="required">*</span>
+    <td><input type="text" size="20" name="jobname" title="required: job name, must be composed by number, letter, underscore or dash" value="<?php echo $jobInfo['name']; ?>"><span class="required">*</span>
     </td></tr>
     <tr><td>Debug level:</td>
     <td>
@@ -263,9 +266,17 @@
 	{
             # When changing single-machie job to multiple-machine job, because it hasn't rols map information,
             # set it's name to role0, and min and max number to 1 and 2
-            $name = ($jobRoleMap[$i]['name'] == "")?"role0":$jobRoleMap[$i]['name'];
-            $min = ($jobRoleMap[$i]['min'] == "")?1:$jobRoleMap[$i]['min'];
-            $max = ($jobRoleMap[$i]['max'] == "")?2:$jobRoleMap[$i]['max'];
+	    if($i < $roleCount) {
+            	$name = ($jobRoleMap[$i]['name'] == "")?"role0":$jobRoleMap[$i]['name'];
+            	$min = ($jobRoleMap[$i]['min'] == "")?1:$jobRoleMap[$i]['min'];
+            	$max = ($jobRoleMap[$i]['max'] == "")?2:$jobRoleMap[$i]['max'];
+	    }
+	    else
+	    {
+		$name = "role" . $i;
+                $min = 1;
+                $max = 2;
+            }
 
             $commands = $jobCommandMap[$i]['commands'];
         }

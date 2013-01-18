@@ -33,7 +33,7 @@ use warnings;
 
 use threads::shared;
 
-require 'Slave/config_slave';
+require 'Slave/config_slave.pm';
 BEGIN { push @INC, '.', '/usr/share/hamsta', '/usr/share/qa/lib'; }
 use log;
 

@@ -10,6 +10,10 @@
 /** shared utils */
 require_once("tblib_common.php");
 
+$embed=http('embed');
+$root=( $embed ? 'http://'.$_SERVER['SERVER_NAME'] : '' );
+$dir=( $embed ? $root.dirname($_SERVER['SCRIPT_NAME']).'/' : '' );
+
 /**
   * Prints HTML page header.
   * @param string $title page title
@@ -17,6 +21,7 @@ require_once("tblib_common.php");
   **/
 function html_header($args=null)
 {
+	global $root;
 	$defaults=array(
 		'calendar'=>0,			# if to initialize the Epoch calendar
 		'charset'=>'utf-8',		# page charset
@@ -45,26 +50,26 @@ function html_header($args=null)
 	# Default CSS files
 	if( $args['default_css'] )
 	{
-		$args['css_screen'][]='/tblib/css/screen.css';
-		$args['css_screen'][]='/tblib/css/common.css';
-		$args['css_print'][] ='/tblib/css/print.css';
+		$args['css_screen'][]=$root.'/tblib/css/screen.css';
+		$args['css_screen'][]=$root.'/tblib/css/common.css';
+		$args['css_print'][] =$root.'/tblib/css/print.css';
 	}
 
 	# Table sorting support
 	if( $args['gs_sortable'] )
-		$args['script'][]='/scripts/gs_sortable.js';
+		$args['script'][]=$root.'/scripts/gs_sortable.js';
 
 	# Jquery support
 	if($args['jquery'])
 	{
-		$args['script'][]='/scripts/jquery.js';
+		$args['script'][]=$root.'/scripts/jquery.js';
 	}
 
 	# Calendar support part 1
 	if( $args['calendar'] )
 	{
-		$args['script'][]='/epoch/epoch_classes.js';
-		$args['css_screen'][]='/epoch/epoch_styles.css';
+		$args['script'][]=$root.'/epoch/epoch_classes.js';
+		$args['css_screen'][]=$root.'/epoch/epoch_styles.css';
 	}
 
 	# DOCTYPE, header start
@@ -213,7 +218,7 @@ function nav_bar($destinations)
   *		NOTE: set table ID to use this feature
   *   $attrs['total']	true to print total row count</pre>
   **/
-function html_table($data,$attrs)
+function html_table($data,$attrs=array())
 {
 		
 	global $first;
@@ -280,8 +285,20 @@ function html_table($data,$attrs)
 			if( $callback )
 				$class .= call_user_func_array( $callback, $data[$i] );
 			$r.="\t<tr".($class ?  " class=\"$class\"" : '').">";
-			foreach(array_keys($header ? $data[0] : $data[$i]) as $col)
-				$r.="<td>".(isset($data[$i][$col]) ? $data[$i][$col]:'').'</td>';
+			foreach(array_keys($header ? $data[0] : $data[$i]) as $col)	{
+				$r.='<td';
+				$d=( isset($data[$i][$col]) ? $data[$i][$col] : '' );
+				if( !is_array($data[$i][$col]) )
+					$r.='>'.$d;
+				else	{
+					$text=hash_get($d,'text','',true);
+					foreach( $d as $key=>$val )
+						$r.=" $key=\"$val\"";
+					$r.='>'.$text;
+				}
+				$r.='</td>';
+#				$r.="<td>".(isset($data[$i][$col]) ? $data[$i][$col]:'').'</td>';
+			}
 			$r.="</tr>\n";
 		}
 	}
@@ -329,7 +346,7 @@ function html_groupped_table($data,$args=array())
 	$args = args_defaults( $args, array(
 		'group_y'=>array(),		# Y attributes; !!! NOTE: $data must be sorted by group_y !!!
 		'group_x'=>array(),		# X attributes
-		'header'=>0,			# 1 to consider $data[0] to be a header
+		'header'=>1,			# 1 to consider $data[0] to be a header
 		'aggregate_fields'=>array(),	# fields to aggregate into one
 		'aggregate_name'=>'summary',	# name of the resulting column
 		'aggregate_callback'=>null,	# callback to aggregate fields into one
@@ -516,7 +533,8 @@ function table_add_checkboxes(&$data,$name,$base_index,$to_end=0,$form_name='my_
 		array_unshift($data[0],$d);
 	for( $i=1; $i<count($data); $i++ )
 	{
-		$d='<input type="checkbox" '.($checked ? 'checked="checked" ':'').'name="'.$name.'" value="'.$data[$i][$base_index].'"/>';
+		$check = ( array_key_exists($checked,$data[$i]) ? $data[$i][$checked] : $checked );
+		$d='<input type="checkbox" '.($check ? 'checked="checked" ':'').'name="'.$name.'" value="'.$data[$i][$base_index].'"/>';
 		if( $to_end )
 			$data[$i][]=$d;
 		else
@@ -717,6 +735,8 @@ define('CHECKBOX',4);
 define('CHECK_BOX',4);
 define('HIDDEN',5);
 define('HR',6);
+define('TEXT',7);
+define('PASSWORD',8);
 
 /**
   * Returns HTML code for a common search form.
@@ -747,13 +767,16 @@ function html_search_form( $url, $data, $attrs=array() )
 	$search=hash_get($attrs,'search',true,false);
 	$form  =hash_get($attrs,'form',true,false);
 	$div   =hash_get($attrs,'div','input',false);
+	$method=hash_get($attrs,'method','get',false);
+	$class =hash_get($attrs,'class','input',false);
+	$id    =hash_get($attrs,'id','',false);
 	$r='';
-	if($form) $r.=sprintf('<form action="%s" class="input" method="get">'."\n",$url);
+	if($form) $r.=sprintf('<form action="%s" class="%s" method="%s"%s>'."\n",$url,$class,$method,($id ? ' id="'.$id.'"':''));
 	if($div ) $r.=sprintf('<div class="%s">'."\n", $div);
 	foreach( $data as $d )
 	{
-		$cls = (is_numeric($d[2])||!empty($d[2]) ? 'set' : 'notset');
-		$visible = ( $d[3]!=HR && $d[3]!=HIDDEN );
+		$cls = (isset($d[2]) && (is_numeric($d[2])||!empty($d[2])) ? 'set' : 'notset');
+		$visible = ( $d[3]!=HR && $d[3]!=HIDDEN && $d[3]!=TEXT );
 		if( !isset($d[4]) )
 			$d[4]=$d[0];
 		if( $visible )
@@ -776,13 +799,22 @@ function html_search_form( $url, $data, $attrs=array() )
 		}
 		else if($d[3]==HR)
 			$r.="\n<hr/>\n";
+		else if($d[3]==TEXT)
+			$r.='<div class="inputblock text notset">'.$d[4]."</div>\n";
+		else if($d[3]==PASSWORD)
+			$r.=sprintf('<input class="%s" type="password" name="%s"/>', $cls, $d[0] );
 		if( $visible )
 			$r.="</div></div>\n";
 	}
 	if( $search )
 		$r.='<input type="hidden" name="search" value="1"/>'."\n";
 	if($div) $r.="</div>\n";
-	$r.='<input type="submit" class="btn submit"'.($submit ? " value=\"$submit\"":'').'/>'."\n";
+	if( !$submit )
+		$submit=array('');
+	else if( !is_array($submit) )
+		$submit=array($submit);
+	foreach( $submit as $s )
+		$r.='<input type="submit" class="btn submit"'.($s ? " value=\"$s\"":'').'/>'."\n";
 	if($form) $r.="</form>\n";
 	if( $hr )	$r.="<hr/>\n";
 	return $r;
@@ -824,18 +856,22 @@ function base_select($name, $args, $size, $multiple, $set=null, $class='notset')
   * Prints card-like structure that can be used to divide something into steps.
   * @param array $what array of array( <label>, <link> )
   * @param int $selected index of selected card
+  * @param array $alt alternative cards, only displayed those who match $selected
   **/
-function steps( $base, $what, $selected )
+function steps( $base, $what, $selected, $alt=array() )
 {
 	$r ='';
-	$step = http('step');
-	for($i=0; $i<count($what); $i++)
+	if( isset($alt[$selected]) )
+		$what[$selected] = $alt[$selected];
+	foreach($what as $key=>$val)
 	{
-		if( $what[$i][1] )
-			$tag=sprintf('<a href="%s%s">%s</a>',$base,$what[$i][1],$what[$i][0]);
+		if( ! is_array($val) )
+			$val = array($val);
+		if( !isset($val[1]) || $val[1] || ($key==$selected) )
+			$tag=sprintf('<a href="%s%s">%s</a>',$base,$key,$val[0]);
 		else
-			$tag=$what[$i][0];
-		$r .=  html_span( ($i==$selected ? 'sel':'nosel'), $tag );
+			$tag=$val[0];
+		$r .=  html_span( ($key==$selected ? 'sel':'nosel'), $tag );
 	}
 	$r = html_div('steps', $r);
 	$r.= html_div('steps2', '&nbsp;');
@@ -986,6 +1022,21 @@ function html_pager_form($what,$base,$page,$rpp,$prefix)
 	$what[] = array($prefix.'page','',$page,TEXT_ROW,'Page');
 	$what[] = array($prefix.'rpp','',$rpp,TEXT_ROW,'Display rows');
 	return html_search_form($base,$what,array('submit'=>'Set'));
+}
+
+function html_confirm($text,$fields,$yes_url,$no_url=null)	{
+	$no_url=( $no_url ? $no_url : $yes_url );
+	$what=array();
+	foreach( $fields as $key=>$val )
+		$what[]=array($key,'',$val,HIDDEN);
+	$what[]=array('wtoken','',token_generate(),HIDDEN);
+	$ret=html_div('message',$text)."\n";
+	$ret.=html_div('input', 
+		html_search_form($yes_url,$what,array('submit'=>'Yes','hr'=>false))."\n".
+		html_text_button('No',$no_url)
+	);
+	return html_div('confirm',$ret);
+	
 }
 
 ?>

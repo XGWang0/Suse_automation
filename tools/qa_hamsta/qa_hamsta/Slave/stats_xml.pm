@@ -36,7 +36,7 @@ use XML::Dumper;
 use IO::Select;
 use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
 
-require 'Slave/config_slave';
+require 'Slave/config_slave.pm';
 
 my  $dumper = new XML::Dumper;
 

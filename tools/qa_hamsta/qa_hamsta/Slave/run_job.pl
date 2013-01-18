@@ -38,7 +38,7 @@ BEGIN {
 	$log::loginfo = 'main';
 	&log_set_output(handle=>*STDOUT);
 }
-require 'Slave/config_slave';
+require 'Slave/config_slave.pm';
 
 
 my $filename = $ARGV[0];

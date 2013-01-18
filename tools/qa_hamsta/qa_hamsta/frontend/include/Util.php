@@ -58,4 +58,24 @@
 			"</table>";
 	}
 
+	/**
+	 * Helper function for selecting values in the machines
+	 * search/filter form.
+	 */
+	function machine_filter_value_selected ($field_name, $searched_value, $filter_session_namespace)
+	{
+		if ( (request_str('set') == 'Search'
+		      && request_str($field_name) == $searched_value)
+		     || (isset ($filter_session_namespace)
+			 && isset ($filter_session_namespace->fields[$field_name])
+			 && $filter_session_namespace->fields[$field_name] == $searched_value) )
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
 ?>

@@ -32,7 +32,7 @@
 	}
 ?>
 <script type="text/javascript" src="js/edit_job.js"></script>
-<form name='edit_jobs' action="index.php?go=edit_jobs" method="post" onSubmit="return checkcontents(this)">
+<form name='edit_jobs' action="index.php?go=edit_jobs" method="post" onsubmit="return (this.submited == 'Cancel' ? true : checkcontents(this));" />
 <table name='table_jobs' class="text-main" width="900px">
 <p><b>Please edit the job XML file in the form below.</b></p>
 
@@ -42,7 +42,7 @@
 <input type="hidden" name="file" value="<?php echo $file; ?>"/>
 <input type="hidden" name="machine_list" value="<?php echo $machine_list; ?>"/>
 <input type="hidden" name="opt" value="<?php echo $opt; ?>"/>
-<input type="submit" name="submit" value="Save"/>
-<br />
-<p class="text-small"><strong>*</strong> The new name of job XML file, need NOT the suffix(.xml). Please note that if you do not edit the name, the new file will override the old one after you save the new job XML file.</p>
+<input type="submit" name="submit" value="Save" onclick="this.form.submited=this.value;"/>
+<input type="submit" name="cancel" value="Cancel" onclick="this.form.submited=this.value;" />
 </form>
+<p class="text-small"><strong>*</strong> The new name of job XML file, need NOT the suffix(.xml). Please note that if you do not edit the name, the new file will override the old one after you save the new job XML file.</p>

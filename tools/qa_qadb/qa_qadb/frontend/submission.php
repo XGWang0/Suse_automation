@@ -1,12 +1,15 @@
 <?php
 require_once('qadb.php');
 require_once('defs.php');
+$embed=http('embed');
 $pager  = pager_fill_from_http();
 common_header(array(
     'title'=>'QADB submissions',
     'id'=>'sub_html',
-    'calendar'=>1
+    'calendar'=>1,
+    'embed'=>$embed,
 ));
+
 
 define('AGR_MAX_RES','15000');
 
@@ -17,7 +20,7 @@ $search = http('search');
 $action = http('action');
 $submit = http('submit');
 $tcf_id  = http('tcf_id');
-$step   = http('step');
+$step   = http('step','sub');
 $what0   = array();
 
 # commit changes
@@ -43,12 +46,13 @@ if( token_read(http('wtoken')) )
 		$related=http('related');
 		$related=$related ? $related:null;
 		$comment=http('comment');
+		$ref=http('ref') ? 'R' : '';
 		if( $related  && !search_submission_result(1,array('submission_id'=>$related,'only_id'=>1,'header'=>0)))
 		{	
 			print html_error("No such submission_id: $related");	
 			$related=null;
 		}
-		update_result( submission_set_details($submission_id,$status_id,$related,$comment) ); 
+		update_result( submission_set_details($submission_id,$status_id,$related,$comment,$ref) ); 
 	}
 	else if( $submit=='link' && $tcf_id )
 	{
@@ -92,6 +96,8 @@ if(!$submission_id)
 	$kernel_version_got	=http('kernel_version');
 	$kernel_branch_got	=http('kernel_branch');
 	$kernel_flavor_got	=http('kernel_flavor');
+	$refhost_got		=http('refhost');
+	$ref_got		=http('ref');
 
 	# modes for submission select
 	$modes=array(
@@ -121,6 +127,8 @@ if(!$submission_id)
 		array('kernel_version',$kernel_version,$kernel_version_got,SINGLE_SELECT),
 		array('kernel_branch',$kernel_branch,$kernel_branch_got,SINGLE_SELECT),
 		array('kernel_flavor',$kernel_flavor,$kernel_flavor_got,SINGLE_SELECT),
+		array('refhost','',$refhost_got,CHECKBOX,'ref. host'),
+		array('ref','',$ref_got,CHECKBOX,'ref. data'),
 	);
 	$what0=$what;
 
@@ -136,18 +144,19 @@ if(!$submission_id)
 	}
 	else if( $step=='reg' )
 	{
-		$group_by_got = http('group_by',1);
+		$group_by_got = http('group_by',2);
 		$reg_method_got = http('reg_method',1);
 		$cell_text_got = http('cell_text',1);
 		$cell_color_got = http('cell_color',1);
 
 		$group_by = array(
-			array(1,'testsuite + testcase'),
 			array(2,'testsuite'),
+			array(1,'testsuite + testcase'),
 		);
 		$reg_method = array(
 			array(1,'different status'),
 			array(2,'fail+interr'),
+			array(3,'all'),
 		);
 		$cell_text = array(
 			array(1,'status'),
@@ -175,26 +184,22 @@ if(!$submission_id)
 
 # cardset
 $mode=0;
-$steps=array(
-	array('submissions','sub'),
-	array('TCFs','tcf'),
-	array('benchmarks','bench'),
-	array('ext. regressions','reg')
-);
-for( $i=0; $i<count($steps); $i++ )
-{
-	if( $steps[$i][1] == $step )
-		$mode=$i;
-#	$steps[$i][1]='submission.php?step='.$steps[$i][1];
+if( !$embed )	{
+	$steps=array(
+		'sub'=>'submissions',
+		'tcf'=>'TCFs',
+		'bench'=>'benchmarks',
+		'reg'=>'ext. regressions'
+	);
+	print steps(form_to_url($dir.'submission.php',$what0,0).'&amp;step=',$steps,$step);
 }
-print steps(form_to_url('submission.php',$what0,0).'&amp;step=',$steps,$mode);
 
 # main content
 if(!$submission_id)
 {
 	# main search form
 	$what[] = array('step','',$step,HIDDEN);
-	print html_search_form('submission.php',$what);
+	print html_search_form($dir.'submission.php',$what);
 
 	# print search results
 	echo '<div class="data">'."\n";
@@ -230,67 +235,50 @@ if(!$submission_id)
 			'kernel_flavor'		=>$kernel_flavor_got,
 			'order_nr'		=>-1,
 		);
+		if( $refhost_got )
+			$attrs['refhost']=1;
+		if( $ref_got )
+			$attrs['ref']=1;
 		if( $step=='reg' )	{
-			$mode_got=($group_by_got==2 ? 12 : 11);
 			unset($attrs['order_nr']);
-			$y=($group_by_got==2 ? array('testsuite') : array('testsuite','testcase'));
-			$x=array('product_id','release_id');
-#			if( $group_by==2 )
-#				$x=array('product');
-			$group=array_merge($y,$x);    
-			$attrs['group_by']=$group;
-			$attrs['order_by']=$group;
-			$attrs['limit'] = array(AGR_MAX_RES);
-			$pager=null;
+			$attrs['cell_color']=$cell_color_got;
+			$attrs['cell_text']=$cell_text_got;
+			$is_tc=($group_by_got!=2);
+			$data = extended_regression($is_tc,$reg_method_got,$attrs,$transl,$pager);
+			$sort=str_repeat('s',($is_tc ? 2:1));
+			$sort.=str_repeat(($cell_text_got==2 ? 'i':'s'),count($data[0])-strlen($sort));
 		}
-		$data=search_submission_result($mode_got,$attrs,$transl,$pager);
-		$sort='sssssssis'.str_repeat('s',count($data[0])-9);
+		else	{
+			$data=search_submission_result($mode_got,$attrs,$transl,$pager);
+			$sort='sssssssis'.str_repeat('s',count($data[0])-9);
+		}
 		$class='tbl';
+		if( $mode_got==10 )
+			$transl['enums']['testcase_id']='testcase';
 		if( $step=='bench' )
 		{
 			table_add_checkboxes($data,'tests[]','tcf_id',1,'bench_form',1);
 			if( count($data)>1 )
-				print '<form action="benchmarks.php" method="get" name="bench_form">'."\n";
+				print '<form action="'.$dir.'benchmarks.php" method="get" name="bench_form">'."\n";
 			$class.=' controls';
-		}
-		else if( $step=='reg' )	{
-			$transl['enums']['product_id'] = 'product';
-			$transl['enums']['release_id'] = 'release';
 		}
 		table_translate($data,$transl); 
 		if( $mode_got==3 ) # KOTD external links, linked by value instead of ID, need translating here
 			table_translate($data,array('links'=>array('kernel_branch_id'=>'http://kerncvs.suse.de/kernel-overview/?b=')));
-		if( $step=='reg' )	{
-			if( count($data) >= AGR_MAX_RES )
-				print html_error('Only processing first '.AGR_MAX_RES.' result rows. This limitation will be removed in the next release.');
-			print html_groupped_table($data,array(
-				'group_y' => $y,
-				'group_x' => $x,
-				'header' => 1,
-				'aggregate_fields' => array('runs','succ','fail','interr','skip','time'),
-				'aggregate_callback'    => 'aggregate_results',
-				'aggregate_name'        => 'result',
-				'aggregate_arg'         => array($cell_text_got,$cell_color_got),
-				'filter_callback'       => 'filter_regressions',
-				'filter_arg'            => $reg_method_got,
-			));
-		}
-		else	{
-			print html_table($data,array('id'=>'submission','sort'=>$sort,'total'=>true,'class'=>$class,'pager'=>$pager));
-			if( $step=='bench' && count($data)>1 )
-			{
-				$legend=array( array(0,'in the graph'), array(1,'next to the graph') );
-				$fontsize=array( array(1,1),array(2,2),array(3,3),array(4,4),array(5,5) );
-				$what=array(
-					array('group_by',$group_by,http('group_by',0),SINGLE_SELECT),
-					array('graph_x','',http('graph_x',$bench_def_width),TEXT_ROW,'graph width'),
-					array('graph_y','',http('graph_y',$bench_def_height),TEXT_ROW,'graph height'),
-					array('legend_pos',$legend,http('legend_pos',$bench_def_pos),SINGLE_SELECT),
-					array('font_size',$fontsize,http('font_size',$bench_def_font),SINGLE_SELECT),
-				);
-				print html_search_form(null,$what,array('form'=>false,'submit'=>'Graphs','div'=>'screen'));
-				print "</form>\n";
-			}
+		print html_table($data,array('id'=>'submission','sort'=>$sort,'total'=>true,'class'=>$class,'pager'=>$pager));
+		if( $step=='bench' && count($data)>1 )
+		{
+			$legend=array( array(0,'in the graph'), array(1,'next to the graph') );
+			$fontsize=array( array(1,1),array(2,2),array(3,3),array(4,4),array(5,5) );
+			$what=array(
+				array('group_by',$group_by,http('group_by',0),SINGLE_SELECT),
+				array('graph_x','',http('graph_x',$bench_def_width),TEXT_ROW,'graph width'),
+				array('graph_y','',http('graph_y',$bench_def_height),TEXT_ROW,'graph height'),
+				array('legend_pos',$legend,http('legend_pos',$bench_def_pos),SINGLE_SELECT),
+				array('font_size',$fontsize,http('font_size',$bench_def_font),SINGLE_SELECT),
+			);
+			print html_search_form(null,$what,array('form'=>false,'submit'=>'Graphs','div'=>'screen'));
+			print "</form>\n";
 		}
 
 	}
@@ -301,18 +289,20 @@ else if( $action=='edit' )
 	$detail=print_submission_details($submission_id);
 	if( count($detail) > 1 )
 	{
+		$row=$detail[1];
 		$status=enum_list_id_val('status');
 		array_unshift($status,array('null',''));
 		$what=array(
-			array('status',$status,$detail[1]['status_id'],SINGLE_SELECT),
-			array('comment','',$detail[1]['comment'],TEXT_AREA),
-			array('related','',$detail[1]['related'],TEXT_ROW),
+			array('status',$status,$row['status_id'],SINGLE_SELECT),
+			array('comment','',$row['comment'],TEXT_AREA),
+			array('related','',$row['related'],TEXT_ROW),
+			array('ref','',$row['ref'],CHECKBOX,'ref. data'),
 			array('submission_id','',$submission_id,HIDDEN),
 			array('submit','','comment',HIDDEN),
 			array('wtoken','',token_generate(),HIDDEN)
 		);
 		print "<h2>Editing submission $submission_id</h2>\n";
-		print html_search_form('submission.php',$what);
+		print html_search_form($dir.'submission.php',$what);
 	}
 #	print "<h3>
 }
@@ -331,7 +321,7 @@ else if( $action=='edit_link' && $submission_id && $tcf_id )
 		array('wtoken','',token_generate(),HIDDEN),
 	);
 	print "<h2>Editing link to logs</h2>\n";
-	print html_search_form('submission.php',$what);
+	print html_search_form($dir.'submission.php',$what);
 }
 else if( $submission_id)
 {	# detail list
@@ -340,16 +330,16 @@ else if( $submission_id)
 	if( count($detail1) > 1 )
 	{
 		echo "<div class=\"screen allresults\">&rarr; See ";
-		$base1="result.php?submission_id=$submission_id&search=1";
-		$base2="confirm.php?submission_id=$submission_id";
-		$base3="submission.php?submission_id=$submission_id";
+		$base1=$dir."result.php?submission_id=$submission_id&search=1";
+		$base2=$dir."confirm.php?submission_id=$submission_id";
+		$base3=$dir."submission.php?submission_id=$submission_id";
 		echo html_text_button('all results',$base1);
-		echo html_text_button('RPM list',"rpms.php?rpm_config_id=".$detail1[1]['rpm_config_id']);
-		echo html_text_button('hwinfo',"hwinfo.php?hwinfo_id=".$detail1[1]['hwinfo_id']);
+		echo html_text_button('RPM list',$dir."rpms.php?rpm_config_id=".$detail1[1]['rpm_config_id']);
+		echo html_text_button('hwinfo',$dir."hwinfo.php?hwinfo_id=".$detail1[1]['hwinfo_id']);
 		echo "</div>\n";
 		echo "<div class=\"screen\">\n";
 		echo "<div class=\"controls\">Controls :";
-		echo html_text_button('edit comment/status/related',"$base3&action=edit");
+		echo html_text_button('edit comment/status/related/ref',"$base3&action=edit");
 		echo html_text_button('delete submission',"$base2&confirm=s");
 		echo "</div>\n</div>\n";
 		echo "<h2>Included testsuites</h2>\n";
@@ -366,70 +356,27 @@ else if( $submission_id)
 			'urls'=>array( 'log_url'=>'logs' ),
 			'enums'=>array('testsuite_id'=>'testsuite'),
 		));
-		print html_table($data,array('id'=>'tcf','sort'=>'hhiiiiiiih','class'=>'tbl controls'));
+		print html_table($data,array('id'=>'tcf','sort'=>'hhiiiiiiih','class'=>'tbl controls','callback'=>'colorize_detail'));
 	}
 }
-print "</div>\n";
-print html_footer();
+if( !$embed )	{
+	print "</div>\n";
+	print html_footer();
+}
+else
+	print "</body></html>\n";
 exit;
 
-
-function aggregate_results( $runs, $succ, $fail, $interr, $skip, $time, $method )
-{
-	$text='';
-	if( $method[0]==1 )
-		$text = ( $fail ? 'failed' : ( $interr ? 'interr' : ( $skip ? 'skipped' : 'success' )));
-	else if( $method[0]==2 )
-		$text = ( $runs>0 ? sprintf("%2d",100*$succ/$runs).'%' : 'N/A' );
-	else if( $method[0]==3 )
-		$text = "$fail/$interr/$skip/$succ";
-	else if( $method[0]==4 )
-		$text = ( $fail || $interr ? 'X' : '' );
-
-	$ret['class'] = ( $fail || $interr ? 'fail' : '');
-	if( $method[1] == 1 )
-		$ret['class'] .= ' ' . ( $fail ? 'r' : ($interr ? 'wr' : ($skip ? 'm' : 'i' )));
-
-	if( $runs>0 )	{
-#		if( $method[1]==1 )
-#			$ret['class'] = ( $fail ? 'r' : ($interr ? 'wr' : ($skip ? 'm' : 'i' )));
-#		else 
-		if( $method[1]==2 )
-			$ret['style'] = sprintf("background-color: rgb(%d,%d,%d)",255*$fail/$runs,255*$succ/$runs,255*$interr/$runs);
-		else if( $method[1]==3 )	{
-			$gray = sprintf("%d",255*$succ/$runs);
-			$ret['style'] = "background-color: rgb($gray,$gray,$gray); color: ".($gray>128 ? 'black':'white');
-		}
-
-	}
-	$ret['text'] = $text;
-	$ret['title'] = "fail:$fail interr:$interr skip:$skip success:$succ runs:$runs time:$time";
-	return $ret;
+function colorize_detail($tcf_id,$testsuite,$testcase,$succ,$fail,$interr,$skip,$runs,$time,$url)	{
+	if( $fail )
+		return ' failed';
+	if( $interr )
+		return ' internalerr';
+	if( $skip )
+		return ' skipped';
+	if( $succ )
+		return ' i';
 }
-
-function filter_regressions($rows,$method)
-{
-	$stat=array();
-	foreach( $rows as $column )
-		foreach( $column as $row )
-			foreach( $row as $field )	{
-				if( $method>1 && !strncmp($field['class'],'fail',4) )
-					return true;
-				else
-					$stat[$field['class']]=1;
-			}
-	if( $method==2 )
-		return false;
-	else
-		return ( count($stat) > 1 );
-}
-
-
-
-
-
-
-
 
 
 ?>

@@ -37,3 +37,11 @@
 # Give default mail domain to send email
 mail_domain="suse.com"
 
+
+#
+# QA net config settings
+qaconf_host="hamsta"
+qaconf_path="/hamsta/index.php?go=qa_netconf&step=list"
+qaconf_file="40-network-config"
+qaconf_timeout="10"
+

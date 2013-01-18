@@ -37,6 +37,42 @@
 	$search->filter_in_array(request_array("a_machines"));
 	$machines = $search->query();
 
+	/* Check if user has privileges to send a job to machine. */
+	if ( $config->authentication->use )
+	  {
+	    if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
+	      {
+		$user = User::getById (User::getIdent (), $config);
+		if ( $user->isAllowed ('machine_send_job')
+		     || $user->isAllowed ('machine_send_job_reserved') )
+		  {
+		    foreach ($machines as $machine)
+		      {
+			if ( ! ( $machine->get_used_by_login () == $user->getLogin ()
+				 || $user->isAllowed ('machine_send_job_reserved')) )
+			  {
+			    Notificator::setErrorMessage ("You cannot send a job to a machine that is not reserved"
+							  . " or is reserved by other user.");
+			    header ("Location: index.php?go=machines");
+			    exit ();
+			  }
+		      }
+		  }
+		else
+		  {
+		    Notificator::setErrorMessage ("You do not have privileges to send a job to a machine.");
+		    header ("Location: index.php?go=machines");
+		    exit ();
+		  }
+	      }
+	    else
+	      {
+		Notificator::setErrorMessage ("You have to be logged in and registered to send a job to a machine.");
+		header ("Location: index.php");
+		exit ();
+	      }
+	  }
+
 	$tslist = $_POST['testsuite'];
 	$rand = rand();
 	$qapackagejobfile = "/tmp/qapackagejob_$rand.xml";
@@ -62,7 +98,7 @@
 
 	# Check UI test cases
 	$UISetupComm = "\/usr\/share\/qa\/tools\/setupUIAutomationtest; sleep 60";
-	$UIlist = UILIST;
+	$UIlist = $config->lists->uilist;
 	$UIarr = split(" ", $UIlist);
 	foreach ( $UIarr as $case ) {
 		if ( in_array($case, $tslist) ) {
@@ -77,7 +113,7 @@
 		foreach( $machines as $machine )
 		{
 			if( $machine->send_job($qapackagejobfile) )	{
-				Log::create($machine->get_id(), $machine->get_used_by(), 'JOB_START', "has sent a \"qa-package\" job to this machine (Job name: \"" . htmlspecialchars($jobname) . "\")");
+				Log::create($machine->get_id(), $machine->get_used_by_login(), 'JOB_START', "has sent a \"qa-package\" job to this machine (Job name: \"" . htmlspecialchars($jobname) . "\")");
 			} else {
 				$error = (empty($error) ? "" : $error) . "<p>" . $machine->get_hostname() . ": " . $machine->errmsg . "</p>";
 			}
