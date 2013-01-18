@@ -25,6 +25,9 @@
 
 	# Keep this structure (for now), especially the " -- " between the feature title and description
 	$latestFeatures = array(
+		"2.6.0" => array(
+				'19 Jan 2013 -- TODO'
+		),
 			"2.5.0" => array(
 				'18 Jan 2013 -- Authentication and Authorization -- password and OpenID login and access rights added to Hamsta ',
 				'18 Jan 2013 -- Centralized configuration of SUTs -- it is no longer needed to rebuild rpm for persistent individual configuration changes',
