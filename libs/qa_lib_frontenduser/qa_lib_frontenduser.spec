@@ -76,5 +76,17 @@ rm -rf $RPM_BUILD_ROOT
 %{webdir}
 
 %changelog
+* Fri Jan 18 2013 - llipavsky@suse.com
+- New 2.5 release from QA Automation team
+- Authentication and Authorization in Hamsta
+- ctcs2 improvements, speedup, and new tcf commands
+- New SUT can be added to Hamsta from hamsta web interface
+- Timezone support in reinstall
+- Reinstall can now be done using kexec
+- Centralized configuration of SUTs
+- Sessions support in Hamsta
+- AutoPXE now supports ia64 architecture
+- Hamsta is no longer configured using config.php, config.ini is used instead
+- ...and many small improvements and bug fixes
 * Tue Oct 09 2012 pkacer@suse.com
 - created package with aim to be shared library
