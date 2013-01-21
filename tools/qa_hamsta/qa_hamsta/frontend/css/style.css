@@ -274,3 +274,9 @@ div.card {
 }
 
 a.btn { }
+
+label.patterns {
+    display:block;
+    width:200px;
+    float:left;
+}
