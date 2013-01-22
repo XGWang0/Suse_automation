@@ -216,15 +216,21 @@ sub process_job($) {
 		$status=JS_PASSED;
 
 	} elsif($update_sut) {
+		#get the final return value
 		foreach my $ret ( split /\n/, $return_codes )
 		{	$status=JS_PASSED if $ret=~/^(\d+)/ and $1==0;	}
-		sleep 300;
-		while( &machine_get_status($machine_id) != MS_UP ) {		
-			# wait for reinstall/reboot jobs
-			$dbc->commit(); # workaround of a DBI bug that would loop the statement
-			sleep 60;	
+
+		if($status == JS_PASSED){
+	
+			sleep 120;
+			while( &machine_get_status($machine_id) != MS_UP ) {		
+				# wait for reinstall/reboot jobs
+				$dbc->commit(); # workaround of a DBI bug that would loop the statement
+				sleep 30;	
+			}
+			$message = "hamsta updating on $hostname succeed" ;
 		}
-		$message = "hamsta updating on $hostname succeed" if($status == JS_PASSED);
+
 	} else {
 		foreach my $ret ( split /\n/, $return_codes )
 		{	$status=JS_PASSED if $ret=~/^(\d+)/ and $1==0;	}
