@@ -238,6 +238,7 @@ sub _get_buildservice_repo
 		return 'SUSE_SLE-11_GA' if $version==11 and $subversion==0;
 		return 'SUSE_SLE-11-SP1_GA' if $version==11 and $subversion==1;
 		return 'SUSE_SLE-11-SP2_GA' if $version==11 and $subversion==2;
+		return 'SUSE_SLE-11-SP3_GA' if $version==11 and $subversion==3;
 		return 'SLE_Factory' if $version>11;
 	}
 	return undef;
