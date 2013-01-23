@@ -6,7 +6,7 @@
         <distributable>0</distributable>
         <parallel>0</parallel>
         <mail notify="1"></mail>
-	<rpm>qa_hamsta qa_tools qa_lib_perl qa_test_bind qa_test_bzip2 qa_test_cabextract qa_test_coreutils qa_test_cpio qa_test_findutils qa_test_gzip qa_test_indent qa_test_net-snmp qa_test_postfix qa_test_sharutils qa_test_openssh</rpm>
+	<rpm>qa_hamsta qa_tools qa_lib_perl qa_test_bind qa_test_bzip2 qa_test_cabextract qa_test_coreutils qa_test_cpio qa_test_findutils qa_test_gzip qa_test_indent qa_test_net-snmp qa_test_postfix qa_test_sharutils qa_test_openssh qa_test_lynis</rpm>
         <logdir>/tmp</logdir>
         <description>SLES10-SP4</description>
         <motd>[Custom job]: REGRESSION TEST of SLES10-SP4 is running</motd>
@@ -17,7 +17,7 @@
             <!-- Required -->
             <command execution="forked">
 #!/bin/bash
-/usr/share/hamsta/testscript/customtest qa_test_bind qa_test_bzip2 qa_test_cabextract qa_test_coreutils qa_test_cpio qa_test_findutils qa_test_gzip qa_test_indent qa_test_net-snmp qa_test_postfix qa_test_sharutils qa_test_openssh
+/usr/share/hamsta/testscript/customtest qa_test_bind qa_test_bzip2 qa_test_cabextract qa_test_coreutils qa_test_cpio qa_test_findutils qa_test_gzip qa_test_indent qa_test_net-snmp qa_test_postfix qa_test_sharutils qa_test_openssh qa_test_lynis
 </command>
             <!-- Optional -->
             <directory>/</directory>
