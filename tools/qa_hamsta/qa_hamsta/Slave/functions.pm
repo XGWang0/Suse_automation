@@ -65,7 +65,13 @@ sub command
 sub install_rpms # $upgrade_flag, @basenames
 {
 	my ($to_install,$to_upgrade)=@_;
-	my %upgrade_flag = map {$_=>1} @$to_upgrade;
+	
+	# Ugly hack - $@to_upgrade is array of strings, each string can have multiple packages in
+	# THerefore the flattening map {}...
+	# This must be fixed in a way that the arguments are already parsed, than whole this 
+	# function can be simplified
+	# my %upgrade_flag = map {$_=>1} @$to_upgrade;
+	my %upgrade_flag = map {$_=>1} map { split / +/ } @$to_upgrade;
 	my (@install,@upgrade,@suites);
 	foreach my $rpms (@$to_install, @$to_upgrade )
 	{
