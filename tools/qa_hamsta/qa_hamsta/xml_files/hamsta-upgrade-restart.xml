@@ -34,7 +34,7 @@ if [ $retv -ne 0 ];then
   echo "Package :$err_p update failed"
   exit $retv
 else
-  shutdown -r +1&amp;
+  (sleep 10;rchamsta restart)&amp;
   exit 0
 fi
 	    </command>
