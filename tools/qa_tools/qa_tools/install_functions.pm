@@ -644,6 +644,13 @@ $postcmd
 			my $mac = `cat $if/address`;
 			chomp $mac;
 			my $ip = $1 if `ip -4 -o addr show $dev` =~ /inet ([\d\.]+)/;
+			if (!$ip && !system('which brctl')) {
+				# Check, whether this interface is not part of some active bridge
+				# If yes, than get the IP of the bridge
+				`brctl show | grep -q $dev` =~ /^([\w]+)\s.*\s$dev$/;
+				my $bridgedev = $1;
+				$ip = $1 if `ip -4 -o addr show $bridgedev` =~ /inet ([\d\.]+)/;
+			}
 			my $dev2 = "eth-id-$mac"; # fix spontaneous renaming
 			if( $args->{'virthosttype'} || $args->{'setup_bridge'} )	{ # VH
 				print $f <<EOF;
