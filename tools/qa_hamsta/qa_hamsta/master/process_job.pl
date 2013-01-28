@@ -202,26 +202,27 @@ sub process_job($) {
 	my $message = "$job_name completed on $hostname";
 	my $status=JS_FAILED;
 
+	#get the final return value
+	foreach my $ret ( split /\n/, $return_codes )
+	{	$status=JS_PASSED if $ret=~/^(\d+)/ and $1==0;	}
+
 	# send e-mail that the job has finished
 	my $reboot = ( $job_file =~ /install|reboot|XENGrub/ );
 	my $update_sut = ( $job_file =~ /hamsta-upgrade-restart/ );
 	if( $reboot ) {
-		sleep 300;
-		while( &machine_get_status($machine_id) != MS_UP ) {		
-			# wait for reinstall/reboot jobs
-			$dbc->commit(); # workaround of a DBI bug that would loop the statement
-			sleep 60;	
+		if($status == JS_PASSED){
+			sleep 300;
+			while( &machine_get_status($machine_id) != MS_UP ) {		
+				# wait for reinstall/reboot jobs
+				$dbc->commit(); # workaround of a DBI bug that would loop the statement
+				sleep 60;	
+			}
+			$message = "reinstall\/reboot $hostname completed";
 		}
-		$message = "reinstall\/reboot $hostname completed";
-		$status=JS_PASSED;
 
 	} elsif($update_sut) {
-		#get the final return value
-		foreach my $ret ( split /\n/, $return_codes )
-		{	$status=JS_PASSED if $ret=~/^(\d+)/ and $1==0;	}
 
 		if($status == JS_PASSED){
-	
 			sleep 120;
 			while( &machine_get_status($machine_id) != MS_UP ) {		
 				# wait for reinstall/reboot jobs
@@ -232,9 +233,9 @@ sub process_job($) {
 		}
 
 	} else {
-		foreach my $ret ( split /\n/, $return_codes )
-		{	$status=JS_PASSED if $ret=~/^(\d+)/ and $1==0;	}
+		1 == 1;
 	}
+		
 
 	# Mark the job as finished
 	&TRANSACTION( 'job_on_machine', 'job' );
