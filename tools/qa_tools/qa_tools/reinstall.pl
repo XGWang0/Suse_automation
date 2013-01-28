@@ -353,8 +353,8 @@ if( $args->{'newvm'} )	{
         &command( "sleep 2" );
 
 	if ( "$boottype" eq "bootloader" ) {
-        	&command( "reboot" );
-		exit -1;
+        	&command( "(sleep 10;reboot)&" );
+		exit 0;
 	} else {
 		my $pid = fork();
 		if ( $pid > 0 ) {
