@@ -59,6 +59,7 @@ if (request_str("proceed")) {
 			"Factory_Head" => "SUSE_Factory_Head",
 			"SLE_11_SP1" => "SUSE_SLE-11-SP1_GA",
 			"SLE_11_SP2" => "SUSE_SLE-11-SP2_GA",
+			"SLE_11_SP3" => "SUSE_SLE-11-SP3_GA",
 			"SLE_11" => "SUSE_SLE-11_GA",
 			"SLE_11_Update" => "SUSE_SLE-11_Update",
 			"openSUSE_11.4" => "openSUSE_11.4",
