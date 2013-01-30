@@ -127,9 +127,8 @@ sub disk_stats
 		}
 	}
 	### ignore above if segment, because sometimes disk judgement by "_has_libsata" is not correct, see bug #745785.
-	$dev=`cat /proc/diskstats | sed -n \'1p\' | awk \'{print \$3}\'`;
+	$dev=`df -l |grep dev |sed -n 1p | awk {'print \$1'} | sed 's/[0-9]\$//g'`;
 	chomp($dev);
-	$dev="/dev/" . $dev;
 	return ($dev,$num);
 }
 
@@ -645,6 +644,14 @@ $postcmd
 			my $mac = `cat $if/address`;
 			chomp $mac;
 			my $ip = $1 if `ip -4 -o addr show $dev` =~ /inet ([\d\.]+)/;
+			if (!$ip && !system('which brctl > /dev/null 2>&1')) {
+				# Check, whether this interface is not part of some active bridge
+				# If yes, than get the IP of the bridge
+				my $bridgedev;
+				$bridgedev = '';
+				$bridgedev = $1 if `brctl show | grep $dev` =~ /^([\w]+)\s.*\s$dev$/;
+				$ip = $1 if $bridgedev && `ip -4 -o addr show $bridgedev` =~ /inet ([\d\.]+)/;
+			}
 			my $dev2 = "eth-id-$mac"; # fix spontaneous renaming
 			if( $args->{'virthosttype'} || $args->{'setup_bridge'} )	{ # VH
 				print $f <<EOF;
@@ -667,6 +674,7 @@ EOF
 			</interface>
 EOF
 			}
+			$ip = '';
 		}
 		print $f "	</interfaces>\n";
 		print $f "  </networking>\n";

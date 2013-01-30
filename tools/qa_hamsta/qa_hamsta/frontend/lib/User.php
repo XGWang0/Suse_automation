@@ -348,7 +348,7 @@ class User {
   /**
    * Returns an instance of <b>registered</b> user by external id.
    *
-   * @param int $id Id of user. Can be either login for password identification or 
+   * @param int $id Id of user. Can be either login for password identification or database id.
    * @param \Zend_Config $config Application configuration.
    * 
    * @return \User|null Returns the user if she is registered.
@@ -458,8 +458,8 @@ class User {
                 $dbName = $user->getName ();
                 $dbEmail = $user->getEmail ();
 
-                if ( ! isset ($dbName) || empty ($dbName)
-                     || ! isset ($dbEmail) || empty($dbEmail)
+                if ( (! isset ($dbName) || empty ($dbName)
+		      || ! isset ($dbEmail) || empty($dbEmail))
 		     && ( ! isset ($_GET['go'])
 			  || $_GET['go'] != 'register') )
 		  {

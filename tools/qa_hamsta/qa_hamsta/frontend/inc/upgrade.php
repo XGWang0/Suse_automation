@@ -90,6 +90,7 @@ if (request_str("proceed")) {
 	# Request parameters
 	$installmethod = request_str("installmethod");
 	$producturl_raw = request_str("repo_producturl");
+	$email = request_str("mailto");
 	$producturl = $producturl_raw;
 	if ($installmethod == "custom") {
 		$installoptions = request_str("installoptions");
@@ -98,7 +99,6 @@ if (request_str("proceed")) {
 		$additionalrpms = request_str("additionalrpms");
 		$pattern_list = $_POST["patterns"];
 		//$validation = request_str("startvalidation");
-		$email = request_str("mailto");
 		$update = request_str("startupdate");
 		$regmail = request_str("update-reg-email");
 		$regcodes = $_POST["rcode"];

@@ -37,8 +37,7 @@ if (isset ($ns_machine_filter->fields)
   {
     echo ("<form action=\"index.php?go=machines\" method=\"post\">\n");
     echo ("<div>\n");
-    /* Styles should be in separate css files. */
-    echo ("<span style=\"font-weight: bold; color: #dd4444\">Using filter</span>&nbsp;&nbsp;");
+    echo ("<span class=\"bold text-red\">Using filter</span>&nbsp;&nbsp;");
     foreach ($ns_machine_filter->fields as $key => $value)
       {
 	/* Fix displaying of description for filtering using hwinfo.
@@ -52,7 +51,7 @@ if (isset ($ns_machine_filter->fields)
 	  }
 	else if ($key == 's_anything_operator' && isset ($ns_machine_filter->fields['s_anything']))
 	  {
-	    $filter_description = "\n\t" . '<span style="font-weight: bold;">Hwinfo</span>';
+	    $filter_description = "\n\t" . '<span class="bold">Hwinfo</span>';
 	    switch ($value)
 	      {
 	      case "LIKE":
@@ -68,7 +67,13 @@ if (isset ($ns_machine_filter->fields)
 	  }
 	else
 	  {
-	    $filter_description = "\n\t" . '<span style="font-weight: bold;">' . $fields_list[$key] . '</span> is "' . $value . '"';
+	    /* Used by contains user id but login has to be displayed. */
+	    if ($key == 'used_by')
+	      {
+		$usr = User::getById ($value, $config);
+		$value = $usr->getLogin ();
+	      }
+	    $filter_description = "\n\t" . '<span class="bold">' . $fields_list[$key] . '</span> is "' . $value . '"';
 	  }
 	
 	echo ("<span>$filter_description</span>&nbsp;&nbsp;");
