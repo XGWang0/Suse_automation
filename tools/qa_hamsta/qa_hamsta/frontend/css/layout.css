@@ -87,6 +87,14 @@ body
 		left: 5px;
 	}
 
+#hlogo div.rightmenu
+{
+    float:right;
+    width:150px;
+    position:relative;
+    z-index:100;
+}
+
 #content
 {
 	padding: 10px;
