@@ -59,8 +59,9 @@ if ( User::isLogged()
         }
       else
         {
+	  User::logout ();
           Notificator::setErrorMessage ('There has been an error. Contact your administrator.');
-          header ('Location: index.php?go=register');
+          header ('Location: index.php');
         }
     }
   else
