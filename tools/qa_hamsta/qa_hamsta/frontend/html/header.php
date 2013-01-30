@@ -59,10 +59,12 @@ require_once("include/Util.php");
 	<img src="images/header.png" class="caption" alt="SUSE QA Automation" title="Click to return to the main page" />
 	<img src="images/hamsta.png" class="hamsta" alt="Hamsta" title="Hamsta" />
       </a>
+
       <div class="version text-main text-white bold">
         <em>v<?php $version = explode("-", $hamstaVersion); echo($version[2]);?></em>
       </div>
-      <div style="float: right; width=150px;" class="topright text-white text-main">
+
+      <div class="rightmenu topright text-white text-main">
         <?php
            User::printStatus($config);
            switch ($config->authentication->method) {
