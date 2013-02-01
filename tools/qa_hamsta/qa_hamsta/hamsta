@@ -75,7 +75,7 @@ case "$1" in
 	## Stop daemon with killproc(8) and if this fails
 	## killproc sets the return value according to LSB.
 
-	/sbin/killproc -TERM $HAMSTA_BIN
+	/sbin/killproc -g -TERM $HAMSTA_BIN
 
 	# Remember status and be verbose
 	rc_status -v
