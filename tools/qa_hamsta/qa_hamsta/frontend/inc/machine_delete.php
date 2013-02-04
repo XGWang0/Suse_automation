@@ -24,12 +24,12 @@
  */
 
     /**
-     * Logic of the del_machines page
+     * Logic of the machine_delete page
      *
      * Deletes the selected machines.
      */
     if(!defined('HAMSTA_FRONTEND')) {
-        $go = 'del_machines';
+        $go = 'machine_delete';
         return require("index.php");
     }
 

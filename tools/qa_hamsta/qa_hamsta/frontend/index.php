@@ -67,8 +67,8 @@ $go = request_str("go");
 
 $pages = array(
     "machines",
-    "edit_machines",
-    "del_machines",
+    "machine_edit",
+    "machine_delete",
     "install_client",
     "machine_details",
     "machine_purge",
@@ -97,7 +97,7 @@ $pages = array(
     "job_details",
     "send_job",
     "mm_job",
-    "reinstall",
+    "machine_reinstall",
     "autopxe",
     "vhreinstall",
     "newvm",
@@ -111,6 +111,7 @@ $pages = array(
     "login",
     "addsut",
     "adminusers",
+    "machine_config",
     "qa_netconf",
 );
 

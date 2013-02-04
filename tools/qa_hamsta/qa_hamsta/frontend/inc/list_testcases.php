@@ -31,7 +31,7 @@
 //error_reporting(E_ALL | E_STRICT);
 
      if (!defined('HAMSTA_FRONTEND')) {
-        $go = 'edit_machines';
+        $go = 'machine_edit';
         return require("index.php");
     }
 

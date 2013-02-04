@@ -24,7 +24,7 @@
  */
 
   /**
-   * Content of the <tt>machines</tt> page.
+   * Content of the <tt>qacloud</tt> page.
    */
 if (!defined('HAMSTA_FRONTEND')) {
   $go = 'qacloud';
@@ -45,7 +45,7 @@ if (!defined('HAMSTA_FRONTEND')) {
         <?php } else { ?>
         <a href="index.php?go=vhreinstall&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-reinstall.png" alt="Reinstall this virtualization host" title="Reinstall <?php echo($machine->get_hostname()); ?>" border="0" width="20" style="padding-left: 3px; padding-right: 3px;" /></a>
       <?php } ?>
-      <a href="index.php?go=edit_machines&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-edit.png" alt="Edit/reserve this machine" title="Edit/reserve <?php echo($machine->get_hostname()); ?>" border="0" width="20" style="padding-right: 3px;" /></a>
+      <a href="index.php?go=machine_edit&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-edit.png" alt="Edit/reserve this machine" title="Edit/reserve <?php echo($machine->get_hostname()); ?>" border="0" width="20" style="padding-right: 3px;" /></a>
       <?php
         echo "\t\t\t<img src=\"images/icon-unlock.png\" alt=\"Free up this machine\" title=\"Free up ". $machine->get_hostname()."\" border=\"0\" " .
           "width=\"20\" style=\"padding-right: 3px;\" " .
@@ -56,7 +56,7 @@ if (!defined('HAMSTA_FRONTEND')) {
             echo "var r = confirm('This will clear the \'Used by\' and \'Usage\' fields, making the selected machines free to use by anyone else. Are you sure you want to continue?');" .
             "if(r==true)" .
             "{" .
-              "window.location='index.php?go=edit_machines&amp;a_machines[]=" . $machine->get_id() . "&amp;action=clear';" .
+              "window.location='index.php?go=machine_edit&amp;a_machines[]=" . $machine->get_id() . "&amp;action=clear';" .
             "}";
         }
             echo "\" />\n";
@@ -68,7 +68,7 @@ if (!defined('HAMSTA_FRONTEND')) {
       <?php if(count($machine->get_children()) > 0) { ?>
         <img src="images/icon-delete.png" alt="Delete this machine and all related data" title="Delete <?php echo($machine->get_hostname()); ?> and all related data" border="0" width="20" style="padding-right: 3px;" onclick="alert('It is not possible to delete virtualization host that contain virtual machine(s)!');" /></a>
       <?php } else { ?>
-        <a href="index.php?go=del_machines&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-delete.png" alt="Delete this machine and all related data" title="Delete <?php echo($machine->get_hostname()); ?> and all related data" border="0" width="20" style="padding-right: 3px;" /></a>
+        <a href="index.php?go=machine_delete&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-delete.png" alt="Delete this machine and all related data" title="Delete <?php echo($machine->get_hostname()); ?> and all related data" border="0" width="20" style="padding-right: 3px;" /></a>
       <?php } ?>
       </span>
       <table class="text-medium">
@@ -114,7 +114,7 @@ if (!defined('HAMSTA_FRONTEND')) {
             }
           ?>
           <td align="center">
-            <a href="index.php?go=edit_machines&amp;a_machines[]=<?php echo($vm->get_id()); ?>"><img src="images/icon-edit.png" alt="Edit/reserve this machine" title="Edit/reserve <?php echo($vm->get_hostname()); ?>" border="0" width="20" style="padding-right: 3px;" /></a>
+            <a href="index.php?go=machine_edit&amp;a_machines[]=<?php echo($vm->get_id()); ?>"><img src="images/icon-edit.png" alt="Edit/reserve this machine" title="Edit/reserve <?php echo($vm->get_hostname()); ?>" border="0" width="20" style="padding-right: 3px;" /></a>
             <?php
                echo "\t\t\t<img src=\"images/icon-unlock.png\" alt=\"Free up this machine\" title=\"Free up ". $vm->get_hostname()."\" border=\"0\" " ."width=\"20\" style=\"padding-right: 3px;\" " . "onclick=\"";
                  if(trim($vm->get_used_by_login()) == "" and trim($vm->get_usage()) == "") {
@@ -122,12 +122,12 @@ if (!defined('HAMSTA_FRONTEND')) {
                  } else {
                    echo "var r = confirm('This will clear the \'Used by\' and \'Usage\' fields, making the selected machines free to use by anyone else. Are you sure you want to continue?');" .
                    "if(r==true) {" .
-                     "window.location='index.php?go=edit_machines&amp;a_machines[]=" . $vm->get_id() . "&amp;action=clear';" .
+                     "window.location='index.php?go=machine_edit&amp;a_machines[]=" . $vm->get_id() . "&amp;action=clear';" .
                    "}";
                  }
                    echo "\" />\n";
               ?>
-            <a href="index.php?go=send_job&amp;a_machines[]=<?php echo($vm->get_id()); ?>"><img src="images/icon-job.png" alt="Send a job to this machine" title="Send a job to <?php echo($vm->get_hostname()); ?>" border="0" width="20" style="padding-right: 3px;" /></a>
+            <a href="index.php?go=machine_send_job&amp;a_machines[]=<?php echo($vm->get_id()); ?>"><img src="images/icon-send-job.png" alt="Send a job to this machine" title="Send a job to <?php echo($vm->get_hostname()); ?>" border="0" width="20" style="padding-right: 3px;" /></a>
             <a href="http://<?php echo($vm->get_ip_address()); ?>:5801" target="_blank"><img src="images/icon-vnc.png" alt="Open a VNC viewer" title="Open a VNC viewer on <?php echo($vm->get_hostname());?>" border="0" width="20" style="padding-right: 3px;" /></a>
             <a href="http://<?php echo($_SERVER['SERVER_ADDR']); ?>/ajaxterm/?host=<?php echo($vm->get_ip_address()); ?>" target="_blank"><img src="images/icon-terminal.png" alt="Access the terminal" title="Access the terminal on <?php echo($vm->get_hostname());?>" border="0" width="20" style="padding-right: 3px;" /></a>
             <a href="index.php?go=del_virtual_machines&amp;a_machines[]=<?php echo($vm->get_id()); ?>"><img src="images/icon-delete.png" alt="Delete this virtual machine and all related data" title="Delete <?php echo($vm->get_hostname()); ?> and all related data" border="0" width="20" style="padding-right: 3px;" /></a>
@@ -138,9 +138,9 @@ if (!defined('HAMSTA_FRONTEND')) {
     </table>
     <select name="action">
       <option value="">No action</option>
-<!--  <option value="send_job">Send job</option> -->
+<!--  <option value="machine_send_job">Send job</option> -->
 <!--  <option value="edit">Edit/reserve</option> -->
-<!--  <option value="reinstall">Reinstall</option>  -->
+<!--  <option value="machine_reinstall">Reinstall</option>  -->
 <!--  <option value="create_group">Add to group</option> -->
 <!--  <option value="group_del_machines">Remove from group</option> -->
 <!--  <option value="autopxe">AutoPXE</option> -->

@@ -24,7 +24,7 @@
  */
 
     /**
-     * Contents of the <tt>send_job</tt> page  
+     * Contents of the <tt>vhreinstall</tt> page  
      */
     if (!defined('HAMSTA_FRONTEND')) {
         $go = 'vhreinstall';
@@ -88,7 +88,7 @@ if (User::isLogged())
 <?php endforeach; ?>
 </ul></h5>
 
-	Alternativelly, you can <a href="index.php?go=reinstall&amp;a_machines[]=<?php echo implode("&amp;a_machines[]=", request_array("a_machines")); ?>">reinstall those machines as SUTs</a>.
+	Alternativelly, you can <a href="index.php?go=machine_reinstall&amp;a_machines[]=<?php echo implode("&amp;a_machines[]=", request_array("a_machines")); ?>">reinstall those machines as SUTs</a>.
 <br /><br />
 
 This page will allow you to customize the AutoYaST product installation for the machine(s) you have selected, including repository URLs and other options, or to upload your own custom AutoYaST profile. However, you can still simply copy the product url into the fields

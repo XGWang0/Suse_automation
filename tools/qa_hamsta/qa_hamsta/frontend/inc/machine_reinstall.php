@@ -27,7 +27,7 @@
  * Logic of the reinstall page 
  */
 if (!defined('HAMSTA_FRONTEND')) {
-	$go = 'reinstall';
+	$go = 'machine_reinstall';
 	return require("index.php");
 }
 

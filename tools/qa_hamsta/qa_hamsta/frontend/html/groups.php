@@ -80,7 +80,7 @@
             <td><a href="index.php?go=del_group_machines&amp;group=<?php echo $group_name; ?>"><img src="images/icon-group-delete-machine.png" class="icon-small" alt="Delete machines" title="Delete machines from this group" /></a></td>
 	    <td><a href="index.php?go=del_group&amp;group=<?php echo $group_name; ?>"><img src="images/icon-delete.png" class="icon-small" alt="Delete group" title="Delete this group" /></a></td>
 <?php } ?>
-	    <td><a href="index.php?go=qa_netconf&amp;group=<?php echo $group_name; ?>"><img src="images/icon-config.png" class="icon-small" alt="Config group" title="Config this group" /></a></td>
+	    <td><a href="index.php?go=machine_config&amp;group=<?php echo $group_name; ?>"><img src="images/icon-config.png" class="icon-small" alt="Config group" title="Config this group" /></a></td>
         </tr>
     <?php endforeach; ?>
 </table>

@@ -149,7 +149,7 @@ if (! empty ($s_anything))
 	      }
 	    else
 	      {
-		echo('<a href="index.php?go=send_job&a_machines[]='.$machine->get_id().'&filename[]='.$config->xml->dir->default.'/hamsta-upgrade-restart.xml&submit=1"><img src="images/exclamation_yellow.png" class="icon-notification" alt="Tools out of date!" title="Click to update ' . $machine->get_hostname () . '"></a>');
+		echo('<a href="index.php?go=machine_send_job&a_machines[]='.$machine->get_id().'&filename[]='.$config->xml->dir->default.'/hamsta-upgrade-restart.xml&submit=1"><img src="images/exclamation_yellow.png" class="icon-notification" alt="Tools out of date!" title="Click to update ' . $machine->get_hostname () . '"></a>');
 	      }
 	  }
 
@@ -186,10 +186,10 @@ tsRegister();
 </script>
 <select name="action">
 <!--  <option value="">No action</option> -->
-  <option value="send_job">Send job</option>
+  <option value="machine_send_job">Send job</option>
   <option value="addsut">Add SUT</option>
   <option value="edit">Edit/reserve</option>
-  <option value="reinstall">Reinstall</option> 
+  <option value="machine_reinstall">Reinstall</option> 
   <option value="create_group">Add to group</option>
   <option value="group_del_machines">Remove from group</option>
   <option value="vhreinstall">Reinstall as Virtualization Host</option> 

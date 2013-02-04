@@ -24,10 +24,10 @@
  */
 
     /**
-     * Logic of the send_job page 
+     * Logic of the machine_send_job page 
      */
     if (!defined('HAMSTA_FRONTEND')) {
-        $go = 'send_job';
+        $go = 'machine_send_job';
         return require("index.php");
     }
 

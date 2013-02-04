@@ -24,10 +24,10 @@
  */
 
   /**
-   * Contents of the <tt>edit_machines</tt> page 
+   * Contents of the <tt>machine_edit</tt> page 
    */
 if (!defined('HAMSTA_FRONTEND')) {
-  $go = 'edit_machines';
+  $go = 'machine_edit';
   return require("index.php");
  }
 
@@ -216,7 +216,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 
 ?>
 <script type="text/javascript" src="js/edit_machine.js"></script>
-<form name='edit_machine' action="index.php?go=edit_machines" method="post">
+<form name='machine_edit' action="index.php?go=machine_edit" method="post">
 <table name='table_cell' class="list text-main">
 <?php
 	for ($i = 0; $i < count($tableHeadings); $i++) {

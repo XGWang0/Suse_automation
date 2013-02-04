@@ -45,12 +45,12 @@ if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
 
 	switch (request_str("action")) {
 		case "edit":
-			$go = "edit_machines";
-			return require("inc/edit_machines.php");
+			$go = "machine_edit";
+			return require("inc/machine_edit.php");
 
 		case "delete":
-			$go = "del_machines";
-			return require("inc/del_machines.php");
+			$go = "machine_delete";
+			return require("inc/machine_delete.php");
 
 		case "create_group":
 			$go = "create_group";
@@ -60,17 +60,17 @@ if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
 			$go = "group_del_machines";
 			return require("inc/group_del_machines.php");
 		
-		case "send_job":
-			$go = "send_job";
-			return require("inc/send_job.php");
+		case "machine_send_job":
+			$go = "machine_send_job";
+			return require("inc/machine_send_job.php");
 
 		case "merge_machines":
 			$go = "merge_machines";
 			return require("inc/merge_machines.php");
 
-	   case "reinstall":
-			$go = "reinstall";
-			return require("inc/reinstall.php");
+	   case "machine_reinstall":
+			$go = "machine_reinstall";
+			return require("inc/machine_reinstall.php");
 	   
 	   case "create_autobuild":
 			$go = "create_autobuild";

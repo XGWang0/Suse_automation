@@ -39,20 +39,20 @@
 
     switch (request_str("action")) {
         case "edit":
-            $go = "edit_machines";
-            return require("inc/edit_machines.php");
+            $go = "machine_edit";
+            return require("inc/machine_edit.php");
 
         case "delete":
-            $go = "del_machines";
-            return require("inc/del_machines.php");
+            $go = "machine_delete";
+            return require("inc/machine_delete.php");
 
-        case "send_job":
-            $go = "send_job";
-            return require("inc/send_job.php");
+        case "machine_send_job":
+            $go = "machine_send_job";
+            return require("inc/machine_send_job.php");
 
-	   case "reinstall":
-	        $go = "reinstall";
-	        return require("inc/reinstall.php");
+	   case "machine_reinstall":
+	        $go = "machine_reinstall";
+	        return require("inc/machine_reinstall.php");
     }
 
     if (!($vh_display_fields = request_array("vh_d_fields"))) {

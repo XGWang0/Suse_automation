@@ -24,7 +24,7 @@
  */
 
     /**
-     * Contents of the <tt>send_job</tt> page  
+     * Contents of the <tt>autopxe</tt> page  
      */
     if (!defined('HAMSTA_FRONTEND')) {
         $go = 'autopxe';

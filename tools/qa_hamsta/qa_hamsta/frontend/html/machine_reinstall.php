@@ -24,7 +24,7 @@
  */
 
 	if (!defined('HAMSTA_FRONTEND')) {
-		$go = 'send_job';
+		$go = 'machine_send_job';
 		return require("index.php");
 	}
 if (User::isLogged())
@@ -73,7 +73,7 @@ if (User::isLogged())
 <?php endforeach; ?>
 </ul></h5>
 
-<form enctype="multipart/form-data" action="index.php?go=reinstall" method="POST" onsubmit="return checkcontents(this);">
+<form enctype="multipart/form-data" action="index.php?go=machine_reinstall" method="POST" onsubmit="return checkcontents(this);">
 <table class="text-medium">
 <?php require ("req_rein_all.php"); ?>
 <?php require ("req_rein.php"); ?>

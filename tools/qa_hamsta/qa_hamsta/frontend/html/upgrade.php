@@ -24,7 +24,7 @@
  */
 
 	if (!defined('HAMSTA_FRONTEND')) {
-		$go = 'send_job';
+		$go = 'machine_send_job';
 		return require("index.php");
 	}
 	$blockedMachines = array();

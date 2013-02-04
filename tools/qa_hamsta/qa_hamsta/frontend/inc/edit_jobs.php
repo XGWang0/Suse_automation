@@ -43,7 +43,7 @@
 
     if (request_str("cancel") == "Cancel")
     {
-	header("Location: index.php?go=send_job&machine_list=$machine_list");
+	header("Location: index.php?go=machine_send_job&machine_list=$machine_list");
 	exit ();
     }
 
@@ -76,7 +76,7 @@
         require("inc/job_create.php");
 
 	if(count($errors) == 0) {
-            header("Location: index.php?go=send_job&machine_list=$machine_list");
+            header("Location: index.php?go=machine_send_job&machine_list=$machine_list");
 	    Notificator::setSuccessMessage ('A custom job has been created.');
 	    exit ();
 	}

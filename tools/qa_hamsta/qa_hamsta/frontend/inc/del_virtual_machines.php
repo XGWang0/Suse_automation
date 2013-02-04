@@ -24,7 +24,7 @@
  */
 
     /**
-     * Logic of the del_machines page
+     * Logic of the del_virtual_machines page
      *
      * Deletes the selected machines.
      */

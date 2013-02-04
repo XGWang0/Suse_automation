@@ -24,7 +24,7 @@
  */
 
     /**
-     * Contents of the <tt>send_job</tt> page  
+     * Contents of the <tt>edit_job</tt> page  
      */
 ?>
 

@@ -24,7 +24,7 @@
  */
 
 	/**
-	 * Contents of the <tt>edit_machines</tt> page 
+	 * Contents of the <tt>job_edit</tt> page 
 	 */
 	if (!defined('HAMSTA_FRONTEND')) {
 		$go = 'edit_jobs';

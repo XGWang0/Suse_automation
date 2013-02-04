@@ -85,7 +85,7 @@
                                     || ( isset ($user) && $user->isAllowed ('machine_reinstall_reserved') ) ) ) ) { ?>
      <img src="images/icon-reinstall-grey.png" class="machine-actions icon-small" alt="Cannot reinstall this machine" title="You cannot reinstall <?php echo($machine->get_hostname()); ?> if not logged in or without privileges or if it is reserved by other user." onclick="alert('You are not allowed to to reinstall this machine.');" />
 <?php } else { ?>
-     <a href="index.php?go=reinstall&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-reinstall.png" class="machine-actions icon-small" alt="Reinstall this machine" title="Reinstall <?php echo($machine->get_hostname()); ?>" /></a>
+     <a href="index.php?go=machine_reinstall&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-reinstall.png" class="machine-actions icon-small" alt="Reinstall this machine" title="Reinstall <?php echo($machine->get_hostname()); ?>" /></a>
 <?php } ?>
 
   <!-- EDIT/RESERVE MACHINE -->
@@ -94,12 +94,12 @@
        && (! isset ($user)
            || ! ( ( $machine->get_used_by () == NULL
                     || $users_machine )
-                  && $user->isAllowed('machine_edit_reserve')
+                  && $user->isAllowed('machine_edit')
                   || ( isset ($user) && $user->isAllowed ('machine_edit_reserved') ) ) ) ) {
 ?>
      <img src="images/icon-edit-grey.png" class="machine-actions icon-small" alt="Cannot edit this machine" title="You cannot edit <?php echo($machine->get_hostname()); ?> if not logged in or without privileges or if it is reserved by other user." onclick="alert('You are not allowed to to edit this machine.');" />
 <?php } else { ?>
-     <a href="index.php?go=edit_machines&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-edit.png" class="machine-actions icon-small" alt="Edit/reserve this machine" title="Edit/reserve <?php echo($machine->get_hostname()); ?>" /></a>
+     <a href="index.php?go=machine_edit&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-edit.png" class="machine-actions icon-small" alt="Edit/reserve this machine" title="Edit/reserve <?php echo($machine->get_hostname()); ?>" /></a>
 <?php } ?>
 
   <!-- FREE MACHINE -->
@@ -115,7 +115,7 @@ if ( $machine->get_used_by () == NULL && $machine->get_usage () == '') {
 ?>
      <img  src="images/icon-unlock-grey.png" class="machine-actions icon-small" alt="Cannot free up this machine" title="You cannot free up <?php echo ($machine->get_hostname()); ?> if not logged in or without privileges or if it is reserved by other user." onclick="alert('You are not allowed to free this machine.');" />
 <?php } else { ?>
-     <a href="index.php?go=edit_machines&amp;a_machines[]=<?php echo($machine->get_id()); ?>&amp;action=clear" /><img src="images/icon-unlock.png" class="machine-actions icon-small" alt="Free up this machine" title="Free up <?php echo ($machine->get_hostname()); ?>. This will clear the 'Used by' and 'Usage' fields, making the machine free to use by other users." /></a>
+     <a href="index.php?go=machine_edit&amp;a_machines[]=<?php echo($machine->get_id()); ?>&amp;action=clear" /><img src="images/icon-unlock.png" class="machine-actions icon-small" alt="Free up this machine" title="Free up <?php echo ($machine->get_hostname()); ?>. This will clear the 'Used by' and 'Usage' fields, making the machine free to use by other users." /></a>
 <?php } ?>
 
  <!-- SEND A JOB TO A MACHINE -->
@@ -125,9 +125,9 @@ if ( $useAuth
           || ! ( $users_machine && $user->isAllowed('machine_send_job')
                  || ( isset ($user) && $user->isAllowed ('machine_send_job_reserved') ) ) ) ) {
 ?>
-     <img  src="images/icon-job-grey.png" class="machine-actions icon-small" alt="Cannot send a job to this machine" title="You cannot send a job to <?php echo ($machine->get_hostname()); ?> if not logged in or without privileges or if it is reserved by other user." onclick="alert('You are not allowed to send a job to this machine.');" />
+     <img  src="images/icon-send-job-grey.png" class="machine-actions icon-small" alt="Cannot send a job to this machine" title="You cannot send a job to <?php echo ($machine->get_hostname()); ?> if not logged in or without privileges or if it is reserved by other user." onclick="alert('You are not allowed to send a job to this machine.');" />
 <?php } else { ?>
-     <a href="index.php?go=send_job&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-job.png" class="machine-actions icon-small" alt="Send a job to this machine" title="Send a job to <?php echo($machine->get_hostname()); ?>" /></a>
+     <a href="index.php?go=machine_send_job&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-send-job.png" class="machine-actions icon-small" alt="Send a job to this machine" title="Send a job to <?php echo($machine->get_hostname()); ?>" /></a>
 <?php } ?>
 
   <!-- OPEN VNC TO A MACHINE -->
@@ -182,14 +182,14 @@ if ( $useAuth
                              || ( isset ($user) && $user->isAllowed ('machine_delete_reserved') ) ) ) ) { ?>
      <img src="images/icon-delete-grey.png" class="machine-actions icon-small" alt="Cannot delete this machine" title="You cannot delete <?php echo($machine->get_hostname()); ?> if not logged in or without privileges or if it is reserved by other user." onclick="alert('You are not allowed to delete this machine.');" />
 <?php } else { ?>
-			<a href="index.php?go=del_machines&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-delete.png" class="machine-actions icon-small" alt="Delete this machine and all related data" title="Delete <?php echo($machine->get_hostname()); ?> and all related data" /></a>
+			<a href="index.php?go=machine_delete&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-delete.png" class="machine-actions icon-small" alt="Delete this machine and all related data" title="Delete <?php echo($machine->get_hostname()); ?> and all related data" /></a>
 <?php } ?>
 
 <!-- QA network configuration -->
 <?php 
 if( !$useAuth || isset($user) && ( ($users_machine && $user->isAllowed('machine_config')) || $user->isAllowed('machine_config_reserved') ) )
-	print '<a href="index.php?go=qa_netconf&amp;a_machines[]='.$machine->get_id().'"><img src="images/icon-config.png" class="machine-actions icon-small" alt="QA_netconf" title="View or edit the QA configuration"/></a>'."\n";
+	print '<a href="index.php?go=machine_config&amp;a_machines[]='.$machine->get_id().'"><img src="images/icon-config.png" class="machine-actions icon-small" alt="QA_netconf" title="View or edit the QA configuration"/></a>'."\n";
 else
-	print '<a href="index.php?go=qa_netconf&amp;a_machines[]='.$machine->get_id().'"><img src="images/icon-config-grey.png" class="machine-actions icon-small" alt="QA_netconf" title="Login to edit the QA configuration"/></a>'."\n";
+	print '<a href="index.php?go=machine_config&amp;a_machines[]='.$machine->get_id().'"><img src="images/icon-config-grey.png" class="machine-actions icon-small" alt="QA_netconf" title="Login to edit the QA configuration"/></a>'."\n";
 
 ?>

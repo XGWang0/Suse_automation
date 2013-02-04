@@ -27,7 +27,7 @@
  * Logic of the upgrade page
  */
 if (!defined('HAMSTA_FRONTEND')) {
-	$go = 'reinstall';
+	$go = 'machine_reinstall';
 	return require("index.php");
 }
 

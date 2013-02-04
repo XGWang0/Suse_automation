@@ -27,7 +27,7 @@
  * Contents of the <tt>mm_job</tt> page
  */
 if (!defined('HAMSTA_FRONTEND')) {
-	$go = 'send_job';
+	$go = 'mm_job';
 	return require("index.php");
 }
 

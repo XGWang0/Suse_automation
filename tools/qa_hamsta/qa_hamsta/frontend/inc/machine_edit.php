@@ -25,7 +25,7 @@
 	 */
 
 	/**
-	 * Logic of the edit_machines page 
+	 * Logic of the machine_edit page 
 	 *
 	 * Gets all selected machines and updates their status if requested.
 	 */
@@ -35,7 +35,7 @@
 
 	if (!defined('HAMSTA_FRONTEND'))
 	{
-		$go = 'edit_machines';
+		$go = 'machine_edit';
 		return require("index.php");
 	}
 
@@ -45,7 +45,7 @@
             if ( User::isLogged() && User::isRegistered (User::getIdent (), $config) )
               {
                 $user = User::getById (User::getIdent (), $config);
-                if ( ! ($user->isAllowed ('machine_edit_reserve')
+                if ( ! ($user->isAllowed ('machine_edit')
                         || $user->isAllowed ('machine_edit_reserved')) ) {
                   Notificator::setErrorMessage ('You do not have permission to edit/reserve a machine.');
                   header('Location: index.php');
@@ -168,7 +168,7 @@
 				}
 			}
 			Notificator::setSuccessMessage ('The requested actions were successfully completed.');
-			$go = ($machine->get_role() == "VH") ? "qacloud" : "edit_machines";
+			$go = ($machine->get_role() == "VH") ? "qacloud" : "machine_edit";
 		}
 		
 		# If there were errors, we set the fail message
