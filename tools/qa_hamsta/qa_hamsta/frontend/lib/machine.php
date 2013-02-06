@@ -1622,7 +1622,7 @@ class Machine {
 			return null;
 		}
 		$stmt->bindParam(':machine_id', $this->fields["id"]);
-		
+
 		$stmt->execute();
 		$result = array();
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {

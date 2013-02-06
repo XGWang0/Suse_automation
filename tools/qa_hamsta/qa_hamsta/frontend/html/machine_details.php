@@ -98,8 +98,9 @@ if (!defined('HAMSTA_FRONTEND')) {
 	</thead>
 
 	<?php
-		$active_jobs = $machine->get_jobs_by_active(1);
-		foreach ($active_jobs as $job):
+		/* Get this machines last 10 jobs. */
+		$last_jobs = $machine->get_all_jobs (10);
+		foreach ($last_jobs as $job):
 	?>
 		<tr>
 			<td><a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>"><?php echo($job->get_id()); ?></a></td>
@@ -109,23 +110,24 @@ if (!defined('HAMSTA_FRONTEND')) {
 			<td><?php echo($job->get_name()); ?></td>
 			<td><?php echo($job->get_started()); ?></td>
 			<td><?php echo($job->get_stopped()); ?></td>
-			<td><a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;finished_job=1" class="text-main">Set finished</a>
-		  <?php
-		  if ($job->can_cancel ()) {
-		  ?>
+			<td>
+		<?php
+		if (! $job->is_finished ()) {
+		?>
+			<a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;finished_job=1" class="text-main">Set finished</a>
+		<?php
+		}
+		if ($job->can_cancel ()) {
+		?>
 		    	<a href="index.php?go=jobruns&amp;action=cancel&amp;id=<?php echo($job->get_id()); ?>">Cancel</a>
-		  <?php
-		  }
-		  ?>
+		<?php
+		}
+		?>
 		        </td>
 		</tr>
 	<?php endforeach; ?>
 
-	<?php
-		if (count($active_jobs) < 10):
-		$nonactive_jobs = $machine->get_jobs_by_active(0, 10 - count($active_jobs));
-		foreach ($nonactive_jobs as $job):
-	?>
+	<!--
 		<tr>
 			<td><a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>"><?php echo($job->get_id()); ?></a></td>
                         <td><span class="<?php echo($job->get_status_string()); ?>">
@@ -136,15 +138,12 @@ if (!defined('HAMSTA_FRONTEND')) {
 			<td><?php echo($job->get_stopped()); ?></td>
 			<td></td>
 		</tr>
-	<?php
-		endforeach;
-		endif;
-	?>
+-->
 </table>
 
 <a href="index.php?go=jobruns&amp;machine=<?php echo($machine->get_id()); ?>" class="text-small">Show complete list</a>
 <?php 
-	if( (count($active_jobs) + count($nonactive_jobs)) > 0 && isset ($user) )	{
+	if( count ($last_jobs) > 0 && isset ($user) )	{
 		echo '<p><a href="index.php?go=machine_purge&amp;id=' . $machine->get_id() . '&amp;purge=job">Purge job history</a></p>' . "\n";
 	}
 ?>
