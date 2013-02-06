@@ -106,16 +106,16 @@
 <?php 
 if ( $machine->get_used_by () == NULL && $machine->get_usage () == '') {
 ?>
-     <img  src="images/icon-unlock-grey.png" class="machine-actions icon-small" alt="The machine is already free" title="You cannot free up <?php echo ($machine->get_hostname()); ?> because it is already free." onclick="alert('This machine is really already free.');" />
+     <img  src="images/icon-free-grey.png" class="machine-actions icon-small" alt="The machine is already free" title="You cannot free up <?php echo ($machine->get_hostname()); ?> because it is already free." onclick="alert('This machine is really already free.');" />
 <?php
     } else if ( $useAuth
                 && (! isset ($user)
                     || ! ( $users_machine && $user->isAllowed('machine_free')
                            || ( isset ($user) && $user->isAllowed ('machine_free_reserved') ) ) ) ) {
 ?>
-     <img  src="images/icon-unlock-grey.png" class="machine-actions icon-small" alt="Cannot free up this machine" title="You cannot free up <?php echo ($machine->get_hostname()); ?> if not logged in or without privileges or if it is reserved by other user." onclick="alert('You are not allowed to free this machine.');" />
+     <img  src="images/icon-free-grey.png" class="machine-actions icon-small" alt="Cannot free up this machine" title="You cannot free up <?php echo ($machine->get_hostname()); ?> if not logged in or without privileges or if it is reserved by other user." onclick="alert('You are not allowed to free this machine.');" />
 <?php } else { ?>
-     <a href="index.php?go=machine_edit&amp;a_machines[]=<?php echo($machine->get_id()); ?>&amp;action=clear" /><img src="images/icon-unlock.png" class="machine-actions icon-small" alt="Free up this machine" title="Free up <?php echo ($machine->get_hostname()); ?>. This will clear the 'Used by' and 'Usage' fields, making the machine free to use by other users." /></a>
+     <a href="index.php?go=machine_edit&amp;a_machines[]=<?php echo($machine->get_id()); ?>&amp;action=clear" /><img src="images/icon-free.png" class="machine-actions icon-small" alt="Free up this machine" title="Free up <?php echo ($machine->get_hostname()); ?>. This will clear the 'Used by' and 'Usage' fields, making the machine free to use by other users." /></a>
 <?php } ?>
 
  <!-- SEND A JOB TO A MACHINE -->
