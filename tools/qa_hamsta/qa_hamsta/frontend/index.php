@@ -95,7 +95,7 @@ $pages = array(
 
     "jobruns",
     "job_details",
-    "send_job",
+    "machine_send_job",
     "mm_job",
     "machine_reinstall",
     "autopxe",
