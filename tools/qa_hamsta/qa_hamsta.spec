@@ -46,7 +46,7 @@ BuildArch:      noarch
 %if 0%{?sles_version} == 9
 Requires:       perl perl-Net-Server perl-URI perl-XML-Dumper perl-IO-Socket-Multicast perl-Proc-Fork perl-XML-Simple qa_tools qa_libperl hamsta-common hamsta-cmdline screen
 %else
-Requires:       perl perl-Net-Server perl-URI perl-XML-Dumper perl-IO-Socket-Multicast perl-Proc-Fork perl-XML-Simple perl-Config-IniFiles qa_tools qa_libperl hamsta-common
+Requires:       perl perl-Net-Server perl-URI perl-XML-Dumper perl-IO-Socket-Multicast perl-Proc-Fork perl-XML-Simple qa_tools qa_libperl hamsta-common
 Recommends:	hamsta-cmdline screen
 %endif
 Provides:	hamsta
@@ -106,7 +106,7 @@ Authors:
 License:        SUSE Proprietary  
 Summary:        HArdware Maintenance, Setup & Test Automation  
 Group:          System/Management  
-Requires:       mod_php_any httpd php-pdo php-mysql hamsta-jobs tblib ajaxterm jquery php5-curl php5-snmp ipmitool sshpass libvirt php5-ZendFramework php5-gmp frontenduser
+Requires:       mod_php_any httpd php-pdo php-mysql hamsta-jobs tblib ajaxterm jquery php5-curl php5-snmp ipmitool sshpass libvirt php5-ZendFramework php5-gmp perl-Config-IniFiles frontenduser
 
 %if 0%{?sles_version} > 9
 Recommends:	mysql
