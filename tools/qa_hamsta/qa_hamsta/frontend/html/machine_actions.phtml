@@ -11,8 +11,8 @@
 
 	if (($machine->get_powerswitch() != NULL) and ($machine->get_powertype() != NULL) and ($machine->check_powertype() == TRUE )) {
           if ( ! $useAuth || (isset ($user)
-               && ( $users_machine && $user->isAllowed('machine_terminal')
-                    || ( isset ($user) && $user->isAllowed ('machine_terminal_reserved') ) ) ) ) {
+               && ( $users_machine && $user->isAllowed('machine_powerswitch')
+                    || ( isset ($user) && $user->isAllowed ('machine_powerswitch_reserved') ) ) ) ) {
 ?>
     <img src="images/icon-start.png" class="machine-actions icon-small" alt="Start <?php echo( $machine->get_hostname()) ?>"
          title="Start <?php echo ($machine->get_hostname()) ?>"
