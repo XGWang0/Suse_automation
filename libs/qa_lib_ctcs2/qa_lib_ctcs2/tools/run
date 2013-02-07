@@ -65,9 +65,6 @@ my $ctrlc = 0;
 # table
 my %running_pids;
 
-# get sub pids from pstree
-my @previous_pids = ();
-
 # hash of arrays for test results, indexed by the Friendly test name
 my %test_results = ();
 # order in which tests completed
@@ -356,7 +353,7 @@ sub ptr_r {
 # need show the clock, it will print some special character which should
 # be ignored for background process.
 sub process_fb {
-	if(-t STDOUT) {
+	if (-t STDOUT) {
 		return 1;
 	} else {
 		return 0;
@@ -595,23 +592,10 @@ sub wait_on_tests {
 	my $current_next_check=$current_check_every;
 	my $autoexit_check_every=20;
 	my $autoexit_next_check=$autoexit_check_every;
-	
+
 	if (defined(POSIX::nice(-10))) {
 		++$nice;
 	}
-	#kill the previous process tree before monitor running status
-	&clean_pre;
-
-	#find the processtree of pid
-	if ($waitfor) {
-		my $cmd = q^ |sed 's/`\||\|+/#/g'|awk -F# '{if($2~/([0-9]+)/){gsub(/.*\(/,"",$2);gsub(/\).*/,"",$2);printf $2" " }}'^;
-		$cmd = "pstree -Acp $waitfor" . $cmd;
-		my $sub_pids = `$cmd`; 
-		chomp($sub_pids);
-		$sub_pids =~ s/.$//;
-		@previous_pids = split(/[[:space:]]+/,$sub_pids);
-	}
-	
 
 	# this allows us to switch between waiting for a specific process or all processes.
 	if (defined($waitfor)) {
@@ -676,13 +660,6 @@ sub wait_on_tests {
 	# Write processes - so we see what is running
 	save_hash(\%processes, $environment{"save_directory"}."/process_state") or warn "Can't save process state!\n";
 }
-#kill the previous pstree
-
-sub clean_pre {
-	map { kill 15, $_ } @previous_pids if($#previous_pids >= 0);
-	@previous_pids = ();
-}
-
 
 # kill off all subprocesses
 sub cleanup {
@@ -701,8 +678,8 @@ sub cleanup {
 	set_interrupt_flag;
 
 	foreach $key (@pids) {
-		kill INT => -$key;
-	}   
+		kill TERM=> -$key;
+	}
 
 	# After a while, start sending more signals, until
 	# patience runs out.  Then send SIGKILLs.  Yes, it's brutal.
@@ -718,7 +695,7 @@ sub cleanup {
 		$patience -= 1;
 		if ($patience % 30 == 0) {
 				foreach $key (keys %running_pids) {
-					kill INT=> -$key;
+					kill TERM=> -$key;
 				}
 		}
 		if ($patience < 0) {
@@ -726,7 +703,7 @@ sub cleanup {
 				kill KILL=> -$key;
 			}
 		}
-	}				
+	}
 
 	# this is now handled by the check_processes call in the loop above
 	#foreach $key (@pids) {
