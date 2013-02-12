@@ -373,7 +373,7 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %attr(644,wwwrun,www) %{destdir}/xml_files/templates/*.xml
 %attr(644,wwwrun,www) %{destdir}/xml_files/multimachine/*.xml
 %attr(644,wwwrun,www) %{destdir}/xml_files/nonactive/*.xml
-%attr{644,wwwrun,www} %{destdir}/xml_files/relax/*
+%attr(644,wwwrun,www) %{destdir}/xml_files/relax/*
 
 %files common
 %defattr(-, root, root)
