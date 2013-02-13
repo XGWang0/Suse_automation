@@ -79,9 +79,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 <div style="margin-top: 6px; margin-left: 3px;">
 	<span class="text-main text-blue bold" style="position: relative; bottom: 6px;">Actions: </span>
 
-<?php
-    require('machine_actions.phtml');
-?>
+<?php print machine_icons($machine,$user); ?>
 </div>
 
 <h2 class="text-medium text-blue bold">Last jobs</h2>

@@ -139,3 +139,137 @@ function merge_unique ($s, &$ret, &$flag)
   if ( ! $flag )
     $ret = (count ($ret)) ? $ret[0] : '';
 }
+
+function icon($args)	
+{
+	$args['border']=0;
+	$args['width']=20;
+	if( !isset($args['class']) )
+		$args['class']='machine_actions icon-small';
+	return html_tag('img',null,$args);
+}
+
+# Prints a control icon.
+# Supported named arguments:
+# - 'pwr': true if it is a powerswitch button
+# - 'url': URL of the link
+# - 'allowed': condition to know if button is allowed
+# - 'link': true if it is link even for non-allowed buttons (to be solved in the target)
+# - 'enbl': condition to know if button is enabled
+# - 'confirm': if it has a javascript confirmation on click
+# - 'object': name of machine or group where the button's action is executed
+# - 'type': short action name, base of icons' name
+# - 'fullname': long action name for tooltips
+# - 'err_noperm' : tooltip message if action not permitted
+# - 'err_noavail': tooltip message if action not available
+function task_icon($a)
+{
+	$a=array_merge(array( # merge with default values
+		'url'=>'','allowed'=>true,'link'=>false,'enbl'=>true,'confirm'=>false,'object'=>'',
+		),$a);
+	$fullname=hash_get($a,'fullname',$a['type']);
+	$imgurl='images/icon-'.$a['type'];
+	$err_noperm=hash_get($a,'err_noperm',"Cannot $fullname ".$a['object']." unless you are logged in and have enough privileges and/or have reserved the machine");
+	$err_noavail=hash_get($a,'err_noavail',$fullname.'ing '.$a['object'].' is not supported');
+	if( !$a['enbl'] || !$a['allowed'] )	{
+		$err_msg=( $a['enbl'] ? $err_noperm : $err_noavail );
+		$icon=icon(array('src'=>"$imgurl-grey.png",'alt'=>$err_msg,'title'=>$err_msg));
+		if(!$a['link'])
+			return $icon;
+	}
+	else	{
+		$args=array('src'=>"$imgurl.png",'alt'=>"$fullname ".$a['object'],'title'=>"$fullname ".$a['object']);
+		if( $a['confirm'] )	{
+			$args['onclick']="return confirm('This will $fullname ".$a['object'].". Are you sure you want to continue?')\n";
+		}
+		$icon=icon($args);
+	}
+	return html_tag('a',$icon,array('href'=>$a['url']));
+}
+
+function machine_icons($machine,$user)
+{
+	global $config;
+	if( !$machine )
+		return "No such machine";
+	$id=$machine->get_id();
+	$ret='';
+	$usedby=$machine->get_used_by();
+	$users_machine = isset ($user) && ( $user->getID() == $usedby );
+	$has_pwr=(($machine->get_powerswitch()!=NULL) and ($machine->get_powertype()!=NULL) and $machine->check_powertype());
+	$host=$machine->get_hostname();
+	$ip=$machine->get_ip_address();
+	$url_base="index.php?a_machines[]=$id";
+	$auth=$config->authentication->use;
+
+	# button definition, plus non-default attributes.
+	# Default see below, description see above.
+	# - 'pwr': true if it is a powerswitch button
+	$btn=array(
+		'start'=>array('pwr'=>true),
+		'restart'=>array('pwr'=>true),
+		'stop'=>array('pwr'=>true),
+		'reinstall'=>array(),
+		'edit'=>array('allowed'=>(!$auth || (($users_machine || !$usedby) ? capable('machine_edit','machine_edit_reserved') : capable('machine_edit_reserved'))),'link'=>true),
+		'free'=>array('url'=>"$url_base&go=machine_edit&action=clear",'enbl'=>$usedby,'err_noavail'=>"You cannot free $host because it is already free."),
+		'send-job'=>array(),
+		'vnc'=>array('url'=>"http://$ip:5801"),
+		'terminal'=>array('url'=>'http://'.$_SERVER['SERVER_ADDR']."/ajaxterm/?host=$ip"),
+		'console'=>array('url'=>'hamsta-cscreen:'.$config->cscreen->console->server."/$host"),
+		'delete'=>array('enbl'=>!preg_match('/^vm\//',$machine->get_type())),
+		'config'=>array('link'=>true),
+	);
+
+	foreach( array_keys($btn) as $act )	{
+		$is_pwr = isset($btn[$act]['pwr']) ? $btn[$act]['pwr'] : false; # is power button ?
+		$perm='machine_'.($is_pwr ? 'powerswitch' : str_replace('-','_',$act)); # permission name
+		$permr=$perm.'_reserved';
+		$b = array_merge( # we take defaults and overwrite them by $btn[$act]
+			array( # default values for a button
+				'url'=>$url_base.($is_pwr ? "&go=power&action=$act":"&go=$perm"),
+				'allowed'=>(!$auth || ($users_machine ? capable($perm,$permr) : capable($permr))),
+				'enbl'=>($is_pwr ? $has_pwr : true),
+				'confirm'=>$is_pwr,
+				'object'=>$host,
+				'type'=>$act,
+			),
+			$btn[$act]);
+		if( $is_pwr )
+			$b['err_noavail']="No powerswitch configured for $host.";
+		$ret.=task_icon($b);
+	}
+	return $ret;
+}
+
+function group_icons($group,$user)
+{
+	global $config;
+	$ret='';
+	$gid=$group->get_id();
+	$gname=$group->get_name();
+	$url_base="index.php?group=$gname";
+	$auth=$config->authentication->use;
+
+	$btn=array(
+		'list'=>array('url'=>"index.php?go=machines&group=$gname"),
+		'edit'=>array('url'=>"$url_base&go=create_group&action=edit"),
+		'add'=>array('url'=>"$url_base&go=create_group&action=addmachine"),
+		'remove'=>array('url'=>"$url_base&go=del_group_machines"),
+		'delete'=>array('url'=>"$url_base&go=del_group"),
+		'config'=>array('url'=>"$url_base&go=machine_config",'link'=>true),
+	);
+	foreach( array_keys($btn) as $act )	{
+		$b = array_merge(
+			array( # default values
+				'allowed'=>(!$auth || ($user!=null) || $act=='list'),
+				'enbl'=>($gid>0 || $act=='list' || $act=='config'),
+				'object'=>$gname,
+				'type'=>$act,
+			),
+			$btn[$act]);
+		$ret.=task_icon($b);
+	}
+	return $ret;
+}
+
+?>

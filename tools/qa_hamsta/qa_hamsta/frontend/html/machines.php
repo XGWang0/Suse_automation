@@ -170,9 +170,7 @@ if (! empty ($s_anything))
 		?>
 		<td align="center">
 
-<?php
- require ('machine_actions.phtml');
-?>
+<?php print machine_icons($machine,$user); ?>
           </td>
 	</tr>
 	<?php endforeach; ?>

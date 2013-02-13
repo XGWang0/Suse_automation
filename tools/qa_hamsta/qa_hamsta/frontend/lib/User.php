@@ -897,16 +897,26 @@ class User {
 
 }
 
+function user_get()
+{
+	global $config;
+	if( !$config->authentication->use )
+		return null;
+	$ident=User::getIdent();
+	if( !User::isLogged() || !User::isRegistered($ident,$config) )
+		return null;
+	return User::getById($ident,$config);
+}
+
 function capable ()
 {
         global $config;
         $cap=func_get_args();
         if( !$config->authentication->use )
                 return true;
-        $ident=User::getIdent();
-        if( !User::isLogged() || !User::isRegistered($ident,$config) )
-                return false;
-        $user=User::getById($ident,$config);
+	$user=user_get();
+	if( !$user )
+		return false;
         foreach($cap as $c) {
                 if( $user->isAllowed($c) )
                         return true;
