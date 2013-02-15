@@ -421,7 +421,6 @@ sub start_job() {
 	my $current_time=0;
 	while ($current_time < $sut_timeout) {
 	    goto OUT if(waitpid($fork_re, WNOHANG));
-	    #check the hang status : result is submit to QADB ,but job was hung.
 	    sleep 60;
 	    $current_time += 60;
 
