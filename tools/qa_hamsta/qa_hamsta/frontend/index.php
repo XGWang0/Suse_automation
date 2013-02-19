@@ -61,8 +61,8 @@ require("lib/powerswitch.php");
 
 require_once("../tblib/tblib.php");
 
-User::authenticate($config);
 /* Get currently logged user (if possible). */
+User::authenticate();
 $user = User::getById (User::getIdent (), $config);
 
 $go = request_str("go");
