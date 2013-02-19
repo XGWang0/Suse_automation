@@ -29,7 +29,7 @@ require("timezone.php");
 ?>
 
   <tr>
-	<td width=380>Installation repo URL (required): </td>
+	<td width="380">Installation repo URL (required): </td>
 	<td>
 	  <label for="repo_products">Product:</label> <select name="repo_products" id="repo_products" style="width: 200px;"></select>
 	  <label for="repo_archs">Arch:</label> <select name="repo_archs" id="repo_archs" style="width: 80px;" onchange="checkReinstallDropdownArchitectures()"></select>
@@ -39,7 +39,9 @@ require("timezone.php");
   <tr>
 	<td></td>
 	<td>
-	  <input type="text" name="repo_producturl" id="repo_producturl" size="70" value="<?php if(isset($_POST["repo_producturl"])){echo $_POST["repo_producturl"];} ?>" title="required: url" /><button type="button" title="Refresh Patterns" onclick="$.get('html/refresh_patterns.php', { product_url: $('#repo_producturl').val() }, function(data) { retrieve_patterns(data, 'available_patterns', $('#repo_producturl').val()); });"> &#10227 </button><span class="required">*</span>
+	  <input type="text" name="repo_producturl" id="repo_producturl" size="70" value="<?php if(isset($_POST["repo_producturl"])){echo $_POST["repo_producturl"];} ?>" title="required: url" />
+	  <button type="button" title="Refresh Patterns" onclick="$.get('html/refresh_patterns.php', { product_url: $('#repo_producturl').val(); }, function(data) { retrieve_patterns (data, 'available_patterns', $('#repo_producturl').val()); });"> &#10227 </button>
+	  <span class="required">*</span>
 	</td>
   </tr>
   <tr>
