@@ -30,10 +30,13 @@ if (!defined('HAMSTA_FRONTEND')) {
 
 $html_title = "Users, roles and privileges administration";
 
+permission_or_disabled(array('perms'=>'user_administration'));
+
+/*
 if (User::isLogged ())
   {
-    /* Name of this variable is differend due to included TBLib
-     * dependand library (frontenduser). */
+    # Name of this variable is differend due to included TBLib
+    # dependand library (frontenduser). 
     $logged_user = User::getById (User::getIdent (), $config);
   }
 
@@ -49,5 +52,5 @@ else if ( ! $logged_user->isAllowed ('user_administration') )
     header ('Location: index.php');
     exit ();
   }
-
+ */
 ?>

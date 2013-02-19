@@ -170,7 +170,7 @@ function task_icon($a)
 	$fullname=hash_get($a,'fullname',$a['type']);
 	$imgurl='images/icon-'.$a['type'];
 	$err_noperm=hash_get($a,'err_noperm',"Cannot $fullname ".$a['object']." unless you are logged in and have enough privileges and/or have reserved the machine");
-	$err_noavail=hash_get($a,'err_noavail',$fullname.'ing '.$a['object'].' is not supported');
+	$err_noavail=hash_get($a,'err_noavail',preg_replace('/e?$/','ing ',$fullname,1).$a['object'].' is not supported');
 	if( !$a['enbl'] || !$a['allowed'] )	{
 		$err_msg=( $a['enbl'] ? $err_noperm : $err_noavail );
 		$icon=icon(array('src'=>"$imgurl-grey.png",'alt'=>$err_msg,'title'=>$err_msg));

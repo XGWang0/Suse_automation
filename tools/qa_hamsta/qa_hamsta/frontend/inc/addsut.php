@@ -31,17 +31,12 @@ if (!defined('HAMSTA_FRONTEND')) {
 	return require("index.php");
 }
 
-/* Check if user is logged in, registered and have sufficient privileges. */
-if ( $config->authentication->use
-     && ( ! User::isLogged() || ! User::isRegistered (User::getIdent (), $config) ) )
-  {
-    Notificator::setErrorMessage ('You have to be logged in to add a machine as SUT to HAMSTA.');
-    header('Location: index.php');
-    exit ();
-  }
+/* Check if user is logged in + registered. */
+permission_or_disabled();
 
 # Procee the request
 if (request_str("proceed")) {
+	permission_or_redirect();
 	# Request parameters
 	//$hostnametype = request_str("hostnametype");
 	$sutname = request_str("sutname");

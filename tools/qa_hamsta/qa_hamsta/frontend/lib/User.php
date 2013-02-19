@@ -467,8 +467,8 @@ class User {
 		  }
               }
 	  }
-	elseif (isset ($_GET['action']) && $_GET['action'] == 'login'
-	    || isset ($_GET['openid_mode']) && $_GET['openid_mode'] == 'id_res')
+	elseif (isset ($_REQUEST['action']) && $_REQUEST['action'] == 'login'
+	    || isset ($_REQUEST['openid_mode']) && $_REQUEST['openid_mode'] == 'id_res')
 	  {
 	    $res = Authenticator::openid ($config->authentication->openid->url);
 	    /* Store user data in the session for registration. */
@@ -912,16 +912,128 @@ function capable ()
 {
         global $config;
         $cap=func_get_args();
+
+	# everything allowed when not using authentication
         if( !$config->authentication->use )
                 return true;
+	
 	$user=user_get();
+
+	# nothing allowed unless logged in
 	if( !$user )
 		return false;
+
+	# if no capabilities entered, we just check for being logged in
+	if( count($cap)==0 )
+		return true;
+
+	# need to have at least one of the permissions
         foreach($cap as $c) {
                 if( $user->isAllowed($c) )
                         return true;
         }
         return false;
+}
+
+function redirect($args=array())
+{
+	$errmsg=hash_get($args,'errmsg','You need to be logged in and/or have permissions ');
+	$url=hash_get($args,'url','index.php');
+	if( !call_user_func_array('capable',$perms) )	{
+		$_SESSION['message']=$errmsg;
+		$_SESSION['mtype']='fail';
+		header("Location: $url");
+		exit();
+	}
+}
+
+function users_machine($user,$machine)
+{
+	return ( $user && $machine && ($user->getId()==$machine->get_usedby()) );
+}
+
+/** 
+  * Check for machine's permissions.
+  * accepts args:
+  * - perms_owner : permission(s) needed for those who own the machine
+  * - perms_other : permission(s) required for those who don't own it, and sufficient for those who do; defaults to $perms_owner . '_reserved' if $perms_owner is a single string
+  * Returns if permissions are sufficient.
+  **/
+function machine_permission($machine,$args)
+{
+	global $config;
+	$user=user_get();
+	$perms_owner=hash_get($args,'perms_owner',null);
+	$perms_other=hash_get($args,'perms_other',null);
+
+	# everything enabled if we don't use configuration
+	if( !$config->authentication->use )
+		return true;
+
+	# if no permission specified, we assume that user just needs to be logged in
+	if( !$perms_owner )
+		return ( !is_null($user) );
+
+	# default permission with '_reserved', in case we have a single string in $perms_owner
+	if( is_null($perms_other) && !is_array($perms_owner) )
+		$perms_other=$perms_owner.'_reserved';
+	$users_machine=users_machine( $user, $machine );
+	return call_user_func_array('capable',array_merge(to_array($perms_other),($users_machine ? to_array($perms_owner) : array())) );
+}
+
+/** 
+  * Check for machine's permissions and redirects if missing.
+  * accepts args:
+  * - perms_owner : permission(s) needed for those who own the machine
+  * - perms_other : permission(s) required for those who don't own it, and sufficient for those who do; defaults to $perms_owner . '_reserved' if $perms_owner is a single string
+  * - url : redirect URL, default 'index.php'
+  * Returns if permissions are sufficient.
+  **/
+function machine_permission_or_redirect($machine,$args=array())
+{
+	if( !machine_permission( $machine, $args ) )
+		redirect( $args );
+}
+
+/** 
+  * Check for machine's permissions and sets 'disabled.css' if missing.
+  * accepts args:
+  * - perms_owner : permission(s) needed for those who own the machine
+  * - perms_other : permission(s) required for those who don't own it, and sufficient for those who do; defaults to $perms_owner . '_reserved' if $perms_owner is a single string
+  * - url : redirect URL, default 'index.php'
+  * Returns if permissions are sufficient.
+  **/
+
+function machine_permission_or_disabled($machine,$args)
+{
+	if( !machine_permission( $machine, $args ) )
+		disable($args);
+}
+
+function permission_or_redirect($args=array())
+{
+	$perms=hash_get($args,'perms',array());
+	if( !call_user_func_array('capable',$perms) )
+		redirect($args);
+}
+
+function permission_or_disabled($args=array())
+{
+	$perms=hash_get($args,'perms',array());
+	if( !call_user_func_array('capable',$perms) )
+		disable($args);
+}
+
+function disable($args=array())
+{
+	global $disabled_css;
+	$errmsg=hash_get($args,'errmsg','You need to be logged in and/or have permissions to do any modifications here');
+	$_SESSION['message']=$errmsg;
+	$_SESSION['mtype']='fail';
+	$disabled_css=true;
+
+	# FIXME: this prevents TBlib's update forms from updating, but is not a clean solution.
+	unset($_REQUEST['wtoken']);
 }
 
 ?>
