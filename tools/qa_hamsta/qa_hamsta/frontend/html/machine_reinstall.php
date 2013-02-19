@@ -27,8 +27,9 @@
 		$go = 'machine_send_job';
 		return require("index.php");
 	}
-if (User::isLogged())
-  $user = User::getById (User::getIdent (), $config);
+
+	if (User::isLogged())
+	  $user = User::getById (User::getIdent (), $config);
 
 	$blockedMachines = array();
 	$virtualMachines = array();
@@ -65,13 +66,12 @@ if (User::isLogged())
 
 	} else {
 ?>
-<h5>You are trying to reinstall the following machine(s) with Autoyast:<br />
-
+<h5>You are trying to reinstall the following machine(s) with Autoyast:</h5>
 <ul>
 <?php foreach ($machines as $machine): ?>
-<li><input type="hidden" name="a_machines[]" value="<?php echo($machine->get_id()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>"><?php echo($machine->get_hostname()); ?></a></li>
+<li><input type="hidden" name="a_machines[]" value="<?php echo($machine->get_id()); ?>"><a class="text-small-bold" href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>"><?php echo($machine->get_hostname()); ?></a></li>
 <?php endforeach; ?>
-</ul></h5>
+</ul>
 
 <form enctype="multipart/form-data" action="index.php?go=machine_reinstall" method="POST" onsubmit="return checkcontents(this);">
 <table class="text-medium">

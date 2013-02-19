@@ -68,3 +68,8 @@
 	font-size: 0.8em;
 	font-family: arial, verdana, sans-serif;
 }
+
+.text-small-bold {
+    font-size:small;
+    font-weight:bold;
+}
