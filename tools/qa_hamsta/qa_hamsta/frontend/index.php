@@ -61,7 +61,7 @@ require("lib/powerswitch.php");
 
 require_once("../tblib/tblib.php");
 
-User::authenticate($config);
+User::authenticate();
 
 $go = request_str("go");
 

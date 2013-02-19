@@ -4,6 +4,7 @@ require_once ('Zend/Db.php');
 require_once ('Zend/Session.php');
 
 require_once ('Notificator.php');
+require_once ('ConfigFactory.php');
 require_once ('../frontenduser/Authenticator.php');
 
 /**
@@ -389,13 +390,12 @@ class User {
 
   /**
    * Authenticates this user using method set in configuration.
-   *
-   * @param \Zend_Config $config Application configuration.
    */
-  public static function authenticate ($config)
+  public static function authenticate ()
   {
+    $config = ConfigFactory::build ();
     $auth = Authenticator::getInstance ();
-    if ($auth->hasIdentity ())
+    if (self::isLogged ())
       {
         if ( isset($_GET['action'])
              && $_GET['action'] == "logout" )
@@ -467,8 +467,8 @@ class User {
 		  }
               }
 	  }
-	elseif (isset ($_GET['action']) && $_GET['action'] == 'login'
-	    || isset ($_GET['openid_mode']) && $_GET['openid_mode'] == 'id_res')
+	elseif (isset ($_REQUEST['action']) && $_REQUEST['action'] == 'login'
+	    || isset ($_REQUEST['openid_mode']) && $_REQUEST['openid_mode'] == 'id_res')
 	  {
 	    $res = Authenticator::openid ($config->authentication->openid->url);
 	    /* Store user data in the session for registration. */

@@ -61,7 +61,7 @@ class Authenticator extends Zend_Auth
       }
     else
       {
-	if (isset($_GET['openid_identity']))
+	if (isset($_REQUEST['openid_mode']))
 	  {
 	    /* This is second request to validate identity. */
 	    $adapter = new Zend_Auth_Adapter_OpenId ();
@@ -77,8 +77,6 @@ class Authenticator extends Zend_Auth
 
     if (! $result->isValid() ) {
       $auth->clearIdentity();
-      Zend_Session::destroy(true);
-      Zend_Session::forgetMe();
       foreach ($result->getMessages() as $message) {
 	print ("$message<br />\n");
       }
