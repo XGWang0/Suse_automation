@@ -434,7 +434,7 @@ QA-packages Jobs are used to launch various test suites on your System Under Tes
 <HR>
 <h2 class="text-medium text-blue bold">Autotest Jobs</h2>
 <p class="text-main">
-Auto test jobs. Here we only provide typic test for each autotest component. If you want to have fully custom test, please go to http://autotest.suse.cz/afe
+Autotest jobs. 
 </p>
 <form action="index.php?go=autotest" method="POST" name="autotest" onsubmit="return checkcheckbox(this);">
 <table class="text-main">
