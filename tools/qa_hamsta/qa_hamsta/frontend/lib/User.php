@@ -401,6 +401,7 @@ class User {
              && $_GET['action'] == "logout" )
           {
             self::logout ();
+	    header ('Location: index.php');
             return true;
           }
       }
@@ -442,8 +443,6 @@ class User {
 	     * fill out the registration form. */
             if (! self::isRegistered (self::getIdent(), $config))
               {
-		error_log ('Going to register new user "' . User::getIdent () . '".');
-
                 if (! isset ($_GET['go']) || $_GET['go'] != 'register')
                   {
                     header ('Location: index.php?go=register');
@@ -505,12 +504,7 @@ class User {
    */
   public static function logout ()
   {
-    if (self::isLogged ()
-	&& isset($_GET['action'])
-	&& $_GET['action'] == 'logout') {
-      Authenticator::logout ();
-      header ('Location: index.php');
-    }
+    Authenticator::logout ();
   }
 
   /**
@@ -614,11 +608,13 @@ class User {
    * @param string $name User's name.
    * @param string $email User's e-mail address.
    * @param \Zend_Config $config Application configuration.
+   * @throws Exception Some exeption
    *
    * @return integer Number greater than zero if user has been added, zero otherwise.
    */
   public static function addUser ($extern_id, $login, $name, $email, $config)
   {
+    $added = 0;
     $db = Zend_Db::factory ($config->database);
     $data = Array (
                    'extern_id' => $extern_id,
@@ -626,7 +622,16 @@ class User {
                    'name' => $name,
                    'email' => $email
                    );
-    $added = $db->insert ('user', $data);
+
+    try
+      {
+	$added = $db->insert ('user', $data);
+      }
+    catch (Exception $e)
+      {
+	error_log ('Error adding user to database. Exception message: ' . $e->getMessage ());
+      }
+
     if ($added > 0)
       {
         $user = User::getByLogin ($login, $config);
