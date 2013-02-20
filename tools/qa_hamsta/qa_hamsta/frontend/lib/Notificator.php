@@ -89,8 +89,11 @@ class Notificator
   public static function setMessage ($message, $type)
   {
     $ns = self::getNamespace (self::MESSAGE_SESSION_NAMESPACE);
-    $ns->message = $message;
-    $ns->messType = $type;
+    if (isset ($ns))
+      {
+	$ns->message = $message;
+	$ns->messType = $type;
+      }
   }
 
   /**
