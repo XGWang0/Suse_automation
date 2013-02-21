@@ -960,60 +960,71 @@ function users_machine($user,$machine)
 /** 
   * Check for machine's permissions.
   * accepts args:
-  * - perms_owner : permission(s) needed for those who own the machine
-  * - perms_other : permission(s) required for those who don't own it, and sufficient for those who do; defaults to $perms_owner . '_reserved' if $perms_owner is a single string
+  * - owner : permission(s) needed for those who own the machine
+  * - other : permission(s) required for those who don't own it, and sufficient for those who do; defaults to $owner . '_reserved' if $owner is a single string
   * Returns if permissions are sufficient.
   **/
-function machine_permission($machine,$args)
+function machine_permission($machines,$args)
 {
 	global $config;
 	$user=user_get();
-	$perms_owner=hash_get($args,'perms_owner',null);
-	$perms_other=hash_get($args,'perms_other',null);
+	$owner=hash_get($args,'owner',null);
+	$other=hash_get($args,'other',null);
 
 	# everything enabled if we don't use configuration
 	if( !$config->authentication->use )
 		return true;
 
 	# if no permission specified, we assume that user just needs to be logged in
-	if( !$perms_owner )
+	if( !$owner )
 		return ( !is_null($user) );
 
-	# default permission with '_reserved', in case we have a single string in $perms_owner
-	if( is_null($perms_other) && !is_array($perms_owner) )
-		$perms_other=$perms_owner.'_reserved';
+	# normalize $machines
+	$machines=to_array($machines);
+#	for($i=0; $i<count($machines); $i++ )	{
+#		if( is_numeric($machines[$i]) )
+#			$machines[$i] = Machine::get_by_id($machines[$i]);
+#	}
+
 	$users_machine=users_machine( $user, $machine );
-	return call_user_func_array('capable',array_merge(to_array($perms_other),($users_machine ? to_array($perms_owner) : array())) );
+	$perms=array_merge(to_array($other),($users_machine ? to_array($owner) : array()));
+	foreach( $machines as $machine )	{
+		if( ! call_user_func_array('capable',$perms) )
+			return false;
+	}
+	return true;
 }
 
 /** 
   * Check for machine's permissions and redirects if missing.
   * accepts args:
-  * - perms_owner : permission(s) needed for those who own the machine
-  * - perms_other : permission(s) required for those who don't own it, and sufficient for those who do; defaults to $perms_owner . '_reserved' if $perms_owner is a single string
+  * - owner : permission(s) needed for those who own the machine
+  * - other : permission(s) required for those who don't own it, and sufficient for those who do; defaults to $owner . '_reserved' if $owner is a single string
   * - url : redirect URL, default 'index.php'
   * Returns if permissions are sufficient.
   **/
-function machine_permission_or_redirect($machine,$args=array())
+function machine_permission_or_redirect($machines,$args=array())
 {
-	if( !machine_permission( $machine, $args ) )
+	if( !machine_permission( $machines, $args ) )
 		redirect( $args );
 }
 
 /** 
   * Check for machine's permissions and sets 'disabled.css' if missing.
   * accepts args:
-  * - perms_owner : permission(s) needed for those who own the machine
-  * - perms_other : permission(s) required for those who don't own it, and sufficient for those who do; defaults to $perms_owner . '_reserved' if $perms_owner is a single string
+  * - owner : permission(s) needed for those who own the machine
+  * - other : permission(s) required for those who don't own it, and sufficient for those who do; defaults to $owner . '_reserved' if $owner is a single string
   * - url : redirect URL, default 'index.php'
   * Returns if permissions are sufficient.
   **/
 
-function machine_permission_or_disabled($machine,$args)
+function machine_permission_or_disabled($machines,$args)
 {
-	if( !machine_permission( $machine, $args ) )
+	if( !machine_permission( $machines, $args ) )
 		disable($args);
 }
+
+$perm_send_job=array('owner'=>'machine_send_job','other'=>'machine_send_job_reserved');
 
 function permission_or_redirect($args=array())
 {
@@ -1039,6 +1050,34 @@ function disable($args=array())
 
 	# FIXME: this prevents TBlib's update forms from updating, but is not a clean solution.
 	unset($_REQUEST['wtoken']);
+}
+
+function jobs_send($machine_ids,$file,$jobname='',$type='',$errors=array())
+{
+	$search = new MachineSearch();
+	$search->filter_in_array($machine_ids);
+	$machines = $search->query();
+	foreach(to_array($machines) as $machine)	{
+		if( !machine_permission($machine,array('owner'=>'machine_send_job','other'=>'machine_send_job_reserved')) ) {
+			$errors[]=$machine->get_hostname().": not permitted";
+		}
+		else	{
+			if($machine->send_job($file)) {
+				$msg="has sent a$type job to this machine". ($jobname ? " (Job name: \"".htmlspecialchars($jobname)."\")":'');
+				Log::create($machine->get_id(), $machine->get_used_by_login(), 'JOB_START', $msg);
+			} else {
+				$errors[]=$machine->get_hostname().": ".$machine->errmsg;
+			}
+		}
+	}
+	if (!count($errors))	{
+		header("Location: index.php");
+		exit;
+	}
+	else	{
+		$_SESSION['message'] = join("\n", $errors);
+		$_SESSION['mtype'] = "fail";
+	}
 }
 
 ?>

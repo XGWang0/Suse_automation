@@ -36,36 +36,9 @@ $machine_names = array();
 
 /* Check the user is logged in and has privileges to send job to
  * selected machines. */
-if ($config->authentication->use) {
-	if (User::isLogged () && User::isRegistered (User::getIdent (), $config)) {
-		$user = User::getById (User::getIdent (), $config);
-		if ( $user->isAllowed ('machine_send_job')
-		     || $user->isAllowed ('machine_send_job_reserved') ) {
-			foreach($machines as $machine) {
-				if ( ! ( $machine->get_used_by_login () == $user->getLogin ()
-				   || $user->isAllowed ('machine_send_job_reserved')) ) {
-					Notificator::setErrorMessage ("You cannot send a job to a machine that is not reserved"
-								      . " or is reserved by other user.");
-					header ("Location: index.php");
-					exit ();
-				}
-				/* Do actually what we need to do here. */
-				$machine_names[] = array( $machine->get_id(), $machine->get_hostname() );
-			}
-		} else {
-			Notificator::setErrorMessage ("You do not have privileges to send a job to a machine.");
-			header ("Location: index.php");
-			exit ();
-		}
-	} else {
-		Notificator::setErrorMessage ("You have to be logged in and registered to send a job to a machine.");
-		header ("Location: index.php");
-		exit ();
-	}
-} else {
-	foreach($machines as $machine)
-		$machine_names[] = array( $machine->get_id(), $machine->get_hostname() );
-}
+machine_permission_or_disabled($machines,$perm_send_job);
+foreach($machines as $machine)
+	$machine_names[] = array( $machine->get_id(), $machine->get_hostname() );
 
 #print "<pre>\n"; 
 #print_r(request_array('a_machines')); 
@@ -89,6 +62,7 @@ if( request_str('submit') && !is_readable($filename) )
 	$errors[] = "Cannot read file '$filename'";
 else if( request_str('submit') )
 {
+	machine_permission_or_redirect($machines,$perm_send_job);
 	$xml = simplexml_load_file( $filename );
 	$roles = roles_read($xml);
 #	print "<pre>";
@@ -116,9 +90,9 @@ else if( request_str('submit') )
 	foreach( $roles as $id=>$vals )
 	{
 		# process the role table
-		$name    = get_val($vals,'name',$id);
-		$num_min = get_val($vals,'num_min',0);
-		$num_max = get_val($vals,'num_max',0);
+		$name    = hash_get($vals,'name',$id);
+		$num_min = hash_get($vals,'num_min',0);
+		$num_max = hash_get($vals,'num_max',0);
 		$height = max( $num_max, 15 );
 		$multiple = ( !$num_max||$num_max>1 ? 'multiple="multiple"' : '' );
 		$data = null;
@@ -243,14 +217,6 @@ $html_title = "Multi-machine job details";
 if (count($errors) != 0) {
 	$_SESSION['message'] = implode("\n", $errors);
 	$_SESSION['mtype'] = "fail";
-}
-
-# replace with tblib/tblib_common.php/hash_get()
-function get_val($hash,$key,$default)
-{
-	if( isset($hash[$key]) )
-		return $hash[$key];
-	return $default;
 }
 
 ?>

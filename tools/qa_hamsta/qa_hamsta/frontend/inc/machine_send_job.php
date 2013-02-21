@@ -23,73 +23,37 @@
   ****************************************************************************
  */
 
-    /**
+/**
      * Logic of the machine_send_job page 
      */
-    if (!defined('HAMSTA_FRONTEND')) {
+if (!defined('HAMSTA_FRONTEND')) {
         $go = 'machine_send_job';
         return require("index.php");
-    }
+}
 
-    # for delete custom file
-    $option = request_str("opt");
-    $machine_list = request_str("machine_list");
-    $custom_file = request_str("file");
+# for delete custom file
+$option = request_str("opt");
+$machine_list = request_str("machine_list");
+$custom_file = request_str("file");
     
-    if($option == "delete") # only custom defined file can be deleted
-    {
+if($option == "delete") # only custom defined file can be deleted
+{
     	$custom_file = $config->xml->dir->default . "/" . $custom_file;
 
 	if(file_exists($custom_file))
             unlink($custom_file);
-    }
+}
 
-    $search = new MachineSearch();
-    if($machine_list != "")
+$search = new MachineSearch();
+if($machine_list != "")
     	$machines_id_array = explode(",", $machine_list);
-    else
+else
 	$machines_id_array = request_array("a_machines");
 
-        // print_r($_REQUEST);
-        #$search->filter_in_array(request_array("a_machines"));
-        $search->filter_in_array($machines_id_array);
-        $machines = $search->query();
+$search->filter_in_array($machines_id_array);
+$machines = $search->query();
 
-	/* Check if user has privileges to send a job to machine. */
-	if ( $config->authentication->use )
-	  {
-	    if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
-	      {
-		$user = User::getById (User::getIdent (), $config);
-		if ( $user->isAllowed ('machine_send_job')
-		     || $user->isAllowed ('machine_send_job_reserved') )
-		  {
-		    foreach ($machines as $machine)
-		      {
-			if ( ! ( $machine->get_used_by_login () == $user->getLogin ()
-				 || $user->isAllowed ('machine_send_job_reserved')) )
-			  {
-			    Notificator::setErrorMessage ("You cannot send a job to a machine that is not reserved"
-							  . " or is reserved by other user.");
-			    header ("Location: index.php?go=machines");
-			    exit ();
-			  }
-		      }
-		  }
-		else
-		  {
-		    Notificator::setErrorMessage ("You do not have privileges to send a job to a machine.");
-		    header ("Location: index.php?go=machines");
-		    exit ();
-		  }
-	      }
-	    else
-	      {
-		Notificator::setErrorMessage ("You have to be logged in and registered to send a job to a machine.");
-		header ("Location: index.php");
-		exit ();
-	      }
-	  }
+machine_permission_or_redirect($machines,$perm_send_job);
 
         $resend_job=request_str("xml_file_name");
         $filenames =request_array("filename");

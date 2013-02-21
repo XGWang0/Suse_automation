@@ -33,28 +33,10 @@ if (!defined('HAMSTA_FRONTEND')) {
  }
 $html_title="Validation test";
 
+$perms=array('owner'=>'validation_start','url'=>'index.php?go=validation');
 /* First check if the user has privileges to run this functionality. */
-if ( $config->authentication->use )
-  {
-    if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
-      {
-        $user = User::getById (User::getIdent (), $config);
-        if ( ! $user->isAllowed ('validation_start') )
-          {
-            Notificator::setErrorMessage ("You do not have privileges to "
-                                          . "run validation tests.");
-            header ("Location: index.php");
-            exit ();
-          }
-      }
-    else
-      {
-        Notificator::setErrorMessage ("You have to logged in and registered to "
-                                      . "run validation tests.");
-        header ("Location: index.php");
-        exit ();
-      }
-  }
+permission_or_disabled($perms);
+
 	/* pkacer@suse.com: I have suppressed warnings here because if
 	 * the file is not reachable, the warning is always displayed
 	 * (Hamsta displays all warnings, see 'index.php') and that
@@ -74,6 +56,7 @@ if ( $config->authentication->use )
 	}
 
 	if (request_str("submit")) {
+		permission_or_redirect($perms);
 		$vmlist = $config->vmlist->toArray ();
 		$buildnr = $_POST['buildnumber'];
 		$baseurl = "$newdic[$buildnr]" . "$buildnr";

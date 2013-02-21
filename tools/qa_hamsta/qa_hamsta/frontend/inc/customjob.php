@@ -39,6 +39,7 @@
 
 	if (request_str("submit"))
 	{
+		machine_permission_or_redirect($machines,$perm_send_job);
 		require("inc/job_create.php");
 
 		if(count($errors) == 0)
