@@ -900,6 +900,34 @@ class User {
     }
   }
 
+  /**
+   * Returns a string representation of this user.
+   *
+   * @return string A textual representation of the user. Name and
+   * login is returned.
+   */
+  public function __toString ()
+  {
+    return $this->getName () . ' (' . $this->getLogin () . ')';
+  }
+
+  /**
+   * Compare with another user.
+   *
+   * Compares users using ID in the database.
+   *
+   * @param User $other_user Other user to compare to.
+   * @return boolean True if the objects are equal users.
+   */
+  public function equals ($other_user)
+  {
+    if (! isset ($other_user))
+      {
+	return false;
+      }
+    return $this->getId () == $other_user->getId ();
+  }
+
 }
 
 function user_get()
