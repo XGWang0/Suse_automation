@@ -38,15 +38,6 @@ function filter($var) {
 } 
 
 /* Check if user is logged in, registered and have sufficient privileges. */
-if ( $config->authentication->use
-     && ( ! User::isLogged() || ! User::isRegistered (User::getIdent (), $config) ) )
-  {
-    Notificator::setErrorMessage ('You have to be logged in to reinstall a machine.');
-    header('Location: index.php');
-    exit ();
-  }
-
-$perms=array('owner'=>'machine_reinstall','other'=>'machine_reserved','url'=>'index.php?go=machine_reinstall');
 $search = new MachineSearch();
 $search->filter_in_array(request_array("a_machines"));
 $machines = $search->query();
@@ -60,6 +51,7 @@ foreach($machines as $m) {
 
 /* Now check if the user tries to reinstall only his machines or if
  * he can reinstall also reserved machines. */
+$perms=array('owner'=>'machine_reinstall','other'=>'machine_reserved','url'=>'index.php?go=machine_reinstall');
 machine_permission_or_disabled($machines,$perms);
 
 # If the install options are empty, we use the ones from the DB, else we see if options are different between machines. If different, don't use them

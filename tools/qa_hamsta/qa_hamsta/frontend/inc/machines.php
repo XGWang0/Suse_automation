@@ -37,12 +37,6 @@
 	}
 
 /* Retrieve an user instance if we can. */
-$user = null;
-if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
-  {
-    $user = User::getById (User::getIdent (), $config);
-  }
-
 	switch (request_str("action")) {
 		case "edit":
 			$go = "machine_edit";

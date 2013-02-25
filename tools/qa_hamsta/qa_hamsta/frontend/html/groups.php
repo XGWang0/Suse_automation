@@ -38,10 +38,6 @@
 	}
 	else
 	{
-		if(isset($user)){
-			$user_id = $user->get_id();
-
-		}
 ?>
 
 <table class="list text-main">

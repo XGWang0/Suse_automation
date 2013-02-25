@@ -82,39 +82,7 @@
     $machines = $search->query();
 
 /* Check if user has privileges to delete a machines. */
-if ( $config->authentication->use )
-  {
-    if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
-      {
-        $user = User::getById (User::getIdent (), $config);
-        if ( $user->isAllowed ('machine_delete') || $user->isAllowed ('machine_delete_reserved') )
-          {
-            foreach ($machines as $machine)
-              {
-                if ( ! ( $machine->get_used_by_login () == $user->getLogin () 
-                         || $user->isAllowed ('machine_delete_reserved')) )
-                  {
-                    Notificator::setErrorMessage ("You cannot delete a machine that is not reserved"
-                                                  . " or is reserved by other user.");
-                    header ("Location: index.php?go=machines");
-                    exit ();
-                  }
-              }
-          }
-        else
-          {
-            Notificator::setErrorMessage ("You do not have privileges to delete a machine.");
-            header ("Location: index.php?go=machines");
-            exit ();
-          }
-      }
-    else
-      {
-        Notificator::setErrorMessage ("You have to be logged in and registered to delete a machine.");
-        header ("Location: index.php?go=machines");
-        exit ();
-      }
-  }
+    machine_permission_or_redirect($machines,array('owner'=>'machine_delete','other'=>'machine_delete_redirect','url'=>'index.php?go=machines'));
     
     $html_title = "Delete machines";
 ?>

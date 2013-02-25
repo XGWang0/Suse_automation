@@ -981,10 +981,10 @@ function machine_permission($machines,$args)
 
 	# normalize $machines
 	$machines=to_array($machines);
-#	for($i=0; $i<count($machines); $i++ )	{
-#		if( is_numeric($machines[$i]) )
-#			$machines[$i] = Machine::get_by_id($machines[$i]);
-#	}
+	for($i=0; $i<count($machines); $i++ )	{
+		if( is_numeric($machines[$i]) )
+			$machines[$i] = Machine::get_by_id($machines[$i]);
+	}
 
 	$users_machine=users_machine( $user, $machine );
 	$perms=array_merge(to_array($other),($users_machine ? to_array($owner) : array()));

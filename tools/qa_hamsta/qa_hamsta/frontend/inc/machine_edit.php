@@ -39,38 +39,9 @@
 		return require("index.php");
 	}
 
-        /* Verify user has rights to modify the machine. */
-        if ( $config->authentication->use )
-          {
-            if ( User::isLogged() && User::isRegistered (User::getIdent (), $config) )
-              {
-                $user = User::getById (User::getIdent (), $config);
-                if ( ! ($user->isAllowed ('machine_edit')
-                        || $user->isAllowed ('machine_edit_reserved')) ) {
-                  Notificator::setErrorMessage ('You do not have permission to edit/reserve a machine.');
-                  header('Location: index.php');
-                  exit ();
-                }
-
-                foreach ($allmachines as $machine_id)
-                  {
-                    $machine = Machine::get_by_id($machine_id);
-                    $used_by = User::getByLogin($machine->get_used_by_login(), $config);
-                    if ( isset ($used_by) && $used_by->getLogin() != $user->getLogin()
-                         && ! $user->isAllowed ('machine_edit_reserved') ) {
-                      Notificator::setErrorMessage ('You cannot modify a machine'
-                                                    . ' that is reserved by other user.');
-                      header('Location: index.php');
-                      exit ();
-                    }
-                  }
-              } else {
-              Notificator::setErrorMessage ('You have to be logged in to modify a machine.');
-              header('Location: index.php');
-              exit ();
-            }
-          }
-
+	/* Verify user has rights to modify the machine. */
+	$perms=array('owner'=>'machine_edit','other'=>'machine_edit_reserved');
+	machine_permission_or_disabled($allmachines,$perms);
         /* If they are doing the shortcut field clearing */
 	if (request_str("action") == "clear")
 	{
@@ -91,6 +62,7 @@
 	# Keep in mind that there are potentially multiple machines being edited here
 	else if (request_str("submit"))
 	{
+		machine_permission_or_redirect($allmachines,$perms);
 		# First, check the data for errors
 		$errors = array();
 

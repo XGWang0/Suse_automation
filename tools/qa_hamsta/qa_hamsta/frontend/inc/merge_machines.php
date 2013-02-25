@@ -32,27 +32,6 @@ if (!defined('HAMSTA_FRONTEND')) {
 	return require("index.php");
 }
 
-/* First check if the user has privileges to run this functionality. */
-if ( $config->authentication->use )
-  {
-    if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
-      {
-        $user = User::getById (User::getIdent (), $config);
-        if ( ! $user->isAllowed ('machine_merge')
-             && ! $user->isAllowed ('machine_merge_reserved') )
-          {
-            Notificator::setErrorMessage ("You do not have privileges to merge machines.");
-            header ("Location: index.php");
-            exit ();
-          }
-      }
-    else
-      {
-        Notificator::setErrorMessage ("You have to logged in and registered to merge machines.");
-        header ("Location: index.php");
-        exit ();
-      }
-  }
 
 $ids = request_array("a_machines");
 if( count($ids)<2 )	{
@@ -60,9 +39,13 @@ if( count($ids)<2 )	{
 	header('Location: index.php');
 	exit();
 }
-
 sort($ids,SORT_NUMERIC);
 $ids = array_reverse($ids);
+
+/* First check if the user has privileges to run this functionality. */
+$perms=array('owner'=>'machine_merge','other'=>'machine_merge_reserved');
+machine_permission_or_disabled($ids,$perms);
+
 
 # 's' means a string type with concatenation possible (e.g. comments)
 # 'S' means a string type with one-of selection (e.g. MAC address)
@@ -98,6 +81,7 @@ $fields = array(
 );
 
 if( request_str('submit') )	{
+	machine_permission_or_redirect($ids,$perms);
 	$primary_machine_id=request_str('primary_machine_id');
 	$primary_machine = Machine::get_by_id($primary_machine_id);
 	if( $primary_machine )	{
