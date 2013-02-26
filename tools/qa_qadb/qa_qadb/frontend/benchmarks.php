@@ -59,8 +59,8 @@ common_header(array(
 ));
 
 # 6. clear old images from the image directory
-$imgdir_rel = '/qadb/output';
-$imgdir = $_SERVER['DOCUMENT_ROOT'].$imgdir_rel;
+$imgdir_rel = 'output';
+$imgdir = dirname(__FILE__) . '/' . $imgdir_rel;
 if( $handle = opendir($imgdir) )
 {
 	while (false !== ($file = readdir($handle))) {
@@ -186,7 +186,7 @@ function process_tree( $level, $where, $label='' )
 		# level 0 - print a paragraph headline
 		if( $level==0 )
 		{
-            $value = preg_replace('/^[^\d\w]+/','',$value);
+			$value = preg_replace('/^[^\d\w]+/','',$value);
 			print "<h1>$value</h1>\n";
 			process_tree( $level+1, $mywhere, $value );
 			continue;

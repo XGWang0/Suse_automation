@@ -54,16 +54,16 @@ if [ ! -z "$full_qa_config" ] ; then
 fi
 
 # read all configs in correct order
-set > /tmp/$$.before # read all variables before we processed qa config
+set > /tmp/$$.before # read all variables before we process qa config
 for file in /etc/qa/*
 do
-	# skip (invalid/all)location files
+	# skip (invalid/all) location files
 	if [ -z "$location_qa_config" ] && echo $file | grep -q '\.' ; then
 		# Dots are allowed only in location-specific configurations
-		# but we are reaading only globals now
+		# but we are reading only globals now
 		continue
 	elif echo $file | grep -q '\.' && echo $file | grep -vq "\.$location_qa_config$" ; then
-		# It is location faile but for different location
+		# It is location file but for different location
 		continue
 	fi
 
@@ -85,7 +85,7 @@ full_qa_config=`diff /tmp/$$.before /tmp/$$.after | grep "^>" | sed 's/^> //' | 
 rm /tmp/$$.after /tmp/$$.before
 
 
-# Now try the location specific things unelss we already did so befere (recursion of sourcing)
+# Now try the location specific things unless we already did so before (recursion of sourcing)
 if [ -z "$location_qa_config" ] ; then
 	location_qa_config="$location"  # read from config files!
 	[ -z "$location_qa_config" -a -x '/usr/share/qa/tools/location_detect_impl.pl' ] && location_qa_config="`/usr/share/qa/tools/location_detect_impl.pl`"

@@ -255,6 +255,7 @@ sub log # severity, message, ...
 	if( &parse_log($format) )	{	
 		$data = $format;	
 	}	else	{
+		$format =~ s/%3a/%%3a/g; #fix bug#798445
 		$data = sprintf $format,@_;
 	}
 	my @data = split /\n/,$data;

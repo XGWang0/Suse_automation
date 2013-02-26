@@ -43,7 +43,7 @@ p2="X11"
 patterns="$p1 $p2"
 
 for p in $patterns; do
-	result=`zypper --no-refresh search -i -t pattern $p |tail -n 1`
+	result=`zypper --no-refresh -n search -i -t pattern $p |tail -n 1`
 
 	if [ "$result" = "No packages found." ]; then
 		zypper -n install -l -t pattern $p
@@ -69,9 +69,9 @@ if [ "$rei" ]; then
 fi
 
 # Enable accessibility
-status=`gconftool-2  -g /desktop/gnome/interface/accessibility`
+status=`sudo gconftool-2 -g /desktop/gnome/interface/accessibility`
 if [ "$status" = "false" ]; then
-	gconftool-2  -s --type=Boolean /desktop/gnome/interface/accessibility true
+	sudo gconftool-2 -s --type=Boolean /desktop/gnome/interface/accessibility true
 else
 	echo "accessibility is enabled"
 fi

@@ -31,6 +31,27 @@ if (!defined('HAMSTA_FRONTEND')) {
     return require("../index.php");
 }
 
+/* First check if the user has privileges to run this functionality. */
+if ( $config->authentication->use )
+  {
+    if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
+      {
+        $user = User::getById (User::getIdent (), $config);
+        if ( ! $user->isAllowed ('autopxe_start') )
+          {
+            Notificator::setErrorMessage ("You do not have privileges to use AutoPXE.");
+            header ("Location: index.php");
+            exit ();
+          }
+      }
+    else
+      {
+        Notificator::setErrorMessage ("You have to logged in and registered to use AutoPXE.");
+        header ("Location: index.php");
+        exit ();
+      }
+  }
+
 $search = new MachineSearch();
 $search->filter_in_array(request_array("a_machines"));
 $machines = $search->query();
@@ -40,7 +61,11 @@ if (request_str("submit")) {
 	$type = request_str("type");
 	$address = request_str("address");
 	$is_hamsta = request_str("hamsta");
-	$cmd = 'sudo ssh -o StrictHostKeyChecking=no rd-qa@'.$pxeserver." \"autopxe.pl $repourl $type $address $is_hamsta 1>/dev/null \"";
+	if(empty($is_hamsta)) $is_hamsta = 'off';	
+	$host_loop = request_str("loopback");
+	if(empty($host_loop)) $host_loop = 'off';
+	$cmd = 'sudo ssh -o StrictHostKeyChecking=no rd-qa@'.$config->pxeserver." \"autopxe.pl $repourl $type $address $is_hamsta $host_loop 1>/dev/null \"";
+	echo $cmd;
 	system($cmd, $ret);
 	$errors = array();
 	if ($ret == 0) {

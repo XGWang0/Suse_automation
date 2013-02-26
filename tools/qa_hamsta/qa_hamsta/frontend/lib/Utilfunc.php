@@ -32,8 +32,7 @@
 		if(request_str("interval") && !preg_match("/^[0-9]+$/", request_str("interval")))
 		{
 			$pre_value = request_int("pre_value");
-			$_SESSION['message'] = 'The refresh interval must be a positive number!';
-			$_SESSION['mtype'] = "fail";
+                        Notificator::setErrorMessage ('The refresh interval must be a positive number!');
 		};
 
 		if(request_int("interval")&&(request_int("interval")>0))
@@ -83,3 +82,60 @@
 			print("$where : ");
 		printf("%f us<br/>\n",1000000*($now-$prof_begin));
 	}
+
+/**
+ * Merge and concatenate strings (type 's').
+ *
+ * @param string[] $s Array of strings to merge.
+ * @param string $ret String where strings will be merged to.
+ * @param boolena $flag True if there were differences.
+ */
+function merge_strings ($s, &$ret, &$flag)
+{
+  $s = array_unique ($s);
+  $ret = $s[0];
+  $flag = 0;
+  $i = 1;
+
+  for ( ; $i < count ($s); $i++ )
+    {
+       if ( ! isset ($s[$i]) )
+         continue;
+
+       if ( strlen ($ret) )
+         {
+           $ret = $ret . ', ' . $s[$i];
+         }
+       else
+         {
+           $ret = $s[$i];
+         }
+    }
+
+  $flag = $i - 1;
+}
+
+/**
+ * Merge arrays (type 'S', one-of).
+ *
+ * @param array $s Array of values to merge.
+ * @param array $ret Array in which the result will be merged.
+ * @param boolean $flag True if there were differences.
+ */
+function merge_unique ($s, &$ret, &$flag)
+{
+  $ret = array_unique ($s);
+  for ( $i = 0; $i < count ($ret); $i++ )
+    {
+      if ( isset ($ret[$i]) )
+        rtrim ($ret[$i]);
+
+      if ( ! isset ($ret[$i]) || strlen ($s[$i]) == 0 )
+        array_splice ($ret, $i, 1);
+    }
+
+  $flag = (count ($ret) > 1) ? 1 : 0;
+
+  if ( ! $flag )
+    $ret = (count ($ret)) ? $ret[0] : '';
+}

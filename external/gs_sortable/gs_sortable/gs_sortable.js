@@ -124,20 +124,21 @@ function tsInit()
 	// Get TR rows
 	var rows = tbody.getElementsByTagName('tr');
 
+	// commented out (won't work with new Firefox anymore), needing an idea how to implement the CSS
 	// modification - add minimax button (only for Firefox currently; hide it otherwise)
-	if( rows.length>25 && navigator.userAgent.match(/Firefox/) )
-	{
-		var anchor=document.createElement('a');
-		anchor.href='#';
-		var b_img=document.createElement('img');
-		b_img.src='/tblib/icons/resize.png';
-		b_img.className='icon';
-		b_img.alt="\u2195";
-		anchor.setAttribute('onclick',"toggleTable('"+table_id+"')");
-		b_img.title="Click to expand/shrink the table.";
-		anchor.appendChild(b_img);
-		cols[0].insertBefore(anchor,cols[0].getElementsByTagName('a')[0]);
-	}
+//	if( rows.length>25 && navigator.userAgent.match(/Firefox/) )
+//	{
+//		var anchor=document.createElement('a');
+//		anchor.href='#';
+//		var b_img=document.createElement('img');
+//		b_img.src='/tblib/icons/resize.png';
+//		b_img.className='icon';
+//		b_img.alt="\u2195";
+//		anchor.setAttribute('onclick',"toggleTable('"+table_id+"')");
+//		b_img.title="Click to expand/shrink the table.";
+//		anchor.appendChild(b_img);
+//		cols[0].insertBefore(anchor,cols[0].getElementsByTagName('a')[0]);
+//	}
 
 	var date = new Date ();
 	var len, text, a;

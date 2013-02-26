@@ -10,6 +10,47 @@
 # loggable output & reporting information will go to stdout.
 # reporting information for end users will go to stderr.
 
+function kill_children() {
+	no_children=0
+	if [ "$1" != "--verbose" ] ; then
+		alias echo=true
+	else
+		shift
+	fi
+	if [ "$1" != "--KILL" ] ; then
+		SIGNAL=-INT
+	else
+		SIGNAL=-KILL
+	fi
+	for i in `pstree -p $$ | sed 's/[a-z\+\`\(\)\|\.\/\-]/ /g'` ; do {
+		if [ $i != $$ ] ; then {
+			x=`ps --no-heading -f $i 2>&1`
+			if [ "$?" -eq "0" ] ; then {
+				echo Trying to destroy $i..
+				echo $x
+			} ; else {
+				# false alarm
+				continue
+			} ; fi
+			# There is a (winnable, I hope) race between the pstree command 
+			# and the last kill where a PID might be reallocated to a 
+			# process that is not part of the tree.  This is more likely 
+			# using the random PID patch from getrewted.net.
+	                kill $SIGNAL $i >> /dev/null 2>&1
+			if [ "$?" -eq "0" ] ; then {
+				echo "Subprocess $i terminated.."
+				no_children=1
+			} ; else {
+				# There may situations in which a process died in between
+				# when I looked for it and when I sent the signal.
+				echo "Process $i was already dying."
+			} ; fi
+	        } ; fi
+	} ; done
+	unalias echo
+	return $no_children
+}
+
 # start the clock
 if [ -z "$ELAPSEDTIME" ] ; then ELAPSEDTIME=0 ; fi
 # roll back virtual start so that computations work based
@@ -46,12 +87,8 @@ else
 	testpath=`dirname $p/$0`
 	$ttrun="./$ttrun"
 fi
-ctcspath=/usr/lib/ctcs2/
-#echo "DEBUG: ctcspath = $ctcspath" >&2
-cd $testpath
 
-# Now we can load the library
-. $ctcspath/lib/sh/ctcslib.sh
+cd $testpath
 
 # color defns (that way we don't have to run a color program!)
 REDBLINK='\033[31m\033[1m'
@@ -137,6 +174,13 @@ function check_result () {
 	return $1
 }
 
+# when we print some more information on terminal, because it is difficult 
+# to get where the cursor is, just erase the time clock, and print the result in new line
+function move_cursor () {
+	if [ "$PROCESSFOREGROUND" = "1" ]; then
+		echo -e "\033[1A\033[${CASENAMEWIDTH}C\033[K" >&2
+	fi
+}
 
 trap interrupt EXIT
 trap interrupt SIGUSR1
@@ -149,15 +193,16 @@ if [ ! -z "$KEYVALUE" ] ; then {
 	key="$ttrun"
 } ; fi
 
-#echo "DEBUG: ttrun = $ttrun" >&2
+# echo "DEBUG: ttrun = $ttrun" >&2
 
 if [ -x $ttrun-info ] ; then
     params=`$ttrun-info $*`
     if [ $? -ne 0 ] ; then
-	    #TODO add support for skip here as well!!!
+	#TODO add support for skip here as well!!!
         failed=$[$failed + 1]
 	count=$[$count + 1]
 	xx=`date`
+	move_cursor
 	echo -e "$MAGBLINK$xx: $key $count/$iterations TEST INITIALIZATION ERROR$RESET" >&2
 	echo "$xx: $key $count/$iterations TEST INITIALIZATION ERROR"
 	do_on_event
@@ -180,11 +225,14 @@ while [ $iterations -lt 1 -o $count -lt $iterations ] ; do
 		count=$[$count + 1]
 		echo "$xx: $key success: on $count/$iterations after $et"
 		if [ "$RUNIN_VERBOSE" = "1" ] ; then
+			move_cursor
 			echo "$xx: $key success: on $count/$iterations after $et" >&2
+			
 		fi
 	elif [ $result = 2 ] ; then
 	        interr=$[$interr + 1]
 		count=$[$count + 1]
+		move_cursor
 		echo -e "$MAGBLINK$xx: $key TEST INTERNAL ERROR (DEPRECATED RETURN VALUE - PLEASE REPORT): on $count/$iterations after $et$RESET" >&2
 		echo "$xx: $key TEST INTERNAL ERROR (DEPRECATED RETURN VALUE - PLEASE REPORT): on $count/$iterations after $et"
 		do_on_event
@@ -193,6 +241,7 @@ while [ $iterations -lt 1 -o $count -lt $iterations ] ; do
 	elif [ $result = 11 ] ; then
 	        interr=$[$interr + 1]
 		count=$[$count + 1]
+		move_cursor
 		echo -e "$MAGBLINK$xx: $key TEST INTERNAL ERROR: on $count/$iterations after $et$RESET" >&2
 		echo "$xx: $key TEST INTERNAL ERROR: on $count/$iterations after $et"
 		do_on_event
@@ -201,6 +250,7 @@ while [ $iterations -lt 1 -o $count -lt $iterations ] ; do
 	elif [ $result = 22 ] ; then
 	        skipped=$[$skipped + 1]
 		count=$[$count + 1]
+		move_cursor
 		echo -e "$BLUEBLINK$xx: $key SKIPPED: on $count/$iterations after $et$RESET" >&2
 		echo "$xx: $key SKIPPED: on $count/$iterations after $et"
 		do_on_event
@@ -211,6 +261,7 @@ while [ $iterations -lt 1 -o $count -lt $iterations ] ; do
 	else
 	        failed=$[$failed + 1]
 		count=$[$count + 1]
+		move_cursor
 		echo -e "$REDBLINK$xx: $key FAILED: on $count/$iterations after $et$RESET" >&2
 		echo "$xx: $key FAILED: on $count/$iterations after $et"
 		do_on_event

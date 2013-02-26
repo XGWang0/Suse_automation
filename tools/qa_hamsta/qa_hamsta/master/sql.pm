@@ -81,6 +81,9 @@ sub machine_get_by_ip($) # IP address
 sub machine_get_ip($) # machine_id
 {	return $dbc->scalar_query('SELECT ip FROM machine WHERE machine_id=?',$_[0]);	}
 
+sub machine_get_info($) # ip
+{	return $dbc->row_query('SELECT a.usage,b.name,a.maintainer_id FROM machine AS a JOIN `user` AS b ON a.usedby=b.user_id WHERE a.ip=?',$_[0]);	}
+
 # 0 = free, 1 = busy, 2 = blocked manually)
 sub machine_get_busy($) # machine_id
 {	return $dbc->scalar_query('SELECT busy FROM machine WHERE machine_id=?',$_[0]);	}
@@ -108,6 +111,11 @@ sub machine_get_ipname($) # machine_id
 
 sub machine_get_role_type($) # machine_id
 {   return $dbc->row_query('SELECT role,type FROM machine WHERE machine_id=?',$_[0]); }
+
+sub machine_get_id_by_ip_usedby($$) # ip, usedby
+{
+    return $dbc->scalar_query ('SELECT machine_id FROM `machine` WHERE ip = ? AND usedby = ?', $_[0], $_[1]);
+}
 
 sub machine_get_known_unique_ids(@) # list of mac addresses
 {
@@ -160,6 +168,11 @@ sub machine_blocked($) # machine_id
 
 sub machine_list_free()
 {	return $dbc->vector_query("SELECT machine_id FROM machine WHERE busy=0 AND machine_status_id=1 ORDER BY (ISNULL(usedby) OR usedby='') DESC, RAND()");	}
+
+sub machine_list_all()
+{
+	return $dbc->matrix_query ('SELECT m.name, m.ip, ms.machine_status FROM machine m INNER JOIN machine_status ms on (m.machine_status_id = ms.machine_status_id)');
+}
 
 sub busy_machines_without_jobs()	{
 	return $dbc->vector_query("SELECT machine_id FROM machine WHERE busy=1 AND NOT EXISTS(SELECT * FROM job_on_machine WHERE machine.machine_id=job_on_machine.machine_id AND (job_status_id=2 OR job_status_id=6))");
@@ -261,7 +274,7 @@ sub group_machine_new($$) # group_id, machine_id
 {	return $dbc->insert_query('INSERT IGNORE INTO group_machine(group_id,machine_id) VALUES(?,?)',$_[0],$_[1]);	}
 
 sub group_machine_delete($$) # group_id, machine_id
-{	return $dbc->update_query('DELETE FROM group_machine WHERE group_id=? AND machine_id=?',$_[0],$_[1]);	}
+{	return $dbc->update_query('DELETE IGNORE FROM group_machine WHERE group_id=? AND machine_id=?',$_[0],$_[1]);	}
 
 ### module functions
 
@@ -305,10 +318,58 @@ sub config_get_last # machine_id
 ### group functions
 
 sub group_list_status($) # group_id
-{	return $dbc->matrix_query('SELECT name,machine_status FROM machine JOIN group_machine USING(machine_id) JOIN machine_status USING(machine_status_id WHERE group_id=?',$_[0]);	}
+{	return $dbc->matrix_query('SELECT name, machine_status FROM machine NATURAL JOIN group_machine NATURAL JOIN machine_status WHERE group_id=?',$_[0]);	}
 
 sub group_list_ip($) # group_id
 {	return $dbc->vector_query('SELECT ip FROM machine JOIN group_machine USING(machine_id) WHERE group_id=?',$_[0]);	}
+
+sub group_insert($$) # group, desc
+{	return $dbc->insert_query('INSERT INTO `group`(`group`,description) VALUES(?,?)',@_);	}
+
+sub group_devel_create()	{
+	my $id=&group_insert('devel','Machines having devel tools installed.');
+	$dbc->update_query('UPDATE `group` SET group_id=0 WHERE group_id=?',$id);
+	return $dbc->enum_get_id('group','devel');
+}
+
+### user functions
+
+sub user_get_id($) # login
+{
+	return $dbc->scalar_query ('SELECT user_id FROM user WHERE login = ?', $_[0]);
+}
+    
+sub user_get_password($) # login
+{
+	return $dbc->scalar_query ('SELECT password FROM user WHERE login = ?', $_[0]);
+}
+
+sub user_get_roles($) # user_id
+{
+	return $dbc->vector_query ('SELECT `role` FROM `user_role` NATURAL JOIN `user_in_role` NATURAL JOIN `user` WHERE user_id = ?', $_[0]);
+}
+
+sub user_get_reserved_machines($) # user_id
+{
+	return $dbc->vector_query ('SELECT name FROM machine WHERE usedby = ?', $_[0]);
+}
+
+### user role functions
+
+sub role_get_id($) # role name
+{
+	return $dbc->scalar_query ('SELECT role_id FROM `user_role` WHERE `role` = ?', $_[0]);
+}
+
+sub role_list_all()
+{
+	return $dbc->vector_query ('SELECT `role` FROM `user_role`');
+}	
+
+sub role_get_privileges($) # role_id
+{
+	return $dbc->vector_query ('SELECT privilege FROM `privilege` p JOIN `role_privilege` rp ON (p.privilege_id = rp.privilege_id) WHERE rp.role_id = ? AND (rp.valid_until IS NULL OR rp.valid_until > NOW())', $_[0]);
+}    
 
 ### log functions
 

@@ -52,21 +52,21 @@ sub new
 
 sub _rpmlist_get
 {
-	my ($self,$key)=@_;
-	return $self->path()."/$key/rpmlist";
+	my ($self)=@_;
+	return $self->path()."/rpmlist";
 }
 
 
 sub _hwinfo_get
 {
-	my ($self,$key)=@_;
-	return $self->path()."/$key/hwinfo";
+	my ($self)=@_;
+	return $self->path()."/hwinfo";
 }
 
 sub _kernel_get
 {
-	my ($self,$key)=@_;
-	return $self->path()."/$key/kernel";
+	my ($self)=@_;
+	return $self->path()."/kernel";
 }
 
 sub testsuite_list_open

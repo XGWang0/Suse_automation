@@ -1,64 +1,58 @@
 <?php
-/* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
-  
-  THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
-  CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
-  RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
-  THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
-  THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
-  TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
-  PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
-  PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
-  AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
-  LIABILITY.
-  
-  SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
-  WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
-  AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
-  LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
-  OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
-  WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
-  ****************************************************************************
- */
 
 /**
- * JobRun 
- *
  * Represents a single run of a job
- * 
- * @version $Rev: 1771 $
+ *
+ * @package Jobs
  * @author Kevin Wolf <kwolf@suse.de> 
+ * @version $Rev: 1771 $
+ *
+ * @copyright
+ * Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.<br />
+ * <br />
+ * THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+ * CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+ * RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+ * THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+ * THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+ * TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+ * PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+ * PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+ * AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+ * LIABILITY.<br />
+ * <br />
+ * SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+ * AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+ * LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+ * WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
  */
 class JobRun {
 
 	/**
-	 * fields 
-	 * 
 	 * @var array Associative array containing the values of all database 
-	 *	  fields of this job
+	 *	  fields of this job.
 	 */
 	private $fields;
 
 	/**
-	 * __construct 
+	 * Creates a new instance of JobRun.
 	 *
-	 * Creates a new instance of JobRun. The constructor is meant to be called 
-	 * only by functions that directly access the database and have to get an
-	 * object from their query result.
+	 * The constructor is meant to be called only by functions
+	 * that directly access the database and have to get an object
+	 * from their query result.
 	 * 
-	 * @param array $fields Values of all database fields
+	 * @param array $fields Values of all database fields.
 	 */
 	function __construct($fields) {
 		$this->fields = $fields;
-	$this->fields['id']=$this->fields['job_id'];
+                $this->fields['id']=$this->fields['job_id'];
 	}
 
 	/**
-	 * update_from_db 
-	 *
-	 * Updates all fields with current data from the database
+	 * Updates all fields with current data from the database.
 	 * 
 	 * @access public
 	 * @return void
@@ -77,14 +71,12 @@ class JobRun {
 	}
 
 	/**
-	 * find_all 
-	 *
-	 * Gets all jobs ever run, including pending jobs
+	 * Gets all jobs ever run, including pending jobs.
 	 * 
 	 * @param int $limit Optional. Maximal number of jobs to return.
 	 * @param int $start Optional. Number of first row to be returned.
 	 * @access public
-	 * @return array Array of JobRun objects or null on error
+	 * @return array Array of JobRun objects or null on error.
 	 */
 	static function find_all($limit = 10, $start = 0) {
 		$sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k USING(job_id) ORDER BY j.job_id DESC';
@@ -106,10 +98,10 @@ class JobRun {
 	}
 	
 	/**
-	 * count_all 
+	 * Counts all jobs ever run.
 	 * 
 	 * @access public
-	 * @return int Number of all jobs ever run, including pengding jobs
+	 * @return int Number of all jobs ever run, including pengding jobs.
 	 */
 	static function count_all() {
 		$sql = 'SELECT COUNT(*) FROM job';
@@ -126,14 +118,12 @@ class JobRun {
 	}
 	
 	/**
-	 * find_by_status 
-	 *
-	 * Get all jobs which are in a given status
+	 * Get all jobs which are in a given status.
 	 * 
-	 * @param mixed $status_id ID of the status to search for
+	 * @param mixed $status_id ID of the status to search for.
 	 * @param int $limit Optional. Maximal number of rows to return.
 	 * @access public
-	 * @return array Array of JobRun objects
+	 * @return array Array of JobRun objects.
 	 */
 	static function find_by_status($status_id, $limit = 0) {
 		$sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k USING(job_id) WHERE job_status_id = :status_id ORDER BY j.job_id DESC';
@@ -156,11 +146,11 @@ class JobRun {
 	}
 	
 	/**
-	 * get_by_id 
+	 * Gets job run instance by identifier.
 	 * 
-	 * @param mixed $id ID of the JobRun to get
+	 * @param int|string $id ID of the JobRun to get.
 	 * @access public
-	 * @return JobRun JobRun with the given ID or null if no JobRun is found
+	 * @return \JobRun JobRun with the given ID or null if no JobRun is found.
 	 */
 	static function get_by_id($id) {
 		$sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k USING(job_id) WHERE j.job_id = :id ORDER BY j.job_id DESC';
@@ -176,60 +166,60 @@ class JobRun {
 	}
 
 	/**
-	 * get_id 
+	 * Getter for identifier of this job.
 	 * 
 	 * @access public
-	 * @return int ID of the JobRun
+	 * @return int ID of the JobRun.
 	 */
 	function get_id() {
 		return $this->fields["job_id"];
 	}
 	
 	/**
-	 * get_name 
+	 * Getter for the name of this job.
 	 * 
 	 * @access public
-	 * @return string Name of the JobRun
+	 * @return string Name of the JobRun.
 	 */
 	function get_name() {
 		return $this->fields["short_name"];
 	}
 	
 	/**
-	 * get_description 
+	 * Getter for the description of this job.
 	 * 
 	 * @access public
-	 * @return string Description of the JobRun
+	 * @return string Description of the JobRun.
 	 */
 	function get_description() {
 		return $this->fields["description"];
 	}
 	
 	/**
-	 * get_owner 
+	 * Getter for the owner of this job.
 	 * 
 	 * @access public
-	 * @return string Owner of the JobRun
+	 * @return string Owner of the JobRun.
 	 */
 	function get_owner() {
 		return $this->fields["job_owner"];
 	}
 
 	/**
-	 * get_machine 
+	 * Geter for the machine of this job.
 	 * 
 	 * @access public
-	 * @return Machine Machine the job is run on
+	 * @return \Machine Machine the job is run on.
 	 */
 	function get_machine() {
 		return Machine::get_by_id($this->fields["machine_id"]);
 	}
 	
 	/**
-	 * get_configuration 
+	 * Getter for the configuration of this job.
 	 * 
 	 * @access public
-	 * @return Configuration Current configuration of the machine at the 
+	 * @return \Configuration Current configuration of the machine at the 
 	 *	  start of the job.
 	 */
 	function get_configuration() {
@@ -237,61 +227,61 @@ class JobRun {
 	}
 
 	/**
-	 * get_last_log 
+	 * Getter for the last few lines of the log of this job.
 	 * 
 	 * @access public
-	 * @return string Last output lines of the job
+	 * @return string Last output lines of the job.
 	 */
 	function get_last_log() {
 		return $this->fields["last_log"];
 	}
 
 	/**
-	 * get_xml_filename 
+	 * Gets file name of the xml job description.
 	 * 
 	 * @access public
-	 * @return string Filename of the XML job description
+	 * @return string File name of the XML job description.
 	 */
 	function get_xml_filename() {
 		return $this->fields["xml_file"];
 	}
 	
 	/**
-	 * get_xml_job 
+	 * Gets xml with job description.
 	 * 
 	 * @access public
-	 * @return string XML job description
+	 * @return string XML job description.
 	 */
 	function get_xml_job() {
 		return file_get_contents($this->fields["xml_file"]);
 	}
 	
 	/**
-	 * get_return_code 
+	 * Gets return code[s]? of this job.
 	 * 
 	 * @access public
 	 * @return string Return code information (may contain more than one 
-	 * return code)
+	 * return code).
 	 */
 	function get_return_code() {
 		return $this->fields["return_status"];
 	}
 	
 	/**
-	 * get_return_xml_filename 
+	 * Gets name of the xml file returned by slave.
 	 * 
 	 * @access public
-	 * @return string Filename of the XML result file returned by the slave
+	 * @return string Filename of the XML result file returned by the slave.
 	 */
 	function get_return_xml_filename() {
 		return $this->fields["return_xml"];
 	}
 	
 	/**
-	 * get_return_xml_content 
+	 * Gets content of the result file returned by slave.
 	 * 
 	 * @access public
-	 * @return string XML result file returned by the slave
+	 * @return string XML result file returned by the slave.
 	 */
 	function get_return_xml_content() {
 		if( $this->fields["return_xml"] )
@@ -301,34 +291,39 @@ class JobRun {
 	}
 
 	/**
-	 * get_started 
+	 * Gets start time of this job.
 	 * 
 	 * @access public
-	 * @return string Date and time of the start of the job
+	 * @return string Date and time of the start of the job.
 	 */
 	function get_started() {
 		return $this->fields["start"];
 	}
 	
 	/**
-	 * get_stopped 
+	 * Gets stop time of this job.
 	 * 
 	 * @access public
-	 * @return string Date and time when the job was stopped
+	 * @return string Date and time when the job was stopped.
 	 */
 	function get_stopped() {
 		return $this->fields["stop"];
 	}
 	
+        /**
+         * Gets status id of this job.
+         * 
+         * @return int Id of the status of this job.
+         */
 	function get_status_id() {
 		return $this->fields["job_status_id"];
 	}
 
 	/**
-	 * get_status_string 
+	 * Gets current status name of this job.
 	 * 
 	 * @access public
-	 * @return string Name of the job status
+	 * @return string Name of the job status.
 	 */
 	function get_status_string() {
 		$stmt = get_pdo()->prepare('SELECT job_status FROM job_status WHERE job_status_id = :status_id');
@@ -340,13 +335,11 @@ class JobRun {
 
 
 	/**
-	 * cancel
-	 *
-	 * Cancels a scheduled job
+	 * Cancels a scheduled job.
 	 * 
 	 * @access public
 	 * @return boolean true if the job could be successfully cancelled; false 
-	 * if an error occured (e.g. job is already running)
+	 * if an error occured (e.g. job is already running).
 	 */
 	function cancel() {
 		$stmt = get_pdo()->prepare('UPDATE job SET job_status_id = 5 WHERE job_id = :job_id AND job_status_id IN (0, 1)');
@@ -367,10 +360,10 @@ class JobRun {
 	}
 
 	/**
-	 * set_status
+	 * Set status of a scheduled job.
 	 *
-	 * Set status of a scheduled job
-	 * 
+	 * @param int $status_id Status id to set this job to.
+	 *
 	 * @access public
 	 * @return void
 	*/
@@ -395,9 +388,7 @@ class JobRun {
 	}
 
 	/**
-	 * set_stopped
-	 *
-	 * Set stop timestamp of a scheduled job
+	 * Set stop timestamp of a scheduled job.
 	 * 
 	 * @access public
 	 * @return void
@@ -417,10 +408,10 @@ class JobRun {
 	}
 
 	/**
-	 * can_cancel
+	 * Checks if the job can be cancelled.
 	 * 
 	 * @access public
-	 * @return boolean true if the job can be cancelled, false otherwise
+	 * @return boolean true if the job can be cancelled, false otherwise.
 	 */
 	function can_cancel() {
 		$stmt = get_pdo()->prepare('SELECT COUNT(*) FROM job_on_machine WHERE job_id = :job_id AND job_status_id IN (0, 1)');
@@ -430,11 +421,11 @@ class JobRun {
 		return ($stmt->fetchColumn() > 0);
 	}
 
-		/**
-	 * get_job_log_entries
+        /**
+	 * Gets log entries of this job.
 	 *
 	 * @access public
-	 * @return array Log array
+	 * @return array Log array.
 	 */
 	function get_job_log_entries() {
 

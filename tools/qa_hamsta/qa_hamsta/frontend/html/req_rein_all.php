@@ -22,8 +22,10 @@
   WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
   ****************************************************************************
  */
-if (array_key_exists('OPENID_AUTH', $_SESSION))
-	$user = User::get_by_openid($_SESSION['OPENID_AUTH']);
+if (User::isLogged())
+  $user = User::getById (User::getIdent (), $config);
+
+require("timezone.php");
 ?>
 
   <tr>
@@ -77,7 +79,7 @@ if (array_key_exists('OPENID_AUTH', $_SESSION))
   </tr>
   <tr>
         <td>Additional RPMs (optional): </td>
-        <td><input type="text" name="additionalrpms" size="70" value="<?php if(isset($_POST["additionalrpms"])){echo $_POST["additionalrpms"];} else echo ARLIST;?>" /></td>
+        <td><input type="text" name="additionalrpms" size="70" value="<?php if(isset($_POST["additionalrpms"])){echo $_POST["additionalrpms"];} else echo ($config->lists->arlist);?>" /></td>
   </tr>
   <tr>
         <td>Installation options (optional): </td>
@@ -101,15 +103,15 @@ if (array_key_exists('OPENID_AUTH', $_SESSION))
 
         # The additional update options are whether to update with SMT or regcode
         print "<div id=\"updateoptions-smt\" class=\"text-small\" style=\"margin: 5px; padding: 5px; border: 1px solid red; display: " . ((isset($_POST['startupdate']) and $_POST['startupdate'] == "update-smt") ? "block" : "none") . ";\">" .
-                "SMT server: <strong>$smtserver</strong> (<strong>Note:</strong> This must be configured in config.php by an admin)." .
-                "<input type=\"hidden\" name=\"update-smt-url\" value=\"$smtserver\" />" .
+                "SMT server: <strong>$config->smtserver</strong> (<strong>Note:</strong> This has to be configured in config.ini by admin.)." .
+                "<input type=\"hidden\" name=\"update-smt-url\" value=\"$config->smtserver\" />" .
         "</div>";
         print "<div id=\"updateoptions-reg\" class=\"text-small\" style=\"margin: 5px; padding: 5px; border: 1px solid red; display: " . ((isset($_POST['startupdate']) and $_POST['startupdate'] == "update-reg") ? "block" : "none") . ";\">" .
         "Registration Email: <input type=\"text\" name=\"update-reg-email\" value=\"";
 	if (isset($_POST["update-reg-email"])) {
 		echo $_POST["update-reg-email"];
-	} else if ($openid_auth && isset($user)) {
-		echo $user->get_email();
+	} else if (isset($user)) {
+		echo $user->getEmail();
 	}
         print "\" /> <br />\n";
 	print "Registration Code for main product: <input type=\"text\" name=\"rcode[]\" id=\"rcode_product\" size=\"20\" value=\"";
@@ -121,4 +123,13 @@ if (array_key_exists('OPENID_AUTH', $_SESSION))
 		print "<div id=\"additional_rcode\"></div></div>";
 ?>
     </td>
+  </tr>
+  <tr>
+    <td>Select a timezone for your SUT: </td>
+    <td><select id="timezone" name="timezone">
+    <?php
+	foreach ($arrtimezones as $zone) 
+	echo "<option value=\"$zone\">$zone</option>\n";
+    ?>
+	</select></td>
   </tr>

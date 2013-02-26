@@ -8,37 +8,37 @@
         <logdir>/tmp</logdir>
         <description>Upgrade and restart Hamsta client</description>
         <motd>Hamsta upgrade and restart</motd>
-	<rpm upgrade="1">qa_hamsta</rpm>
-	<rpm upgrade="1">qa_hamsta-cmdline</rpm>
-	<rpm upgrade="1">qa_hamsta-common</rpm>
-	<rpm upgrade="1">qa_tools</rpm>
-	<rpm upgrade="1">qa_lib_perl</rpm>
-	<rpm upgrade="1">qa_lib_ctcs2</rpm>
-	<rpm upgrade="1">qa_lib_config</rpm>
-	<rpm upgrade="1">qa_lib_keys</rpm>
     </config>
 
     <commands>
         <worker>
             <!-- Required -->
-            <command execution="threaded">#!/bin/sh
-	    echo SUT is gong to reboot to take effect 
-	    reboot
+            <command execution="forked">#!/bin/sh
+retv=0
+err_p=""
+zypper -n --gpg-auto-import-keys ref 
+zypper_retv=$?
+retv=$((retv + zypper_retv))
+for hamsta_rpm in qa_hamsta qa_hamsta-cmdline qa_hamsta-common qa_tools qa_lib_perl qa_lib_ctcs2 qa_lib_config qa_lib_keys
+do
+zypper -n in -l $hamsta_rpm
+zypper_retv=$?
+if [ $zypper_retv -ne 0 ];then
+  err_p="$err_p $hamsta_rpm"
+  echo "$hamsta_rpm update failed with return value $zypper_retv"
+fi
+retv=$((retv + zypper_retv))
+done
+
+if [ $retv -ne 0 ];then
+  echo "Package :$err_p update failed"
+  exit $retv
+else
+  (sleep 10;rchamsta restart)&amp;
+  exit 0
+fi
 	    </command>
-
-            <!-- Optional -->
-            <directory>/</directory>
-            <timeout>600</timeout>
-            <notify pattern="" mail="" />
-
-            <!-- Created for output -->
-            <stdout />
-            <stderr />
         </worker>
         
-        <!-- Same options as in worker -->
-        <logger>
-            <command>tail -f /var/log/hamsta.log</command>
-        </logger>
     </commands>
 </job>

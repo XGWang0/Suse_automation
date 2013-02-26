@@ -29,6 +29,10 @@
 source /usr/share/hamsta/testscript/config
 j=4 #This means ignor first 4 lines of input
 
+if [ "x$TESTS_LOGDIR" != "x" ]; then
+        logdir=$TESTS_LOGDIR/ctcs2
+fi
+
 rm -rf /var/log/qa/_REMOTE
 chmod +x /usr/lib/ctcs2/tools/report.py
 /usr/lib/ctcs2/tools/report.py $logdir/* > $input

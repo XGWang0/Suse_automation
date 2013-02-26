@@ -27,15 +27,13 @@
 
 Used by Ajax.
 
-sdk index is loaded from $SDK_INDEX_URL.
-
 FIXME: it's better done from database
 */
 
-require("../config.php");
+require("../globals.php");
 
 // Load sdk index
-$json = file_get_contents(SDK_INDEX_URL);
+$json = file_get_contents($config->url->index->sdk);
 if ($json == ""){
 	echo json_encode(array());
 	return;

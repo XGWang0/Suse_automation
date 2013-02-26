@@ -86,7 +86,7 @@ install -m 755 -d $RPM_BUILD_ROOT%{confdir}
 gzip -9 *.1
 gzip -9 *.3
 
-cp -r --target-directory=$RPM_BUILD_ROOT%{libdir} log.pm detect.pm results results.pm misc.pm benchxml.pm
+cp -r --target-directory=$RPM_BUILD_ROOT%{libdir} log.pm detect.pm results results.pm misc.pm benchxml.pm xmlout.pm
 cp --target-directory=$RPM_BUILD_ROOT%{bindir} arch.pl location.pl product.pl hwinfo.pl location_detect_impl.pl
 cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man1 *.1.gz
 cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man3 *.3.gz
@@ -114,6 +114,18 @@ rm -rf $RPM_BUILD_ROOT
 %doc COPYING
 
 %changelog
+* Fri Jan 18 2013 - llipavsky@suse.com
+- New 2.5 release from QA Automation team
+- Authentication and Authorization in Hamsta
+- ctcs2 improvements, speedup, and new tcf commands
+- New SUT can be added to Hamsta from hamsta web interface
+- Timezone support in reinstall
+- Reinstall can now be done using kexec
+- Centralized configuration of SUTs
+- Sessions support in Hamsta
+- AutoPXE now supports ia64 architecture
+- Hamsta is no longer configured using config.php, config.ini is used instead
+- ...and many small improvements and bug fixes
 * Fri Aug 10 2012 - llipavsky@suse.cz
 - Web user-friendly editor for jobs
 - HA Server yast2 UI Automation

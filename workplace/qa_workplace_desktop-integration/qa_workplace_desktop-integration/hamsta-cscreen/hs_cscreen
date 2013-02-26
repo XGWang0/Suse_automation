@@ -1,0 +1,10 @@
+#!/bin/bash
+
+. /etc/hcscreenrc
+
+url=`echo "$1" | awk -F ':' '{print $2}'`
+
+cserver=`echo "$url" | awk -F '/' '{print $1}'`
+chost=`echo "$url" | awk -F '/' '{print $2}'`
+
+$TERMINAL ssh -t root@$cserver "cscreen -p $chost"

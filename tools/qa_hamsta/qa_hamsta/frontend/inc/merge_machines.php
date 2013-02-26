@@ -32,10 +32,31 @@ if (!defined('HAMSTA_FRONTEND')) {
 	return require("index.php");
 }
 
+/* First check if the user has privileges to run this functionality. */
+if ( $config->authentication->use )
+  {
+    if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
+      {
+        $user = User::getById (User::getIdent (), $config);
+        if ( ! $user->isAllowed ('machine_merge')
+             && ! $user->isAllowed ('machine_merge_reserved') )
+          {
+            Notificator::setErrorMessage ("You do not have privileges to merge machines.");
+            header ("Location: index.php");
+            exit ();
+          }
+      }
+    else
+      {
+        Notificator::setErrorMessage ("You have to logged in and registered to merge machines.");
+        header ("Location: index.php");
+        exit ();
+      }
+  }
+
 $ids = request_array("a_machines");
 if( count($ids)<2 )	{
-	$_SESSION['message']="need at least 2 machines to merge";
-	$_SESSION['mtype']='error';
+  Notificator::setErrorMessage ('Need at least 2 machines to merge.');
 	header('Location: index.php');
 	exit();
 }
@@ -56,18 +77,18 @@ $fields = array(
 	'arch_id' => 'arch', # generic
 	'last_used' => 'S', # generic
 	'unique_id' => 'S', # generic
-	'powerswitch' => 'S', 
-	'serialconsole' => 'S', 
-	'consoledevice' => 'S', 
-	'consolespeed' => 'S', 
-	'consolesetdefault' => 'S', 
-	'default_option' => 'S', 
-	'machine_status_id' => 'machine_status', 
-	'maintainer_id' => 's', 
-	'usedby' => 's', 
-	'usage' => 's', 
-	'expires' => 'S', 
-	'reserved' => 'S', 
+	'powerswitch' => 'S',
+	'serialconsole' => 'S',
+	'consoledevice' => 'S',
+	'consolespeed' => 'S',
+	'consolesetdefault' => 'S',
+	'default_option' => 'S',
+	'machine_status_id' => 'machine_status',
+	'maintainer_id' => 's',
+	'usedby' => 'S',
+	'usage' => 's',
+	'expires' => 'S',
+	'reserved' => 'S',
 	'description' => 'S',
 	'affiliation' => 's', 
 	'anomaly' => 's', 

@@ -31,7 +31,7 @@ Source1:	%name.8
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 PreReq:         coreutils
-Requires:       mod_php_any httpd php-pdo tblib php-gd mysql mysql-client php-bz2 phplot qa_lib_openid
+Requires:       mod_php_any httpd php-pdo tblib php-gd mysql mysql-client php-bz2 phplot php5-ZendFramework php5-gmp
 Provides:	qadb
 Obsoletes:	qadb
 
@@ -89,6 +89,20 @@ echo "=================== I M P O R T A N T ======================="
 %doc COPYING
 
 %changelog
+* Fri Jan 18 2013 - llipavsky@suse.com
+- New 2.5 release from QA Automation team
+- Authentication and Authorization in Hamsta
+- ctcs2 improvements, speedup, and new tcf commands
+- New SUT can be added to Hamsta from hamsta web interface
+- Timezone support in reinstall
+- Reinstall can now be done using kexec
+- Centralized configuration of SUTs
+- Sessions support in Hamsta
+- AutoPXE now supports ia64 architecture
+- Hamsta is no longer configured using config.php, config.ini is used instead
+- ...and many small improvements and bug fixes
+* Fri Aug 31 2012 pkacer@suse.com
+- Changed dependency from qa_lib_openid to php5-ZendFramework.
 * Fri Aug 10 2012 - llipavsky@suse.cz
 - Web user-friendly editor for jobs
 - HA Server yast2 UI Automation

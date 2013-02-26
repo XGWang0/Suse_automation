@@ -1,0 +1,3 @@
+INSERT INTO privilege(privilege,descr) VALUES('machine_config','Modify QA configuration of a reserved machine'),('machine_config_reserved','Modify QA configuration of a non-reserved machine');
+INSERT INTO role_privilege(role_id,privilege_id) SELECT user_role.role_id,privilege.privilege_id FROM user_role,privilege WHERE user_role.role IN ('admin','user') AND privilege.privilege='machine_config';
+INSERT INTO role_privilege(role_id,privilege_id) SELECT user_role.role_id,privilege.privilege_id FROM user_role,privilege WHERE user_role.role IN ('admin') AND privilege.privilege='machine_config_reserved';

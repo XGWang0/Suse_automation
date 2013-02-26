@@ -35,12 +35,16 @@
 
 error_reporting(E_ALL | E_STRICT);
 
-session_start();
+/* Now starts with authentication. */
+//session_start();
 
 define('HAMSTA_FRONTEND', 1);
 
-require("config.php");
 require("globals.php");
+
+require_once ('lib/Notificator.php');
+require_once ('lib/UserRole.php');
+require_once ('lib/User.php');
 
 require("lib/request.php");
 require("lib/db.php");
@@ -54,9 +58,10 @@ require("lib/roles.php");
 require("lib/Utilfunc.php");
 require("lib/parameters.php");
 require("lib/powerswitch.php");
-require("lib/user.php");
 
 require_once("../tblib/tblib.php");
+
+User::authenticate();
 
 $go = request_str("go");
 
@@ -86,6 +91,7 @@ $pages = array(
     "del_group",
     "group_del_machines",
     "delete_autobuild",
+    "del_group_machines",
 
     "jobruns",
     "job_details",
@@ -100,33 +106,27 @@ $pages = array(
     "upgrade",
     "merge_machines",
     "edit_jobs",
-    "register"
+    "register",
+    "user",
+    "login",
+    "addsut",
+    "adminusers",
+    "qa_netconf",
 );
 
 if (!in_array($go, $pages)) {
     $go = $pages[0];
 }
 
-if ($openid_auth) {
-        require_once "Zend/OpenId/Consumer.php";
-        $consumer = new Zend_OpenId_Consumer();
-        if (isset($_GET['openid_mode']) && $_GET['openid_mode'] == "id_res") {
-                 if ($consumer->verify($_GET, $id)) {
-                        $_SESSION['OPENID_AUTH'] = $id;
-                        $user = User::get_by_openid($id);
-                        if (!$user) {
-                                header('Location: index.php?go=register');
-                        }
-                }
-        } else if (!isset($_SESSION['OPENID_AUTH'])) {
-                if (!$consumer->login($openid_url)) {
-                        die("Authentication Failed");
-                }
-        }
-}
-
 require("inc/$go.php");
 require("html/header.php");
+
+if ( Notificator::hasMessage () )
+{
+  Notificator::printAndUnset ();
+} else {
+  Notificator::delete ();
+}
 
 if(isset($_SESSION['message']))
 {

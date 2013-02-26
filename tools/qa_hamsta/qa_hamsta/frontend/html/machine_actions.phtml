@@ -1,0 +1,195 @@
+ <!-- POWERSWITCH -->
+<?php
+  /*
+   * This is a page snippet to display action icons for a machine. It
+   * is required by machines.php and machine_detail.php.
+   */
+
+  /* The user has this machine reserved for himself. */
+ $users_machine = isset ($user) && $machine->get_used_by_login () == $user->getLogin ();
+ $useAuth = $config->authentication->use;
+
+	if (($machine->get_powerswitch() != NULL) and ($machine->get_powertype() != NULL) and ($machine->check_powertype() == TRUE )) {
+          if ( ! $useAuth || (isset ($user)
+               && ( $users_machine && $user->isAllowed('machine_powerswitch')
+                    || ( isset ($user) && $user->isAllowed ('machine_powerswitch_reserved') ) ) ) ) {
+?>
+    <img src="images/icon-start.png" class="machine-actions icon-small" alt="Start <?php echo( $machine->get_hostname()) ?>"
+         title="Start <?php echo ($machine->get_hostname()) ?>"
+         onclick="var r = confirm('This will start <?php echo ( $machine->get_hostname() ); ?>. Are you sure you want to continue?');
+                  if(r==true)
+                  {
+                    window.location='index.php?go=power&amp;a_machines[]=<?php echo ($machine->get_id()); ?>&amp;action=start';
+                  }" />
+
+    <img src="images/icon-restart.png" class="machine-actions icon-small" alt="Restart <?php echo($machine->get_hostname()); ?>"
+         title="Restart <?php echo ($machine->get_hostname()); ?>"
+         onclick="var r = confirm('This will restart <?php echo( $machine->get_hostname()); ?>. Are you sure you want to continue?');
+                  if(r==true)
+	          {
+                    window.location='index.php?go=power&amp;a_machines[]=<?php echo ($machine->get_id()); ?>&amp;action=restart';
+                  }" />
+
+    <img src="images/icon-stop.png" class="machine-actions icon-small" alt="Stop <?php echo ($machine->get_hostname()); ?>"
+         title="Stop <?php echo ($machine->get_hostname()); ?>"
+         onclick="var r = confirm('This will stop <?php echo ($machine->get_hostname()); ?>. Are you sure you want to continue?');
+	          if(r==true)
+	          {
+	            window.location='index.php?go=power&amp;a_machines[]=<?php echo($machine->get_id()); ?>&amp;action=stop';
+                  }" />
+<?php      } else { /* If user does not have privilege. */
+            foreach (Array ('start', 'restart', 'stop') as $action_name) { ?>
+    <img src="images/icon-<?php echo($action_name); ?>-grey.png" class="machine-actions icon-small"
+         alt="Cannot use powercycling on <?php echo ($machine->get_hostname()); ?> if you are not logged in or without privileges or this machine is reserved by another user."
+         title="Cannot use powercycling on <?php echo ($machine->get_hostname()); ?> if you are not logged in or without privileges or this machine is reserved by another user."
+         border="0" width="20" style="" />
+<?php       } ?>
+<!--
+    <img src="images/icon-restart-grey.png"
+         alt="Cannot use powercycling on <?php echo ($machine->get_hostname()); ?> if you are not logged in or without privileges or this machine is reserved by another user."
+         title="Cannot use powercycling on <?php echo ($machine->get_hostname()); ?> if you are not logged in or without privileges or this machine is reserved by another user."
+         border="0" width="20" style="" />
+
+    <img src="images/icon-stop-grey.png"
+         alt="Cannot use powercycling on <?php echo ($machine->get_hostname()); ?> if you are not logged in or without privileges or this machine is reserved by another user."
+         title="Cannot use powercycling on <?php echo ($machine->get_hostname()); ?> if you are not logged in or without privileges or this machine is reserved by another user."
+         border="0" width="20" style="" />
+-->
+     <?php } ?>
+<?php } else { /* Powerswitch is not supported */
+          foreach (Array ('start', 'restart', 'stop') as $action_name) { ?>
+    <img src="images/icon-<?php echo ($action_name); ?>-grey.png" class="machine-actions icon-small"
+         alt="Powercycling for <?php echo ($machine->get_hostname()); ?> is not supported"
+         title="Powercycling for <?php echo ( $machine->get_hostname()); ?> is not supported"
+         border="0" width="20" style="" />
+<!--
+    <img src="images/icon-restart-grey.png"
+         alt="Powercycling for <?php echo ($machine->get_hostname()); ?> is not supported"
+         title="Powercycling for <?php echo ($machine->get_hostname()); ?> is not supported"
+         border="0" width="20" style="" />
+
+    <img src="images/icon-stop-grey.png"
+         alt="Powercycling for <?php echo ($machine->get_hostname()); ?> is not supported"
+         title="Powercycling for <?php echo ($machine->get_hostname()); ?> is not supported"
+         border="0" width="20" style="" />
+-->
+              <?php } /* foreach */
+        } /* Powerswitch not supported. */ ?>
+
+  <!-- REINSTALL MACHINE -->
+<?php if(preg_match ('/^vm\//', $machine->get_type())) { ?>
+     <img src="images/icon-reinstall-grey.png" class="machine-actions icon-small" alt="Not possible to reinstall this machine" title="It is not possible to reinstall virtual machine <?php echo($machine->get_hostname()); ?>." onclick="alert('It is not possible to reinstall virtual machine!');"/>
+       <?php } else if ( $useAuth
+                         && (! isset ($user)
+                             || ! ( $users_machine && $user->isAllowed('machine_reinstall')
+                                    || ( isset ($user) && $user->isAllowed ('machine_reinstall_reserved') ) ) ) ) { ?>
+     <img src="images/icon-reinstall-grey.png" class="machine-actions icon-small" alt="Cannot reinstall this machine" title="You cannot reinstall <?php echo($machine->get_hostname()); ?> if not logged in or without privileges or if it is reserved by other user." onclick="alert('You are not allowed to to reinstall this machine.');" />
+<?php } else { ?>
+     <a href="index.php?go=reinstall&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-reinstall.png" class="machine-actions icon-small" alt="Reinstall this machine" title="Reinstall <?php echo($machine->get_hostname()); ?>" /></a>
+<?php } ?>
+
+  <!-- EDIT/RESERVE MACHINE -->
+<?php
+  if ( $useAuth
+       && (! isset ($user)
+           || ! ( ( $machine->get_used_by () == NULL
+                    || $users_machine )
+                  && $user->isAllowed('machine_edit_reserve')
+                  || ( isset ($user) && $user->isAllowed ('machine_edit_reserved') ) ) ) ) {
+?>
+     <img src="images/icon-edit-grey.png" class="machine-actions icon-small" alt="Cannot edit this machine" title="You cannot edit <?php echo($machine->get_hostname()); ?> if not logged in or without privileges or if it is reserved by other user." onclick="alert('You are not allowed to to edit this machine.');" />
+<?php } else { ?>
+     <a href="index.php?go=edit_machines&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-edit.png" class="machine-actions icon-small" alt="Edit/reserve this machine" title="Edit/reserve <?php echo($machine->get_hostname()); ?>" /></a>
+<?php } ?>
+
+  <!-- FREE MACHINE -->
+<?php 
+if ( $machine->get_used_by () == NULL && $machine->get_usage () == '') {
+?>
+     <img  src="images/icon-unlock-grey.png" class="machine-actions icon-small" alt="The machine is already free" title="You cannot free up <?php echo ($machine->get_hostname()); ?> because it is already free." onclick="alert('This machine is really already free.');" />
+<?php
+    } else if ( $useAuth
+                && (! isset ($user)
+                    || ! ( $users_machine && $user->isAllowed('machine_free')
+                           || ( isset ($user) && $user->isAllowed ('machine_free_reserved') ) ) ) ) {
+?>
+     <img  src="images/icon-unlock-grey.png" class="machine-actions icon-small" alt="Cannot free up this machine" title="You cannot free up <?php echo ($machine->get_hostname()); ?> if not logged in or without privileges or if it is reserved by other user." onclick="alert('You are not allowed to free this machine.');" />
+<?php } else { ?>
+     <a href="index.php?go=edit_machines&amp;a_machines[]=<?php echo($machine->get_id()); ?>&amp;action=clear" /><img src="images/icon-unlock.png" class="machine-actions icon-small" alt="Free up this machine" title="Free up <?php echo ($machine->get_hostname()); ?>. This will clear the 'Used by' and 'Usage' fields, making the machine free to use by other users." /></a>
+<?php } ?>
+
+ <!-- SEND A JOB TO A MACHINE -->
+<?php
+if ( $useAuth
+     &&  (! isset ($user)
+          || ! ( $users_machine && $user->isAllowed('machine_send_job')
+                 || ( isset ($user) && $user->isAllowed ('machine_send_job_reserved') ) ) ) ) {
+?>
+     <img  src="images/icon-job-grey.png" class="machine-actions icon-small" alt="Cannot send a job to this machine" title="You cannot send a job to <?php echo ($machine->get_hostname()); ?> if not logged in or without privileges or if it is reserved by other user." onclick="alert('You are not allowed to send a job to this machine.');" />
+<?php } else { ?>
+     <a href="index.php?go=send_job&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-job.png" class="machine-actions icon-small" alt="Send a job to this machine" title="Send a job to <?php echo($machine->get_hostname()); ?>" /></a>
+<?php } ?>
+
+  <!-- OPEN VNC TO A MACHINE -->
+<?php
+  if ( $useAuth
+       && (! isset ($user)
+           || ! ( $users_machine && $user->isAllowed('machine_vnc')
+                  || ( isset ($user) && $user->isAllowed ('machine_vnc_reserved') ) ) ) ) {
+?>
+     <img  src="images/icon-vnc-grey.png" class="machine-actions icon-small" alt="Cannot open a VNC to this machine" title="You cannot open a VNC to <?php echo ($machine->get_hostname()); ?> if not logged in or without privileges or if it is reserved by other user." onclick="alert('You are not allowed to open a VNC to this machine.');" />
+<?php } else { ?>
+     <a href="http://<?php echo($machine->get_ip_address()); ?>:5801" target="_blank"><img src="images/icon-vnc.png" class="machine-actions icon-small" alt="Open a VNC viewer" title="Open a VNC viewer on <?php echo($machine->get_hostname());?>" /></a>
+<?php } ?>
+
+  <!-- OPEN A TERMINAL TO A MACHINE -->
+<?php
+if ( $useAuth
+     && (! isset ($user)
+         || ! ( $users_machine && $user->isAllowed('machine_terminal')
+                || ( isset ($user) && $user->isAllowed ('machine_terminal_reserved') ) ) ) ) {
+?>
+     <img  src="images/icon-terminal-grey.png" class="machine-actions icon-small" alt="Cannot open a terminal to this machine" title="You cannot open a terminal to <?php echo ($machine->get_hostname()); ?> if not logged in or without privileges or if it is reserved by other user." onclick="alert('You are not allowed to open a terminal to this machine.');" />
+<?php } else { ?>
+     <a href="http://<?php echo($_SERVER['SERVER_ADDR']); ?>/ajaxterm/?host=<?php echo($machine->get_ip_address()); ?>" target="_blank"><img src="images/icon-terminal.png" class="machine-actions icon-small" alt="Access the terminal" title="Access the terminal on <?php echo($machine->get_hostname());?>" /></a>
+<?php } ?>
+
+  <!-- SERIAL CONSOLE -->
+<?php
+if ( $useAuth
+     && (! isset ($user)
+         || ! ( $users_machine && $user->isAllowed('machine_console')
+                || ( isset ($user) && $user->isAllowed ('machine_console_reserved') ) ) ) ) {
+?>
+     <img  src="images/icon-console-grey.png" class="machine-actions icon-small" alt="Cannot open a serial console to this machine" title="You cannot open a serial console to <?php echo ($machine->get_hostname()); ?> if not logged in or without privileges or if it is reserved by other user." onclick="alert('You are not allowed to open a serial console to this machine.');" />
+<?php } else { ?>
+
+<?php
+	$console_link = "hamsta-cscreen:" . $config->cscreen->console->server . "/" . $machine->get_hostname();
+	//print "console_link = $console_link\n";
+?>
+     <a href="<?php echo $console_link; ?>" target="_blank"><img src="images/icon-console.png" class="machine-actions icon-small" alt="Access the serial console" title="Access the serial console on <?php echo($machine->get_hostname());?>" /></a>
+<?php } ?>
+
+
+  <!-- DELETE A MACHINE -->
+
+<?php if(preg_match ('/^vm\//', $machine->get_type())) { ?>
+			<img src="images/icon-delete-grey.png" class="machine-actions icon-small" alt="Delete this machine and all related data" title="I is not possible to delete <?php echo( $machine->get_hostname ()); ?> in this view. Virtual machines can only be deleted in QA Cloud view." onclick="alert('It is not possible to delete virtual machine in this view. Virtual machines can only be deleted in QA Cloud view.');" /></a>
+<?php } else if ( $useAuth
+                  && (! isset ($user)
+                      || ! ( $users_machine && $user->isAllowed('machine_delete')
+                             || ( isset ($user) && $user->isAllowed ('machine_delete_reserved') ) ) ) ) { ?>
+     <img src="images/icon-delete-grey.png" class="machine-actions icon-small" alt="Cannot delete this machine" title="You cannot delete <?php echo($machine->get_hostname()); ?> if not logged in or without privileges or if it is reserved by other user." onclick="alert('You are not allowed to delete this machine.');" />
+<?php } else { ?>
+			<a href="index.php?go=del_machines&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-delete.png" class="machine-actions icon-small" alt="Delete this machine and all related data" title="Delete <?php echo($machine->get_hostname()); ?> and all related data" /></a>
+<?php } ?>
+
+<!-- QA network configuration -->
+<?php 
+if( !$useAuth || isset($user) && ( ($users_machine && $user->isAllowed('machine_config')) || $user->isAllowed('machine_config_reserved') ) )
+	print '<a href="index.php?go=qa_netconf&amp;a_machines[]='.$machine->get_id().'"><img src="images/icon-config.png" class="machine-actions icon-small" alt="QA_netconf" title="View or edit the QA configuration"/></a>'."\n";
+else
+	print '<a href="index.php?go=qa_netconf&amp;a_machines[]='.$machine->get_id().'"><img src="images/icon-config-grey.png" class="machine-actions icon-small" alt="QA_netconf" title="Login to edit the QA configuration"/></a>'."\n";
+
+?>

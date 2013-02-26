@@ -30,6 +30,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 	$go = 'machine_details';
 	return require("index.php");
 }
+
 ?>
 <script src="js/filter_log.js"></script>
 <h2 class="text-medium text-blue bold">Machine overview</h2>
@@ -55,7 +56,18 @@ if (!defined('HAMSTA_FRONTEND')) {
 				foreach ($arr_res as $res)
 					echo ("<a href=index.php?go=machines&amp;".$key."=".urlencode($res).">Search_".$res."</a> ");
 		} else {
-			echo ("<tr><td>$value</td><td>$valuer</td><td>");
+			if (! strcmp ($key, "used_by")) {
+				$cur_user = User::getById ($valuer, $config);
+				if (isset ($cur_user)) {
+					$user_name = $cur_user->getName();
+					$user_name = (strlen ($user_name) < 1) ? $cur_user->getLogin() : $user_name;
+				} else {
+					$user_name = $valuer;
+				}
+				echo ("<tr><td>$value</td><td>$user_name</td><td>");
+			} else {
+				echo ("<tr><td>$value</td><td>$valuer</td><td>");
+			}
 			if ($valuer != NULL && method_exists('MachineSearch',"filter_$key"))
 				echo("<a href=index.php?go=machines&amp;".$key."=".urlencode($valuer).">Search</a>");
 		}
@@ -66,81 +78,10 @@ if (!defined('HAMSTA_FRONTEND')) {
 
 <div style="margin-top: 6px; margin-left: 3px;">
 	<span class="text-main text-blue bold" style="position: relative; bottom: 6px;">Actions: </span>
+
 <?php
-	if (($machine->get_powerswitch() != NULL) and ($machine->get_powertype() != NULL) and ($machine->check_powertype() == TRUE )) {
-		echo "<img src=\"images/icon-start.png\" alt=\"Start " . $machine->get_hostname() . "\" title=\"Start ".$machine->get_hostname() . "\" border=\"0\" " .
-                	                "width=\"20\" style=\"padding-right: 3px;\" " .
-        	                        "onclick=\"";
-	        echo "var r = confirm('This will start " . $machine->get_hostname() . ". Are you sure you want to continue?');" .
-	        "if(r==true)" .
-	                "{" .
-                	        "window.location='index.php?go=power&amp;a_machines[]=" . $machine->get_id() . "&amp;action=start';" .
-        	        "}";
-	        echo "\" />";
-
-                echo "<img src=\"images/icon-restart.png\" alt=\"Restart " . $machine->get_hostname() . "\" title=\"Restart ".$machine->get_hostname() . "\" border=\"0\" " .
-                                        "width=\"20\" style=\"padding-right: 3px;\" " .
-                                        "onclick=\"";
-                echo "var r = confirm('This will restart " . $machine->get_hostname() . ". Are you sure you want to continue?');" .
-                "if(r==true)" .
-                        "{" .
-                                "window.location='index.php?go=power&amp;a_machines[]=" . $machine->get_id() . "&amp;action=restart';" .
-                        "}";
-                echo "\" />";
-
-	
-	        echo "<img src=\"images/icon-stop.png\" alt=\"Stop " . $machine->get_hostname() . "\" title=\"Stop ".$machine->get_hostname() . "\" border=\"0\" " .
-	                                "width=\"20\" style=\"padding-right: 3px;\" " .
-        	                        "onclick=\"";
-	        echo "var r = confirm('This will stop " . $machine->get_hostname() . ". Are you sure you want to continue?');" .
-	        "if(r==true)" .
-	                "{" .
-	                        "window.location='index.php?go=power&amp;a_machines[]=" . $machine->get_id() . "&amp;action=stop';" .
-	                "}";
-	        echo "\" />";
-	}
-	else {
-		echo "<img src=\"images/icon-start-grey.png\" alt=\"Powercycling for " . $machine->get_hostname(). "is not supported" . "\" title=\"Powercycling for "
-			. $machine->get_hostname() . " is not supported" . "\" border=\"0\" " .
-				"width=\"20\" style=\"padding-right: 3px;\" ";
-		echo "\" />";
-
-                echo "<img src=\"images/icon-restart-grey.png\" alt=\"Powercycling for " . $machine->get_hostname(). "is not supported" . "\" title=\"Powercycling for "
-                        . $machine->get_hostname() . " is not supported" . "\" border=\"0\" " .
-                                "width=\"20\" style=\"padding-right: 3px;\" ";
-                echo "\" />";
-
-
-		echo "<img src=\"images/icon-stop-grey.png\" alt=\"Powercycling for " . $machine->get_hostname() . "is not supported" . "\" title=\"Powercycling for "
-			. $machine->get_hostname() . " is not supported" . "\" border=\"0\" " .
-				"width=\"20\" style=\"padding-right: 3px;\" ";
-		echo "\" />";
-	}
+    require('machine_actions.phtml');
 ?>
-	<a href="index.php?go=<?php echo $machine->get_role() == 'SUT' ? "reinstall" : "vhreinstall"; ?>&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-reinstall.png" alt="Reinstall this machine" title="Reinstall this machine" border="0" width="26" style="padding-left: 3px; padding-right: 3px;" /></a>
-	<a href="index.php?go=edit_machines&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-edit.png" alt="Edit/reserve this machine" title="Edit/reserve this machine" border="0" width="26" style="padding-right: 3px;" /></a>
-<?php
-			echo "<img src=\"images/icon-unlock.png\" alt=\"Free up this machine\" title=\"Free up this machine\" border=\"0\" " .
-				"width=\"26\" style=\"padding-right: 3px;\" " .
-				"onclick=\"";
-			if(trim($machine->get_used_by()) == "" and trim($machine->get_usage()) == "")
-			{
-				echo "alert('This machine is already free!');";
-			}
-			else
-			{
-				echo "var r = confirm('This will clear the \'Used by\' and \'Usage\' fields, making the selected machines free to use by anyone else. Are you sure you want to continue?');" .
-					"if(r==true)" .
-					"{" .
-						"window.location='index.php?go=edit_machines&amp;a_machines[]=" . $machine->get_id() . "&amp;action=clear';" .
-					"}";
-			}
-			echo "\" />";
-?>
-	<a href="index.php?go=send_job&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-job.png" alt="Send a job to this machine" title="Send a job to this machine" border="0" width="26" style="padding-right: 3px;" /></a>
-	<a href="http://<?php echo($machine->get_ip_address()); ?>:5801" target="_blank"><img src="images/icon-vnc.png" alt="Open a VNC viewer" title="Open a VNC viewer" border="0" width="26" style="padding-right: 3px;" /></a>
-	<a href="http://<?php echo($_SERVER['SERVER_ADDR']); ?>/ajaxterm/?host=<?php echo($machine->get_ip_address()); ?>" target="_blank"><img src="images/icon-terminal.png" alt="Access the terminal" title="Access the terminal" border="0" width="26" style="padding-right: 3px;" /></a>
-	<a href="index.php?go=del_machines&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-delete.png" alt="Delete this machine and all related data" title="Delete this machine and all related data" border="0" width="26" style="padding-right: 3px;" /></a>
 </div>
 
 <h2 class="text-medium text-blue bold">Last jobs</h2>
@@ -195,10 +136,11 @@ if (!defined('HAMSTA_FRONTEND')) {
 
 <a href="index.php?go=jobruns&amp;machine=<?php echo($machine->get_id()); ?>" class="text-small">Show complete list</a>
 <?php 
-	if( (count($active_jobs) + count($nonactive_jobs)) > 0 )	{
+	if( (count($active_jobs) + count($nonactive_jobs)) > 0 && isset ($user) )	{
 		echo '<p><a href="index.php?go=machine_purge&amp;id=' . $machine->get_id() . '&amp;purge=job">Purge job history</a></p>' . "\n";
 	}
 ?>
+<?php if ( isset($configuration) ) { ?>
 <?php if($configuration->get_id() == $machine->get_current_configuration()->get_id()): ?>
 	<h2 class="text-medium text-blue bold">Current configuration</h2>
 <?php else: ?>
@@ -224,6 +166,10 @@ if (!defined('HAMSTA_FRONTEND')) {
 		</tr>
 	<?php endforeach; ?>
 </table>
+
+<?php } else { ?>
+      <h2 class="text-medium text-blue bold">Configuration not set</h2>
+<?php } ?>
 
 <h2 class="text-medium text-blue bold">Previous configurations</h2>
 <form action="index.php?go=diff_config" method="post">
@@ -251,7 +197,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 </form>
 <?php
 
-	if( count($configs) > 1 ) {
+	if( count($configs) > 1 && isset ($user)) {
 		echo '<p><a href="index.php?go=machine_purge&amp;id=' . $machine->get_id() . '&amp;purge=config">Purge configuration history</a></p>' . "\n";
 	}
 	echo "<h2 class=\"text-medium text-blue bold\">Action history</h2>";
@@ -285,12 +231,16 @@ if (!defined('HAMSTA_FRONTEND')) {
 		if($machine_logs_number == 20) {
 			echo "<span class=\"text-small\">Only the last 20 entries are shown,</span> <a href=\"index.php?go=action_history&amp;id=" . $machine->get_id() . "\" class=\"text-small\">click here to see the complete list</a>.";
 		}
+		if (isset ($user))
+		  {
 		echo '<p><a href="index.php?go=machine_purge&amp;id=' . $machine->get_id() . '&amp;purge=log">Purge log history</a></p>' . "\n";
+		  }
 
 	}
 
 ?>
 <script type="text/javascript">
-	var TSort_Data = new Array ('lastjobs','i','s','s','s','s');
+	var TSort_Data = new Array ('lastjobs','i','s','s','d','d');
+	var TSort_Initial = "0D";
 	tsRegister();
 </script> 

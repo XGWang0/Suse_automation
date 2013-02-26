@@ -8,6 +8,7 @@
   	<parameter type="enum" name="TestSuite" default="cluster">
     		<option value="cluster">cluster</option>
     		<option value="iplb">iplb</option>
+    		<option value="drbd">drbd</option>
     	</parameter>
     </parameters>
     <config>

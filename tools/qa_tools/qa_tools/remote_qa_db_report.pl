@@ -59,6 +59,7 @@ my $rhost=$qaconf{remote_qa_db_report_host};
 my $ruser=$qaconf{remote_qa_db_report_user};
 my $tcflist = undef;
 
+my $xml_format=0;
 my $nomove=0;
 my $delete=0;
 my $delete_all_dir=0;
@@ -86,6 +87,7 @@ sub usage
 "	-R	Delete submitted logs from PATH (do not move to oldlogs)\n",
 "	-D	No writing to the database\n",
 "	-A	Do not scp the submitted data to the archive\n",
+"	-X	Use XML format instead of insert into QADB \n",
 "\n",
 "	PRODUCT:	e.g. SLES-10-beta1 | SLES-9-SP4-RC1\n",
 "	ARCH:		QADB architecture, e.g. i586,ia64,x86_64,ppc,ppc64,s390x,xen0-*...\n",
@@ -129,6 +131,8 @@ foreach my $i (0 .. @ARGV-1)
 	{	$interactive=0;		}
 	elsif( $a eq '-L' )
 	{	$nomove=1;		}
+	elsif( $a eq '-X' )
+	{	$xml_format=1;		}
 	elsif( $a eq '-R' )
 	{	$delete=1; $nomove=1;	}
 	elsif( $a eq '-F' )
@@ -203,6 +207,9 @@ if($argf_index)
 else
 {	push @ARGV,'-f',"$rbase/$rfile";	}
 
+if( $xml_format )
+{	push @ARGV, '-X';	}
+
 unless ($nomove) {
 	# There's no need to move - all remote submission has unique dir
 	push @ARGV,'-L';
@@ -272,6 +279,12 @@ die "Cannot run $cmd" if $qadb_report_res;
 # process logs - move to oldlogs/
 # TODO: when using inotify, should move just after every submit of TCFs
 my $oldlogs="$dir/oldlogs";
+
+# configure to put all the old log files by root user into the /var/log/qa/oldlogs
+if ( $> == 0) {
+	$oldlogs = "/var/log/qa/oldlogs";
+}
+
 my $savedir="$oldlogs/" . strftime ("%F-%H-%M-%S", localtime);
 unless( $nomove )
 {

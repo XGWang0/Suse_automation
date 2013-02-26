@@ -91,6 +91,9 @@ sub create_sql_backbone() {
 	# rpm list
 	my $rpm_list = $hwinfo->{'rpm_list'}->[0]->{'RPMList'};
 
+	# devel tools
+	my $devel_tools = $hwinfo->{'devel_tools'}->[0]->{'DevelTools'};
+
 # If there is already a entry for the machine (compare by hostname) use 
 # that and just set its status to up. Otherwise create a new entry.
 # Update the record if something changed.
@@ -115,6 +118,20 @@ sub create_sql_backbone() {
 		&log(LOG_INFO,"MASTER->CREATE_SQL_BACKBONE Use machine $machine_id");
 	}
 	&machine_set_product($machine_id, (map {$machine->{$_}} qw(product release product_arch)) );
+	&TRANSACTION_END;
+
+	# update membership of 'devel' group
+	&TRANSACTION( 'group', 'group_machine' );
+	my $devel_group_id=$dbc->enum_get_id('group','devel');
+	if( !defined($devel_group_id) )	{
+		$devel_group_id=&group_devel_create();
+	}
+	if( $devel_tools )	{
+		&group_machine_new($devel_group_id,$machine_id);
+	}
+	else	{
+		&group_machine_delete($devel_group_id,$machine_id);
+	}
 	&TRANSACTION_END;
 
 	# count MD5 of hwinfo and its sections

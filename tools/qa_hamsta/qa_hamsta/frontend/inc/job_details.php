@@ -55,7 +55,7 @@
 	foreach( $log_table as $row )
 		$html_log .= $row->get_log_text() . "\n";
 		
-	preg_match_all("/http:[^ ]+.php\?submissionID=(\d+)/", $html_log, $logMatches);
+	preg_match_all("/http:[^ ]+.php\?submission_id=(\d+)/", $html_log, $logMatches);
 	if( empty($logMatches[0]) ) {
 		$qadb_link="";
 	} else {

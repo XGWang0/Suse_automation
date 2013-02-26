@@ -126,6 +126,10 @@ sub disk_stats
 			$dev="/dev/hd".$short;
 		}
 	}
+	### ignore above if segment, because sometimes disk judgement by "_has_libsata" is not correct, see bug #745785.
+	$dev=`cat /proc/diskstats | sed -n \'1p\' | awk \'{print \$3}\'`;
+	chomp($dev);
+	$dev="/dev/" . $dev;
 	return ($dev,$num);
 }
 
@@ -234,6 +238,7 @@ sub _get_buildservice_repo
 		return 'SUSE_SLE-11_GA' if $version==11 and $subversion==0;
 		return 'SUSE_SLE-11-SP1_GA' if $version==11 and $subversion==1;
 		return 'SUSE_SLE-11-SP2_GA' if $version==11 and $subversion==2;
+		return 'SUSE_SLE-11-SP3_GA' if $version==11 and $subversion==3;
 		return 'SLE_Factory' if $version>11;
 	}
 	return undef;
@@ -253,7 +258,6 @@ sub make_modfile
 	my $testname = $qaconf{install_testuser_fullname};
 	my $testhome = $qaconf{install_testuser_home};
 	my $rootpass = $qaconf{install_root_password};
-
 
 	# open modfile
 	my $modfile="/tmp/modfile_$$.xml";
@@ -641,6 +645,14 @@ $postcmd
 			my $mac = `cat $if/address`;
 			chomp $mac;
 			my $ip = $1 if `ip -4 -o addr show $dev` =~ /inet ([\d\.]+)/;
+			if (!$ip && !system('which brctl > /dev/null 2>&1')) {
+				# Check, whether this interface is not part of some active bridge
+				# If yes, than get the IP of the bridge
+				my $bridgedev;
+				$bridgedev = '';
+				$bridgedev = $1 if `brctl show | grep $dev` =~ /^([\w]+)\s.*\s$dev$/;
+				$ip = $1 if $bridgedev && `ip -4 -o addr show $bridgedev` =~ /inet ([\d\.]+)/;
+			}
 			my $dev2 = "eth-id-$mac"; # fix spontaneous renaming
 			if( $args->{'virthosttype'} || $args->{'setup_bridge'} )	{ # VH
 				print $f <<EOF;
@@ -663,6 +675,7 @@ EOF
 			</interface>
 EOF
 			}
+			$ip = '';
 		}
 		print $f "	</interfaces>\n";
 		print $f "  </networking>\n";
@@ -743,7 +756,7 @@ EOF
   </networking>  
 EOF
 	}
-	
+
 	print $f " </install>\n" if $args->{'to_version'}<10;
 	print $f "</profile>\n";
 	close $f;
@@ -773,7 +786,7 @@ sub _print_profile_partitions
 			$abuildsize = 0 if !$abuildid;
 			$bootsize = 0 if !$bootid;
 			my $sizepercent = $args->{'repartitiondisk'} ? $args->{'repartitiondisk'}*0.01 : 1;
-			$swapsize = int($swapsize/1024);
+			$swapsize = int($swapsize)/1024;
 			my $rootusesize = int(($disksize - $abuildsize - $bootsize - $swapsize)*$sizepercent);
 
 			my %fs = ( '/'=>$args->{'rootfstype'}, 'swap'=>'swap', '/boot/efi'=>'vfat', '/abuild'=>'ext3', 'NULL' => 'ext3');

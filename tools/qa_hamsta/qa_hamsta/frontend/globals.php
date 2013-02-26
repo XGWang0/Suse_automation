@@ -25,6 +25,13 @@
 
 	# Keep this structure (for now), especially the " -- " between the feature title and description
 	$latestFeatures = array(
+			"2.5.0" => array(
+				'18 Jan 2013 -- Authentication and Authorization -- password and OpenID login and access rights added to Hamsta ',
+				'18 Jan 2013 -- Centralized configuration of SUTs -- it is no longer needed to rebuild rpm for persistent individual configuration changes',
+				'18 Jan 2013 -- Reinstall improvements -- It is now possible to set timezone and use kexec',
+				'18 Jan 2013 -- Connect new SUT from hamsta -- New SUT can be added to Hamsta from hamsta web interface (it is not needed to ssh to the SUT and install qa_hamsta manually)',
+				'18 Jan 2013 -- AutoPXE now supports ia64 architecture',
+			),
 			"2.4.0" => array(
 				'10 Aug 2012 -- Web user-friendly editor for jobs',
 				'10 Aug 2012 -- HA Server yast2 UI Automation',
@@ -133,9 +140,11 @@
 	$fields_list = array(
 		'hostname'=>'Hostname',
 		'status_string'=>'Status',
+		'used_by'=>'Used by',
 		'usage'=>'Usage',
 		'reserved'=>'Reserved',
 		'expires_formated'=>'Expires',
+		'job_overview'=>'Job Overview',
 		'group'=>'Group',
 		'product'=>'Product',
 		'architecture'=>'Installed Arch',
@@ -159,8 +168,27 @@
 		'vh'=>'Virt. Host'
 	);
 
+/* These fields are displayed by default. That means the user
+ * cannot hide them nor display again. */
+$default_fields_list = array (
+	'hostname',
+	'used_by',
+	'status_string'
+);
+
+/* Hidden fields
+ *
+ * select 0+ from:
+ * 'hostname','status_string','used_by','usage','group',
+ * 'product','architecture','architecture_capable','kernel',
+ * 'cpu_numbers','memory_size','disk_size','cpu_vendor',
+ * 'affiliation','ip_address','maintainer_string','notes',
+ * 'unique_id','serialconsole','powerswitch','role','type','vh'
+ */
+$fields_hidden=array('unique_id');
+
 # header & footer links
- $qadb_web = exec('/usr/share/qa/tools/get_qa_config qadb_wwwroot');
+$qadb_web = exec('/usr/share/qa/tools/get_qa_config qadb_wwwroot');
  $naviarr = array (
   "List Machines"=>"index.php?go=machines",
   "List Groups"=>"index.php?go=groups",
@@ -175,5 +203,37 @@
 $virtdisktypes = array("def", "file", "tap:aio", "tap:qcow", "tap:qcow2");
 
 $hamstaVersion = htmlspecialchars(`rpm -q qa_hamsta-master`);
-$packageVersions = explode("\n", htmlspecialchars(`REPO=$(zypper lr -u | grep ibs/QA:/Head | awk '{FS="|"; print $3}'); zypper se -sr \$REPO | awk '{FS="|"; gsub(" ", "", $2); gsub(" ", "", $4); print $2 " " $4}'`));
+
+/* Set configuration group. Should be stored somewhere (e.g. session)
+ * so the command is run only once later.
+ *
+ * This should be one of 'cz', 'us', 'cn' or 'de' from the global
+ * configuration files.
+ *
+ * The default should be 'production'.
+ */
+$configuration_group = exec ("/usr/share/qa/tools/location.pl");
+
+/* If the location is not detected by the script, use the default one. */
+if (! isset ($configuration_group) || strcmp($configuration_group, "(unknown)") == 0)
+{
+	$configuration_group = 'production';
+}
+
+require_once ('lib/ConfigFactory.php');
+/*
+ * Initialize global configuration. All subsequent calls to
+ * ConfigFactory can be done without parameters and will receive the
+ * same configuration.
+ *
+ * This configuration is accesible in the default namespace. If you
+ * need to create it somewhere else, just call
+ * `ConfigFactory::build()' without parameters.
+ *
+ * This works from anywhere provided this file stays in the same
+ * directory as config.ini file.
+ */
+$config = ConfigFactory::build ("Ini", dirname(__FILE__) . '/config.ini',
+				  $configuration_group);
+
 ?>

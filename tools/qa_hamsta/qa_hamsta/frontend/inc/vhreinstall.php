@@ -42,18 +42,46 @@ $search = new MachineSearch();
 $search->filter_in_array(request_array("a_machines"));
 $machines = $search->query();
 
-# Verify user has rights to modify the machine
-if ($openid_auth && array_key_exists('OPENID_AUTH', $_SESSION) && $user = User::get_by_openid($_SESSION['OPENID_AUTH'])) {
-	foreach ($machines as $machine) {
-		$used_by = User::get_by_openid($machine->get_used_by());
-		if ($used_by && $used_by->get_openid() != $user->get_openid()) {
-			$_SESSION['mtype'] = "fail";
-			$_SESSION['message'] = "You cannot reinstall a reserved machine.";
-			header('Location: index.php?go=qacloud');
-			exit();
-		}
-	}
-}
+/* Check if user is logged in, registered and have sufficient privileges. */
+if ( $config->authentication->use
+     && ( ! User::isLogged() || ! User::isRegistered (User::getIdent (), $config) ) )
+  {
+    Notificator::setErrorMessage ('You have to be logged in to reinstall a machine.');
+    header('Location: index.php');
+    exit ();
+  }
+
+/* Now check if the user tries to reinstall only her machines or if
+ * she can reinstall also reserved machines. */
+if ( $config->authentication->use )
+  {
+    if ( $user = User::getById (User::getIdent (), $config) )
+      {
+        if ( ($user->isAllowed ('machine_reinstall')
+              || $user->isAllowed ('machine_reinstall_reserved')) )
+          {
+            foreach($machines as $machine)
+              {
+                $used_by = User::getByLogin ($machine->get_used_by_login (), $config);
+                if ( ! isset ($used_by) || isset ($used_by)
+                     && $used_by->getLogin () != $user->getLogin ()
+                     && ! $user->isAllowed ('machine_reinstall_reserved') )
+                  {
+                    Notificator::setErrorMessage ('You cannot reinstall a machine'
+                                                  . ' that is not reserved or is reserved by other user.');
+                    header('Location: index.php');
+                    exit();
+                  }
+              }
+          }
+        else
+          {
+            Notificator::setErrorMessage ('You do not have permission to reinstall a machine.');
+            header('Location: index.php');
+            exit ();
+          }
+      }
+  }
 
 foreach($machines as $m) {
 	$m->get_children();
@@ -84,6 +112,10 @@ $resend_job=request_str("xml_file_name");
 if (request_str("proceed")) {
     $installoptions = request_str("installoptions"); # use options listed in webpage
     $smturl = request_str("update-smt-url");
+    $regcodes = $_POST["rcode"];
+    $regcodes = array_filter($regcodes,"filter");
+    $regcode = join(",", TrimArray($regcodes));
+
     # Check for errors
     $errors = array();
     if(request_str("startupdate") == "update-smt") {
@@ -91,7 +123,7 @@ if (request_str("proceed")) {
             $errors['startupdate'] = "You must provide the full URL of an SMT server to do an online update using SMT registration.";
         }
     } elseif(request_str("startupdate") == "update-reg") {
-        if(!preg_match("/^.*\@.*$/", request_str("update-reg-email")) or request_str("update-reg-code") == "") {
+        if(!preg_match("/^.*\@.*$/", request_str("update-reg-email")) and $regcode == "") {
             $errors['startupdate'] = "You must provide a valid email address and registration code in order to do an online update using NCC registration credentials.";
         }
     }
@@ -166,6 +198,9 @@ if (request_str("proceed")) {
                if ($installmethod == "Upgrade")
                    $args .= " -U";
 	       $args .= " -V " .$virtualization_method;
+				var_dump($args);
+				exit();
+
                $email = request_str("mailto");
                system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $autoyastfile");
                system("sed -i 's/ARGS/$args/g' $autoyastfile");
@@ -174,7 +209,7 @@ if (request_str("proceed")) {
                    if (!$machine->send_job($autoyastfile)) {
                        $error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
                    } else {
-                       Log::create($machine->get_id(), $machine->get_used_by(), 'REINSTALL', "has reinstalled this machine as virtualization host using \"$producturl_raw\", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
+                       Log::create($machine->get_id(), $machine->get_used_by_login(), 'REINSTALL', "has reinstalled this machine as virtualization host using \"$producturl_raw\", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
                    }
                    if ($virtualization_method == "xen") {
                        if(!$machine->send_job("/usr/share/hamsta/xml_files/set_xen_default.xml"))

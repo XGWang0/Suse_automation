@@ -14,16 +14,17 @@ $waiver_id=http('waiver_id')+0;
 $waiver_testcase_id=http('waiver_testcase_id')+0;
 
 $submit=http('submit');
-$view  =http('view'  );
+$view  =http('view','sw');
 $search=http('search');
 $wtoken=http('wtoken');
 $detail=http('detail');
 
-# modes:
-# 1: search waivers
-# 2: search waiver details
-# 3: new / edit waiver
-# 4: view waiver details / edit waiver detail 
+# view modes:
+# 'sw': search waivers
+# 'sd': search waiver details
+# 'nw'/'ew': new waiver / edit waiver
+# 'nd'/'ed': new detail / edit detail 
+# 'nwd' : new waiver + detail
 
 # control vars:
 # submit: what to submit
@@ -69,31 +70,23 @@ if(token_read($wtoken))
 }
 
 # display the cards
-$v2m=array('search_waiver'=>0,'search_detail'=>1,'new_waiver'=>2,'edit_waiver'=>2,'view_waiver'=>3,'edit_detail'=>3,'new_detail'=>3);
-$mode=1;
-if(!$view) $view='search_waiver';
-if( $view && isset($v2m[$view]) )
-	$mode=$v2m[$view];
-$steps=array();
-foreach( $v2m as $key=>$val )
-	if( !isset($steps[$val]) || $key==$view )
-		$steps[$val]=array(str_replace('_',' ',$key), 'waiver.php?view='.$key);
-if($mode==3)
-	$steps[3][1]='';  # no tab clicking, would miss essential params
-else
-	unset($steps[3]); # no direct clicking to 4th tab
-print steps('',$steps,$mode);
+$steps = array( 'sw'=>'search waiver', 'sd'=>'search detail' );
+if( $view!='ew' )
+	$steps['nw'] = 'new waiver';
+$steps_alt = array('ew'=>'edit waiver','vw'=>'view waiver','ed'=>'edit detail','nd'=>'new detail','nwd'=>'new waiver+detail');
+print steps('waiver.php?view=',$steps,$view,$steps_alt);
 
 # display the main contents
-if( $view=='search_waiver' || ($view=='view_waiver' && !$waiver_id) )
+if( $view=='sw' || ($view=='vw' && !$waiver_id) )
 {	# waiver search & list	
+	$view='sw';
 	get_waiver();
 	$tc=($tcname_got ? $tcname_got: ($testcase_got ? enum_get_val('testcase',$testcase_got):''));
 	$what=array(
 		array('tcname','',$tc,TEXT_ROW,'testcase'),
 		array('explanation','',$expl_got,TEXT_ROW),
 		array('bug_id','',$bugs_got,TEXT_ROW),
-		array('view','','search_waiver',HIDDEN)
+		array('view','',$view,HIDDEN)
 	);
 	print html_search_form('waiver.php',$what);
 
@@ -107,16 +100,16 @@ if( $view=='search_waiver' || ($view=='view_waiver' && !$waiver_id) )
 		table_htmlspecialchars($data);
 		table_translate($data,array(
 			'enums'=>array('testcase_id'=>'testcase'),
-			'links'=>array('waiver_id'=>'waiver.php?view=view_waiver&waiver_id='),
+			'links'=>array('waiver_id'=>'waiver.php?view=vw&waiver_id='),
 			'ctrls'=>array(
-				'edit'=>'waiver.php?view=edit_waiver&waiver_id=',
-				'delete'=>"confirm.php?confirm=w&view=search_waiver&waiver_id="
+				'edit'=>'waiver.php?view=ew&waiver_id=',
+				'delete'=>"confirm.php?confirm=w&view=sw&waiver_id="
 			)
 		));
 		print html_table($data,array('id'=>'waiver','sort'=>'ssss','class'=>'tbl controls'));
 	}
 }
-else if( $view=='search_detail' )
+else if( $view=='sd' )
 {	# waiver details search & list
 	get_detail();
 	array_unshift($match,array('null','&lt;any&gt;'));
@@ -125,7 +118,7 @@ else if( $view=='search_detail' )
 		array('release',$release,$release_got,MULTI_SELECT),
 		array('arch',$arch,$arch_got,MULTI_SELECT),
 		array('matchtype',$match,$match_got,SINGLE_SELECT),
-		array('view','','search_detail',HIDDEN)
+		array('view','',$view,HIDDEN)
 	);
 	print html_search_form('waiver.php',$what);
 
@@ -134,8 +127,8 @@ else if( $view=='search_detail' )
 		$data=search_waiver(1,array('product_id'=>$product_got,'release_id'=>$release_got,'arch_id'=>$arch_got,'matchtype'=>$match_got));
 		table_translate($data,array(
 			'links'=>array(
-				'waiver_testcase_id'=>'waiver.php?view=edit_detail&waiver_testcase_id=',
-				'waiver_id'=>'waiver.php?view=view_waiver&waiver_id='
+				'waiver_testcase_id'=>'waiver.php?view=ed&waiver_testcase_id=',
+				'waiver_id'=>'waiver.php?view=vw&waiver_id='
 			),
 			'enums'=>array(
 				'testcase_id'=>'testcase',
@@ -149,7 +142,7 @@ else if( $view=='search_detail' )
 	}
 
 }
-else if( $view=='new_waiver' || $view=='edit_waiver' )
+else if( $view=='nw' || $view=='ew' )
 {	# insert /  update a waiver - form
 	get_waiver();
 	if( $waiver_id )
@@ -171,12 +164,12 @@ else if( $view=='new_waiver' || $view=='edit_waiver' )
 		array('bug_id','',$bugs_got,TEXT_ROW,'bug ID'),
 		array('explanation','',$expl_got,TEXT_AREA,'explanation'),
 		array('submit','','waiver',HIDDEN),
-		array('view','','view_waiver',HIDDEN),
+		array('view','','vw',HIDDEN),
 		array('wtoken','',$wtoken,HIDDEN)
 	);
 	print html_search_form('waiver.php',$what);
 }
-else if( $view=='view_waiver' )
+else if( $view=='vw' )
 {	# print waiver info, list details
 	if( $waiver_id )
 	{
@@ -193,12 +186,12 @@ else if( $view=='view_waiver' )
 			'ctrls'=>make_detail_controls()
 		));
 		print html_table($data,array('id'=>'details','sort'=>'isssi','class'=>'tbl controls'));
-		print '<p><a class="btn" href="waiver.php?view=new_detail&amp;waiver_id='.$waiver_id.'">add detail</a></p>'."\n";
+		print '<p><a class="btn" href="waiver.php?view=nd&amp;waiver_id='.$waiver_id.'">add detail</a></p>'."\n";
 	}
 	else
 		print "Wrong input data.<br/>\n";
 }
-else if( $view=='new_detail' || $view=='edit_detail' )
+else if( $view=='nd' || $view=='ed' )
 {	# insert / update a waiver detail - form
 	get_detail();
 	array_unshift($arch,array('null','&lt;any&gt;'));
@@ -215,7 +208,6 @@ else if( $view=='new_detail' || $view=='edit_detail' )
 			$match_got=$data[0]['matchtype'];
 		}
 	}
-#	print "<h2>".($view=='new_detail' ? 'New':'Edit')." detail</h2>\n";
 	$wtoken=token_generate();
 	$what=array(
 		array('product',$product,$product_got,SINGLE_SELECT),
@@ -225,7 +217,7 @@ else if( $view=='new_detail' || $view=='edit_detail' )
 		array('waiver_id','',$waiver_id,HIDDEN),
 		array('waiver_testcase_id','',$waiver_testcase_id,HIDDEN),
 		array('submit','','waiver_detail',HIDDEN),
-		array('view','','view_waiver',HIDDEN),
+		array('view','','vw',HIDDEN),
 		array('wtoken','',$wtoken,HIDDEN)
 	);
 	print html_search_form('waiver.php',$what);
@@ -233,7 +225,7 @@ else if( $view=='new_detail' || $view=='edit_detail' )
 	print "<br/>\n";
 	print_waiver_info($waiver_id);
 }
-else if( $view=='new_both' )
+else if( $view=='nwd' )
 {
 	get_waiver();
 	get_detail();
@@ -304,7 +296,7 @@ function make_detail_controls()
 {
 	global $view,$waiver_id;
 	return array(
-		'edit'=>'waiver.php?view=edit_detail&waiver_testcase_id=',
+		'edit'=>'waiver.php?view=ed&waiver_testcase_id=',
 		'delete'=>"confirm.php?confirm=wd&view=$view&waiver_testcase_id="
 	);
 }

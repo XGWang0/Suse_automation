@@ -72,3 +72,10 @@ hamsta_master_loglevel_main=4		# main process
 
 # delay before a dead thread respawns (secs)
 hamsta_master_respawn_delay=30
+
+# Use master authentication 0 means no, 1 means yes
+#
+# This applies to command line. If you set this to yes, you have to
+# set up authentication for the Hamsta front-end because to run jobs
+# the front-end uses command line interface.
+hamsta_master_authentication=0

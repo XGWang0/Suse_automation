@@ -43,14 +43,15 @@ use Getopt::Std;
 # Needed global variables for Getopt::Std;
 our ($opt_h,$opt_d,$opt_c,$opt_p,$opt_a,$opt_f,$opt_F,$opt_m,$opt_t,$opt_v,$opt_b,$opt_C,$opt_N) =
     ("",    0,     "",    "",    "",    "",    "",    "",    "",    "",    "",    "",	"");
-our ($opt_L,$opt_D,$opt_A,$opt_k, $opt_T, $opt_R) =
-    ("",    "",    "",    ""    , "",     "");
+our ($opt_L,$opt_D,$opt_A,$opt_k, $opt_T, $opt_R, $opt_X) =
+    ("",    "",    "",    ""    , "",     "",	"");
 
 use File::Basename qw/basename/;
 use POSIX qw /strftime/;
 
 # source our modules
 use qadb;
+use xmlout;
 use bench_parsers;
 use functions;
 use detect;
@@ -115,7 +116,7 @@ my $maildomain=$qaconf{mail_domain};
 # directory for remote results
 my $remote_results_dir = '/var/log/qa-remote-results';
 
-our $dst=qadb->new();
+our $dst;
 
 # Log archive root
 my $log_archive_root = $qaconf{log_archive_wwwroot};
@@ -138,6 +139,7 @@ my $nomove=0 ;     # move to oldlogs 0..yes 1..no
 my $delete=0 ;     # delete logs 1..yes 0..no
 my $delete_result_path = 0; #delete whole result path - used only if result path was temporaly created (extracted tarball)
 my $noscp=0;	# scp results to log archive 0..yes 1..no
+my $xml=0; #xml format
 
 unless ($args{'host'})
 {
@@ -166,6 +168,7 @@ print
 "	-D	No writing to the database\n",
 "	-A	Do not scp the submitted data to the archive\n",
 "	-C	commit after every TCF is inserted\n",
+"	-X	output XML format result in /tmp\n",
 "\n",
 "	PRODUCT:	e.g. SLES-10-beta1 | SLES-9-SP4-RC1\n",
 "	ARCH:		QADB architecture, e.g. i586,ia64,x86_64,ppc,ppc64,s390x,xen0-*...\n",
@@ -182,6 +185,39 @@ print
 "       TESTER:         login of the tester (default: ".$args{'tester'}.")\n";
 }
 
+
+#  Cmdline options evaluation:  START
+#
+#  (Note: man Getopt::Std is misleading, to put it mildly.
+#   Consult /usr/lib/perl5/Getopt/Std.pm itself, instead.
+#
+&getopts("hbLRDAv:c:p:a:f:F:k:m:N:t:T:X");
+if ("$opt_h") 
+{	&usage; exit 0;	}
+$log::loglevel		= $opt_v	if (defined $opt_v and $opt_v=~/^-?\d+/);
+$args{'comment'}	= $opt_c	if ($opt_c);
+$nomove			= 1      	if ($opt_L);
+$delete			= 1      	if ($opt_R);
+$db_common::nodb	= 1		if ($opt_D);
+$noscp			= 1		if ($opt_A);
+$db_common::batchmode	= 1		if ($opt_b);
+($args{'product'},$args{'release'})	= &set_product_release($opt_p)	if ($opt_p);
+$args{'arch'}		= $opt_a	if ($opt_a);
+$args{'build_nr'}	= $opt_N	if ($opt_N);
+$args{'resultpath'}	= $opt_f	if ($opt_f);
+$args{'host'}		= $opt_m	if ($opt_m);
+$args{'kernel'}		= $opt_k	if ($opt_k);
+$args{'type'}		= $opt_t	if ($opt_t);
+$args{'tester'}		= $opt_T	if ($opt_T);
+if ($opt_X) {
+	$xml=1;
+	$noscp=1;
+}
+if($xml){
+	$dst=xmlout->new() ;
+}else {
+	$dst=qadb->new() ;
+}
 # ask the user a yes/no question and waint until he responds
 # nust not be called in batch mode!!!
 sub annoy_user # question
@@ -206,30 +242,7 @@ sub annoy_user # question
 	return 0;
 }
 
-
-#  Cmdline options evaluation:  START
-#
-#  (Note: man Getopt::Std is misleading, to put it mildly.
-#   Consult /usr/lib/perl5/Getopt/Std.pm itself, instead.
-#
-&getopts("hbLRDAv:c:p:a:f:F:k:m:N:t:T:");
-if ("$opt_h") 
-{	&usage; exit 0;	}
-$log::loglevel		= $opt_v	if (defined $opt_v and $opt_v=~/^-?\d+/);
-$args{'comment'}	= $opt_c	if ($opt_c);
-$nomove			= 1      	if ($opt_L);
-$delete			= 1      	if ($opt_R);
-$db_common::nodb	= 1		if ($opt_D);
-$noscp			= 1		if ($opt_A);
-$db_common::batchmode	= 1		if ($opt_b);
-($args{'product'},$args{'release'})	= &set_product_release($opt_p)	if ($opt_p);
-$args{'arch'}		= $opt_a	if ($opt_a);
-$args{'build_nr'}	= $opt_N	if ($opt_N);
-$args{'resultpath'}	= $opt_f	if ($opt_f);
-$args{'host'}		= $opt_m	if ($opt_m);
-$args{'kernel'}		= $opt_k	if ($opt_k);
-$args{'type'}		= $opt_t	if ($opt_t);
-$args{'tester'}		= $opt_T	if ($opt_T);
+	
 if ($opt_F) {
 # vmarsik: the block could probably be rewritten to something like
 # $args{tcf_filter} = {map {s/\/$//; $_=>1} split /,/,$opt_F};
@@ -478,7 +491,13 @@ while( my $parser = readdir RESULTS) {
 		&log(LOG_DEBUG, "Log dir is %s",$destdirs{"$parser/$tcf"});
 		my $testsuite_id = $dst->enum_get_id_or_insert('testsuite',$testsuite);
 		&log(LOG_DEBUG, "testsuite_id is $testsuite_id");
-		my $tcf_id = $dst->create_tcf( $testsuite_id, $submission_id, ($noscp ? '':$log_archive_root.'/'.$destdirs{"$parser/$tcf"}.'/'.$tcf), $testdate );
+		my $tcf_id;
+		if($xml) {
+			$tcf_id = $dst->create_tcf( $testsuite_id, $submission_id, ($noscp ? '':$log_archive_root.'/'.$destdirs{"$parser/$tcf"}.'/'.$tcf), $testdate ,$args{'resultpath'}."/$parser/$tcf");
+		} else {
+			$tcf_id = $dst->create_tcf( $testsuite_id, $submission_id, ($noscp ? '':$log_archive_root.'/'.$destdirs{"$parser/$tcf"}.'/'.$tcf), $testdate );
+		}
+
 		&log(LOG_DEBUG, "tcf_id is $tcf_id");
 		&TRANSACTION_END;
 	
@@ -566,7 +585,7 @@ closedir(RESULTS);
 my $submissions=join(',',values %submissions);
 
 # clean up
-$dst->commit() if %submissions;
+my $dst_res = $dst->commit() if %submissions;
 $dst->tidy_up;
 
 
@@ -637,8 +656,8 @@ foreach my $dir (keys %destdirs)
 &log(LOG_INFO, "Submitted logs have been copied to the archive.") unless $noscp;
 &log(LOG_INFO, "Submitted logs have been moved to $savedir") unless $nomove;
 &log(LOG_INFO, "Submitted logs have been deleted") if $delete;
-
-
+&log(LOG_INFO, "Create xml format result $dst_res  ") if $xml;
+exit 0 if $xml;
 # send mail notificaiton
 &log(LOG_INFO, "Sending mail notifications to $reviewer and ".$args{'tester'}."\@$maildomain");
 my $msg="Hi,\n\nsubmission(s) $submissions from ".$args{'tester'}." is waiting for your review.\nThe following result files have been submitted:\n\n".join("\n",keys %destdirs)."\n\nHave fun.\n";

@@ -17,7 +17,7 @@
             <!-- Required -->
             <command execution="forked">
 #!/bin/bash
-/usr/share/hamsta/testscript/customtest qa_test_bind qa_test_bzip2 qa_test_cabextract qa_test_coreutils qa_test_cpio qa_test_findutils qa_test_gzip qa_test_indent qa_test_net-snmp qa_test_postfix qa_test_sharutils qa_test_openssh
+/usr/share/hamsta/testscript/customtest qa_test_bind qa_test_bzip2 qa_test_cabextract qa_test_coreutils qa_test_cpio qa_test_findutils qa_test_gzip qa_test_indent qa_test_net-snmp qa_test_postfix qa_test_sharutils qa_test_openssh qa_test_lynis
 </command>
             <!-- Optional -->
             <directory>/</directory>

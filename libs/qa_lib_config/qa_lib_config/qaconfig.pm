@@ -38,6 +38,7 @@ BEGIN {
 	%EXPORT_TAGS	= ();
 	@EXPORT_OK	= qw(
 		&get_qa_config
+		&get_system_qa_config
 	);
 }
 

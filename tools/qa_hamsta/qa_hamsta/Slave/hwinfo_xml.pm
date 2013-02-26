@@ -35,8 +35,9 @@ use log;
 use XML::Dumper;
 use IO::Select;
 use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
+use misc;
 
-require 'Slave/config_slave';
+require 'Slave/config_slave.pm';
 
 my  $dumper = new XML::Dumper;
 
@@ -231,16 +232,19 @@ sub get_hwinfo_module($) {
 				# An indent of 2 characters means that a new element is starting
 				# here. If the same key is used already append the lines to the
 				# existing element.
-				if( $line =~ /^  ([^:]+):(?: (.*))?$/ )
-		{
-			$element_name = $1;
+				
+				next if( &filter_hwinfo($line) == 0 ); # filter some useless elements here.
 
-			if (exists($module->{$element_name})) {
-			$module->{$element_name} .= ", $2";
-			} else {
-			$module->{$element_name} = $2;
-			}
-		}
+				if( $line =~ /^  ([^:]+):(?: (.*))?$/ )
+				{
+					$element_name = $1;
+
+					if (exists($module->{$element_name})) {
+						$module->{$element_name} .= ", $2";
+					} else {
+						$module->{$element_name} = $2;
+					}
+				}
 				
 			} elsif ((length($1) % 2 == 0) && ($element_name)) {
 			

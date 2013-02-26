@@ -81,18 +81,40 @@
 
     $machines = $search->query();
 
-    # Verify user has rights to modify the machine
-    if ($openid_auth && array_key_exists('OPENID_AUTH', $_SESSION) && $user = User::get_by_openid($_SESSION['OPENID_AUTH'])) {
-	    foreach ($machines as $machine) {
-		    $used_by = User::get_by_openid($machine->get_used_by());
-		    if ($used_by && $used_by->get_openid() != $user->get_openid()) {
-			    $_SESSION['mtype'] = "fail";
-			    $_SESSION['message'] = "You cannot delete a reserved machine.";
-			    header('Location: index.php?go=machines');
-			    exit();
-		    }
-	    }
-    }
+/* Check if user has privileges to delete a machines. */
+if ( $config->authentication->use )
+  {
+    if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
+      {
+        $user = User::getById (User::getIdent (), $config);
+        if ( $user->isAllowed ('machine_delete') || $user->isAllowed ('machine_delete_reserved') )
+          {
+            foreach ($machines as $machine)
+              {
+                if ( ! ( $machine->get_used_by_login () == $user->getLogin () 
+                         || $user->isAllowed ('machine_delete_reserved')) )
+                  {
+                    Notificator::setErrorMessage ("You cannot delete a machine that is not reserved"
+                                                  . " or is reserved by other user.");
+                    header ("Location: index.php?go=machines");
+                    exit ();
+                  }
+              }
+          }
+        else
+          {
+            Notificator::setErrorMessage ("You do not have privileges to delete a machine.");
+            header ("Location: index.php?go=machines");
+            exit ();
+          }
+      }
+    else
+      {
+        Notificator::setErrorMessage ("You have to be logged in and registered to delete a machine.");
+        header ("Location: index.php?go=machines");
+        exit ();
+      }
+  }
     
     $html_title = "Delete machines";
 ?>

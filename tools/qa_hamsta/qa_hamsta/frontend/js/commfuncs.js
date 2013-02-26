@@ -44,6 +44,9 @@ function checkemail(emailvalue)
 
 function checkcheckbox(which){
 	var ckpass=false
+	if ( which.name=="machine_list" && which.action.options[which.action.selectedIndex].value == "addsut") {
+		return true;
+	}
 	for (i=0;i<which.length;i++) {
                 var tempobj=which.elements[i]
                 if (tempobj.type=="checkbox" && tempobj.checked) {
@@ -94,7 +97,7 @@ function checkcontents(which)
 		if (tempobj.title.substring(0,8)=="required") {
 			if ( (tempobj.type=="text") || (tempobj.type=="textarea") ) {
 				if ( (tempobj.name=="jobname") && (tempobj.value.indexOf(" ") >=0) ){
-					alert("The job name must be composed by number, letter, underscroe or dash")
+					alert("The job name must be composed by number, letter, underscore or dash")
 					return false
 				}
 				if ((tempobj.value).replace(/(^\s*)|(\s*$)/g, '')=='') {
