@@ -62,13 +62,13 @@
 
 	} else {
 ?>
-<h5>You are trying to upgrade the following machine(s) to a higher release with Autoyast:<br />
+<h5>You are trying to upgrade the following machine(s) to a higher release with Autoyast:</h5>
 
 <ul>
 <?php foreach ($machines as $machine): ?>
-<li><input type="hidden" name="a_machines[]" value="<?php echo($machine->get_id()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>"><?php echo($machine->get_hostname()); ?></a></li>
+<li><input type="hidden" name="a_machines[]" value="<?php echo($machine->get_id()); ?>"><a class="text-small-bold" href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>"><?php echo($machine->get_hostname()); ?></a></li>
 <?php endforeach; ?>
-</ul></h5>
+</ul>
 <script language="javascript">
 //Will provide a better way
 function upmethod(myvar)
