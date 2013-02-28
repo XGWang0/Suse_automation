@@ -189,5 +189,5 @@ if (request_str("proceed")) {
 	echo "</ul>";
 	echo "</div>";
 }
-$html_title = "Upgrade (Only support upgrade to SLE-11-sp2 or higher)";
+$html_title = "Upgrade (only supports upgrade to SLE-11-SP2 or higher)";
 ?>
