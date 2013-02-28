@@ -32,14 +32,14 @@ if (!defined('HAMSTA_FRONTEND')) {
 }
 
 /* First check if the user has privileges to run this functionality. */
-permission_or_disabled(array('perms'=>'autopxe_start'));
+permission_or_disabled(array('perm'=>'autopxe_start'));
 
 $search = new MachineSearch();
 $search->filter_in_array(request_array("a_machines"));
 $machines = $search->query();
 
 if (request_str("submit")) {
-	permission_or_redirect(array('perms'=>'autopxe_start'));
+	permission_or_redirect(array('perm'=>'autopxe_start'));
 	$repourl = request_str("repourl");
 	$type = request_str("type");
 	$address = request_str("address");

@@ -30,12 +30,11 @@
 if (!defined('HAMSTA_FRONTEND')) {
   $go = 'validation';
   return require("index.php");
- }
-$html_title="Validation test";
+}
 
-$perms=array('owner'=>'validation_start','url'=>'index.php?go=validation');
-/* First check if the user has privileges to run this functionality. */
-permission_or_disabled($perms);
+
+
+$html_title="Validation test";
 
 	/* pkacer@suse.com: I have suppressed warnings here because if
 	 * the file is not reachable, the warning is always displayed
@@ -55,11 +54,14 @@ permission_or_disabled($perms);
 		$newdic[$product] = $tmp[0];
 	}
 
+	$perm=array('perm'=>'validation_start','url'=>'index.php?go=validation');
+	/* First check if the user has privileges to run this functionality. */
+	permission_or_disabled($perm);
 	if (request_str("submit")) {
-		permission_or_redirect($perms);
-		$vmlist = $config->vmlist->toArray ();
+		permission_or_redirect($perm);
 		$buildnr = $_POST['buildnumber'];
 		$baseurl = "$newdic[$buildnr]" . "$buildnr";
+		$vmlist = $config->vmlist->toArray ();
 		foreach( $_POST['validationmachine'] as $vm ) {
 			$isxen = 0; //clean singal in each loop
 			$machineIP=$vmlist["$vm"];

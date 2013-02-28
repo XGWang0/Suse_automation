@@ -43,8 +43,8 @@ sort($ids,SORT_NUMERIC);
 $ids = array_reverse($ids);
 
 /* First check if the user has privileges to run this functionality. */
-$perms=array('owner'=>'machine_merge','other'=>'machine_merge_reserved');
-machine_permission_or_disabled($ids,$perms);
+$perm=array('owner'=>'machine_merge','other'=>'machine_merge_reserved');
+machine_permission_or_disabled($ids,$perm);
 
 
 # 's' means a string type with concatenation possible (e.g. comments)
@@ -81,7 +81,7 @@ $fields = array(
 );
 
 if( request_str('submit') )	{
-	machine_permission_or_redirect($ids,$perms);
+	machine_permission_or_redirect($ids,$perm);
 	$primary_machine_id=request_str('primary_machine_id');
 	$primary_machine = Machine::get_by_id($primary_machine_id);
 	if( $primary_machine )	{

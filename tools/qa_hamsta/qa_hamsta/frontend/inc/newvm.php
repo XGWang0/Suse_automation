@@ -45,8 +45,12 @@ $machines = $search->query();
 $installoptions = request_str("installoptions");
 $installoptions_warning = "";
 
-//$resend_job=request_str("xml_file_name");
+# check permissions
+$perm=array('owner'=>'vm_admin','other'=>'vm_admin_reserved','url'=>'index.php?go=qacloud');
+machine_permission_or_disabled($machines,$perm);
+
 if (request_str("proceed")) {
+	machine_permission_or_redirect($machines,$perm);
 	$errors = array(); // Used for recording errors
 
 	# Request all variables 

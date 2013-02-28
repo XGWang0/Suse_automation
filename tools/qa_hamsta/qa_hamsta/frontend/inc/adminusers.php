@@ -30,7 +30,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 
 $html_title = "Users, roles and privileges administration";
 
-permission_or_disabled(array('perms'=>'user_administration'));
+permission_or_disabled(array('perm'=>'user_administration'));
 
 /*
 if (User::isLogged ())

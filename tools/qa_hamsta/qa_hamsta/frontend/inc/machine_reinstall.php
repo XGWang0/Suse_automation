@@ -51,8 +51,8 @@ foreach($machines as $m) {
 
 /* Now check if the user tries to reinstall only his machines or if
  * he can reinstall also reserved machines. */
-$perms=array('owner'=>'machine_reinstall','other'=>'machine_reserved','url'=>'index.php?go=machine_reinstall');
-machine_permission_or_disabled($machines,$perms);
+$perm=array('owner'=>'machine_reinstall','other'=>'machine_reserved','url'=>'index.php?go=machine_reinstall');
+machine_permission_or_disabled($machines,$perm);
 
 # If the install options are empty, we use the ones from the DB, else we see if options are different between machines. If different, don't use them
 $installoptions_warning="";
@@ -91,7 +91,7 @@ if(request_str("subpartition")){
 
 # Procee the request
 if (request_str("proceed")) {
-	machine_permission_or_redirect($machines,$perms);
+	machine_permission_or_redirect($machines,$perm);
 	# Request parameters
 	$installoptions = request_str("installoptions");
 	$smturl = request_str("update-smt-url");

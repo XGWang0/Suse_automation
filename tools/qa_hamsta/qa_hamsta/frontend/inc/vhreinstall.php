@@ -42,8 +42,8 @@ $search = new MachineSearch();
 $search->filter_in_array(request_array("a_machines"));
 $machines = $search->query();
 
-$perms=array('owner'=>'machine_reinstall','other'=>'machine_reinstall_reserved','url'=>'index.php?go=vhreinstall');
-machine_permission_or_disabled($machines,$perms);
+$perm=array('owner'=>'vh_admin','other'=>'vh_admin_reserved','url'=>'index.php?go=vhreinstall');
+machine_permission_or_disabled($machines,$perm);
 
 foreach($machines as $m) {
 	$m->get_children();
@@ -72,7 +72,7 @@ if(count($machines) == 1) {
 
 $resend_job=request_str("xml_file_name");
 if (request_str("proceed")) {
-    machine_permission_or_redirect($machines,$perms);
+    machine_permission_or_redirect($machines,$perm);
     $installoptions = request_str("installoptions"); # use options listed in webpage
     $smturl = request_str("update-smt-url");
     $regcodes = $_POST["rcode"];

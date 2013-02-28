@@ -63,8 +63,6 @@
 	# Change the long definition of AT_LIST (this must go *after* the 'sed' on AT_LIST_SHORT)
 	system("sed -i 's/AT_LIST/" . implode(" ", $atlist) . "/g' $autotestjobfile");
 
-#	jobs_send( $a_machines, $autotestjobfile, $jobname, 'n "autotest"', array() );
-
 	# Make sure each job gets sent correctly
 	$error='';
 	if( request_str("submit") )	{

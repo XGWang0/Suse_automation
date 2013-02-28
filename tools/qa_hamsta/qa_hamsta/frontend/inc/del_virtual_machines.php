@@ -38,6 +38,10 @@
         $successfulDeletions = array();
         $failedDeletions = array();
         $allmachines = request_array("a_machines");
+
+	/* check permissions */
+	machine_permission_or_redirect($allmachines,array('owner'=>'vm_admin','other'=>'vm_admin_reserved'));
+
         foreach($allmachines as $machine_id)
         {
             $machine = Machine::get_by_id($machine_id);

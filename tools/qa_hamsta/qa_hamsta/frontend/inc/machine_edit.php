@@ -40,8 +40,8 @@
 	}
 
 	/* Verify user has rights to modify the machine. */
-	$perms=array('owner'=>'machine_edit','other'=>'machine_edit_reserved');
-	machine_permission_or_disabled($allmachines,$perms);
+	$perm=array('owner'=>'machine_edit','other'=>'machine_edit_reserved');
+	machine_permission_or_disabled($allmachines,$perm);
         /* If they are doing the shortcut field clearing */
 	if (request_str("action") == "clear")
 	{
@@ -62,7 +62,7 @@
 	# Keep in mind that there are potentially multiple machines being edited here
 	else if (request_str("submit"))
 	{
-		machine_permission_or_redirect($allmachines,$perms);
+		machine_permission_or_redirect($allmachines,$perm);
 		# First, check the data for errors
 		$errors = array();
 

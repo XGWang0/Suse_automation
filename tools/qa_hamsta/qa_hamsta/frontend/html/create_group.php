@@ -36,19 +36,17 @@
 <h2 class="text-medium text-blue"><?php echo ($action == "edit" ? "Edit group" : "Select machines to add them to group"); ?></h2>
 
 <?php
-	if($action == "add")
+	if($action == "add" || $action=='edit' )
 		echo "<form action=\"index.php?go=create_group\" method=\"post\">";
 	else
 		echo "<form action=\"index.php?go=create_group\" method=\"post\" onSubmit=\"return checkcheckbox(this)\">";
 
-	if($action == "edit")
-	{
-		echo "<input type=\"hidden\" name=\"id\" value=\"$id\" />";
-	}
+	if($id)
+		echo "<input type=\"hidden\" name=\"id\" value=\"$id\" />\n";
 
 	echo "<table class=\"text-main\">";
 
-	if(($action == "addmachine") || ($action == "addcertainmachine")) {
+	if(($action == "addmachine") || ($action == "create_group")) {
 		$i = 0;
 
 		echo "<tr><td colspan=\"2\"><table class=\"text-main\">";
@@ -66,15 +64,15 @@
 					continue;
 				$machine_enable_add++;
 				echo "<td style=\"padding: 5px;\">" .
-				"<input name=machines_selected[] type=checkbox value=$machine_id title=\"check one machine at least to add the group below\"/>" .
+				"<input name=a_machines[] type=checkbox value=$machine_id title=\"check one machine at least to add the group below\"/>" .
 					"$machine_name " .
 				"</td>";
 				
 			}
-			else if($action == "addcertainmachine"){
+			else if($action == "create_group"){
 				$machine_enable_add = count($machines);
 				echo "<td style=\"padding: 5px;\">" .
-                                "<input name=machines_selected[] type=checkbox value=$machine_id title=\"check one machine at least to add the group below\" checked=\"checked\"/>" .
+                                "<input name=a_machines[] type=checkbox value=$machine_id title=\"check one machine at least to add the group below\" checked=\"checked\"/>" .
                                         "$machine_name " .
                                 "</td>";	
 
@@ -87,7 +85,7 @@
 
 		if($machine_enable_add == 0){
 			echo "<td style=\"padding: 5px;\">" .
-                             "<b>There is no more machine could be added to the group, please return the previois page.</b>" .
+                             "<b>There is no more machine could be added to the group, please return the previous page.</b>" .
                              "</td>";
 		}
 
@@ -97,7 +95,7 @@
 
 	echo "<tr>";
 
-	if(($action == "add") || ($action == "addcertainmachine"))
+	if(($action == "add") || ($action == "create_group"))
 	{
 		echo "<td colspan=\"2\" style=\"padding-top: 5px;\"><label><input type=\"radio\" name=\"action\" value=\"$action\" checked>Create new group</label></td>";
 	}
@@ -106,7 +104,7 @@
 		echo "<td colspan=\"2\" style=\"padding-top: 5px;\"><label><input type=\"radio\" name=\"action\" value=\"edit\" checked>Edit group details</label></td>";
 	}
 
-	if(($action == "add") || ($action == "addcertainmachine") || ($action == "edit"))
+	if(($action == "add") || ($action == "create_group") || ($action == "edit"))
 	{
 ?>
 
@@ -117,30 +115,33 @@
     </tr>
     <tr>
         <td>Description: </td>
-        <td><input name="description" onFocus="document.getElementsByName('action')[0].checked=true"<?php echo ($action == "edit" ? " value=\"$description\"" : ""); ?> /></td>
+        <td><input name="desc" onFocus="document.getElementsByName('action')[0].checked=true"<?php echo ($action == "edit" ? " value=\"$desc\"" : ""); ?> /></td>
     </tr>
 <?php
 	}
 
-	if($action == "addmachine" or $action == "addcertainmachine")
+	if($action == "addmachine" or $action == "create_group")
 	{
 		$groups = Group::get_all();
 		if($groups != NULL) {
 ?>
 
     <tr>
-        <td colspan="2" style="padding-top:15px"><label><input type="radio" name="action" value="addmachine" checked>Add to existing group</label></td>
+    <td colspan="2" style="padding-top:15px"><label><input type="radio" name="action" value="<?php echo ($action=='create_group' ? 'addmachine' : $action); ?>" checked>Add to existing group</label></td>
     </tr>
     <tr>
         <td>Group name: </td>
-        <td><select name="add_group" size="1" onFocus="document.getElementsByName('action')[1].checked=true">
-            <?php foreach(Group::get_all() as $group): 
-		$group_name = $group->get_name();
+        <td><select name="id" size="1" onFocus="document.getElementsByName('action')[1].checked=true">
+	<?php foreach(Group::get_all() as $group)	{
+		$group_id = $group->get_id();
+		$group_name=$group->get_name();
+		if( $group_id==0 )
+			continue;
 		if($group_name == $name)
-                	echo "<option value=\"$group_name\" selected=\"selected\"> $group_name</option>";
+			echo "<option value=\"$group_id\" selected=\"selected\"> $group_name</option>";
 		else
-                	echo "<option value=\"$group_name\" > $group_name</option>";
-            	endforeach; 
+			echo "<option value=\"$group_id\" > $group_name</option>";
+	} 
             ?>
         </select></td>
     </tr>
@@ -159,7 +160,7 @@
 			$button_title = "Create group";
 			break;
 		case "addmachine":
-		case "addcertainmachine":
+		case "create_group":
 			$button_title = "Add machine";
 			break;
 		case "edit":
