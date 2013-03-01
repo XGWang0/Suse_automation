@@ -450,20 +450,6 @@ class Machine {
 
 	}
 
-
-
-	/**
-	 * Gets update status of this machine.
-	 * 
-	 *@access public
-	 *@return true if SUT side have hamste update available
-	 */
-        function get_update_status() {
-	
-        return $this->fields["update_status"];
-
-	}
-
 	/**
 	 * Gets timestamp this machine was last used.
 	 * 
