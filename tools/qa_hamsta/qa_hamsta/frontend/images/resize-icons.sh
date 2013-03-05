@@ -19,5 +19,5 @@ if [ ! -x /usr/bin/convert ]; then
 fi
 
 for FL in $CONVERT_IMAGES; do
-    echo convert -resize 27 "$FL" "$FL";
+    convert -resize 27 "$FL" "$FL";
 done
