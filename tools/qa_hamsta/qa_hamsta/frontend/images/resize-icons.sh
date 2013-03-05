@@ -16,7 +16,7 @@ if [ $PWD != $IMG_DIR ]; then
 fi
 
 IMAGES="icon-*.png exclamation*.png qmark.png xml_green.png\
- gear-cog_blue.png"
+ gear-cog_blue.png host-collide.png"
 
 # Check environment sanity.
 if [ ! -x ${COMMAND} ]; then
