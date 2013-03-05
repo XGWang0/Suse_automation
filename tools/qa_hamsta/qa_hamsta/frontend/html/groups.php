@@ -39,7 +39,7 @@
 	else
 	{
 		if(isset($user)){
-			$user_id = $user->get_id();
+			$user_id = $user->getId();
 
 		}
 ?>

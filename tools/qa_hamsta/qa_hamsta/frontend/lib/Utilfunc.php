@@ -196,7 +196,7 @@ function machine_icons($machine,$user)
 	$id=$machine->get_id();
 	$ret='';
 	$usedby=$machine->get_used_by();
-	$users_machine = isset ($user) && ( $user->getID() == $usedby );
+	$users_machine = isset ($user) && ( $user->getId() == $usedby );
 	$has_pwr=(($machine->get_powerswitch()!=NULL) and ($machine->get_powertype()!=NULL) and $machine->check_powertype());
 	$host=$machine->get_hostname();
 	$ip=$machine->get_ip_address();
