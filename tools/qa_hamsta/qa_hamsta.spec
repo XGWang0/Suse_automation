@@ -103,6 +103,7 @@ Authors:
             Leon Wang      <llwang@novell.com>
 
 %package frontend
+BuildRequires:  ImageMagick
 License:        SUSE Proprietary  
 Summary:        HArdware Maintenance, Setup & Test Automation  
 Group:          System/Management  
@@ -211,6 +212,7 @@ shared between Hamsta master, multicast-forwarder and slave.
 %setup -n %{name}
 
 %build
+sh frontend/images/resize-icons.sh
 
 %install
 install -m 755 -d $RPM_BUILD_ROOT/usr/share/man/man8
