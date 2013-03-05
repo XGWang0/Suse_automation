@@ -212,7 +212,7 @@ shared between Hamsta master, multicast-forwarder and slave.
 %setup -n %{name}
 
 %build
-sh frontend/images/resize-icons.sh
+sh frontend/images/resize-icons.sh frontend/images
 
 %install
 install -m 755 -d $RPM_BUILD_ROOT/usr/share/man/man8
