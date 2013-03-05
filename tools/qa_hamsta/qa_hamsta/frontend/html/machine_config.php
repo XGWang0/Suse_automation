@@ -45,12 +45,11 @@ $page = "$page_base?go=machine_config";
 $desc=http('desc','');
 $body=http('body','');
 $wtoken=http('wtoken');
-$a_machines=http('a_machines');
-$qaconf=http('qaconf');
 $group=http('group');
 
 if( token_read($wtoken) )	{
 	if( ($submit=='new' && $desc) || $submit=='set' )	{
+		check_perm_redirect();
 		transaction();
 		if( $submit=='new' )
 		update_result( ($id=qaconf_insert_unparsed($desc,$body)), 1 );
@@ -65,20 +64,19 @@ if( token_read($wtoken) )	{
 		commit();
 	}
 	else if( $submit=='update' && $desc )	{
+		check_perm_redirect($id);
 		transaction();
 		update_result( qaconf_replace_unparsed($id,$desc,$body) );
 		commit();
 	}
 	else if( $submit=='sync_url' && $id )	{
-		if( capable('master_administration') )	{
+		check_perm_redirect(0);
 		transaction();
 		update_result(qaconf_set_sync_url($id,http('sync_url')));
 		commit();
 	}
-		else
-			print html_error("Insufficent privileges, need to be logged in and be administrator");
-	}
 	else if( $submit=='delete' && $id )	{
+		check_perm_redirect($id);
 		$usage=qaconf_usage_count($id);
 		if( !$usage )
 			print html_error("No such configuration: $id");
@@ -206,7 +204,7 @@ else	{
 	));
 	for( $i=1; $i<count($data); $i++ )	{
 		$row=$data[$i];
-		if( !($row['groups'] || $row['machines'] && isset($row[0]) /*FIXME*/ ) )
+		if( !($row['groups'] || $row['machines'] && isset($row[0]) /*FIXME*/ ) && perm($row['id']) )
 			$data[$i][0].=' '.html_text_button('delete',"$page&step=d&id=".$row['id']);
 	}
 	print html_table($data,array('total'=>1,'id'=>'qaconf_list','sort'=>'isss','class'=>'list text-main tbl'));
@@ -220,7 +218,7 @@ function print_global_configs()	{
 }
 
 function view_delete_create_assign($title,$id,$machine_id,$group)	{
-	global $page;
+	global $page,$perm_system;
 	print "<h3>$title</h3>\n";
 	print "<div class=\"qaconf\">\n";
 	if( $id && ($conf=qaconf_get_details($id) ))	{
@@ -229,9 +227,10 @@ function view_delete_create_assign($title,$id,$machine_id,$group)	{
 #		print "<pre>"; print_r($conf); print "</pre>\n";
 		if( isset($conf['sync_url']) )	{
 			print html_text_button('sync',"$page&submit=sync&id=$id")."\n";
-			print html_text_button('edit URL',"$page&step=eu&id=$id")."\n";
+			if( $perm_system )
+				print html_text_button('edit URL',"$page&step=eu&id=$id")."\n";
 		}
-		else	{
+		else if(perm($id))	{
 			print html_text_button('edit',"$page&step=e&id=$id")."\n";
 #			if( $id>QACONF_MAX_SYS_ID )
 #				print html_text_button('delete',"$page&step=d&id=$id")."\n";
@@ -260,6 +259,18 @@ function view_delete_create_assign($title,$id,$machine_id,$group)	{
 		print html_search_form('',$what,array('submit'=>'Set','hr'=>false));
 	}
 	print "</div>\n";
+}
+
+function perm($id)
+{
+	global $perm_machines,$perm_system;
+	return ( !is_null($id) && is_numeric($id) && $id<=QACONF_MAX_SYS_ID ? $perm_system : $perm_machines );
+}
+
+function check_perm_redirect($id=null)
+{
+	if( !perm($id) )
+		redirect(array('url'=>$page));
 }
 
 

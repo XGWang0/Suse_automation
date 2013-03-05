@@ -40,6 +40,8 @@
     $file = request_str("file");
     $opt = request_str("opt");
     $machine_list = request_str("machine_list");
+    $perm=array('perm'=>'job_edit');
+    permission_or_disabled($perm);
 
     if (request_str("cancel") == "Cancel")
     {
@@ -73,6 +75,7 @@
 
     if(request_str("submit"))
     {
+        permission_or_redirect($perm);
         require("inc/job_create.php");
 
 	if(count($errors) == 0) {

@@ -37,6 +37,7 @@
 	
 	$errors = array();
 
+	machine_permission_or_disabled($machines,$perm_send_job);
 	if (request_str("submit"))
 	{
 		machine_permission_or_redirect($machines,$perm_send_job);

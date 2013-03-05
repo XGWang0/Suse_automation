@@ -966,18 +966,9 @@ function capable ()
         return false;
 }
 
-function redirect($args=array())
-{
-	$errmsg=hash_get($args,'errmsg','You need to be logged in and/or have permissions ');
-	$url=hash_get($args,'url','index.php');
-	fail($errmsg);
-	header("Location: $url");
-	exit();
-}
-
 function users_machine($user,$machine)
 {
-	return ( $user && $machine && ($user->getId()==$machine->get_usedby()) );
+	return ( $user && $machine && ($user->getId()==$machine->get_used_by()) );
 }
 
 /** 
@@ -1007,10 +998,9 @@ function machine_permission($machines,$args)
 		if( is_numeric($machines[$i]) )
 			$machines[$i] = Machine::get_by_id($machines[$i]);
 	}
-
-	$users_machine=users_machine( $user, $machine );
-	$perms=array_merge(to_array($other),($users_machine ? to_array($owner) : array()));
 	foreach( $machines as $machine )	{
+		$users_machine=users_machine( $user, $machine );
+		$perms=array_merge(to_array($other),($users_machine ? to_array($owner) : array()));
 		if( ! call_user_func_array('capable',$perms) )
 			return false;
 	}
@@ -1062,17 +1052,6 @@ function permission_or_disabled($args=array())
 		disable($args);
 }
 
-function disable($args=array())
-{
-	global $disabled_css;
-	$errmsg=hash_get($args,'errmsg','You need to be logged in and/or have permissions to do any modifications here');
-	fail($errmsg);
-	$disabled_css=true;
-
-	# FIXME: this prevents TBlib's update forms from updating, but is not a clean solution.
-	unset($_REQUEST['wtoken']);
-}
-
 /*function jobs_send($machine_ids,$file,$jobname='',$type='',$errors=array())
 {
 	$search = new MachineSearch();
@@ -1099,17 +1078,5 @@ function disable($args=array())
 		fail($errmsg);
 	}
 } */
-
-function success($msg)
-{
-	$_SESSION['message']=$msg;
-	$_SESSION['mtype']='success';
-}
-
-function fail($msg)
-{
-	$_SESSION['message']=$msg;
-	$_SESSION['mtype']='fail';
-}
 
 ?>

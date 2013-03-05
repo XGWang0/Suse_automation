@@ -33,8 +33,18 @@
         return require("index.php");
     }
 
+    $search = new MachineSearch();
+    $search->filter_in_array(request_array("a_machines"));
+
+    $machines = $search->query();
+
+    /* Check if user has privileges to delete a machines. */
+    $perm=array('owner'=>'machine_delete','other'=>'machine_delete_redirect','url'=>'index.php?go=machines');
+    machine_permission_or_disabled($machines,$perm);
+
     if(request_str("submit"))
     {
+	machine_permission_or_redirect($machines,$perm);
         $successfulDeletions = array();
         $failedDeletions = array();
         $allmachines = request_array("a_machines");
@@ -76,13 +86,5 @@
 		exit();
     }
 
-    $search = new MachineSearch();
-    $search->filter_in_array(request_array("a_machines"));
-
-    $machines = $search->query();
-
-/* Check if user has privileges to delete a machines. */
-    machine_permission_or_redirect($machines,array('owner'=>'machine_delete','other'=>'machine_delete_redirect','url'=>'index.php?go=machines'));
-    
     $html_title = "Delete machines";
 ?>

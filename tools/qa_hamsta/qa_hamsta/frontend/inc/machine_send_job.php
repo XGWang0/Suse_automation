@@ -53,12 +53,13 @@ else
 $search->filter_in_array($machines_id_array);
 $machines = $search->query();
 
-machine_permission_or_redirect($machines,$perm_send_job);
+machine_permission_or_disabled($machines,$perm_send_job);
 
         $resend_job=request_str("xml_file_name");
         $filenames =request_array("filename");
 
 	if (request_str("submit")) {
+		machine_permission_or_redirect($machines,$perm_send_job);
 
 		$email = request_str("mailto");
 		$jobfilenames = array();

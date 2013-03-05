@@ -88,4 +88,11 @@ else if($submit=='sync' && $id )    {
 	exit;
 }
 
+
+$a_machines=http('a_machines');
+$perm_machines=machine_permission($a_machines,array('owner'=>'machine_config','other'=>'machine_config_reserved'));
+$perm_system=capable('master_administration');
+if( !$perm_machines && !$perm_system )
+	disable();
+
 ?>

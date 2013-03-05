@@ -247,7 +247,7 @@ function group_icons($group,$user)
 	$ret='';
 	$gid=$group->get_id();
 	$gname=$group->get_name();
-	$url_base="index.php?group=$gname";
+	$url_base="index.php?group=$gname&id=$gid";
 	$auth=$config->authentication->use;
 
 	$btn=array(
@@ -270,6 +270,38 @@ function group_icons($group,$user)
 		$ret.=task_icon($b);
 	}
 	return $ret;
+}
+
+function redirect($args=array())
+{
+	$errmsg=hash_get($args,'errmsg','You need to be logged in and/or have permissions ');
+	$url=hash_get($args,'url','index.php');
+	fail($errmsg);
+	header("Location: $url");
+	exit();
+}
+
+function disable($args=array())
+{
+	global $disabled_css;
+	$errmsg=hash_get($args,'errmsg','You need to be logged in and/or have permissions to do any modifications here');
+	fail($errmsg);
+	$disabled_css=true;
+
+	# FIXME: this prevents TBlib's update forms from updating, but is not a clean solution.
+	unset($_REQUEST['wtoken']);
+}
+
+function success($msg)
+{
+	$_SESSION['message']=$msg;
+	$_SESSION['mtype']='success';
+}
+
+function fail($msg)
+{
+	$_SESSION['message']=$msg;
+	$_SESSION['mtype']='fail';
 }
 
 ?>
