@@ -943,15 +943,13 @@ function user_get()
 
 function capable ()
 {
-        global $config;
+        global $config,$user;
         $cap=func_get_args();
 
 	# everything allowed when not using authentication
         if( !$config->authentication->use )
                 return true;
 	
-	$user=user_get();
-
 	# nothing allowed unless logged in
 	if( !$user )
 		return false;
@@ -972,12 +970,9 @@ function redirect($args=array())
 {
 	$errmsg=hash_get($args,'errmsg','You need to be logged in and/or have permissions ');
 	$url=hash_get($args,'url','index.php');
-	if( !call_user_func_array('capable',$perms) )	{
-		$_SESSION['message']=$errmsg;
-		$_SESSION['mtype']='fail';
-		header("Location: $url");
-		exit();
-	}
+	fail($errmsg);
+	header("Location: $url");
+	exit();
 }
 
 function users_machine($user,$machine)
@@ -994,8 +989,7 @@ function users_machine($user,$machine)
   **/
 function machine_permission($machines,$args)
 {
-	global $config;
-	$user=user_get();
+	global $config,$user;
 	$owner=hash_get($args,'owner',null);
 	$other=hash_get($args,'other',null);
 
@@ -1072,15 +1066,14 @@ function disable($args=array())
 {
 	global $disabled_css;
 	$errmsg=hash_get($args,'errmsg','You need to be logged in and/or have permissions to do any modifications here');
-	$_SESSION['message']=$errmsg;
-	$_SESSION['mtype']='fail';
+	fail($errmsg);
 	$disabled_css=true;
 
 	# FIXME: this prevents TBlib's update forms from updating, but is not a clean solution.
 	unset($_REQUEST['wtoken']);
 }
 
-function jobs_send($machine_ids,$file,$jobname='',$type='',$errors=array())
+/*function jobs_send($machine_ids,$file,$jobname='',$type='',$errors=array())
 {
 	$search = new MachineSearch();
 	$search->filter_in_array($machine_ids);
@@ -1103,9 +1096,20 @@ function jobs_send($machine_ids,$file,$jobname='',$type='',$errors=array())
 		exit;
 	}
 	else	{
-		$_SESSION['message'] = join("\n", $errors);
-		$_SESSION['mtype'] = "fail";
+		fail($errmsg);
 	}
+} */
+
+function success($msg)
+{
+	$_SESSION['message']=$msg;
+	$_SESSION['mtype']='success';
+}
+
+function fail($msg)
+{
+	$_SESSION['message']=$msg;
+	$_SESSION['mtype']='fail';
 }
 
 ?>

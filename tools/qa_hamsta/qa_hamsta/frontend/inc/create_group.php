@@ -72,22 +72,23 @@ if ($submit) {
 	switch($action) {
 	case "add": 		# new empty group
 	case "create_group":	# new group with machines
+		permission_or_redirect(perm('group_create'));
 		if(!$name_got){
 			$error = "You must enter a group name.";
 			break;
 		}
 
-#		permission_or_redirect($perm);
 		$groupCreateResult = Group::create($name_got, $desc_got, $machines);
 		if($groupCreateResult == -2)
 			$error='There is already a group with that name! Please try again.';
 		else if($groupCreateResult < 0)
 			$error='There was an unknown error creating the group. Please try again.';
 		else
-			store_success('Group created!');
+			success('Group created!');
 		break;
 
 	case "edit":		# edit name + desc
+		permission_or_redirect(perm('group_edit'));
 		if( !strlen($name_got) )	{
 			$error='You must enter a group name.';
 			break;
@@ -105,7 +106,7 @@ if ($submit) {
 		else if($groupCreateResult < 0)
 			$error='There was an unknown error editing the group. Please try again.';
 		else	{
-			store_success('Group modified!');
+			success('Group modified!');
 			# Try to get a session namespace to store the field values
 			# for displayed machines. This is needed to update filter on
 			# List Machines page. 
@@ -122,6 +123,7 @@ if ($submit) {
 		break;
 
 	case "addmachine":	# add machines to group
+		permission_or_redirect(perm('group_edit'));
 		if (is_null($group)) 
 			error_redirect("The selected group for adding the machine(s) to does not exist.");
 		$failed=0;
@@ -140,6 +142,19 @@ if ($submit) {
 		return require('inc/groups.php');
 	}
 }
+else	{ # gray unavailable
+	switch($action)	{
+	case 'add':
+	case 'create_group':
+		permission_or_disabled(perm('group_create'));
+		break;
+
+	case 'edit':
+	case 'addmachine':
+		permission_or_disabled(perm('group_edit'));
+		break;
+	}
+}
 
 $html_title = "Add to group";
 
@@ -148,10 +163,9 @@ function error_redirect($text)
 	redirect(array('errmsg'=>$text,'url'=>'index.php?go=groups'));
 }
 
-function store_success($text)
+function perm($perm)
 {
-	$_SESSION['mtype']='success';
-	$_SESSION['message']=$text;
+	return array('perm'=>$perm,'url'=>'index.php?go=groups');
 }
 
 ?>

@@ -34,8 +34,10 @@
     $search = new MachineSearch();
     $search->filter_in_array(request_array("a_machines"));
     $machines = $search->query();
-    
+    $perm=array('perm'=>'group_edit','url'=>'index.php?go=group_del_machines');
+    permission_or_disabled($perm);
     if (request_str("submit")) {
+	    permission_or_redirect($perm);
 		$machine_group_pairs = request_array("a_groups");// pair like: $machineID_$groupID
 		if (is_null($machine_group_pairs)) {
 			$error = "No groups selected.";
