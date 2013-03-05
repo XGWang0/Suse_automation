@@ -6,7 +6,7 @@
 # Author: pkacer@suse.com
 # 2013-03-05
 
-IMG_DIR=frontend/images
+IMG_DIR=$1
 SIZE=27
 COMMAND=/usr/bin/convert
 PARAMS="-resize $SIZE"
