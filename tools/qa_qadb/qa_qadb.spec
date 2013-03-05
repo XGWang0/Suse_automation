@@ -71,7 +71,7 @@ echo %{version} > %{webdir}/.version
 echo %{version} > %{destdir}/.version
 echo "=================== I M P O R T A N T ======================="
 echo "Please make sure that you have a database prepared."
-echo "To create a new DB, install and confugure mysql and then"
+echo "To create a new DB, install and configure mysql and then"
 echo "run 'cd %destdir/db; ./create_db.sh'."
 echo "To update the existing database to the newest version,"
 echo "run 'cd %destdir/db; ./update_db.sh'."

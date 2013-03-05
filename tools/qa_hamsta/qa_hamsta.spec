@@ -103,6 +103,7 @@ Authors:
             Leon Wang      <llwang@novell.com>
 
 %package frontend
+BuildRequires:  ImageMagick
 License:        SUSE Proprietary  
 Summary:        HArdware Maintenance, Setup & Test Automation  
 Group:          System/Management  
@@ -211,6 +212,7 @@ shared between Hamsta master, multicast-forwarder and slave.
 %setup -n %{name}
 
 %build
+sh frontend/images/resize-icons.sh frontend/images
 
 %install
 install -m 755 -d $RPM_BUILD_ROOT/usr/share/man/man8
@@ -253,7 +255,7 @@ echo %{version} > /usr/share/hamsta/Slave/.version
 %post master
 echo "=================== I M P O R T A N T ======================="
 echo "Please make sure that you have a database prepared."
-echo "To create a new DB, install and confugure mysql and then"
+echo "To create a new DB, install and configure mysql and then"
 echo "run 'cd %destdir/db; ./create_db.sh'."
 echo "To update the existing database to the newest version,"
 echo "run 'cd %destdir/db; ./update_db.sh'."
