@@ -127,7 +127,6 @@ sub disk_stats
 		}
 	}
 	chomp($dev);
-	$dev="/dev/" . $dev;
 	return ($dev,$num);
 }
 
