@@ -126,6 +126,8 @@ sub disk_stats
 			$dev="/dev/hd".$short;
 		}
 	}
+	chomp($dev);
+	$dev="/dev/" . $dev;
 	return ($dev,$num);
 }
 
