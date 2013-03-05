@@ -135,7 +135,7 @@ if (! empty ($s_anything))
 
 		<td><input type="checkbox" name="a_machines[]" value="<?php echo($machine->get_id()); ?>"<?php if (isset ($a_machines) && in_array($machine->get_id(), $a_machines)) echo(' checked="checked"'); ?>></td>
 
-    <td title="<?php echo($machine->get_notes()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>&amp;highlight=<?php echo($highlight); ?>"><?php echo($machine->get_hostname()); ?></a><?php if ($machine->count_host_collide() >= 2) echo '<img src="images/host-collide-27x27.png" class="icon-notification" title="Hostnames collide! Merge or delete machine if MAC was changed, otherwise rename it.">'; ?></td>
+    <td title="<?php echo($machine->get_notes()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>&amp;highlight=<?php echo($highlight); ?>"><?php echo($machine->get_hostname()); ?></a><?php if ($machine->count_host_collide() >= 2) echo '<img src="images/27/host-collide.png" class="icon-notification" title="Hostnames collide! Merge or delete machine if MAC was changed, otherwise rename it.">'; ?></td>
 		    
     <td><?php echo($machine->get_status_string());
 	$users_machine = isset ($user) && $user->getId () == $machine->get_used_by ();
@@ -145,15 +145,15 @@ if (! empty ($s_anything))
 			       && (($users_machine && $user->isAllowed ('machine_reinstall'))
 				   || ($user->isAllowed ('machine_reinstall_reserved')))))
 	      {
-		echo('<img src="images/exclamation_gray-27x27.png" class="icon-notification" alt="Tools out of date!" title="Tools out of date. You cannot update ' . $machine->get_hostname () . ' if not logged in, without privileges or if it is reserved by another user." onclick="alert(\'You cannot update this machine.\');">');
+		echo('<img src="images/27/exclamation_gray.png" class="icon-notification" alt="Tools out of date!" title="Tools out of date. You cannot update ' . $machine->get_hostname () . ' if not logged in, without privileges or if it is reserved by another user." onclick="alert(\'You cannot update this machine.\');">');
 	      }
 	    else
 	      {
-		echo('<a href="index.php?go=machine_send_job&a_machines[]='.$machine->get_id().'&filename[]='.$config->xml->dir->default.'/hamsta-upgrade-restart.xml&submit=1"><img src="images/exclamation_yellow-27x27.png" class="icon-notification" alt="Tools out of date!" title="Click to update ' . $machine->get_hostname () . '"></a>');
+		echo('<a href="index.php?go=machine_send_job&a_machines[]='.$machine->get_id().'&filename[]='.$config->xml->dir->default.'/hamsta-upgrade-restart.xml&submit=1"><img src="images/27/exclamation_yellow.png" class="icon-notification" alt="Tools out of date!" title="Click to update ' . $machine->get_hostname () . '"></a>');
 	      }
 	  }
 
-	if ($machine->get_devel_tools()) echo('<img src="images/gear-cog_blue-27x27.png" class="icon-notification" alt="Devel Tools" title="Devel Tools">'); ?></td>
+	if ($machine->get_devel_tools()) echo('<img src="images/27/gear-cog_blue.png" class="icon-notification" alt="Devel Tools" title="Devel Tools">'); ?></td>
 	<?php $used_by_name = $machine->get_used_by_name($config);
                         echo ('<td>' . ( isset ($used_by_name)
                                              ? $used_by_name
@@ -199,7 +199,7 @@ tsRegister();
 </select>
 <input type="submit" value="Go">
 <a href="../hamsta/helps/actions.html" target="_blank">
-  <img src="../hamsta/images/qmark-27x27.png" class="icon-small" name="qmark1" id="qmark1" title="actions to selected machine(s)" />
+  <img src="../hamsta/images/27/qmark.png" class="icon-small" name="qmark1" id="qmark1" title="actions to selected machine(s)" />
 </a>
 </form>
 <?php
@@ -239,7 +239,7 @@ tsRegister();
 	  }
 ?>'>
 			<a href="../hamsta/helps/hwinfo.html" target="_blank">
-			<img src="../hamsta/images/qmark-27x27.png" class="icon-small" name="qmark2" id="qmark2" title="hwinfo search" /></a>
+			<img src="../hamsta/images/27/qmark.png" class="icon-small" name="qmark2" id="qmark2" title="hwinfo search" /></a>
 		</td>
 	</tr>
 	<tr>

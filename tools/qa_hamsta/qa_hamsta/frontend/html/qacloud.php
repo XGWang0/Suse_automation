@@ -150,7 +150,7 @@ if (!defined('HAMSTA_FRONTEND')) {
     </select>
     <input type="submit" value="Go">
     <a href="../hamsta/helps/actions.html" target="_blank">
-      <img src="../hamsta/images/qmark.png" class="icon-small" name="qmark1" id="qmark1" title="actions to selected machine(s)" /></a>
+      <img src="../hamsta/images/27/qmark.png" class="icon-small" name="qmark1" id="qmark1" title="actions to selected machine(s)" /></a>
   </div>
   <script type="text/javascript">
   <!--
@@ -179,7 +179,7 @@ if (!defined('HAMSTA_FRONTEND')) {
       </select>
       <input name="s_anything" value="<?php echo(request_str("s_anything")); ?>">
       <a href="../hamsta/helps/hwinfo.html" target="_blank">
-        <img src="../hamsta/images/qmark.png" class="icon-small" name="qmark2" id="qmark2" title="hwinfo search" /></a>
+        <img src="../hamsta/images/27/qmark.png" class="icon-small" name="qmark2" id="qmark2" title="hwinfo search" /></a>
     </td>
   </tr>
 <!--  <tr>

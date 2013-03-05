@@ -162,24 +162,25 @@ function icon($args)
 # - 'fullname': long action name for tooltips
 # - 'err_noperm' : tooltip message if action not permitted
 # - 'err_noavail': tooltip message if action not available
-# - 'size': size of the icon (part of the icon name, default value is '-27x27')
+# - 'size': size of the icon (directory where icon lives, default value is '27')
 function task_icon($a)
 {
 	$a=array_merge(array( # merge with default values
 		'url'=>'','allowed'=>true,'link'=>false,'enbl'=>true,'confirm'=>false,'object'=>'',
-		'size'=>'-27x27'),$a);
+		'size'=>'27'),$a);
 	$fullname=hash_get($a,'fullname',$a['type']);
-	$imgurl='images/icon-'.$a['type'];
+	$size = ($a['size'] > 0 ? $a['size'] . '/' : '');
+	$imgurl='images/'.$size.'icon-'.$a['type'];
 	$err_noperm=hash_get($a,'err_noperm',"Cannot $fullname ".$a['object']." unless you are logged in and have enough privileges and/or have reserved the machine");
 	$err_noavail=hash_get($a,'err_noavail',preg_replace('/e?$/','ing ',$fullname,1).$a['object'].' is not supported');
 	if( !$a['enbl'] || !$a['allowed'] )	{
 		$err_msg=( $a['enbl'] ? $err_noperm : $err_noavail );
-		$icon=icon(array('src'=>"$imgurl-grey".$a['size'].".png",'alt'=>$err_msg,'title'=>$err_msg));
+		$icon=icon(array('src'=>"$imgurl-grey.png",'alt'=>$err_msg,'title'=>$err_msg));
 		if(!$a['link'])
 			return $icon;
 	}
 	else	{
-		$args=array('src'=>"$imgurl".$a['size'].".png",'alt'=>"$fullname ".$a['object'],'title'=>"$fullname ".$a['object']);
+		$args=array('src'=>"$imgurl.png",'alt'=>"$fullname ".$a['object'],'title'=>"$fullname ".$a['object']);
 		if( $a['confirm'] )	{
 			$args['onclick']="return confirm('This will $fullname ".$a['object'].". Are you sure you want to continue?')\n";
 		}

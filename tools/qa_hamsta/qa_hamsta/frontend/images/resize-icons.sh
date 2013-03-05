@@ -11,12 +11,15 @@ SIZE=27
 COMMAND=/usr/bin/convert
 PARAMS="-resize $SIZE"
 
-if [ $PWD != $IMG_DIR ]; then
+if [[ $PWD != $IMG_DIR ]]; then
     cd $IMG_DIR;
 fi
 
 IMAGES="icon-*.png exclamation*.png qmark.png xml_green.png\
  gear-cog_blue.png host-collide.png"
+
+MINI_SIZE=15
+MINI_IMAGES="icon-info.png"
 
 # Check environment sanity.
 if [ ! -x ${COMMAND} ]; then
@@ -25,10 +28,21 @@ if [ ! -x ${COMMAND} ]; then
     exit 1;
 fi
 
-for FL in ${IMAGES}; do
-    FL_EXT="${FL: -3}";
-    NEW_FL="${FL%.${FL_EXT}}-${SIZE}x${SIZE}.${FL_EXT}"
-    EXEC="${COMMAND} ${PARAMS} ${FL} ${NEW_FL}";
-    echo "${EXEC}";
-    $EXEC
-done
+function resize
+{
+    FLS=$1
+    SZ=$2
+
+    if [[ ! -d "$SZ" ]]; then
+	mkdir "$SZ";
+    fi
+
+    for FL in ${FLS}; do
+	EXEC="${COMMAND} ${PARAMS} ${FL} ${SZ}/${FL}";
+	echo "${EXEC}";
+	$EXEC
+    done
+}
+
+resize "${IMAGES}" "${SIZE}"
+resize "${MINI_IMAGES}" "${MINI_SIZE}"
