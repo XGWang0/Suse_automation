@@ -120,7 +120,7 @@ if (! $error_occured) {
 </div>
   <p>Write your email here: <input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} else if (isset($user)) { echo $user->getEmail(); } ?>" />
   <a href="../hamsta/helps/email.html" target="_blank">
-    <img src="../hamsta/images/qmark.png" class="icon-small" name="qmark" id="qmark" title="click me for clues of email" /></a>
+    <img src="../hamsta/images/27/qmark.png" class="icon-small" name="qmark" id="qmark" title="click me for clues of email" /></a>
   </p>
   <input type="submit" name="submit" value="Start Validation">
 </form>

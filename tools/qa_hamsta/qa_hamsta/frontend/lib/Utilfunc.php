@@ -162,13 +162,15 @@ function icon($args)
 # - 'fullname': long action name for tooltips
 # - 'err_noperm' : tooltip message if action not permitted
 # - 'err_noavail': tooltip message if action not available
+# - 'size': size of the icon (directory where icon lives, default value is '27')
 function task_icon($a)
 {
 	$a=array_merge(array( # merge with default values
 		'url'=>'','allowed'=>true,'link'=>false,'enbl'=>true,'confirm'=>false,'object'=>'',
-		),$a);
+		'size'=>'27'),$a);
 	$fullname=hash_get($a,'fullname',$a['type']);
-	$imgurl='images/icon-'.$a['type'];
+	$size = ($a['size'] > 0 ? $a['size'] . '/' : '');
+	$imgurl='images/'.$size.'icon-'.$a['type'];
 	$err_noperm=hash_get($a,'err_noperm',"Cannot $fullname ".$a['object']." unless you are logged in and have enough privileges and/or have reserved the machine");
 	$err_noavail=hash_get($a,'err_noavail',preg_replace('/e?$/','ing ',$fullname,1).$a['object'].' is not supported');
 	if( !$a['enbl'] || !$a['allowed'] )	{
@@ -195,7 +197,7 @@ function machine_icons($machine,$user)
 	$id=$machine->get_id();
 	$ret='';
 	$usedby=$machine->get_used_by();
-	$users_machine = isset ($user) && ( $user->getID() == $usedby );
+	$users_machine = isset ($user) && ( $user->getId() == $usedby );
 	$has_pwr=(($machine->get_powerswitch()!=NULL) and ($machine->get_powertype()!=NULL) and $machine->check_powertype());
 	$host=$machine->get_hostname();
 	$ip=$machine->get_ip_address();
