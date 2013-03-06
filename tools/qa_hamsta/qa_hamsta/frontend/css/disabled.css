@@ -1,0 +1,14 @@
+input, select, textarea, label, span.required {
+	pointer-events: none;
+	cursor: default;
+	color: #888;
+}
+input, select, textarea, a.btn,	{
+	background-color:#ddd;
+	-moz-border-radius: 4px;
+}
+input[type="submit"]	{
+/*	display:none;	*/
+}
+.inputtitle { color: #888; }
+table.list th { background-color: #888; }

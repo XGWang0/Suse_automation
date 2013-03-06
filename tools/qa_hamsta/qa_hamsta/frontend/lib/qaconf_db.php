@@ -41,7 +41,7 @@ function qaconf_insert($desc)	{
 }
 
 function qaconf_list($header=1,$limit=null)	{
-	return mhash_query($header,$limit,'SELECT qaconf_id,`desc`,GROUP_CONCAT(`group`) AS groups,GROUP_CONCAT(name) AS machines FROM qaconf LEFT JOIN machine USING(qaconf_id) LEFT JOIN `group` USING(qaconf_id) WHERE qaconf_id>? GROUP BY qaconf_id','i',QACONF_MAX_SYS_ID);
+	return mhash_query($header,$limit,'SELECT qaconf_id,`desc`,GROUP_CONCAT(`group`) AS groups,GROUP_CONCAT(name) AS machines FROM qaconf LEFT JOIN machine USING(qaconf_id) LEFT JOIN `group` USING(qaconf_id) WHERE qaconf_id>? GROUP BY qaconf_id','i',0 /*QACONF_MAX_SYS_ID*/);
 }
 
 function qaconf_get_details($id)	{

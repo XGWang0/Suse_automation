@@ -1052,31 +1052,4 @@ function permission_or_disabled($args=array())
 		disable($args);
 }
 
-/*function jobs_send($machine_ids,$file,$jobname='',$type='',$errors=array())
-{
-	$search = new MachineSearch();
-	$search->filter_in_array($machine_ids);
-	$machines = $search->query();
-	foreach(to_array($machines) as $machine)	{
-		if( !machine_permission($machine,array('owner'=>'machine_send_job','other'=>'machine_send_job_reserved')) ) {
-			$errors[]=$machine->get_hostname().": not permitted";
-		}
-		else	{
-			if($machine->send_job($file)) {
-				$msg="has sent a$type job to this machine". ($jobname ? " (Job name: \"".htmlspecialchars($jobname)."\")":'');
-				Log::create($machine->get_id(), $machine->get_used_by_login(), 'JOB_START', $msg);
-			} else {
-				$errors[]=$machine->get_hostname().": ".$machine->errmsg;
-			}
-		}
-	}
-	if (!count($errors))	{
-		header("Location: index.php");
-		exit;
-	}
-	else	{
-		fail($errmsg);
-	}
-} */
-
 ?>

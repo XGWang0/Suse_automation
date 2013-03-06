@@ -205,7 +205,7 @@ $qadb_web = exec('/usr/share/qa/tools/get_qa_config qadb_wwwroot');
 
 $virtdisktypes = array("def", "file", "tap:aio", "tap:qcow", "tap:qcow2");
 
-$hamstaVersion = htmlspecialchars(`rpm -q qa_hamsta-master`);
+$hamstaVersion = htmlspecialchars(`rpm -q qa_hamsta-frontend`);
 
 /* Set configuration group. Should be stored somewhere (e.g. session)
  * so the command is run only once later.

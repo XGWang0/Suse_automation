@@ -200,12 +200,15 @@ else	{
 	}
 	table_translate($data,array(
 		'links'=>array('qaconf_id'=>"$page&step=v&id="),
-		'ctrls'=>array('edit'=>"$page&step=e&id="),
 	));
+	$data[0][]='controls';
 	for( $i=1; $i<count($data); $i++ )	{
 		$row=$data[$i];
-		if( !($row['groups'] || $row['machines'] && isset($row[0]) /*FIXME*/ ) && perm($row['id']) )
-			$data[$i][0].=' '.html_text_button('delete',"$page&step=d&id=".$row['id']);
+		if( !($row['groups'] || $row['machines'] && isset($row[0]) /*FIXME*/ ) && perm($row['id']) )	{
+			make_controls_row($data[$i],$row['id'],array('edit'=>"$page&step=e&id=",'delete'=>"$page&step=d&id="));
+		}
+		else
+			$data[$i][]='';
 	}
 	print html_table($data,array('total'=>1,'id'=>'qaconf_list','sort'=>'isss','class'=>'list text-main tbl'));
 }
