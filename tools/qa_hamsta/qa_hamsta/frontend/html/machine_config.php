@@ -37,7 +37,7 @@
 
 
 /* Name of the page to redirect to. */
-$page_base = $dir.'index.php';
+$page_base = 'index.php';
 $page = "$page_base?go=machine_config";
 
 
