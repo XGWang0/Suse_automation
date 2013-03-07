@@ -74,11 +74,19 @@ if (!defined('HAMSTA_FRONTEND')) {
       <table class="text-medium">
       <?php
         foreach ($fields_list as $key=>$value)
-          if (in_array($key, $vh_display_fields)) {
-          $fname = "get_".$key;
-          $res = $machine->$fname();
-          echo("<tr><th>$value</th><td>$res</td></tr>\n");
-        }
+          if (in_array($key, $vh_display_fields))
+	  {
+		  $fname = "get_".$key;
+		  $res = $machine->$fname();
+		  if ($key == 'used_by')
+		  {
+			  if ($usr = User::getById ($res, $config))
+			  {
+				  $res = $usr->getNameOrLogin ();
+			  }
+		  }
+		  echo("<tr><th>$value</th><td>$res</td></tr>\n");
+	  }
       ?>
       </table>
   </div>

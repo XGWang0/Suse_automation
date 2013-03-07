@@ -130,8 +130,18 @@ require("timezone.php");
     <td>Select a timezone for your SUT: </td>
     <td><select id="timezone" name="timezone">
     <?php
-	foreach ($arrtimezones as $zone) 
-	echo "<option value=\"$zone\">$zone</option>\n";
+	$tz_default = $config->timezone->default;
+
+	foreach ($arrtimezones as $zone)
+	{
+		$opt = '<option';
+		if (isset ($tz_default) && $tz_default == $zone)
+		{
+			$opt .= ' selected="selected"';
+		}
+		echo ($opt . " value=\"$zone\">$zone</option>" . PHP_EOL);
+	}
+
     ?>
 	</select></td>
   </tr>

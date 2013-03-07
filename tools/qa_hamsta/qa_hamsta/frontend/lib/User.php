@@ -714,6 +714,22 @@ class User {
   }
 
   /**
+   * Returns user name or login if the name is empty.
+   *
+   * @return string User name if not empty, login otherwise.
+   */
+  public function getNameOrLogin ()
+  {
+     $nm = '';
+     $nm = $this->getName ();
+     if (empty ($nm))
+       {
+	 $nm = $this->getLogin ();
+       }
+     return $nm;
+  }
+
+  /**
    * Set new full name for this user.
    *
    * @param string $name New full name for this user.
