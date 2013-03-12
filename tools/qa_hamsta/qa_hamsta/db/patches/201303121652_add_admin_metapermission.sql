@@ -1,0 +1,2 @@
+INSERT INTO privilege(privilege,descr) VALUES('admin','Doing actions not permitted to do otherwise, with extra confirming');
+INSERT INTO role_privilege(role_id,privilege_id) SELECT user_role.role_id,privilege.privilege_id FROM user_role,privilege WHERE user_role.role IN ('admin') AND privilege.privilege='admin';
