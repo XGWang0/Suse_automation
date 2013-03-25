@@ -143,6 +143,9 @@ if ( isset ($user) ) {
   </div>
 <?php
     }
+  if( $user->isAllowed('master_administration') )	{
+	  print '<div><p>' . html_link('Global QA configuration','index.php?go=machine_config') . '</p></div>'."\n";
+  }
     echo ("</div>\n");
 }
 ?>
