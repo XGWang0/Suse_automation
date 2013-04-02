@@ -882,7 +882,6 @@ function capable ()
 {
         global $config,$user;
         $cap=func_get_args();
-
 	# everything allowed when not using authentication
         if( !$config->authentication->use )
                 return true;
@@ -936,8 +935,11 @@ function machine_permission($machines,$args)
 			$machines[$i] = Machine::get_by_id($machines[$i]);
 	}
 	foreach( $machines as $machine )	{
+		$used_by = $machine->get_used_by ();
 		$users_machine=users_machine( $user, $machine );
-		$perms=array_merge(to_array($other),($users_machine ? to_array($owner) : array()));
+		$perms=array_merge(to_array($other),
+				   ($users_machine || $used_by == NULL
+				    ? to_array($owner) : array()));
 		if( ! call_user_func_array('capable',$perms) )
 			return false;
 	}
@@ -977,14 +979,14 @@ $perm_send_job=array('owner'=>'machine_send_job','other'=>'machine_send_job_rese
 
 function permission_or_redirect($args=array())
 {
-	$perms=hash_get($args,'perms',array());
+	$perms=hash_get($args,'perm',array());
 	if( !call_user_func_array('capable',$perms) )
 		redirect($args);
 }
 
 function permission_or_disabled($args=array())
 {
-	$perms=hash_get($args,'perms',array());
+	$perms=hash_get($args,'perm',array());
 	if( !call_user_func_array('capable',$perms) )
 		disable($args);
 }
