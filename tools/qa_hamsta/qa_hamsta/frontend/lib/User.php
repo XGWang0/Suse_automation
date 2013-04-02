@@ -934,11 +934,18 @@ function machine_permission($machines,$args)
 		if( is_numeric($machines[$i]) )
 			$machines[$i] = Machine::get_by_id($machines[$i]);
 	}
+
 	foreach( $machines as $machine )	{
-		$used_by = $machine->get_used_by ();
+		/* If the value of used_by is not defined, then the
+		 * machine can be edited/reserved. */
+		if (isset ($machine))
+		{
+			$used_by = $machine->get_used_by ();
+		}
 		$users_machine=users_machine( $user, $machine );
 		$perms=array_merge(to_array($other),
-				   ($users_machine || $used_by == NULL
+				   ($users_machine
+				    || ! isset ($used_by)
 				    ? to_array($owner) : array()));
 		if( ! call_user_func_array('capable',$perms) )
 			return false;
