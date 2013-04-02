@@ -39,8 +39,6 @@ require_once ('../frontenduser/Authenticator.php');
  */
 class User {
 
-  /** @var string Default role for the user on login. */
-  const DEFAULT_ROLE = 'user';
   /** @var string Namespace for the \Zend_Session_Namespace to save
    * current role in session. */
   const ROLE_SESSION_NAMESPACE = 'roles';
@@ -55,8 +53,6 @@ class User {
   private $name;
   /** @var string Email of the user. */
   private $email;
-  /** @var \UserRole Current role of the user. */
-  private $currentRole;
   /** @var \Zend_Config Application configuration. */
   private $config;
   /** @var string[] List of role names this user is cast in. */
@@ -75,8 +71,7 @@ class User {
    */
   private function __construct ( $config, $user_id,
                                  $extern_id, $login,
-                                 $name, $email,
-                                 $role)
+                                 $name, $email)
   {
     $this->config = $config;
     $this->user_id = $user_id;
@@ -84,7 +79,6 @@ class User {
     $this->login = $login;
     $this->name = $name;
     $this->email = $email;
-    $this->currentRole = $role;
     $this->userRoles = $this->getRoleList ();
   }
 
@@ -242,34 +236,6 @@ class User {
   }
 
   /**
-   * Returns role name that this user has cached.
-   *
-   * Default role name is returned, if no role name is cached. The
-   * cached role name is stored in session.
-   *
-   * @return string Cached role name or ROLE_SESSION_NAMESPACE.
-   */
-  private static function getCachedOrDefaultRole ()
-  {
-    try
-      {
-        $ns = new Zend_Session_Namespace (self::ROLE_SESSION_NAMESPACE);
-        if ( isset($ns->curRole) )
-          {
-            return $ns->curRole;
-          }
-        else
-          {
-            return self::DEFAULT_ROLE;
-          }
-      }
-    catch (Zend_Session_Exception $e)
-      {
-        return self::DEFAULT_ROLE;
-      }
-  }
-
-  /**
    * Returns some of the fields of the user.
    *
    * It should return one user or null in all cases. Access to the
@@ -340,8 +306,7 @@ class User {
                           $user_fields[0]['extern_id'],
                           $user_fields[0]['login'],
                           $user_fields[0]['name'],
-                          $user_fields[0]['email'],
-                          UserRole::getByName (self::getCachedOrDefaultRole(), $config) );
+                          $user_fields[0]['email']);
       }
     return null;
   }
@@ -382,8 +347,7 @@ class User {
                           $user_fields[0]['extern_id'],
                           $user_fields[0]['login'],
                           $user_fields[0]['name'],
-                          $user_fields[0]['email'],
-                          UserRole::getByName (self::getCachedOrDefaultRole(), $config) );
+                          $user_fields[0]['email']);
       }
     return null;
   }
@@ -545,15 +509,14 @@ class User {
     if ( self::isLogged () )
       {
         $ident = self::getIdent();
-	$registered = self::isRegistered ($ident, $config);
-        if ( $registered )
+
+        if ( self::isRegistered ($ident, $config) )
           {
             $user = self::getById ($ident, $config);
             $outName = $user->getName ();
             if ( ! isset ($outName) || empty ($outName) ) {
               $outName = $ident;
             }
-            $outRoleName = $user->getCurrentRole ()->getName ();
           }
         else
           {
@@ -561,12 +524,7 @@ class User {
           }
       
         echo ("Logged in as <a class=\"bold\" href=\"index.php?go=user\">"
-              . $outName . "</a>"
-              . (($registered && count ($user->getRoleList ()) > 1)
-                 ? ("(<a href=\"index.php?go=user\">" . $outRoleName
-                    . "</a>)")
-                 : "")
-              . "\n");
+              . $outName . "</a>\n");
       }
   }
 
@@ -783,50 +741,6 @@ class User {
   }
 
   /**
-   * Return current role of this user.
-   *
-   * @return \UserRole Current role this user is cast to.
-   */
-  public function getCurrentRole ()
-  {
-    return $this->currentRole;
-  }
-
-  /**
-   * Set current role of this user to roleName.
-   *
-   * @param string roleName Name of new role.
-   *
-   * @return True if change was succesfull, false otherwise.
-   */
-  public function setRole ($roleName)
-  {
-    if ( ! $this->isInRole($roleName)
-         && $this->couldBeInRole ($roleName))
-      {
-        $newRole = UserRole::getByName($roleName, $this->config);
-        if ( isset($newRole) )
-          {
-            $ns = new Zend_Session_Namespace (self::ROLE_SESSION_NAMESPACE);
-            $ns->curRole = $roleName;
-            $this->currentRole = $newRole;
-            return true;
-          }
-      }
-    return false;
-  }
-
-  /**
-   * Getter for the current role of this user.
-   *
-   * @return \UserRole Current role instance of this user. 
-   */
-  public function getRole ()
-  {
-    return $this->currentRole;
-  }
-
-  /**
    * Returns result of comparison of current role name with provided
    * roleName parameter.
    *
@@ -885,7 +799,14 @@ class User {
    */
   public function isAllowed ($privilege)
   {
-    return $this->getRole ()->isAllowed ($privilege);
+	  $role_names = $this->getRoleList ();
+	  foreach ($role_names as $role_name)
+	  {
+		  $role = UserRole::getByName ($role_name, $this->config);
+		  if ($role->isAllowed ($privilege))
+			  return true;
+	  }
+	  return false;
   }
 
   /**
