@@ -39,10 +39,6 @@ require_once ('../frontenduser/Authenticator.php');
  */
 class User {
 
-  /** @var string Namespace for the \Zend_Session_Namespace to save
-   * current role in session. */
-  const ROLE_SESSION_NAMESPACE = 'roles';
-
   /** @var int User id in the database. */
   private $user_id;
   /** @var string External login string (e.g. OpenId url). */
@@ -67,7 +63,6 @@ class User {
    * @param string $login Login of the user.
    * @param string $name Full name of the user.
    * @param string $email E-mail of the user.
-   * @param \UserRole $role Role to set for the user.
    */
   private function __construct ( $config, $user_id,
                                  $extern_id, $login,
@@ -499,8 +494,8 @@ class User {
    * Prints user status.
    *
    * Prints message displaying user status with clickable user name
-   * and role redirecting to user configuration page. If the she is
-   * not logged in the message is not printed.
+   * redirecting to user configuration page. If the user is not logged
+   * in the message is not printed.
    *
    * @param \Zend_Config $config Application configuration.
    */
@@ -566,7 +561,6 @@ class User {
    * @param string $name User's name.
    * @param string $email User's e-mail address.
    * @param \Zend_Config $config Application configuration.
-   * @throws Exception Some exeption
    *
    * @return integer Number greater than zero if user has been added, zero otherwise.
    */
@@ -574,12 +568,10 @@ class User {
   {
     $added = 0;
     $db = Zend_Db::factory ($config->database);
-    $data = Array (
-                   'extern_id' => $extern_id,
+    $data = Array ('extern_id' => $extern_id,
                    'login' => $login,
                    'name' => $name,
-                   'email' => $email
-                   );
+                   'email' => $email);
 
     try
       {
@@ -593,7 +585,8 @@ class User {
     if ($added > 0)
       {
         $user = User::getByLogin ($login, $config);
-        $defRole = UserRole::getByName (self::DEFAULT_ROLE, $config);
+	/* Cast user to the default role called 'user' if possible. */
+        $defRole = UserRole::getByName ('user', $config);
         if ( isset ($defRole) )
           {
             $defRole->addUser ($user);
@@ -741,37 +734,23 @@ class User {
   }
 
   /**
-   * Returns result of comparison of current role name with provided
-   * roleName parameter.
-   *
-   * @param string $roleName Name of the role to compare.
-   *
-   * @return boolean True if user is in role with the same name as in
-   * parameter.
-   */
-  public function isInRole ($roleName)
-  {
-    return $this->getCurrentRole ()->getName () == $roleName;
-  }
-
-  /**
-   * Returns true if user can be cast in the role with name provided
-   * in parameter roleName.
+   * Returns true if user is cast in the role with name provided in
+   * parameter roleName.
    *
    * @param string $roleName Name of the role to search.
    *
-   * @return boolean True if user can be cast in the role with
+   * @return boolean True if user is cast in the role having the
    * provided name.
    */
-  public function couldBeInRole($roleName)
+  public function isInRole ($roleName)
   {
-    return in_array ($roleName, $this->getRoleList ());
+	  return in_array ($roleName, $this->getRoleList ());
   }
 
   /**
-   * Return list of roles this user can be cast in.
+   * Return list of roles this user is cast in.
    *
-   * @return string[] List of roles this user can be cast in.
+   * @return string[] List of roles this user is cast in.
    */
   public function getRoleList ()
   {
@@ -790,11 +769,11 @@ class User {
   }
 
   /**
-   * Checks if the user in current role has Privilege $privilege.
+   * Checks if the user has Privilege $privilege.
    *
    * @param string $privilege Privilege name.
    *
-   * @return boolean True if user in current role has the privilege,
+   * @return boolean True if user has the privilege,
    * false otherwise.
    */
   public function isAllowed ($privilege)
