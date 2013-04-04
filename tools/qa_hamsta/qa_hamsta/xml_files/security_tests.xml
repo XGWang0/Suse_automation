@@ -7,7 +7,10 @@
         <distributable>0</distributable>
         <parallel>0</parallel>
         <mail notify="1">thomas@suse.de</mail>
-        <rpm>qa_hamsta qa_tools qa_lib_perl qa_test_lynis</rpm>
+        <rpm>qa_hamsta</rpm>
+	<rpm>qa_tools</rpm>
+	<rpm>qa_lib_perl
+	<rpm>qa_test_lynis</rpm>
         <logdir>/tmp</logdir>
         <description>Run tests of security team</description>
         <motd>Running security tests</motd>
