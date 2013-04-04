@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<job>
+    <!-- Optional -->
+    <config>
+        <name>security_tests</name>
+        <debuglevel>3</debuglevel>
+        <distributable>0</distributable>
+        <parallel>0</parallel>
+        <mail notify="1">thomas@suse.de</mail>
+        <rpm>qa_hamsta qa_tools qa_lib_perl qa_test_lynis</rpm>
+        <logdir>/tmp</logdir>
+        <description>Run tests of security team</description>
+        <motd>Running security tests</motd>
+    </config>
+    <!-- Optional -->
+    <commands>
+        <worker>
+            <!-- Required -->
+            <command execution="forked"><![CDATA[#!/bin/bash
+cd /usr/share/hamsta/testscript
+./customtest qa_test_lynis
+]]>            </command>
+            <!-- Optional -->
+            <directory>/</directory>
+            <timeout>300000</timeout>
+        </worker>
+    </commands>
+</job>
+
