@@ -2075,6 +2075,7 @@ class MachineSearch {
 	const FILTER_LIKE = 2;
 	const FILTER_IN = 3;
 	private $where;
+	private $orwhere;
 	private $params;
 	private $tables;
 	private $postfilters;
@@ -2087,6 +2088,7 @@ class MachineSearch {
 	 */
 	public function __construct() {
 		$this->where = array();
+		$this->orwhere = array ();
 		$this->params = array();
 		$this->tables = array();
 		$this->postfilters = array();
@@ -2104,13 +2106,24 @@ class MachineSearch {
 		// Build the SQL query
 		$sql = 'SELECT DISTINCT machine.* FROM ';
 		$table_str = 'machine ';
+
 		foreach ($this->tables as $table => $condition) {
 			$table_str .= ",".$table;
 			$this->condition_str .= ' AND '.$condition;
 		}
-        foreach ($this->where as $condition) {
-            $this->condition_str .= ' AND '.$condition;
-        }
+
+		if (count ($this->where)) {
+			$this->condition_str .= ' AND '
+				. implode (' AND ', $this->where);
+		}
+
+		/* Has to be enclosed in parenthesis because of the
+		 * operator precedence. */
+		if (count ($this->orwhere)) {
+			$this->condition_str .= ' AND ('
+				. implode (' OR ', $this->orwhere) . ')';
+		}
+
 		$sql .= $table_str." ".$this->condition_str.' ORDER BY machine.name';
 
 		// Create a statemt object and bind the parameters
@@ -2401,11 +2414,16 @@ class MachineSearch {
 		$this->add_table('config_module', 'config.config_id = config_module.config_id');
 		$this->add_table('module', 'module.module_id = config_module.module_id');
 		$this->add_table('module_part', 'module_part.module_id = module.module_id');
-		
+
 		if ($operator == 'LIKE') {
 			$text = "%".$text."%";
 		}
-		$this->condition_str = "WHERE (module_part.value ".$operator."'".$text."' OR module_part.element ".$operator."'".$text."') ";
+
+		$this->orwhere[] = "module_part.value " . $operator . " :module_part_value";
+		$this->params[":module_part_value"] = $text;
+
+		$this->orwhere[] = "module_part.element " . $operator . " :module_part_element";
+		$this->params[":module_part_element"] = $text;
 	}
 }
 

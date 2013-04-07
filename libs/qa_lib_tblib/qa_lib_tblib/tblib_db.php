@@ -360,8 +360,12 @@ $trans=false;
   * see abort(), commit(), rollback()
   **/
 function transaction()
-{	
-	uncached_query('START TRANSACTION');	
+{
+	global $is_pdo,$pdo;
+	if( $is_pdo )
+		$pdo->beginTransaction();
+	else
+		uncached_query('START TRANSACTION');	
 	$GLOBALS['trans']=true;
 }
 
@@ -370,8 +374,12 @@ function transaction()
   * see abort(), rollback(), transaction()
   **/
 function commit()
-{	
-	uncached_query('COMMIT');	
+{
+	global $is_pdo,$pdo;
+	if( $is_pdo )
+		$pdo->commit();
+	else
+		uncached_query('COMMIT');	
 	$GLOBALS['trans']=false;
 }
 
@@ -381,7 +389,11 @@ function commit()
   **/
 function rollback()
 {
-	uncached_query('ROLLBACK');
+	global $is_pdo,$pdo;
+	if( $is_pdo )
+		$pdo->rollBack();
+	else
+		uncached_query('ROLLBACK');
 	$GLOBALS['trans']=false;
 }
 
@@ -431,7 +443,7 @@ function update_query()
 	array_unshift($args,null);	// the LIMIT clause
 	$statement=call_user_func_array('cached_query',$args);
 	if( $statement ) 
-		return $statement->affected_rows;
+		return ($GLOBALS['is_pdo'] ? $statement->rowCount() : $statement->affected_rows);
 	return -1;
 }
 
@@ -443,11 +455,12 @@ function update_query()
   **/
 function insert_query()
 {
+	global $is_pdo,$pdo;
 	$args=func_get_args();
 	array_unshift($args,null);	// the LIMIT clause
 	$statement=call_user_func_array('cached_query',$args);
 	if( $statement )
-		return $statement->insert_id;
+		return ($is_pdo ? $pdo->lastInsertId() : $statement->insert_id);
 	return -1;
 }
 
@@ -465,11 +478,15 @@ function scalar_query()
 	$statement=call_user_func_array('cached_query',$args);
 	if( !$statement )
 		return null;
-	$statement->bind_result($col);
-	if( $statement->num_rows > 0 )
-	{
-		$statement->fetch();
-		$ret=$col;
+	if( $GLOBALS['is_pdo'] )	{
+		$ret=$statement->fetchColumn();
+	}
+	else	{
+		$statement->bind_result($col);
+		if( $statement->num_rows > 0 )	{
+			$statement->fetch();
+			$ret=$col;
+		}
 	}
 	return $ret;
 }
@@ -487,9 +504,15 @@ function vector_query()
 	$statement=call_user_func_array('cached_query',$args);
 	if( !$statement )
 		return null;
-	$statement->bind_result($col);
-	while($statement->fetch())
-		$ret[]=$col;
+	if( $GLOBALS['is_pdo'] )	{
+		while( $row=$statement->fetch(PDO::FETCH_NUM) )
+			$ret[]=$row[0];
+	}
+	else	{
+		$statement->bind_result($col);
+		while($statement->fetch())
+			$ret[]=$col;
+	}
 	return $ret;
 }
 
@@ -524,6 +547,7 @@ function row_query()
   **/
 function matrix_hash_query()
 {
+	global $is_pdo;
 	$ret=array();
 	$col_names=array();
 	$idx=0;
@@ -533,25 +557,38 @@ function matrix_hash_query()
 	$statement=call_user_func_array('cached_query',$args);
 	if( !$statement )
 		return null;
-	$meta=$statement->result_metadata();
-	while($column=$meta->fetch_field())
-	{
-		$replaced=str_replace(' ','_',$column->name);
-		$col_names[]=$replaced;
-		if($header)
-			if($hash)
-				$ret[0][$replaced]=$column->name;
-			else
-				$ret[0][]=$column->name;
-		$bindVarArray[]=&$ret2[$replaced];
+	$names=array();
+	if( $is_pdo )	{
+		for( $i=0; $meta=$statement->getColumnMeta($i); $i++ )
+			$names[]=$meta['name'];
 	}
-	call_user_func_array(array($statement,'bind_result'),$bindVarArray);
-	while( $statement->fetch() )
-	{
+	else	{
+		$meta=$statement->result_metadata();
+		while($column=$meta->fetch_field())
+			$names[]=$column->name;
+	}
+	foreach( $names as $name )	{
+		$replaced=str_replace(' ','_',$name);
+		$col_names[]=$replaced;
+		if( $header )
+			if( $hash )
+				$ret[0][$replaced]=$name;
+			else
+				$ret[0][]=$name;
+		if( !$is_pdo )	{
+			$bindVarArray[]=&$ret2[$replaced];
+		}
+	}
+	if( !$is_pdo )
+		call_user_func_array(array($statement,'bind_result'),$bindVarArray);
+	while( $is_pdo ? 
+		$ret2=$statement->fetch(PDO::FETCH_NUM) : 
+		$statement->fetch() 
+	)	{
 		$row=array();
 		$i=0;
 		foreach( $ret2 as $val )
-			if($hash)
+			if( $hash )
 				$row[$col_names[$i++]]=$val;
 			else
 				$row[]=$val;
@@ -632,30 +669,37 @@ $maxqsql='';
   **/
 function cache_statement($query)
 {
-	global $mysqli,$sql_cache,$sql_cache_size,$sql_cache_hits,$sql_cache_misses,$sql_cache_replaces;
+	global $mysqli,$pdo,$is_pdo,$sql_cache,$sql_cache_size,$sql_cache_hits,$sql_cache_misses,$sql_cache_replaces;
+#	print "<pre>before:";print_r($sql_cache); print "</pre>\n";
 	if( ! array_key_exists($query,$sql_cache) )
 	{
 		$sql_cache_misses++;
 		if( count($sql_cache) >= $sql_cache_size )
 		{
-			mysqli_stmt_close(array_shift($sql_cache));
+			$stmt=array_shift($sql_cache);
+			if( !$is_pdo )
+				mysqli_stmt_close($stmt);
+			unset($stmt);
 			$sql_cache_replaces++;
 		}
-		$statement=$mysqli->prepare($query);
+		if( $is_pdo )
+			$statement=$pdo->prepare($query);
+		else
+			$statement=$mysqli->prepare($query);
 		if($statement) 
 			$sql_cache[$query]=$statement;
 		else
-			if( $mysqli->errno != 1142 )
+			if( $is_pdo || $mysqli->errno != 1142 )
 				abort("Cannot prepare statement '$query': ".$mysqli->error);
-			else
+			else	
 				return null;
 	}
 	else
 	{
 		$sql_cache_hits++;
 		$statement=$sql_cache[$query];
-		unset($sql_cache[$query]);
-		$sql_cache[$query]=$statement;
+#		unset($sql_cache[$query]);
+#		$sql_cache[$query]=$statement;
 	}
 //	print_r($sql_cache);
 	return $statement;
@@ -669,7 +713,7 @@ function cache_statement($query)
   **/
 function cached_query()
 {
-	global $maxqsql,$maxqtime;
+	global $maxqsql,$maxqtime,$is_pdo,$pdo_error;
 	$start=time();
 	$args=func_get_args();
 	$limit=array_shift($args);
@@ -684,10 +728,32 @@ function cached_query()
 	$statement=cache_statement($query);
 	if(!$statement)
 		return null;
-	if(count($args)>1)
-		call_user_func_array(array($statement,'bind_param'),$args);
-	$statement->execute() or abort( $statement->error );
-	$statement->store_result();
+	if(count($args)>1)	{
+		if( $is_pdo )	{
+			for( $i=1; $i<=strlen($args[0]) && $i<count($args); $i++ )	{
+				# type mapping: PDO does not know date, mysqli bool
+				# we do not support blobs yet
+				# so we only support 'int' and default to 'string' otherwise
+				$type=( $args[0][$i-1]=='i' ? PDO::PARAM_INT : PDO::PARAM_STR );
+				$statement->bindValue($i,$args[$i],$type);
+			}
+		}
+		else
+			call_user_func_array(array($statement,'bind_param'),$args);
+	}
+	if( !$statement->execute() )	{
+		if( $is_pdo && $statement->errorCode()==42000 )	{
+			$pdo_error=join(' ',$statement->errorInfo());
+			return null;
+		}
+		else
+			abort($is_pdo ? join(' ',$statement->errorInfo()) : $statement->error);
+	}
+
+	if( $is_pdo )
+		$pdo_error='';
+	else
+		$statement->store_result();
 	$time=time()-$start;
 	if($time>$maxqtime)
 	{
@@ -717,7 +783,13 @@ function cache_info()
 
 /**  returns error description */
 function get_error()
-{	return $GLOBALS['mysqli']->error;	}
+{
+	global $mysqli,$is_pdo,$pdo_error;
+	if( $is_pdo )
+		return $pdo_error;
+	else
+		return $mysqli->error;	
+}
 
 /**
   * Runs a SQL without preparing and caching.
@@ -728,7 +800,13 @@ function get_error()
   * @return mixed true/false, number of affected rows, etc.
   */
 function uncached_query($sql)
-{	return $GLOBALS['mysqli']->query($sql);	}
+{
+	global $mysqli,$pdo,$is_pdo;
+	if( $is_pdo )
+		return $pdo->execute($sql);
+	else
+		return $mysqli->query($sql);	
+}
 
 ###############################################################################
 # MySQL connect stuff
@@ -743,15 +821,26 @@ function uncached_query($sql)
   **/
 function connect_to_mydb()
 {
-	global $mysqli,$mysqlhost,$mysqluser,$mysqlpasswd,$mysqldb;
+	global $mysqli,$mysqlhost,$mysqluser,$mysqlpasswd,$mysqldb,$pdo,$is_pdo;
 	if( !isset($mysqlhost) || !isset($mysqluser) || !isset($mysqldb) )	{
 		require_once('myconnect.inc.php');
 	}
 #	print("host=$mysqlhost,user=$mysqluser,pwd=$mysqlpasswd,db=$mysqldb");
-	$mysqli=@new mysqli($mysqlhost,$mysqluser,$mysqlpasswd,$mysqldb);
-	if( mysqli_connect_error() )
-		return null;
-	return $mysqli;
+	if( $is_pdo )	{
+		try {
+			$pdo=new PDO("mysql:dbname=$mysqldb;host=$mysqlhost",$mysqluser,$mysqlpasswd);
+			$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+			return $pdo;
+		} catch( Exception $e ) {
+			return null;
+		}
+	}
+	else {
+		$mysqli=@new mysqli($mysqlhost,$mysqluser,$mysqlpasswd,$mysqldb);
+		if( mysqli_connect_error() )
+			return null;
+		return $mysqli;
+	}
 }
 
 function mysql_foreign_keys($header,$limit,$count=array(),$table=null,$column=null,$table_ref=null,$column_ref=null)	{
