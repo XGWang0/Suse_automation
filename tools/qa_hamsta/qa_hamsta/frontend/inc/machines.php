@@ -98,6 +98,8 @@
 
 	$searched_fields = array();
 	$d_fields = request_array("d_fields");
+	$search = new MachineSearch();
+	$search->filter_role('SUT');	# Only interested in SUT on this page
 
 	/* Try to get a session namespace to store the displayed
 	 * fields setup. */
@@ -191,9 +193,6 @@
 	if (empty($highlight)) $highlight = request_str("s_module_element");
 	$highlight = urlencode($highlight);
 
-	$search = new MachineSearch();
-	$search->filter_role('SUT');	# Only interested in SUT on this page
-
 	if( isset($fields_hidden) )
 	foreach( $fields_hidden as $hide)	{
 		unset($fields_list[$hide]);
@@ -205,12 +204,6 @@
 
 	/* Skip all this if we have a reset request. */
 	if (request_str ('reset') != 'Reset')
-	  /*
-	   && ( request_str ('set') == 'Search'
-	        || isset ($ns_machine_filter->fields)
-	        || ! empty ($group_filter) )
-	   
-	   */
 	  {
 	    /* Iterate over all available fields (table columns) and apply
 	     * filters on it. */
@@ -264,18 +257,14 @@
 		 * the session. */
 		if (isset ($ns_machine_filter))
 		  {
-		    if (! empty($filter))
+		    if (! empty($filter) && method_exists ($search, $fname))
 		      {
 			$ns_machine_filter->fields[$key] = $filter;
 		      }
-		    else if ($key == 'group'
-			     && isset ($ns_machine_filter->fields['group']))
-		      {
-			/* Do nothing here. */
-		      }
 		  }
 
-		if (! empty ($fname) && ! empty ($filter))
+		if (! empty ($fname) && ! empty ($filter)
+		    && method_exists ($search, $fname))
 		  {
 		    $search->$fname ($filter);
 		  }
