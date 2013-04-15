@@ -46,10 +46,9 @@ require sql;
 # duplication.
 my $config_file_path = "/srv/www/htdocs/hamsta/config.ini";
 
-# Here we store user login and current role. Values should be set only
-# if the user is authenticated.
-my $user_login;
-my $user_role;
+# Here we store user id. Value should be set only if the user is
+# authenticated.
+my $user_id;
 
 # Master->command_line_server()
 #
@@ -154,7 +153,6 @@ sub parse_cmd() {
 	case /^log out/			{ log_out ($sock_handle, $cmd); }
 	case /^(print|list) status/	{ print_status ($sock_handle, $cmd); }
 	case /^(print|list) roles/	{ print_roles ($sock_handle, $cmd); }
-	case /^set role/		{ set_role ($sock_handle, $cmd); }
 	case /^(print|list) privileges/ { print_privileges ($sock_handle, $cmd); }
 	case /^can i/			{ print_can_user ($sock_handle, $cmd); }
 	case /^can send/		{ print_user_can_send_jobs ($sock_handle, $cmd); }
@@ -180,13 +178,14 @@ sub cmd_help() {
     print "Following commands are available. 'list' can be used instead of 'print'.\n";
     print "syntax = 'command' : explanation \n";
     print "\t 'print status' : prints users status, reserved machines and possibly other information \n";
-    print "\t 'log in <username> <password> [<role>]' : authenticate the user (this CLI session only) optionally setting role (default 'user' is set if not provided) \n";
+    print "\t 'log in <username> <password>' : authenticate the user (for this CLI session only) \n";
     print "\t 'log out' : log out from the Hamsta \n";
     print "\t 'print roles [<username>]' : list available roles, with username only roles for that user\n";
-    print "\t 'set role <role>' : set current (active) user role to <role> \n";
-    print "\t 'print active' : prints reachable hosts \n";
+    print "\t 'can i <privilege>' : check if you have access to the specified privilege \n";
+    print "\t 'can send <IP>' : tells you if you can send a job to the machine denoted by IP \n";
+    print "\t 'print active' : prints active hosts \n";
     print "\t 'print all' : prints all available hosts \n";
-#    print "\t 'search hardware <perl-pattern (Regular Expression) oder string>' : prints all hosts which hwinfo-output matches the desired string/pattern \n";
+#    print "\t 'search hardware <perl-pattern (Regular Expression) or string>' : prints all hosts which hwinfo-output matches the desired string/pattern \n";
     print "\t 'save groups to </path/file>' : save (dumps) the groups as XML in the specific file (relativ to Master root-directory) \n";
     print "\t 'load groups from </path/file>' : loads the specified XML-groups-file \n";
     print "\t 'print groups' : prints groups (from SQL) \n";
@@ -502,7 +501,8 @@ sub send_predefine_job_to_host() {
     $email = $cmd_line[4] if(@cmd_line >= 5);
 
     if (! can_send_job_to_machine ($host)) {
-	&log(LOG_NOTICE, "User '${user_login}' does not have privileges to send a job to '${host}'");
+	my $login = user_get_login ($user_id);
+	&log(LOG_NOTICE, "User '${login}' does not have privileges to send a job to '${host}'");
 	print $sock_handle "You do not have privileges to send a job to '${host}'.\n";
 	return;
     }
@@ -621,7 +621,8 @@ sub send_multi_job_to_host () {
     #check host live
     for my $host (@hosts) {
       if (! can_send_job_to_machine ($host)) {
-	  &log(LOG_NOTICE, "User '${user_login}' does not have privileges to send a job to '${host}'");
+	  my $login = user_get_login ($user_id);
+	  &log(LOG_NOTICE, "User '${login}' does not have privileges to send a job to '${host}'");
 	  print $sock_handle "You do not have privileges to send a job to '${host}'.\n";
 	  return;
       }
@@ -697,7 +698,8 @@ sub send_job_to_host () {
     my $host = $cmd_line[-2];
 
     if (! can_send_job_to_machine ($host)) {
-	&log(LOG_NOTICE, "User '${user_login}' does not have privileges to send a job to '${host}'");
+	my $login = user_get_login ($user_id);
+	&log(LOG_NOTICE, "User '${login}' does not have privileges to send a job to '${host}'");
 	print $sock_handle "You do not have privileges to send a job to '${host}'.\n";
 	return;
     }
@@ -739,7 +741,8 @@ sub send_re_job_to_host () {
     my $host = $cmd_line[3];
 
     if (! can_send_job_to_machine ($host)) {
-	&log(LOG_NOTICE, "User '${user_login}' does not have privileges to send a job to '${host}'");
+	my $login = user_get_login ($user_id);
+	&log(LOG_NOTICE, "User '${login}' does not have privileges to send a job to '${host}'");
 	print $sock_handle "You do not have privileges to send a job to '${host}'.\n";
 	return;
     }
@@ -802,7 +805,8 @@ sub send_line_job_to_host () {
     my $host = $cmd_line[5];
 
     if (! can_send_job_to_machine ($host)) {
-	&log(LOG_NOTICE, "User '${user_login}' does not have privileges to send a job to '${host}'");
+	my $login = user_get_login ($user_id);
+	&log(LOG_NOTICE, "User '${login}' does not have privileges to send a job to '${host}'");
 	print $sock_handle "You do not have privileges to send a job to '${host}'.\n";
 	return;
     }
@@ -923,7 +927,8 @@ sub send_qa_package_job_to_host () {
     my $host = $cmd_line[3];
 
     if (! can_send_job_to_machine ($host)) {
-	&log(LOG_NOTICE, "User '${user_login}' does not have privileges to send a job to '${host}'");
+	my $login = user_get_login ($user_id);
+	&log(LOG_NOTICE, "User '${login}' does not have privileges to send a job to '${host}'");
 	print $sock_handle "You do not have privileges to send a job to '${host}'.\n";
 	return;
     }
@@ -1057,52 +1062,32 @@ sub nitoi(){
 sub log_in ($$) # socket handle, command line
 {
     my $sock_handle = shift;
-    # log in <login> <passwd> [<role>]
-    my @cmd = split / /, shift (@_);
+    # log in <login> <passwd>
+    my @cmd = split ' ', shift (@_);
     unless (@cmd > 3) {
 	print $sock_handle "Not enough parameters. Try `help'.\n";
 	return 0;
     }
     my $login = $cmd[2];
     my $passwd = $cmd[3];
-    my $role;
-    if ( @cmd > 4) {
-	$role = $cmd[4];
-    }
-    my $user_id = user_get_id ($login);
+    my $local_user_id = user_get_id ($login);
 
-    if ( defined ($user_id) ) {
+    if ( defined ($local_user_id) ) {
 	my $db_passwd = user_get_password ($login);
 	# Sometimes we get the password sent already hashed (like from
 	# the Hamsta web)
 	if ( defined ($db_passwd)
 		 && (sha1_hex ($passwd) eq $db_passwd
 			 || $passwd eq $db_passwd) ) {
-	    my @user_roles = user_get_roles ($user_id);
-	    my $role_name = (defined ($role) ? $role : 'user');
-	    my $role_id = role_get_id ($role_name);
-	    if (! defined ($role_id)) {
-		# The requested role does not exist
-		print $sock_handle
-		    "The role '${role_name}' does not exist."
-		    . " You have not been logged in."
-		    . " Try again using existing role.\n";
-	    } elsif (! is_in_array ($role_name, @user_roles)) {
-		# User does not have this role assigned
-		print $sock_handle
-		    "The user '${login}' is not cast in the role '${role}'.\n";
-	    } else {
-		$user_login = $login;
-		$user_role = $role_name;
-		print $sock_handle "You were authenticated as '${user_login}'"
-			. " in role '${role_name}'. Send your commands.\n";
-		return 1;
-	    }
+	    $user_id = $local_user_id;
+	    print $sock_handle "You were authenticated as '${login}'."
+		. " Send your commands.\n";
+	    return 1;
 	} else {
 	    print $sock_handle "Wrong password. Try again.\n";
 	}
     } else {
-	print $sock_handle "Unknown Hamsta user '${$login}'. Try again.\n";
+	print $sock_handle "Unknown Hamsta user '${login}'. Try again.\n";
     }
     return 0;
 }
@@ -1113,48 +1098,19 @@ sub print_status ($) # socket
 {
     my $sock_handle = shift;
     if (get_logged_status ()) {
-	print $sock_handle "You are logged in as '${user_login}'"
-		. " using role '${user_role}'.\n";
-	my $user_id = user_get_id ($user_login);
+	print $sock_handle "You are logged in as '"
+	    . user_get_login ($user_id) . "'.\n";
 	if (defined ($user_id)) {
 	    my @res_machines = user_get_reserved_machines ($user_id);
 	    local $" = "', '";
-	    print $sock_handle "You have reserved machines '@res_machines'.\n";
+	    if ( scalar @res_machines ) {
+		print $sock_handle "You have reserved machines '@res_machines'.\n";	
+	    } else {
+		print $sock_handle "You have no reserved machines.\n";
+	    }
 	}
     } else {
 	print $sock_handle "You have to be logged in to print your status.\n";
-    }
-}
-
-sub set_role ($$) # socket, command
-{
-    my $sock_handle = shift;
-    my @cmd = split / /, shift (@_);
-    if (@cmd < 3) {
-	print $sock_handle "Not enough parameters. Try `help'.\n";
-	return;
-    }
-    if (!get_logged_status ()) {
-	print $sock_handle "You have to be logged in to be able to set role.\n";
-	return;
-    }
-    my $role_name = $cmd[2];
-    my $role_id;
-    $role_id = role_get_id ($role_name);
-    if (! defined ($role_id)) {
-	# The requested role does not exist
-	print $sock_handle "The role '${role_name}' does not exist."
-		. " Try again using existing role.\n";
-    } else {
-	my @user_roles = user_get_roles (user_get_id($user_login));
-	if (is_in_array ($role_name, @user_roles)) {
-	    $user_role = $role_name;
-	    print $sock_handle
-		"Your current role has been set to '${role_name}'.\n";
-	} else {
-	    print $sock_handle "You cannot be cast in the role"
-		    . " '${role_name}'. Try 'list roles ${user_login}'.\n";
-	}
     }
 }
 
@@ -1162,7 +1118,7 @@ sub set_role ($$) # socket, command
 sub print_roles ($$) # socket handle, [user_login]
 {
     my $sock_handle = shift;
-    my @cmd = split / /, shift (@_);
+    my @cmd = split ' ', shift (@_);
     my $login;
     if (@cmd > 2) {
 	$login = $cmd[2];
@@ -1185,8 +1141,7 @@ sub print_roles ($$) # socket handle, [user_login]
 
 sub log_out () {
     my $sock_handle = shift;
-    undef $user_login;
-    undef $user_role;
+    undef $user_id;
     print $sock_handle "You have been succesfully logged out.\n";
     return 1;
 }
@@ -1196,19 +1151,7 @@ sub log_out () {
 # Returns 1 when user is logged in, 0 otherwise.
 sub get_logged_status ()
 {
-    return (defined ($user_login) && length ($user_login) > 0
-		&& defined ($user_role) && length ($user_role) > 0);
-}
-
-# Returns 1 if the value is in array, 0 otherwise.
-sub is_in_array ($$) # value, array
-{
-    my $val = shift;
-    my @arr = shift;
-    foreach ( @arr ) {
-	return 1 if ($_ eq $val || $_ == $val);
-    }
-    return 0;
+    return defined ($user_id);
 }
 
 # Prints list of user privileges
@@ -1217,7 +1160,7 @@ sub print_privileges ($) # socket handle
     my $sock_handle = shift;
     if (get_logged_status ()) {
 	local $" = ", ";
-	my @privileges = role_get_privileges (role_get_id ($user_role));
+	my @privileges = user_get_privileges ($user_id);
 	print $sock_handle "@privileges";
     } else {
 	print $sock_handle "You have to be logged in to print your privileges.";
@@ -1227,42 +1170,29 @@ sub print_privileges ($) # socket handle
 sub print_can_user ($) # action
 {
     my $sock_handle = shift;
-    my @cmd = split / /, shift (@_);
+    my @cmd = split ' ', shift (@_);
     if (get_logged_status()) {
 	print $sock_handle "You are "
-	    . (is_allowed ($user_role, $cmd[2]) ? "" : "not ")
+	    . (is_allowed ($user_id, $cmd[2]) ? "" : "not ")
 	    . "allowed to do that.";
     } else {
 	print $sock_handle "You are not logged in.";
     }
 }
 
-# Returns 1 if the role has access to the privilege, 0 otherwise.
-sub is_allowed ($$) # role, privilege
+# Returns 1 if the user has access to all privileges, 0 otherwise.
+sub is_allowed ($@) # user_id, privilege[s]
 {
-    my $role_name = shift;
-    my $privilege_name = shift;
-    my $role_id = role_get_id ($role_name);
-    if (defined ($role_id)) {
-	my @privileges = role_get_privileges ($role_id);
-	foreach (@privileges) {
-	    return 1 if $privilege_name eq $_;
-	}
+    my $loc_user_id = shift;
+    my @privilege_names = shift;
+    my @user_privileges = user_get_privileges ($loc_user_id);
+    my $privileged = 0;
+
+    foreach (@privilege_names) {
+	my $name = $_;
+	$privileged++ if scalar (grep /$name/, @user_privileges);
     }
-    return 0;
-}
-
-# Checks whether the current user is logged in and can send jobs.
-sub can_send_jobs ()
-{
-    return (get_logged_status ()
-		&& is_allowed ($user_role, 'machine_send_job'));
-}
-
-sub can_send_jobs_to_reserved ()
-{
-    return (get_logged_status ()
-		&& is_allowed ($user_role, 'machine_send_job_reserved'));
+    return $privileged == scalar @privilege_names;
 }
 
 sub use_master_authentication ()
@@ -1273,20 +1203,14 @@ sub use_master_authentication ()
 sub print_user_can_send_jobs ($)
 {
     my $sock_handle = shift;
-    my @cmd = split / /, shift (@_);
+    my @cmd = split ' ', shift (@_);
     my $m_ip = $cmd[2];
 
     my $conf = use_master_authentication ();
-    my $user_id = user_get_id ($user_login);
     my $my_machine = machine_get_id_by_ip_usedby ($m_ip, $user_id);
-    my $msj = is_allowed ($user_role, 'machine_send_job');
-    my $msjr = is_allowed ($user_role, 'machine_send_job_reserved');
+    my $msj = is_allowed ($user_id, 'machine_send_job');
+    my $msjr = is_allowed ($user_id, 'machine_send_job_reserved');
 
-    print $sock_handle "Using configuration: ${conf}.\n";
-    print $sock_handle "User id is ${user_id}.\n";
-    print $sock_handle "Machine id is ${my_machine}.\n";
-    print $sock_handle "You have privilege to 'machine_send_job' ${msj}.\n";
-    print $sock_handle "You have privilege to 'machine_send_job_reserved' ${msjr}.\n";
     print $sock_handle "You can "
 	. (can_send_job_to_machine ($m_ip) ? "" : "not ")
 	. "send jobs to machine '${m_ip}'.";
@@ -1296,25 +1220,11 @@ sub can_send_job_to_machine ($) # machine ip
 {
     return 1 unless use_master_authentication ();
     my $m_ip = shift;
-    my $user_id = user_get_id ($user_login);
     return 0 unless (defined ($m_ip) && defined ($user_id));
     my $my_machine = machine_get_id_by_ip_usedby ($m_ip, $user_id);
-    if (is_allowed ($user_role, 'machine_send_job') && defined $my_machine
-	    || is_allowed ($user_role, 'machine_send_job_reserved')) {
-	return 1;
-    }
-    return 0;
-}
-
-sub can_reinstall ($) # machine ip
-{
-    return 1 unless use_master_authentication ();
-    my $m_ip = shift;
-    my $user_id = user_get_id ($user_login);
-    return 0 unless (defined ($m_ip) && defined ($user_id));
-    if (is_allowed ($user_role, 'machine_reinstall')
-	    && machine_get_id_by_ip_usedby ($m_ip, $user_id)
-		|| is_allowed ($user_role, 'machine_reinstall_reserved')) {
+    if (is_allowed ($user_id, 'machine_send_job') && defined $my_machine
+	    || is_allowed ($user_id, 'machine_send_job_reserved')
+	    || is_allowed ($user_id, 'admin')) {
 	return 1;
     }
     return 0;
@@ -1326,7 +1236,7 @@ sub cmd_print_all_machines ($) # socket
     my @cmd = shift;
     my $machinesref = machine_list_all ();
     print $sock_handle "List of all available machines.\n";
-    printf $sock_handle "%15s : %15s : %s\n", "machine", "ip address", "status";
+    printf $sock_handle "%15s : %15s : %s\n", "MACHINE", "IP ADDRESS", "STATUS";
     foreach (@{$machinesref}) {
 	printf $sock_handle "%15s : %15s : %s\n", ${$_}[0], ${$_}[1], ${$_}[2];
     }

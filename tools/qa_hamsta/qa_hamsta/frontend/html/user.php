@@ -103,36 +103,7 @@ Your e-mail address is <b><?php echo ( ( isset ($user) )
 <?php
 if ( isset ($user) ) {
   echo ("<div>\n");
-  echo ("  <p>Your current role is <b>");
-  
-  $curRole = $user->getCurrentRole();
-  if ( isset ($curRole) ) {
-    echo ($curRole->getName());
-  } else {
-    echo ('not set');
-  }
-  echo ("</b>.<br />\n");
-
   $list = $user->getRoleList();
-
-  /* Display selection only if user has more than 2 roles available. The
-   * first is current role which is not displayed in the selection. */
-  if ( count($list) > 1 ) {
-    echo ("\nYou can select another current role from the list.</p>\n");
-    echo ("<form method=\"post\" action=\"index.php?go=user\">\n");
-    echo ("<select name=\"roles\">\n");
-
-    foreach ($user->getRoleList() as $roleName) {
-      if ( isset ($curRole) && $curRole->getName() != $roleName) {
-        echo ("<option value=\"$roleName\">" . $roleName . "</option>\n");
-      }
-    }
-    echo ("</select>\n");
-    echo ("<input type=\"hidden\" name=\"go\" value=\"user\" />\n");
-    echo ("<input type=\"submit\" name=\"role\" value=\"Change\" />\n");
-    echo ("</form>\n");
-  }
-
   if ($user->isAllowed ('user_administration'))
     {
 ?>

@@ -334,11 +334,21 @@ sub group_devel_create()	{
 
 ### user functions
 
+sub user_get($) # user_id
+{
+	return $dbc->vector_query ('SELECT user_id, extern_id, login, name, email, password FROM user WHERE user_id = ?', $_[0]);
+}
+
 sub user_get_id($) # login
 {
 	return $dbc->scalar_query ('SELECT user_id FROM user WHERE login = ?', $_[0]);
 }
-    
+
+sub user_get_login($) # user_id
+{
+	return $dbc->scalar_query ('SELECT login FROM user WHERE user_id = ?', $_[0]);
+}
+
 sub user_get_password($) # login
 {
 	return $dbc->scalar_query ('SELECT password FROM user WHERE login = ?', $_[0]);
@@ -352,6 +362,11 @@ sub user_get_roles($) # user_id
 sub user_get_reserved_machines($) # user_id
 {
 	return $dbc->vector_query ('SELECT name FROM machine WHERE usedby = ?', $_[0]);
+}
+
+sub user_get_privileges($) # user_id
+{
+	return $dbc->vector_query ('SELECT p.privilege FROM user_in_role uir INNER JOIN user_role ur on (uir.role_id = ur.role_id) INNER JOIN role_privilege rp ON (ur.role_id = rp.role_id) INNER JOIN privilege p ON (rp.privilege_id = p.privilege_id) WHERE uir.user_id = ?', $_[0]);
 }
 
 ### user role functions
