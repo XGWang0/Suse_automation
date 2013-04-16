@@ -250,7 +250,7 @@ sub display_clock {
 
 	color("fcyan");
 	print("\n\e[1A\e[K");  # Avoid user push any key when job is running
-	printf("\e[1A\e[${casename_width}C\e[KRTTT: %-18s\n", sectotime(shift));
+	printf("\e[1A\e[${casename_width}C\e[KTTIME: %-18s\n", sectotime(shift));
 	color("reset");
 }
 
@@ -410,18 +410,21 @@ sub process_stop {
 		# it is a background test case, we don't care this type of cases, 
 		# and we don't print any information for them.
 		if ("$key" eq "$current_case") {
-			if (($fail == 0) && ($skip == 0) && ($internal_err == 0)) {
+			if ($count >= $testarray[3] && ($fail == 0) && ($skip == 0) && ($internal_err == 0)) {
 				if ($ENV{RUNIN_VERBOSE}){
-					ptr_r($key, "fgreen", "PASS", 1);
+					ptr_r($key, "fgreen", "PASSED", 1);
 				} else {
-					ptr_r($key, "fgreen", "PASS", 0);
+					ptr_r($key, "fgreen", "PASSED", 0);
 				}
 			}
 			if (($fail == 0) && ($internal_err == 0) && ($skip != 0)) {
-				ptr_r($key, "fyellow", "SKIP", 1);
+				ptr_r($key, "fyellow", "SKIPPED", 1);
 			}
 			if (($internal_err != 0) || ($fail != 0)) {
-				ptr_r($key, "fred", "FAIL", 1);
+				ptr_r($key, "fred", "FAILED", 1);
+			}
+			if ($count < $testarray[3]) {
+				ptr_r($key, "fmagenta", "TIMEOUT", 1);
 			}
 		}
 	} else {
