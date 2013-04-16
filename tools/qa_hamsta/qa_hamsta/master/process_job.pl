@@ -360,7 +360,7 @@ sub send_job($$$) {
 		#add "Used By" and "Usage" "jobid" information
 
                 if(/<\/config>/) {
-                        $_="        <useinfo> USAGE: $usage \t USEDBY: $usedby \t MAINTAINER: $maintainer_id \t </useinfo> \n".$_ ;
+                        $_="        <useinfo><![CDATA[ USAGE: $usage \t USEDBY: $usedby \t MAINTAINER: $maintainer_id \t ]]></useinfo> \n".$_ ;
                         $_="        <job_id>http://$local_addr/hamsta/index.php?go=job_details&amp;id=$job_id</job_id> \n".$_ ;
                 }
 		eval {
