@@ -24,6 +24,7 @@ use lib '/usr/lib/ctcs2/lib/perl';
 use POSIX;
 use POSIX qw(:signal_h :errno_h :sys_wait_h);
 use Time::HiRes qw(usleep);
+use strict;
 
 #
 # If PATH_PREFIX is set we use it to locate perl libraries
@@ -35,7 +36,7 @@ use Time::HiRes qw(usleep);
 #
 BEGIN {
 	if (defined($ENV{PATH_PREFIX})) {
-		$include_dir = "$ENV{PATH_PREFIX}/lib/perl/";
+		my $include_dir = "$ENV{PATH_PREFIX}/lib/perl/";
 	
 		print "INFO: Using perl include directory '$include_dir'\n";
 
@@ -48,6 +49,9 @@ BEGIN {
 use color;
 use timecalc;
 use hashstore;
+
+# -t parameter
+my $timestamp_file = 0;
 
 # tcf being parsed
 my $filename;
@@ -400,16 +404,16 @@ sub process_stop {
 	$skip = 0;
 	$count = 0;
 	$time = $endtime - $starttime;
-		
+
 	# if the finish case name is not the current case name, it means that 
 	# it is a background test case, we don't care this type of cases, 
 	# and we don't print any information for them.
+	my $bg = 1;
+
 	if ("$key" eq "$current_case") {
 		$bg = 0;
-	} else {
-		$bg = 1;
 	}
-	
+
 	if ($line =~ /(\d+)\s+\w+\s+(\d+)\s+\w+\s+(\d+)\s+\w+\s+(\d+)\s+\w+\s+(\d+)/) {
 		$fail = $1;
 		$succeed = $2;
@@ -515,7 +519,7 @@ sub run {
 	} elsif (defined ($pid)) {
 		# in child, exec program
 		# we don't want to pretend we're the parent, so,
-		disable_handlers;
+		disable_handlers();
 		# set my process group so I can be killed later
 		POSIX::setpgid($$,$$);
 		
@@ -623,7 +627,7 @@ sub wait_on_tests {
 	# periodically check state.
 	# Another thing -- it's not possible to rely on signal delivery under Linux
 	# while things like burn are running.  See my attempts to stop processes in cleanup()
-       	$last_time = 0;
+	my $last_time = 0;
 
 	while (&$testfunc($waitfor) and (not $eexit) and (not $timers{state} eq "finished")) {
 		$current_time = $timers{gtime} + (time - $timers{gstart});
@@ -815,13 +819,13 @@ sub report {
 		color("fmagenta");
 		print("Tests with internal errors:\n");
 		color("bold");
-		foreach $k (@interr_failed) {
-			$fail = @{$test_results{$k}}[0];
-			$attempt = @{$test_results{$k}}[2];
-			$succeed = @{$test_results{$k}}[1];
-			$time = sectotime(@{$test_results{$k}}[3]);
-			$interr = @{$test_results{$k}}[4];
-			print("$k ran $attempt times in $time, had internal errors on $interr attempts.\n");
+		foreach (@interr_failed) {
+			$fail = @{$test_results{$_}}[0];
+			$attempt = @{$test_results{$_}}[2];
+			$succeed = @{$test_results{$_}}[1];
+			$time = sectotime(@{$test_results{$_}}[3]);
+			$interr = @{$test_results{$_}}[4];
+			print("$_ ran $attempt times in $time, had internal errors on $interr attempts.\n");
 		}
 		color("reset");
 	}
@@ -830,12 +834,12 @@ sub report {
 		color("fblue");
 		print("Tests skipped:\n");
 		color("bold");
-		foreach $k (@skipped) {
-			$fail = @{$test_results{$k}}[0];
-			$attempt = @{$test_results{$k}}[2];
-			$time = sectotime(@{$test_results{$k}}[3]);
-			$skip = @{$test_results{$k}}[5];
-			print("$k ran $attempt times in $time, had skipped on $skip attempts.\n");
+		foreach (@skipped) {
+			$fail = @{$test_results{$_}}[0];
+			$attempt = @{$test_results{$_}}[2];
+			$time = sectotime(@{$test_results{$_}}[3]);
+			$skip = @{$test_results{$_}}[5];
+			print("$_ ran $attempt times in $time, had skipped on $skip attempts.\n");
 		}
 		color("reset");
 	}
@@ -845,17 +849,16 @@ sub report {
 		print("Tests passed:\n");
 		color("bold");	
 		if ($environment{"verbose"}) {
-			foreach $i (@passing) {
-				my $key = $i;
-				$fail = @{$test_results{$key}}[0];
-				$attempt = @{$test_results{$key}}[2];
-				$succeed = @{$test_results{$key}}[1];
-				$time = sectotime(@{$test_results{$key}}[3]);
-				print("$key ran $attempt times in $time, failed on $fail attempts.\n");
+			foreach (@passing) {
+				$fail = @{$test_results{$_}}[0];
+				$attempt = @{$test_results{$_}}[2];
+				$succeed = @{$test_results{$_}}[1];
+				$time = sectotime(@{$test_results{$_}}[3]);
+				print("$_ ran $attempt times in $time, failed on $fail attempts.\n");
 			}
 		} else {
-			foreach $i (@passing) {
-				print "$i ";
+			foreach (@passing) {
+				print "$_ ";
 			}
 			print "\n";
 		}
@@ -934,20 +937,19 @@ sub display_events {
 # state up to speed.
 sub restore_state {
 	# strip path from filename
-	@tmp = split /\//, $filename;
+	my @tmp = split /\//, $filename;
 	$filename = $tmp[$#tmp];
 
 	# set up the log directory
-
-	($sec, $min, $std, $mtag, $mon, $jahr) = localtime(time);
-	my $timestamp = sprintf( "%4d-%02d-%02d-%02d-%02d-%02d", $jahr+1900, $mon+1, $mtag, $std, $min, $sec);	
+	my ($sec, $min, $hour, $day, $mon, $year) = localtime(time);
+	my $timestamp = sprintf( "%4d-%02d-%02d-%02d-%02d-%02d", $year+1900, $mon+1, $day, $hour, $min, $sec);	
 	my $basename = $logdir . "/" . substr( $filename, 0, -4 ) . "-" . $timestamp;	 
 
         if (! -d $logdir) {
                 `mkdir -m 0755 -p "$logdir"`
         }
 
-	$realname = $basename;
+	my $realname = $basename;
 
 	mkdir $realname, 0755 or die "Could not create $realname";
 	
@@ -1286,7 +1288,6 @@ sub print_help {
 
 sub main {
 	my @params = @_;
-	$timestamp_file=0;
 
 	# get the width of console for output the test name and test status 
 	$opt_width = `stty size 2>/dev/null | cut -d' ' -f2`;
@@ -1297,18 +1298,18 @@ sub main {
         	$opt_width = 80;
 	}
 
-	foreach $i (@_) {
-		if (($i eq "-h") or ($i eq "--help")) {
+	foreach (@_) {
+		if (($_ eq "-h") or ($_ eq "--help")) {
 			print_help();
-		} elsif (($i eq "-t") or ($i eq "--timestamp")) {
+		} elsif (($_ eq "-t") or ($_ eq "--timestamp")) {
 			$timestamp_file=1;	
-		} elsif (not $eexit and open(DATAFILE,$i)) {
-			$filename = $i;
+		} elsif (not $eexit and open('DATAFILE', $_)) {
+			$filename = $_;
 			restore_state($filename);
-			parse_control_file(DATAFILE);
-			close DATAFILE;
+			parse_control_file('DATAFILE');
+			close('DATAFILE');
 		} elsif (not $eexit) {
-			die ("Can not open file $i\n");
+			die ("Can not open file $_\n");
 		}
 	}
 }
