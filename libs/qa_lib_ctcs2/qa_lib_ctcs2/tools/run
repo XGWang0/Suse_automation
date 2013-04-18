@@ -105,8 +105,8 @@ my %daytoletter = ("Sun","S","Mon","M","Tue","T","Wed","W","Thu","U","Fri","F","
 
 # Global variables to support show the case name and it's status
 my $opt_width = 0;                # width of console
-my $total_case = 0;               # total case number
-my $case_num = 0;                 # current case number
+my $total_cases = 0;              # total number of testcases
+my $cur_case = 0;                 # current case number
 my $casename_width = 0;           # width of current case name 
 my $process_foreground = 0;       # the process is foreground process or not
 my $current_case = "";            # current test case name
@@ -301,9 +301,8 @@ sub process_start {
 # the width will be caculated by the case name and the total number of the test cases
 sub ptr_n {
 	my $name = shift;
-	$case_num = $case_num + 1;
-
-	my $num_len = length($total_case) - 1;
+	
+	my $num_len = length($total_cases) - 1;
 	my $label_len = $num_len * 2 + 4;
 
 	# if some crazy guys name his cases by a big lone string, cut it
@@ -313,7 +312,7 @@ sub ptr_n {
 		$name = "$name...";
 	}
 
-	my $label = sprintf("[%${num_len}d/%${num_len}d] ", $case_num, $total_case);
+	my $label = sprintf("[%${num_len}d/%${num_len}d] ", ++$cur_case, $total_cases);
 	$name = "$label$name";
 
 	$casename_width = $opt_width - $label_len - 20;
@@ -1108,7 +1107,12 @@ sub parse_control_file {
 	my $controlfile = shift;
 	my @lines = <$controlfile>;
 	my $l;
-	
+
+	$total_cases = 0;
+	foreach (@lines) {
+		$total_cases += $_ =~ /^\s*fg/;
+	}
+
 	$l = $environment{LINE};
 
 	if ($timestamp_file) {
@@ -1300,7 +1304,6 @@ sub main {
 			$timestamp_file=1;	
 		} elsif (not $eexit and open(DATAFILE,$i)) {
 			$filename = $i;
-			$total_case = `cat $filename | grep "^fg" | wc -l`;
 			restore_state($filename);
 			parse_control_file(DATAFILE);
 			close DATAFILE;
