@@ -302,7 +302,7 @@ sub process_start {
 sub ptr_n {
 	my $name = shift;
 	
-	my $num_len = length($total_cases) - 1;
+	my $num_len = length($total_cases);
 	my $label_len = $num_len * 2 + 4;
 
 	# if some crazy guys name his cases by a big lone string, cut it
