@@ -9,7 +9,7 @@
         <mail notify="1">thomas@suse.de</mail>
         <rpm>qa_hamsta</rpm>
 	<rpm>qa_tools</rpm>
-	<rpm>qa_lib_perl
+	<rpm>qa_lib_perl</rpm>
 	<rpm>qa_test_lynis</rpm>
         <logdir>/tmp</logdir>
         <description>Run tests of security team</description>
