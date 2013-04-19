@@ -92,7 +92,7 @@ if (request_str("proceed")) {
 	if ($ret != 0) {
 		$errors["repo_add"] = "Cannot add hamsta repo as $repo_url to SUT.";
 	}
-	$mycmd = $cmd . " zypper --gpg-auto-import-keys in -y qa_hamsta 1>/dev/null";
+	$mycmd = $cmd . " zypper --no-gpg-checks --gpg-auto-import-keys in -y qa_hamsta 1>/dev/null";
 	system($mycmd, $ret);
 	if ($ret != 0) {
 		$errors["hamsta_inst"] = "qa_hamsta cannot be added to SUT.";
