@@ -245,13 +245,10 @@ sub display_notify {
 }
 
 sub display_clock {
-	#color("bold","fwhite");
-	#print("Running for: ");
-
 	color("fcyan");
-	print("\n\e[1A\e[K");  # Avoid user push any key when job is running
-	printf("\e[1A\e[${casename_width}C\e[KRTTT: %-18s\n", sectotime(shift));
+	printf("\r\e[${casename_width}C\e[KTTIME: %-18s", sectotime(shift));
 	color("reset");
+	STDOUT->flush();
 }
 
 sub timer_start {
@@ -323,7 +320,8 @@ sub ptr_n {
 	$ENV{CASENAMEWIDTH} = $casename_width;
 
 	if ($process_foreground) {
-		printf("%-${casename_width}s\n", $name);
+		printf("%-${casename_width}s", $name);
+		STDOUT->flush();
 	}
 }
 
@@ -334,18 +332,23 @@ sub ptr_r {
 	my $case = shift;
 	my $color = shift;
 	my $result = shift;
-	my $cursor = shift;
+	my $bg = shift;
 
 	if ($process_foreground) {
+		# Print name for background running tests
+		if ($bg) {
+			color("bold", "fblack");
+			print("\r($case)");
+			color("reset");
+		}
+
 		color($color);
 	
 		# The string should can cover all of the time string
-		print("\n\e[1A\e[K");  # Avoid user push any key when job is running
-		printf("\e[1A\e[${casename_width}C\e[K%-18s\n", $result) if ($cursor == 0);
-		printf("\e[${casename_width}C\e[K%-18s\n", $result) if ($cursor == 1);
+		printf("\r\e[${casename_width}C\e[K%-18s\n", $result);
         	color("reset");
 	} else {
-		printf("%s ... ... %s", $case,  "$result\n");
+		printf("%s ... ... %s", $case, "$result\n");
 	}
 }
 
@@ -398,6 +401,15 @@ sub process_stop {
 	$skip = 0;
 	$count = 0;
 	$time = $endtime - $starttime;
+		
+	# if the finish case name is not the current case name, it means that 
+	# it is a background test case, we don't care this type of cases, 
+	# and we don't print any information for them.
+	if ("$key" eq "$current_case") {
+		$bg = 0;
+	} else {
+		$bg = 1;
+	}
 	
 	if ($line =~ /(\d+)\s+\w+\s+(\d+)\s+\w+\s+(\d+)\s+\w+\s+(\d+)\s+\w+\s+(\d+)/) {
 		$fail = $1;
@@ -406,29 +418,28 @@ sub process_stop {
 		$internal_err = $4;
 		$skip = $5;
 
-		# if the finish case name is not the current case name, it means that 
-		# it is a background test case, we don't care this type of cases, 
-		# and we don't print any information for them.
-		if ("$key" eq "$current_case") {
-			if (($fail == 0) && ($skip == 0) && ($internal_err == 0)) {
-				if ($ENV{RUNIN_VERBOSE}){
-					ptr_r($key, "fgreen", "PASS", 1);
-				} else {
-					ptr_r($key, "fgreen", "PASS", 0);
-				}
+
+		if ($count >= $testarray[3] && ($fail == 0) && ($skip == 0) && ($internal_err == 0)) {
+			if ($ENV{RUNIN_VERBOSE}){
+				ptr_r($key, "fgreen", "PASSED", $bg);
+			} else {
+				ptr_r($key, "fgreen", "PASSED", $bg);
 			}
-			if (($fail == 0) && ($internal_err == 0) && ($skip != 0)) {
-				ptr_r($key, "fyellow", "SKIP", 1);
-			}
-			if (($internal_err != 0) || ($fail != 0)) {
-				ptr_r($key, "fred", "FAIL", 1);
-			}
+		}
+		if (($fail == 0) && ($internal_err == 0) && ($skip != 0)) {
+			ptr_r($key, "fyellow", "SKIPPED", $bg);
+		}
+		if (($internal_err != 0) || ($fail != 0)) {
+			ptr_r($key, "fred", "FAILED", $bg);
+		}
+		if ($count < $testarray[3]) {
+			ptr_r($key, "fmagenta", "TIMEOUT", $bg);
 		}
 	} else {
 		# no result, some error occured
-		print("\e[1A\e[${casename_width}C\e[K\n");
+		print("\r\e[${casename_width}C\e[K\n");
 		warn("    Test result inconclusive for $key, no results found\n");
-		ptr_r($key, "fred", "FAIL" , 1) if("$key" eq "$current_case");
+		ptr_r($key, "fred", "FAIL" , $bg);
 	}
 	
 	if (defined($test_results{$key}->[0])) {
@@ -529,8 +540,8 @@ sub run {
 		# This is also a fix for bnc#216220 - ctcs2 + qa_php5 problems
 		open STDIN, "</dev/null" or die "Cannot set test's STDIN to /dev/null!";
 
-		# lets try letting channel 2 through
-		exec("sh","-c","exec $runtest_path $iterations $testprogram $tp >> $logfilename") or die ("Can't exec subprocess\n");
+		# Redirect stderr to /dev/null, keeps the ctcs2 terminal output readable
+		exec("sh","-c","exec $runtest_path $iterations $testprogram $tp >> $logfilename 2> /dev/null") or die ("Can't exec subprocess\n");
 	} else {
 		warn("Fork error, aieeeee!\n");
 	}
