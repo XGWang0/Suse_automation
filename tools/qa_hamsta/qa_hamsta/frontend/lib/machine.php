@@ -1679,8 +1679,7 @@ class Machine {
 		if ($config->authentication->use) {
 			$user = User::getById (User::getIdent (), $config);
 			fputs ($sock, "log in " . $user->getLogin() . " "
-			       . $user->getPassword() . " "
-			       . $user->getCurrentRole ()->getName () . "\n");
+			       . $user->getPassword() . "\n");
 			$response = "";
 			while (($s = fgets($sock, 4096)) != "$>") {
 				$response .= $s;
