@@ -83,8 +83,11 @@
 			}
 
 			$paramTextSpit = explode("\n", $paramDefaultArray[$i]);
-			foreach($paramTextSpit as $singleText)
-				$paramValueArray[$i] .= rtrim($singleText) . "\n";
+			foreach($paramTextSpit as $singleText) {
+				$paramValueArray[$i] = (isset ($paramValueArray[$i])
+							? $paramValueArray[$i] : '')
+					. rtrim($singleText) . "\n";
+                        }
 
 			$param_map[$i] = array( 'name'=>$paramNameArray[$i],     'type'=>$paramTypeArray[$i],
 					'default'=>$paramValueArray[$i], 'label'=>$paramLabelArray[$i],
