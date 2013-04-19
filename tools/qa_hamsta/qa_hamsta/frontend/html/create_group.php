@@ -36,7 +36,7 @@
 <h2 class="text-medium text-blue"><?php echo ($action == "edit" ? "Edit group" : "Select machines to add them to group"); ?></h2>
 
 <?php
-	if($action == "add")
+	if($action == "add" || $action == "edit")
 		echo "<form action=\"index.php?go=create_group\" method=\"post\">";
 	else
 		echo "<form action=\"index.php?go=create_group\" method=\"post\" onSubmit=\"return checkcheckbox(this)\">";
