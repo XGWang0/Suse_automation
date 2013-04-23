@@ -892,15 +892,16 @@ function steps( $base, $what, $selected, $alt=array() )
   **/
 function token_generate()
 {
-#	print_r($_SESSION['token']);
+#	print "<pre>";print_r($_SESSION['token']);print "</pre>\n";
 	if( !isset($_SESSION['token']) )
 		$_SESSION['token']=array('last'=>1000);
 	$token=$_SESSION['token']['last']+1;
+	unset($_SESSION['token']['last']);
 	while(count($_SESSION['token'])>10)
 		array_shift($_SESSION['token']);
 	if($token>9999)
 		$token=1000;
-	$_SESSION['token'][$token]=true;
+	$_SESSION['token']['t'.$token]=true;
 	$_SESSION['token']['last']=$token;
 	return $token;
 }
@@ -913,9 +914,9 @@ function token_generate()
   **/
 function token_read($token)
 {
-	if(!isset($_SESSION['token'][$token]))
+	if(!isset($_SESSION['token']['t'.$token]))
 		return false;
-	unset($_SESSION['token'][$token]);
+	unset($_SESSION['token']['t'.$token]);
 	return true;
 }
 
