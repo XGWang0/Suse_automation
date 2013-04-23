@@ -54,33 +54,22 @@ function genRandomString($len)
 }
 
 /**
-  * format parameter
-  * @param string $parameter the parameter to be format
-  * @return string formatted string
+  * Remove newline, tab and whitespace characters from the parameter
+  * list and join the list with glue.
+  *
+  * @param string $parameters_string The parameter string.
+  * @param string $glue The text to use for joining the parameters.
+  * @param string $separator The string to use to separate input parameter string.
+  * @return string String containing parameters separated by glue.
   **/
-function trim_parameter($parameter)
+function trim_parameters ($parameters_string, $glue = "\n",
+			  $separator = "\n")
 {
-	$parameterSplit = explode("\n", $parameter);
-	$parameterContent = "";
-
-	$firstline = true;
-
-	foreach($parameterSplit as $singleParameter)
-	{
-		# delete the first empty lines
-		$lineContent = rtrim($singleParameter, "\r\n\t ");
-		if(empty($lineContent) && ($firstline == true))
-			continue;
-
-		$firstline = false;
-
-		$parameterContent .= $lineContent . ',';
-	}
-
-	# omit the last comma
-	substr(rtrim($parameterContent), 0, -1);
-
-	return (string)$parameterContent;
+	$parameters = explode($separator, $parameters_string);
+	/* Removes the newlines, spaces and tabs and some other stuff
+	 * from all parameters. */
+	$parameters = array_map ("trim", $parameters);
+	return implode ($glue, $parameters);
 }
 
 /**
@@ -252,7 +241,7 @@ function parameters_assign($xml, $prefix)
 
 			# for textarea data
 			if(trim($parameter['type']) == "textarea")
-				$paravalue = trim_parameter($paravalue);
+				$paravalue = trim_parameters ($paravalue);
 
 			$node = $parachild->ownerDocument;
 			$parachild->appendChild($node->createCDATASection($paravalue));
