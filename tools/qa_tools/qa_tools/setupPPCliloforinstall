@@ -96,7 +96,7 @@ kernelurl="$insturl/suseboot/inst64"
 initrdurl="$insturl/suseboot/initrd64"
 
 # This is to support the case that PPC might not have an initrd in the repo
-skipInitrd="no"
+skipInitrd="yes"
 
 $curl -f -L -o "$imagedir"/inst64 "$kernelurl"
 $curl -L -o "$imagedir"/initrd64 "$initrdurl"
@@ -109,10 +109,18 @@ then
 fi
 
 # But since the initrd is optional, it can be skipped if it isn't there
-if [ ! -e "$imagedir"/initrd64 ]
+if [ -e "$imagedir"/initrd64 ]
 then
-	skipInitrd="yes"
+	skipInitrd="no"
 fi
+
+# IMPORTANT:
+# This is workaround for bnc#809148
+# It was not tested with SLES10-SP4 potential issue with SLE10 codeline
+# Tested with SLES11-SP[23]
+# it makes initrd is NEVER used even when it is present in the repo
+skipInitrd="yes"
+
 
 title="Installation"
 count=`grep -c "label = Installation" $bootloaderconf`
