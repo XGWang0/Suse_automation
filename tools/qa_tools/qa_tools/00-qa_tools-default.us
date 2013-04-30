@@ -45,11 +45,11 @@ nis_domain=""
 nis_server_list=""
 
 # Where to put autinstallation profile
-install_profile_nfs_server="10.100.96.14"
-install_profile_nfs_dir="/srv/hamsta"
+install_profile_nfs_server="151.155.144.80"
+install_profile_nfs_dir="/srv/www/htdocs/autoyast"
 
 # From where to get the autoinstallation profile
-install_profile_url_base="http://10.100.96.14/autoinst"
+install_profile_url_base="http://151.155.144.80/autoyast/autoinst"
 
 #
 ## The address of the host, where qa_db_report is installed, this
