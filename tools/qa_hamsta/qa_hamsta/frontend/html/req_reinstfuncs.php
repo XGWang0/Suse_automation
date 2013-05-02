@@ -58,13 +58,11 @@ var insert_checkboxes = function (id, data, typicmode, old_selected){
 }
 
 var insert_modified_flag = function() {
-        modified = document.getElementById('patterns_modified');
-        modified.innerHTML = '* Modified';
+        $("#patterns_modified").text ("* Modified");
 }
 
 var remove_modified_flag = function() {
-        modified = document.getElementById('patterns_modified');
-        modified.innerHTML = '';
+        $("#patterns_modified").empty();
 }
 
 var changepattern = function() {
@@ -113,27 +111,27 @@ var get_sdk_archs = function() {
 };
 
 var get_repo_urls = function (){
-    old_repo_arch = $("#repo_archs option:selected").text();
+    old_repo_arch = $("#repo_archs").val();
     var para= {
-        product: $("#repo_products option:selected").text(), 
-        arch: $("#repo_archs option:selected").text()
+        product: $("#repo_products").val(),
+        arch: $("#repo_archs").val()
     };
+
+    if (old_repo_arch.length == 0) {
+	$("#available_patterns").empty();
+    }
+
     $.getJSON("html/search_repo.php", para, function(data) {
         if (para['arch'] == "") {
-            $("#repo_producturl").attr("value", "");
+	    $("#repo_producturl").val("");
         } else {
-            $("#repo_producturl").attr("value", data[0]);
-	    if (typeof fullpatternlist == 'undefined') {
-		    fullpatternlist = data[1];
-	    } else {
-		    fullpatternlist = fullpatternlist.concat(data[1]);
-	    }
-            insert_checkboxes("#available_patterns", fullpatternlist);
+            $("#repo_producturl").val(data[0]);
+            insert_checkboxes("#available_patterns", data[1]);
             if (data[0].toLowerCase().match("sled")) {
-                $("#typicmode").attr("value", "gnome");
+                $("#typicmode").val("gnome");
                 producttype = 'sled';
             } else {
-                $("#typicmode").attr("value", "text");
+                $("#typicmode").val("text");
                 producttype = 'others';
             }
             changepattern();
@@ -143,14 +141,21 @@ var get_repo_urls = function (){
 };
 
 var get_sdk_urls = function (){
-    old_sdk_arch =  $("#sdk_archs option:selected").text();
-    var para= { product: $("#sdk_products option:selected").text(), 
-        arch: $("#sdk_archs option:selected").text()};
+    old_sdk_arch = $("#sdk_archs").val();
+    var para = {
+	product: $("#sdk_products").val(),
+	arch: $("#sdk_archs").val()
+    };
+
+    if (old_sdk_arch.length == 0) {
+	$("#sdk_pattern_1").empty();
+    }
+
     $.getJSON("html/search_sdk.php", para, function(data){
-        if (para['arch'] == "")
-            $("#sdk_producturl").attr("value", "");
+        if (para['arch'] == "" || para.arch.length == 0)
+	    $("#sdk_producturl").val("");
         else {
-            $("#sdk_producturl").attr("value", data[0]);
+            $("#sdk_producturl").val(data[0]);
             insert_checkboxes("#sdk_pattern_1", data[1]);
         }
     });
@@ -159,12 +164,11 @@ var get_sdk_urls = function (){
 
 var anotherrepo = function (){
     sdkid += 1;
-    $('#additional_repo').append('SDK #'+ sdkid  +': <input type="text" name="addon_url[]" id="addon_url_' + sdkid +'" size="70" /> &emsp;<button type="button" onclick="anotherrepo()"> + </button><br />');
+    $('#additional_repo').append('SDK #'+ sdkid  +': <input type="text" name="addon_url[]" id="addon_url_' + sdkid +'" size="70" /> <button type="button" onclick="anotherrepo()"> + </button><br />');
     var sdk_pattern_name = 'sdk_pattern_' + sdkid;
     var addon_url_name = '#addon_url_' + sdkid;
     $(addon_url_name).blur(function() {
-	    var url = $(addon_url_name).val();
-	    $.get("html/refresh_patterns.php", { product_url: url }, function(data) { retrieve_patterns(data, sdk_pattern_name, url); });
+	    get_patterns (addon_url_name, sdk_pattern_name);
     });
 }
 
@@ -186,14 +190,13 @@ $("#repo_archs").change(get_repo_urls);
 $("#sdk_products").change(get_sdk_archs);
 $("#sdk_archs").change(get_sdk_urls);
 
-
 $(document).ready(function(){
 	// Setup ajax messaging
-	$('#message')
+	$(document)
 	    .ajaxStart(function() {
-	      $(this).text("Loading...");
+		$('#message').text("Loading content...");
 	    }).ajaxStop(function() {
-	      $(this).empty();
+		$('#message').empty();
 	    });
 
 	// Reinstall with updates options
@@ -228,11 +231,6 @@ var retrieve_patterns = function (data, sdk_name, url) {
 	}
 	if (patterns_vals[0] != '' || patterns_vals.length > 1) {
 		insert_checkboxes('#' + sdk_name, patterns_vals);
-		if (typeof fullpatternlist == 'undefined') {
-			fullpatternlist = patterns_vals;
-		} else {
-			fullpatternlist = fullpatternlist.concat(patterns_vals);
-		}
 		if (url.toLowerCase().match("sled")) {
 			$("#typicmode").attr("value", "gnome");
 			producttype = 'sled';

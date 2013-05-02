@@ -22,10 +22,14 @@
   WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
   ****************************************************************************
  */
-// This page returns a list of patterns associated with the specified product url.
-$url = $_REQUEST['product_url'];
-$patterns = explode("\n", htmlspecialchars(`../refresh_patterns.py $url`));
-foreach ($patterns as $pattern) {
-	echo "$pattern\n";
+/* This page returns a list of patterns associated with the specified product url. */
+if (isset ($_REQUEST['product_url'])) {
+	$url = $_REQUEST['product_url'];
+	$patterns = explode("\n", htmlspecialchars(`../refresh_patterns.py $url`));
+	foreach ($patterns as $pattern) {
+		echo "$pattern\n";
+	}
+} else {
+	echo "Unable to retrieve patterns. Please insert correct repository URL.\n";
 }
 ?>

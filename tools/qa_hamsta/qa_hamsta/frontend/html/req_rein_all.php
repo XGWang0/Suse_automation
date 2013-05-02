@@ -40,7 +40,10 @@ require("timezone.php");
 	<td></td>
 	<td>
 	  <input type="text" name="repo_producturl" id="repo_producturl" size="70" value="<?php if(isset($_POST["repo_producturl"])){echo $_POST["repo_producturl"];} ?>" title="required: url" />
-	  <button type="button" title="Refresh Patterns" onclick="$.get('html/refresh_patterns.php', { product_url: $('#repo_producturl').val(); }, function(data) { retrieve_patterns (data, 'available_patterns', $('#repo_producturl').val()); });"> &#10227 </button>
+
+	  <button type="button" title="Refresh Patterns"
+		  onclick="get_patterns ('#repo_producturl', 'available_patterns');">
+	    &#10227 </button>
 	  <span class="required">*</span>
 	</td>
   </tr>
@@ -56,7 +59,8 @@ require("timezone.php");
 	<td></td>
 	<td>
 	  SDK #1: <input type="text" name="addon_url[]" id="sdk_producturl" size="70" value="<?php if(isset($_POST["sdk_producturl"])){echo $_POST["sdk_producturl"];} ?>" />
-	  &emsp;<button type="button" onclick='anotherrepo()'> + </button><button type="button" title="Refresh Patterns" onclick="$.get('html/refresh_patterns.php', { product_url: $('#sdk_producturl').val() }, function(data) { retrieve_patterns(data, 'sdk_pattern_1', $('#sdk_producturl').val()); });"> &#10227 </button>
+	  <button type="button" onclick="anotherrepo()"> + </button>
+	  <button type="button" title="Refresh Patterns" onclick="get_patterns ('#sdk_producturl', 'sdk_pattern_1');"> &#10227 </button>
 	  <div id="additional_repo"></div>
 	</td>
   </tr>

@@ -112,14 +112,17 @@ function checkcontents(which)
 
 function checkReinstallDropdownArchitectures()
 {
-	var repoArch = document.getElementById('repo_archs').options[document.getElementById('repo_archs').selectedIndex].value;
-	var sdkArch = document.getElementById('sdk_archs').options[document.getElementById('sdk_archs').selectedIndex].value;
-	if(repoArch == '' || sdkArch == '' || repoArch == sdkArch || (repoArch == 'i386' && sdkArch == 'i586') || (repoArch == 'i586' && sdkArch == 'i386')) {
-		document.getElementById('repo_archs_warning').innerHTML = '';
-		document.getElementById('sdk_archs_warning').innerHTML = '';
+	var repoArch = $("#repo_archs").val();
+	var sdkArch = $("#sdk_archs").val();
+	if(repoArch.length == 0 || sdkArch.length == 0
+	   || repoArch == sdkArch
+	   || (repoArch == 'i386' && sdkArch == 'i586')
+	   || (repoArch == 'i586' && sdkArch == 'i386')) {
+	    $("#repo_archs_warning").empty();
+	    $("#sdk_archs_warning").empty();
 	} else {
-		document.getElementById('repo_archs_warning').innerHTML = 'Warning';
-		document.getElementById('sdk_archs_warning').innerHTML = 'Architectures differ';
+	    $("#repo_archs_warning").text("Warning");
+	    $("#sdk_archs_warning").text("Architectures differ");
 	}
 }
 
@@ -207,4 +210,28 @@ function clear_filebox (objid)
 	newobj.name = oldobj.name;
 	newobj.id = oldobj.id;
 	oldobj.parentNode.replaceChild(newobj, oldobj);
+}
+
+/**
+ * Function gets the patterns from the URL contained in the val of the
+ * element with pattern_field_id id.
+ *
+ * sdk_name ID of the inserted element.
+ */
+function get_patterns (pattern_field_id, new_element_id) {
+	var prod_url = $(pattern_field_id).val();
+	/* Custom checking. Should be replaced by some library. */
+	if (prod_url.length == 0 || /^(https?|s?ftp):\/\/[\w-]+\.[\w\.-]+/i.test(prod_url)) {
+		$.get('html/refresh_patterns.php',
+		      { product_url : prod_url },
+		      function (data) {
+			  retrieve_patterns (data, new_element_id, prod_url);
+		      }
+		     );
+	} else if (/^(nfs|smb):\/\/[\w-]+\.[\w\.-]+/i.test(prod_url)) {
+		alert ("Can not load patterns for this protocol.");
+	} else {
+		alert ("To refresh patterns the URL field has to contain correct address.");
+	}
+	remove_modified_flag();
 }
