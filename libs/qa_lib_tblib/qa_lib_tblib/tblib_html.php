@@ -893,6 +893,9 @@ function steps( $base, $what, $selected, $alt=array() )
 function token_generate()
 {
 #	print "<pre>";print_r($_SESSION['token']);print "</pre>\n";
+	global $token_last;
+	if( isset($token_last) )
+		return $token_last;
 	if( !isset($_SESSION['token']) )
 		$_SESSION['token']=array('last'=>1000);
 	$token=$_SESSION['token']['last']+1;
@@ -903,6 +906,7 @@ function token_generate()
 		$token=1000;
 	$_SESSION['token']['t'.$token]=true;
 	$_SESSION['token']['last']=$token;
+	$token_last=$token;
 	return $token;
 }
 
