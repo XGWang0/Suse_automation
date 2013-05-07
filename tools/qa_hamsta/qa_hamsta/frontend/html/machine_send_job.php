@@ -476,7 +476,7 @@ Autotest jobs.
 <HR>
 <h2 class="text-medium text-blue bold">Custom Jobs</h2>
 <p class="text-main">
-Custom Jobs are used for running any kind of configuration task that you may need to send to your test systems. To set up and run a configuration task, sipmly fill out and submit this form. If this configuration task is one that you would like to re-use in the future, be sure to check the "Add this job to the custom job list" box so that you can return to this page later and run that same configuration task as a custom job.
+Custom Jobs are used for running any kind of configuration task that you may need to send to your test systems. To set up and run a configuration task, simply fill out and submit this form. If this configuration task is one that you would like to re-use in the future, be sure to check the "Add this job to the custom job list" box so that you can return to this page later and run that same configuration task as a custom job.
 </p>
 <p class="text-main">
 You can create two type of job: Single-machine job and Multi-machine job, for Single-machine job, you just need configure the command line, and the XML file will be saved as "Single-machine job" if you select to save it by checking the "Add this job to the custom job list"; For Multi-machine job, you need configure some more data for all of roles in the form below, you can set the role number up to 5 according to what your need, the XML file will be saved as "Multi-machine job" if you select to save it. Futhermore, if you select to save you job, you can edit it in the send job page later.
