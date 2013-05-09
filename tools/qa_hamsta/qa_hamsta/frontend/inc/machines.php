@@ -62,6 +62,10 @@
 			$go = "merge_machines";
 			return require("inc/merge_machines.php");
 
+		case "machine_config":
+			$go = "machine_config";
+			return require("inc/machine_config.php");
+
 	   case "machine_reinstall":
 			$go = "machine_reinstall";
 			return require("inc/machine_reinstall.php");

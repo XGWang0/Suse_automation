@@ -54,24 +54,13 @@ if( $step=='list' )	{
 	header('Content-Type: text/plain');
 	$ip=http('ip',$_SERVER['REMOTE_ADDR']);
 	print "# IP address is $ip\n";
-	$configs=array(QACONF_GLOBAL,QACONF_COUNTRY,QACONF_SITE,QACONF_MASTER);
 	$machine_id=machine_get_by_ip($ip);
-	if( $machine_id )	{
-		$groups=group_machine_list_group($machine_id);
-		foreach( array_keys($groups) as $group_id )	{
-			$qaconf_id=group_get_qaconf_id($group_id);
-			if( $qaconf_id )
-				$configs[]=$qaconf_id;
-		}
-		$qaconf_id=machine_get_qaconf_id($machine_id);
-		if( $qaconf_id )
-			$configs[]=$qaconf_id;
-	}
+	$configs=qaconfs_for_machine($machine_id);
 	print "# qaconf_ids are: ".join(',',$configs)."\n";
 	print qaconf_format_data(qaconf_merge($configs));
 	exit;
 }
-else if($submit=='sync' && $id )    {
+else if(($submit=='sync'||$step=='sync') && $id )    {
 	$sync_url=qaconf_get_sync_url($id);
 	if( $sync_url && $file=fopen($sync_url,'r'))    {
 		$text='';

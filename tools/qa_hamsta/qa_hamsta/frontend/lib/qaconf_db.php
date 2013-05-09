@@ -40,13 +40,33 @@ function qaconf_insert($desc)	{
 	return insert_query('INSERT INTO qaconf(`desc`) VALUES(?)','s',$desc);
 }
 
-function qaconf_list($header=1,$limit=null)	{
-	return mhash_query($header,$limit,'SELECT qaconf_id,`desc`,GROUP_CONCAT(`group`) AS groups,GROUP_CONCAT(name) AS machines FROM qaconf LEFT JOIN machine USING(qaconf_id) LEFT JOIN `group` USING(qaconf_id) WHERE qaconf_id>? GROUP BY qaconf_id','i',0 /*QACONF_MAX_SYS_ID*/);
+function qaconf_list($ids=array(),$header=1,$limit=null)	{
+	$cnt=count($ids);
+	if( $cnt )	{
+		$where='qaconf_id IN(?'.str_repeat(',?',$cnt-1).')';
+		$format=str_repeat('i',$cnt);
+		$args=$ids;
+	}
+	else	{
+		$where='qaconf_id>?';
+		$format='i';
+		$args=array(0 /*QACONF_MAX_SYS_ID*/);
+	}
+	$sql="SELECT qaconf_id, `desc`, (SELECT COUNT(*) FROM qaconf_row WHERE qaconf_row.qaconf_id=qaconf.qaconf_id) AS rows, GROUP_CONCAT(DISTINCT `group`) AS groups, GROUP_CONCAT(name) AS machines, sync_url FROM qaconf LEFT JOIN machine USING(qaconf_id) LEFT JOIN `group` USING(qaconf_id) WHERE $where GROUP BY qaconf_id ORDER BY qaconf_id DESC";
+	return call_user_func_array('mhash_query',array_merge(array($header,$limit,$sql,$format),$args));
+#	return mhash_query($header,$limit,'SELECT qaconf_id,`desc`,GROUP_CONCAT(`group`) AS groups,GROUP_CONCAT(name) AS machines FROM qaconf LEFT JOIN machine USING(qaconf_id) LEFT JOIN `group` USING(qaconf_id) WHERE qaconf_id>? GROUP BY qaconf_id','i',0 /*QACONF_MAX_SYS_ID*/);
 }
 
-function qaconf_get_details($id)	{
-	return row_query('SELECT `desc`,sync_url FROM qaconf WHERE qaconf_id=?','i',$id);
+function qaconf_list_for_select()	{
+	return array_merge(
+		array(array('null','(none)')),
+		matrix_query(0,null,'SELECT qaconf_id,`desc` FROM qaconf WHERE qaconf_id>'.QACONF_MAX_SYS_ID)
+	);
 }
+
+#function qaconf_get_details($id)	{
+#	return row_query('SELECT `desc`,sync_url FROM qaconf WHERE qaconf_id=?','i',$id);
+#}
 
 function qaconf_get_sync_url($id)	{
 	return scalar_query('SELECT sync_url FROM qaconf WHERE qaconf_id=?','i',$id);
@@ -97,6 +117,22 @@ function qaconf_delete($qaconf_id)	{
 
 function qaconf_usage_count($qaconf_id)	{
 	return row_query('SELECT (SELECT COUNT(*) FROM machine WHERE qaconf_id=?) AS machines, (SELECT COUNT(*) FROM `group` WHERE qaconf_id=?) AS groups','ii',$qaconf_id,$qaconf_id);
+}
+
+function qaconf_usage_machine($qaconf_id)	{
+	return vector_query(null,'SELECT machine_id FROM machine WHERE qaconf_id=?','i',$qaconf_id);
+}
+
+function qaconf_usage_group($qaconf_id)	{
+	return vector_query(null,'SELECT group_id FROM `group` WHERE qaconf_id=?','i',$qaconf_id);
+}
+
+function qaconf_detach_machine($qaconf_id)	{
+	return update_query('UPDATE machine SET qaconf_id=NULL WHERE qaconf_id=?','i',$qaconf_id);
+}
+
+function qaconf_detach_group($qaconf_id)	{
+	return update_query('UPDATE `group` SET qaconf_id=NULL WHERE qaconf_id=?','i',$qaconf_id);
 }
 
 function qaconf_insert_parsed($desc,$parsed)	{
@@ -215,10 +251,41 @@ function qaconf_merge($list)	{
 				continue;
 			$key=$r['key'];
 			$r['src']=$desc;
+			$r['qaconf_id']=$id;
 			$ret[$key]=$r;
 		}
 	}
+#	$ret[0]['src']='src';
+#	$ret[0]['qaconf_id']='id';
 	return array_values($ret);
+}
+
+function qaconfs_global()	{
+	return array(QACONF_GLOBAL,QACONF_COUNTRY,QACONF_SITE,QACONF_MASTER);
+}
+
+function qaconfs_for_machine($machine_id)	{
+	$ret=qaconfs_global();
+	$groups=group_machine_list_group($machine_id);
+	foreach( array_keys($groups) as $group )	{
+		if(($qaconf_id=group_get_qaconf_id($group)))
+			$ret[]=$qaconf_id;
+	}
+	if(( $qaconf_id=machine_get_qaconf_id($machine_id) ))
+		$ret[]=$qaconf_id;
+	return $ret;
+}
+
+function qaconfs_for_machines($machines=array())	{
+	$args=array_merge(array(1,null,'SELECT machine_id,name AS machine,machine.qaconf_id AS conf_machine,group_id,`group`,`group`.qaconf_id AS conf_group FROM machine LEFT JOIN group_machine USING(machine_id) LEFT JOIN `group` USING(group_id) WHERE machine_id IN('.join(',',array_fill(0,count($machines),'?')).')',str_repeat('i',count($machines))),$machines);
+	return call_user_func_array('mhash_query',$args);
+}
+
+function qaconfs_for_group($group)	{
+	$ret=qaconfs_global();
+	if(( $qaconf_id=group_get_qaconf_id($group) ))
+		$ret[]=$qaconf_id;
+	return $ret;
 }
 
 # TODO: unify DB layer
@@ -238,9 +305,13 @@ function machine_get_name($machine_id)	{
 	return scalar_query('SELECT name FROM machine WHERE machine_id=?','i',$machine_id);
 }
 
-function group_get_details($group_id)	{
-	return row_query('SELECT `group`,qaconf_id FROM `group` WHERE group_id=?','i',$group_id);
+function group_get_name($group_id)	{
+	return scalar_query('SELECT `group` FROM `group` WHERE group_id=?','i',$group_id);
 }
+
+#function group_get_details($group_id)	{
+#	return row_query('SELECT `group`,qaconf_id FROM `group` WHERE group_id=?','i',$group_id);
+#}
 
 function group_get_qaconf_id_by_name($group)	{
 	return scalar_query('SELECT qaconf_id FROM `group` WHERE `group`=?','s',$group);
