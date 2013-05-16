@@ -257,7 +257,7 @@ if ($opt_jobtype==1) {
 	#send pre_define job
 	(print "require testcase name \n" and exit 1) unless($opt_testname);	
 	(print "require host name/ip \n" and exit 1) unless($opt_host);	
-	my $cmd = "send qa_predefine_job $opt_host $opt_testname $opt_mail";
+	my $cmd = "send qa_predefine_job ip $opt_host $opt_testname $opt_mail";
 	$job_id=&send_command($cmd."\n");
 	print $job_id;
 } elsif ($opt_jobtype==2) {

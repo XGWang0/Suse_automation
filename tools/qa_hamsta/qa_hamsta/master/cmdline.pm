@@ -127,6 +127,20 @@ sub thread_auswertung () {
 sub parse_cmd() {
     my $cmd = shift @_;
     my $sock_handle = shift @_;
+    
+    #verify the hostname & ip
+    if ($cmd =~ / ip ([^ ]+) /) {
+        my $host = $1;
+        my $mihash = &mih;
+	if(defined($mihash->{$host})) {
+	    my $ip = $mihash->{$host};
+	    $cmd =~ s/ ip [^ ]+ / ip $ip /;
+	}else{
+	    print $sock_handle "Hostname Not Availabe \n";
+	    goto SWSW;
+	}
+    }
+	
 
     switch ($cmd) {
 	case /^(print|list) all/	{ cmd_print_all_machines ($sock_handle); }
@@ -140,7 +154,7 @@ sub parse_cmd() {
 #        case /^group_del/		{ delete_group($sock_handle, $cmd); }
 #        case /^send job group/		{ send_job_to_group($sock_handle, $cmd); }
         case /^send job ip/		{ send_job_to_host($sock_handle, $cmd); }
-        case /^send qa_predefine_job/	{ send_predefine_job_to_host($sock_handle, $cmd); }
+        case /^send qa_predefine_job ip/{ send_predefine_job_to_host($sock_handle, $cmd); }
         case /^send qa_package_job ip/	{ send_qa_package_job_to_host($sock_handle, $cmd); }
         case /^send autotest_job ip/	{ send_autotest_job_to_host($sock_handle, $cmd); }
         case /^send multi_job /		{ send_multi_job_to_host($sock_handle, $cmd); }
@@ -166,6 +180,7 @@ sub parse_cmd() {
             }
         }
     }
+  SWSW:
 }
 
 # Master->cmd_help()
@@ -215,6 +230,17 @@ sub cmd_print_active()  {
     foreach my $machine (@$machines) {
         printf $sock_handle "IP: %15s %10s: %s\n", $machine->[0], $machine->[1], $machine->[2];
     }
+}
+
+#build machine ip hash
+sub mih() {
+  my $miref = {};
+  my $machines = &machine_search('fields'=>[qw(ip name)],'return'=>'matrix','machine_status_id'=>MS_UP);
+  foreach my $machine (@$machines) {
+    $miref->{$machine->[1]} = $machine->[0];
+    $miref->{$machine->[0]} = $machine->[0];
+  }
+  return $miref;
 }
 
 sub cmd_print_groups() {
