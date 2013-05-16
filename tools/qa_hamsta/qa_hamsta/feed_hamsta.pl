@@ -241,17 +241,27 @@ if (! $opt_jobtype) {
 	print "please specify a jobtype\n";
 	print "more help use --help\n";
 	exit 1;
-}	
+}
 
 #list testcases 
 if ($opt_listcases) {
 	my $command="list jobtype $opt_jobtype \n";
 	my $cases=&send_command("$command");
-	print $cases;
+
+	if ($opt_jobtype != 5 && $opt_jobtype != 4) {
+		if ($cases=~s/(----\w.*----\n)//) {
+			print "$1";
+		}
+		
+		foreach (split(/\s+/, $cases)) {
+			print "$_\n";
+		}
+	} else {
+		print $cases;
+	}
+
 	exit 0;
 }
-
-
 
 if ($opt_jobtype==1) {
 	#send pre_define job
