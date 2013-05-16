@@ -132,15 +132,14 @@ sub parse_cmd() {
     if ($cmd =~ / ip ([^ ]+) /) {
         my $host = $1;
         my $mihash = &mih;
-	if(defined($mihash->{$host})) {
+	if (defined($mihash->{$host})) {
 	    my $ip = $mihash->{$host};
 	    $cmd =~ s/ ip [^ ]+ / ip $ip /;
-	}else{
-	    print $sock_handle "Hostname Not Availabe \n";
+	} else {
+	    print $sock_handle "Hostname Not Available\n";
 	    goto SWSW;
 	}
     }
-	
 
     switch ($cmd) {
 	case /^(print|list) all/	{ cmd_print_all_machines ($sock_handle); }
