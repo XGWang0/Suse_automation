@@ -107,7 +107,9 @@ This page will allow you to install a Windows for the virtual machine(s) you hav
 ?>
 </form>
 
+<script>
 <?php
 }
-require("req_reinstfuncs.php");
+require ('js/install_product.js');
 ?>
+</script>

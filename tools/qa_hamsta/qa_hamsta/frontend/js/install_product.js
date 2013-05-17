@@ -4,6 +4,7 @@
  * That should be fixed in near future.
  */
 
+//<!--
 var sled_text = ["desktop-base"];
 var sled_gnome = ["<?php echo (str_replace (" ", "\", \"", $config->lists->gnome->default));?>"];
 var sled_kde = ["<?php echo (str_replace (" ", "\", \"", $config->lists->kde->default));?>"];
@@ -379,3 +380,5 @@ $(document).ready(function() {
     });
 
 });
+//-->
+

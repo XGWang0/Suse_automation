@@ -80,7 +80,7 @@ if (User::isLogged())
 
 ?>
 
-<h5>You are trying to reinstall the following machines as virtualization host(s) with Autoyast:<br />
+<h5>You are trying to reinstall the following machines as virtualization host(s) with Autoyast<br />
 
 <ul>
 <?php foreach ($machines as $machine): ?>
@@ -88,11 +88,13 @@ if (User::isLogged())
 <?php endforeach; ?>
 </ul></h5>
 
-	Alternativelly, you can <a href="index.php?go=machine_reinstall&amp;a_machines[]=<?php echo implode("&amp;a_machines[]=", request_array("a_machines")); ?>">reinstall those machines as SUTs</a>.
-<br /><br />
+<p>
+Alternativelly, you can <a href="index.php?go=machine_reinstall&amp;a_machines[]=<?php echo implode("&amp;a_machines[]=", request_array("a_machines")); ?>">reinstall those machines as SUTs</a>.
+</p>
 
+<p>
 This page will allow you to customize the AutoYaST product installation for the machine(s) you have selected, including repository URLs and other options, or to upload your own custom AutoYaST profile. However, you can still simply copy the product url into the fields
-<br /><br />
+</p>
 
 <form enctype="multipart/form-data" action="index.php?go=vhreinstall" method="POST" onsubmit="return checkcontents(this);">
 
@@ -113,7 +115,9 @@ This page will allow you to customize the AutoYaST product installation for the 
 ?>
 </form>
 
+<script>
 <?php
 }
-require("req_reinstfuncs.php");
+require ('js/install_product.js');
 ?>
+</script>

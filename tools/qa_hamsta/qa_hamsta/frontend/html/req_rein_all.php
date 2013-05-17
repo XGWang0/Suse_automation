@@ -39,9 +39,6 @@ require("timezone.php");
 	<td></td>
 	<td>
 	  <input type="text" name="repo_producturl" id="repo_producturl" size="70" value="<?php if(isset($_POST["repo_producturl"])){echo $_POST["repo_producturl"];} ?>" title="required: url" />
-<!--	  <button id="product_refresh_button" type="button" title="Refresh Patterns">
-	    &#10227 </button>
--->
 	  <span class="required">*</span>
 	  <span id="mininotification" class="text-red text-small bold"></span>
 	</td>
@@ -59,7 +56,6 @@ require("timezone.php");
 	<td>
 	  Add-on #1: <input type="text" name="addon_url[]" id="addon_producturl" size="70" value="<?php if(isset($_POST["addon_producturl"])){echo $_POST["addon_producturl"];} ?>" />
 	  <button type="button" onclick="anotherrepo()"> + </button>
-<!--	  <button id="addon_1_refresh_button" type="button" title="Refresh Patterns"> &#10227 </button> -->
 	  <span id="mininotification" class="text-red text-small bold"></span>
 	  <div id="additional_repo"></div>
 	</td>
