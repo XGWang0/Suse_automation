@@ -87,7 +87,8 @@ Options:
 	-x|--cmd		set cmd for jobtype command_line
 	-m|--mail		set email address for job result
 	-p|--print-active	print all active machines
-	-h|--host <ip>	        set the target SUT for test
+	-h|--host <ip-or-hostname>
+				set the target SUT for the test
 	-g|--group <name>	set the target host group for test
 	-v|--version	        print program version
 	-d|--debug <level>	set debugging level (defaults to $debug)
