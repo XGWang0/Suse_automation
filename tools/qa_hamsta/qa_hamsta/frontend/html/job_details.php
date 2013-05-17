@@ -123,7 +123,7 @@
 <?php else: ?>
 <a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;d_return=1&amp;d_job=<?php echo($d_job); ?><?php echo($refresh_interval.$xml_norefresh); ?>" class="text-main">Show returned data</a>
 <?php endif; ?>
-<?php if ($job->get_status_string() == "running" ) { ?>
+<?php if ($job->get_status_string() == "running" || $job->get_status_string() == "connecting" ) { ?>
 - <a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;finished_job=1" class="text-main">set finished flag</a>
 <?php } ?>
 	<!--td>
