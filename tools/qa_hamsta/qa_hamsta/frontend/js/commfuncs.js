@@ -112,14 +112,15 @@ function checkcontents(which)
 
 function checkReinstallDropdownArchitectures()
 {
-	var repoArch = document.getElementById('repo_archs').options[document.getElementById('repo_archs').selectedIndex].value;
-	var sdkArch = document.getElementById('sdk_archs').options[document.getElementById('sdk_archs').selectedIndex].value;
-	if(repoArch == '' || sdkArch == '' || repoArch == sdkArch || (repoArch == 'i386' && sdkArch == 'i586') || (repoArch == 'i586' && sdkArch == 'i386')) {
-		document.getElementById('repo_archs_warning').innerHTML = '';
-		document.getElementById('sdk_archs_warning').innerHTML = '';
+	var repoArch = $("#repo_archs").val();
+	var addonArch = $("#addon_archs").val();
+	if(repoArch.length == 0 || addonArch.length == 0
+	   || repoArch == addonArch
+	   || (repoArch == 'i386' && addonArch == 'i586')
+	   || (repoArch == 'i586' && addonArch == 'i386')) {
+	    $("#addon_archs_warning").empty();
 	} else {
-		document.getElementById('repo_archs_warning').innerHTML = 'Warning';
-		document.getElementById('sdk_archs_warning').innerHTML = 'Architectures differ';
+	    $("#addon_archs_warning").text("Architecture is different than that of product.");
 	}
 }
 

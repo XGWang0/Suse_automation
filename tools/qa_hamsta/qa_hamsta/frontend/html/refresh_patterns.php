@@ -22,10 +22,37 @@
   WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
   ****************************************************************************
  */
-// This page returns a list of patterns associated with the specified product url.
-$url = $_REQUEST['product_url'];
-$patterns = explode("\n", htmlspecialchars(`../refresh_patterns.py $url`));
-foreach ($patterns as $pattern) {
-	echo "$pattern\n";
+/* This page returns a list of patterns associated with the specified product url. */
+
+require ("../globals.php");
+require ("../include/json.php");
+
+$prod_url = "";
+if (isset ($_REQUEST["product_url"]))
+{
+	$prod_url = $_REQUEST["product_url"];
 }
+
+/* Try cached repos first. */
+$pats = get_patterns ($config->url->index->repo, $prod_url);
+if (isset ($pats))
+{
+	echo (join ("\n", $pats));
+	return;
+}
+
+/* Try also cached addons. */
+$pats = get_patterns ($config->url->index->sdk, $prod_url);
+if (isset ($pats))
+{
+	echo (join ("\n", $pats));
+	return;
+}
+
+/* We do not have it cached so let's try to download it. */
+if (! empty ($prod_url)) {
+	$patterns = explode("\n", htmlspecialchars(`../refresh_patterns.py $prod_url`));
+	echo (join ("\n", $patterns));
+}
+
 ?>

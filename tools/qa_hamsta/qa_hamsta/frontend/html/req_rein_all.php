@@ -33,30 +33,30 @@ require("timezone.php");
 	<td>
 	  <label for="repo_products">Product:</label> <select name="repo_products" id="repo_products" style="width: 200px;"></select>
 	  <label for="repo_archs">Arch:</label> <select name="repo_archs" id="repo_archs" style="width: 80px;" onchange="checkReinstallDropdownArchitectures()"></select>
-	  <span id="repo_archs_warning" class="text-red text-small bold"></span>
 	</td>
    </tr>
   <tr>
 	<td></td>
 	<td>
 	  <input type="text" name="repo_producturl" id="repo_producturl" size="70" value="<?php if(isset($_POST["repo_producturl"])){echo $_POST["repo_producturl"];} ?>" title="required: url" />
-	  <button type="button" title="Refresh Patterns" onclick="$.get('html/refresh_patterns.php', { product_url: $('#repo_producturl').val(); }, function(data) { retrieve_patterns (data, 'available_patterns', $('#repo_producturl').val()); });"> &#10227 </button>
 	  <span class="required">*</span>
+	  <span id="mininotification" class="text-red text-small bold"></span>
 	</td>
   </tr>
   <tr>
-	<td>SDK/Addon URL (optional, support multiple): </td>
+	<td>Add-on URL (optional, support multiple): </td>
 	<td>
-	  <label for="sdk_products">Product:</label> <select name="sdk_products" id="sdk_products" style="width: 200px;"></select>
-	  <label for="sdk_archs">Arch:</label> <select name="sdk_archs" id="sdk_archs" style="width: 80px;" onchange="checkReinstallDropdownArchitectures()"></select>
-	  <span id="sdk_archs_warning" class="text-red text-small bold"></span>
+	  <label for="addon_products">Product:</label> <select name="addon_products" id="addon_products" style="width: 200px;"></select>
+	  <label for="addon_archs">Arch:</label> <select name="addon_archs" id="addon_archs" style="width: 80px;" onchange="checkReinstallDropdownArchitectures()"></select>
+	  <span id="addon_archs_warning" class="text-red text-small bold"></span>
 	</td>
    </tr>
   <tr>
 	<td></td>
 	<td>
-	  SDK #1: <input type="text" name="addon_url[]" id="sdk_producturl" size="70" value="<?php if(isset($_POST["sdk_producturl"])){echo $_POST["sdk_producturl"];} ?>" />
-	  &emsp;<button type="button" onclick='anotherrepo()'> + </button><button type="button" title="Refresh Patterns" onclick="$.get('html/refresh_patterns.php', { product_url: $('#sdk_producturl').val() }, function(data) { retrieve_patterns(data, 'sdk_pattern_1', $('#sdk_producturl').val()); });"> &#10227 </button>
+	  Add-on #1: <input type="text" name="addon_url[]" id="addon_producturl" size="70" value="<?php if(isset($_POST["addon_producturl"])){echo $_POST["addon_producturl"];} ?>" />
+	  <button type="button" onclick="anotherrepo()"> + </button>
+	  <span id="mininotification" class="text-red text-small bold"></span>
 	  <div id="additional_repo"></div>
 	</td>
   </tr>
@@ -65,16 +65,16 @@ require("timezone.php");
 	<td>
 	  <fieldset>
 		<legend>
-		  <select name="typicmode" id="typicmode" onchange="changepattern()">
+		  <select name="typicmode" id="typicmode">
   			<option value="text">Text</option>
   			<option value="gnome">Default Gnome</option>
 			<option value="kde">Default KDE</option>
-  			<option value="full">Full install</option>
+			<option value="full">Full distro</option>
 		  </select>
                <span id='patterns_modified' class='modified'></span>
 		</legend>
 		<div id="available_patterns"></div>
-		<div id="sdk_patterns"><div id="sdk_pattern_1"></div></div>
+		<div id="addon_patterns"><div id="addon_pattern_1"></div></div>
         <div id="more_patterns"><label style="width: 1000; float: left;">More patterns: <input type="text" size="75" name="patterns[]" /></label></div>
 	  </fieldset>
 	</td>
@@ -119,7 +119,7 @@ require("timezone.php");
 	print "Registration Code for main product: <input type=\"text\" name=\"rcode[]\" id=\"rcode_product\" size=\"20\" value=\"";
 		if(isset($_POST["rcode"][0])){echo $_POST["rcode"][0];} 
 		print "\">\n<br />";
-		print "Registration Code for SDK repo #1: <input type=\"text\" name=\"rcode[]\" id=\"rcode_product\" size=\"20\" value=\"";
+		print "Registration Code for add-on repo #1: <input type=\"text\" name=\"rcode[]\" id=\"rcode_product\" size=\"20\" value=\"";
 		if(isset($_POST["rcode"][1])){echo $_POST["rcode"][1];}
 		print "\" /><input type=\"button\" onclick=\"anotherrcode()\" value=\"+\" /><br />";
 		print "<div id=\"additional_rcode\"></div></div>";

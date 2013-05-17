@@ -65,7 +65,7 @@ if (User::isLogged())
 
 ?>
 
-<h5>You are trying to create new virtual machines on following virtualizaion hosts:<br />
+<h5>You are trying to create new virtual machines on following virtualization hosts<br />
 
 <ul>
 <?php foreach ($machines as $machine): ?>
@@ -75,8 +75,9 @@ if (User::isLogged())
 <?php endforeach; ?>
 </ul></h5>
 
-This page will allow you to customize the AutoYaST product installation for the machine(s) you have selected, including repository URLs and other options, or to upload your own custom AutoYaST profile. However, you can still simply copy the product url into the fields
-<br /><br />
+<p>
+This page will allow you to customize the AutoYaST product installation for the machine(s) you have selected, including repository URLs and other options, or to upload your own custom AutoYaST profile. However, you can still simply copy the product url into the fields.
+</p>
 
 <form enctype="multipart/form-data" action="index.php?go=newvm" method="POST" onsubmit="return checkcontents(this);">
 
@@ -99,7 +100,9 @@ This page will allow you to customize the AutoYaST product installation for the 
 ?>
 </form>
 
+<script>
 <?php
 }
-require("req_reinstfuncs.php");
+require ('js/install_product.js');
 ?>
+</script>
