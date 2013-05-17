@@ -520,10 +520,10 @@ sub send_predefine_job_to_host() {
     &log(LOG_NOTICE, "cmd = $cmd");
 
     (my @cmd_line) = split / /,$cmd;
-    my $file = $cmd_line[3];
-    my $host = $cmd_line[2];
+    my $file = $cmd_line[4];
+    my $host = $cmd_line[3];
     my $email = "";
-    $email = $cmd_line[4] if(@cmd_line >= 5);
+    $email = $cmd_line[5] if(@cmd_line >= 6);
 
     if (! can_send_job_to_machine ($host)) {
 	my $login = user_get_login ($user_id);
