@@ -1,4 +1,9 @@
 
+/* pkacer@suse.com: This file has to be included a php file because it
+ * contains some PHP code: require ('<this-file-path>');.
+ * That should be fixed in near future.
+ */
+
 var sled_text = ["desktop-base"];
 var sled_gnome = ["<?php echo (str_replace (" ", "\", \"", $config->lists->gnome->default));?>"];
 var sled_kde = ["<?php echo (str_replace (" ", "\", \"", $config->lists->kde->default));?>"];
@@ -266,7 +271,9 @@ function get_patterns (product_field_id, new_element_id, prod_type) {
 }
 
 function remove_repo (addon_number) {
-    return alert ("Removing repo with id " + addon_number);
+    $('#addon_row_' + addon_number).remove();
+    $('#addon_pattern_' + addon_number).remove();
+    addonid -= 1;
 }
 
 function anotherrepo () {
@@ -281,11 +288,6 @@ function anotherrepo () {
 				 + addonid + ')">'
 				 + ' - </button> <span id="mininotification" class="text-red text-small bold">'
 				 + '</span><br /></span>');
-/* <button id="' + addon_refresh_button_id + '" type="button"'
-				 + ' title="Refresh Patterns" onclick="get_patterns (\'addon_url_'
-				 + addonid + '\', \'addon_pattern_' + addonid
-				 + '\');"> &#10227 </button><br /></span>');
-*/
     $(addon_url_name).change ( function() {
 	get_patterns (addon_url_name, addon_pattern_name, 'addon');
     });

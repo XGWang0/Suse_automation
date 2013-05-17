@@ -73,8 +73,7 @@ require("timezone.php");
   			<option value="text">Text</option>
   			<option value="gnome">Default Gnome</option>
 			<option value="kde">Default KDE</option>
-			<option value="full-distro">Full distro</option>
-  			<option value="full">Full install</option>
+			<option value="full">Full distro</option>
 		  </select>
                <span id='patterns_modified' class='modified'></span>
 		</legend>
