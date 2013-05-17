@@ -121,7 +121,6 @@ my $opt_cmd		= "";
 my $opt_mail		= "";
 my $opt_user		= "";
 my $opt_password	= "";
-my $opt_userrole	= "";
 
 # parse command line options
 unless (GetOptions(
@@ -146,7 +145,6 @@ unless (GetOptions(
 		   'mail|m=s'		=> \$opt_mail,
 		   'user|U=s'		=> \$opt_user,
 		   'password|P=s'	=> \$opt_password,
-		   'userrole|R=s'	=> \$opt_userrole
 		  )) {
 	&usage ();
 	exit 1;
@@ -203,9 +201,6 @@ my $job_id="";
 
 if ($opt_user && $opt_password) {
     my $cmd = "log in ${opt_user} ${opt_password}";
-    if ($opt_userrole) {
-	$cmd .= " ${opt_userrole}";
-    }
     my $output = send_command ($cmd . "\n");
     if ($output !~ "[Yy]ou were authenticated") {
 	print STDERR $output;
