@@ -224,11 +224,12 @@ function retrieve_patterns (data, product_name, url, prod_type) {
 		set_preset_type_value ("text");
 		product_type = 'others';
 	    }
-
 	    change_patterns (patterns_vals);
 	}
+	return true;
     } else {
 	$('#' + product_name).empty();
+	return false;
     }
 };
 
@@ -256,7 +257,11 @@ function get_patterns (product_field_id, new_element_id, prod_type) {
 	$.get('html/refresh_patterns.php',
 	      { product_url : prod_url },
 	      function (data) {
-		  retrieve_patterns (data, new_element_id, prod_url, prod_type);
+		  if (! retrieve_patterns (data, new_element_id,
+					   prod_url, prod_type)) {
+		      $(product_field_id + " ~ #mininotification")
+			  .text("No patterns were retrieved. Check your URL.");
+		  }
 	      }
 	     );
     } else if (/^(nfs|smb):\/\/[\w-]+\.[\w\.-]+/i.test(prod_url)) {
