@@ -277,7 +277,7 @@ function qaconfs_for_machine($machine_id)	{
 }
 
 function qaconfs_for_machines($machines=array())	{
-	$args=array_merge(array(1,null,'SELECT machine_id,name AS machine,machine.qaconf_id AS conf_machine,group_id,`group`,`group`.qaconf_id AS conf_group FROM machine LEFT JOIN group_machine USING(machine_id) LEFT JOIN `group` USING(group_id) WHERE machine_id IN('.join(',',array_fill(0,count($machines),'?')).')',str_repeat('i',count($machines))),$machines);
+	$args=array_merge(array(1,null,'SELECT machine_id,name AS machine,machine.qaconf_id AS machine_qaconf_id,group_id,`group`,`group`.qaconf_id AS group_qaconf_id FROM machine LEFT JOIN group_machine USING(machine_id) LEFT JOIN `group` USING(group_id) WHERE machine_id IN('.join(',',array_fill(0,count($machines),'?')).')',str_repeat('i',count($machines))),$machines);
 	return call_user_func_array('mhash_query',$args);
 }
 
@@ -288,7 +288,6 @@ function qaconfs_for_group($group)	{
 	return $ret;
 }
 
-# TODO: unify DB layer
 function machine_get_qaconf_id($machine_id)	{
 	return scalar_query('SELECT qaconf_id FROM machine WHERE machine_id=?','i',$machine_id);
 }
@@ -329,5 +328,13 @@ function group_get_qaconf_id($group_id)	{
 	return scalar_query('SELECT qaconf_id FROM `group` WHERE group_id=?','i',$group_id);
 }
 
+function groups_list_machine_names($group_ids)	{
+	$ret=array();
+	foreach( $group_ids as $id )	{
+		if(( $data=vector_query(null,'SELECT name FROM machine JOIN group_machine USING(machine_id) WHERE group_id=?','i',$id) ))
+			$ret=array_merge($ret,$data);
+	}
+	return array_unique($ret);
+}
 
 ?>
