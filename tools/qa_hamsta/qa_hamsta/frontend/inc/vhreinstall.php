@@ -198,9 +198,6 @@ if (request_str("proceed")) {
                if ($installmethod == "Upgrade")
                    $args .= " -U";
 	       $args .= " -V " .$virtualization_method;
-				var_dump($args);
-				exit();
-
                $email = request_str("mailto");
                system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $autoyastfile");
                system("sed -i 's/ARGS/$args/g' $autoyastfile");
