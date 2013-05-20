@@ -466,6 +466,10 @@ EOF
 		    [ '$testhome' == \"\`get_qa_config install_testuser_home\`\" ]     || different=1 ;
 		    [ '$qarepo'   == \"\`get_qa_config install_qa_repository\`\" ]     || different=1 ;
 		    [ '$addrpms'  == \"\`get_qa_config install_additional_rpms\`\" ]   || different=1 ;
+		    [ '$hamsta_multicast_address'  == \"\`get_qa_config hamsta_multicast_address\`\" ]   || different=1 ;
+		    [ '$hamsta_multicast_port'  == \"\`get_qa_config hamsta_multicast_port\`\" ]   || different=1 ;
+		    [ '$hamsta_multicast_dev'  == \"\`get_qa_config hamsta_multicast_dev\`\" ]   || different=1 ;
+		    [ '$hamsta_client_port'  == \"\`get_qa_config hamsta_client_port\`\" ]   || different=1 ;
 	
 		    if [ \$different -eq 1 ] ; then
 		      echo '# This file contains custom configuration, that has beed used to install'  > \$file;
@@ -481,6 +485,10 @@ EOF
 		      [ '$testhome' == \"\`get_qa_config install_testuser_home\`\" ]     || echo \"install_testuser_home='$testhome'\" >> \$file;
 		      [ '$qarepo'   == \"\`get_qa_config install_qa_repository\`\" ]     || echo \"install_qa_repository='$qarepo'\" >> \$file;
 		      [ '$addrpms'  == \"\`get_qa_config install_additional_rpms\`\" ]   || echo \"install_additional_rpms='$addrpms'\" >> \$file;
+		      [ '$hamsta_multicast_address'  == \"\`get_qa_config hamsta_multicast_address\`\" ]   || echo \"hamsta_multicast_address='$hamsta_multicast_address'\" >> \$file;
+		      [ '$hamsta_multicast_port'  == \"\`get_qa_config hamsta_multicast_port\`\" ]   || echo \"hamsta_multicast_port='$hamsta_multicast_port'\" >> \$file;
+		      [ '$hamsta_multicast_dev'  == \"\`get_qa_config hamsta_multicast_dev\`\" ]   || echo \"hamsta_multicast_dev='$hamsta_multicast_dev'\" >> \$file;
+		      [ '$hamsta_client_port'  == \"\`get_qa_config hamsta_client_port\`\" ]   || echo \"hamsta_client_port='$hamsta_client_port'\" >> \$file;
 		    fi
 	          </source> 
 	        </script>";

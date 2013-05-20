@@ -53,34 +53,34 @@ if (User::isLogged())
 	}
 	if(count($blockedMachines) != 0) {
 		echo "<div class=\"text-medium\">" .
-			"The following machines are currently either marked as \"Not accepting jobs\", \"Reinstall Deny\" or \"Outdated (Blocked)\":<br /><br />" .
-			"<strong>" . implode(", ", $blockedMachines) . "</strong><br /><br />" .
-			"Please go back to free them up and then try your reinstall again." .
+			"<p>The following machines are currently either marked as \"Not accepting jobs\", \"Reinstall Deny\" or \"Outdated (Blocked)\".</p>" .
+			"<strong>" . implode(", ", $blockedMachines) . "</strong>" .
+			"<p>Please go back to free them up and then try your reinstall again.</p>" .
 		"</div>";
 	} elseif (count($virtualMachines) != 0) {
 		echo "<div class=\"text-medium\">" .
-			"The following machines are virtual machines:<br /><br />" .
-			"<strong>" . implode(", ", $virtualMachines) . "</strong><br /><br />" .
-			"It is not possible to reinstall virtual machines (you can delete them in QA Cloud and than create new ones)." .
+			"<p>The following machines are virtual machines.</p>" .
+			"<strong>" . implode(", ", $virtualMachines) . "</strong>" .
+			"<p>It is not possible to reinstall virtual machines (you can delete them in QA Cloud and than create new ones).</p>" .
 			"</div>";
 	} elseif (count($hasChildren) != 0) {
 		echo "<div class=\"text-medium\">" .
-			"The following machines currently contain virtual machines:<br /><br />" .
-			"<strong>" . implode(", ", $hasChildren) . "</strong><br /><br />" .
-			"It is not possible to reinstall virtual hosts with virtual machines (you can delete them in QA Cloud before reinstalling virtual host)." .
+			"<p>The following machines currently contain virtual machines.</p>" .
+			"<strong>" . implode(", ", $hasChildren) . "</strong>" .
+			"<p>It is not possible to reinstall virtual hosts with virtual machines (you can delete them in QA Cloud before reinstalling virtual host).</p>" .
 			"</div>";
 	} elseif ($ishwvirt != count($machines)) {
 		echo "<div class=\"text-medium\">" .
-		"The following machines probably doesn't support HardWare virtualization:<br /><br />";
+		"<p>The following machines probably do not support hardware virtualization.</p>";
 		foreach ($arrhwvirt as $key=>$value)
 			if ($value == "0")
-					echo "<strong>" . $key . "</strong><br />";
-		echo "Please go back and try other machines.</div>\n";
+					echo "<strong>" . $key . "</strong>";
+		echo "<p>Please go back and try other machines.</p></div>\n";
 	} else {
 
 ?>
 
-<h5>You are trying to reinstall the following machines as virtualization host(s) with Autoyast:<br />
+<h5>You are trying to reinstall the following machines as virtualization host(s) with Autoyast<br />
 
 <ul>
 <?php foreach ($machines as $machine): ?>
@@ -88,11 +88,13 @@ if (User::isLogged())
 <?php endforeach; ?>
 </ul></h5>
 
-	Alternativelly, you can <a href="index.php?go=machine_reinstall&amp;a_machines[]=<?php echo implode("&amp;a_machines[]=", request_array("a_machines")); ?>">reinstall those machines as SUTs</a>.
-<br /><br />
+<p>
+Alternativelly, you can <a href="index.php?go=machine_reinstall&amp;a_machines[]=<?php echo implode("&amp;a_machines[]=", request_array("a_machines")); ?>">reinstall those machines as SUTs</a>.
+</p>
 
+<p>
 This page will allow you to customize the AutoYaST product installation for the machine(s) you have selected, including repository URLs and other options, or to upload your own custom AutoYaST profile. However, you can still simply copy the product url into the fields
-<br /><br />
+</p>
 
 <form enctype="multipart/form-data" action="index.php?go=vhreinstall" method="POST" onsubmit="return checkcontents(this);">
 
@@ -113,7 +115,9 @@ This page will allow you to customize the AutoYaST product installation for the 
 ?>
 </form>
 
+<script>
 <?php
+require ('js/install_product.js');
 }
-require("req_reinstfuncs.php");
 ?>
+</script>
