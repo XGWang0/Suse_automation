@@ -23,105 +23,63 @@
   ****************************************************************************
  */
 
-/* Search the locations of network installation source for a product
+/* Returns JSON representation of different data about the
+ * repositories and products.
+ *
+ * Used by Ajax.
+ *
+ * FIXME: it's better done from database
+ */
 
-Used by Ajax.
+require ("../globals.php");
+require ("../lib/request.php");
+require ("../include/json.php");
 
-FIXME: it's better done from database
-*/
+$product_type = request_str ('prod_type');
+$json_file_path = '';
+$product = request_str ('product');
+$arch = request_str ('arch');
+$capable = request_str ('capable');
 
-require("../globals.php");
-
-// Load repo index
-$json = file_get_contents($config->url->index->repo);
-if ($json == ""){
-	echo json_encode(array());
+/* Set up variables according to different products. */
+switch ($product_type) {
+case 'distro':
+	$json_file_path = $config->url->index->repo;
+	break;
+case 'addon':
+	$json_file_path = $config->url->index->sdk;
+	break;
+default:
+	echo (json_encode (array()));
 	return;
 }
-$repo = json_decode($json);
+
+$repos = get_json_from_file ($json_file_path, false);
+if (! isset ($repos)){
+	echo json_encode (array());
+	return;
+}
 
 /* If nothing is given, return all products names
-   If product is given, return architecutres
+   If product is given, return architectures
    If both product and arch is given, return the urls
 */
-
-$product = "";
-$arch = "";
-if (isset($_GET['product'])) 
-    $product = $_GET['product'];
-if (isset($_GET['arch'])) 
-    $arch = $_GET['arch'];
-if (isset($_GET['capable'])) {
-	$capable = $_GET['capable'];
-} else {
-	$capable = "";
-}
-
-if ($product == "")
-	echo json_encode(list_all_products($repo));
-elseif ($arch == "")
-	echo json_encode(get_archs($repo, $product, $capable));
-else
-	echo json_encode(get_urls($repo, $product, $arch));
-
-// Get all avaiable products from repo
-function list_all_products($repo){
-	foreach($repo as $product)
-		$products[] = $product->{"product"};
-	return array_unique($products);
-}	
-
-// Get supported architectures by product
-// FIXME: We'd better have embedded structure like $repo->$product->$arch
-// So that we don't need to iterate all products everytime
-function get_archs($repo, $product, $capable){
-	$archs = array();
-	foreach($repo as $p) {
-		if ($p->{"product"} == $product) {
-			# Filter out archs that are not capable by this machine
-			$thisArch = $p->{"arch"};
-			if($thisArch == "x86_64" and ($capable == "" or $capable == "x86_64")) {
-				# Only add x86_64 if capable is x86_64 or empty
-				$archs[] = $thisArch;
-			} else if($thisArch == "i586" and ($capable == "" or $capable == "x86_64" or $capable == "i586")) {
-				# Only consider i586 if capable is x86_64, i586 or empty
-				if(in_array("i386", $archs)) {
-					# If an i386 and i586 exist, just show the i586
-					$elementIndex = array_search("i386", $archs);
-					$archs[$elementIndex] = "i586";
-				} else {
-					# Otherwise, just add the i586
-					$archs[] = $thisArch;
-				}
-			} else if($thisArch == "i386" and ($capable == "" or $capable == "x86_64" or $capable == "i586")) {
-				# Only consider i386 if capable is x86_64, i586 or empty
-				if(!in_array("i586", $archs)) {
-					# Only add i386 if an i586 doesn't yet exist
-					$archs[] = $thisArch;
-				}
-			} else if(preg_match("/^ppc/", $thisArch) and ($capable == "" or preg_match("/^ppc/", $capable))) {
-				# Only add ppc* if capable is ppc* or empty
-				$archs[] = $thisArch;
-			} else if(preg_match("/^ia/", $thisArch) and ($capable == "" or preg_match("/^ia/", $capable))) {
-				# Only add ia* if capable is ia* or empty
-				$archs[] = $thisArch;
-			} else if(preg_match("/^s390/", $thisArch) and ($capable == "" or preg_match("/^s390/", $capable))) {
-				# Only add s390* if capable is s390* or empty
-				$archs[] = $thisArch;
-			}
-		}
+if (empty ($product)) {
+	echo json_encode (list_all_products ($repos));
+} else if (empty ($arch)) {
+	switch ($product_type) {
+	case 'distro':
+		echo json_encode (get_distro_archs($repos, $product, $capable));
+		break;
+	case 'addon':
+		echo json_encode (get_addon_archs ($repos, $product));
+		break;
+	default:
+		echo (json_encode (array()));
+		return;
 	}
-	return $archs;
+} else {
+	echo json_encode (get_urls ($repos, $product, $arch));
 }
 
-// Get the installation sources
-function get_urls($repo, $product, $arch){
-	$urls = array();
-	foreach($repo as $p)
-		if ($p->{"product"} == $product and $p->{"arch"} == $arch) {
-			$urls[] = $p->{"url"};
-			$urls[] = $p->{"pattern"};
-		}
-	return $urls;
-}
 ?>

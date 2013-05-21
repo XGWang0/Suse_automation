@@ -87,7 +87,8 @@ Options:
 	-x|--cmd		set cmd for jobtype command_line
 	-m|--mail		set email address for job result
 	-p|--print-active	print all active machines
-	-h|--host <ip>	        set the target SUT for test
+	-h|--host <ip-or-hostname>
+				set the target SUT for the test
 	-g|--group <name>	set the target host group for test
 	-v|--version	        print program version
 	-d|--debug <level>	set debugging level (defaults to $debug)
@@ -121,7 +122,6 @@ my $opt_cmd		= "";
 my $opt_mail		= "";
 my $opt_user		= "";
 my $opt_password	= "";
-my $opt_userrole	= "";
 
 # parse command line options
 unless (GetOptions(
@@ -146,7 +146,6 @@ unless (GetOptions(
 		   'mail|m=s'		=> \$opt_mail,
 		   'user|U=s'		=> \$opt_user,
 		   'password|P=s'	=> \$opt_password,
-		   'userrole|R=s'	=> \$opt_userrole
 		  )) {
 	&usage ();
 	exit 1;
@@ -203,9 +202,6 @@ my $job_id="";
 
 if ($opt_user && $opt_password) {
     my $cmd = "log in ${opt_user} ${opt_password}";
-    if ($opt_userrole) {
-	$cmd .= " ${opt_userrole}";
-    }
     my $output = send_command ($cmd . "\n");
     if ($output !~ "[Yy]ou were authenticated") {
 	print STDERR $output;

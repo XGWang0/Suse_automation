@@ -195,41 +195,44 @@ else if( $a_machines )	{
 	$gconfs=$mconfs=array();
 	for($i=1; $i<count($confs); $i++)	{
 		$row=$confs[$i];
-		$mconfs[$row['conf_machine']][]=$row['machine_id'];
-		$gconfs[$row['conf_group']][]=$row['group_id'];
+		$mconfs[$row['machine_qaconf_id']][]=$row;
+		if( is_numeric($row['group_id']) )
+			$gconfs[$row['group_qaconf_id']][]=$row;
 	}
-	$mtable=sumarize_machine_list($mconfs,'machine');
-	$gtable=sumarize_machine_list($gconfs,'group');
 
-	# related IDs to print
-	$ids=qaconfs_global();
-	$id=null;
-	if( count($gtable)==2 && $gtable[1]['id'] )
-		$id=$ids[]=$gtable[1]['id'];
-	if( count($mtable)==2 && $mtable[1]['id'] )
-		$id=$ids[]=$mtable[1]['id'];
+	# highlighted config ID
+	$id=( count($mconfs)==1 ? array_first_key($mconfs) : 
+		(count($gconfs)==1 ? array_first_key($gconfs) : null ) );
+
+	# related config IDs
+	$ids=array_unique(array_merge(qaconfs_global(),array_keys($mconfs),array_keys($gconfs)));
 
 	# merged data
-	if( count($mtable)<=2 && count($gtable)<=2 )
-		print_qaconf_merge($ids,$id);
+	if( count(array_keys($mconfs))<=1 && count(array_keys($gconfs))<=1 )	{
+		print_qaconf_merge($ids,$id,'Highlighting current machine\'s configuration.');
+	}
 
 	# machine configs
 	print "<h3>Machine configuration</h3>\n";
-	for( $i=1; $i<count($mtable); $i++ )	{
-		$r=$mtable[$i];
-		print_config_changer("Configuration for <i>".$r['names']."</i>",$r['id'],$r['involved'],null);
+	foreach( $mconfs as $id=>$r )	{
+		$names=join(', ',array_unique(my_array_column($r,'machine')));
+		print_config_changer("Configuration for machine(s) <i>$names</i>",$id,array_unique(my_array_column($r,'machine_id')),null);
 	}
+	print html_div('list info','Source for the merge: machine configuration has highest priority. You can (re)assign existing configurations, or create a new one if none is assigned.');
 
 	# group configs
 	print "<h3>Group configuration</h3>\n";
-	if( count($gtable)>2 || $gtable[1]['names']) 	{
-		for( $i=1; $i<count($gtable); $i++ )	{
-			$r=$gtable[$i];
-			print_config_changer("Configuration for <i>".$r['names']."</i>",$r['id'],null,$r['names']);
+	if( count($gconfs)>1 || array_first_key($gconfs) ) 	{
+		foreach( $gconfs as $id=>$r )	{
+			$names=join(', ',array_unique(my_array_column($r,'group')));
+			if(( $members=groups_list_machine_names(my_array_column($r,'group_id')) ))
+				$names .= ' ('.join(', ',$members).')';
+			print_config_changer("Configuration for group(s) <i>$names</i>",$id,null,array_unique(my_array_column($r,'group')));
 		}
+		print html_div('list info','Group configuration is used for all machines in the group.');
 	}
 	else
-		print "<p>Not in a group.</p>\n";
+		print "<p>Machine(s) not in a group.</p>\n";
 
 	# configurations involved
 	print_conf_list($ids,$id);
@@ -242,10 +245,11 @@ else if( $group )	{
 		$ids[]=$id;
 
 	# merged data
-	print_qaconf_merge($ids,$id);
+	print_qaconf_merge($ids,$id,'Highlighting current group\'s configuration.');
 
 	print "<h3>Group configuration</h3>\n";
 	print_config_changer("Configuration for group <i>$group</i>",$id,array(),$group);
+	print html_div('list info','Configuration used for all machines in the group. Can be overriden by machines\' own one(s), and merges with system configs, before sent to machines. You can (re)assign it here, or create a new one if none is assigned.');
 
 	# configurations involved
 	print_conf_list($ids,$id);
@@ -284,15 +288,15 @@ function print_conf_list($ids=array(),$id_active=null)
 			'rows'=>array('url'=>$base.'v','enbl'=>true,'fullname'=>'content show','allowed'=>true),
 			'edit'=>array('url'=>$base.'e','enbl'=>!$row['sync_url'],'err_noavail'=>'remote configurations cannot be edited, delete sync_URL first'),
 			'net' =>array('url'=>$base.'eu','enbl'=>!($local&&$row['rows']),'fullname'=>'URL edit','err_noavail'=>'local configurations cannot be changed to remotes, delete rows first'),
-			'sync'=>array('url'=>$base.'sync','enbl'=>!$local,'allowed'=>true),
+			'sync'=>array('url'=>$base.'sync','enbl'=>!$local,'allowed'=>true,'err_noavail'=>'sync_url not set'),
 #			'change'=>array('url'=>$base.'h'),
-			'detach'=>array('url'=>$base.'t','enbl'=>$attached),
-			'delete'=>array('url'=>$base.'d','enbl'=>($local && $nonsys && !$attached)),
+			'detach'=>array('url'=>$base.'t','enbl'=>$attached,'err_noavail'=>'cannot detach - not attached to groups/machines, or is system configuration'),
+			'delete'=>array('url'=>$base.'d','enbl'=>($local && $nonsys && !$attached),'err_noavail'=>'deleting only possible for detached local non-system configurations'),
 		);
 		$row['ctrls']='';
 		$defaults=array('enbl'=>$local_nonsys);
 		foreach( array_keys($ctrl) as $c )
-			$row['ctrls'].=task_icon(array_merge(array('type'=>$c,'allowed'=>$logged),$defaults,$ctrl[$c]));
+			$row['ctrls'].=task_icon(array_merge(array('type'=>$c,'allowed'=>($nonsys ? $logged : $admin)),$defaults,$ctrl[$c]));
 		$row['cls']=(isset($id_active) && $id==$id_active ? 'search_result': ($id<=QACONF_MAX_SYS_ID ? 'system':'') );
 	}
 	$data[0]['ctrls']='controls';
@@ -300,9 +304,11 @@ function print_conf_list($ids=array(),$id_active=null)
 
 	print "<h3>Configurations involved</h3>\n";
 	print html_table($data,array('id'=>'qaconf_list','sort'=>'isisss','class'=>'list text-main tbl','callback'=>'colorize'));
+	print html_div('list info','The table contains a listing of relevant configurations. Blue ones are system configs.');
+	print html_div('list info','Configuration can be local (editable) or remote (syncable), depending if it has <i>sync_url</i> set, or rows in the local database. Before deleting a configuration, you need to detach it from all its machines and groups.');
 }
 
-function print_qaconf_merge($ids,$id_active)
+function print_qaconf_merge($ids,$id_active,$desc_add='')
 {
 	$data=qaconf_merge($ids);
 	for( $i=1; $i<count($data); $i++ )
@@ -311,6 +317,7 @@ function print_qaconf_merge($ids,$id_active)
 
 	print "<h3>Data sent to machine(s)</h3>\n";
 	print html_table($data,array('class'=>'list text-main tbl','callback'=>'colorize','id'=>'qaconf_result','sort'=>'ssss'));
+	print html_div('list info','Resulting merged data, as sent to machines. The lines come from machine\'s configuration, group configuration, and system configurations (master, site, country, global). '.($id_active ? $desc_add : ''));
 }
 
 function print_config_changer($desc,$id=null,$a_machines=array(),$group=null)
@@ -348,6 +355,17 @@ function sumarize_machine_list($list,$desc)
 			'involved'=>$list[$k],
 		);
 	return $ret;
+}
+
+function my_array_column($array,$column) {
+	foreach($array as &$value)
+		$value = $value[$column];
+	return $array;
+}
+
+function array_first_key($array)	{
+	$keys=array_keys($array);
+	return ( count($keys)>0 ? $keys[0] : null );
 }
 
 # returns last argument

@@ -526,9 +526,7 @@ sub send_predefine_job_to_host() {
     $email = $cmd_line[5] if(@cmd_line >= 6);
 
     if (! can_send_job_to_machine ($host)) {
-	my $login = user_get_login ($user_id);
-	&log(LOG_NOTICE, "User '${login}' does not have privileges to send a job to '${host}'");
-	print $sock_handle "You do not have privileges to send a job to '${host}'.\n";
+	notify_about_no_privileges ($sock_handle, $user_id, $host);
 	return;
     }
 
@@ -646,9 +644,7 @@ sub send_multi_job_to_host () {
     #check host live
     for my $host (@hosts) {
       if (! can_send_job_to_machine ($host)) {
-	  my $login = user_get_login ($user_id);
-	  &log(LOG_NOTICE, "User '${login}' does not have privileges to send a job to '${host}'");
-	  print $sock_handle "You do not have privileges to send a job to '${host}'.\n";
+	  notify_about_no_privileges ($sock_handle, $user_id, $host);
 	  return;
       }
 
@@ -723,9 +719,7 @@ sub send_job_to_host () {
     my $host = $cmd_line[-2];
 
     if (! can_send_job_to_machine ($host)) {
-	my $login = user_get_login ($user_id);
-	&log(LOG_NOTICE, "User '${login}' does not have privileges to send a job to '${host}'");
-	print $sock_handle "You do not have privileges to send a job to '${host}'.\n";
+	notify_about_no_privileges ($sock_handle, $user_id, $host);
 	return;
     }
 
@@ -766,9 +760,7 @@ sub send_re_job_to_host () {
     my $host = $cmd_line[3];
 
     if (! can_send_job_to_machine ($host)) {
-	my $login = user_get_login ($user_id);
-	&log(LOG_NOTICE, "User '${login}' does not have privileges to send a job to '${host}'");
-	print $sock_handle "You do not have privileges to send a job to '${host}'.\n";
+	notify_about_no_privileges ($sock_handle, $user_id, $host);
 	return;
     }
 
@@ -830,9 +822,7 @@ sub send_line_job_to_host () {
     my $host = $cmd_line[5];
 
     if (! can_send_job_to_machine ($host)) {
-	my $login = user_get_login ($user_id);
-	&log(LOG_NOTICE, "User '${login}' does not have privileges to send a job to '${host}'");
-	print $sock_handle "You do not have privileges to send a job to '${host}'.\n";
+	notify_about_no_privileges ($sock_handle, $user_id, $host);
 	return;
     }
 
@@ -952,9 +942,7 @@ sub send_qa_package_job_to_host () {
     my $host = $cmd_line[3];
 
     if (! can_send_job_to_machine ($host)) {
-	my $login = user_get_login ($user_id);
-	&log(LOG_NOTICE, "User '${login}' does not have privileges to send a job to '${host}'");
-	print $sock_handle "You do not have privileges to send a job to '${host}'.\n";
+	notify_about_no_privileges ($sock_handle, $user_id, $host);
 	return;
     }
 
@@ -1218,6 +1206,18 @@ sub is_allowed ($@) # user_id, privilege[s]
 	$privileged++ if scalar (grep /$name/, @user_privileges);
     }
     return $privileged == scalar @privilege_names;
+}
+
+# Logs and prints information that user does not have privileges.
+sub notify_about_no_privileges ($$$) # socket, user_id, host
+{
+    my $socket_handle = shift;
+    my $user_id = shift;
+    my $host = shift;
+    my $login = user_get_login ($user_id);
+    &log (LOG_NOTICE, "User '${login}' does not have privileges to send a job to '${host}'");
+    print $socket_handle "You do not have privileges to send a job to '${host}'.\n"
+	. "Please provide your Hamsta password. You can set it at the Hamsta frontend (user page).\n";
 }
 
 sub use_master_authentication ()
