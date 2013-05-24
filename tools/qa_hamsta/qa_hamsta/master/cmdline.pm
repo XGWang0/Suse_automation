@@ -1102,7 +1102,7 @@ sub log_in ($$) # socket handle, command line
 	    print $sock_handle "Wrong password. Try again.\n";
 	}
     } else {
-	print $sock_handle "Unknown Hamsta user '${$login}'. Try again.\n";
+	print $sock_handle "Unknown Hamsta user '${login}'. Try again.\n";
     }
     return 0;
 }
