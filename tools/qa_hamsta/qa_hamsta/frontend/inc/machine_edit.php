@@ -60,11 +60,12 @@ $edit_fields = array('used_by'			=> 'Used By',
 		foreach ($allmachines as $machine_id)
 		{
 			$machine = Machine::get_by_id($machine_id);
+			$used_by = $machine->get_used_by_login ();
 			$machine->set_used_by(NULL);
 			$machine->set_expires(NULL);
 			$machine->set_reserved(NULL);
 			$machine->set_usage("");
-			Log::create($machine->get_id(), $machine->get_used_by_login(), 'RELEASE', "has unreserved this machine");
+			Log::create($machine->get_id(), $used_by, 'RELEASE', "has unreserved this machine");
 		}
 		$go = "machines";
 		return require('inc/machines.php');
