@@ -548,7 +548,7 @@ sub send_predefine_job_to_host() {
     #modify email xml file
     open my $pre_ori,$ffile || (print $sock_handle "can't open xml file\n" and return);
     my $v=time;
-    my $ofile="/tmp/command_line_pre_def_${host}_$v.xml";
+    my $ofile="/tmp/command_line_pre_def_${host}_${file}_$v.xml";
     open my $pre_tmp,'>',$ofile || (print $sock_handle "can't write xml file\n" and return);
     while(my $line = <$pre_ori>){
 	$line =~ s#</mail>#$email$&# if($line =~ /\/mail/);
