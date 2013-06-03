@@ -78,6 +78,7 @@ if( $submission_id )
 		'interr'=>array(4,'internalerr'),
 		'skip'=>array(5,'skipped')
 	);
+	print 'Status counts: <table class="tbl">'."\n\t<tr>";
 	foreach($legend as $status=>$v)	{
 		list($val,$style)=$v;
 		$key='has_'.$status;
@@ -86,8 +87,9 @@ if( $submission_id )
 		if( $val )
 			$args[$key]=1;
 		$cnt = search_submission_result( 0, $args );
-		print html_span($style,html_link("$status: $cnt","$url&status=$val"))."\n";
+		print '<td class="'.$style.'">'.html_link("$status: $cnt","$url&status=$val")."</td>";
 	}
+	print "</tr>\n</table>\n";
 
 	# main data
 	$args=array_merge($args_base,$args_status);
