@@ -115,3 +115,7 @@ body
 	right: 10px;
 	top: 7px;
 }
+
+.left {
+    float:left;
+}
