@@ -452,6 +452,10 @@ EOF
 	        # write user config - if it is different
 	        my $qarepo=$qaconf{install_qa_repository};
 	        my $addrpms=$qaconf{install_additional_rpms};
+		my $hamsta_multicast_address = $qaconf{hamsta_multicast_address};
+		my $hamsta_multicast_port = $qaconf{hamsta_multicast_port};
+		my $hamsta_multicast_dev = $qaconf{hamsta_multicast_dev};
+		my $hamsta_client_port = $qaconf{hamsta_client_port};
 	        print $f "      <script>
 	          <filename>zzz_preserve_install_config</filename>
 	          <interpreter>shell</interpreter>
