@@ -60,6 +60,7 @@ function search_common( $sel, $from, &$attrs, &$attrs_known, &$pager=null )
 	$just_sql = hash_get($attrs,'just_sql',false,true);	# return SQL instead of results ?
 	$group_nr = hash_get($attrs,'group_nr',null,true);	# index of GROUP BY columns
 	$group_by = hash_get($attrs,'group_by',null,true);	# columns for GROUP BY
+	$cnt      = hash_get($attrs,'count',null,true);		# just a COUNT query
 
 	$select=is_array($sel) ? join(', ',$sel) : $sel;
 	$sql="FROM $from WHERE 1";
@@ -126,12 +127,16 @@ function search_common( $sel, $from, &$attrs, &$attrs_known, &$pager=null )
 	array_unshift($args, $format);
 	
 	# query count
-	if( !is_null($pager) )
+	if( $cnt || !is_null($pager) )
 	{	
 #		print "<pre>";print_r($pager);print "</pre>\n";
 		$args1 = $args;
 		array_unshift($args1,"SELECT COUNT(*) $sql");
+		if( $cnt && $just_sql )
+			return $args1;
 		$count = call_user_func_array('scalar_query', $args1);
+		if( $cnt )
+			return $count;
 
 		$limit = limit_from_pager($pager,$count);
 	}
