@@ -50,9 +50,9 @@ function html_header($args=null)
 	# Default CSS files
 	if( $args['default_css'] )
 	{
-		$args['css_screen'][]=$root.'/tblib/css/screen.css';
-		$args['css_screen'][]=$root.'/tblib/css/common.css';
-		$args['css_print'][] =$root.'/tblib/css/print.css';
+#		array_unshift( $args['css_screen'], $root.'/tblib/css/screen.css' );
+		array_unshift( $args['css_screen'], $root.'/tblib/css/common.css' );
+		array_unshift( $args['css_print'], $root.'/tblib/css/print.css' );
 	}
 
 	# Table sorting support
@@ -69,7 +69,7 @@ function html_header($args=null)
 	if( $args['calendar'] )
 	{
 		$args['script'][]=$root.'/epoch/epoch_classes.js';
-		$args['css_screen'][]=$root.'/epoch/epoch_styles.css';
+		array_unshift( $args['css_screen'], $root.'/epoch/epoch_styles.css' );
 	}
 
 	# DOCTYPE, header start

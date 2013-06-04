@@ -998,7 +998,8 @@ function common_header($args=null)
 	$defaults=array(
 		'session'=>true,
 		'connect'=>true,
-		'icon'=>'icons/qadb_ico.png'
+		'icon'=>'icons/qadb_ico.png',
+		'css_screen'=>'css/screen.css'
 	);
 	$args=args_defaults($args,$defaults);
 	if( $args['session'] )
