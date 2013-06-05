@@ -61,6 +61,15 @@ if( token_read(http('wtoken')) )
 	}
 }
 
+?>
+<script type="text/javascript">
+	var from_cal, to_cal;
+	addEventListener('load',function() {
+		from_cal = new Epoch('epoch_popup','popup',document.getElementsByName('date_from')[0]);
+		to_cal   = new Epoch('epoch_popup','popup',document.getElementsByName('date_to')[0]);
+	},false);
+</script> <?php
+
 if(!$submission_id)
 {	# main search form & results
 	$product	=enum_list_id_val('product'); 

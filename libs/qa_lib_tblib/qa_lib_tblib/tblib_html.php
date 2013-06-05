@@ -101,18 +101,6 @@ function html_header($args=null)
 	# Content-Type
 	$r.="\t".'<meta http-equiv="Content-Type" content="text/html; charset='.$args['charset'].'"/>'."\n";
 
-	# Calendar support part 2
-	if( $args['calendar'] )
-	{
-		$r.="\t".'<script type="text/javascript">'."\n";
-		$r.="\t\tvar from_cal, to_cal;\n";
-		$r.="\t\taddEventListener('load',function() {\n";
-		$r.="\t\t\tfrom_cal = new Epoch('epoch_popup','popup',document.getElementById('date_from'));\n";
-		$r.="\t\t\tto_cal   = new Epoch('epoch_popup','popup',document.getElementById('date_to'));\n";
-		$r.="\t\t},false);\n";
-		$r.="\t</script>\n";
-	}
-
 	# End of header
 	$r.="</head>\n";
 	$r.='<body'.( $args['id'] ? ' id="'.$args['id'].'"': '').">\n";
