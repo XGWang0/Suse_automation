@@ -61,19 +61,20 @@ if( $step=='list' )	{
 	exit;
 }
 else if(($submit=='sync'||$step=='sync') && $id )    {
-	$sync_url=qaconf_get_sync_url($id);
-	if( $sync_url && $file=fopen($sync_url,'r'))    {
-		$text='';
-		while( !feof($file) )
-			$text.=fgets($file,4096);
-		fclose($file);
-		qaconf_replace_body_unparsed($id,$text);
-		print "OK";
-		if( http('verbose') )
-			print "<pre>$text</pre>\n";
-	}
-	else    {
-		print "ERROR: Cannot open sync URL '$sync_url'";
+	print do_sync( $id, null, http('verbose') );
+	exit;
+}
+else if( $submit=='sync_all' || $step=='sync_all' )	{
+	header('Content-Type: text/plain');
+	$data=qaconf_list();
+#	$ret=array('qaconf_id'=>'id','desc'=>'desc','sync_url'=>'sync_url','result'=>'result');
+	print "ID\tdesc\tURL\tresult\n------------------------\n";
+	for( $i=1; $i<count($data); $i++ )	{
+		$r=$data[$i];
+		if( $r['sync_url'] )	{
+			print $r['qaconf_id']."\t".$r['desc']."\t".$r['sync_url']."\t";
+			print do_sync($r['qaconf_id'],$r['sync_url'])."\n";
+		}
 	}
 	exit;
 }
@@ -84,5 +85,22 @@ $perm_machines=$user && machine_permission($a_machines,array('owner'=>'machine_c
 $perm_system=capable('master_administration');
 if( !$perm_machines && !$perm_system )
 	disable();
+
+function do_sync($id,$sync_url=null,$verbose=0)
+{
+	if( !$sync_url )
+		$sync_url=qaconf_get_sync_url($id);
+	if( $sync_url && $file=fopen($sync_url,'r') )	{
+		$text='';
+		while( !feof($file) )
+			$text .= fgets( $file, 4096 );
+		fclose( $file );
+		qaconf_replace_body_unparsed($id,$text);
+		if( $verbose )
+			print "<pre>$text</pre>\n";
+		return "OK";
+	}
+	return "ERROR: Cannot open sync URL '$sync_url'";
+}
 
 ?>
