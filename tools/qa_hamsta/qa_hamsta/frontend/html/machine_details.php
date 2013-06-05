@@ -110,20 +110,20 @@ if (!defined('HAMSTA_FRONTEND')) {
 			<td><?php echo($job->get_stopped()); ?></td>
 			<td>
 		<?php
-		if (! $job->is_finished ()) {
+			if (isset ($user) && ! $job->is_finished ()) {
 		?>
 			<a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;finished_job=1" class="text-main">Set finished</a>
 		<?php
-		}
-		if ($job->can_cancel ()) {
+			}
+			if (isset ($user) && $job->can_cancel ()) {
 		?>
 		    	<a href="index.php?go=jobruns&amp;action=cancel&amp;id=<?php echo($job->get_id()); ?>">Cancel</a>
 		<?php
-		}
+			}
 		?>
 		        </td>
 		</tr>
-	<?php endforeach; ?>
+		<?php endforeach; ?>
 
 	<!--
 		<tr>

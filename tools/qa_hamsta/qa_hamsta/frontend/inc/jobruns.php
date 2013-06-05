@@ -42,7 +42,7 @@
 
     $page = request_int("page");
 
-    if (request_str("action") == "cancel") {
+    if (isset ($user) && request_str("action") == "cancel") {
         $job = JobRun::get_by_id(request_int("id"));
         $job->cancel();
     }
