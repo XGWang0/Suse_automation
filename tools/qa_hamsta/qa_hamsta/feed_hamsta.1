@@ -17,7 +17,7 @@ Authenticated as given user.
 User password.
 
 \fINote:\fR this may not be the same password that you use to log into the Web
-UI. See Hamsta password in the Web UI for details.
+UI. See Hamsta password settings in the Web UI for details.
 .TP
 \fB\-p\fR, \fB\-\-print-active\fR
 Prints list of machines active in the Hamsta master.
@@ -36,6 +36,10 @@ List the testcases given the jobtype (the jobtype must be set).
 .TP
 \fB\-n\fR, \fB\-\-testname\fR
 Testname to be executed given the jobtype (the jobtype must be set).
+.TP
+\fB\-m\fR, \fB\-\-mail\fR
+Mail address to send notification to. The notification is send when the job is
+finished and contains basic information about the job result.
 .TP
 \fB\-\-help\fR
 Prints help.
