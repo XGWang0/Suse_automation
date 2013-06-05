@@ -59,7 +59,7 @@
             <td align="center">
 <?php
 
-if($job->can_cancel())
+if (isset ($user) && $job->can_cancel())
 {
 	echo "<a href=\"index.php?go=jobruns&amp;action=cancel&amp;id=" . $job->get_id() . "\">Cancel</a>";
 }
