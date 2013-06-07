@@ -172,23 +172,6 @@ else if( $step=='v' )	{
 	$data=qaconf_get_rows_translated($id);
 	print html_table($data,array('id'=>'qaconf_view','sort'=>'sss','class'=>'list text-main tbl'));
 }
-else if( ($step=='d'||$step=='t') && $id )	{
-	# confirm delete
-	$desc=qaconf_get_desc($id);
-	if( $desc )	{
-		print '<h3>'.($step=='d' ? 'Delete':'Detach')." configuration $desc ($id) ?</h3>\n";
-	$what=array(
-		array('id','',$id,HIDDEN),
-		array('wtoken','',token_generate(),HIDDEN),
-		array('submit','',($step=='d' ? 'delete':'detach'),HIDDEN),
-		array('go','','machine_config',HIDDEN),
-	);
-		print html_search_form('',$what,array('submit'=>'Confirm '.($step=='d' ? 'delete':'detach'),'hr'=>false));
-	print html_text_button('Go back',$page);
-	}
-	else
-		html_error("No such configuration: $id");
-}
 else if( $a_machines )	{
 	# machine config + group configs + globals
 	$confs=qaconfs_for_machines($a_machines);
@@ -279,22 +262,24 @@ function print_conf_list($ids=array(),$id_active=null)
 	for( $i=1; $i<count($data); $i++ )	{
 		$row=&$data[$i];
 		$id=$row['qaconf_id'];
-		$base="?go=machine_config&id=$id&step=";
+		$base="?go=machine_config&id=$id&";
+		$base1=$base.'step=';
+		$base2=$base.'wtoken='.token_generate().'&submit=';
 		$local=!$row['sync_url'];
 		$nonsys=($id>QACONF_MAX_SYS_ID);
 		$local_nonsys=($local && $nonsys);
 		$attached=(isset($row['groups']) || isset($row['machines']));
 		$ctrl=array(
-			'rows'=>array('url'=>$base.'v','enbl'=>true,'fullname'=>'content show','allowed'=>true),
-			'edit'=>array('url'=>$base.'e','enbl'=>!$row['sync_url'],'err_noavail'=>'remote configurations cannot be edited, delete sync_URL first'),
-			'net' =>array('url'=>$base.'eu','enbl'=>!($local&&$row['rows']),'fullname'=>'URL edit','err_noavail'=>'local configurations cannot be changed to remotes, delete rows first'),
-			'sync'=>array('url'=>$base.'sync','enbl'=>!$local,'allowed'=>true,'err_noavail'=>'sync_url not set'),
-#			'change'=>array('url'=>$base.'h'),
-			'detach'=>array('url'=>$base.'t','enbl'=>$attached,'err_noavail'=>'cannot detach - not attached to groups/machines, or is system configuration'),
-			'delete'=>array('url'=>$base.'d','enbl'=>($local && $nonsys && !$attached),'err_noavail'=>'deleting only possible for detached local non-system configurations'),
+			'rows'=>array('url'=>$base1.'v','enbl'=>true,'fullname'=>'content show','allowed'=>true),
+			'edit'=>array('url'=>$base1.'e','enbl'=>!$row['sync_url'],'err_noavail'=>'remote configurations cannot be edited, delete sync_URL first'),
+			'net' =>array('url'=>$base1.'eu','enbl'=>!($local&&$row['rows']),'fullname'=>'URL edit','err_noavail'=>'local configurations cannot be changed to remotes, delete rows first'),
+			'sync'=>array('url'=>$base1.'sync','enbl'=>!$local,'allowed'=>true,'err_noavail'=>'sync_url not set'),
+#			'change'=>array('url'=>$base1.'h'),
+			'detach'=>array('url'=>$base2.'detach','enbl'=>$attached,'confirm'=>true,'err_noavail'=>'cannot detach - not attached to groups/machines, or is system configuration'),
+			'delete'=>array('url'=>$base2.'delete','enbl'=>($local && $nonsys && !$attached),'confirm'=>true,'err_noavail'=>'deleting only possible for detached local non-system configurations'),
 		);
 		$row['ctrls']='';
-		$defaults=array('enbl'=>$local_nonsys);
+		$defaults=array('enbl'=>$local_nonsys,'object'=>$row['desc']);
 		foreach( array_keys($ctrl) as $c )
 			$row['ctrls'].=task_icon(array_merge(array('type'=>$c,'allowed'=>($nonsys ? $logged : $admin)),$defaults,$ctrl[$c]));
 		$row['cls']=(isset($id_active) && $id==$id_active ? 'search_result': ($id<=QACONF_MAX_SYS_ID ? 'system':'') );
