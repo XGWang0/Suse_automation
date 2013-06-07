@@ -125,18 +125,6 @@ if (!defined('HAMSTA_FRONTEND')) {
 		</tr>
 		<?php endforeach; ?>
 
-	<!--
-		<tr>
-			<td><a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>"><?php echo($job->get_id()); ?></a></td>
-                        <td><span class="<?php echo($job->get_status_string()); ?>">
-                                <?php echo($job->get_status_string()); ?></span>
-                        </td>
-			<td><?php echo($job->get_name()); ?></td>
-			<td><?php echo($job->get_started()); ?></td>
-			<td><?php echo($job->get_stopped()); ?></td>
-			<td></td>
-		</tr>
--->
 </table>
 
 <a href="index.php?go=jobruns&amp;machine=<?php echo($machine->get_id()); ?>" class="text-small">Show complete list</a>
