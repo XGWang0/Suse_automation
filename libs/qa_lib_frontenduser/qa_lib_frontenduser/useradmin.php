@@ -1,6 +1,8 @@
 <?php
 require_once('userdb.php');
 
+require_once ('Zend/Validate/EmailAddress.php');
+require_once ('Zend/Validate/Regex.php');
 
 /* Concatenates an array of strings using glue and adds a line
  * break if the number of entries on that line reaches a
@@ -42,6 +44,30 @@ function break_line_by_entries ($strings_array, $glue = ", ", $max_entries_per_l
 	  }
 
 	return $glued_entries;
+}
+
+function check_email ($email)
+{
+	$res = false;
+	$mv = new Zend_Validate_EmailAddress ();
+	if ($mv->isValid ($email)) {
+		$res = true;
+	} else {
+		print html_error (join (', ', $mv->getMessages ()));
+	}
+	return $res;
+}
+
+function check_regex ($regex, $value)
+{
+	$res = false;
+	$rv = new Zend_Validate_Regex (array ('pattern' => $regex));
+	if ($rv->isValid ($value)) {
+		$res = true;
+	} else {
+		print html_error (join (', ', $rv->getMessages ()));
+	}
+	return $res;
 }
 
 if (! isset ($page))
@@ -96,18 +122,29 @@ if( token_read($wtoken) )	{
 		$name=http('name');
 		$email=http('email');
 		$extern_id=http('extern_id');
-		transaction();
-		update_result( user_update($user_got,$login,$name,$email,$extern_id) );
-		commit();
+		if (check_email ($email) && check_regex ('/^[a-zA-Z]\w+/', $login)
+		    && check_regex ('/[[:print:]]+/', $name)) {
+			transaction();
+			update_result( user_update($user_got,$login,$name,$email,$extern_id) );
+			commit();
+		} else {
+			$step = 'ue';
+		}
 	}
 	else if( $submit=='useradd' )	{
 		$login=http('login');
 		$name=http('name');
 		$email=http('email');
 		$extern_id=http('extern_id');
-		transaction();
-		update_result( user_insert($login,$name,$email,$extern_id), 1 );
-		commit();
+		/* Validate input. */
+		if (check_email ($email) && check_regex ('/^[a-zA-Z]\w+/', $login)
+		    && check_regex ('/[[:print:]]+/', $name)) {
+			transaction();
+			update_result( user_insert($login,$name,$email,$extern_id), 1 );
+			commit();
+		} else {
+			$step='un';
+		}
 	}
 	else if( $submit=='userdel' && $user )	{
 		transaction();
@@ -151,9 +188,13 @@ if( token_read($wtoken) )	{
 	else if( $submit=='role_insert' )	{
 		$role_name=http('role');
 		$descr=http('descr');
-		transaction();
-		update_result( role_insert($role_name,$descr), 1 );
-		commit();
+		if (check_regex ('/\w+/', $role_name)) {
+			transaction();
+			update_result( role_insert($role_name,$descr), 1 );
+			commit();
+		} else {
+			$step = 'rn';
+		}
 	}
 	else if( $submit=='role_del' && $role )	{
 		transaction();
@@ -223,10 +264,10 @@ else if( $step=='ur' )	{
 else if( $step=='ue' && $user )	{
 	# edit user
 	$what=array(
-		array('login','',$user[1]['login'],TEXT_ROW, 'Login'),
-		array('name','',$user[1]['name'],TEXT_ROW, 'Name'),
-		array('email','',$user[1]['email'],TEXT_ROW, 'E-mail'),
-		array('extern_id','',$user[1]['extern_id'],TEXT_AREA, 'External identifier'),
+		array('login','',$user[1]['login'],TEXT_ROW, 'Login', 'Fill out users login. It can contain only letters, digits and underscore and has to start with a letter.', true, '^[a-zA-Z]\w+'),
+		array('name','',$user[1]['name'],TEXT_ROW, 'Name', 'Fill out users name.', true),
+		array('email','',$user[1]['email'],EMAIL, 'E-mail', 'Fill out users e-mail.', true),
+		array('extern_id','',$user[1]['extern_id'],TEXT_AREA, 'External identifier', 'This value can be used with some types of authentication such as OpenId.', true),
 		array('user_id','',$user_got,HIDDEN),
 		array('submit','','usermod',HIDDEN),
 		array('wtoken','',token_generate(),HIDDEN),
@@ -237,10 +278,10 @@ else if( $step=='ue' && $user )	{
 else if( $step=='un' )	{
 	# new user
 	$what=array(
-		array('login','','',TEXT_ROW, 'Login'),
-		array('name','','',TEXT_ROW, 'Name'),
-		array('email','','',TEXT_ROW, 'E-mail'),
-		array('extern_id','','',TEXT_AREA, 'External identifier'),
+		array('login','','',TEXT_ROW, 'Login', 'Fill out users login. It can contain only letters, digits and underscore and has to start with a letter.', true, '^[a-zA-Z]\w+'),
+		array('name','','',TEXT_ROW, 'Name', 'Fill out users name.', true),
+		array('email','','',EMAIL, 'E-mail', 'Fill out users e-mail.', true),
+		array('extern_id','','',TEXT_AREA, 'External identifier', 'This value can be used with some types of authentication such as OpenId.', true),
 		array('submit','','useradd',HIDDEN),
 		array('wtoken','',token_generate(),HIDDEN),
 		(isset ($page_name) ? array('go', '', $page_name, HIDDEN): null)
@@ -252,8 +293,8 @@ else if( $step=='up' && $user )	{
 	# user password
 	print '<h3>Changing password for '.$user[1]['name']."</h3>\n";
 	$what=array(
-		array('pwd1','','',PASSWORD,'New password'),
-		array('pwd2','','',PASSWORD,'Confirm new password'),
+		array('pwd1','','',PASSWORD,'New password', null, true),
+		array('pwd2','','',PASSWORD,'Confirm new password', null, true),
 		array('user_id','',$user[1]['user_id'],HIDDEN),
 		array('submit','','passwd',HIDDEN),
 		array('wtoken','',token_generate(),HIDDEN),
@@ -264,7 +305,7 @@ else if( $step=='up' && $user )	{
 else if( $step=='re' && $role )	{
 	# edit role
 	$what=array(
-		array('role','',$role[1]['role'],TEXT_ROW),
+		array('role','',$role[1]['role'],TEXT_ROW, 'Can contain only letters, digits and underscore.', true, '\w+'),
 		array('descr','',$role[1]['descr'],TEXT_AREA,'Description'),
 		array('role_id','',$role_got,HIDDEN),
 		array('submit','','role_update',HIDDEN),
@@ -276,7 +317,7 @@ else if( $step=='re' && $role )	{
 else if( $step=='rn' )	{
 	# new role
 	$what=array(
-		array('role','','',TEXT_ROW, 'Role name'),
+		array('role','','',TEXT_ROW, 'Role name', 'Can contain only letters, digits and underscore.', true, '\w+'),
 		array('descr','','',TEXT_AREA,'Description'),
 		array('submit','','role_insert',HIDDEN),
 		array('wtoken','',token_generate(),HIDDEN),
