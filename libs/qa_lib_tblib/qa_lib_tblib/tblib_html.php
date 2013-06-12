@@ -725,6 +725,7 @@ define('HIDDEN',5);
 define('HR',6);
 define('TEXT',7);
 define('PASSWORD',8);
+define('EMAIL',9);
 
 /**
   * Returns HTML code for a common search form.
@@ -744,6 +745,9 @@ define('PASSWORD',8);
   *    4 checkbox
   *    5 hidden
   *    6 horizontal rule
+  *    7 arbitrary text enclosed in div element
+  *    8 password field
+  *    9 email field
   * $label is the text label to pring, $name by default
   * @param string $action URL where the form submit to
   * @param array $data array of array( $name, $values, $values_got, $type, [ $label ] ) :
@@ -765,6 +769,9 @@ function html_search_form( $url, $data, $attrs=array() )
 	{
 		$cls = (isset($d[2]) && (is_numeric($d[2])||!empty($d[2])) ? 'set' : 'notset');
 		$visible = ( $d[3]!=HR && $d[3]!=HIDDEN && $d[3]!=TEXT );
+		$title = (isset ($d[5]) ? ' title="' . $d[5] . '"' : '');
+		$required = (isset ($d[6]) && $d[6] ? ' required' : '');
+		$pattern = (isset ($d[7]) ? ' pattern="' . $d[7] . '"' : '');
 		if( !isset($d[4]) )
 			$d[4]=$d[0];
 		if( $visible )
@@ -772,11 +779,13 @@ function html_search_form( $url, $data, $attrs=array() )
 		if( $d[3]==SINGLE_SELECT || $d[3]==MULTI_SELECT )
 			$r.=base_select($d[0],$d[1],4,($d[3]==MULTI_SELECT) ? 'multiple="multiple"':'', $d[2], $cls);
 		else if($d[3]==TEXT_ROW)
-			$r.=sprintf('<input class="%s" type="text" name="%s"%s/>', $cls, $d[0],(set($d[2]) ? ' value="'.$d[2].'"':'') );
+			$r.=sprintf('<input class="%s" type="text" name="%s"%s%s%s%s/>', $cls, $d[0],(set($d[2]) ? ' value="'.$d[2].'"':''), $required, $title, $pattern);
 		else if($d[3]==TEXT_AREA)
-			$r.=sprintf('<textarea class="%s" name="%s" rows="10" cols="80">%s</textarea>',$cls,$d[0],$d[2]);
+			$r.=sprintf('<textarea class="%s" name="%s" rows="10" cols="80"%s%s>%s</textarea>',$cls,$d[0],$required,$title,$d[2]);
+		else if ($d[3]==EMAIL)
+			$r.=sprintf('<input class="%s" type="email" name="%s"%s%s%s/>', $cls, $d[0],(set($d[2]) ? ' value="'.$d[2].'"':''), $required, $title);
 		else if($d[3]==CHECKBOX)
-			$r.=sprintf('<input class="%s" type="checkbox" name="%s"%s/>', $cls, $d[0],($d[2] ? ' checked="checked"':''));
+			$r.=sprintf('<input class="%s" type="checkbox" name="%s"%s%s%s/>', $cls, $d[0],($d[2] ? ' checked="checked"':''), $required, $title);
 		else if($d[3]==HIDDEN && isset($d[2]) && $d[2]!='')
 		{
 			if( is_array($d[2]) )
@@ -784,13 +793,12 @@ function html_search_form( $url, $data, $attrs=array() )
 					$r.=sprintf('<input type="hidden" name="%s[]" value="%s"/>'."\n",$d[0],$e);
 			else
 				$r.=sprintf('<input type="hidden" name="%s" value="%s"/>'."\n",$d[0],$d[2]);
-		}
-		else if($d[3]==HR)
+		} else if($d[3]==HR)
 			$r.="\n<hr/>\n";
 		else if($d[3]==TEXT)
 			$r.='<div class="inputblock text notset">'.$d[4]."</div>\n";
 		else if($d[3]==PASSWORD)
-			$r.=sprintf('<input class="%s" type="password" name="%s"/>', $cls, $d[0] );
+			$r.=sprintf('<input class="%s" type="password" name="%s"%s/>', $cls, $d[0], $required);
 		if( $visible )
 			$r.="</div></div>\n";
 	}
