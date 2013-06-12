@@ -46,7 +46,17 @@ body {
 
 
 /* 2. table headers & rows */
-.tbl th, .benchtbl th {	text-align:center; }
+.tbl th a
+{
+	color:#000;
+	text-decoration:none;
+}
+.tbl th a:hover { text-decoration:underline; }
+.tbl th, .benchtbl th {	
+	text-align:center;
+	font-weight:normal;
+	font-size:110%;
+}
 .tbl th	{ color: #fff;	}
 .benchtbl td { text-align: center;	}
 .tbl, .benchtbl {
@@ -107,8 +117,16 @@ select, input[type="text"], input[type="password"], #subnav { box-shadow: 0.1em 
 img.benchimg { box-shadow: 3px 3px 7px #000; }
 
 /* buttons */
+a.btn:link, a.btn:visited
+{
+	text-decoration:none;
+	color: #000;
+}
+
 .btn,.btn_disabled
 {
+	padding: 0.1em 0.3em 0.1em 0.3em;
+	margin: 0.2em;
 	border: none;
 	background-color: #68a;
 	display: inline-block;
@@ -134,6 +152,12 @@ img.benchimg { box-shadow: 3px 3px 7px #000; }
 /* Links */
 
 /* Forms */
+input[type="submit"]
+{
+	float:left;
+	clear:both;
+	margin-bottom: 1em;
+}
 
 select, input[type="text"], input[type="password"]	{
 	border: solid 2px #ccc;
@@ -157,6 +181,8 @@ hr	{ box-shadow: 3px 3px 7px #000; }
 	float: left;
 	margin: 0 1em 0 0;
 }
+.steps span.sel		{ background-color:#68a; }
+.steps span.nosel	{ background-color:#9bc; }
 .steps span.nosel:hover	{ background-color:#68a; }
 .steps span.sel:hover	{ background-color:#468; }
 .steps span,.steps2 { box-shadow: 0.4em -0.2em 0.7em -0.2em #000; }
@@ -164,6 +190,7 @@ hr	{ box-shadow: 3px 3px 7px #000; }
 {
 	clear: left;
 	margin: 0 4px;
+	background-color:#68a;
 }
 #card {	margin: 0 4px;	}
 
@@ -172,4 +199,7 @@ hr	{ box-shadow: 3px 3px 7px #000; }
 	margin-left: 3em;
 }
 
-
+.confirm .message	{
+	margin: 1em;
+	font-size: 200%;
+}

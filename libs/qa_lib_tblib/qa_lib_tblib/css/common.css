@@ -41,17 +41,7 @@ pre { font-size:12px; }
 
 
 /* 2. table headers & rows */
-.tbl th a
-{
-	color:#000;
-	text-decoration:none;
-}
-.tbl th a:hover { text-decoration:underline; }
-.tbl th, .benchtbl th {
-	padding: 4px 3px;
-	font-size:110%;
-	font-weight:normal;
-}
+.tbl th, .benchtbl th { padding: 4px 3px; }
 .tbl td	{ padding: 2px 3px 3px 4px; }
 .total { margin: 1em; }
 
@@ -75,11 +65,6 @@ button { display: inline; }
 /* 5. table row highlights */
 
 /* buttons */
-.btn,.btn_disabled
-{
-	padding: 0.1em 0.3em 0.1em 0.3em;
-	margin: 0.2em;
-}
 .btn_disabled {
 	background-color:#ddd;
 	color:#aaa;
@@ -92,26 +77,13 @@ tr.w
 }
 
 /* Links */
-
-a.btn:link, a.btn:visited
-{
-	text-decoration:none;
-	color: #000;
-}
 a.btn:hover	{ text-decoration:underline; }
 
 div.pagesel { margin: 1em; }
 
 /* Forms */
-
 select[multiple] {height:10em;}
 .static { display: none; }
-input[type="submit"]
-{
-	float:left;
-	clear:both;
-	margin-bottom: 1em;
-}
 .inputblock
 {
 	clear:none;
@@ -165,17 +137,11 @@ table.tbldesc	{ border-collapse: collapse; }
 
 /* cards */
 .steps span	{ padding:0.2em 1em 0.2em 1em; }
-.steps span.nosel	{ background-color:#9bc; }
-.steps span.sel
-{
-	background-color:#68a;
-	font-weight: bold;
-}
+.steps span.sel { font-weight: bold; }
 .steps a:link, .steps a:visited	{
 	text-decoration: none;
 	color: black;
 }
-.steps2	{ background-color:#68a; }
 .steps a:hover { text-decoration: underline; }
 #card
 {
@@ -195,12 +161,7 @@ div.controls
 	margin: 1em;
 }
 
-.confirm .message
-{
-	margin: 1em;
-	font-size: 200%;
-	color: #f00;
-}
+.confirm .message	{ color: #f00; }
 .confirm form {
 	float: left;
 	margin-left:2em;

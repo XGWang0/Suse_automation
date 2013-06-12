@@ -30,10 +30,18 @@
 }
 
 /* 2. table headers & rows */
+.tbl th a
+{
+	color:#000;
+	text-decoration:none;
+}
+.tbl th a:hover { text-decoration:underline; }
 .tbl th {
 	background-color:#68a;
 	color:#fff;
 	text-align:left;
+	font-weight:normal;
+	font-size:110%;
 }
 .tbl th, #subnav-hdr {
 	border: solid 1px;
@@ -95,8 +103,16 @@ tr:hover td {
 }
 
 /* buttons */
+a.btn:link, a.btn:visited
+{
+	text-decoration:none;
+	color: #000;
+}
+
 .btn,.btn_disabled
 {
+	padding: 0.1em 0.3em 0.1em 0.3em;
+	margin: 0.2em;
 	border: solid 1px;
 	border-color: #fff #888 #666 #eee ;
 	background-color: #9bc;
@@ -120,6 +136,12 @@ tr:hover td {
 /* Links */
 
 /* Forms */
+input[type="submit"]
+{
+	float:left;
+	clear:both;
+	margin-bottom: 1em;
+}
 
 /* SQL info */
 
@@ -138,12 +160,18 @@ tr:hover td {
 {
 	border-color:#fff #999 #888 #fff;
 	border-bottom:none;
+	background-color:#9bc;
 }
-.steps span.sel { border-color:#cef #568 #68a #cef; }
+.steps span.sel
+{
+	border-color:#cef #568 #68a #cef;
+	background-color:#68a;
+}
 .steps2
 {
 	border: solid 1px;
 	border-color:#cef #568 #457 #cef;
+	background-color:#68a;
 }
 #card
 {
@@ -156,4 +184,7 @@ tr:hover td {
 	margin-left: 3em;
 }
 
-
+.confirm .message	{
+	margin: 1em;
+	font-size: 200%;
+}
