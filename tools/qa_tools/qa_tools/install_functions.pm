@@ -225,6 +225,8 @@ sub _get_buildservice_repo
 	if( $type eq 'opensuse' ) {
 		return "openSUSE_11.4" if $version==11 and $subversion==4;
 		return "openSUSE_12.1" if $version==12 and $subversion==1;
+		return "openSUSE_12.2" if $version==12 and $subversion==2;
+		return "openSUSE_12.3" if $version==12 and $subversion==3;
 		return 'openSUSE_Factory';
 	} else {
 		return 'SLES_9' if $version==9;
