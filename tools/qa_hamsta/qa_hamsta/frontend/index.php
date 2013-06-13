@@ -112,6 +112,7 @@ $pages = array(
     "addsut",
     "adminusers",
     "qa_netconf",
+    "usedby",
 );
 
 if (!in_array($go, $pages)) {
