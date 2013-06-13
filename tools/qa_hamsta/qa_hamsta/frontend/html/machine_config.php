@@ -282,10 +282,10 @@ function print_conf_list($ids=array(),$id_active=null)
 		$defaults=array('enbl'=>$local_nonsys,'object'=>$row['desc']);
 		foreach( array_keys($ctrl) as $c )
 			$row['ctrls'].=task_icon(array_merge(array('type'=>$c,'allowed'=>($nonsys ? $logged : $admin)),$defaults,$ctrl[$c]));
-		$row['cls']=(isset($id_active) && $id==$id_active ? 'search_result': ($id<=QACONF_MAX_SYS_ID ? 'system':'') );
 	}
 	$data[0]['ctrls']='controls';
 	$data[0]['qaconf_id']='id';
+	tbl_add_color_class($data,$id_active);
 
 	print "<h3>Configurations involved</h3>\n";
 	print html_table($data,array('id'=>'qaconf_list','sort'=>'isisss','class'=>'list text-main tbl','callback'=>'colorize'));
@@ -296,13 +296,21 @@ function print_conf_list($ids=array(),$id_active=null)
 function print_qaconf_merge($ids,$id_active,$desc_add='')
 {
 	$data=qaconf_merge($ids);
-	for( $i=1; $i<count($data); $i++ )
-		$data[$i]['cls']=( $data[$i]['qaconf_id']==$id_active ? 'search_result' : '' );
+	tbl_add_color_class( $data, $id_active );
 	$data[0]['src']='src';
 
 	print "<h3>Data sent to machine(s)</h3>\n";
 	print html_table($data,array('class'=>'list text-main tbl','callback'=>'colorize','id'=>'qaconf_result','sort'=>'ssss'));
 	print html_div('list info','Resulting merged data, as sent to machines. The lines come from machine\'s configuration, group configuration, and system configurations (master, site, country, global). '.($id_active ? $desc_add : ''));
+}
+
+function tbl_add_color_class(&$tbl,$id_active)
+{
+	for( $i=1; $i<count($tbl); $i++ )	{
+		$id=$tbl[$i]['qaconf_id'];
+		$tbl[$i]['cls']=( isset($id_active) && $id==$id_active ? 
+			'search_result' : ($id<=QACONF_MAX_SYS_ID ? 'system' : ''));
+	}
 }
 
 function print_config_changer($desc,$id=null,$a_machines=array(),$group=null)
