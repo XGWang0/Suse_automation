@@ -115,6 +115,7 @@ $pages = array(
     "adminusers",
     "machine_config",
     "qa_netconf",
+    "usedby",
 );
 
 if (!in_array($go, $pages)) {
