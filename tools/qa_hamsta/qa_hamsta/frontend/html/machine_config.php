@@ -240,6 +240,7 @@ else if( $group )	{
 else	{
 	# config list
 	print_conf_list();
+	print html_text_button('Sync all remote configs','?go=machine_config&step=sync_all');
 }
 
 function perm($id)
