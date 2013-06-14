@@ -32,10 +32,10 @@ header('Content-Type: text/html; charset=utf-8');
 require_once("include/Util.php");
 
 ?>
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE html>
 <html>
 <head>
-  <title><?php if(isset($html_title) && !empty($html_title)) echo($html_title." - "); ; ?>HAMSTA</title>
+  <title><?php if(! empty ($html_title)) echo ($html_title . ' - '); ?>HAMSTA</title>
   <link href="css/style.css" rel="stylesheet" type="text/css">
   <link href="../tblib/css/common.css" rel="stylesheet" type="text/css">
   <link href="css/layout.css" rel="stylesheet" type="text/css">
