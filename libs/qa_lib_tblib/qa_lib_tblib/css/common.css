@@ -84,14 +84,17 @@ div.pagesel { margin: 1em; }
 /* Forms */
 select[multiple] {height:10em;}
 .static { display: none; }
-.inputblock
-{
-	clear:none;
-	float:left;
+.inputblock	{
 	margin-right: 1em;
 	margin-bottom: 1em;
 }
-.input + * { clear:both; }
+.input > * { float: left; }
+.input > *:last-child { clear:both; }
+form.input + * { 
+	display:block;
+	clear:both;
+}
+
 .inputtitle
 {
 	display:block;

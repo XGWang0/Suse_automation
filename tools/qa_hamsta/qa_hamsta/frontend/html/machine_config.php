@@ -201,7 +201,7 @@ else if( $a_machines )	{
 		$names=join(', ',array_unique(my_array_column($r,'machine')));
 		print_config_changer("Configuration for machine(s) <i>$names</i>",$id,array_unique(my_array_column($r,'machine_id')),null);
 	}
-	print html_div('list info','Source for the merge: machine configuration has highest priority. You can (re)assign existing configurations, or create a new one if none is assigned.');
+	print html_div('text-main','Source for the merge: machine configuration has highest priority. You can (re)assign existing configurations, or create a new one if none is assigned.');
 
 	# group configs
 	print "<h3>Group configuration</h3>\n";
@@ -212,7 +212,7 @@ else if( $a_machines )	{
 				$names .= ' ('.join(', ',$members).')';
 			print_config_changer("Configuration for group(s) <i>$names</i>",$id,null,array_unique(my_array_column($r,'group')));
 		}
-		print html_div('list info','Group configuration is used for all machines in the group.');
+		print html_div('text-main','Group configuration is used for all machines in the group.');
 	}
 	else
 		print "<p>Machine(s) not in a group.</p>\n";
@@ -232,7 +232,7 @@ else if( $group )	{
 
 	print "<h3>Group configuration</h3>\n";
 	print_config_changer("Configuration for group <i>$group</i>",$id,array(),$group);
-	print html_div('list info','Configuration used for all machines in the group. Can be overriden by machines\' own one(s), and merges with system configs, before sent to machines. You can (re)assign it here, or create a new one if none is assigned.');
+	print html_div('text-main','Configuration used for all machines in the group. Can be overriden by machines\' own one(s), and merges with system configs, before sent to machines. You can (re)assign it here, or create a new one if none is assigned.');
 
 	# configurations involved
 	print_conf_list($ids,$id);
@@ -290,8 +290,8 @@ function print_conf_list($ids=array(),$id_active=null)
 
 	print "<h3>Configurations involved</h3>\n";
 	print html_table($data,array('id'=>'qaconf_list','sort'=>'isisss','class'=>'list text-main tbl','callback'=>'colorize'));
-	print html_div('list info','The table contains a listing of relevant configurations. Blue ones are system configs.');
-	print html_div('list info','Configuration can be local (editable) or remote (syncable), depending if it has <i>sync_url</i> set, or rows in the local database. Before deleting a configuration, you need to detach it from all its machines and groups.');
+	print html_div('text-main','The table contains a listing of relevant configurations. Blue ones are system configs.');
+	print html_div('text-main','Configuration can be local (editable) or remote (syncable), depending if it has <i>sync_url</i> set, or rows in the local database. Before deleting a configuration, you need to detach it from all its machines and groups.');
 }
 
 function print_qaconf_merge($ids,$id_active,$desc_add='')
@@ -302,7 +302,7 @@ function print_qaconf_merge($ids,$id_active,$desc_add='')
 
 	print "<h3>Data sent to machine(s)</h3>\n";
 	print html_table($data,array('class'=>'list text-main tbl','callback'=>'colorize','id'=>'qaconf_result','sort'=>'ssss'));
-	print html_div('list info','Resulting merged data, as sent to machines. The lines come from machine\'s configuration, group configuration, and system configurations (master, site, country, global). '.($id_active ? $desc_add : ''));
+	print html_div('text-main','Resulting merged data, as sent to machines. The lines come from machine\'s configuration, group configuration, and system configurations (master, site, country, global). '.($id_active ? $desc_add : ''));
 }
 
 function tbl_add_color_class(&$tbl,$id_active)
