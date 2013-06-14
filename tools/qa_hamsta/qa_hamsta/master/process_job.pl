@@ -350,17 +350,17 @@ sub send_job($$$) {
 	open (FH,'<',"$job_file");
 
 	#query "Used By" and "Usage" information
-        my($usage,$usedby,$maintainer_id)=&machine_get_info($ip);
+        my($usage,$users,$maintainer_id)=&machine_get_info($ip);
 	while (<FH>) { 
 		$_ =~ s/\n//g;
 
 		if ($_ =~ /<debuglevel>([0-9]+)<\/debuglevel>/) {
 			$loglevel = $1;
 		}
-		#add "Used By" and "Usage" "jobid" information
+		#add "Usage", list of users and "jobid" information
 
                 if(/<\/config>/) {
-                        $_="        <useinfo><![CDATA[ USAGE: $usage \t USEDBY: $usedby \t MAINTAINER: $maintainer_id \t ]]></useinfo> \n".$_ ;
+                        $_="        <useinfo><![CDATA[ USAGE: $usage \t USEDBY: $users \t MAINTAINER: $maintainer_id \t ]]></useinfo> \n".$_ ;
                         $_="        <job_id>http://$local_addr/hamsta/index.php?go=job_details&amp;id=$job_id</job_id> \n".$_ ;
                 }
 		eval {
