@@ -153,6 +153,7 @@ else if( $step=='e' || $step=='n' )	{
 	print "<form method=\"post\" action=\"$page_base\" class=\"input\" id=\"qaconf_edit\">\n";
 	print html_search_form('',$what,array('form'=>0,'submit'=>($edit ? 'Update':'Insert')));
 	print "</form>\n";
+	print html_div('text-main',"Edit rows of the configuration. Rows should be in a form of \"<i>key=value # comment</i>\", otherwise they will be dropped on submit.");
 }
 else if( $step=='eu' && $id )	{
 	# edit URL
@@ -270,14 +271,15 @@ function print_conf_list($ids=array(),$id_active=null)
 		$nonsys=($id>QACONF_MAX_SYS_ID);
 		$local_nonsys=($local && $nonsys);
 		$attached=(isset($row['groups']) || isset($row['machines']));
+		$cantdel=(!$nonsys ? 'is a system configuration' : 
+			(!$local ? 'not a local configuration' : ($attached ? 'need to be detached first':'')));
 		$ctrl=array(
 			'rows'=>array('url'=>$base1.'v','enbl'=>true,'fullname'=>'content show','allowed'=>true),
 			'edit'=>array('url'=>$base1.'e','enbl'=>!$row['sync_url'],'err_noavail'=>'remote configurations cannot be edited, delete sync_URL first'),
 			'net' =>array('url'=>$base1.'eu','enbl'=>!($local&&$row['rows']),'fullname'=>'URL edit','err_noavail'=>'local configurations cannot be changed to remotes, delete rows first'),
 			'sync'=>array('url'=>$base1.'sync','enbl'=>!$local,'allowed'=>true,'err_noavail'=>'sync_url not set'),
-#			'change'=>array('url'=>$base1.'h'),
-			'detach'=>array('url'=>$base2.'detach','enbl'=>$attached,'confirm'=>true,'err_noavail'=>'cannot detach - not attached to groups/machines, or is system configuration'),
-			'delete'=>array('url'=>$base2.'delete','enbl'=>($local && $nonsys && !$attached),'confirm'=>true,'err_noavail'=>'deleting only possible for detached local non-system configurations'),
+			'detach'=>array('url'=>$base2.'detach','enbl'=>$attached,'confirm'=>true,'err_noavail'=>'cannot detach - not attached to groups/machines'),
+			'delete'=>array('url'=>$base2.'delete','enbl'=>!$cantdel,'confirm'=>true,'err_noavail'=>"Cannot delete - $cantdel"),
 		);
 		$row['ctrls']='';
 		$defaults=array('enbl'=>$local_nonsys,'object'=>$row['desc']);
