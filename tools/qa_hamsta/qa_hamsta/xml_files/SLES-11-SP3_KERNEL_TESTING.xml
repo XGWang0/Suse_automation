@@ -51,7 +51,7 @@ fi
 
 zypper --gpg-auto-import-keys ref
 
-TEST_PACKAGES="qa_test_ftpload qa_test_ltp qa_test_fs_stress qa_test_process_stress qa_test_sched_stress qa_test_bind qa_test_openssh qa_test_net-snmp qa_test_cpio qa_test_nfs qa_test_findutils qa_test_indent qa_test_sharutils qa_test_gzip qa_test_postfix qa_test_fetchmail qa_test_cracklib qa_test_coreutils qa_test_sysbench qa_test_lmbench qa_test_bonnie qa_test_dbench qa_test_interbench qa_test_kernbench qa_test_libmicro qa_test_reaim qa_test_siege qa_test_tiobench qa_test_bzip2 qa_test_newburn qa_test_newburn-memtst qa_test_netperf qa_test_memeat qa_test_memtester qa_test_autotest qa_test_apparmor qa_test_apparmor-profiles qa_test_apache_testsuite"
+TEST_PACKAGES="qa_test_ftpload qa_test_ltp qa_test_fs_stress qa_test_process_stress qa_test_sched_stress qa_test_bind qa_test_openssh qa_test_net-snmp qa_test_cpio qa_test_nfs qa_test_findutils qa_test_indent qa_test_sharutils qa_test_gzip qa_test_postfix qa_test_fetchmail qa_test_cracklib qa_test_coreutils qa_test_sysbench qa_test_lmbench qa_test_bonnie qa_test_dbench qa_test_interbench qa_test_kernbench qa_test_libmicro qa_test_reaim qa_test_siege qa_test_tiobench qa_test_bzip2 qa_test_newburn qa_test_newburn-memtst qa_test_netperf qa_test_memeat qa_test_memtester qa_test_autotest qa_test_apparmor qa_test_apparmor-profiles qa_test_apache_testsuite qa_test_php53 qa_test_lynis"
 OTHER_QA_PACKAGES="qa_lib_ctcs2 qa_lib_keys qa_lib_perl qa_lib_config qa_tools qa_db_report qa_lib_internalapi"
 
 zypper -n in -l $TEST_PACKAGES $OTHER_QA_PACKAGES
@@ -215,8 +215,8 @@ echo -e "All tests starts now\n"
         echo qa_test_fetchmail runs now
         ./test_fetchmail-run
 
-        echo qa_test_php5 and qa_php5-server runs now
-        ./test_php5-run
+        logger qa_test_php53 runs now
+        ./test_php53-run
 
         echo qa_test_nfs runs now
         ./test_nfs-run
