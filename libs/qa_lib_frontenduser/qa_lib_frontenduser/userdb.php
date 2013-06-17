@@ -123,12 +123,12 @@ function role_privilege_insert_all($role_id,$valid_until)	{
 	$vals=array();
 	$args=array();
 	foreach($valid_until as $k=>$v)	{
-		$vals[]='(?,?,NOW(),?)';
+		$vals[]='(?,?,?)';
 		$args[]=$role_id;
 		$args[]=$k;
 		$args[]=($v ? $v:null);
 	}
-	$a=array_merge(array('INSERT INTO role_privilege(role_id,privilege_id,valid_since,valid_until) VALUES '.join(',',$vals),str_repeat('iid',count($vals))),$args);
+	$a=array_merge(array('INSERT INTO role_privilege(role_id,privilege_id,valid_until) VALUES '.join(',',$vals),str_repeat('iid',count($vals))),$args);
 	return call_user_func_array('update_query',$a);
 }
 
