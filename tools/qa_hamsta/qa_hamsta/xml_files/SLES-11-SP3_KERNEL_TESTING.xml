@@ -316,16 +316,7 @@ screen -L -S tests  -d -m /bin/bash -c '(
         ./tools/test_netperf-run
 
         logger qa_test_ftpload runs now
-        ARCH=$HOSTTYPE
-        if [ "$ARCH" != "s390x" ] ; then
-                ftpload -d /tmp -c 20 ftp://10.122.0.9/400MB
-        else
-                if [ ! -d /abuild/ftpload_test ] ; then
-                        mkdir -p /abuild/ftpload_test
-                fi 
-
-                ftpload -d /abuild/ftpload_test -c 20 ftp://10.122.0.9/400MB
-        fi
+        ./tools/test_ftpload-run
 
         logger qa_lmbench runs now
         ./tools/test_lmbench-run
