@@ -54,37 +54,27 @@ if( $step=='list' )	{
 	header('Content-Type: text/plain');
 	$ip=http('ip',$_SERVER['REMOTE_ADDR']);
 	print "# IP address is $ip\n";
-	$configs=array(QACONF_GLOBAL,QACONF_COUNTRY,QACONF_SITE,QACONF_MASTER);
 	$machine_id=machine_get_by_ip($ip);
-	if( $machine_id )	{
-		$groups=group_machine_list_group($machine_id);
-		foreach( array_keys($groups) as $group_id )	{
-			$qaconf_id=group_get_qaconf_id($group_id);
-			if( $qaconf_id )
-				$configs[]=$qaconf_id;
-		}
-		$qaconf_id=machine_get_qaconf_id($machine_id);
-		if( $qaconf_id )
-			$configs[]=$qaconf_id;
-	}
+	$configs=qaconfs_for_machine($machine_id);
 	print "# qaconf_ids are: ".join(',',$configs)."\n";
 	print qaconf_format_data(qaconf_merge($configs));
 	exit;
 }
-else if($submit=='sync' && $id )    {
-	$sync_url=qaconf_get_sync_url($id);
-	if( $sync_url && $file=fopen($sync_url,'r'))    {
-		$text='';
-		while( !feof($file) )
-			$text.=fgets($file,4096);
-		fclose($file);
-		qaconf_replace_body_unparsed($id,$text);
-		print "OK";
-		if( http('verbose') )
-			print "<pre>$text</pre>\n";
-	}
-	else    {
-		print "ERROR: Cannot open sync URL '$sync_url'";
+else if(($submit=='sync'||$step=='sync') && $id )    {
+	print do_sync( $id, null, http('verbose') );
+	exit;
+}
+else if( $submit=='sync_all' || $step=='sync_all' )	{
+	header('Content-Type: text/plain');
+	$data=qaconf_list();
+#	$ret=array('qaconf_id'=>'id','desc'=>'desc','sync_url'=>'sync_url','result'=>'result');
+	print "ID\tdesc\tURL\tresult\n------------------------\n";
+	for( $i=1; $i<count($data); $i++ )	{
+		$r=$data[$i];
+		if( $r['sync_url'] )	{
+			print $r['qaconf_id']."\t".$r['desc']."\t".$r['sync_url']."\t";
+			print do_sync($r['qaconf_id'],$r['sync_url'])."\n";
+		}
 	}
 	exit;
 }
@@ -95,5 +85,22 @@ $perm_machines=$user && machine_permission($a_machines,array('owner'=>'machine_c
 $perm_system=capable('master_administration');
 if( !$perm_machines && !$perm_system )
 	disable();
+
+function do_sync($id,$sync_url=null,$verbose=0)
+{
+	if( !$sync_url )
+		$sync_url=qaconf_get_sync_url($id);
+	if( $sync_url && $file=fopen($sync_url,'r') )	{
+		$text='';
+		while( !feof($file) )
+			$text .= fgets( $file, 4096 );
+		fclose( $file );
+		qaconf_replace_body_unparsed($id,$text);
+		if( $verbose )
+			print "<pre>$text</pre>\n";
+		return "OK";
+	}
+	return "ERROR: Cannot open sync URL '$sync_url'";
+}
 
 ?>

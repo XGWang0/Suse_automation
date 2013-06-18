@@ -30,7 +30,19 @@
 	 * Gets all selected machines and updates their status if requested.
 	 */
 
-	$edit_fields = array('used_by', 'expires', 'usage','maintainer_string','anomaly','powerswitch', 'powertype', 'powerslot', 'serialconsole','consoledevice','consolespeed','consolesetdefault','affiliation');
+$edit_fields = array('used_by'			=> 'Used By',
+		     'expires'			=> 'Expires',
+		     'usage'			=> 'Usage',
+		     'maintainer_string'	=> 'Maintainer',
+		     'anomaly'			=> 'Notes',
+		     'powerswitch'		=> 'Power Switch',
+		     'powertype'		=> 'Power Type',
+		     'powerslot'		=> 'Power Slot',
+		     'serialconsole'		=> 'Serial Console',
+		     'consoledevice'		=> 'Console Device',
+		     'consolespeed'		=> 'Console Speed',
+		     'consolesetdefault'	=> 'Enable Console',
+		     'affiliation'		=> 'Affiliation');
 	$allmachines = request_array("a_machines");
 
 	if (!defined('HAMSTA_FRONTEND'))
@@ -48,11 +60,12 @@
 		foreach ($allmachines as $machine_id)
 		{
 			$machine = Machine::get_by_id($machine_id);
+			$used_by = $machine->get_used_by_login ();
 			$machine->set_used_by(NULL);
 			$machine->set_expires(NULL);
 			$machine->set_reserved(NULL);
 			$machine->set_usage("");
-			Log::create($machine->get_id(), $machine->get_used_by_login(), 'RELEASE', "has unreserved this machine");
+			Log::create($machine->get_id(), $used_by, 'RELEASE', "has unreserved this machine");
 		}
 		$go = "machines";
 		return require('inc/machines.php');
@@ -110,21 +123,28 @@
 				  }
                                 $machine->set_perm($perm_str);
 			}
-			foreach ( $edit_fields as $row)
+			foreach ( $edit_fields as $row => $label)
 			{
 				$input = request_array($row);
 				foreach ($input as $machine_id => $r_value)
 				{
 					$machine = Machine::get_by_id($machine_id);
-					$sfunc = "set_" . $row;
-					$machine->$sfunc($r_value);
-					if ($r_value == "")
-					{
-						Log::create($machine->get_id(), $machine->get_used_by_login(), 'RELEASE', "has cleared the $row field");
+					if ($row == 'used_by') {
+						$gfunc = "get_" . $row . "_login";
+					} else {
+						$gfunc = "get_" . $row;
 					}
-					else
-					{
-						Log::create($machine->get_id(), $machine->get_used_by_login(), 'CONFIG', "has set the $row as $r_value");
+					$sfunc = "set_" . $row;
+
+					$old_value = $machine->$gfunc ();
+					$machine->$sfunc($r_value);
+
+					if (strcmp ($old_value, $r_value)) {
+						if (empty ($r_value)) {
+							Log::create($machine->get_id(), $machine->get_used_by_login(), 'RELEASE', "has cleared the '$label' field");
+						} else {
+							Log::create($machine->get_id(), $machine->get_used_by_login(), 'CONFIG', "has set the value of '$label' to '$r_value'");
+						}
 					}
 				}
 			}
@@ -136,7 +156,7 @@
 				if ($machine->get_def_inst_opt() != trim($default_option_per_machine))
 				{
 					$machine->set_def_inst_opt(trim($default_option_per_machine));
-					Log::create($machine->get_id(), $machine->get_used_by_login(), 'CONFIG', "has set the default install options to \"$default_option_per_machine\"");
+					Log::create($machine->get_id(), $machine->get_used_by_login(), 'CONFIG', "has set the 'Default Install Options' to '$default_option_per_machine'");
 				}
 			}
 			Notificator::setSuccessMessage ('The requested actions were successfully completed.');

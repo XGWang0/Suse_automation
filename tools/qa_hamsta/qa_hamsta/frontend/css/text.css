@@ -37,6 +37,7 @@
 	font-family: arial, verdana, sans-serif;
 	font-size: 1em;
 }
+div.text-main	{ padding: 0.2em; }
 .text-small
 {
 	font-family: arial, verdana, sans-serif;

@@ -26,7 +26,7 @@
 
   <tr>
    	<td>Repartition the entire disk?</td>
-	<td><label>Yes, use <input type="text" size="5" name="repartitiondisk" value="<?php if(isset($_POST["repartitiondisk"])){echo $_POST["repartitiondisk"];} ?>">% free disk for root partition(e.g. 80%; 100%)</label></td>
+	<td><label>Yes, use <input type="text" size="5" name="repartitiondisk" value="<?php if(isset($_POST["repartitiondisk"])){echo $_POST["repartitiondisk"];} ?>">% free disk for root partition (e.g. 80%; 100%)</label></td>
   </tr>
   <tr>
     <td>Upload custom autoyast profile (optional):</td>
@@ -40,6 +40,5 @@
   </tr>
   <tr>
         <td>Load installation by Kexec?</td>
-        <td><label><input type="checkbox" name="kexecboot" value="yes">Yes, load by Kexec.</label></td>
+	  <td><label class="left"><input id="kexecboot" type="checkbox" class="left" name="kexecboot" value="yes">Yes, load by Kexec.</label> <div id="kexecnote" class="text-red text-small"></div></td>
   </tr>
-

@@ -93,7 +93,10 @@ sub install_rpms # $upgrade_flag, @basenames
 
 	my $ret = 0;
 	foreach my $suite(@suites) {
-		$ret += &command("zypper -n install -l $suite") >> 8;
+		$ret += &command("zypper -n install -l $suite 2>/tmp/sut_rpm_stderr_tmp") >> 8;
+		my $rpm_stderr = `cat /tmp/sut_rpm_stderr_tmp`;
+		chomp($rpm_stderr);
+		&log(LOG_ERROR,"ERROR:RPM $suite install/update error: $rpm_stderr\n") if ( $rpm_stderr ne "" );
 	}
 	return $ret;
 }

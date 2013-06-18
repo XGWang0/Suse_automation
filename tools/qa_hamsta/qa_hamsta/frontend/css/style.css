@@ -146,8 +146,10 @@ h3 {
 }
 
 #message{
-    background-color: #00E0FF;
+    float:right;
+    background-color: #87cefa;
 }
+
 .btrefresh {
 	        background: #F2F2F2;
 		border-bottom: #444444 1px solid;

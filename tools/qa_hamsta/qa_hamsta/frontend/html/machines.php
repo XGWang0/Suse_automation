@@ -195,6 +195,7 @@ tsRegister();
 <!--   <option value="create_autobuild">Add to Autobuild</option> -->
 <!--   <option value="delete_autobuild">Remove from Autobuild</option> -->
   <option value="merge_machines">Merge machines</option>
+  <option value="machine_config">Configure machines</option>
   <option value="delete">Delete</option>
 </select>
 <input type="submit" value="Go">

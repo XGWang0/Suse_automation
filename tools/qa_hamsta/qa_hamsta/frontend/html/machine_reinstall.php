@@ -92,7 +92,9 @@
 ?>
 </form>
 
+<script>
 <?php
 }
-require("req_reinstfuncs.php");
+require ('js/install_product.js');
 ?>
+</script>

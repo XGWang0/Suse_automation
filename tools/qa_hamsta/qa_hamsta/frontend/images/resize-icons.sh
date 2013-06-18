@@ -10,8 +10,22 @@ IMG_DIR=$1
 SIZE=27
 COMMAND=/usr/bin/convert
 PARAMS="-resize $SIZE"
+WD="`pwd`"
 
-if [[ $PWD != $IMG_DIR ]]; then
+function usage
+{
+    echo "Usage: $0 DIRECTORY";
+    echo "   DIRECTORY contains images to process";
+}
+
+if [[ -z $IMG_DIR ]]; then
+    usage
+    exit 1;
+elif [[ ! -d $IMG_DIR ]]; then
+    usage
+    echo "$0 error: The DIRECTORY has to be a directory." >&2;
+    exit 1;
+elif [[ $WD != $IMG_DIR ]]; then
     cd $IMG_DIR;
 fi
 
@@ -46,3 +60,5 @@ function resize
 
 resize "${IMAGES}" "${SIZE}"
 resize "${MINI_IMAGES}" "${MINI_SIZE}"
+
+exit 0;

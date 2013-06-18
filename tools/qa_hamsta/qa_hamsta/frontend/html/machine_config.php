@@ -28,11 +28,14 @@
    * of the maintenance relief for the page having the same
    * functionality in Hamsta and QADB.
    *
-   * Unfortunatelly this brings also all backsides of the mutual code
-   * like model dependency issues, need for more careful edits and
-   * many custom changes to the TBLib. If ever moving to more flexible
-   * Zend framework and MVC architecture these dependecies should be
-   * dropped completely.
+   * When implementing something better, following dependencies may be dropped:
+   * - tblib_db: could be replaced by Zend DB
+   * - tblib_html: feasible replacement so far unknown
+   *
+   * It is also possible to better keep the MVC model and move the
+   * update code from top of this file to the ../inc/ directory.
+   * This was not done yet, as there was no need to redirecting after updates.
+   * If doing that, replace TBlib's result reporting by Hamsta's native.
    */
 
 
@@ -41,24 +44,26 @@ $page_base = 'index.php';
 $page = "$page_base?go=machine_config";
 
 
-#print common_header(array('title'=>'QA config','header'=>false,'session'=>false));
 $desc=http('desc','');
 $body=http('body','');
 $wtoken=http('wtoken');
 $group=http('group');
+$id_defined=array_key_exists('id',$_REQUEST);
 
 if( token_read($wtoken) )	{
 	if( ($submit=='new' && $desc) || $submit=='set' )	{
 		check_perm_redirect();
 		transaction();
-		if( $submit=='new' )
-		update_result( ($id=qaconf_insert_unparsed($desc,$body)), 1 );
+		if( $submit=='new' )	{
+			update_result( ($id=qaconf_insert_unparsed($desc,$body)), 1 );
+			$id_defined=$id;
+		}
 
-		if( $id && $a_machines )	{
+		if( $id_defined && $a_machines )	{
 			foreach( $a_machines as $machine_id )
 				update_result(machine_set_qaconf_id($machine_id,$id));
 			}
-		if( $id && $group )	{
+		if( $id_defined && $group )	{
 			update_result(group_set_qaconf_id_by_name($group,$id));
 		}
 		commit();
@@ -75,6 +80,16 @@ if( token_read($wtoken) )	{
 		update_result(qaconf_set_sync_url($id,http('sync_url')));
 		commit();
 	}
+	else if( $submit=='detach' && $id )	{
+		check_perm_redirect($id);
+		$usage=qaconf_usage_count($id);
+		transaction();
+		if( $usage['machines'] )
+			update_result(qaconf_detach_machine($id));
+		if( $usage['groups'] )
+			update_result(qaconf_detach_group($id));
+		commit();
+	}
 	else if( $submit=='delete' && $id )	{
 		check_perm_redirect($id);
 		$usage=qaconf_usage_count($id);
@@ -88,11 +103,12 @@ if( token_read($wtoken) )	{
 			commit();
 		}
 	}
+	$step='l';
 }
 
 $steps=array(
-	'l'=>'list',
-	'n'=>'new',
+	'l'=>'list all',
+	'n'=>'new config',
 );
 $steps_alt=array(
 	'e'=>'edit',
@@ -117,7 +133,7 @@ $what=array(
 
 if( $step=='m' )	{
 	# config merge
-	print "<pre>".qaconf_format_data(qaconf_merge(array(13,14)))."</pre>\n";
+	print "<pre>".qaconf_format_data(qaconf_merge(array(5,6)))."</pre>\n";
 }
 else if( $step=='e' || $step=='n' )	{
 	# new config
@@ -126,11 +142,22 @@ else if( $step=='e' || $step=='n' )	{
 	$what[]=array('submit','',($edit ? 'update':'new'),HIDDEN);
 	if( $edit )
 		$what[]=array('id','',$id,HIDDEN);
+	if( $group )	{
+		$what[]=array('group','',$group,HIDDEN);
+		print html_div('list group',"group: $group");
+	}
+	if( $a_machines )	{
+		$what[]=array('a_machines','',$a_machines,HIDDEN);
+		print html_div('list machines',"machines: ".join(' ',array_map('machine_get_name',$a_machines)));
+	}
 	print "<form method=\"post\" action=\"$page_base\" class=\"input\" id=\"qaconf_edit\">\n";
 	print html_search_form('',$what,array('form'=>0,'submit'=>($edit ? 'Update':'Insert')));
 	print "</form>\n";
+	print html_div('text-main',"Edit rows of the configuration. Rows should be in a form of \"<i>key=value # comment</i>\", otherwise they will be dropped on submit.");
 }
 else if( $step=='eu' && $id )	{
+	# edit URL
+	print html_table(qaconf_list(array($id)),array('class'=>'list text-main tbl'));
 	$sync_url=qaconf_get_sync_url($id);
 	$what=array(
 		array('sync_url','',http('sync_url',$sync_url),TEXT_ROW),
@@ -146,122 +173,75 @@ else if( $step=='v' )	{
 	$data=qaconf_get_rows_translated($id);
 	print html_table($data,array('id'=>'qaconf_view','sort'=>'sss','class'=>'list text-main tbl'));
 }
-else if( $step=='d' && $id )	{
-	$desc=qaconf_get_desc($id);
-	if( $desc )	{
-		print "<h3>Delete configuration $desc ($id) ?</h3>\n";
-	$what=array(
-		array('id','',$id,HIDDEN),
-		array('wtoken','',token_generate(),HIDDEN),
-			array('submit','','delete',HIDDEN),
-			array('go','','machine_config',HIDDEN),
-	);
-		print html_search_form('',$what,array('submit'=>'Confirm delete','hr'=>false));
-	print html_text_button('Go back',$page);
+else if( $a_machines )	{
+	# machine config + group configs + globals
+	$confs=qaconfs_for_machines($a_machines);
+	$gconfs=$mconfs=array();
+	for($i=1; $i<count($confs); $i++)	{
+		$row=$confs[$i];
+		$mconfs[$row['machine_qaconf_id']][]=$row;
+		if( is_numeric($row['group_id']) )
+			$gconfs[$row['group_qaconf_id']][]=$row;
+	}
+
+	# highlighted config ID
+	$id=( count($mconfs)==1 ? array_first_key($mconfs) : 
+		(count($gconfs)==1 ? array_first_key($gconfs) : null ) );
+
+	# related config IDs
+	$ids=array_unique(array_merge(qaconfs_global(),array_keys($mconfs),array_keys($gconfs)));
+
+	# merged data
+	if( count(array_keys($mconfs))<=1 && count(array_keys($gconfs))<=1 )	{
+		print_qaconf_merge($ids,$id,'Highlighting current machine\'s configuration.');
+	}
+
+	# machine configs
+	print "<h3>Machine configuration</h3>\n";
+	foreach( $mconfs as $id=>$r )	{
+		$names=join(', ',array_unique(my_array_column($r,'machine')));
+		print_config_changer("Configuration for machine(s) <i>$names</i>",$id,array_unique(my_array_column($r,'machine_id')),null);
+	}
+	print html_div('text-main','Source for the merge: machine configuration has highest priority. You can (re)assign existing configurations, or create a new one if none is assigned.');
+
+	# group configs
+	print "<h3>Group configuration</h3>\n";
+	if( count($gconfs)>1 || array_first_key($gconfs) ) 	{
+		foreach( $gconfs as $id=>$r )	{
+			$names=join(', ',array_unique(my_array_column($r,'group')));
+			if(( $members=groups_list_machine_names(my_array_column($r,'group_id')) ))
+				$names .= ' ('.join(', ',$members).')';
+			print_config_changer("Configuration for group(s) <i>$names</i>",$id,null,array_unique(my_array_column($r,'group')));
+		}
+		print html_div('text-main','Group configuration is used for all machines in the group.');
 	}
 	else
-		html_error("No such configuration: $id");
-}
-else if( $a_machines )	{
-	$m=array();
-	$names=array();
-	foreach( $a_machines as $machine_id )	{
-		if(( $name=machine_get_name($machine_id) ))	{
-			$names[]=$name;
-			$m[]=$machine_id;
-		}
-	}
-	if( count($m) )	{
-		$id=machine_get_qaconf_id($m[0]);
-#		print "ID=$id<br/>\n";
-		view_delete_create_assign('Config for '.join(',',$names),$id,$m,null);
-		foreach(group_machine_list_group($m[0]) as $group_id)	{
-			$g=group_get_details($group_id);
-			if( $g )
-				view_delete_create_assign('Config for group '.$g['group'],$g['qaconf_id'],null,$g['group']);
-	}
-	print_global_configs();
-	}
-	else	{
-		print html_error("No such machine(s).");
-	}
+		print "<p>Machine(s) not in a group.</p>\n";
+
+	# configurations involved
+	print_conf_list($ids,$id);
+
 }
 else if( $group )	{
-	$id=group_get_qaconf_id_by_name($group);
-	view_delete_create_assign('Config for '.$group,$id,null,$group);
-	print_global_configs();
+	# group config
+	$ids=qaconfs_global();
+	if(($id=group_get_qaconf_id_by_name($group)))
+		$ids[]=$id;
+
+	# merged data
+	print_qaconf_merge($ids,$id,'Highlighting current group\'s configuration.');
+
+	print "<h3>Group configuration</h3>\n";
+	print_config_changer("Configuration for group <i>$group</i>",$id,array(),$group);
+	print html_div('text-main','Configuration used for all machines in the group. Can be overriden by machines\' own one(s), and merges with system configs, before sent to machines. You can (re)assign it here, or create a new one if none is assigned.');
+
+	# configurations involved
+	print_conf_list($ids,$id);
 }
 else	{
-	# view configuration
-	$data=qaconf_list();
-	# FIXME: store ID into another field, so that it won't be HTML-formatted
-	for( $i=1; $i<count($data); $i++ )	{
-		$data[$i]['id']=$data[$i]['qaconf_id'];
-	}
-	table_translate($data,array(
-		'links'=>array('qaconf_id'=>"$page&step=v&id="),
-	));
-	$data[0][]='controls';
-	for( $i=1; $i<count($data); $i++ )	{
-		$row=$data[$i];
-		if( !($row['groups'] || $row['machines'] && isset($row[0]) /*FIXME*/ ) && perm($row['id']) )	{
-			make_controls_row($data[$i],$row['id'],array('edit'=>"$page&step=e&id=",'delete'=>"$page&step=d&id="));
-		}
-		else
-			$data[$i][]='';
-	}
-	print html_table($data,array('total'=>1,'id'=>'qaconf_list','sort'=>'isss','class'=>'list text-main tbl'));
-}
-
-function print_global_configs()	{
-	view_delete_create_assign('Master configuration',QACONF_MASTER,0,0);
-	view_delete_create_assign('Site configuration',QACONF_SITE,0,0);
-	view_delete_create_assign('Country configuration',QACONF_COUNTRY,0,0);
-	view_delete_create_assign('Global configuration',QACONF_GLOBAL,0,0);
-}
-
-function view_delete_create_assign($title,$id,$machine_id,$group)	{
-	global $page,$perm_system;
-	print "<h3>$title</h3>\n";
-	print "<div class=\"qaconf\">\n";
-	if( $id && ($conf=qaconf_get_details($id) ))	{
-		$data=qaconf_get_rows_translated($id);
-		print html_table($data,array('total'=>0,'id'=>'qaconf_'.$title,'sort'=>'iss','class'=>'list text-main tbl'));
-#		print "<pre>"; print_r($conf); print "</pre>\n";
-		if( isset($conf['sync_url']) )	{
-			print html_text_button('sync',"$page&submit=sync&id=$id")."\n";
-			if( $perm_system )
-				print html_text_button('edit URL',"$page&step=eu&id=$id")."\n";
-		}
-		else if(perm($id))	{
-			print html_text_button('edit',"$page&step=e&id=$id")."\n";
-#			if( $id>QACONF_MAX_SYS_ID )
-#				print html_text_button('delete',"$page&step=d&id=$id")."\n";
-		}
-	}
-	else	{
-		$w=array(
-			array('wtoken','',token_generate(),HIDDEN),
-			array('go','','machine_config',HIDDEN),
-		);
-		if( $machine_id )
-			$w[]=array('a_machines','',$machine_id,HIDDEN);
-		if( $group )
-			$w[]=array('group','',$group,HIDDEN);
-		$what=array_merge($w,array(
-			array('desc','',http('desc'),TEXT_ROW),
-			array('body','',http('body'),TEXT_AREA),
-			array('submit','','new',HIDDEN),
-		));
-		print html_search_form('',$what,array('submit'=>'Insert','hr'=>false));
-		$qaconf=array_merge(array(array('null','')),enum_list_id_val('qaconf'));
-		$what=array_merge($w,array(
-			array('id',$qaconf,'',SINGLE_SELECT,'another config'),
-			array('submit','','set',HIDDEN),
-		));
-		print html_search_form('',$what,array('submit'=>'Set','hr'=>false));
-	}
-	print "</div>\n";
+	# config list
+	print_conf_list();
+	print html_text_button('Sync all remote configs','?go=machine_config&step=sync_all');
 }
 
 function perm($id)
@@ -276,5 +256,120 @@ function check_perm_redirect($id=null)
 		redirect(array('url'=>$page));
 }
 
+function print_conf_list($ids=array(),$id_active=null)
+{
+	$admin=capable('master_administration');
+	$logged=capable();
+	$data=qaconf_list($ids,1,null);
+	for( $i=1; $i<count($data); $i++ )	{
+		$row=&$data[$i];
+		$id=$row['qaconf_id'];
+		$base="?go=machine_config&id=$id&";
+		$base1=$base.'step=';
+		$base2=$base.'wtoken='.token_generate().'&submit=';
+		$local=!$row['sync_url'];
+		$nonsys=($id>QACONF_MAX_SYS_ID);
+		$local_nonsys=($local && $nonsys);
+		$attached=(isset($row['groups']) || isset($row['machines']));
+		$cantdel=(!$nonsys ? 'is a system configuration' : 
+			(!$local ? 'not a local configuration' : ($attached ? 'need to be detached first':'')));
+		$ctrl=array(
+			'rows'=>array('url'=>$base1.'v','enbl'=>true,'fullname'=>'content show','allowed'=>true),
+			'edit'=>array('url'=>$base1.'e','enbl'=>!$row['sync_url'],'err_noavail'=>'remote configurations cannot be edited, delete sync_URL first'),
+			'net' =>array('url'=>$base1.'eu','enbl'=>!($local&&$row['rows']),'fullname'=>'URL edit','err_noavail'=>'local configurations cannot be changed to remotes, delete rows first'),
+			'sync'=>array('url'=>$base1.'sync','enbl'=>!$local,'allowed'=>true,'err_noavail'=>'sync_url not set'),
+			'detach'=>array('url'=>$base2.'detach','enbl'=>$attached,'confirm'=>true,'err_noavail'=>'cannot detach - not attached to groups/machines'),
+			'delete'=>array('url'=>$base2.'delete','enbl'=>!$cantdel,'confirm'=>true,'err_noavail'=>"Cannot delete - $cantdel"),
+		);
+		$row['ctrls']='';
+		$defaults=array('enbl'=>$local_nonsys,'object'=>$row['desc']);
+		foreach( array_keys($ctrl) as $c )
+			$row['ctrls'].=task_icon(array_merge(array('type'=>$c,'allowed'=>($nonsys ? $logged : $admin)),$defaults,$ctrl[$c]));
+	}
+	$data[0]['ctrls']='controls';
+	$data[0]['qaconf_id']='id';
+	tbl_add_color_class($data,$id_active);
+
+	print "<h3>Configurations involved</h3>\n";
+	print html_table($data,array('id'=>'qaconf_list','sort'=>'isisss','class'=>'list text-main tbl','callback'=>'colorize'));
+	print html_div('text-main','The table contains a listing of relevant configurations. Blue ones are system configs.');
+	print html_div('text-main','Configuration can be local (editable) or remote (syncable), depending if it has <i>sync_url</i> set, or rows in the local database. Before deleting a configuration, you need to detach it from all its machines and groups.');
+}
+
+function print_qaconf_merge($ids,$id_active,$desc_add='')
+{
+	$data=qaconf_merge($ids);
+	tbl_add_color_class( $data, $id_active );
+	$data[0]['src']='src';
+
+	print "<h3>Data sent to machine(s)</h3>\n";
+	print html_table($data,array('class'=>'list text-main tbl','callback'=>'colorize','id'=>'qaconf_result','sort'=>'ssss'));
+	print html_div('text-main','Resulting merged data, as sent to machines. The lines come from machine\'s configuration, group configuration, and system configurations (master, site, country, global). '.($id_active ? $desc_add : ''));
+}
+
+function tbl_add_color_class(&$tbl,$id_active)
+{
+	for( $i=1; $i<count($tbl); $i++ )	{
+		$id=$tbl[$i]['qaconf_id'];
+		$tbl[$i]['cls']=( isset($id_active) && $id==$id_active ? 
+			'search_result' : ($id<=QACONF_MAX_SYS_ID ? 'system' : ''));
+	}
+}
+
+function print_config_changer($desc,$id=null,$a_machines=array(),$group=null)
+{
+	global $qaconf_lists;
+	if( !isset($qaconf_lists) )
+		$qaconf_lists=qaconf_list_for_select();
+	$what1=array(
+		array('submit','','set',HIDDEN),
+		array('go','','machine_config',HIDDEN),
+		array('wtoken','',token_generate(),HIDDEN),
+		array('id',$qaconf_lists,$id,SINGLE_SELECT,$desc),
+	);
+	$what2=array();
+	if( $group )
+		$what2[]=array('group','',$group,HIDDEN);
+	if( $a_machines )
+		foreach($a_machines as $m)
+			$what2[]=array('a_machines[]','',$m,HIDDEN);
+	$what=array_merge($what1,$what2);
+	print html_search_form('',$what,array('submit'=>'Set','hr'=>false));
+	if( !$id )
+		print html_link('Create new config',form_to_url("?go=machine_config&step=n",$what2));
+}
+
+# converts list from conf=>array(machine) to printable array(array(conf_desc,machine_names))
+function sumarize_machine_list($list,$desc)
+{
+	$ret=array(array('desc'=>'config','names'=>$desc.'(s)'));	
+	foreach( array_keys($list) as $k )
+		$ret[]=array(
+			'desc'=>($k ? qaconf_get_desc($k):'(none)'),
+			'names'=>join(' ',array_map($desc.'_get_name',$list[$k])),
+			'id'=>$k,
+			'involved'=>$list[$k],
+		);
+	return $ret;
+}
+
+function my_array_column($array,$column) {
+	foreach($array as &$value)
+		$value = $value[$column];
+	return $array;
+}
+
+function array_first_key($array)	{
+	$keys=array_keys($array);
+	return ( count($keys)>0 ? $keys[0] : null );
+}
+
+# returns last argument
+function colorize()
+{
+	$data=func_get_args();
+		if(is_array($data) && $data[count($data)-1] )
+			return ' '.$data[count($data)-1];
+}
 
 ?>

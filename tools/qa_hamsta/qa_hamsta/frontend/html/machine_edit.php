@@ -31,9 +31,25 @@ if (!defined('HAMSTA_FRONTEND')) {
   return require("index.php");
  }
 
-        /* We are going to output all fields and data for the machines. So first we collect it. */
-	$table = array();
-	$tableHeadings = array("Name", "*Perm", "Used By", "Usage", "Usage Expires (days)", "Maintainer", "Affiliation", "Notes", "Power Switch", "Power type", "Power slot", "Serial Console", "Console Device", "Console Speed", "Enable Console", "Default Install Options");
+/* We are going to output all fields and data for the machines. So first we collect it. */
+$table = array();
+$tableHeadings = array ('Name',
+			'*Perm',
+			$edit_fields['used_by'],
+			$edit_fields['usage'],
+			$edit_fields['usage'] . ' Expires (days)',
+			$edit_fields['maintainer_string'],
+			$edit_fields['affiliation'],
+			$edit_fields['anomaly'],
+			$edit_fields['powerswitch'],
+			$edit_fields['powertype'],
+			$edit_fields['powerslot'],
+			$edit_fields['serialconsole'],
+			$edit_fields['consoledevice'],
+			$edit_fields['consolespeed'],
+			$edit_fields['consolesetdefault'],
+			'Default Install Options'
+	);
 	$show_column = array("usage", "expires", "maintainer_string", "affiliation", "anomaly", "powerswitch", "powertype", "powerslot", "serialconsole");	
 	$machineCounter = 0;
 	$useAuth = $config->authentication->use;

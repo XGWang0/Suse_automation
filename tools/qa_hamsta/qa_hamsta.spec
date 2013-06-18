@@ -215,9 +215,12 @@ shared between Hamsta master, multicast-forwarder and slave.
 sh frontend/images/resize-icons.sh frontend/images
 
 %install
-install -m 755 -d $RPM_BUILD_ROOT/usr/share/man/man8
-install -m 644 %{S:3} $RPM_BUILD_ROOT/usr/share/man/man8
-gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
+install -m 755 -d $RPM_BUILD_ROOT/%{_mandir}/man8
+install -m 644 %{S:3} $RPM_BUILD_ROOT/%{_mandir}/man8
+gzip $RPM_BUILD_ROOT/%{_mandir}/man8/%{name}.8
+install -m 755 -d $RPM_BUILD_ROOT/%{_mandir}/man1
+install -m 644 feed_hamsta.1 $RPM_BUILD_ROOT/%{_mandir}/man1
+gzip $RPM_BUILD_ROOT/%{_mandir}/man1/feed_hamsta.1
 mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/init.d
 cp -a hamsta hamsta-master hamsta-multicast-forward $RPM_BUILD_ROOT/%{_sysconfdir}/init.d/
 mkdir -p $RPM_BUILD_ROOT/usr/sbin
@@ -315,7 +318,7 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 
 %files
 %defattr(-, root, root)
-/usr/share/man/man8/%name.8.gz
+%{_mandir}/man8/%name.8.gz
 %{destdir}/testscript
 %{destdir}/Slave
 %dir /usr/share/hamsta/
@@ -344,6 +347,7 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %defattr(-, root, root)
 %{destdir}/command_frontend.pl
 %{destdir}/feed_hamsta.pl
+%{_mandir}/man1/feed_hamsta.1.gz
 %dir %{destdir}
 
 %files frontend

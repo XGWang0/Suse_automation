@@ -1,0 +1,78 @@
+." Manpage for feed_hamsta.pl.
+." Written by Cyril Hrubis <chrubis@suse.cz>
+.TH man 1 "22 May 2013" "1.0" "feed_hamsta.pl"
+.SH NAME
+feed_hamsta.pl \- Hamsta command-line client
+.SH SYNOPSIS
+.B feed_hamsta.pl
+[OPTIONS] <master>[:port]
+.SH DESCRIPTION
+Hamsta command-line client
+.SH OPTIONS
+.TP
+\fB\-U\fR, \fB\-\-user\fR
+Authenticated as given user.
+.TP
+\fB\-P\fR, \fB\-\-password\fR
+User password.
+
+\fINote:\fR this may not be the same password that you use to log into the Web
+UI. See Hamsta password settings in the Web UI for details.
+.TP
+\fB\-p\fR, \fB\-\-print-active\fR
+Prints list of machines active in the Hamsta master.
+.TP
+\fB\-h\fR, \fB\-\-host\fR
+Machine to work with, either name or IP.
+.TP
+\fB\-x\fR, \fB\-\-cmd\fR
+Executes arbitrary command.
+.TP
+\fB\-t\fR, \fB\-\-jobtype\fR
+Sets the group of jobs (1-5) to work with, either for job listing or execution.
+.TP
+\fB\-l\fR, \fB\-\-listcases\fR
+List the testcases given the jobtype (the jobtype must be set).
+.TP
+\fB\-n\fR, \fB\-\-testname\fR
+Testname to be executed given the jobtype (the jobtype must be set).
+.TP
+\fB\-m\fR, \fB\-\-mail\fR
+Mail address to send notification to. The notification is send when the job is
+finished and contains basic information about the job result.
+.TP
+\fB\-\-help\fR
+Prints help.
+.SH EXAMPLES
+
+.TP
+feed_hamsta.pl -p hamsta.master.foo
+Prints list of active machines in hamsta.master.foo.
+.TP
+feed_hamsta.pl -t 1 -l hamsta.master.foo
+Prints possible pre-defined jobs.
+.PP
+\fBFor all actions that modify the machine user must register the
+machine in Web UI beforehand.\fR
+.TP
+feed_hamsta.pl -U user -P password -h machine_name -t 1 -n reboot hamsta.master.foo
+Reboots the machine \fImachine_name\fR.
+.TP
+feed_hamsta.pl -U user -P password -h machine_name -x 'uname -a' hamsta.master.foo
+Executes command \fIuname -a\fR on machine \fImachine_name\fR.
+
+.SH COMMON PROBLEMS
+The protocol between Hamsta master and this script is \fInot\fR stable. You
+have to have matching Hamsta master and client.
+.SH WARNINGS
+None.
+.SH SEE ALSO
+None.
+.SH BUGS
+None.
+.SH DISTRIBUTION
+Internal code. Not to be distributed.
+.SH LICENSE
+SUSE Proprietary.
+.SH UPSTREAM
+None.
