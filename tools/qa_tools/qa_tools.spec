@@ -132,6 +132,11 @@ then
     chkconfig -d SuSEfirewall2_setup || true
     chkconfig -d SuSEfirewall2_init || true
 fi
+if [ -e /etc/systemd/system/SuSEfirewall2_setup.service ]
+then
+    systemctl start SuSEfirewall2.service
+    systemctl disable SuSEfirewall2.service
+fi
 echo "Your system has been hacked successfuly."
 
 %preun
