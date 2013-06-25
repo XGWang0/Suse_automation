@@ -145,8 +145,6 @@
 		'status_string'=>'Status',
 		'used_by'=>'Used By',
 		'usage'=>'Usage',
-		'reserved'=>'Reserved',
-		'expires'=>'Expires',
 		'job_overview'=>'Job Overview',
 		'group'=>'Group',
 		'product'=>'Product',
