@@ -35,9 +35,8 @@ if (!defined('HAMSTA_FRONTEND')) {
 $table = array();
 $tableHeadings = array ('Name',
 			'*Perm',
-			$edit_fields['used_by'],
+			$edit_fields['used_by'] . '<br/>Expires&nbsp;User note',
 			$edit_fields['usage'],
-			$edit_fields['usage'] . ' Expires (days)',
 			$edit_fields['maintainer_string'],
 			$edit_fields['affiliation'],
 			$edit_fields['anomaly'],
@@ -50,90 +49,89 @@ $tableHeadings = array ('Name',
 			$edit_fields['consolesetdefault'],
 			'Default Install Options'
 	);
-	$show_column = array("usage", "expires", "maintainer_string", "affiliation", "anomaly", "powerswitch", "powertype", "powerslot", "serialconsole");	
-	$machineCounter = 0;
-	$useAuth = $config->authentication->use;
-	foreach ($machines as $machine) {
+$show_column = array("usage", "maintainer_string", "affiliation", "anomaly", "powerswitch", "powertype", "powerslot", "serialconsole");
+$machineCounter = 0;
+$useAuth = $config->authentication->use;
+$current_user = User::getCurrent ();
+$all_users = User::getAllUsers ();
+$rh = new ReservationsHelper ();
 
-		$machine_id = $machine->get_id();
-		$counterAddValue = $machineCounter*count($tableHeadings) + 1;
-		$column = array();
-		/* If the user is not logged in or authorized, disable some fields.  */
-		$disabled_console = (! $useAuth || (isset ($user) && $user->isAllowed ('machine_edit_console'))) ? '' : "disabled=\"disabled\"";
-                $disabled_powercycling = (! $useAuth || (isset ($user) && $user->isAllowed ('machine_edit_powercycling'))) ? '' : "disabled=\"disabled\"";
-                $disabled_edit = (! $useAuth || (isset ($user) && $user->isAllowed ('machine_edit_reserved'))) ? '' : "disabled=\"disabled\"";
-                $disabled_maintainer = (! $useAuth || (isset ($user) && $user->isAllowed ('machine_edit_maintainer'))) ? '' : "disabled=\"disabled\"";
-                
-		# Hostname/ID
+foreach ($machines as $machine) {
+	/* Get all reservations for this machine. */
+	$rh->getForMachine ($machine);
+
+	$machine_id = $machine->get_id();
+	$counterAddValue = $machineCounter*count($tableHeadings) + 1;
+	$column = array();
+	/* If the user is not logged in or authorized, disable some fields.  */
+	$disabled_console = (! $useAuth || (isset ($user) && $user->isAllowed ('machine_edit_console'))) ? '' : "disabled=\"disabled\"";
+	$disabled_powercycling = (! $useAuth || (isset ($user) && $user->isAllowed ('machine_edit_powercycling'))) ? '' : "disabled=\"disabled\"";
+	$disabled_edit = (! $useAuth || (isset ($user) && $user->isAllowed ('machine_edit_reserved'))) ? '' : "disabled=\"disabled\"";
+	$disabled_maintainer = (! $useAuth || (isset ($user) && $user->isAllowed ('machine_edit_maintainer'))) ? '' : "disabled=\"disabled\"";
+
+	# Hostname/ID
 		$hostname = $machine->get_hostname();
-		$column[] = "<a href=\"index.php?go=machine_details&amp;id=" . $machine_id . "\" tabindex=" . $counterAddValue++ . ">" . $hostname . "</a>" .
-			"<input type=\"hidden\" name=\"a_machines[]\" value=\"" . $machine_id . "\" />";
+	$column[] = "<a href=\"index.php?go=machine_details&amp;id=" . $machine_id . "\" tabindex=" . $counterAddValue++ . ">" . $hostname . "</a>" .
+		"<input type=\"hidden\" name=\"a_machines[]\" value=\"" . $machine_id . "\" />";
 
-		# Perm
+	# Perm
                 $column[] = "<input type=\"checkbox\" name=\"perm_" . $machine_id . "[]\" " . ($machine->has_perm("job")?" checked=\"checked\"" : "") . " value=\"job\" >job" .
-                        "<input type=\"checkbox\" name=\"perm_" . $machine_id . "[]\" " . ($machine->has_perm("install")?" checked=\"checked\"":"") . " value=\"install\" >install".
-                        "<input type=\"checkbox\" name=\"perm_" . $machine_id . "[]\" " . ($machine->has_perm("partition")?" checked=\"checked\"":"") . " value=\"partition\"  >partition".
-                        "<input type=\"checkbox\" name=\"perm_" . $machine_id . "[]\" " . ($machine->has_perm("boot")?" checked=\"checked\"" : "") . " value=\"boot\"  >boot";
+		"<input type=\"checkbox\" name=\"perm_" . $machine_id . "[]\" " . ($machine->has_perm("install")?" checked=\"checked\"":"") . " value=\"install\" >install".
+		"<input type=\"checkbox\" name=\"perm_" . $machine_id . "[]\" " . ($machine->has_perm("partition")?" checked=\"checked\"":"") . " value=\"partition\"  >partition".
+		"<input type=\"checkbox\" name=\"perm_" . $machine_id . "[]\" " . ($machine->has_perm("boot")?" checked=\"checked\"" : "") . " value=\"boot\"  >boot";
 
-                /* Used by */
-		$item_list = request_array("used_by");
-		if (array_key_exists($machine->get_id(), $item_list)) {
-			$valuer = $item_list[$machine->get_id()];
+	/* User reservations */
+	$logged_user_line = '';
+	$user_lines = array ();
+	$counterAddValue++;
+	foreach ($all_users as $user) {
+		$is_res = $rh->isReservator ($user);
+		$expires = '';
+		$note = '';
+		if ($is_res) {
+			$res = $rh->getForMachineUser ($machine, $user);
+			$expires = $rh->getFormattedDate ($res->getExpires ());
+			$note = $res->getUserNote ();
 		}
 
-		if (!isset($valuer)) {
-			$valuer = $machine->get_used_by_login();
+		$checkbox_id = 'used_by_' . $machine->get_id () . '[]';
+		$machine_user_id = $machine->get_id () . '[' . $user->getId () . ']';
+		$expires_id = 'expires_' . $machine_user_id;
+		$user_note_id = 'user_note_' . $machine_user_id;
+		$checked = ($is_res ? ' checked="checked"' : '' );
+		$user_text  = '      <input type="checkbox" '
+			. 'name="' . $checkbox_id . '" tabindex="'
+			. $counterAddValue . '" value="'
+			. $user->getId () . '"' . $checked . '>'
+			. '<span class="username">'
+			. $user->getNameOrLogin ()
+			. '</span>' . PHP_EOL
+			. '<span class="userdet">' . PHP_EOL
+			. '<input type="datetime"  pattern="\d{4}-\d{2}-\d{2}"'
+			. ' title="YYYY-MM-DD" class="machineedit dateornote" name="'
+			. $expires_id . '" value="' . $expires . '" />'
+			. '<input type="text" class="machineedit" maxlength=64'
+			. ' name="' . $user_note_id . '" value="' . $note . '"/>' . PHP_EOL
+			. '</span>';
+		/* Put logged in user at the top of the list. */
+		if ($user->equals ($current_user)) {
+			$logged_user_line = $user_text;
+		} else {
+		/* Checkbox, expires and user name or login */
+			$user_lines[] =  $user_text;
 		}
+	}
 
-		if (!isset($valuer) && isset($user)) {
-			$valuer = $user->getLogin();
-		}
+	$to_column = $logged_user_line;
+	$to_column .= '<div id="other_users">' . PHP_EOL;
+	$to_column .= join ('<br />' . PHP_EOL, $user_lines) . PHP_EOL;
+	$to_column .= '</div>' . PHP_EOL;
 
-                $used_by = User::getByLogin($valuer, $config);
+	$counterAddValue++;
+	$column[] = $to_column;
+	$valuer = NULL;
 
-                /* If the user has privileges to modify a reserved
-                 * machine, she can change the user of the machine. */
-                if ( ! $config->authentication->use
-                     || (isset ($user) && $user->isAllowed ('machine_edit_reserved')) )
-                  {
-                    $all_users = User::getAllUsers ($config);
-                    $to_column = "<input name=\"used_by[" . $machine->get_id()
-                      . "]\" value=\"$valuer\" style=\"width: 200px;\" tabindex="
-                      . $counterAddValue++ . " type=\"text\" />";
-                    if ( count ($all_users) > 0 )
-                      $to_column = "<select name=\"used_by[" . $machine->get_id()
-                        . "]\" style=\"width: 200px;\" tabindex="
-                        . $counterAddValue . ">\n";
-
-                      foreach ($all_users as $user)
-                        {
-                          $to_column .= "      <option value=\""
-                            . $user->getLogin () . "\""
-                            . ( ($user->getLogin () == $valuer)
-                                ? " selected=\"selected\"" : "" )
-                            . ">"
-                            . ( strlen ($user->getName ()) == 0
-                                ? $user->getLogin () : $user->getName () )
-                            . "</option>\n";
-                        }
-                      $to_column .= "  </select>\n";
-                    $counterAddValue++;
-                    $column[] = $to_column;
-                  }
-                else
-                  {
-                    $column[] = "<input name=\"used_by[" . $machine->get_id()
-                      . "]\" value=\"$valuer\" style=\"width: 200px;\" tabindex="
-                      . $counterAddValue++ . " type=\"hidden\" />"
-                      . ( ( isset ($used_by)
-                            && $used_by->getName() != '' )
-                          ? $used_by->getName()
-                          : $valuer );
-                  }
-		$valuer = NULL;
-
-
-		# Common columns (configurable)
+	# Common columns (configurable)
 		foreach ($show_column as $item) {
 			$getstring = "get_".$item;
 			$item_list = request_array($item);
@@ -148,87 +146,91 @@ $tableHeadings = array ('Name',
 			$namer = $item . "[" . $machine->get_id() . "]";
 
                         if ($item == 'maintainer_string')
-                          {
-                            $column[] = "<input name=\"$namer\" value=\"$valuer\" $disabled_maintainer style=\"width: 200px;\" tabindex=" . $counterAddValue++ . ">";
-                          }
+			{
+				$column[] = "<input name=\"$namer\" value=\"$valuer\" $disabled_maintainer class=\"machineedit\" tabindex=" . $counterAddValue++ . ">";
+			}
                         else if ($item == 'serialconsole')
-			  {
-			    $column[] = "<input name=\"$namer\" value=\"$valuer\" $disabled_console style=\"width: 200px;\" tabindex=" . $counterAddValue++ . ">";
-			  }
+			{
+				$column[] = "<input name=\"$namer\" value=\"$valuer\" $disabled_console class=\"machineedit\" tabindex=" . $counterAddValue++ . ">";
+			}
                         else if ( in_array ($item, Array ('powerswitch',
                                                           'powertype',
                                                           'powerslot')) )
-                          {
-                            $column[] = "<input name=\"$namer\" value=\"$valuer\" $disabled_powercycling style=\"width: 200px;\" tabindex=" . $counterAddValue++ . ">";
-                          }
+			{
+				$column[] = "<input name=\"$namer\" value=\"$valuer\" $disabled_powercycling class=\"machineedit\" tabindex=" . $counterAddValue++ . ">";
+			}
 			else if ($item == 'affiliation')
-			  {
-			    $column[] = "<input name=\"$namer\" value=\"$valuer\" $disabled_edit style=\"width: 200px;\" tabindex=" . $counterAddValue++ . ">";
-			  }
+			{
+				$column[] = "<input name=\"$namer\" value=\"$valuer\" $disabled_edit class=\"machineedit\" tabindex=" . $counterAddValue++ . ">";
+			}
+			else if ($item == 'usage')
+			{
+				$column[] = "<input type=\"text\" maxlength=64 name=\"$namer\" value=\"$valuer\" class=\"machineedit\" tabindex=" . $counterAddValue++ . ">";
+			}
 			else
-			  {
-			    $column[] = "<input name=\"$namer\" value=\"$valuer\" style=\"width: 200px;\" tabindex=" . $counterAddValue++ . ">";
-			  }
+			{
+				$column[] = "<input name=\"$namer\" value=\"$valuer\" class=\"machineedit\" tabindex=" . $counterAddValue++ . ">";
+			}
 
 			$valuer = NULL;
 		}
 
-		# Console device
+	# Console device
 		$consoledevices = request_array('consoledevice');
-		if (array_key_exists($machine->get_id(), $consoledevices)) {
-			$consoledevice = $consoledevices[$machine->get_id()];
-		}
-		if (!isset($consoledevice)) {
-			$consoledevice = $machine->get_consoledevice();
-		}
+	if (array_key_exists($machine->get_id(), $consoledevices)) {
+		$consoledevice = $consoledevices[$machine->get_id()];
+	}
+	if (!isset($consoledevice)) {
+		$consoledevice = $machine->get_consoledevice();
+	}
 
-		$column[] = "<input name=\"consoledevice[" . $machine->get_id() . "]\" $disabled_console id=\"consoledevice" . $machine->get_id() . "\" value=\"" . $consoledevice . "\" style=\"width: 200px;\" tabindex=" . $counterAddValue++ . " onkeyup=\"update_def_inst_opt(" . $machine->get_id() . ");\">";
+	$column[] = "<input name=\"consoledevice[" . $machine->get_id() . "]\" $disabled_console id=\"consoledevice" . $machine->get_id() . "\" value=\"" . $consoledevice . "\" class=\"machineedit\" tabindex=" . $counterAddValue++ . " onkeyup=\"update_def_inst_opt(" . $machine->get_id() . ");\">";
 
-		# Console speed
+	# Console speed
 		$consolespeeds = request_array('consolespeed');
-		if (array_key_exists($machine->get_id(), $consolespeeds)) {
-			$consolespeed = $consolespeeds[$machine->get_id()];
-		}
-		if (!isset($consolespeed)) {
-			$consolespeed = $machine->get_consolespeed();
-		}
-		$column[] = "<input name=\"consolespeed[" . $machine->get_id() . "]\" $disabled_console id=\"consolespeed" . $machine->get_id() . "\" value=\"" . $consolespeed . "\" style=\"width: 200px;\" tabindex=" . $counterAddValue++ . " onkeyup=\"update_def_inst_opt(" . $machine->get_id() . ");\">";
+	if (array_key_exists($machine->get_id(), $consolespeeds)) {
+		$consolespeed = $consolespeeds[$machine->get_id()];
+	}
+	if (!isset($consolespeed)) {
+		$consolespeed = $machine->get_consolespeed();
+	}
+	$column[] = "<input name=\"consolespeed[" . $machine->get_id() . "]\" $disabled_console id=\"consolespeed" . $machine->get_id() . "\" value=\"" . $consolespeed . "\" class=\"machineedit\" tabindex=" . $counterAddValue++ . " onkeyup=\"update_def_inst_opt(" . $machine->get_id() . ");\">";
 		
-		# Enable console (careful, checkboxes that aren't checked don't show up as isset in PHP)
+	# Enable console (careful, checkboxes that aren't checked don't show up as isset in PHP)
 		if (isset($_POST['submit'])) { # They submitted the form, so we use if they checked it or not
-			$consolesetdefaults = request_array('consolesetdefault');
+												    $consolesetdefaults = request_array('consolesetdefault');
 			if (array_key_exists($machine->get_id(), $consolesetdefaults)) {
 				$consolesetdefault = $consolesetdefaults[$machine->get_id()];
 
 				# If they actually checked the form, otherwise just leave it empty
-				if ($consolesetdefault == "enable_console") {
-					$consolesetdefault = "1";
-				}
+					if ($consolesetdefault == "enable_console") {
+						$consolesetdefault = "1";
+					}
 			}
 		}
 		else { # They did not submit the form, so we use what was in the database
-			$consolesetdefault = $machine->get_consolesetdefault();
+				$consolesetdefault = $machine->get_consolesetdefault();
 		}
-		if (!isset($consolesetdefault)) {
-			$consolesetdefault = 0;
-		}
-		$column[] = "<input name=\"consolesetdefault[" . $machine->get_id() . "]\" $disabled_console id=\"consolesetdefault" . $machine->get_id() . "\" value=\"enable_console\" type=\"checkbox\"" . ($consolesetdefault == "1" ? " checked=\"checked\"" : "") . " tabindex=" . $counterAddValue++ . " onclick=\"update_def_inst_opt(" . $machine->get_id() . ");\">";
+	if (!isset($consolesetdefault)) {
+		$consolesetdefault = 0;
+	}
+	$column[] = "<input name=\"consolesetdefault[" . $machine->get_id() . "]\" $disabled_console id=\"consolesetdefault" . $machine->get_id() . "\" value=\"enable_console\" type=\"checkbox\"" . ($consolesetdefault == "1" ? " checked=\"checked\"" : "") . " tabindex=" . $counterAddValue++ . " onclick=\"update_def_inst_opt(" . $machine->get_id() . ");\">";
 
-		# Default install options
+	# Default install options
 		$def_inst_opts = request_array('default_options');
-		if (array_key_exists($machine->get_id(), $def_inst_opts)) {
-			$def_inst_opt = $def_inst_opts[$machine->get_id()];
-		}
-		if (!isset($def_inst_opt)) {
-			$def_inst_opt = $machine->get_def_inst_opt();
-		}
-		$column[] = "<input name=\"default_options[" . $machine->get_id() . "]\" $disabled_edit id=\"default_options" . $machine->get_id() . "\" value=\"" . $def_inst_opt . "\" style=\"width: 200px;\" tabindex=" . $counterAddValue++ . " onchange=\"trig_serial_console_field(" . $machine->get_id() . ");\">";
+	if (array_key_exists($machine->get_id(), $def_inst_opts)) {
+		$def_inst_opt = $def_inst_opts[$machine->get_id()];
+	}
+	if (!isset($def_inst_opt)) {
+		$def_inst_opt = $machine->get_def_inst_opt();
+	}
+	$column[] = "<input name=\"default_options[" . $machine->get_id() . "]\" $disabled_edit id=\"default_options" . $machine->get_id() . "\" value=\"" . $def_inst_opt . "\" class=\"machineedit\" tabindex=" . $counterAddValue++ . " onchange=\"trig_serial_console_field(" . $machine->get_id() . ");\">";
 
-		# Add to main table
+	# Add to main table
 		$table[] = $column;
 
-		$machineCounter++;
-	}
+	$machineCounter++;
+}
 
 ?>
 <script type="text/javascript" src="js/edit_machine.js"></script>
@@ -239,7 +241,7 @@ $tableHeadings = array ('Name',
 		echo "\n  <tr>";
 			echo "\n    <th>" . $tableHeadings[$i] . "</th>";
 			for ($j = 0; $j < count($machines); $j++) {
-				echo "\n    <td>" . $table[$j][$i] . "</td>";
+				echo "\n    <td>\n" . $table[$j][$i] . "</td>";
 			}
 		echo "\n  </tr>";
 	}
@@ -247,6 +249,6 @@ $tableHeadings = array ('Name',
 
 </table>
 <input type="submit" name="submit" value="Change">
-<br />
-<p class="text-small"><strong>*</strong> "Not accepting jobs" or "Outdated (Blocked)" status will make this system ignore any jobs that are sent from the Hamsta front-end, while "Reinstall deny" status will only process normal jobs.</p>
 </form>
+<p class="text-small"><strong>*</strong> "Not accepting jobs" or "Outdated (Blocked)" status will make this system ignore any jobs that are sent from the Hamsta front-end, while "Reinstall deny" status will only process normal jobs.</p>
+

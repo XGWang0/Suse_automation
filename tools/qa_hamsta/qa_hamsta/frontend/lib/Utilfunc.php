@@ -196,8 +196,9 @@ function machine_icons($machine,$user)
 		return "No such machine";
 	$id=$machine->get_id();
 	$ret='';
-	$usedby=$machine->get_used_by();
-	$users_machine = users_machine($user,$machine);
+	$rh = new ReservationsHelper ();
+	$users_machine = count ($rh->getForMachineUser ($machine, $user));
+	$number_of_users = count ($rh->getForMachine ($machine));
 	$has_pwr=(($machine->get_powerswitch()!=NULL) and ($machine->get_powertype()!=NULL) and $machine->check_powertype());
 	$host=$machine->get_hostname();
 	$ip=$machine->get_ip_address();
@@ -212,8 +213,8 @@ function machine_icons($machine,$user)
 		'restart'=>array('pwr'=>true),
 		'stop'=>array('pwr'=>true),
 		'reinstall'=>array(),
-		'edit'=>array('allowed'=>(!$auth || (($users_machine || !$usedby) ? capable('machine_edit','machine_edit_reserved') : capable('machine_edit_reserved'))),'link'=>true),
-		'free'=>array('url'=>"$url_base&go=machine_edit&action=clear",'enbl'=>$usedby,'err_noavail'=>"You cannot free $host because it is already free."),
+		'edit'=>array('allowed'=>(!$auth || (($users_machine || !$number_of_users) ? capable('machine_edit','machine_edit_reserved') : capable('machine_edit_reserved'))),'link'=>true),
+		'free'=>array('url'=>"$url_base&go=machine_edit&action=clear",'enbl'=>$users_machine,'err_noavail'=>"You cannot free $host because it is already free."),
 		'send-job'=>array(),
 		'vnc'=>array('url'=>"http://$ip:5801"),
 		'terminal'=>array('url'=>'http://'.$_SERVER['SERVER_ADDR']."/ajaxterm/?host=$ip"),

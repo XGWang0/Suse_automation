@@ -203,7 +203,7 @@ if (request_str("proceed")) {
 		system("sed -i 's/REPOURL/$producturl/g' $autoyastfile");
 		foreach ($machines as $machine) {
 			if ($machine->send_job($autoyastfile)) {
-				Log::create($machine->get_id(), $machine->get_used_by_login(), 'REINSTALL', "has reinstalled this machine using $producturl_raw (Addon: " . ($addonurl ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
+				Log::create($machine->get_id(), $user->getLogin (), 'REINSTALL', "has reinstalled this machine using $producturl_raw (Addon: " . ($addonurl ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
 			} else {
 				$errors['autoyastjob']=$machine->get_hostname().": ".$machine->errmsg;
 			}

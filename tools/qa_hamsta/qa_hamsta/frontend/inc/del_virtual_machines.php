@@ -69,7 +69,7 @@
 		if (!$vh->send_job($job)) {
                         $error = (empty($error) ? "" : $error) . "<p>".$vh->get_hostname().": ".$vh->errmsg."</p>";
 		} else {
-			Log::create($vh->get_id(), $vh->get_used_by_login(), 'VMDEL', "has deleted virtual machine $machineName.");
+			Log::create($vh->get_id(), $user->getLogin (), 'VMDEL', "has deleted virtual machine $machineName.");
                 }
 
             }

@@ -872,77 +872,6 @@ class Machine {
 	}
 	
 	/**
-	 * Returns identifier of the user that has this machine reserved.
-	 *
-	 * @return integer Identifier in DB of the user that has this machine reserved.
-	 */
-	public function get_used_by() {
-		if( isset($this->fields["usedby"]) )
-			return $this->fields["usedby"];
-		else
-			return NULL;
-	}
-
-	/**
-	 * Returns name of the user that has this machine reserved.
-	 *
-	 * @return string Name of the user that has the machine reserved.
-	 */
-	function get_used_by_name($config) {
-                if ($used_by = User::getByLogin($this->get_used_by_login(), $config))
-			return $used_by->getName();
-		else
-			return NULL;
-	}
-
-	/**
-	 * Getter of the login of the user that has this machine reserved.
-	 *
-	 * @return string Login of the user that has the machine
-	 * reserved or null if nothing is found.
-	 */
-        public function get_used_by_login ()
-        {
-          /* Let us retrive the value from DB only once. */
-          if ( isset ($this->fields['login']) ) {
-            return $this->fields['login'];
-          }
-
-          if ( ! $stmt = get_pdo()->prepare('SELECT u.login FROM machine m'
-                                            . ' INNER JOIN user u ON m.usedby = u.user_id'
-                                            . ' WHERE u.user_id = :user_id') ) {
-            return null;
-          }
-          $used = $this->get_used_by();
-          $stmt->bindParam(':user_id', $used);
-          $stmt->execute();
-          $login = $stmt->fetch(PDO::FETCH_ASSOC);
-          if ( ! isset ($login) ) {
-            return null;
-          } else {
-            $this->fields['login'] = $login['login'];
-            return $login['login'];
-          }
-        }
-	
-	/**
-	 * Marks a machine as reserved for a user
-	 * 
-	 * @param string $user Login of the user to reserve the machine for
-	 * @access public
-	 * @return void
-	 */
-	function set_used_by($user) {
-		$this->fields["usedby"] = $user;
-		$stmt = get_pdo()->prepare('UPDATE machine SET usedby ='
-                                           . ' (SELECT user_id FROM user WHERE login = :used_by)'
-                                           . ' WHERE machine_id = :id');
-		$stmt->bindParam(':id', $this->fields["id"]);
-		$stmt->bindParam(':used_by', $this->fields["usedby"]);
-		$stmt->execute();
-	}
-	
-	/**
 	 * get_usage
 	 * 
 	 * @access public
@@ -966,102 +895,6 @@ class Machine {
 		$stmt = get_pdo()->prepare('UPDATE machine SET `usage` = :usage WHERE machine_id = :id');
 		$stmt->bindParam(':id', $this->fields["id"]);
 		$stmt->bindParam(':usage', $usage);
-		$stmt->execute();
-	}
-
-	/**
-	 * get_expires
-	 *
-	 * @access public
-	 * @return string Expires date and release the machine if it's reservation has expired.
-	 */
-	function get_expires() {
-		if( isset($this->fields["expires"]) ) {
-			$expires = strtotime($this->fields["expires"]);
-			$today = time();
-			$remaining = $expires - $today;
-			if ($remaining > 0) {
-				$days = $remaining/86400;
-				if ($days > 1)
-					return round($days);
-				else
-					return ceil($days);
-			} else if ($remaining < 0 && $expires > 0) { #Check if remaining is negative, then expired, but if expires is also negative, then error.
-				$this->set_used_by('');
-				$this->set_usage('');
-				$this->set_expires(NULL);
-				$this->set_reserved(NULL);
-				return NULL;
-			} else {
-				return NULL;
-			}
-		} else {
-			return NULL;
-		}
-	}
-
-	/**
-	 * get_expires
-	 *
-	 * @access public
-	 * @return string Expires date formated.
-	 */
-	function get_expires_formated() {
-		$days = $this->get_expires();
-		if ($days != NULL)
-			return $days.' days';
-		else
-			return NULL;
-	}
-
-
-	/**
-	 * set_expires
-	 *
-	 * @param string $expires Expiration date of the machine reservation.
-	 * @access public
-	 * @return void
-	 */
-	function set_expires($days) {
-		if ($days != 0 && is_numeric($days)) {
-			$this->set_reserved(date('Y/m/d H:i:s'));
-			$days_sql = 'DATE_ADD(NOW(), INTERVAL :days DAY)';
-		} else {
-			$days = NULL;
-			$days_sql = ':days';
-		}
-		$stmt = get_pdo()->prepare('UPDATE machine SET `expires` = '.$days_sql.' WHERE machine_id = :id');
-		$stmt->bindParam(':id', $this->fields["id"]);
-		$stmt->bindParam(':days', $days);
-		$stmt->execute();
-	}
-	
-	/**
-	 * get_reserved
-	 *
-	 * @access public
-	 * @return string Reserved date.
-	 */
-	function get_reserved() {
-		if( isset($this->fields["reserved"]) ) {
-			$date = date('Y/m/d H:i:s', strtotime($this->fields["reserved"]));
-			return date('Y/m/d', strtotime($date));
-		} else {
-			return NULL;
-		}
-	}
-
-	/**
-	 * set_reserved
-	 *
-	 * @param string $reserved Reservation date of the machine reservation.
-	 * @access public
-	 * @return void
-	 */
-	function set_reserved($reserved) {
-		$stmt = get_pdo()->prepare('UPDATE machine SET `reserved` = :reserved WHERE machine_id = :id');
-		$stmt->bindParam(':id', $this->fields["id"]);
-		$stmt->bindParam(':reserved', $reserved);
 		$stmt->execute();
 	}
 
@@ -1935,7 +1768,6 @@ class Machine {
 		'machine_status_id'=>'machine_status',
 		'affiliation'=>'s',
 		'usage'=>'s',
-		'usedby'=>'i',
 		'anomaly'=>'s',
 		'serialconsole'=>'s',
 		'powerswitch'=>'s',
@@ -1990,24 +1822,35 @@ class Machine {
 			return null;
 		if( !($stmt = get_pdo()->prepare("UPDATE machine SET `$field` = :val WHERE machine_id = :id")) )
 			return null;
-		if( strlen($type)>1 && strlen($value)==0 ) {
-		  $value=null;
+
+		/* pkacer@suse.com: This fixes issue with array to
+		 * string conversion with 'role' field. This also
+		 * checks if the value is in that array. */
+		if (! is_array ($type)) {
+			if (strlen ($type) > 1 && strlen ($value) == 0) {
+				$value = null;
+			}
+		} else {
+			if (! (is_null ($value) || in_array ($value, $type))) {
+				return null;
+			}
 		}
+
 		/* pkacer@suse.com: This fixes issue when a field
 		 * requires NULL value. For backward compatibility
 		 * some fields are not nullable, so the empty string
 		 * '' resulting from `null' is set. */
 		try {
-		  $retval = $stmt->execute (array(':val' => $value, ':id' => $this->fields['machine_id']));
+			$retval = $stmt->execute (array(':val' => $value, ':id' => $this->fields['machine_id']));
 		} catch (PDOException $e) {
-		  if (is_null ($value) ) {
-		    /* There IS a difference between `null' and `NULL'. */
-		    $retval = $stmt->execute (array(':val' => NULL, ':id' => $this->fields['machine_id']));
-		  }
+			if (is_null ($value) ) {
+				/* There IS a difference between `null' and `NULL'. */
+				$retval = $stmt->execute (array(':val' => NULL, ':id' => $this->fields['machine_id']));
+			}
 		}
 
 		if ($retval) {
-		  $this->fields[$field]=$value;
+			$this->fields[$field]=$value;
 		}
 		return $retval;
 	}
@@ -2056,6 +1899,12 @@ class Machine {
 		else
 			return (isset($ret[$values]) ? $ret[$values] : null );
 	}
+
+	public function equals ($machine)
+	{
+		return $this->get_id () == $machine->get_id ();
+	}
+
 }
 
 
@@ -2307,16 +2156,13 @@ class MachineSearch {
     /**
      * Simple filer group. In this group, the condition string is right in the machine table, so we don't need to add_table. This group could be extended.
      * Now it includes:
-     * maintainer_string, used_by, usage, kernel, serialconsole, powerswitch
+     * maintainer_string, usage, kernel, serialconsole, powerswitch
      * 
      * @param string is the column name
      * @return void
      */
     public function filter_maintainer_string($value, $operator = '=') {
         $this->add_condition('maintainer_id', $value, $operator);
-    }
-    public function filter_used_by($value, $operator = '=') {
-        $this->add_condition('usedby', $value, $operator);
     }
     public function filter_usage($value, $operator = '=') {
         $this->add_condition('`usage`', $value, $operator);

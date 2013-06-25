@@ -119,3 +119,23 @@ body
 .left {
     float:left;
 }
+
+input.machineedit {
+    margin:2px;
+    width:230px;
+}
+
+input.dateornote {
+    margin:5px 0px 5px 25px;
+    width:200px;
+}
+
+span.userdet {
+    display:none;
+    visibility:hidden;
+}
+
+input[type="checkbox"][name^="used_by"]:checked + span.username + span.userdet {
+    display:block;
+    visibility:visible;
+}

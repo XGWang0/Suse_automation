@@ -115,7 +115,7 @@ $html_title="Validation test";
 				}
 				foreach ( $validationfiles as &$validationfile ) {
 					if ($machine->send_job($validationfile)) {
-						Log::create($machine->get_id(), $machine->get_used_by_login(), 'JOB_START', "has started the automated build validation for this machine (install + tests)");
+						Log::create($machine->get_id(), $user->getLogin (), 'JOB_START', "has started the automated build validation for this machine (install + tests)");
 					} else {
 						$error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
 					}

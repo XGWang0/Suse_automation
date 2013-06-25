@@ -42,9 +42,11 @@ define('HAMSTA_FRONTEND', 1);
 
 require("globals.php");
 
+require_once ('Zend/Date.php');
 require_once ('lib/Notificator.php');
 require_once ('lib/UserRole.php');
 require_once ('lib/User.php');
+require_once ('lib/ReservationsHelper.php');
 
 require("lib/request.php");
 require("lib/db.php");
@@ -63,7 +65,7 @@ require_once("../tblib/tblib.php");
 
 /* Get currently logged user (if possible). */
 User::authenticate();
-$user = User::getById (User::getIdent (), $config);
+$user = User::getCurrent ();
 
 $go = request_str("go");
 
