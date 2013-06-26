@@ -161,10 +161,13 @@ print (task_icon ( array ('url'		=> 'index.php?go=newvm-win&a_machines[]=' . $ma
         >
           <td><input type="checkbox" name="a_machines[]" value="<?php echo($vm->get_id()); ?>" <?php if (in_array($vm->get_id(), $a_machines)) echo("checked"); ?>></td>
 	  <td title="<?php echo($vm->get_notes()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($vm->get_id()); ?>&amp;highlight=<?php echo($highlight); ?>"><?php echo($vm->get_hostname()); ?></a></td>
-	  <td><?php echo($vm->get_status_string()); if ($vm->get_tools_out_of_date()) echo('<img src="images/exclamation_yellow.png" alt="Tools out of date!" title="Tools out of date(v'.$vm->get_tools_version().')!" width="20" style="float:right; padding-left: 3px;"></img>'); ?></td>
+	  <td><?php echo($vm->get_status_string()); if ($vm->get_update_status ()) echo('<img src="images/exclamation_yellow.png" alt="Tools out of date!" title="Tools out of date(v'.$vm->get_tools_version().')!" width="20" style="float:right; padding-left: 3px;"></img>'); ?></td>
           <?php foreach ($fields_list as $key=>$value){
             $fname = "get_".$key;
-            $res = $vm->$fname();
+	    $res = '';
+	    if (method_exists ($vm, $fname)) {
+		    $res = $vm->$fname();
+	    }
             if (in_array($key, $vm_display_fields))
               echo ("<td>$res</td>");
             }
