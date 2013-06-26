@@ -317,8 +317,4 @@ print (task_icon ( array ('url'		=> 'index.php?go=newvm-win&a_machines[]=' . $ma
     </td>
   </tr>
 </table>
-<?php
-  echo "</div>\n";
-  echo "<div style=\"clear: left;\">&nbsp;</div>\n";
-?>
 </form>
