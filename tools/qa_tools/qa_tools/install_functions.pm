@@ -677,6 +677,15 @@ $postcmd
 				<startmode>auto</startmode>
 			</interface>
 EOF
+                       } elsif( $args->{'newvm'} ) {
+                                print $f <<EOF;
+                        <interface>
+                                <bootproto>dhcp</bootproto>
+                                <device>eth0</device>
+                                <startmode>onboot</startmode>
+                        </interface>
+EOF
+                        last;
 			} elsif($ip) { # phys + VM
 				print $f <<EOF;
 			<interface>

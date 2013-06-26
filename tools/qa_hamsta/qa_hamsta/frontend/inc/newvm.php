@@ -65,6 +65,9 @@ if (request_str("proceed")) {
 	$virtinitmem = request_str("virtinitmem");
 	$virtmaxmem = request_str("virtmaxmem");
 	$virtdisksizes = request_array("virtdisksizes");
+	# Convert GB to MB for disk size.
+	foreach (array_keys($virtdisksizes) as $i) 
+		$virtdisksizes[$i] *= 1024;
 	$virtdisktypes = request_array("virtdisktypes");
 	$validation = request_str("validation");
 	$update = request_str("startupdate");
@@ -144,8 +147,10 @@ if (request_str("proceed")) {
 			$args .= " -D";
 		if ($virtcpu)
 			$args .= " -c $virtcpu";
-		if ($virtdisksizestring and $virtdisktypestring)
+		if ($virtdisksizestring and $virtdisktypestring) {
+			$virtdisktypestring = preg_replace("/def/","file",$virtdisktypestring); 
 			$args .= " -d $virtdisksizestring -T $virtdisktypestring";
+		}
 		#To-do: add disk size/type
 		if (request_str("startupdate") == "update-smt" and $smturl != "")
 			$args .= " -S " . $smturl;
