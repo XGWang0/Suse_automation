@@ -1233,7 +1233,7 @@ sub print_user_can_send_jobs ($)
     my $m_ip = $cmd[2];
 
     my $conf = use_master_authentication ();
-    my $my_machine = machine_get_id_by_ip_usedby ($m_ip, $user_id);
+    my $my_machine = machine_get_id_by_ip_user_id ($m_ip, $user_id);
     my $msj = is_allowed ($user_id, 'machine_send_job');
     my $msjr = is_allowed ($user_id, 'machine_send_job_reserved');
 
