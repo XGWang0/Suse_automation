@@ -213,10 +213,10 @@ print (task_icon ( array ('url'		=> 'index.php?go=newvm-win&a_machines[]=' . $ma
       <img src="../hamsta/images/27/qmark.png" class="icon-small" name="qmark1" id="qmark1" title="actions to selected machine(s)" /></a>
   </div>
   <script type="text/javascript">
-  <!--
-  var TSort_Data = new Array ('<?php echo "vm_".($machine->get_hostname()); ?>','', '0' <?php echo str_repeat(", 'h'",count($vh_display_fields)); ?>);
+  //<!--
+  var TSort_Data = new Array ('<?php echo "vm_".($machine->get_hostname()); ?>','', '0' <?php echo str_repeat(", 'h'",count($vh_display_fields) + 1); ?>);
   tsRegister();
-  -->
+  //-->
   </script>
 </div>
 </form>
