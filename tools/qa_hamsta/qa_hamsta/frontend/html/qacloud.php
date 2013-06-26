@@ -162,14 +162,23 @@ print (task_icon ( array ('url'		=> 'index.php?go=newvm-win&a_machines[]=' . $ma
           <td><input type="checkbox" name="a_machines[]" value="<?php echo($vm->get_id()); ?>" <?php if (in_array($vm->get_id(), $a_machines)) echo("checked"); ?>></td>
 	  <td title="<?php echo($vm->get_notes()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($vm->get_id()); ?>&amp;highlight=<?php echo($highlight); ?>"><?php echo($vm->get_hostname()); ?></a></td>
 	  <td><?php echo($vm->get_status_string()); if ($vm->get_update_status ()) echo('<img src="images/exclamation_yellow.png" alt="Tools out of date!" title="Tools out of date(v'.$vm->get_tools_version().')!" width="20" style="float:right; padding-left: 3px;"></img>'); ?></td>
-          <?php foreach ($fields_list as $key=>$value){
+          <?php foreach ($fields_list as $key=>$value) {
             $fname = "get_".$key;
 	    $res = '';
+	    $title = '';
 	    if (method_exists ($vm, $fname)) {
 		    $res = $vm->$fname();
 	    }
+	    if ($key == 'used_by') {
+		    $rh->getForMachine ($vm);
+		    $users = join (', ', $rh->getUserNames ());
+		    $res = '<div class="ellipsis-no-wrapped machine_table_usedby">'
+			    . $users . '</div>';
+		    $title = $users;
+	    }
+
             if (in_array($key, $vm_display_fields))
-              echo ("<td>$res</td>");
+              echo ("<td title=\"$title\">$res</td>");
             }
           ?>
           <td align="center">
