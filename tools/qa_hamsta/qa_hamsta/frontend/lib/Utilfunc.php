@@ -275,6 +275,44 @@ function group_icons($group,$user)
 	return $ret;
 }
 
+function virtual_machine_icons ($machine, $user)
+{
+	$ret = '';
+	$conf = ConfigFactory::build ();
+	$auth = $conf->authentication->use;
+
+	$mid		= $machine->get_id ();
+	$hostname	= $machine->get_hostname ();
+	$ip		= $machine->get_ip_address();
+
+	$rh		= new ReservationsHelper ();
+	$users_machine	= count ($rh->getForMachineUser ($machine, $user));
+	$number_of_users = count ($rh->getForMachine ($machine));
+	$url_base	= 'index.php?a_machines[]=' . $mid;
+
+	$icons = array (
+		'edit'		=> array ('url' => $url_base . '&go=machine_edit',
+					  'allowed' => ! $auth || $users_machine || ! $number_of_users,
+					  'link' => true),
+		'free'		=> array ('url' => $url_base . '&go=machine_edit&action=clear',
+					  'enbl' => $users_machine),
+		'send-job'	=> array ('url' => $url_base . '&go=machine_send_job'),
+		'vnc'		=> array ('url' => 'http://' . $ip . ':5801'),
+		'terminal'	=> array ('url' => 'http://' . $_SERVER['SERVER_ADDR'] . '/ajaxterm/?host=' . $ip),
+		'delete'	=> array ('url' => $url_base . '&go=del_virtual_machines',
+					  'fullname' => 'Delete virtual machine and all related data of')
+	);
+
+	foreach (array_keys ($icons) as $icon) {
+		$icon_def = array_merge (array (
+				'type'	 => $icon,
+				'object' => $hostname),
+				$icons[$icon]);
+		$ret .= task_icon ($icon_def);
+	}
+	return $ret;
+}
+
 function redirect($args=array())
 {
 	$errmsg=hash_get($args,'errmsg','You need to be logged in and/or have permissions ');

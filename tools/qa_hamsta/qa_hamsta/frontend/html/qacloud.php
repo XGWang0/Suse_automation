@@ -45,21 +45,23 @@ if (!defined('HAMSTA_FRONTEND')) {
     <span>
 
 <?php
+$mid = $machine->get_id ();
+$hname = $machine->get_hostname ();
 if (count ($machine->get_children ()) < 1) {
 	print (task_icon ( array ('url'		=> 'index.php?go=vhreinstall&a_machines[]='
-							. $machine->get_id (),
+							. $mid,
 				  'fullname'	=> 'reinstall',
 				  'type'	=> 'reinstall',
-				  'object'	=> $machine->get_hostname (),
+				  'object'	=> $hname,
 				  'confirm'	=> true
 				   )));
 }
 
 print (task_icon ( array ('url'		=> 'index.php?go=machine_edit&a_machines[]='
-						. $machine->get_id (),
+						. $mid,
 			  'fullname'	=> 'edit',
 			  'type'	=> 'edit',
-			  'object'	=> $machine->get_hostname (),
+			  'object'	=> $hname,
 			   )));
 
 { // Do not create global variables
@@ -73,30 +75,30 @@ print (task_icon ( array ('url'		=> 'index.php?go=machine_edit&a_machines[]='
 	}
 
 	print (task_icon ( array ('url'		=> 'index.php?go=machine_edit&a_machines[]='
-							. $machine->get_id() . '&action=clear',
+							. $mid . '&action=clear',
 				  'fullname'	=> 'Free up',
 				  'type'	=> 'free',
 				  'allowed'	=> $allowed,
 				  'err_noavail'	=> 'You do not have permissions to free '
-							. $machine->get_hostname (),
+							. $hname,
 				  'enbl'	=> $enabled,
-				  'err_noavail'	=> 'You can not free ' . $machine->get_hostname ()
+				  'err_noavail'	=> 'You can not free ' . $hname
 				  . ' because it is already free.',
-				  'object'	=> $machine->get_hostname (),
+				  'object'	=> $hname,
 				  'confirm'	=> true
 				   )));
 }
 
-print (task_icon ( array ('url'		=> 'index.php?go=newvm&a_machines[]=' . $machine->get_id(),
+print (task_icon ( array ('url'		=> 'index.php?go=newvm&a_machines[]=' . $mid,
 			  'type'	=> 'newvm',
 			  'fullname'	=> 'Create a new virtual machine on',
-			  'object'	=> $machine->get_hostname ()
+			  'object'	=> $hname
 			   )));
 
-print (task_icon ( array ('url'		=> 'index.php?go=newvm-win&a_machines[]=' . $machine->get_id(),
+print (task_icon ( array ('url'		=> 'index.php?go=newvm-win&a_machines[]=' . $mid,
 			  'type'	=> 'win',
 			  'fullname'	=> 'Create new Windows virtual machine on',
-			  'object'	=> $machine->get_hostname ()
+			  'object'	=> $hname
 			   )));
 
 ?>
@@ -131,7 +133,7 @@ print (task_icon ( array ('url'		=> 'index.php?go=newvm-win&a_machines[]=' . $ma
 					$title = sprintf (' title="%s"', $res);
 				}
 			}
-			printf ('<tr><th>%1$s</th><td><div%2$s%3$s%4$s>%5$s</div></td></tr>' . PHP_EOL,
+			printf ('<tr><th style="width:5em;display:block">%1$s</th><td><div%2$s%3$s%4$s>%5$s</div></td></tr>' . PHP_EOL,
 				$value, $class, $style, $title, $res);
 		}
 	}
@@ -182,24 +184,11 @@ print (task_icon ( array ('url'		=> 'index.php?go=newvm-win&a_machines[]=' . $ma
             }
           ?>
           <td align="center">
-            <a href="index.php?go=machine_edit&amp;a_machines[]=<?php echo($vm->get_id()); ?>"><img src="images/icon-edit.png" alt="Edit/reserve this machine" title="Edit/reserve <?php echo($vm->get_hostname()); ?>" border="0" width="20" style="padding-right: 3px;" /></a>
-            <?php
-               echo "\t\t\t<img src=\"images/icon-free.png\" alt=\"Free up this machine\" title=\"Free up ". $vm->get_hostname()."\" border=\"0\" " ."width=\"20\" style=\"padding-right: 3px;\" " . "onclick=\"";
-		 $rh->getForMachine ($vm);
-                 if( count ($rh->getReservations ())) {
-                   echo "alert('You do not have this machine reserved.');";
-                 } else {
-                   echo "var r = confirm('This will remove you from the list of users of this machine. Are you sure you want to continue?');" .
-                   "if(r==true) {" .
-                     "window.location='index.php?go=machine_edit&amp;a_machines[]=" . $vm->get_id() . "&amp;action=clear';" .
-                   "}";
-                 }
-                   echo "\" />\n";
-              ?>
-            <a href="index.php?go=machine_send_job&amp;a_machines[]=<?php echo($vm->get_id()); ?>"><img src="images/icon-send-job.png" alt="Send a job to this machine" title="Send a job to <?php echo($vm->get_hostname()); ?>" border="0" width="20" style="padding-right: 3px;" /></a>
-            <a href="http://<?php echo($vm->get_ip_address()); ?>:5801" target="_blank"><img src="images/icon-vnc.png" alt="Open a VNC viewer" title="Open a VNC viewer on <?php echo($vm->get_hostname());?>" border="0" width="20" style="padding-right: 3px;" /></a>
-            <a href="http://<?php echo($_SERVER['SERVER_ADDR']); ?>/ajaxterm/?host=<?php echo($vm->get_ip_address()); ?>" target="_blank"><img src="images/icon-terminal.png" alt="Access the terminal" title="Access the terminal on <?php echo($vm->get_hostname());?>" border="0" width="20" style="padding-right: 3px;" /></a>
-            <a href="index.php?go=del_virtual_machines&amp;a_machines[]=<?php echo($vm->get_id()); ?>"><img src="images/icon-delete.png" alt="Delete this virtual machine and all related data" title="Delete <?php echo($vm->get_hostname()); ?> and all related data" border="0" width="20" style="padding-right: 3px;" /></a>
+<?php
+
+print (virtual_machine_icons ($vm, $user));
+
+?>
           </td>
          </tr>
       <?php endforeach; ?>
