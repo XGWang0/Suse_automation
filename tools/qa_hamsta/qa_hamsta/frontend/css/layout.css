@@ -139,3 +139,13 @@ input[type="checkbox"][name^="used_by"]:checked + span.username + span.userdet {
     display:block;
     visibility:visible;
 }
+
+div.other_users {
+    display:block;
+    visibility:visible;
+}
+
+input[type="checkbox"][name="show_others"]:not(:checked) + div.other_users {
+    display:none;
+    visibility:hidden;
+}

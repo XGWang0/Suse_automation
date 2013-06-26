@@ -84,27 +84,27 @@ foreach ($machines as $machine) {
 	$logged_user_line = '';
 	$user_lines = array ();
 	$counterAddValue++;
-	foreach ($all_users as $user) {
-		$is_res = $rh->isReservator ($user);
+	foreach ($all_users as $usr) {
+		$is_res = $rh->isReservator ($usr);
 		$expires = '';
 		$note = '';
 		if ($is_res) {
-			$res = $rh->getForMachineUser ($machine, $user);
+			$res = $rh->getForMachineUser ($machine, $usr);
 			$expires = $rh->getFormattedDate ($res->getExpires ());
 			$note = $res->getUserNote ();
 		}
 
 		$checkbox_id = 'used_by_' . $machine->get_id () . '[]';
-		$machine_user_id = $machine->get_id () . '[' . $user->getId () . ']';
+		$machine_user_id = $machine->get_id () . '[' . $usr->getId () . ']';
 		$expires_id = 'expires_' . $machine_user_id;
 		$user_note_id = 'user_note_' . $machine_user_id;
 		$checked = ($is_res ? ' checked="checked"' : '' );
 		$user_text  = '      <input type="checkbox" '
 			. 'name="' . $checkbox_id . '" tabindex="'
 			. $counterAddValue . '" value="'
-			. $user->getId () . '"' . $checked . '>'
+			. $usr->getId () . '"' . $checked . '>'
 			. '<span class="username">'
-			. $user->getNameOrLogin ()
+			. $usr->getNameOrLogin ()
 			. '</span>' . PHP_EOL
 			. '<span class="userdet">' . PHP_EOL
 			. '<input type="datetime"  pattern="\d{4}-\d{2}-\d{2}"'
@@ -114,7 +114,7 @@ foreach ($machines as $machine) {
 			. ' name="' . $user_note_id . '" value="' . $note . '"/>' . PHP_EOL
 			. '</span>';
 		/* Put logged in user at the top of the list. */
-		if ($user->equals ($current_user)) {
+		if ($usr->equals ($current_user)) {
 			$logged_user_line = $user_text;
 		} else {
 		/* Checkbox, expires and user name or login */
@@ -123,8 +123,20 @@ foreach ($machines as $machine) {
 	}
 
 	$to_column = $logged_user_line;
-	$to_column .= '<div id="other_users">' . PHP_EOL;
-	$to_column .= join ('<br />' . PHP_EOL, $user_lines) . PHP_EOL;
+	$how_many_other = count ($all_users) - 1;
+	if (isset ($user) && $how_many_other) {
+		$to_column .= '<div><input type="checkbox" name="show_others"/>Show me also other '
+			. $how_many_other . ($how_many_other > 1 ? ' users' : ' user');
+	}
+	$to_column .= '<div id="other_users" class="other_users">' . PHP_EOL;
+	if (count ($user_lines)) {
+		$to_column .= '<div>';
+		$to_column .= join ('</div>' . PHP_EOL . '<div>' . PHP_EOL, $user_lines) . PHP_EOL;
+		$to_column .= '</div>';
+	}
+	if (isset ($user) && $how_many_other) { // Closes the div with many users
+		$to_column .= '</div>';
+	}
 	$to_column .= '</div>' . PHP_EOL;
 
 	$counterAddValue++;
