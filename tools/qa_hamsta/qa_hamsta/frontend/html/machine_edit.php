@@ -109,9 +109,10 @@ foreach ($machines as $machine) {
 			. '<span class="userdet">' . PHP_EOL
 			. '<input type="datetime"  pattern="\d{4}-\d{2}-\d{2}"'
 			. ' title="YYYY-MM-DD" class="machineedit dateornote" name="'
-			. $expires_id . '" value="' . $expires . '" />'
+			. $expires_id . '" value="' . $expires . '" placeholder="Enter a date of expiration"/>'
 			. '<input type="text" class="machineedit" maxlength=64'
-			. ' name="' . $user_note_id . '" value="' . $note . '"/>' . PHP_EOL
+			. ' name="' . $user_note_id . '" value="' . $note
+			. '" placeholder="Enter your personal note"/>' . PHP_EOL
 			. '</span>';
 		/* Put logged in user at the top of the list. */
 		if ($usr->equals ($current_user)) {
