@@ -52,6 +52,11 @@ div.text-main	{ padding: 0.2em; }
 {
 	text-align: center;
 }
+
+.text-left {
+    text-align:left;
+}
+
 .bold
 {
 	font-weight: bold;

@@ -149,3 +149,13 @@ input[type="checkbox"][name="show_others"]:not(:checked) + div.other_users {
     display:none;
     visibility:hidden;
 }
+
+th.cloudtableheader {
+    width:6em;
+    display:block;
+}
+
+div.cloudtablevalues {
+    width:25em;
+    display:block !important;
+}

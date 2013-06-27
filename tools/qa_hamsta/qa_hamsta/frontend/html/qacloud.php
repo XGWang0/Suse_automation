@@ -119,8 +119,7 @@ print (task_icon ( array ('url'		=> 'index.php?go=newvm-win&a_machines[]=' . $mi
 		if (in_array($key, $vh_display_fields)) {
 			$res = '';
 			$fname = "get_".$key;
-			$class = ' class="ellipsis-no-wrapped"';
-			$style = ' style="width:30em;display:block;"';
+			$class = ' class="ellipsis-no-wrapped cloudtablevalues"';
 			$title = '';
 			if ($key == 'used_by') {
 				$rh = new ReservationsHelper ();
@@ -133,8 +132,8 @@ print (task_icon ( array ('url'		=> 'index.php?go=newvm-win&a_machines[]=' . $mi
 					$title = sprintf (' title="%s"', $res);
 				}
 			}
-			printf ('<tr><th style="width:5em;display:block">%1$s</th><td><div%2$s%3$s%4$s>%5$s</div></td></tr>' . PHP_EOL,
-				$value, $class, $style, $title, $res);
+			printf ('<tr><th class="text-left cloudtableheader">%1$s</th><td><div%2$s%3$s>%4$s</div></td></tr>' . PHP_EOL,
+				$value, $class, $title, $res);
 		}
 	}
       ?>
