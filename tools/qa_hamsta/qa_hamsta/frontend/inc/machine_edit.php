@@ -37,7 +37,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 
 require_once ('lib/MachineEditController.php');
 
-$edit_fields = array('used_by'			=> 'Used By',
+$edit_fields = array('used_by'			=> 'Reservations',
 		     'usage'			=> 'Usage',
 		     'maintainer_string'	=> 'Maintainer',
 		     'anomaly'			=> 'Notes',

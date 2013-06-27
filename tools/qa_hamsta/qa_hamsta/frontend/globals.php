@@ -143,7 +143,7 @@
 	$fields_list = array(
 		'hostname'=>'Hostname',
 		'status_string'=>'Status',
-		'used_by'=>'Used By',
+		'used_by'=>'Reservations',
 		'usage'=>'Usage',
 		'job_overview'=>'Job Overview',
 		'group'=>'Group',

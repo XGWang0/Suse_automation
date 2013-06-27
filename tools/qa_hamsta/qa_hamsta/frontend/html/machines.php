@@ -114,9 +114,9 @@ if (! empty ($s_anything))
   <thead>
 	<tr>
 		<th><input type="checkbox" onChange='chkall("machine_list", this)'></th>
-		<th>Hostname</th>
-		<th>Status</th>
-		<th>Used by</th>
+		<th><?php print ($fields_list['hostname']); ?></th>
+		<th><?php print ($fields_list['status_string']); ?></th>
+		<th><?php print ($fields_list['used_by']); ?></th>
 		<?php
 			foreach ($fields_list as $key=>$value)
                                 if (isset ($display_fields) && in_array($key, $display_fields))

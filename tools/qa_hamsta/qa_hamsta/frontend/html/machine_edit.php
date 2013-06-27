@@ -35,7 +35,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 $table = array();
 $tableHeadings = array ('Name',
 			'*Perm',
-			$edit_fields['used_by'] . '<br/>Expires&nbsp;User note',
+			$edit_fields['used_by'],
 			$edit_fields['usage'],
 			$edit_fields['maintainer_string'],
 			$edit_fields['affiliation'],
