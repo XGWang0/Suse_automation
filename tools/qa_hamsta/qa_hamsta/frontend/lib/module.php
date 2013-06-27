@@ -8,7 +8,7 @@
  * @version $Rev: 1638 $
  *
  * @copyright
- * Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.<br />
+ * Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.<br />
  * <br />
  * THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
  * CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
