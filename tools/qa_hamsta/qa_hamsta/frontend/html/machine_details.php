@@ -41,11 +41,17 @@ if (!defined('HAMSTA_FRONTEND')) {
 		<th>&nbsp;</th>
 	</tr>
 <?php
+	$rh = new ReservationsHelper ($machine);
 	foreach ($fields_list as $key=>$value) {
 		$arr_res = array();
 		$fstring = "get_".$key;
-		$valuer = $machine->$fstring();
-		if (is_array($valuer)) { #get_group will return an array
+		$valuer = null;
+
+		if (method_exists ($machine, $fstring)) {
+			$valuer = $machine->$fstring();
+		}
+
+		if (isset ($valuer) && is_array($valuer)) { #get_group will return an array
 			foreach ($valuer as $tmparr) 
 				$arr_res[] = $tmparr[0];
 			echo ("<tr><td>$value</td><td>");
@@ -56,20 +62,16 @@ if (!defined('HAMSTA_FRONTEND')) {
 				foreach ($arr_res as $res)
 					echo ("<a href=index.php?go=machines&amp;".$key."=".urlencode($res).">Search_".$res."</a> ");
 		} else {
-			if (! strcmp ($key, "used_by")) {
-				$cur_user = User::getById ($valuer, $config);
-				if (isset ($cur_user)) {
-					$user_name = $cur_user->getName();
-					$user_name = (strlen ($user_name) < 1) ? $cur_user->getLogin() : $user_name;
-				} else {
-					$user_name = $valuer;
-				}
-				echo ("<tr><td>$value</td><td>$user_name</td><td>");
+			if (in_array ($key, array ('used_by', 'reserved'))) {
+				echo ("<tr><td>$value</td><td>"
+				      . $rh->printUsersToTable ()
+				      ."</td><td>");
 			} else {
 				echo ("<tr><td>$value</td><td>$valuer</td><td>");
+				if ($valuer != NULL && method_exists('MachineSearch',"filter_$key")) {
+					echo("<a href=index.php?go=machines&amp;".$key."=".urlencode($valuer).">Search</a>");
+				}
 			}
-			if ($valuer != NULL && method_exists('MachineSearch',"filter_$key"))
-				echo("<a href=index.php?go=machines&amp;".$key."=".urlencode($valuer).">Search</a>");
 		}
 		echo "</td></tr>";
 	}

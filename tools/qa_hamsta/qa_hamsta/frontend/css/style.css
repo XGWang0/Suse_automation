@@ -287,3 +287,7 @@ label.patterns {
     width:200px;
     float:left;
 }
+
+div.machine_table_usedby {
+    width:10em;
+}

@@ -203,7 +203,7 @@ else if( request_str('submit') )
 			}
 
 			if($machine->send_job($path)) {
-				Log::create($machine->get_id(), $machine->get_used_by_login(), 'JOB_START', "has sent a \"multi-machine\" job including this machine (Job name: \"" . htmlspecialchars(basename($filename)) . "\")");
+				Log::create($machine->get_id(), $user->getLogin (), 'JOB_START', "has sent a \"multi-machine\" job including this machine (Job name: \"" . htmlspecialchars(basename($filename)) . "\")");
 			} else {
 				$errors[] = $machine->get_hostname() . ': ' . $machine->errmsg;
 			}

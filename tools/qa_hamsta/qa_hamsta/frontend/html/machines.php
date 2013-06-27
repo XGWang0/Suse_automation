@@ -138,11 +138,14 @@ if (! empty ($s_anything))
     <td title="<?php echo($machine->get_notes()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>&amp;highlight=<?php echo($highlight); ?>"><?php echo($machine->get_hostname()); ?></a><?php if ($machine->count_host_collide() >= 2) echo '<img src="images/27/host-collide.png" class="icon-notification" title="Hostnames collide! Merge or delete machine if MAC was changed, otherwise rename it.">'; ?></td>
 		    
     <td><?php echo($machine->get_status_string());
-	$users_machine = isset ($user) && $user->getId () == $machine->get_used_by ();
+	$rh = new ReservationsHelper ();
+	if (isset ($machine) && isset ($user)) {
+		$users_machine = $rh->getForMachineUser ($machine, $user);
+	}
 	if ($machine->get_update_status())
 	  {
 	    if ($config->authentication->use && ! (isset ($user)
-			       && (($users_machine && $user->isAllowed ('machine_reinstall'))
+		&& ((isset ($users_machine) && $user->isAllowed ('machine_reinstall'))
 				   || ($user->isAllowed ('machine_reinstall_reserved')))))
 	      {
 		echo('<img src="images/27/exclamation_gray.png" class="icon-notification" alt="Tools out of date!" title="Tools out of date. You cannot update ' . $machine->get_hostname () . ' if not logged in, without privileges or if it is reserved by another user." onclick="alert(\'You cannot update this machine.\');">');
@@ -154,20 +157,24 @@ if (! empty ($s_anything))
 	  }
 
 	if ($machine->get_devel_tools()) echo('<img src="images/27/gear-cog_blue.png" class="icon-notification" alt="Devel Tools" title="Devel Tools">'); ?></td>
-	<?php $used_by_name = $machine->get_used_by_name($config);
-                        echo ('<td>' . ( isset ($used_by_name)
-                                             ? $used_by_name
-                                             : $machine->get_used_by_login())
-                              . "</td>\n"); ?>
 <?php
-  foreach ($fields_list as $key=>$value)
-  {
-    $fname = "get_".$key;
-    $res = $machine->$fname();
-    if (isset ($display_fields) && in_array($key, $display_fields))
-      echo ("    <td>$res</td>\n");
-  }
-		?>
+$rh = new ReservationsHelper ($machine);
+$users_string = $rh->prettyPrintUsers ();
+print ('<td title="' . $users_string
+       . '"><div class="ellipsis-no-wrapped machine_table_usedby">'
+       . $users_string . "</div></td>\n");
+
+foreach ($fields_list as $key=>$value)
+{
+	$res = '';
+	$fname = "get_".$key;
+	if (method_exists ($machine, $fname)) {
+		$res = $machine->$fname();
+	}
+	if (isset ($display_fields) && in_array($key, $display_fields))
+		echo ("\t<td>$res</td>\n");
+}
+?>
 		<td align="center">
 
 <?php print machine_icons($machine,$user); ?>
