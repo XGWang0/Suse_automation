@@ -109,7 +109,7 @@ foreach ($machines as $machine) {
 			. '<span class="userdet">' . PHP_EOL
 			. '<input type="datetime"  pattern="\d{4}-\d{2}-\d{2}"'
 			. ' title="YYYY-MM-DD" class="machineedit dateornote" name="'
-			. $expires_id . '" value="' . $expires . '" placeholder="Enter a date of expiration"/>'
+			. $expires_id . '" value="' . $expires . '" placeholder="Date of expiration: YYYY-MM-DD"/>'
 			. '<input type="text" class="machineedit" maxlength=64'
 			. ' name="' . $user_note_id . '" value="' . $note
 			. '" placeholder="Enter your personal note"/>' . PHP_EOL
