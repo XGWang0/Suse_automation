@@ -1,5 +1,5 @@
 -- This relation is introduced because we want more users to be able to reserve the same machine.
-CREATE TABLE `user_machine` (
+CREATE TABLE IF NOT EXISTS `user_machine` (
        `machine_id`	integer NOT NULL COMMENT 'Reference to the reserved machine.',
        `user_id`	integer NOT NULL COMMENT 'Reference to the user having the reservation.',
        `user_note`	varchar(64) DEFAULT NULL COMMENT 'Description from the reservating person.',
