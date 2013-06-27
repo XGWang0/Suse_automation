@@ -364,7 +364,7 @@ class User {
 		$conf = ConfigFactory::build ();
 		if (User::isLogged ()
 		    && User::isRegistered (User::getIdent (), $conf)) {
-			return User::getByLogin (User::getIdent (), $conf);
+			return User::getById (User::getIdent ());
 		}
 		return null;
 	}
