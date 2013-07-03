@@ -1,0 +1,184 @@
+body  {
+/*  background-color: #fff; */
+  font-family:arial,sans-serif;
+  font-size: 16px;
+}
+
+/* header */
+h1 {
+  font-size: 1.5em;
+  padding-left:3em;
+  width: 90%;
+  background-color:#fff;
+}
+
+/* table's colors etc. */
+table#machines {
+  margin: 0.5em 0 0.5em 0;
+  padding-left: 4em;
+  border-spacing: 2px 3px;
+  empty-cells: show;
+}
+table#machines th {
+  background-color: #f68f09;
+}
+table#machines tbody {
+  background-color: #ccc;
+}
+table#machines td, table#machines th {
+  padding:0.1em 0.2em 0.1em 0.2em;
+  border: solid white;
+  border-width:0 0 0 1px;
+}
+table#machines td:last-child, table#machines th:last-child {
+  border-right-width:1px;
+}
+table#machines th {
+  border-top-width:1px;
+}
+table#machines tr {
+  box-shadow: 0px 2px 3px #000;
+  -webkit-box-shadow: 0px 2px 3px #000;
+  -moz-box-shadow: 0px 2px 3px #000;
+}
+tr.up {
+  background-color:#300;
+}
+tr.down {
+  background-color:#fcc;
+}
+
+/* general form settings */
+form, table#adv_tbl  {
+  font-weight:bold;
+  font-size:0.9em;
+  display:table;
+}
+select {
+  font-size:0.8em;
+}
+input[type="submit"]  {
+  font-weight:bold;
+}
+
+
+/* blue boxes */
+form#filter,form#fields,form#action {
+  background-color:#f68f09;
+  box-shadow: 2px 2px 2px #000;
+  -webkit-box-shadow: 2px 2px 2px #000;
+  -moz-box-shadow: 2px 2px 2px #000;
+  border:solid black;
+  border-width:1px 0 0 1px;
+}
+/* fields form */
+select#fields  {
+  font-size:0.7em;
+}
+form#fields  select[multiple]  {
+  margin: 1em 0 1em 0;
+}
+form#fields  {
+  position: fixed;
+  top: 10em;
+  right:-9em;
+/*  right:0; */
+  padding: 0 1em 1em 3em;
+}  
+form#fields:hover {
+  right:0;
+}
+form#fields h3  {
+  position: absolute;
+  transform: rotate(90deg);
+  -ms-transform:rotate(90deg);
+  -moz-transform:rotate(90deg);
+  -webkit-transform:rotate(90deg);
+  left:-2.5em;
+  top:8em;
+}
+/* action */
+form#action  {
+  position: fixed;
+  padding: 1.5em;
+  margin-left:-1em;
+  left:-16em;
+  bottom: 3em;
+}
+form#action:hover {
+  left:0;
+}
+form#action h3  {
+  transform: rotate(270deg);
+  -ms-transform:rotate(270deg);
+  -moz-transform:rotate(270deg);
+  -webkit-transform:rotate(270deg);
+  float:right;
+  margin-right:-2em;
+}
+form#action input[type="submit"]{
+  margin: 0.5em 5em;
+}
+
+/* animations */
+form#action, form#fields, div#advanced {
+  transition-property: opacity, visibility, left, right, height;
+  transition-duration: 0.5s;
+  transition-timing-function: ease-in-out;
+}
+
+/* main search box */
+input.hider { display:none; }
+div#advanced  {
+  visibility:hidden;
+  height:0;
+  opacity:0;
+}
+input.hider:checked+div#advanced  {
+  visibility:visible;
+  opacity:1;
+  height:9em;
+}
+#label_advanced {
+  margin-left: 3em;
+}
+form#filter {
+  margin-left: 4.5em;
+}
+form#filter input[type="checkbox"]  {
+  position: relative;
+  top:2px;
+}
+form#filter > div {
+  margin: 0.5em 1.5em;
+}
+input.inputctrl  {
+  border: none;
+  background-color: #fff;
+  float:left;
+  height: 20px;
+}
+input#displmatch  {
+  margin-left: 1em;
+}
+label#displabel  {
+  font-size:0.7em
+}
+
+/* fulltext search field */
+div#fulltext_input {
+  background-color: #fff;
+  display:inline;
+  border: solid 1px #000;
+  float:left;
+}
+div#fulltext_input #x {
+  font-weight: bold;
+  color: #c63;
+}
+div#fulltext_input #submit {
+  color: transparent;  
+  background: url(http://marge.qa.suse.cz/search.png) no-repeat #79d center;
+  width: 50px;
+}
+

@@ -108,7 +108,91 @@ if (! empty ($s_anything))
   }
 
 ?>
+<form id="filter">
+                <div>
+                        Machines:
+                        <input type="checkbox" name="my" id="my"/>
+                        <label for="my">my</label>
+                        <input type="checkbox" name="free" id="free"/>
+                        <label for="free">free</label>
+                        <input type="checkbox" name="others" id="others"/>
+                        <label for="others">others</label>
 
+                        <label for="show_advanced" id="label_advanced">&dArr; advanced &dArr;</label>
+                        <input type="checkbox" name="show_advanced" id="show_advanced" class="hider"/>
+                        <div id="advanced">
+                                <table id="adv_tbl">
+                                        <tr>
+                                                <th>hwinfo result: </th>
+                                                <td>
+                                                        <select name="s_anything_operator">
+                                                                <option value="like"
+                                                                        >contains</option>
+                                                                <option value="equals"
+                                                                        >is</option>
+                                                        </select>
+                                                        <input name="s_anything" value=''/>
+                                                </td>
+                                        </tr>
+                                        <tr>
+                                                <th valign="top">Installed Arch: </th>
+                                                <td>
+                                                        <select name="architecture">
+                                                                <option value="">Any</option>
+                                                                <option value="" selected="selected"></option>
+                                                                <option value="i586">i586</option>
+                                                                <option value="ia64">ia64</option>
+                                                                <option value="ppc64">ppc64</option>
+                                                                <option value="s390x">s390x</option>
+                                                                <option value="x86_64">x86_64</option>
+                                                                <option value="xen0-x86_64">xen0-x86_64</option>
+                                                                <option value="xenU-x86_64">xenU-x86_64</option>
+                                                        </select>
+                                                </td>
+                                        </tr>
+                                        <tr>
+                                                <th valign="top">CPU Arch: </th>
+                                                <td>
+                                                        <select name="architecture_capable">
+                                                                <option value="">Any</option>
+                                                                <option value="i586">i586</option>
+                                                                <option value="ia64" selected="selected">ia64</option>
+                                                                <option value="ppc64">ppc64</option>
+                                                                <option value="s390x">s390x</option>
+                                                                <option value="x86_64">x86_64</option>
+                                                        </select>
+                                                </td>
+                                        </tr>
+                                        <tr>
+                                                <th valign="top">Status: </th>
+                                                <td>
+                                                        <select name="status_string">
+                                                                <option value="">Any</option>
+                                                                <option value="down">down</option>
+                                                                <option value="not responding">not responding</option>
+                                                                <option value="unknown">unknown</option>
+                                                                <option value="up">up</option>
+                                                        </select>
+                                                </td>
+                                        </tr>
+                                        <tr><th>Type</th><td><select name="type">
+                                                                <option value="hw">hw</option>
+                                                                <option value="vm">vm</option>
+                                                        </select></td></tr>
+                                </table>
+
+                        </div>
+                </div>
+                <div>
+                        <nobr>
+                        <div id="fulltext_input">
+                                <input type="text" id="fulltext" name="fulltext" class="inputctrl" placeholder="Fulltext search"/>
+                                <input type="button" value="x" name="x" id="x" class="inputctrl"/>
+                                <input type="submit" value="search" id="submit" class="inputctrl"/>
+                        </div>
+                        <input type="checkbox" name="displmatch" id="displmatch"/><label for="displmatch" id="displabel">display matching columns</label></nobr>
+                </div>
+</form>
 <form action="index.php?go=machines" method="post" name="machine_list" onSubmit="return checkcheckbox(this)">
 <table class="list text-main" id="machines">
   <thead>
@@ -189,190 +273,51 @@ foreach ($fields_list as $key=>$value)
 tsRegister();
 -->
 </script>
+</form>
+<form id="action">
+<h3>&darr;  Action  &darr;</h3>
 <select name="action">
 <!--  <option value="">No action</option> -->
   <option value="machine_send_job">Send job</option>
   <option value="addsut">Add SUT</option>
   <option value="edit">Edit/reserve</option>
-  <option value="machine_reinstall">Reinstall</option> 
+  <option value="machine_reinstall">Reinstall</option>
   <option value="create_group">Add to group</option>
   <option value="group_del_machines">Remove from group</option>
-  <option value="vhreinstall">Reinstall as Virtualization Host</option> 
-  <option value="upgrade">Upgrade to higher</option> 
+  <option value="vhreinstall">Reinstall as Virtualization Host</option>
+  <option value="upgrade">Upgrade to higher</option>
 <!--   <option value="create_autobuild">Add to Autobuild</option> -->
 <!--   <option value="delete_autobuild">Remove from Autobuild</option> -->
   <option value="merge_machines">Merge machines</option>
   <option value="machine_config">Configure machines</option>
   <option value="delete">Delete</option>
 </select>
+<br/>
 <input type="submit" value="Go">
-<a href="../hamsta/helps/actions.html" target="_blank">
-  <img src="../hamsta/images/27/qmark.png" class="icon-small" name="qmark1" id="qmark1" title="actions to selected machine(s)" />
-</a>
 </form>
-<?php
-	# Left column, search box
-	echo "<div style=\"float: left; width: 425px;\">";
-?>
-<h2 class="text-medium text-blue bold">Search</h2>
-<div class="text-main">Change the fields below and then hit "Search" to filter the above list of machines based on your selections.</div><br />
-<form action="index.php?go=machines" method="post">
-<table class="sort text-main" style="border: 1px solid #cdcdcd;">
-	<tr>
-		<th>hwinfo result: </th>
-		<td>
-			<select name="s_anything_operator">
-				<option value="like"
-   <?php if (! empty ($s_anything)
-	     && ! empty ($s_anything_operator)
-	     && $s_anything_operator == 'LIKE')
-	{
-	    echo(' selected="selected"');
-	}
-  ?>>contains</option>
-				<option value="equals"
-  <?php if (! empty ($s_anything)
-	     && ! empty ($s_anything_operator)
-	     && $s_anything_operator == "=")
-	  {
-	    echo(' selected="selected"');
-	  }
-  ?>>is</option>
-			</select>
-			<input name="s_anything" value='<?php
+<form id="fields">
+        <h3>&darr;  Display fields  &darr;</h3>
+        <select name="d_fields[]" size=<?php echo sizeof($fields_list);?> multiple="multiple" id="fields">
+        <?php
+                foreach ($fields_list as $key=>$value)
+                {
+                    /* Due to connection of displayed fields and
+                     * filters I had to add an exception
+                     * here. */
+                    if (in_array ($key, $default_fields_list))
+                    {
+                        continue;
+                    }
+                    echo("\t\t\t\t\t<option value=$key");
+                    if ( isset ($display_fields ) && in_array($key, $display_fields))
+                    {
+                        echo(' selected="selected"');
+                    }
+                echo (">$value</option>\n");
+                }
+        ?>
 
-	if (!empty ($s_anything))
-	  {
-		echo ($s_anything);
-	  }
-?>'>
-			<a href="../hamsta/helps/hwinfo.html" target="_blank">
-			<img src="../hamsta/images/27/qmark.png" class="icon-small" name="qmark2" id="qmark2" title="hwinfo search" /></a>
-		</td>
-	</tr>
-	<tr>
-		<th valign="top">Installed Arch: </th>
-		<td>
-			<select name="architecture">
-				<option value="">Any</option>
-				<?php foreach(Machine::get_architectures() as $archid => $arch): ?>
-					<option value="<?php echo($arch); ?>"
-  <?php	/* Function from include/Util.php*/
-	$arch_reqest = request_str('architecture');
-	if (isset ($ns_machine_filter) && machine_filter_value_selected ('architecture', $arch, $ns_machine_filter))
-		{
-			echo(' selected="selected"');
-		}
-  ?>><?php echo($arch);
-  ?></option>
-				<?php endforeach;?>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<th valign="top">CPU Arch: </th>
-		<td>
-			<select name="architecture_capable">
-				<option value="">Any</option>
-				<?php foreach(Machine::get_architectures_capable() as $archid => $arch): ?>
-					<option value="<?php echo($arch); ?>"
-	  <?php	if (isset ($ns_machine_filter) && machine_filter_value_selected ('architecture_capable', $arch, $ns_machine_filter))
-		{
-			echo(' selected="selected"');
-		}
-  ?>><?php echo($arch); ?></option>
-				<?php endforeach;?>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<th valign="top">Status: </th>
-		<td>
-			<select name="status_string">
-				<option value="">Any</option>
-				<?php foreach(Machine::get_statuses() as $status_id => $status_string): ?>
-					<option value="<?php echo($status_string); ?>"
-	  <?php if (isset ($ns_machine_filter) && machine_filter_value_selected ('status_string', $status_string, $ns_machine_filter))
-	{
-		echo(' selected="selected"');
-	}
-  ?>><?php echo($status_string); ?></option>
-				<?php endforeach;?>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<th valign="top">Display fields: </th>
-		<td>
-		<select name="d_fields[]" size=<?php echo sizeof($fields_list);?> multiple="multiple">
-		  <?php
-			foreach ($fields_list as $key=>$value)
-			{
-			  /* Due to connection of displayed fields and
-			   * filters I had to add an exception
-			   * here. */
-			  if (in_array ($key, $default_fields_list))
-			    {
-			      continue;
-			    }
-
-			  echo("\t\t\t\t\t<option value=$key");
-
-			  if ( isset ($display_fields ) && in_array($key, $display_fields))
-			    {
-			      echo(' selected="selected"');
-			    }
-
-			  echo (">$value</option>\n");
-			}
-		  ?>
-		</select>
-		</td>
-	</tr>
-	<tr>
-		<td colspan="2" align="center">
-                  <input type="submit" value="Search" name="set" style="background-color: #eeeeee; width: 100%; padding: 3px;" class="text-medium">
-                  <input type="submit" value="Reset" name="reset" style="background-color: #eeeeee; width: 100%; padding: 3px;" class="text-medium">
-		</td>
-	</tr>
-</table>
+        </select>
+        <br/>
+        <input type="submit" value="show"/>
 </form>
-</div>
-<?php
-	/* Right column, latest features (here temporarily until we get a flashy new global WebUI).
-         * PK: Will we? */
-        /* TODO fix ampersands */
-	echo "<div style=\"float: left; width: 425px; margin-left: 20px;\">\n";
-		echo "<h2 class=\"text-medium text-blue bold\">Latest Features</h2>\n";
-		echo "<div class=\"text-main\">We are always working hard to create new, useful features to make your testing easier. Below, you will find just a few of these new capabilities that have been added recently. Check back here after each release to see what's new!</div><br />\n";
-		echo "<div style=\"border: 1px solid #cdcdcd; padding: 5px;\" class=\"text-main\">\n";
-			echo "<div style=\"border: 0px solid green;\">\n";
-			$totalFeatureCount = 0;
-			$maximumToShow = 10;
-			foreach($latestFeatures as $release => $featureArray)
-			{
-				echo ($totalFeatureCount == 0 ? "" : "<br /><br />") . "<div class=\"text-main text-orange bold\">$release Release</div>\n";
-				for($i = 0; $i < count($featureArray); $i++)
-				{
-					# Should we show a "See More" button?
-					$totalFeatureCount++;
-					if($totalFeatureCount > $maximumToShow)
-					{
-						echo "\t<div id=\"morefeatures-button\" style=\"border: 0px solid red;\"><br /><a href=\"#\" onclick=\"document.getElementById('morefeatures').style.display = 'block'; document.getElementById('morefeatures-button').style.display = 'none'; document.getElementById('morefeatures-button-2').style.display = 'block';\">See More</a></div>\n";
-						echo "</div>\n";
-						echo "<div id=\"morefeatures\" style=\"display: none; border: 0px solid blue;\">\n";
-					}
-					# Actually show the feature
-					$descriptionSplit = explode(" -- ", $featureArray[$i], 3);
-					echo ($totalFeatureCount != $maximumToShow+1 ? "<br />" : "") . "&bull; <strong>$descriptionSplit[0]:</strong> $descriptionSplit[1] <a href=\"#\" onclick=\"window.open('../hamsta/helps/LatestFeatures.php?release=$release&index=$i', 'channelmode', 'width=550, height=450, top=250, left=450')\" class=\"text-small\">(more details)</a>\n";
-				}
-			}
-			echo "</div>\n";
-			if($totalFeatureCount > $maximumToShow)
-			{
-				echo "<div id=\"morefeatures-button-2\" style=\"display: none; border: 0px solid red;\"><br /><a href=\"#\" onclick=\"document.getElementById('morefeatures').style.display = 'none'; document.getElementById('morefeatures-button').style.display = 'block'; document.getElementById('morefeatures-button-2').style.display = 'none';\">Hide</a></div>\n";
-			}
-		echo "</div>\n";
-	echo "</div>\n";
-    echo "<div style=\"clear: left;\">&nbsp;</div>\n"
-?>
