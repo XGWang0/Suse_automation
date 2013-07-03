@@ -14,32 +14,30 @@ h1 {
 
 /* table's colors etc. */
 table#machines {
-  margin: 0.5em 0 0.5em 0;
-  padding-left: 4em;
-  border-spacing: 2px 3px;
+  margin: 1em 0 0.5em 4em;
+  border-spacing: 0px 0px;
   empty-cells: show;
+  box-shadow: 0px 0px 4px #000;
+  -webkit-box-shadow: 0px 0px 4px #000;
+  -moz-box-shadow: 0px 0px 4px #000;
 }
 table#machines th {
-  background-color: #f68f09;
+  background-color: #e78f08;
 }
 table#machines tbody {
-  background-color: #ccc;
+  background-color: #ddd;
 }
 table#machines td, table#machines th {
-  padding:0.1em 0.2em 0.1em 0.2em;
+  padding:0em 0em 0em 0em;
   border: solid white;
-  border-width:0 0 0 1px;
+  border-width: 1px 1px;
 }
 table#machines td:last-child, table#machines th:last-child {
   border-right-width:1px;
 }
-table#machines th {
-  border-top-width:1px;
-}
 table#machines tr {
-  box-shadow: 0px 2px 3px #000;
-  -webkit-box-shadow: 0px 2px 3px #000;
-  -moz-box-shadow: 0px 2px 3px #000;
+  font-family: arial, verdana, sans-serif;
+  font-size: 0.9em;
 }
 tr.up {
   background-color:#300;
@@ -49,7 +47,7 @@ tr.down {
 }
 
 /* general form settings */
-form, table#adv_tbl  {
+form#filter,form#fields,form#action,table#adv_tbl  {
   font-weight:bold;
   font-size:0.9em;
   display:table;
@@ -64,7 +62,7 @@ input[type="submit"]  {
 
 /* blue boxes */
 form#filter,form#fields,form#action {
-  background-color:#f68f09;
+  background-color:#e78f08;
   box-shadow: 2px 2px 2px #000;
   -webkit-box-shadow: 2px 2px 2px #000;
   -moz-box-shadow: 2px 2px 2px #000;
