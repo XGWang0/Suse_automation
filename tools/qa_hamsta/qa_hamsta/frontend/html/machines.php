@@ -272,6 +272,27 @@ foreach ($fields_list as $key=>$value)
                           var TSort_Data = new Array ('machines','', '0' <?php echo str_repeat(", 'h'", (isset ($display_fields) ? count($display_fields)+2 : 1)); ?>);
 tsRegister();
 -->
+
+var height = $(window).height(); 
+var width = $(window).width(); 
+var originLeft = $("#filter").css("left");
+var hoverThreshold = $("#header").height() + $("#filter").height() + $("h1").height();
+var originTheadWidth = $('#machines thead').width();
+//console.log('hoverthreshold ' + hoverThreshold);
+$(window).scroll(function(){
+    var scrollTop = $(window).scrollTop();
+    if (scrollTop > hoverThreshold)
+    {
+        $('#filter').css("zindex", 10).css("position", "fixed").css('top', '0px').css("left", (width-$("#filter").width())/2);
+        //console.log("filer left" + $("#filter").width());
+        //$('#machines thead').css("zindex", 10);
+        //$('#machines thead').css("position", "fixed").css('top', '100px').css('width', originTheadWidth);
+    }
+    else
+    {
+        $('#filter').css("zindex", 10).css("position", "relative").css("left", originLeft);
+    }
+});
 </script>
 </form>
 <form id="action">
