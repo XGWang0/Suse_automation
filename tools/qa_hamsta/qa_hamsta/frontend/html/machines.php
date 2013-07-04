@@ -318,7 +318,7 @@ $(window).scroll(function(){
 </form>
 <form id="fields">
         <h3>&darr;  Display fields  &darr;</h3>
-        <select name="d_fields[]" size=<?php echo sizeof($fields_list);?> multiple="multiple" id="fields">
+        <div id="fields">
         <?php
                 foreach ($fields_list as $key=>$value)
                 {
@@ -329,16 +329,14 @@ $(window).scroll(function(){
                     {
                         continue;
                     }
-                    echo("\t\t\t\t\t<option value=$key");
+                    echo("\t\t\t\t\t<input type=\"checkbox\" name=$key id=$key");
                     if ( isset ($display_fields ) && in_array($key, $display_fields))
                     {
-                        echo(' selected="selected"');
+                        echo(' checked="checked">');
                     }
-                echo (">$value</option>\n");
+                    echo("<label for=$key>$key</label><br>");
                 }
         ?>
-
-        </select>
-        <br/>
+        </div>
         <input type="submit" value="show"/>
 </form>
