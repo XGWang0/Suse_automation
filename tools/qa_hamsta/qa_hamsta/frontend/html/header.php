@@ -44,6 +44,7 @@ require_once("include/Util.php");
   <link href="css/text.css" rel="stylesheet" type="text/css">
   <link href="css/links.css" rel="stylesheet" type="text/css">
   <link href="css/color.css" rel="stylesheet" type="text/css">
+  <link href="css/machine_actions.css" rel="stylesheet" type="text/css">
 
  <?php
 if( isset($disabled_css) && $disabled_css ) print '<link href="css/disabled.css" rel="stylesheet" type="text/css">'."\n";
