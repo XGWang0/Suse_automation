@@ -101,7 +101,23 @@
 	}
 
 	$searched_fields = array();
-	$d_fields = request_array("d_fields");
+	$d_fields = array();
+	# Check which Display Field is checked, push to $d_fields
+	foreach ($fields_list as $key=>$value)
+        {
+            /* Due to connection of displayed fields and
+             * filters I had to add an exception
+             * here. */
+            if (in_array ($key, $default_fields_list))
+            {
+                continue;
+            }
+	    $check_field = request_str("DF_".$key);
+            if ( $check_field == "on" )
+	    {
+		array_push($d_fields,$key);
+	    }
+	}
 	$search = new MachineSearch();
 	$search->filter_role('SUT');	# Only interested in SUT on this page
 

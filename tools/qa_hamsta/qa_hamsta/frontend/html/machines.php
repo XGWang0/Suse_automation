@@ -329,12 +329,12 @@ $(window).scroll(function(){
                     {
                         continue;
                     }
-                    echo("\t\t\t\t\t<input type=\"checkbox\" name=$key id=$key");
+                    echo("\t\t\t\t\t<input type=\"checkbox\" name=\"DF_$key\" id=$key");
                     if ( isset ($display_fields ) && in_array($key, $display_fields))
                     {
                         echo(' checked="checked">');
                     }
-                    echo("<label for=$key>$key</label><br>");
+                    echo("<label for=$key>$value</label><br>");
                 }
         ?>
         </div>
