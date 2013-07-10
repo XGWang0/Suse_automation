@@ -295,8 +295,12 @@ $(window).scroll(function(){
 });
 </script>
 </form>
+<input type="checkbox" id="actionCheck">
+<label id="action" class="action" for="actionCheck">
 <form id="action">
 <h3>&darr;  Action  &darr;</h3>
+<input type="checkbox" id="blkAni">
+<label class="noani" for="blkAni">
 <select name="action">
 <!--  <option value="">No action</option> -->
   <option value="machine_send_job">Send job</option>
@@ -313,12 +317,18 @@ $(window).scroll(function(){
   <option value="machine_config">Configure machines</option>
   <option value="delete">Delete</option>
 </select>
+</label>
 <br/>
 <input type="submit" value="Go">
 </form>
+</label>
+<input type="checkbox" id="fieldsCheck">
+<label id="fields" class="fields" for="fieldsCheck">
 <form id="fields">
         <h3>&darr;  Display fields  &darr;</h3>
-        <div id="fields">
+        <input type="checkbox" id="blkAni">
+	<label class="noani" for="blkAni">
+	<div id="fields_list">
         <?php
                 foreach ($fields_list as $key=>$value)
                 {
@@ -338,5 +348,7 @@ $(window).scroll(function(){
                 }
         ?>
         </div>
+	</label>
         <input type="submit" value="show"/>
 </form>
+</label>

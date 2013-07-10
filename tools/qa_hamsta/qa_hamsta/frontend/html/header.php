@@ -37,9 +37,7 @@ require_once("include/Util.php");
 <head>
   <title><?php if(! empty ($html_title)) echo ($html_title . ' - '); ?>HAMSTA</title>
   <link href="css/style.css" rel="stylesheet" type="text/css">
-<!--
   <link href="../tblib/css/common.css" rel="stylesheet" type="text/css">
--->
   <link href="css/layout.css" rel="stylesheet" type="text/css">
   <link href="css/text.css" rel="stylesheet" type="text/css">
   <link href="css/links.css" rel="stylesheet" type="text/css">
