@@ -283,14 +283,11 @@ $(window).scroll(function(){
     var scrollTop = $(window).scrollTop();
     if (scrollTop > hoverThreshold)
     {
-        $('#filter').css("zindex", 10).css("position", "fixed").css('top', '0px').css("left", (width-$("#filter").width())/2);
-        //console.log("filer left" + $("#filter").width());
-        //$('#machines thead').css("zindex", 10);
-        //$('#machines thead').css("position", "fixed").css('top', '100px').css('width', originTheadWidth);
+        $('#filter').css("z-index", 10).css("position", "fixed").css('top', '0px');
     }
     else
     {
-        $('#filter').css("zindex", 10).css("position", "relative").css("left", originLeft);
+        $('#filter').css("z-index", 10).css("position", "relative").css("left", originLeft);
     }
 });
 </script>
