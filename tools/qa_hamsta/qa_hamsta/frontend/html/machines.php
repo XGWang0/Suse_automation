@@ -321,7 +321,7 @@ $(window).scroll(function(){
 </label>
 <input type="checkbox" id="fieldsCheck">
 <label id="fields" class="fields" for="fieldsCheck">
-<form id="fields">
+<form id="fields" method="post">
         <h3>&darr;  Display fields  &darr;</h3>
         <input type="checkbox" id="blkAni">
 	<label class="noani" for="blkAni">

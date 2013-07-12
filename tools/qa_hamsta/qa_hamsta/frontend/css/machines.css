@@ -63,6 +63,7 @@ input[type="submit"]  {
 /* blue boxes */
 form#filter,label#fields,label#action {
   background-color:#455560;
+  color: #fff;
   box-shadow: 4px 4px 6px #000;
   -webkit-box-shadow: 4px 4px 6px #000;
   -moz-box-shadow: 4px 4px 6px #000;
@@ -84,10 +85,10 @@ form#fields  select[multiple]  {
   padding: 0 0.5em 0.5em 3em;
   border-radius: 1em 0 0 1em;
   z-index: 10;
-  transition:right 1s;
-  -moz-transition:right 1s; /* Firefox 4 */
-  -webkit-transition:right 1s; /* Safari and Chrome */
-  -o-transition:right 1s; /* Opera */
+  transition:right 0.5s;
+  -moz-transition:right 0.5s; /* Firefox 4 */
+  -webkit-transition:right 0.5s; /* Safari and Chrome */
+  -o-transition:right 0.5s; /* Opera */
 }
 /*
 form#fields:hover {
@@ -104,7 +105,7 @@ form#fields h3  {
   top:8em;
   color: #fff;
 }
-input[id="fieldsCheck"]:checked + .fields{right:0em;}
+input#fieldsCheck:checked + .fields{right:0em;}
 /* action */
 .action  {
   position: fixed;
@@ -114,10 +115,10 @@ input[id="fieldsCheck"]:checked + .fields{right:0em;}
   bottom: 7em;
   border-radius: 0 1em 1em 0;
   z-index: 10;
-  transition:left 1s;
-  -moz-transition:left 1s; /* Firefox 4 */
-  -webkit-transition:left 1s; /* Safari and Chrome */
-  -o-transition:left 1s; /* Opera */
+  transition:left 0.5s;
+  -moz-transition:left 0.5s; /* Firefox 4 */
+  -webkit-transition:left 0.5s; /* Safari and Chrome */
+  -o-transition:left 0.5s; /* Opera */
 }
 /*
 form#action:hover {
@@ -136,14 +137,14 @@ form#action h3  {
 form#action input[type="submit"]{
   margin: 0.5em 5em;
 }
-input[id="actionCheck"]:checked + .action{left:0em;}
-input[id="blkAni"]:checked + .noani{}
-input[id="fieldsCheck"],input[id="actionCheck"],input[id="blkAni"] {
-  display:none;
-}
+input#actionCheck:checked + .action{left:0em;}
+input#blkAni:checked + .noani{}
+input#fieldsCheck,input#actionCheck,input#blkAni {
+  display: none;
+} 
 
 /* animations */
-form#action, form#fields, div#advanced {
+div#advanced {
   transition-property: opacity, visibility, left, right, height;
   transition-duration: 0.5s;
   transition-timing-function: ease-in-out;
