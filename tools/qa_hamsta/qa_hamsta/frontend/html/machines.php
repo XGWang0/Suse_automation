@@ -108,11 +108,18 @@ if (! empty ($s_anything))
   }
 
 ?>
-<form id="filter">
+<form id="filter" method="post">
                 <div>
                         Machines:
-                        <input type="checkbox" name="my" id="my"/>
-                        <label for="my">my</label>
+      <?php
+                        $user = User::getCurrent();
+                        if ( isset($user))
+                        {
+                            echo "<input type=\"checkbox\" name=\"my\" id=\"my\"/>";
+                            echo "<label for=\"my\">my</label>";
+                            //echo "<input type='hidden' name='user_id' value=". $user->getId() ."/>";
+                        }
+      ?>
                         <input type="checkbox" name="free" id="free"/>
                         <label for="free">free</label>
                         <input type="checkbox" name="others" id="others"/>
@@ -154,9 +161,9 @@ if (! empty ($s_anything))
                                                 <th valign="top">CPU Arch: </th>
                                                 <td>
                                                         <select name="architecture_capable">
-                                                                <option value="">Any</option>
+                                                                <option value="" selected="selected">Any</option>
                                                                 <option value="i586">i586</option>
-                                                                <option value="ia64" selected="selected">ia64</option>
+                                                                <option value="ia64">ia64</option>
                                                                 <option value="ppc64">ppc64</option>
                                                                 <option value="s390x">s390x</option>
                                                                 <option value="x86_64">x86_64</option>
@@ -188,7 +195,7 @@ if (! empty ($s_anything))
                         <div id="fulltext_input">
                                 <input type="text" id="fulltext" name="fulltext" class="inputctrl" placeholder="Fulltext search"/>
                                 <input type="button" value="x" name="x" id="x" class="inputctrl"/>
-                                <input type="submit" value="search" id="submit" class="inputctrl"/>
+                                <input type="submit" value="Search" name="set" id="submit" class="inputctrl"/>
                         </div>
                         <input type="checkbox" name="displmatch" id="displmatch"/><label for="displmatch" id="displabel">display matching columns</label></nobr>
                 </div>
