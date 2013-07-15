@@ -126,7 +126,7 @@ foreach ($machines as $machine) {
 	$to_column = $logged_user_line;
 	$how_many_other = count ($all_users) - 1;
 	if (isset ($user) && $how_many_other) {
-		$to_column .= '<div><input type="checkbox" name="show_others"/>Show me also other '
+		$to_column .= '<div><input type="checkbox" name="show_others"/>Share with other '
 			. $how_many_other . ($how_many_other > 1 ? ' users' : ' user');
 	}
 	$to_column .= '<div id="other_users" class="other_users">' . PHP_EOL;
