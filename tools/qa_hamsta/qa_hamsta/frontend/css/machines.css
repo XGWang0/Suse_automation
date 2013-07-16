@@ -79,16 +79,16 @@ form#fields  select[multiple]  {
 }
 .fields  {
   position: fixed;
-  top: 10em;
+  top: 7.6em;
   right:-10em;
 /*  right:0; */  
   padding: 0 0.5em 0.5em 3em;
   border-radius: 1em 0 0 1em;
   z-index: 10;
-  transition:right 0.5s;
-  -moz-transition:right 0.5s; /* Firefox 4 */
-  -webkit-transition:right 0.5s; /* Safari and Chrome */
-  -o-transition:right 0.5s; /* Opera */
+  transition:right 0.1s;
+  -moz-transition:right 0.1s; /* Firefox 4 */
+  -webkit-transition:right 0.1s; /* Safari and Chrome */
+  -o-transition:right 0.1s; /* Opera */
 }
 /*
 form#fields:hover {
@@ -115,10 +115,10 @@ input#fieldsCheck:checked + .fields{right:0em;}
   bottom: 7em;
   border-radius: 0 1em 1em 0;
   z-index: 10;
-  transition:left 0.5s;
-  -moz-transition:left 0.5s; /* Firefox 4 */
-  -webkit-transition:left 0.5s; /* Safari and Chrome */
-  -o-transition:left 0.5s; /* Opera */
+  transition:left 0.1s;
+  -moz-transition:left 0.1s; /* Firefox 4 */
+  -webkit-transition:left 0.1s; /* Safari and Chrome */
+  -o-transition:left 0.1s; /* Opera */
 }
 /*
 form#action:hover {
@@ -207,8 +207,8 @@ div#fulltext_input #submit {
 }
 div#fields_list {
   width: 13em;
-  height: 30em;
-  overflow-y: scroll;
+  height: 37em;
+  overflow-y: auto;
   background-color: #fff;
   margin: 2em 0 1em 0;
   font-size:0.8em;
