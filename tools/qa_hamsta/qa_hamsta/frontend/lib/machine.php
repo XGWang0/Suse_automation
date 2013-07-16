@@ -1973,7 +1973,6 @@ class MachineSearch {
 		}
 
 		$sql .= $table_str." ".$this->condition_str.' ORDER BY machine.name';
-
 		// Create a statemt object and bind the parameters
 		if (!($stmt = get_pdo()->prepare($sql))) {
 			return null;
@@ -2014,11 +2013,11 @@ class MachineSearch {
             return false;
         }
 
-        if (!in_array($operator, array('=', 'LIKE', 'IN', 'IS NOT NULL'))) {
+        if (!in_array($operator, array('=', 'LIKE', 'IN', 'NOT IN', 'IS NOT NULL'))) {
             return false;
         }
 
-        if ($operator == 'IN') {
+        if ($operator == 'IN' || $operator=='NOT IN') {
             if (!is_array($value)) {
                 return false;
             }
@@ -2269,6 +2268,80 @@ class MachineSearch {
 
 		$this->orwhere[] = "module_part.element " . $operator . " :module_part_element";
 		$this->params[":module_part_element"] = $text;
+	}
+
+        /**
+	 * filter_reservation
+	 *
+	 * Search machines for given type 'my', 'free', 'other'; 
+	 * 'my' means machines reserved by the login user.
+	 * 'free' means machines not reserved by anyone. 
+	 * 'others' means machines reserved by someone other than "my" 
+	 * 
+	 * @param string $user Text to search for
+	 * @type  string Search type
+	 * @return void
+	 */
+	public function filter_reservation($user, $type)
+	{
+		if ($type == 'my')
+		{
+			$user_id = $user->getId();
+			$this->add_table('user_machine', 'user_machine.machine_id = machine.machine_id');
+			$this->add_condition("user_id", $user_id);
+		}
+		
+		else if($type == 'free')
+		{
+			$machine_ids = array();
+			$stmt = get_pdo()->prepare('SELECT machine_id FROM user_machine');
+			$r = $stmt->execute();
+			$records = $stmt->fetchAll();
+			foreach($records as  $r)
+			{
+				$machine_ids[] = $r[0];
+			}
+			if (count($machine_ids) > 0)
+			{
+				$operator = "NOT IN";
+				$this->add_condition('machine_id', $machine_ids, $operator);
+			}
+		}
+		else if ($type == 'others')
+		{
+			$machine_ids = array();
+			if (isset($user))
+			{
+				$user_id = $user->getId();
+				$stmt = get_pdo()->prepare("SELECT machine_id FROM user_machine where user_id != $user_id");
+				$stmt->execute();
+				$records = $stmt->fetchAll();
+				foreach($records as  $r)
+				{
+					$machine_ids[] = $r[0];
+				}
+				//if (count($machine_ids) > 0)
+				//{
+					$operator = "IN";
+					$this->add_condition('machine_id', $machine_ids, $operator);
+				//}
+			}
+			else
+			{
+				$stmt = get_pdo()->prepare('SELECT machine_id FROM user_machine');
+				$stmt->execute();
+				$records = $stmt->fetchAll();
+				foreach($records as  $r)
+				{
+					$machine_ids[] = $r[0];
+				}
+				if (count($machine_ids) > 0)
+				{
+					$operator = "IN";
+					$this->add_condition('machine_id', $machine_ids, $operator);
+				}
+			}
+		}
 	}
 }
 

@@ -224,97 +224,124 @@
 
 	/* Skip all this if we have a reset request. */
 	if (request_str ('reset') != 'Reset')
-	  {
-	    /* Iterate over all available fields (table columns) and apply
-	     * filters on it. */
-	    foreach ($fields_list as $key => $value)
-	      {
-		$fname = "filter_" . $key;
-		$filter = request_str ($key);
-
-		/* Use filter stored in the session, if it is not in
-		 * this request. */
-		if (isset ($ns_machine_filter->fields)
-		    && empty ($filter)
-		    && in_array ($key, array_keys ($ns_machine_filter->fields)))
-		  {
-		    /* Unset the value if the user sets empty value. */
-		    if (request_str ('set') == 'Search'
-			&& isset ($ns_machine_filter->fields[$key])
-			&& $key != 'group')
-		      {
-			unset ($ns_machine_filter->fields[$key]);
-			unset ($fname);
-			unset ($filter);
-		      }
-		    else
-		      {
-			$filter = $ns_machine_filter->fields[$key];
-		      }
-		  }
-
-		/* If the filter method is available we also set the
-		 * field to be displayed. */
-		if ( ! empty ($filter) && method_exists ($search, $fname)
-		     && (request_str ('set') == 'Search'
-			 || ($key == 'group')) )
-		  {
-		    if ( isset ($ns_machine_filter->fields)
-			 && ! (in_array ($key, $ns_machine_fields->fields)
-			       || in_array ($key, $default_fields_list)))
-		      {
-			$ns_machine_fields->fields[] = $key;
-		      }
-
-		    if (! in_array ($key, $display_fields)
-			&& ! in_array ($key, $default_fields_list))
-		      {
-			array_push ($display_fields, $key);
-		      }
-		  }
-
-		/* If filter of some sort was used store it in
-		 * the session. */
-		if (isset ($ns_machine_filter))
-		  {
-		    if (! empty($filter) && method_exists ($search, $fname))
-		      {
-			$ns_machine_filter->fields[$key] = $filter;
-		      }
-		  }
-
-		if (! empty ($fname) && ! empty ($filter)
-		    && method_exists ($search, $fname))
-		  {
-		    $search->$fname ($filter);
-		  }
-	      }
-	  }
+	{
+		/* Iterate over all available fields (table columns) and apply
+		 * filters on it. */
+		foreach ($fields_list as $key => $value)
+		{
+			$fname = "filter_" . $key;
+			$filter = request_str ($key);
+	
+			/* Use filter stored in the session, if it is not in
+			 * this request. */
+			if (isset ($ns_machine_filter->fields)
+					&& empty ($filter)
+					&& in_array ($key, array_keys ($ns_machine_filter->fields)))
+			{
+				/* Unset the value if the user sets empty value. */
+				if (request_str ('set') == 'Search'
+						&& isset ($ns_machine_filter->fields[$key])
+						&& $key != 'group')
+				{
+					unset ($ns_machine_filter->fields[$key]);
+					unset ($fname);
+					unset ($filter);
+				}
+				else
+				{
+					$filter = $ns_machine_filter->fields[$key];
+				}
+			}
+	
+			/* If the filter method is available we also set the
+			 * field to be displayed. */
+			if ( ! empty ($filter) && method_exists ($search, $fname)
+					&& (request_str ('set') == 'Search'
+						|| ($key == 'group')) )
+			{
+				if ( isset ($ns_machine_filter->fields)
+						&& ! (in_array ($key, $ns_machine_fields->fields)
+							|| in_array ($key, $default_fields_list)))
+				{
+					$ns_machine_fields->fields[] = $key;
+				}
+	
+				if (! in_array ($key, $display_fields)
+						&& ! in_array ($key, $default_fields_list))
+				{
+					array_push ($display_fields, $key);
+				}
+			}
+	
+			/* If filter of some sort was used store it in
+			 * the session. */
+			if (isset ($ns_machine_filter))
+			{
+				if (! empty($filter) && method_exists ($search, $fname))
+				{
+					$ns_machine_filter->fields[$key] = $filter;
+				}
+			}
+	
+			if (! empty ($fname) && ! empty ($filter)
+					&& method_exists ($search, $fname))
+			{
+				$search->$fname ($filter);
+			}
+		}
+	}
 
 	if (request_str ('set') == 'Search')
-	  {
-	    $filter = request_str("s_anything");
-	    $op = request_operator ("s_anything_operator");
-
-	    if (! empty ($filter) && ! empty ($op))
-	      {
-		if (isset ($ns_machine_filter))
-		  {
-		    $ns_machine_filter->fields['s_anything'] = $filter;
-		    $ns_machine_filter->fields['s_anything_operator'] = $op;
-		  }
-	      }
-	    else
-	      {
-		if (isset ($ns_machine_filter))
-		  {
-		    unset ($ns_machine_filter->fields['s_anything']);
-		    unset ($ns_machine_filter->fields['s_anything_operator']);
-		  }
-		unset ($filter);
-		unset ($op);
-	      }
-	  }
+	{
+		$advanced_search = request_str("show_advanced"); 
+		$my = request_str("my");
+		$free = request_str("free");
+		$others = request_str("others");
+		if ( empty ($advanced_search))
+		{
+			$u = User::getCurrent();
+			if ( !empty($my) && $my=="on" )
+			{
+				$search->filter_reservation($u, 'my');
+			}
+	
+			if ( !empty($free) && $free=="on" )
+			{
+				$search->filter_reservation($u, 'free');
+			}
+	
+			if ( !empty($others) && $others=="on" )
+			{
+				$search->filter_reservation($u, 'others');
+			}
+	
+		}
+		else //add adveanced condition
+		{
+		}
+		$filter = request_str("s_anything");
+		$op = request_operator ("s_anything_operator");
+	
+		if (! empty ($filter) && ! empty ($op))
+		{
+			if (isset ($ns_machine_filter))
+			{
+				$ns_machine_filter->fields['s_anything'] = $filter;
+				$ns_machine_filter->fields['s_anything_operator'] = $op;
+			}
+		}
+		else
+		{
+			if (isset ($ns_machine_filter))
+			{
+				unset ($ns_machine_filter->fields['s_anything']);
+				unset ($ns_machine_filter->fields['s_anything_operator']);
+			}
+			unset ($filter);
+			unset ($op);
+		}
+	
+	}
 	else if (isset ($ns_machine_filter->fields)
 		 && isset ($ns_machine_filter->fields['s_anything'])
 		 && isset ($ns_machine_filter->fields['s_anything_operator']))

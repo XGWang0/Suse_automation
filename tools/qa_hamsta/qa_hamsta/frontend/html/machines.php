@@ -112,7 +112,7 @@ if (! empty ($s_anything))
                 <div>
                         Machines:
       <?php
-                        $user = User::getCurrent();
+                        //$user = User::getCurrent();
                         if ( isset($user))
                         {
                             echo "<input type=\"checkbox\" name=\"my\" id=\"my\"/>";
