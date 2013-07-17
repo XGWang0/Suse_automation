@@ -160,7 +160,7 @@ div#advanced  {
 input.hider:checked+div#advanced  {
   visibility:visible;
   opacity:1;
-  height:9em;
+  height:11em;
 }
 #label_advanced {
   margin-left: 3em;
@@ -188,7 +188,12 @@ input#displmatch  {
 label#displabel  {
   font-size:0.7em
 }
-
+input#searchall  {
+  margin-left: 1em;
+}
+label#searchlabel  {
+  font-size:0.7em
+}
 /* fulltext search field */
 div#fulltext_input {
   background-color: #fff;
