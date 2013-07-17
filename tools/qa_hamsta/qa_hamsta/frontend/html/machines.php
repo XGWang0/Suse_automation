@@ -129,7 +129,13 @@ if (! empty ($s_anything))
                         <input type="checkbox" name="show_advanced" id="show_advanced" class="hider"/>
                         <div id="advanced">
                                 <table id="adv_tbl">
-                                        <tr>
+					<tr>
+						<th>Search in hwinfo: </th>
+						<td>
+                        				<input type="checkbox" name="searchhwinfo" id="searchhwinfo" checked/>
+						</td>
+					</tr>
+                                        <tr id='hwinfo_search_ret'>
                                                 <th>hwinfo result: </th>
                                                 <td>
                                                         <select name="s_anything_operator">
@@ -197,7 +203,10 @@ if (! empty ($s_anything))
                                 <input type="button" value="x" name="x" id="x" class="inputctrl"/>
                                 <input type="submit" value="Search" name="set" id="submit" class="inputctrl"/>
                         </div>
-                        <input type="checkbox" name="displmatch" id="displmatch"/><label for="displmatch" id="displabel">display matching columns</label></nobr>
+                        <input type="checkbox" name="searchall" id="searchall"/><label for="searchall" id="searchlabel">Search hidden field</label>
+
+                       <input type="checkbox" name="displmatch" id="displmatch"/><label for="displmatch" id="displabel">Hide matching columns</label>
+</nobr>
                 </div>
 </form>
 <form action="index.php?go=machines" method="post" name="machine_list" onSubmit="return checkcheckbox(this)">
@@ -295,6 +304,17 @@ $(window).scroll(function(){
     else
     {
         $('#filter').css("z-index", 10).css("position", "relative").css("left", originLeft);
+    }
+});
+
+$("#searchhwinfo").click(function(){
+    if ($(this).is(':checked'))
+    {
+        $("#hwinfo_search_ret").css('display', '');	
+    }
+    else
+    {
+        $("#hwinfo_search_ret").css('display', 'none');	
     }
 });
 </script>
