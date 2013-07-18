@@ -156,17 +156,22 @@
 		'disk_size'=>'Disks',
 		'cpu_vendor'=>'CPU vendor',
 		'affiliation'=>'Affiliation',
-		'ip_address'=>'IP address',
+		'ip_address'=>'IP Address',
 		'maintainer_string'=>'Maintainer',
 		'notes'=>'Notes',
 		'unique_id'=>'Unique ID',
-		'serialconsole'=>'Serial console',
-		'powerswitch'=>'Power switch',
-		'powertype'=>'Power switch type',
-		'powerslot'=>'Power switch slot',
+		'serialconsole'=>'Serial Console',
+		'consolesetdefault'=>'Console Enabled',
+		'consolespeed'=>'Console Speed',
+		'consoledevice'=>'Console Device',
+		'powerswitch'=>'Power Switch',
+		'powertype'=>'Power Switch Type',
+		'powerslot'=>'Power Switch Slot',
+		'def_inst_opt'=>'Default Install Options',
+		'perm'=>'Machine Permissions',
 		'role'=>'Role',
 		'type'=>'Type',
-		'vh'=>'Virt. Host'
+		'vh'=>'Virtual Host'
 	);
 
 /* These fields are displayed by default. That means the user

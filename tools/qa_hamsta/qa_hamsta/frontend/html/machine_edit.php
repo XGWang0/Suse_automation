@@ -211,14 +211,14 @@ foreach ($machines as $machine) {
 		
 	# Enable console (careful, checkboxes that aren't checked don't show up as isset in PHP)
 		if (isset($_POST['submit'])) { # They submitted the form, so we use if they checked it or not
-												    $consolesetdefaults = request_array('consolesetdefault');
+			$consolesetdefaults = request_array('consolesetdefault');
 			if (array_key_exists($machine->get_id(), $consolesetdefaults)) {
 				$consolesetdefault = $consolesetdefaults[$machine->get_id()];
 
 				# If they actually checked the form, otherwise just leave it empty
-					if ($consolesetdefault == "enable_console") {
-						$consolesetdefault = "1";
-					}
+				if ($consolesetdefault == "enable_console") {
+					$consolesetdefault = "1";
+				}
 			}
 		}
 		else { # They did not submit the form, so we use what was in the database

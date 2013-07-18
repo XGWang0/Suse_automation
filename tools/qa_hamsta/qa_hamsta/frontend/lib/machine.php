@@ -1112,6 +1112,15 @@ class Machine {
                 return $perm;
         }
 
+	/**
+	 * Get a permission string from database set.
+	 *
+	 * @return string A string representing the permission set from database.
+	 */
+	function get_perm () {
+		return $this->fields['perm'];
+	}
+
         /**
          * Sets the perm flag of the machine.
          * 
