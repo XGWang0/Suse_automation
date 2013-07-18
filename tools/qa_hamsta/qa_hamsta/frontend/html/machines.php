@@ -209,6 +209,7 @@ if (! empty ($s_anything))
 </nobr>
                 </div>
 </form>
+<div id="blindwall"> </div>
 <form action="index.php?go=machines" method="post" name="machine_list" onSubmit="return checkcheckbox(this)">
 <table class="list text-main" id="machines">
   <thead>
@@ -300,10 +301,21 @@ $(window).scroll(function(){
     if (scrollTop > hoverThreshold)
     {
         $('#filter').css("z-index", 10).css("position", "fixed").css('top', '0px');
+        $("#machines thead").css("z-index",9).css("position","fixed").css("top","5.5em"); 
+        $("#machines tr:first-child td").each(function(index) {
+            var ind = index + 1;
+            if ( $(this).width() > $("#machines th:nth-child("+ind+")").width() )
+                $("#machines th:nth-child("+ind+")").css("width",$(this).width());
+            else
+                $(this).css("width",$("#machines th:nth-child("+ind+")").width());
+        });
+        $("#blindwall").css("position","fixed").css("display","inline").css("z-index",8).css("width","100%").css("height","5.5em").css("top","0px");
     }
     else
     {
         $('#filter').css("z-index", 10).css("position", "relative").css("left", originLeft);
+	$("#machines thead").css("z-index",0).css("position","relative");
+        $("#blindwall").css("position","relative").css("display","none").css("z-index",-1);
     }
 });
 

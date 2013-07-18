@@ -221,3 +221,10 @@ div#fields_list {
   border-radius: 0.3em;
   color: black;
 }
+div#blindwall {
+  display: none;
+  background-color: #fff;
+  width: 0;
+  height: 0;
+  z-index: -1;
+}
