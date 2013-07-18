@@ -520,15 +520,17 @@ class Machine {
          * 
          * @param string $powertype The configuration of the connected powerswitch.
          * @access public
-         * @return void
+         * @return mixed True or false depending on the result of the
+         *		 database update or NULL if powertype function does not
+         *		 exist.
          */
         function set_powertype($powertype)  {
 		$power_function = "power_".$powertype;
-		if ((function_exists("$power_function")) OR ($powertype == NULL)) {
+		if (function_exists("$power_function") OR $powertype == NULL) {
 			$stmt = get_pdo()->prepare('UPDATE machine SET powertype = :powertype WHERE machine_id = :id');
         	        $stmt->bindParam(':id', $this->fields["id"]);
 	                $stmt->bindParam(':powertype', $powertype);
-                	$stmt->execute();
+                	return $stmt->execute();
 		}
 		else
 			return NULL;

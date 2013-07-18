@@ -216,7 +216,20 @@ class MachineEditController
 			if (method_exists ($machine, $gfunc)
 			    && method_exists ($machine, $sfunc)) {
 				$old_value = $machine->$gfunc ();
-				$machine->$sfunc ($r_value);
+				$retval = $machine->$sfunc ($r_value);
+				/* pkacer@suse.com: Most set functions
+				 * in Machine class unfortunately do
+				 * not have a return statement. I put
+				 * this exception here for the
+				 * powertype because if the powertype
+				 * function is not available, then the
+				 * value is silently ignored (not set). */
+				if ($field == 'powertype' && is_null ($retval)) {
+					$this->addMachineError ($machine, 'The requested powertype function "'
+								. $r_value
+								. '" is not available. Value was not set.'
+								. ' Please check for supported types.');
+				}
 
 				if (is_string ($old_value) && strcmp ($old_value, $r_value)) {
 					$machine_id = $machine->get_id ();
