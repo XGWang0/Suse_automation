@@ -70,6 +70,28 @@ function check_regex ($regex, $value)
 	return $res;
 }
 
+function check_user_login ($login) {
+	return check_regex ('/^[a-zA-Z]\w+/', $login);
+}
+
+function check_user_name ($name) {
+	return check_regex ('/[[:print:]]+/', $name);
+}
+
+function validate_user_input ($login, $email, $name) {
+	return check_email ($email) && check_user_login ($login)
+		&& check_user_name ($name);
+}
+
+function print_user_add_mod_error ($field, $values_arr) {
+	$aliases = array (
+		'login'		=> 'login',
+		'extern_id'	=> 'external identifier',
+		);
+	print html_error ('The user with ' . $aliases[$field] . ' "'
+			  . $values_arr[$field] . '" already exists.');
+}
+
 if (! isset ($page))
 {
 	$page=basename($_SERVER['PHP_SELF']);
@@ -122,11 +144,26 @@ if( token_read($wtoken) )	{
 		$name=http('name');
 		$email=http('email');
 		$extern_id=http('extern_id');
-		if (check_email ($email) && check_regex ('/^[a-zA-Z]\w+/', $login)
-		    && check_regex ('/[[:print:]]+/', $name)) {
-			transaction();
-			update_result( user_update($user_got,$login,$name,$email,$extern_id) );
-			commit();
+		$vals = array ('login'		=> $login,
+			       'extern_id'	=> $extern_id);
+		if (validate_user_input ($login, $email, $name)) {
+			$result = user_has_duplicities ($user_got, $login, $extern_id);
+			if (empty ($result)) {
+				transaction();
+				$res = user_update($user_got,$login,$name,$email,$extern_id);
+				commit();
+
+				if ($res < 0) {
+					$err = get_error ();
+					print html_error ($err);
+					$step = 'ue';
+				} else {
+					print html_success ('User was succesfully modified.');
+				}
+			} else {
+				print_user_add_mod_error ($result, $vals);
+				$step = 'ue';
+			}
 		} else {
 			$step = 'ue';
 		}
@@ -136,12 +173,26 @@ if( token_read($wtoken) )	{
 		$name=http('name');
 		$email=http('email');
 		$extern_id=http('extern_id');
-		/* Validate input. */
-		if (check_email ($email) && check_regex ('/^[a-zA-Z]\w+/', $login)
-		    && check_regex ('/[[:print:]]+/', $name)) {
-			transaction();
-			update_result( user_insert($login,$name,$email,$extern_id), 1 );
-			commit();
+		$vals = array ('login'		=> $login,
+			       'extern_id'	=> $extern_id);
+		if (validate_user_input ($login, $email, $name)) {
+			$result = user_credentials_exist ($login, $extern_id);
+			if (count ($result) == 0) {
+				transaction();
+				$res = user_insert($login,$name,$email,$extern_id);
+				commit();
+
+				if ($res < 0) {
+					$err = get_error ();
+					print html_error ($err);
+					$step = 'ue';
+				} else {
+					print html_success ('User was succesfully created.');
+				}
+			} else {
+				print html_error ('User with these credentials already exists.');
+				$step = 'un';
+			}
 		} else {
 			$step='un';
 		}
@@ -278,15 +329,15 @@ else if( $step=='ue' && $user )	{
 else if( $step=='un' )	{
 	# new user
 	$what=array(
-		array('login','','',TEXT_ROW, 'Login', 'Fill out users login. It can contain only letters, digits and underscore and has to start with a letter.', true, '^[a-zA-Z]\w+'),
-		array('name','','',TEXT_ROW, 'Name', 'Fill out users name.', true),
-		array('email','','',EMAIL, 'E-mail', 'Fill out users e-mail.', true),
-		array('extern_id','','',TEXT_AREA, 'External identifier', 'This value can be used with some types of authentication such as OpenId.', true),
+		array('login','',http('login'),TEXT_ROW, 'Login', 'Fill out users login. It can contain only letters, digits and underscore and has to start with a letter.', true, '^[a-zA-Z]\w+'),
+		array('name','',http('name'),TEXT_ROW, 'Name', 'Fill out users name.', true),
+		array('email','',http('email'),EMAIL, 'E-mail', 'Fill out users e-mail.', true),
+		array('extern_id','',http('extern_id'),TEXT_AREA, 'External identifier', 'This value can be used with some types of authentication such as OpenId.', true),
 		array('submit','','useradd',HIDDEN),
 		array('wtoken','',token_generate(),HIDDEN),
 		(isset ($page_name) ? array('go', '', $page_name, HIDDEN): null)
 	);
-	print "<p><b>Note</b>: Each user has to be cast in the 'user' role. Do that after the user is created.</p>";
+	print "<p><b>Note</b>: <em>It is recommended to add a role to new user. Otherwise the user will not be able to perform any actions.</em></p>";
 	print html_search_form($page,$what);
 }
 else if( $step=='up' && $user )	{
