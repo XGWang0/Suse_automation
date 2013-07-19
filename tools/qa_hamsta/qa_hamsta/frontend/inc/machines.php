@@ -293,26 +293,36 @@
 
 	if (request_str ('set') == 'Search')
 	{
+		$key = 'used_by';
 		$advanced_search = request_str("show_advanced"); 
 		$my = request_str("my");
 		$free = request_str("free");
 		$others = request_str("others");
-		if ( empty ($advanced_search))
+		if (empty ($advanced_search))
 		{
 			$u = User::getCurrent();
 			if ( !empty($my) && $my=="on" )
 			{
 				$search->filter_reservation($u, 'my');
+				$ns_machine_filter->fields[$key] = $u->getId();
 			}
 	
 			if ( !empty($free) && $free=="on" )
 			{
 				$search->filter_reservation($u, 'free');
+				$ns_machine_filter->fields[$key] = 'free';
 			}
 	
 			if ( !empty($others) && $others=="on" )
 			{
 				$search->filter_reservation($u, 'others');
+				$ns_machine_filter->fields[$key] = 'others';
+			}
+                        
+                        if (isset($display_fields)) 
+			{
+				if (!in_array($key, $display_fields))
+					$display_fields[] = $key;
 			}
 	
 		}

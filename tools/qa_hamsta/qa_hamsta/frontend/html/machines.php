@@ -69,10 +69,17 @@ if (isset ($ns_machine_filter->fields)
 	  {
 	    /* Used by contains user id but login has to be displayed. */
 	    if ($key == 'used_by')
-	      {
-		$usr = User::getById ($value, $config);
-		$value = $usr->getLogin ();
-	      }
+	    {
+		    if ( isset($value) && ($value == 'free' || $value == 'others'))
+		    {
+			//do nothing special
+		    }
+		    else
+		    {
+			    $usr = User::getById ($value, $config);
+			    $value = $usr->getLogin ();	
+		    }
+	    }
 	    $filter_description = "\n\t" . '<span class="bold">' . $fields_list[$key] . '</span> is "' . $value . '"';
 	  }
 	
@@ -112,17 +119,30 @@ if (! empty ($s_anything))
                 <div>
                         Machines:
       <?php
-                        //$user = User::getCurrent();
+			if (isset($ns_machine_filter->fields) && isset($ns_machine_filter->fields["used_by"]))
+			{
+				$rough_filter_value = $ns_machine_filter->fields["used_by"];
+			}
                         if ( isset($user))
                         {
-                            echo "<input type=\"checkbox\" name=\"my\" id=\"my\"/>";
-                            echo "<label for=\"my\">my</label>";
-                            //echo "<input type='hidden' name='user_id' value=". $user->getId() ."/>";
+				if (isset($rough_filter_value) && ($user->getId() == $rough_filter_value))
+					echo "<input type=\"checkbox\" name=\"my\" id=\"my\" checked/>";
+				else
+					echo "<input type=\"checkbox\" name=\"my\" id=\"my\"/>";
+				echo "<label for=\"my\">my</label>";
                         }
-      ?>
-                        <input type="checkbox" name="free" id="free"/>
+			if (isset($rough_filter_value) && 'free'==$rough_filter_value)
+                        	echo "<input type='checkbox' name='free' id='free' checked/>";
+			else
+                        	echo "<input type='checkbox' name='free' id='free'/>";
+	?>
                         <label for="free">free</label>
-                        <input type="checkbox" name="others" id="others"/>
+<?php
+			if (isset($rough_filter_value) && 'others'==$rough_filter_value)
+                        	echo "<input type='checkbox' name='others' id='others' checked/>";
+			else
+                        	echo "<input type='checkbox' name='others' id='others'/>";
+?>
                         <label for="others">others</label>
 
                         <label for="show_advanced" id="label_advanced">&dArr; advanced &dArr;</label>
