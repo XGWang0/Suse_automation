@@ -42,20 +42,29 @@ function user_list($user_id=null)	{
 		return mhash_query(1,null,"$sql $group");
 }
 
-function user_has_duplicities ($user_id, $login, $extern_id) {
+/**
+ * Check if an user already exists in database.
+ *
+ * @return mixed String with name of the existing attribute (first found is returned) or NULL if none is found.
+ */
+function user_has_duplicities ($login, $extern_id, $user_id = null) {
 	$login = row_query ('SELECT user_id, login FROM `user` WHERE login = ?', 's', $login);
 	$extern_id = row_query ('SELECT user_id, extern_id FROM `user` WHERE extern_id = ?', 's', $extern_id);
-	if (isset ($login['login']) && $login['user_id'] != $user_id) {
-		return 'login';
-	}
-	if (isset ($extern_id['extern_id']) && $extern_id['user_id'] != $user_id) {
-		return 'extern_id';
+
+	if (isset ($user_id)) {
+		if (isset ($login['login']) && $login['user_id'] != $user_id) {
+			return 'login';
+		}
+		if (isset ($extern_id['extern_id']) && $extern_id['user_id'] != $user_id) {
+			return 'extern_id';
+		}
+	} else {
+		if (isset ($login['login']))
+			return 'login';
+		if (isset ($extern_id['extern_id']))
+			return 'extern_id';
 	}
 	return NULL;
-}
-
-function user_credentials_exist ($login, $extern_id) {
-	return row_query ('SELECT * FROM `user` WHERE login = ? OR extern_id = ?', 'ss', $login, $extern_id);
 }
 
 function user_update($user_id,$login,$name,$email,$extern_id)	{

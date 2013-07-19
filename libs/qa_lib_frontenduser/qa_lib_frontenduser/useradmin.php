@@ -147,7 +147,7 @@ if( token_read($wtoken) )	{
 		$vals = array ('login'		=> $login,
 			       'extern_id'	=> $extern_id);
 		if (validate_user_input ($login, $email, $name)) {
-			$result = user_has_duplicities ($user_got, $login, $extern_id);
+			$result = user_has_duplicities ($login, $extern_id, $user_got);
 			if (empty ($result)) {
 				transaction();
 				$res = user_update($user_got,$login,$name,$email,$extern_id);
@@ -176,8 +176,8 @@ if( token_read($wtoken) )	{
 		$vals = array ('login'		=> $login,
 			       'extern_id'	=> $extern_id);
 		if (validate_user_input ($login, $email, $name)) {
-			$result = user_credentials_exist ($login, $extern_id);
-			if (count ($result) == 0) {
+			$result = user_has_duplicities ($login, $extern_id);
+			if (empty ($result)) {
 				transaction();
 				$res = user_insert($login,$name,$email,$extern_id);
 				commit();
@@ -190,7 +190,7 @@ if( token_read($wtoken) )	{
 					print html_success ('User was succesfully created.');
 				}
 			} else {
-				print html_error ('User with these credentials already exists.');
+				print_user_add_mod_error ($result, $vals);
 				$step = 'un';
 			}
 		} else {
