@@ -160,11 +160,28 @@ if (! empty ($s_anything))
                                                 <td>
                                                         <select name="s_anything_operator">
                                                                 <option value="like"
-                                                                        >contains</option>
+						<?php if (! empty ($s_anything)
+       						      && ! empty ($s_anything_operator)
+						      && $s_anything_operator == 'LIKE')
+        						{
+        						    echo(' selected="selected"');
+     							}
+						?>>contains</option>
                                                                 <option value="equals"
-                                                                        >is</option>
+					 	<?php if (! empty ($s_anything)
+          						   && ! empty ($s_anything_operator)
+          						   && $s_anything_operator == "=")
+          						{
+          						  echo(' selected="selected"');
+          						}
+						?>>is</option>
                                                         </select>
-                                                        <input name="s_anything" value=''/>
+                                                        <input name="s_anything" value='<?php
+          						if (!empty ($s_anything))
+          						{
+                						echo ($s_anything);
+          						}
+							?>'/>
                                                 </td>
                                         </tr>
                                         <tr>
@@ -172,14 +189,17 @@ if (! empty ($s_anything))
                                                 <td>
                                                         <select name="architecture">
                                                                 <option value="">Any</option>
-                                                                <option value="" selected="selected"></option>
-                                                                <option value="i586">i586</option>
-                                                                <option value="ia64">ia64</option>
-                                                                <option value="ppc64">ppc64</option>
-                                                                <option value="s390x">s390x</option>
-                                                                <option value="x86_64">x86_64</option>
-                                                                <option value="xen0-x86_64">xen0-x86_64</option>
-                                                                <option value="xenU-x86_64">xenU-x86_64</option>
+								<?php foreach(Machine::get_architectures() as $archid => $arch): ?>
+                                        			<option value="<?php echo($arch); ?>"
+  								<?php /* Function from include/Util.php*/
+        							$arch_reqest = request_str('architecture');
+        							if (isset ($ns_machine_filter) && machine_filter_value_selected ('architecture', $arch, $ns_machine_filter))
+                						{
+                        						echo(' selected="selected"');
+                						}
+  								?>><?php echo($arch);
+  								?></option>
+                                				<?php endforeach;?>
                                                         </select>
                                                 </td>
                                         </tr>
@@ -188,11 +208,14 @@ if (! empty ($s_anything))
                                                 <td>
                                                         <select name="architecture_capable">
                                                                 <option value="" selected="selected">Any</option>
-                                                                <option value="i586">i586</option>
-                                                                <option value="ia64">ia64</option>
-                                                                <option value="ppc64">ppc64</option>
-                                                                <option value="s390x">s390x</option>
-                                                                <option value="x86_64">x86_64</option>
+								<?php foreach(Machine::get_architectures_capable() as $archid => $arch): ?>
+                                        			<option value="<?php echo($arch); ?>"
+          							<?php if (isset ($ns_machine_filter) && machine_filter_value_selected ('architecture_capable', $arch, $ns_machine_filter))
+                						{
+                        						echo(' selected="selected"');
+                						}
+  								?>><?php echo($arch); ?></option>
+                                				<?php endforeach;?>
                                                         </select>
                                                 </td>
                                         </tr>
@@ -201,16 +224,26 @@ if (! empty ($s_anything))
                                                 <td>
                                                         <select name="status_string">
                                                                 <option value="">Any</option>
-                                                                <option value="down">down</option>
-                                                                <option value="not responding">not responding</option>
-                                                                <option value="unknown">unknown</option>
-                                                                <option value="up">up</option>
+								<?php foreach(Machine::get_statuses() as $status_id => $status_string): ?>
+                                        			<option value="<?php echo($status_string); ?>"
+          							<?php if (isset ($ns_machine_filter) && machine_filter_value_selected ('status_string', $status_string, $ns_machine_filter))
+        							{
+                							echo(' selected="selected"');
+        							}
+  								?>><?php echo($status_string); ?></option>
+                                				<?php endforeach;?>
                                                         </select>
                                                 </td>
                                         </tr>
                                         <tr><th>Type</th><td><select name="type">
-                                                                <option value="hw">hw</option>
-                                                                <option value="vm">vm</option>
+						<?php foreach(Machine::get_all_hwtype() as $type): ?>
+						<option value="<?php echo($type); ?>"
+						<?php if (isset ($ns_machine_filter) && machine_filter_value_selected ('type', $type, $ns_machine_filter))
+						{
+							echo(' selected="selected"');
+						}
+						?>><?php echo($type); ?></option>
+                                                <?php endforeach;?>
                                                         </select></td></tr>
                                 </table>
 

@@ -1598,6 +1598,24 @@ class Machine {
 		return $result;
 	}
 
+        /**
+         * get_all_hwtype
+         *
+         * @return All possible HW types stored in database. Such as hw,vm,xen
+         *
+         */
+        static public function get_all_hwtype() {
+                $stmt = get_pdo()->prepare('select DISTINCT type from machine ORDER BY type;');
+                $stmt->execute();
+
+                $result = array();
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                        array_push($result,$row["type"]);
+                }
+
+                return $result;
+        }
+
 	/**
 	 * del_machine
 	 *
