@@ -2284,65 +2284,46 @@ class MachineSearch {
 	 */
 	public function filter_reservation($user, $type)
 	{
+		$machine_ids = array();
+		$operator = null;
 		if ($type == 'my')
 		{
 			$user_id = $user->getId();
-			$this->add_table('user_machine', 'user_machine.machine_id = machine.machine_id');
-			$this->add_condition("user_id", $user_id);
+			$operator = "IN";
+			$stmt = get_pdo()->prepare("SELECT machine_id FROM user_machine where user_id = $user_id");
 		}
-		
 		else if($type == 'free')
 		{
 			$machine_ids = array();
+			$operator = "NOT IN";
 			$stmt = get_pdo()->prepare('SELECT machine_id FROM user_machine');
-			$r = $stmt->execute();
-			$records = $stmt->fetchAll();
-			foreach($records as  $r)
-			{
-				$machine_ids[] = $r[0];
-			}
-			if (count($machine_ids) > 0)
-			{
-				$operator = "NOT IN";
-				$this->add_condition('machine_id', $machine_ids, $operator);
-			}
 		}
 		else if ($type == 'others')
 		{
 			$machine_ids = array();
+			$operator = "IN";
 			if (isset($user))
 			{
 				$user_id = $user->getId();
 				$stmt = get_pdo()->prepare("SELECT machine_id FROM user_machine where user_id != $user_id");
-				$stmt->execute();
-				$records = $stmt->fetchAll();
-				foreach($records as  $r)
-				{
-					$machine_ids[] = $r[0];
-				}
-				//if (count($machine_ids) > 0)
-				//{
-					$operator = "IN";
-					$this->add_condition('machine_id', $machine_ids, $operator);
-				//}
 			}
 			else
 			{
 				$stmt = get_pdo()->prepare('SELECT machine_id FROM user_machine');
-				$stmt->execute();
-				$records = $stmt->fetchAll();
-				foreach($records as  $r)
-				{
-					$machine_ids[] = $r[0];
-				}
-				if (count($machine_ids) > 0)
-				{
-					$operator = "IN";
-					$this->add_condition('machine_id', $machine_ids, $operator);
-				}
 			}
 		}
+		$r = $stmt->execute();
+		$records = $stmt->fetchAll();
+		foreach($records as  $r)
+		{
+			$machine_ids[] = $r[0];
+		}
+		if (count($machine_ids) > 0)
+		{
+			$this->orwhere[] = "machine_id ". $operator . "(". implode(',', $machine_ids) . ")";
+		}
 	}
+	
 }
 
 
