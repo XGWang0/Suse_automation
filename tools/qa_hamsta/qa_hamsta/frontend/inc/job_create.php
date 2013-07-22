@@ -244,6 +244,10 @@
 
 	$fileCustom = str_replace("ROLES_AREA", $rolesCustom, str_replace("PARAMETERS_AREA", $parametersCustom,
 		      str_replace("COMMANDS_AREA", $commandsCustom, $fileCustom)));
+	/* Prepend a custom job label to the message of the day. */
+	if (strpos ($motdmsg, '[Custom job]') === false) {
+		$motdmsg = '[Custom job]: ' . $motdmsg;
+	}
 
 	$fileJob = fopen($filename, "w");
 	if($fileJob == NULL)
