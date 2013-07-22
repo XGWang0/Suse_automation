@@ -36,10 +36,10 @@ class MachineEditController
 		foreach ($this->machine_list as $machine)
 		{
 			$rh = new ReservationsHelper ();
-			$rh->delete ($machine, $user);
 			if ($rh->isLastReservator ($machine, $user)) {
 				$machine->set_usage('');
 			}
+			$rh->delete ($machine, $user);
 			Log::create($machine->get_id(), $user->getLogin (),
 				    'RELEASE', "has unreserved this machine");
 		}
@@ -115,7 +115,7 @@ class MachineEditController
 				}
 			}
 
-			if (! empty ($usage) && count ($used_by_array) < 1) {
+			if (! empty ($machine_usage) && count ($used_by_array) < 1) {
 				$this->addMachineError ($machine,
 							'Usage cannot be set without a reservation.');
 			}

@@ -332,8 +332,7 @@ class ReservationsHelper
 
 	public function isLastReservator ($machine, $user)
 	{
-		$this->getForMachine ($machine);
-		return count ($this->getReservations ()) == 1
+		return count ($this->getForMachine ($machine)) == 1
 			&& $this->isReservator ($user);
 	}
 
