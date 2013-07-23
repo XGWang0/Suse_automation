@@ -348,93 +348,7 @@ class Machine {
 	 * @return string List of client installed packages.
 	 */
 	function get_rpm_list() {
-		$stmt = get_pdo()->prepare('SELECT rpm_list FROM machine WHERE machine_id = :id');
-		$stmt->bindParam(':id',$this->fields['machine_id']);
-		$stmt->execute();
-		return $stmt->fetchColumn();
-	}
-
-	/**
-	 * get_tools_out_of_date
-	 *
-	 * @access public
-	 * @return array Containing list of outdated packages.
-	 * @return bool False if no packages were outdated.
-	 */
-	function get_tools_out_of_date() {
-		$rpm_str = $this->get_rpm_list();
-		if (!$rpm_str) {
-                        return array('qa_hamsta 2.2.0');
-                }
-		$rpm_list = array();
-		foreach (explode("\n", $rpm_str) as $rpm) {
-			$rpm_vals = explode(" ", $rpm);
-			if (sizeof($rpm_vals) == 2) {
-				$rpm_list[$rpm_vals[0]] = $rpm_vals[1];
-			}
-		}
-		
-		$old_packages = array();
-		$tools_packages = array("qa_hamsta", "qa_hamsta-cmdline", "qa_hamsta-common", "qa_tools", "qa_lib_perl", "qa_lib_ctcs2", "qa_lib_config", "qa_lib_keys");
-		$versions = array();
-		foreach (array_unique($GLOBALS['packageVersions']) as $package) {
-			$package_data = explode(" ", $package);
-			if (sizeof($package_data) == 2) {
-				$key = $package_data[0];
-				$val = $package_data[1];
-				if (in_array($key, $tools_packages)) {
-					if (!array_key_exists($key, $versions)) {
-						$versions[$key] = $val;
-					} else {
-						$current_version = explode(".", substr($versions[$key], strpos($versions[$key], "-")+1));
-						$suggested_version = explode(".", substr($val, strpos($val, "-")+1));
-						if ($this->check_newer_version($current_version, $suggested_version)) {
-							$versions[$key] = $val;
-						}
-					}
-				}
-			}
-		}
-		foreach ($versions as $key => $val) {
-			if (array_key_exists($key, $rpm_list)) {
-				$server_core_version = explode(".", substr($val, 0, strpos($val, "-")));
-				$server_sub_version = explode(".", substr($val, strpos($val, "-")+1));
-				$client_core_version = explode(".", substr($rpm_list[$key], 0, strpos($rpm_list[$key], "-")));
-				$client_sub_version = explode(".", substr($rpm_list[$key], strpos($rpm_list[$key], "-")+1));
-				if ($this->check_newer_version($client_core_version, $server_core_version) ||
-					($server_core_version == $client_core_version && $this->check_newer_version($client_sub_version, $server_sub_version))) {
-					$old_packages[] = $key.' '.$rpm_list[$key];
-				}
-			}
-		}
-
-		if ($old_packages)
-			return $old_packages;
-		else
-			return false;
-	}
-
-	/**
-	 * check_newer_version 
-	 * 
-	 * @access public
-	 * @param array() the old version to compare
-	 * @param array() the new version to compare
-	 * @return The newer version of the two arguments.
-	 */
-	function check_newer_version($old, $new) {
-		if ($old[0] < $new[0]) {
-			return 1;
-		} else if ($old[0] == $new[0] && $old[1] < $new[1]) {
-			return 1;
-		} else if (array_key_exists(2, $old) &&
-			array_key_exists(2, $new) &&
-			$old[0] == $new[0] &&
-			$old[1] == $new[1] &&
-			$old[2] < $new[2]) {
-			return 1;
-		}
-		return 0;
+		return $this->get_hwelement ("rpm_list", "RPMList");
 	}
 
 	/**
@@ -444,9 +358,7 @@ class Machine {
 	 *@return true if SUT side have hamste update available
 	 */
         function get_update_status() {
-	
-        return $this->fields["update_status"];
-
+		return $this->fields["update_status"];
 	}
 
 	/**
@@ -1794,7 +1706,6 @@ class Machine {
 		'vh_id'=>'machine',
 		'reserved'=>'d',
 		'expires'=>'d',
-		'rpm_list'=>'s',
 		'qaconf_id'=>'i',
 	);
 
