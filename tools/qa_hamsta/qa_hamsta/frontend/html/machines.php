@@ -348,21 +348,28 @@ var width = $(window).width();
 var originLeft = $("#filter").css("left");
 var hoverThreshold = $("#header").height() + $("#filter").height() + $("h1").height();
 var originTheadWidth = $('#machines thead').width();
+var isChrome = navigator.userAgent.toLowerCase().match(/chrome/) != null;
 //console.log('hoverthreshold ' + hoverThreshold);
 $(window).scroll(function(){
     var scrollTop = $(window).scrollTop();
     if (scrollTop > hoverThreshold)
     {
         $('#filter').css("z-index", 10).css("position", "fixed").css('top', '0px');
-        $("#machines thead").css("z-index",9).css("position","fixed").css("top","5.5em"); 
-        $("#machines tr:first-child td").each(function(index) {
+	if (isChrome)
+		$("#machines thead").css("z-index",9).css("position","fixed").css("top","102px"); 
+        else
+		$("#machines thead").css("z-index",9).css("position","fixed").css("top","87px"); 
+	$("#machines tr:first-child td").each(function(index) {
             var ind = index + 1;
             if ( $(this).width() > $("#machines th:nth-child("+ind+")").width() )
-                $("#machines th:nth-child("+ind+")").css("width",$(this).width());
+               	$("#machines th:nth-child("+ind+")").css("width",$(this).width());
             else
                 $(this).css("width",$("#machines th:nth-child("+ind+")").width());
         });
-        $("#blindwall").css("position","fixed").css("display","inline").css("z-index",8).css("width","100%").css("height","5.5em").css("top","0px");
+	if (isChrome)
+        	$("#blindwall").css("position","fixed").css("display","inline").css("z-index",8).css("width","100%").css("height","102px").css("top","0px");
+	else 
+        	$("#blindwall").css("position","fixed").css("display","inline").css("z-index",8).css("width","100%").css("height","87px").css("top","0px");
     }
     else
     {
