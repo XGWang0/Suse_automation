@@ -159,3 +159,7 @@ div.cloudtablevalues {
     width:25em;
     display:block !important;
 }
+
+div.machine_icons {
+    width:120px;
+}

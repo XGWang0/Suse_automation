@@ -330,8 +330,10 @@ foreach ($fields_list as $key=>$value)
 }
 ?>
 		<td align="center">
-
+<!-- Fixed width so the icons stay horizontaly aligned. -->
+<div class="machine_icons">
 <?php print machine_icons($machine,$user); ?>
+</div>
           </td>
 	</tr>
 	<?php endforeach; ?>
