@@ -2052,6 +2052,9 @@ class MachineSearch {
            $value = '(' . join(',', $value) . ')';
            $this->where[] = $field . ' ' . $operator . ' ' .$value;
 
+	} elseif ($operator == 'LIKE') {
+            $value = "'%".$value."%'";
+            $this->where[] = $field . ' ' . $operator . ' ' .$value;
         } elseif ($operator == 'IS NOT NULL') {
             $this->where[] = $field . ' IS NOT NULL';
         } else {
@@ -2206,6 +2209,10 @@ class MachineSearch {
 		$this->add_condition('machine.vh_id', $vh_id, $operator);
 	}
 
+	public function filter_type($type, $operator = 'LIKE')	
+	{
+		$this->add_condition('machine.type', $type, $operator);
+	}
 	/**
 	 * filter_role
 	 *
