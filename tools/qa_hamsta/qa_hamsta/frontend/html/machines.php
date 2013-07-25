@@ -291,7 +291,7 @@ if (! empty ($s_anything))
 
     <td title="<?php echo($machine->get_notes()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>&amp;highlight=<?php echo($highlight); ?>"><?php echo($machine->get_hostname()); ?></a><?php if ($machine->count_host_collide() >= 2) echo '<img src="images/27/host-collide.png" class="icon-notification" title="Hostnames collide! Merge or delete machine if MAC was changed, otherwise rename it.">'; ?></td>
 		    
-    <td><?php echo($machine->get_status_string());
+    <td class="<?php print (get_machine_status_class ($machine->get_status_id ())); ?>"><?php echo($machine->get_status_string());
 	$rh = new ReservationsHelper ();
 	if (isset ($machine) && isset ($user)) {
 		$users_machine = $rh->getForMachineUser ($machine, $user);

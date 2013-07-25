@@ -139,3 +139,18 @@ tr.JOB_START:hover td, span.JOB_START:hover	{ background-color: #aee; }
 .JOB_FINISH td, .JOB_FINISH			{ background-color: #fbf; }
 tr.JOB_FINISH:hover td, span.JOB_FINISH:hover	{ background-color: #eae; }
 
+.machine_up {
+    background-color:#72a63c;
+}
+
+.machine_down {
+    background-color:#ff6a6a;
+}
+
+.machine_not_responding {
+    background-color:#ee82ee;
+}
+
+.machine_unknown {
+    background-color:#00bfff;
+}

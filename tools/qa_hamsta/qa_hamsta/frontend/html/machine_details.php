@@ -46,6 +46,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 		$arr_res = array();
 		$fstring = "get_".$key;
 		$valuer = null;
+		$cls = '';
 
 		if (method_exists ($machine, $fstring)) {
 			$valuer = $machine->$fstring();
@@ -67,7 +68,14 @@ if (!defined('HAMSTA_FRONTEND')) {
 				      . $rh->printUsersToTable ()
 				      ."</td><td>");
 			} else {
-				echo ("<tr><td>$value</td><td>$valuer</td><td>");
+				if ($key == 'status_string') {
+					error_log ('Setting class');
+					$cls = get_machine_status_class ($machine->get_status_id ());
+				}
+				if (! empty ($cls)) {
+					$cls = ' class="' . $cls . '"';
+				}
+				echo ("<tr><td>$value</td><td$cls>$valuer</td><td>");
 				if ($valuer != NULL && method_exists('MachineSearch',"filter_$key")) {
 					echo("<a href=index.php?go=machines&amp;".$key."=".urlencode($valuer).">Search</a>");
 				}

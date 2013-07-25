@@ -391,4 +391,25 @@ function fail($msg)
 	$_SESSION['mtype']='fail';
 }
 
+function get_machine_status_class ($status_id) {
+	$class = '';
+	switch ($status_id) {
+	case 1:
+		return 'machine_up';
+		break;
+	case 2:
+		return 'machine_down';
+		break;
+	case 5:
+		return 'machine_not_responding';
+		break;
+	case 6:
+		return 'machine_unknown';
+		break;
+	default:
+		// No default action here.
+	}
+	return $class;
+}
+
 ?>
