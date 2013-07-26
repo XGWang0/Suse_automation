@@ -223,7 +223,8 @@
 	}
 
 	/* Skip all this if we have a reset request. */
-	if (request_str ('reset') != 'Reset')
+	$advanced_search = request_str("show_advanced"); 
+	if (request_str ('reset') != 'Reset' && !empty($advanced_search))
 	{
 		/* Iterate over all available fields (table columns) and apply
 		 * filters on it. */
@@ -298,37 +299,26 @@
 		$my = request_str("my");
 		$free = request_str("free");
 		$others = request_str("others");
-		if (empty ($advanced_search))
+		$u = User::getCurrent();
+		if ( !empty($my) && $my=="on" )
 		{
-			$u = User::getCurrent();
-			if ( !empty($my) && $my=="on" )
-			{
-				$search->filter_reservation($u, 'my');
-				$ns_machine_filter->fields[$key] = $u->getId();
-			}
-	
-			if ( !empty($free) && $free=="on" )
-			{
-				$search->filter_reservation($u, 'free');
-				$ns_machine_filter->fields[$key] = 'free';
-			}
-	
-			if ( !empty($others) && $others=="on" )
-			{
-				$search->filter_reservation($u, 'others');
-				$ns_machine_filter->fields[$key] = 'others';
-			}
-                        
-                        if (isset($display_fields)) 
-			{
-				if (!in_array($key, $display_fields))
-					$display_fields[] = $key;
-			}
-	
+			$search->filter_reservation($u, 'my');
+			$ns_machine_filter->fields[$key] = $u->getId();
 		}
-		else //add adveanced condition
+	
+		if ( !empty($free) && $free=="on" )
 		{
+			$search->filter_reservation($u, 'free');
+			$ns_machine_filter->fields[$key] = 'free';
 		}
+	
+		if ( !empty($others) && $others=="on" )
+		{
+			$search->filter_reservation($u, 'others');
+			//$ns_machine_filter->fields[$key] = 'others';
+			$ns_machine_filter->fields[$key] = 'others';
+		}
+
 		$filter = request_str("s_anything");
 		$op = request_operator ("s_anything_operator");
 	
@@ -386,6 +376,38 @@
 	}
 
 	$machines = $search->query();
+
+	$fulltext = request_str('fulltext');
+	$s_hidden_field = request_str('searchall');
+	$display_match_field = request_str('displmatch');
+	if (!empty($fulltext))
+	{
+		require_once('lib/MachineFilter.php');
+		if (isset($s_hidden_field) && !empty($s_hidden_field))
+		{
+			$mf = new MachineFilter($machines, $fulltext, $fields_list);
+		}
+		else
+		{
+			$tmp_fields_list = array_merge($default_fields_list, $display_fields);
+			$tmp_fields_list = array_unique($tmp_fields_list, SORT_STRING);
+			$mf = new MachineFilter($machines, $fulltext, $tmp_fields_list);
+		}
+		$machines = $mf->filter();
+		$match_fields = $mf->getMatchFields();
+		if (!isset($display_match_field) || empty($display_match_field))
+		{
+			foreach ($match_fields as $match_field)
+			{
+				if (!in_array($match_field, $display_fields))
+				{
+					array_push($display_fields, $match_field);
+				}
+			}
+		}
+	}
+
+
 	if (request_str("s_group"))
 		foreach ($machines as $machine)
 			$a_machines[] = $machine->get_id();
