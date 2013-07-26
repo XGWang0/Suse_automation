@@ -100,6 +100,7 @@ body
 	background-color: #ffffff;
 	min-height: 550px;
 }
+
 #footer
 {
 	background-color: #455560;
@@ -108,12 +109,14 @@ body
 	color: #ffffff;
 	text-align: left;
 	position: relative;
+	border-top:7em solid;
 }
+
 #footer #copyright
 {	
 	position: absolute;
 	right: 10px;
-	top: 7px;
+	top: 0.9em;
 }
 
 .left {
