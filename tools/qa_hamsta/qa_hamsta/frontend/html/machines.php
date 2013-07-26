@@ -340,10 +340,9 @@ foreach ($fields_list as $key=>$value)
   </tbody>
 </table>
 <script type="text/javascript">
-<!--
+//<!--
                           var TSort_Data = new Array ('machines','', '0' <?php echo str_repeat(", 'h'", (isset ($display_fields) ? count($display_fields)+2 : 1)); ?>);
 tsRegister();
--->
 
 var height = $(window).height(); 
 var width = $(window).width(); 
@@ -391,10 +390,12 @@ $("#searchhwinfo").click(function(){
         $("#hwinfo_search_ret").css('display', 'none');	
     }
 });
+//-->
 </script>
 </form>
 
 <script type="text/javascript">
+//<!--
 var actionMap={
 machine_send_job: "Send job",
 addsut: "Add SUT",
@@ -444,6 +445,7 @@ $('.action_button_short_left, .action_button_short_right, .action_button_long').
 $('.action_button_short_left, .action_button_short_right, .action_button_long').click($.proxy(composeFormDataBeforeSubmission, this));
 
 });
+//-->
 </script>
 
 <input type="checkbox" id="actionCheck">
