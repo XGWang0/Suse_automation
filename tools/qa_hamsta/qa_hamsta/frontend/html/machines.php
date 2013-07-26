@@ -393,33 +393,86 @@ $("#searchhwinfo").click(function(){
 });
 </script>
 </form>
+
+<script type="text/javascript">
+var actionMap={
+machine_send_job: "Send job",
+addsut: "Add SUT",
+edit: "Edit/reserve",
+machine_reinstall: "Reinstall",
+create_group: "Add to group",
+group_del_machines: "Remove from group",
+vhreinstall: "Reinstall as Virtualization Host",
+upgrade: "Upgrade to higher",
+merge_machines: "Merge machines",
+machine_config: "Configure machines",
+delete: "Delete"
+};
+
+function composeFormDataBeforeSubmission(evt){
+        aimAction="";
+        var which = evt.currentTarget;
+        for ( key in actionMap)
+        {
+                if ( which.value == actionMap[key])
+                {
+                        aimAction = key;
+                        break;
+                }
+        }
+        var machinesArray = new Array();
+        var objForm = document.forms["machine_list"];
+        var objLen = objForm.length;
+        for (var iCount = 0; iCount < objLen; iCount++) {
+                if (objForm.elements[iCount].type == "checkbox" && objForm.elements[iCount].name == "a_machines[]" && objForm.elements[iCount].checked == true) {
+                        machinesArray.push(objForm.elements[iCount].value);
+                }
+        }
+        var aimMachines="";
+        for (var iCount = 0; iCount < machinesArray.length; iCount++) {
+                aimMachines = aimMachines + "&a_machines[]=" + machinesArray[iCount];
+        }
+        var fullPath="index.php";
+        if ( aimAction || aimMachines ){
+                fullPath='index.php?action=' + aimAction + aimMachines;
+        }
+        window.location.href = fullPath;
+}
+
+$(document).ready(function(){
+$('.action_button_short_left, .action_button_short_right, .action_button_long').unbind("click");
+$('.action_button_short_left').click($.proxy(composeFormDataBeforeSubmission, this));
+
+});
+</script>
+
 <input type="checkbox" id="actionCheck">
 <label id="action" class="action" for="actionCheck">
 <form id="action">
 <h3>&darr;  Action  &darr;</h3>
 <input type="checkbox" id="blkAni">
 <label class="noani" for="blkAni">
-<select name="action">
-<!--  <option value="">No action</option> -->
-  <option value="machine_send_job">Send job</option>
-  <option value="addsut">Add SUT</option>
-  <option value="edit">Edit/reserve</option>
-  <option value="machine_reinstall">Reinstall</option>
-  <option value="create_group">Add to group</option>
-  <option value="group_del_machines">Remove from group</option>
-  <option value="vhreinstall">Reinstall as Virtualization Host</option>
-  <option value="upgrade">Upgrade to higher</option>
-<!--   <option value="create_autobuild">Add to Autobuild</option> -->
-<!--   <option value="delete_autobuild">Remove from Autobuild</option> -->
-  <option value="merge_machines">Merge machines</option>
-  <option value="machine_config">Configure machines</option>
-  <option value="delete">Delete</option>
-</select>
+<input type="button" value="Send job" class="action_button_short_left" >
+<input type="button" value="Add SUT" class="action_button_short_right" >
+<br>
+<input type="button" value="Edit/reserve" class="action_button_short_left" >
+<input type="button" value="Reinstall" class="action_button_short_right" >
+<br>
+<input type="button" value="Remove from group" class="action_button_short_left" >
+<input type="button" value="Configure machines" class="action_button_short_right" >
+<br>
+<input type="button" value="Add to group" class="action_button_short_left" >
+<input type="button" value="Upgrade to higher" class="action_button_short_right" >
+<br>
+<input type="button" value="Merge machines" class="action_button_short_left" >
+<input type="button" value="Delete" class="action_button_short_right" >
+<br>
+<br>
+<input type="button" value="Reinstall as Virtualization Host" class="action_button_long" >
 </label>
-<br/>
-<input type="submit" value="Go">
 </form>
 </label>
+
 <input type="checkbox" id="fieldsCheck">
 <label id="fields" class="fields" for="fieldsCheck">
 <form id="fields" method="post">

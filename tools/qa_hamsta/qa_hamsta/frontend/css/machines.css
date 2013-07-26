@@ -111,7 +111,7 @@ input#fieldsCheck:checked + .fields{right:0em;}
   position: fixed;
   padding: 1.5em;
   margin-left:-1em;
-  left:-14em;
+  left:-18.4em;
   bottom: 7em;
   border-radius: 0 1em 1em 0;
   z-index: 10;
@@ -131,6 +131,7 @@ form#action h3  {
   -moz-transform:rotate(270deg);
   -webkit-transform:rotate(270deg);
   float:right;
+  margin-top: 6.5em;
   margin-right:-2em;
   color: #fff;
 }
@@ -228,3 +229,16 @@ div#blindwall {
   height: 0;
   z-index: -1;
 }
+.action_button_short_left {
+    width: 140px;
+    font-family: sans,sans-serif;
+}
+.action_button_short_right {
+    margin-right: -1.2em;
+    width: 140px;
+}
+.action_button_long {
+    margin-right: -1.2em;
+    width: 285px;
+}
+
