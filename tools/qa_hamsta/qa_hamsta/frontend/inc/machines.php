@@ -195,7 +195,7 @@
 	    $display_fields = array ("usage", "expires_formated",
 				     "product",
 				     "architecture_capable",
-				     "kernel", "type");
+				     "kernel");
 	    if (! empty ($group_filter)
 		&& isset ($ns_machine_fields))
 	      {
