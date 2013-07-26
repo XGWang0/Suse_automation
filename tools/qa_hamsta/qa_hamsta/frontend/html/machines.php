@@ -493,8 +493,9 @@ $('.action_button_short_left, .action_button_short_right, .action_button_long').
                     echo("\t\t\t\t\t<input type=\"checkbox\" name=\"DF_$key\" id=$key");
                     if ( isset ($display_fields ) && in_array($key, $display_fields))
                     {
-                        echo(' checked="checked">');
+                        echo(' checked="checked"');
                     }
+		    echo ('>'); // Close the input element
                     echo("<label for=$key>$value</label><br>");
                 }
         ?>
