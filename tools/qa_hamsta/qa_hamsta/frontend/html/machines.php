@@ -441,7 +441,7 @@ function composeFormDataBeforeSubmission(evt){
 
 $(document).ready(function(){
 $('.action_button_short_left, .action_button_short_right, .action_button_long').unbind("click");
-$('.action_button_short_left').click($.proxy(composeFormDataBeforeSubmission, this));
+$('.action_button_short_left, .action_button_short_right, .action_button_long').click($.proxy(composeFormDataBeforeSubmission, this));
 
 });
 </script>
