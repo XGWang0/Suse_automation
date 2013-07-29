@@ -175,7 +175,14 @@ if (!defined('HAMSTA_FRONTEND')) {
 			<td><?php echo($module->__toString()); ?></td>
 			<td><a href="index.php?go=machines&amp;s_module=<?php echo(urlencode($module->get_name())); ?>&amp;s_module_description=<?php echo(urlencode($module->__toString())); ?>">Search</a></td>
 			<td><?php echo($module->get_driver()); ?></td>
-			<td><a href="index.php?go=machines&amp;s_module=<?php echo(urlencode($module->get_name())); ?>&amp;s_module_driver=<?php echo(urlencode($module->get_driver())); ?>">Search</a></td>
+<?php
+$driver_name = $module->get_driver();
+?>
+			<td>
+<?php if (! empty ($driver_name)): ?>
+<a href="index.php?go=machines&amp;s_module=<?php echo(urlencode($module->get_name())); ?>&amp;s_module_driver=<?php echo(urlencode($driver_name)); ?>">Search</a>
+<?php endif; ?>
+</td>
 		</tr>
 	<?php endforeach; ?>
 </table>
