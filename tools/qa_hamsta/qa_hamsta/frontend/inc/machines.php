@@ -318,6 +318,13 @@
 			//$ns_machine_filter->fields[$key] = 'others';
 			$ns_machine_filter->fields[$key] = 'others';
 		}
+/* 
+                if (isset($display_fields)) 
+		{
+			if (!in_array($key, $display_fields) && !in_array($key, $default_fields_list))
+				$display_fields[] = $key;
+		}
+*/	
 
 		$filter = request_str("s_anything");
 		$op = request_operator ("s_anything_operator");
@@ -385,7 +392,7 @@
 		require_once('lib/MachineFilter.php');
 		if (isset($s_hidden_field) && !empty($s_hidden_field))
 		{
-			$mf = new MachineFilter($machines, $fulltext, $fields_list);
+			$mf = new MachineFilter($machines, $fulltext, array_keys($fields_list));
 		}
 		else
 		{
@@ -399,7 +406,7 @@
 		{
 			foreach ($match_fields as $match_field)
 			{
-				if (!in_array($match_field, $display_fields))
+				if (!in_array($match_field, $display_fields) && !in_array($match_field, $default_fields_list))
 				{
 					array_push($display_fields, $match_field);
 				}
