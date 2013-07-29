@@ -219,6 +219,7 @@ print (virtual_machine_icons ($vm, $user));
   <script type="text/javascript">
   //<!--
   var TSort_Data = new Array ('<?php echo "vm_".($machine->get_hostname()); ?>','', '0' <?php echo str_repeat(", 'h'",count($vh_display_fields) + 1); ?>);
+  var TSort_Icons = new Array ('<span class="text-blue sorting-arrow">&uArr;</span>', '<span class="text-blue sorting-arrow">&dArr;</span>');
   tsRegister();
   //-->
   </script>

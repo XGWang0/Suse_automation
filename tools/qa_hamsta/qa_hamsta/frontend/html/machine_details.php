@@ -245,5 +245,6 @@ if (!defined('HAMSTA_FRONTEND')) {
 <script type="text/javascript">
 	var TSort_Data = new Array ('lastjobs','i','s','s','d','d');
 	var TSort_Initial = "0D";
+	var TSort_Icons = new Array ('<span class="text-blue sorting-arrow">&uArr;</span>', '<span class="text-blue sorting-arrow">&dArr;</span>');
 	tsRegister();
 </script> 
