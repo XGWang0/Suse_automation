@@ -8,6 +8,22 @@ class MachineFilter
 	private $match_fields= array ();
 	private $search_text = "";
 
+	private function _is_machine_exist($machine, $machine_list)
+	{
+		$ret = false;
+		
+		if ( !is_array($machine_list))
+			return false;
+		foreach($machine_list as $m)
+		{
+			if ($machine->get_id() != $m->get_id())
+				continue;
+			else
+				$ret = true;
+		}
+		return $ret;
+	}
+
 	public function __construct ($machines, $text, $search_fields = array ())
 	{
 		$this->machine_list = $machines;
@@ -44,7 +60,8 @@ class MachineFilter
 		if (!isset($this->search_fields) || !is_array($this->search_fields))
 			return;
 
-		foreach (array_keys($this->search_fields) as $field)
+		//foreach (array_keys($this->search_fields) as $field)
+		foreach ($this->search_fields as $field)
 		{
 			$fname = "get_" . $field;	
 			foreach ($this->machine_list as $machine)
@@ -55,8 +72,6 @@ class MachineFilter
 				//if (preg_match($this->search_text, $value) == 1)
 				if ($value && strstr($value, $this->search_text))
 				{
-					//if (!in_array($field, $this->search_fields))
-					//    $this->search_fields[] = $field;
 					if (!in_array($field, $this->match_fields))
 						$this->match_fields[] = $field;
 					
@@ -64,8 +79,7 @@ class MachineFilter
 						$tmp_machine_list[] = $machine;
 					else 
 					{
-						$last_machine = $tmp_machine_list[count($tmp_machine_list)-1];	
-						if ($last_machine->get_id() != $machine->get_id())
+						if (!$this->_is_machine_exist($machine, $tmp_machine_list))
 							$tmp_machine_list[] = $machine;
 					}
 				}
