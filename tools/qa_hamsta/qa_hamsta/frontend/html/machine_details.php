@@ -33,7 +33,14 @@ if (!defined('HAMSTA_FRONTEND')) {
 
 ?>
 <script src="js/filter_log.js"></script>
+
+
 <h2 class="text-medium text-blue bold">Machine overview</h2>
+
+<div class="machine_icons_machine_details">
+	<?php print machine_icons($machine,$user); ?>
+</div>
+
 <table class="list text-main">
 	<tr>
 		<th>Element</th>
@@ -85,12 +92,6 @@ if (!defined('HAMSTA_FRONTEND')) {
 	}
 ?>
 </table>			
-
-<div style="margin-top: 6px; margin-left: 3px;">
-	<span class="text-main text-blue bold" style="position: relative; bottom: 6px;">Actions: </span>
-
-<?php print machine_icons($machine,$user); ?>
-</div>
 
 <h2 class="text-medium text-blue bold">Last jobs</h2>
 <table class="list text-main" id="lastjobs">

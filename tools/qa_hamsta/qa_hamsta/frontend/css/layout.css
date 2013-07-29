@@ -166,3 +166,8 @@ div.cloudtablevalues {
 div.machine_icons {
     width:120px;
 }
+
+div.machine_icons_machine_details {
+    margin-left:25.2em;
+    margin-top:-2.5em;
+}
