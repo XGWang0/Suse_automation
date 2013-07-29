@@ -35,6 +35,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 <script src="js/filter_log.js"></script>
 
 
+<div class="left margin_small">
 <h2 class="text-medium text-blue bold">Machine overview</h2>
 
 <div class="machine_icons_machine_details">
@@ -92,7 +93,9 @@ if (!defined('HAMSTA_FRONTEND')) {
 	}
 ?>
 </table>			
+</div>
 
+<div class="left margin_small">
 <h2 class="text-medium text-blue bold">Last jobs</h2>
 <table class="list text-main" id="lastjobs">
 	<thead>
@@ -116,7 +119,10 @@ if (!defined('HAMSTA_FRONTEND')) {
                         <td><span class="<?php echo($job->get_status_string()); ?>">
                                 <?php echo($job->get_status_string()); ?></span>
 			</td>
-			<td><?php echo($job->get_name()); ?></td>
+<?php
+	$job_name = $job->get_name();
+?>
+			<td><div title="<?php echo ($job->get_name()); ?>" class="ellipsis-no-wrapped job_name"><?php echo($job_name); ?></div></td>
 			<td><?php echo($job->get_started()); ?></td>
 			<td><?php echo($job->get_stopped()); ?></td>
 			<td>
@@ -144,6 +150,9 @@ if (!defined('HAMSTA_FRONTEND')) {
 		echo '<p><a href="index.php?go=machine_purge&amp;id=' . $machine->get_id() . '&amp;purge=job">Purge job history</a></p>' . "\n";
 	}
 ?>
+</div>
+
+<div class="left margin_small">
 <?php if ( isset($configuration) ) { ?>
 <?php if($configuration->get_id() == $machine->get_current_configuration()->get_id()): ?>
 	<h2 class="text-medium text-blue bold">Current configuration</h2>
@@ -174,36 +183,10 @@ if (!defined('HAMSTA_FRONTEND')) {
 <?php } else { ?>
       <h2 class="text-medium text-blue bold">Configuration not set</h2>
 <?php } ?>
+</div>
 
-<h2 class="text-medium text-blue bold">Previous configurations</h2>
-<form action="index.php?go=diff_config" method="post">
-<table class="list text-main">
-	<tr>
-		<th>&nbsp;</th>
-		<th>ID</th>
-		<th>First online</th>
-		<th>Last used</th>
-	</tr>
-	<?php	$configs=$machine->get_configurations(); 
-		foreach ($configs as $configuration): ?>
-		<tr>
-			<td>
-				<input type="radio" name="config1" value="<?php echo($configuration->get_id()); ?>">
-				<input type="radio" name="config2" value="<?php echo($configuration->get_id()); ?>">
-			</td>
-			<td><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>&amp;config=<?php echo($configuration->get_id()); ?>"><?php echo($configuration->get_id()); ?></a></td>
-			<td><?php echo($configuration->get_created()); ?></td>
-			<td><?php echo($configuration->get_last_activity()); ?></td>
-		</tr>
-	<?php endforeach; ?>
-</table>
-<input type="submit" value="Compare">
-</form>
+<div class="margin_small" style="clear:both;">
 <?php
-
-	if( count($configs) > 1 && isset ($user)) {
-		echo '<p><a href="index.php?go=machine_purge&amp;id=' . $machine->get_id() . '&amp;purge=config">Purge configuration history</a></p>' . "\n";
-	}
 	echo "<h2 class=\"text-medium text-blue bold\">Action history</h2>";
 
 	if($machine_logs_number == 0) {
@@ -243,6 +226,41 @@ if (!defined('HAMSTA_FRONTEND')) {
 	}
 
 ?>
+</div>
+
+<div class="margin_small">
+<h2 class="text-medium text-blue bold">Previous configurations</h2>
+<form action="index.php?go=diff_config" method="post">
+<table class="list text-main">
+	<tr>
+		<th>&nbsp;</th>
+		<th>ID</th>
+		<th>First online</th>
+		<th>Last used</th>
+	</tr>
+	<?php	$configs=$machine->get_configurations();
+		foreach ($configs as $configuration): ?>
+		<tr>
+			<td>
+				<input type="radio" name="config1" value="<?php echo($configuration->get_id()); ?>">
+				<input type="radio" name="config2" value="<?php echo($configuration->get_id()); ?>">
+			</td>
+			<td><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>&amp;config=<?php echo($configuration->get_id()); ?>"><?php echo($configuration->get_id()); ?></a></td>
+			<td><?php echo($configuration->get_created()); ?></td>
+			<td><?php echo($configuration->get_last_activity()); ?></td>
+		</tr>
+	<?php endforeach; ?>
+</table>
+<input type="submit" value="Compare">
+</form>
+<?php
+
+	if( count($configs) > 1 && isset ($user)) {
+		echo '<p><a href="index.php?go=machine_purge&amp;id=' . $machine->get_id() . '&amp;purge=config">Purge configuration history</a></p>' . "\n";
+	}
+?>
+</div>
+
 <script type="text/javascript">
 	var TSort_Data = new Array ('lastjobs','i','s','s','d','d');
 	var TSort_Initial = "0D";

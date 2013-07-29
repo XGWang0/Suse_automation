@@ -291,3 +291,7 @@ label.patterns {
 div.machine_table_usedby {
     width:10em;
 }
+
+div.job_name {
+    width:24em;
+}
