@@ -258,8 +258,8 @@ if (! empty ($s_anything))
                         </div>
                         <input type="checkbox" name="searchall" id="searchall"/><label for="searchall" id="searchlabel">Search hidden field</label>
 
-                       <input type="checkbox" name="displmatch" id="displmatch"/><label for="displmatch" id="displabel">Hide matching columns</label>
-</nobr>
+                       <input type="checkbox" name="hidematch" id="hidematch"/><label for="hidematch" id="displabel">Hide matching columns</label>
+			</nobr>
                 </div>
 </form>
 <div id="blindwall"> </div>
@@ -391,6 +391,18 @@ $("#searchhwinfo").click(function(){
         $("#hwinfo_search_ret").css('display', 'none');	
     }
 });
+
+
+$('#fulltext').on('focus', function() {
+	$(this).attr('placeholder',"") ;
+}).on('blur', function(){
+	$(this).attr('placeholder',"Fulltext Search") ;
+});
+
+$('#x').on('click', function() {
+	$('#fulltext').attr('value', "");
+});
+
 //-->
 </script>
 </form>
