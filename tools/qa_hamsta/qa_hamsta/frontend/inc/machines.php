@@ -386,7 +386,7 @@
 
 	$fulltext = request_str('fulltext');
 	$s_hidden_field = request_str('searchall');
-	$display_match_field = request_str('displmatch');
+	$hide_match_field = request_str('hidematch');
 	if (!empty($fulltext))
 	{
 		require_once('lib/MachineFilter.php');
@@ -399,10 +399,11 @@
 			$tmp_fields_list = array_merge($default_fields_list, $display_fields);
 			$tmp_fields_list = array_unique($tmp_fields_list, SORT_STRING);
 			$mf = new MachineFilter($machines, $fulltext, $tmp_fields_list);
+			//$mf = new MachineFilter($machines, $fulltext, $default_fields_list);
 		}
 		$machines = $mf->filter();
 		$match_fields = $mf->getMatchFields();
-		if (!isset($display_match_field) || empty($display_match_field))
+		if (!isset($hide_match_field) || empty($hide_match_field))
 		{
 			foreach ($match_fields as $match_field)
 			{
