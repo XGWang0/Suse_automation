@@ -76,7 +76,6 @@ if (!defined('HAMSTA_FRONTEND')) {
 				      ."</td><td>");
 			} else {
 				if ($key == 'status_string') {
-					error_log ('Setting class');
 					$cls = get_machine_status_class ($machine->get_status_id ());
 				}
 				if (! empty ($cls)) {
