@@ -188,18 +188,7 @@ $default_fields_list = array (
  */
 $fields_hidden=array('unique_id');
 
-# header & footer links
 $qadb_web = exec('/usr/share/qa/tools/get_qa_config qadb_wwwroot');
- $naviarr = array (
-  "List Machines"=>"index.php?go=machines",
-  "List Groups"=>"index.php?go=groups",
-  "List Jobs"=>"index.php?go=jobruns",
-  "Validation Test"=>"index.php?go=validation",
-  "AutoPXE"=>"index.php?go=autopxe",
-  "QA Cloud"=>"index.php?go=qacloud",
-  "QADB"=>$qadb_web,
-  "About Hamsta"=>"index.php?go=about"
- );
 
 $virtdisktypes = array("def", "file", "tap:aio", "tap:qcow", "tap:qcow2");
 
@@ -236,5 +225,17 @@ require_once ('lib/ConfigFactory.php');
  */
 $config = ConfigFactory::build ("Ini", dirname(__FILE__) . '/config.ini',
 				  $configuration_group);
+/* header & footer links */
+$naviarr = array (
+	"List Machines"=>"index.php?go=machines",
+	"List Groups"=>"index.php?go=groups",
+	"List Jobs"=>"index.php?go=jobruns",
+	"Validation Test"=>"index.php?go=validation",
+	"AutoPXE"=>"index.php?go=autopxe",
+	"QA Cloud"=>"index.php?go=qacloud",
+	"QADB"=>$qadb_web,
+	"Documentation" =>(! empty ($config->documentation->link)
+		 ? $config->documentation->link : '') ,
+	"About Hamsta"=>"index.php?go=about");
 
 ?>
