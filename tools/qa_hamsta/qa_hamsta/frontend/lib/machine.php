@@ -1178,6 +1178,17 @@ class Machine {
 		else
 			return NULL;
 	}
+	/**
+	 * get_used_by
+	 * This is a workaround function for searching reservator in machine list.
+	 *
+	 * @access public
+	 * @return The reservator name of the machine. 
+	 */
+	function get_used_by() {
+		$rh = new ReservationsHelper ($this);
+		return $rh->prettyPrintUsers ();
+	}
 
 	/**
 	 * get_children
