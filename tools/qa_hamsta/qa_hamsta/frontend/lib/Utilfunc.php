@@ -204,7 +204,7 @@ function icon($args)
 # - 'err_noperm' : tooltip message if action not permitted
 # - 'err_noavail': tooltip message if action not available
 # - 'size': size of the icon (directory where icon lives, default value is '27')
-function task_icon($a)
+function task_icon($a,$ref=0)
 {
 	$a=array_merge(array( # merge with default values
 		'url'=>'','allowed'=>true,'link'=>false,'enbl'=>true,'confirm'=>false,'object'=>'',
@@ -220,6 +220,7 @@ function task_icon($a)
 		$icon=array('src'=>"$imgurl-grey.png",'alt'=>$err_msg,'title'=>$err_msg);
 		if(!$a['link'])	{
 			 $icon['href']='#';
+			 if(!$ref) return icon ($icon);
 			 return $icon;
 		}
 	}
@@ -228,9 +229,13 @@ function task_icon($a)
 		if( $a['confirm'] )	{
 			$args['onclick']="return confirm('This will $fullname ".$a['object'].". Are you sure you want to continue?')\n";
 		}
-		
+		if(!$ref)	{
+		$icon=icon($args);
+		}else{
 		$icon=$args;
+		}
 	}
+		if(!$ref) return html_tag('a',$icon,array('href'=>$a['url']));
                 $icon['href']=$a['url'];
 		return $icon;
 }
@@ -285,7 +290,7 @@ function machine_icons($machine,$user)
 			$btn[$act]);
 		if( $is_pwr )
 			$b['err_noavail']="No powerswitch configured for $host.";
-		$ret[$act]=task_icon($b);
+		$ret[$act]=task_icon($b,1);
 	}
 	return act_menu($ret);
 }
