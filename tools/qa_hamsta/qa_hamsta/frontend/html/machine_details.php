@@ -34,13 +34,12 @@ if (!defined('HAMSTA_FRONTEND')) {
 ?>
 <script src="js/filter_log.js"></script>
 
+<div class="machine_icons_machine_details">
+	  <?php print machine_icons($machine,$user); ?>
+</div>
 
 <div class="left margin_small">
 <h2 class="text-medium text-blue bold">Machine overview</h2>
-
-<div class="machine_icons_machine_details">
-	<?php print machine_icons($machine,$user); ?>
-</div>
 
 <table class="list text-main">
 	<tr>
