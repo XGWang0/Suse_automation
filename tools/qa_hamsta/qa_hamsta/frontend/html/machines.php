@@ -405,88 +405,32 @@ $('#x').on('click', function() {
 
 //-->
 </script>
-</form>
-
-<script type="text/javascript">
-//<!--
-var actionMap={
-machine_send_job: "Send job",
-addsut: "Add SUT",
-edit: "Edit/reserve",
-machine_reinstall: "Reinstall",
-create_group: "Add to group",
-group_del_machines: "Remove from group",
-vhreinstall: "Reinstall as Virtualization Host",
-upgrade: "Upgrade to higher",
-merge_machines: "Merge machines",
-machine_config: "Configure machines",
-delete: "Delete"
-};
-
-function composeFormDataBeforeSubmission(evt){
-        aimAction="";
-        var which = evt.currentTarget;
-        for ( key in actionMap)
-        {
-                if ( which.value == actionMap[key])
-                {
-                        aimAction = key;
-                        break;
-                }
-        }
-        var machinesArray = new Array();
-        var objForm = document.forms["machine_list"];
-        var objLen = objForm.length;
-        for (var iCount = 0; iCount < objLen; iCount++) {
-                if (objForm.elements[iCount].type == "checkbox" && objForm.elements[iCount].name == "a_machines[]" && objForm.elements[iCount].checked == true) {
-                        machinesArray.push(objForm.elements[iCount].value);
-                }
-        }
-        var aimMachines="";
-        for (var iCount = 0; iCount < machinesArray.length; iCount++) {
-                aimMachines = aimMachines + "&a_machines[]=" + machinesArray[iCount];
-        }
-        var fullPath="index.php";
-        if ( aimAction || aimMachines ){
-                fullPath='index.php?action=' + aimAction + aimMachines;
-        }
-        window.location.href = fullPath;
-}
-
-$(document).ready(function(){
-$('.action_button_short_left, .action_button_short_right, .action_button_long').unbind("click");
-$('.action_button_short_left, .action_button_short_right, .action_button_long').click($.proxy(composeFormDataBeforeSubmission, this));
-
-});
-//-->
-</script>
 
 <input type="checkbox" id="actionCheck">
 <label id="action" class="action" for="actionCheck">
-<form id="action">
 <h3>&darr;  Action  &darr;</h3>
 <input type="checkbox" id="blkAni">
 <label class="noani" for="blkAni">
-<input type="button" value="Send job" class="action_button_short_left" >
-<input type="button" value="Add SUT" class="action_button_short_right" >
+<button name="action" value="machine_send_job" class="action_button_short_left" >Send job</button>
+<button name="action" value="addsut" class="action_button_short_right" >Add SUT</button>
 <br>
-<input type="button" value="Edit/reserve" class="action_button_short_left" >
-<input type="button" value="Reinstall" class="action_button_short_right" >
+<button name="action" value="edit" class="action_button_short_left" >Edit/reserve</button>
+<button name="action" value="machine_reinstall" class="action_button_short_right" >Reinstall</button>
 <br>
-<input type="button" value="Remove from group" class="action_button_short_left" >
-<input type="button" value="Configure machines" class="action_button_short_right" >
+<button name="action" value="merge_machines" class="action_button_short_left" >Merge machines</button>
+<button name="action" value="delete" class="action_button_short_right" >Delete</button>
 <br>
-<input type="button" value="Add to group" class="action_button_short_left" >
-<input type="button" value="Upgrade to higher" class="action_button_short_right" >
+<button name="action" value="create_group" class="action_button_short_left" >Add to group</button>
+<button name="action" value="upgrade" class="action_button_short_right" >Upgrade to higher</button>
 <br>
-<input type="button" value="Merge machines" class="action_button_short_left" >
-<input type="button" value="Delete" class="action_button_short_right" >
+<button name="action" value="group_del_machines" class="action_button_short_left" >Remove from group</button>
+<button name="action" value="machine_config" class="action_button_short_right" >Configure machines</button>
 <br>
 <br>
-<input type="button" value="Reinstall as Virtualization Host" class="action_button_long" >
+<button name="action" value="vhreinstall" class="action_button_long" >Reinstall as Virtualization Host</button>
+</label>
 </label>
 </form>
-</label>
 
 <input type="checkbox" id="fieldsCheck">
 <label id="fields" class="fields" for="fieldsCheck">

@@ -47,7 +47,7 @@ tr.down {
 }
 
 /* general form settings */
-form#filter,form#fields,form#action,table#adv_tbl  {
+form#filter,form#fields,label#action,table#adv_tbl  {
   font-weight:bold;
   font-size:0.9em;
   display:table;
@@ -111,7 +111,7 @@ input#fieldsCheck:checked + .fields{right:0em;}
   position: fixed;
   padding: 1.5em;
   margin-left:-1em;
-  left:-18.4em;
+  left:-22em;
   bottom: 7em;
   border-radius: 0 1em 1em 0;
   z-index: 10;
@@ -125,7 +125,7 @@ form#action:hover {
   left:0;
 }
 */
-form#action h3  {
+label#action h3  {
   transform: rotate(270deg);
   -ms-transform:rotate(270deg);
   -moz-transform:rotate(270deg);
@@ -135,7 +135,7 @@ form#action h3  {
   margin-right:-2em;
   color: #fff;
 }
-form#action input[type="submit"]{
+label#action input[type="submit"]{
   margin: 0.5em 5em;
 }
 input#actionCheck:checked + .action{left:0em;}
@@ -231,15 +231,15 @@ div#blindwall {
   z-index: -1;
 }
 .action_button_short_left {
-    width: 140px;
+    width: 152px;
     font-family: sans,sans-serif;
 }
 .action_button_short_right {
     margin-right: -1.2em;
-    width: 140px;
+    width: 152px;
 }
 .action_button_long {
     margin-right: -1.2em;
-    width: 285px;
+    width: 308px;
 }
 
