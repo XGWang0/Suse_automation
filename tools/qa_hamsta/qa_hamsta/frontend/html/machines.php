@@ -444,29 +444,27 @@ $('#x').on('click', function() {
 
 //-->
 </script>
-
 <input type="checkbox" id="actionCheck">
 <label id="action" class="action" for="actionCheck">
 <h3>&darr;  Action  &darr;</h3>
 <input type="checkbox" id="blkAni">
 <label class="noani" for="blkAni">
-<button name="action" value="machine_send_job" class="action_button_short_left" >Send job</button>
-<button name="action" value="addsut" class="action_button_short_right" >Add SUT</button>
+<button name="action" class="button machine_send_job" value="machine_send_job" >Send job</button>
+<button name="action" class="button addsut" value="addsut" class="action_button_short_right" >Add SUT</button>
 <br>
-<button name="action" value="edit" class="action_button_short_left" >Edit/reserve</button>
-<button name="action" value="machine_reinstall" class="action_button_short_right" >Reinstall</button>
+<button name="action" value="edit" class="button edit" >Edit/reserve</button>
+<button name="action" value="machine_reinstall" class="button machine_reinstall" >Reinstall</button>
 <br>
-<button name="action" value="merge_machines" class="action_button_short_left" >Merge machines</button>
-<button name="action" value="delete" class="action_button_short_right" >Delete</button>
+<button name="action" value="delete" class="button delete" >Delete</button>
+<button name="action" value="merge_machines" class="button merge_machines" >Merge machines</button>
 <br>
-<button name="action" value="create_group" class="action_button_short_left" >Add to group</button>
-<button name="action" value="upgrade" class="action_button_short_right" >Upgrade to higher</button>
+<button name="action" value="create_group" class="button create_group" >Add to group</button>
+<button name="action" class="button machine_config" value="machine_config" >Configure machines</button>
 <br>
-<button name="action" value="group_del_machines" class="action_button_short_left" >Remove from group</button>
-<button name="action" value="machine_config" class="action_button_short_right" >Configure machines</button>
+<button name="action" class="button group_del_machines" value="group_del_machines" >Remove from group</button>
+<button name="action" value="upgrade" class="button upgrade" >Upgrade to higher</button>
 <br>
-<br>
-<button name="action" value="vhreinstall" class="action_button_long" >Reinstall as Virtualization Host</button>
+<button name="action" value="vhreinstall" class="buttonlong button vhreinstall" >Reinstall as Virtualization Host</button>
 </label>
 </label>
 </form>
