@@ -60,7 +60,6 @@ class MachineFilter
 		if (!isset($this->search_fields) || !is_array($this->search_fields))
 			return;
 
-		//foreach (array_keys($this->search_fields) as $field)
 		foreach ($this->search_fields as $field)
 		{
 			$fname = "get_" . $field;	
@@ -69,8 +68,7 @@ class MachineFilter
 				if (! method_exists($machine, $fname))
 					continue;
 				$value = $machine->$fname();
-				//if (preg_match($this->search_text, $value) == 1)
-				if ($value && strstr($value, $this->search_text))
+				if ($value && strstr(strtolower($value), strtolower($this->search_text)))
 				{
 					if (!in_array($field, $this->match_fields))
 						$this->match_fields[] = $field;
