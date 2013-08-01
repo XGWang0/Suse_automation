@@ -59,18 +59,32 @@ body
 		position: relative;
 		text-align: left;
 	}
-	#hlogo	{ margin-left: 1em; }
+
+	#hlogo	{
+	    margin:0.5em 0 0.5em 0;
+	}
+
 	#hlogo a img	{	border: 0;	}
 	#hlogo img.logo
 	{
 		height: 40px;
-		margin: 20px 0px 20px 0px;
 	}
-	#hlogo img.caption	
+
+	#hlogo span#caption
 	{
-		height: 70px;
-		margin-left:20px;
+	    color:white;
+	    font-size:3.5em;
+	    font-weight:bold;
+	    text-shadow:#3a3a3b 3px 3px;
+	    margin-left:0.4em;
+	    white-space:nowrap;
 	}
+
+	#hlogo span#title
+	{
+	    margin:10px 0 10px 0;
+	}
+
 	#hlogo img.hamsta
 	{
 		width: 220px;
@@ -79,7 +93,8 @@ body
 		margin-top: -10px;
 		position: absolute;
 	}
-	#hlogo div.version
+
+	#header div.version
 	{
 		width: 150px;
 		position: absolute;
@@ -87,10 +102,11 @@ body
 		left: 5px;
 	}
 
-#hlogo div.rightmenu
+#header div.rightmenu
 {
-    float:right;
-    position:relative;
+    position:absolute;
+    top:5px;
+    right:5px;
     z-index:100;
 }
 

@@ -57,20 +57,26 @@ if( isset($disabled_css) && $disabled_css ) print '<link href="css/disabled.css"
 </head>
 <body>
   <div id="header">
+    <div class="version text-main text-white bold">
+      <em>v<?php $version = explode("-", $hamstaVersion); echo($version[2]);?></em>
+    </div>
+
     <div id="hlogo">
-      <a href="/hamsta" style="text-decoration: none;">
-	<img src="images/logo-hamsta.png" class="logo" alt="Hamsta Logo" title="Click to return to the main page" />
-	<img src="images/logo-suse.png" class="logo" alt="Suse Logo" title="Click to return to the main page" />
-	<img src="images/header.png" class="caption" alt="SUSE QA Automation" title="Click to return to the main page" />
-	<img src="images/hamsta.png" class="hamsta" alt="Hamsta" title="Hamsta" />
-      </a>
+      <span id="title">
+	<a href="" class="headerlinks">
+	  <img src="images/logo-hamsta.png" class="logo" alt="Hamsta Logo" title="Click to return to the main page" />
+	</a>
+	<a href="http://www.suse.com/" class="headerlinks">
+	  <img src="images/logo-suse.png" class="logo" alt="Suse Logo" title="SUSE Home" />
+	</a>
+	<a href="" class="headerlinks" title="HArdware Maintenance, Setup &amp; Test Automation">
+	  <span id="caption">SUSE HAMSTA</span>
+	</a>
+      </span>
+    </div>
 
-      <div class="version text-main text-white bold">
-        <em>v<?php $version = explode("-", $hamstaVersion); echo($version[2]);?></em>
-      </div>
-
-      <div class="rightmenu topright text-white text-main">
-        <?php
+    <div id="login" class="rightmenu topright text-white text-main">
+      <?php
            User::printStatus($config);
            switch ($config->authentication->method) {
            case 'openid':
@@ -83,8 +89,7 @@ if( isset($disabled_css) && $disabled_css ) print '<link href="css/disabled.css"
              User::printLogInOut();
            }
            ?>
-        <a href="index.php?go=install_client">Install Client</a>
-      </div>
+      <a href="index.php?go=install_client">Install Client</a>
     </div>
 
     <div id="header-links" class="text-medium bold">
