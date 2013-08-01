@@ -389,9 +389,11 @@
 	$hide_match_field = request_str('hidematch');
 	if (!empty($fulltext))
 	{
+		$ns_machine_filter->fields["fulltext"] = $fulltext;
 		require_once('lib/MachineFilter.php');
 		if (isset($s_hidden_field) && !empty($s_hidden_field))
 		{
+			$ns_machine_filter->fields["search_hidden_field"] = $s_hidden_field;
 			$mf = new MachineFilter($machines, $fulltext, array_keys($fields_list));
 		}
 		else
@@ -399,7 +401,6 @@
 			$tmp_fields_list = array_merge($default_fields_list, $display_fields);
 			$tmp_fields_list = array_unique($tmp_fields_list, SORT_STRING);
 			$mf = new MachineFilter($machines, $fulltext, $tmp_fields_list);
-			//$mf = new MachineFilter($machines, $fulltext, $default_fields_list);
 		}
 		$machines = $mf->filter();
 		$match_fields = $mf->getMatchFields();
@@ -413,6 +414,9 @@
 				}
 			}
 		}
+		if (isset($hide_match_field) && !empty($hide_match_field))
+			$ns_machine_filter->fields["hide_match_field"] = $hide_match_field;
+	
 	}
 
 

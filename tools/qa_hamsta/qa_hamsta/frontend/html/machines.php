@@ -45,7 +45,7 @@ if (isset ($ns_machine_filter->fields)
 	 * WARNING! In PHP the continue statement does not work within
 	 * switch block nested in foreach loop. Hence if statemens are
 	 * used here. Just live with that. */
-	if ($key == 's_anything')
+	if ($key == 's_anything' || $key == 'search_hidden_field' || $key == 'hide_match_field')
 	  {
 	    continue;
 	  }
@@ -65,6 +65,10 @@ if (isset ($ns_machine_filter->fields)
 		$value = ' has ';
 	      }
 	  }
+	else if ($key == 'fulltext')	
+	{
+	    $filter_description = "\n\t" . '<span class="bold">' . ucfirst($key) . '</span> is "' . $value . '"';
+	}
 	else
 	  {
 	    /* Used by contains user id but login has to be displayed. */
@@ -80,6 +84,7 @@ if (isset ($ns_machine_filter->fields)
 			    $value = $usr->getLogin ();	
 		    }
 	    }
+		
 	    $filter_description = "\n\t" . '<span class="bold">' . $fields_list[$key] . '</span> is "' . $value . '"';
 	  }
 	
@@ -252,13 +257,37 @@ if (! empty ($s_anything))
                 <div>
                         <nobr>
                         <div id="fulltext_input">
-                                <input type="text" id="fulltext" name="fulltext" class="inputctrl" placeholder="Fulltext search"/>
+<?php
+			if (isset($ns_machine_filter->fields) && isset($ns_machine_filter->fields["fulltext"]))
+			{
+				$ft = $ns_machine_filter->fields["fulltext"];
+			}
+			if (isset($ft))
+				echo "<input type='text' id='fulltext' name='fulltext' class='inputctrl' value=" . $ft .  " />";
+			else
+				echo "<input type='text' id='fulltext' name='fulltext' class='inputctrl' placeholder='Fulltext search'/>";
+?>
                                 <input type="button" value="x" name="x" id="x" class="inputctrl"/>
                                 <input type="submit" value="Search" name="set" id="submit" class="inputctrl"/>
                         </div>
-                        <input type="checkbox" name="searchall" id="searchall"/><label for="searchall" id="searchlabel">Search hidden field</label>
-
-                       <input type="checkbox" name="hidematch" id="hidematch"/><label for="hidematch" id="displabel">Hide matching columns</label>
+<?php
+			if (isset($ns_machine_filter->fields))
+			{
+				if (isset($ns_machine_filter->fields["search_hidden_field"]))
+					$shf = $ns_machine_filter->fields["search_hidden_field"];
+				if (isset($ns_machine_filter->fields["hide_match_field"]))
+					$hmf = $ns_machine_filter->fields["hide_match_field"];
+			}
+			if (isset($shf) && $shf=='on')
+				echo "<input type='checkbox' name='searchall' id='searchall' checked/><label for='searchall' id='searchlabel'>Search hidden field</label>";
+			else
+				echo "<input type='checkbox' name='searchall' id='searchall'/><label for='searchall' id='searchlabel'>Search hidden field</label>";
+			
+			if (isset($hmf) && $hmf == 'on')
+				echo "<input type='checkbox' name='hidematch' id='hidematch' checked/><label for='hidematch' id='displabel'>Hide matching columns</label>";
+			else
+				echo "<input type='checkbox' name='hidematch' id='hidematch'/><label for='hidematch' id='displabel'>Hide matching columns</label>";
+?>
 			</nobr>
                 </div>
 </form>
