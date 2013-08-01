@@ -214,30 +214,27 @@ function task_icon($a,$ref=0)
 	$imgurl='images/'.$size.'icon-'.$a['type'];
 	$err_noperm=hash_get($a,'err_noperm',"Cannot $fullname ".$a['object']." unless you are logged in and have enough privileges and/or have reserved the machine");
 	$err_noavail=hash_get($a,'err_noavail',preg_replace('/e?$/','ing ',$fullname,1).$a['object'].' is not supported');
-	if( !$a['enbl'] || !$a['allowed'] )	{
+
+	if( !$a['enbl'] || !$a['allowed'] ) {
 		$err_msg=( $a['enbl'] ? $err_noperm : $err_noavail );
-		
 		$icon=array('src'=>"$imgurl-grey.png",'alt'=>$err_msg,'title'=>$err_msg);
 		if(!$a['link'])	{
 			 $icon['href']='#';
-			 if(!$ref) return icon ($icon);
-			 return $icon;
 		}
-	}
-	else	{
+	} else {
 		$args=array('src'=>"$imgurl.png",'alt'=>"$fullname ".$a['object'],'title'=>"$fullname ".$a['object']);
 		if( $a['confirm'] )	{
 			$args['onclick']="return confirm('This will $fullname ".$a['object'].". Are you sure you want to continue?')\n";
 		}
-		if(!$ref)	{
-		$icon=icon($args);
-		}else{
 		$icon=$args;
-		}
 	}
-		if(!$ref) return html_tag('a',$icon,array('href'=>$a['url']));
-                $icon['href']=$a['url'];
-		return $icon;
+
+	if (! $ref) {
+		$icon = html_tag('a', icon ($icon), array('href'=>$a['url']));
+	} else {
+		$icon['href']=$a['url'];
+	}
+	return $icon;
 }
 
 function machine_icons($machine,$user)
