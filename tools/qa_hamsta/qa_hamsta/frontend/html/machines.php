@@ -380,16 +380,23 @@ var originLeft = $("#filter").css("left");
 var hoverThreshold = $("#header").height() + $("#filter").height() + $("h1").height();
 var originTheadWidth = $('#machines thead').width();
 var isChrome = navigator.userAgent.toLowerCase().match(/chrome/) != null;
+var browserWidthBoder = 16;
+var machinesLeft = parseInt($("#machines").css("margin-left").replace(/px/,""))+parseInt($("#content").css("padding-left").replace(/px/,""));
 //console.log('hoverthreshold ' + hoverThreshold);
-$(window).scroll(function(){
+$(window).resize(tableAlign);
+$(window).scroll(tableAlign);
+function tableAlign(){
     var scrollTop = $(window).scrollTop();
+    var scrollLeft = $(window).scrollLeft();
     if (scrollTop > hoverThreshold)
     {
-        $('#filter').css("z-index", 10).css("position", "fixed").css('top', '0px');
-	if (isChrome)
-		$("#machines thead").css("z-index",9).css("position","fixed").css("top","102px"); 
+	$("body").width(window.screen.width-browserWidthBoder);
+        $('#filter').addClass("float");
+	$("#machines thead").css("left",machinesLeft-scrollLeft+"px");
+	if ( $("#machines tbody").width() > $("#machines thead").width() )
+                $("#machines thead").width($("#machines tbody").width());
         else
-		$("#machines thead").css("z-index",9).css("position","fixed").css("top","87px"); 
+               $("#machines tbody").width($("#machines thead").width());
 	$("#machines tr:first-child td").each(function(index) {
             var ind = index + 1;
             if ( $(this).width() > $("#machines th:nth-child("+ind+")").width() )
@@ -397,18 +404,21 @@ $(window).scroll(function(){
             else
                 $(this).css("width",$("#machines th:nth-child("+ind+")").width());
         });
-	if (isChrome)
-        	$("#blindwall").css("position","fixed").css("display","inline").css("z-index",8).css("width","100%").css("height","102px").css("top","0px");
-	else 
-        	$("#blindwall").css("position","fixed").css("display","inline").css("z-index",8).css("width","100%").css("height","87px").css("top","0px");
+	$("#blindwall").removeClass("hidden");
+	if (isChrome) {
+		$("#blindwall").addClass("show ChromeHeight");
+	} else {
+		$("#blindwall").addClass("show otherHeight");
+        }
+	$("#machines thead").removeClass("plain").addClass("float").css("top",$("#blindwall").height()); 
     }
     else
     {
-        $('#filter').css("z-index", 10).css("position", "relative").css("left", originLeft);
-	$("#machines thead").css("z-index",0).css("position","relative");
-        $("#blindwall").css("position","relative").css("display","none").css("z-index",-1);
+	$('#filter').removeClass("float");
+	$("#machines thead").removeClass("float").addClass("plain");
+        $("#blindwall").addClass("hidden").removeClass("show otherHeight ChromeHeight");
     }
-});
+}
 
 $("#searchhwinfo").click(function(){
     if ($(this).is(':checked'))

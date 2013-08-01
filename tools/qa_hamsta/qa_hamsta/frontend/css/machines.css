@@ -223,12 +223,40 @@ div#fields_list {
   border-radius: 0.3em;
   color: black;
 }
-div#blindwall {
+div.hidden {
   display: none;
-  background-color: #fff;
   width: 0;
   height: 0;
   z-index: -1;
+}
+div.show {
+  position: fixed;
+  display: inline;
+  background-color: #fff;
+  top: 0px;
+  left: 0px;
+  margin: 0px;
+  width: 100%;
+  z-index: 8;
+}
+div.ChromeHeight {
+  height: 80px;
+}
+div.otherHeight {
+  height: 87px;
+}
+thead.float {
+  position: fixed;
+  z-index: 9;
+}
+thead.plain {
+  position: relative;
+  z-index: 0;
+}
+form.float {
+  position: fixed;
+  z-index: 10;
+  top: 0px;
 }
 .action_button_short_left {
     width: 152px;
