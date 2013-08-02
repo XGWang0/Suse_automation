@@ -140,6 +140,47 @@ function merge_unique ($s, &$ret, &$flag)
     $ret = (count ($ret)) ? $ret[0] : '';
 }
 
+function act_menu($args)
+{
+
+print "<div id='cssmenu'>";
+print "<ul>";
+print "<li class='active'><img src=\"" . $args['start']['src']  . "\" alt=\"power\"/>";
+print "<ul>";
+print "<li><a href=\"" . $args['start']['href'] . "\"><img src=\"" . $args['start']['src']  . "\"/>Start</a></li>";
+print "<li><a href=\"" . $args['restart']['href'] . "\"><img src=\"" . $args['restart']['src']  . "\"/>Restart</a></li>";
+print "<li><a href=\"" . $args['stop']['href'] . "\"><img src=\"" . $args['stop']['src']  . "\"/>Stop</a></li>";
+print "</ul></li>";
+print "<li class='has-sub'><img src=\"" . $args['send-job']['src']. "\" alt=\"jobs\"/>";
+print "<ul>";
+print "<li class='has-sub'><a href='#'><img src=\"" . $args['send-job']['src']. "\"/>Send job</a>";
+print "<ul>";
+print "<li><a href=\"" . $args['send-job']['href'] . "#predefined\"><img src=\"" . $args['send-job']['src']. "\"/>Pre-defined job</a></li>";
+print "<li><a href=\"" . $args['send-job']['href'] . "#qapackage\"><img src=\"" . $args['send-job']['src']. "\"/>QA package job</a></li>";
+print "<li><a href=\"" . $args['send-job']['href'] . "#multimachine\"><img src=\"" . $args['send-job']['src']. "\"/>Multi-machine job</a></li>";
+print "<li><a href=\"" . $args['send-job']['href'] . "#customjob\"><img src=\"" . $args['send-job']['src']. "\"/>Custom job</a></li>";
+print "</ul></li>";
+print "<li><a href=\"" . $args['reinstall']['href'] . "\"><img src=\"" . $args['reinstall']['src']  . "\"/>Reinstall</a></li>";
+print "<li><a href=\"" . $args['free']['href'] . "\"><img src=\"" . $args['free']['src']  . "\"/>Free</a></li>";
+print "</ul></li>";
+print "<li><img src=\"" . $args['edit']['src']  . "\" alt=\"edit/reserve\"/>";
+print "<ul>";
+print "<li><a href=\"" . $args['edit']['href'] . "\"><img src=\"" . $args['edit']['src']  . "\"/>Edit</a></li>";
+print "<li><a href=\"" . $args['config']['href'] . "\"><img src=\"" . $args['config']['src']  . "\"/>Configure</a></li>";
+print "<li><a href=\"" . $args['delete']['href'] . "\"><img src=\"" . $args['delete']['src']  . "\"/>Delete</a></li>";
+print "</ul></li>";
+print "<li class='last'><img src=\"" . $args['vnc']['src']  . "\" alt=\"console\"/>";
+print "<ul>";
+print "<li><a href=\"" . $args['vnc']['href'] . "\"><img src=\"" . $args['vnc']['src']  . "\"/>	VNC</a></li>";
+print "<li><a href=\"" . $args['terminal']['href'] . "\"><img src=\"" . $args['terminal']['src']  . "\"/>Terminal</a></li>";
+print "<li><a href=\"" . $args['console']['href'] . "\"><img src=\"" . $args['console']['src']  . "\"/>Console</a></li>";
+print "</ul></li>";
+print "</ul>";
+print "</div>";
+
+}
+
+
 function icon($args)	
 {
 	$args['border']=0;
@@ -163,7 +204,7 @@ function icon($args)
 # - 'err_noperm' : tooltip message if action not permitted
 # - 'err_noavail': tooltip message if action not available
 # - 'size': size of the icon (directory where icon lives, default value is '27')
-function task_icon($a)
+function task_icon($a,$ref=0)
 {
 	$a=array_merge(array( # merge with default values
 		'url'=>'','allowed'=>true,'link'=>false,'enbl'=>true,'confirm'=>false,'object'=>'',
@@ -173,20 +214,27 @@ function task_icon($a)
 	$imgurl='images/'.$size.'icon-'.$a['type'];
 	$err_noperm=hash_get($a,'err_noperm',"Cannot $fullname ".$a['object']." unless you are logged in and have enough privileges and/or have reserved the machine");
 	$err_noavail=hash_get($a,'err_noavail',preg_replace('/e?$/','ing ',$fullname,1).$a['object'].' is not supported');
-	if( !$a['enbl'] || !$a['allowed'] )	{
+
+	if( !$a['enbl'] || !$a['allowed'] ) {
 		$err_msg=( $a['enbl'] ? $err_noperm : $err_noavail );
-		$icon=icon(array('src'=>"$imgurl-grey.png",'alt'=>$err_msg,'title'=>$err_msg));
-		if(!$a['link'])
-			return $icon;
-	}
-	else	{
+		$icon=array('src'=>"$imgurl-grey.png",'alt'=>$err_msg,'title'=>$err_msg);
+		if(!$a['link'])	{
+			 $icon['href']='#';
+		}
+	} else {
 		$args=array('src'=>"$imgurl.png",'alt'=>"$fullname ".$a['object'],'title'=>"$fullname ".$a['object']);
 		if( $a['confirm'] )	{
 			$args['onclick']="return confirm('This will $fullname ".$a['object'].". Are you sure you want to continue?')\n";
 		}
-		$icon=icon($args);
+		$icon=$args;
 	}
-	return html_tag('a',$icon,array('href'=>$a['url']));
+
+	if (! $ref) {
+		$icon = html_tag('a', icon ($icon), array('href'=>$a['url']));
+	} else {
+		$icon['href']=$a['url'];
+	}
+	return $icon;
 }
 
 function machine_icons($machine,$user)
@@ -239,9 +287,9 @@ function machine_icons($machine,$user)
 			$btn[$act]);
 		if( $is_pwr )
 			$b['err_noavail']="No powerswitch configured for $host.";
-		$ret.=task_icon($b);
+		$ret[$act]=task_icon($b,1);
 	}
-	return $ret;
+	return act_menu($ret);
 }
 
 function group_icons($group,$user)
@@ -343,6 +391,27 @@ function fail($msg)
 {
 	$_SESSION['message']=$msg;
 	$_SESSION['mtype']='fail';
+}
+
+function get_machine_status_class ($status_id) {
+	$class = '';
+	switch ($status_id) {
+	case 1:
+		return 'machine_up';
+		break;
+	case 2:
+		return 'machine_down';
+		break;
+	case 5:
+		return 'machine_not_responding';
+		break;
+	case 6:
+		return 'machine_unknown';
+		break;
+	default:
+		// No default action here.
+	}
+	return $class;
 }
 
 ?>

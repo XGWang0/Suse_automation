@@ -119,7 +119,7 @@ print (task_icon ( array ('url'		=> 'index.php?go=newvm-win&a_machines[]=' . $mi
 		if (in_array($key, $vh_display_fields)) {
 			$res = '';
 			$fname = "get_".$key;
-			$class = ' class="ellipsis-no-wrapped cloudtablevalues"';
+			$class = 'ellipsis-no-wrapped cloudtablevalues';
 			$title = '';
 			if ($key == 'used_by') {
 				$rh = new ReservationsHelper ();
@@ -132,7 +132,10 @@ print (task_icon ( array ('url'		=> 'index.php?go=newvm-win&a_machines[]=' . $mi
 					$title = sprintf (' title="%s"', $res);
 				}
 			}
-			printf ('<tr><th class="text-left cloudtableheader">%1$s</th><td><div%2$s%3$s>%4$s</div></td></tr>' . PHP_EOL,
+			if ($key == 'status_string') {
+				$class .= ' ' . get_machine_status_class ($machine->get_status_id ());
+			}
+			printf ('<tr><th class="text-left cloudtableheader">%1$s</th><td><div class="%2$s" %3$s>%4$s</div></td></tr>' . PHP_EOL,
 				$value, $class, $title, $res);
 		}
 	}
@@ -167,6 +170,7 @@ print (task_icon ( array ('url'		=> 'index.php?go=newvm-win&a_machines[]=' . $mi
             $fname = "get_".$key;
 	    $res = '';
 	    $title = '';
+	    $cls = '';
 	    if (method_exists ($vm, $fname)) {
 		    $res = $vm->$fname();
 	    }
@@ -177,9 +181,12 @@ print (task_icon ( array ('url'		=> 'index.php?go=newvm-win&a_machines[]=' . $mi
 			    . $users . '</div>';
 		    $title = $users;
 	    }
+	    if ($key == 'status_string') {
+		    $cls = get_machine_status_class ($vm->get_status_id ());
+	    }
 
             if (in_array($key, $vm_display_fields))
-              echo ("<td title=\"$title\">$res</td>");
+              echo ("<td title=\"$title\" class=\"$cls\">$res</td>");
             }
           ?>
           <td align="center">
@@ -212,6 +219,7 @@ print (virtual_machine_icons ($vm, $user));
   <script type="text/javascript">
   //<!--
   var TSort_Data = new Array ('<?php echo "vm_".($machine->get_hostname()); ?>','', '0' <?php echo str_repeat(", 'h'",count($vh_display_fields) + 1); ?>);
+  var TSort_Icons = new Array ('<span class="text-blue sorting-arrow">&uArr;</span>', '<span class="text-blue sorting-arrow">&dArr;</span>');
   tsRegister();
   //-->
   </script>

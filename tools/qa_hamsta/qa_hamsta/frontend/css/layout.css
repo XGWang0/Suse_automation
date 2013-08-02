@@ -59,18 +59,32 @@ body
 		position: relative;
 		text-align: left;
 	}
-	#hlogo	{ margin-left: 1em; }
+
+	#hlogo	{
+	    margin:0.5em 0 0.5em 0;
+	}
+
 	#hlogo a img	{	border: 0;	}
 	#hlogo img.logo
 	{
 		height: 40px;
-		margin: 20px 0px 20px 0px;
 	}
-	#hlogo img.caption	
+
+	#hlogo span#caption
 	{
-		height: 70px;
-		margin-left:20px;
+	    color:white;
+	    font-size:3.5em;
+	    font-weight:bold;
+	    text-shadow:#3a3a3b 3px 3px;
+	    margin-left:0.4em;
+	    white-space:nowrap;
 	}
+
+	#hlogo span#title
+	{
+	    margin:10px 0 10px 0;
+	}
+
 	#hlogo img.hamsta
 	{
 		width: 220px;
@@ -79,7 +93,8 @@ body
 		margin-top: -10px;
 		position: absolute;
 	}
-	#hlogo div.version
+
+	#header div.version
 	{
 		width: 150px;
 		position: absolute;
@@ -87,10 +102,11 @@ body
 		left: 5px;
 	}
 
-#hlogo div.rightmenu
+#header div.rightmenu
 {
-    float:right;
-    position:relative;
+    position:absolute;
+    top:5px;
+    right:5px;
     z-index:100;
 }
 
@@ -100,6 +116,7 @@ body
 	background-color: #ffffff;
 	min-height: 550px;
 }
+
 #footer
 {
 	background-color: #455560;
@@ -108,12 +125,14 @@ body
 	color: #ffffff;
 	text-align: left;
 	position: relative;
+	border-top:7em solid;
 }
+
 #footer #copyright
 {	
 	position: absolute;
 	right: 10px;
-	top: 7px;
+	top: 0.9em;
 }
 
 .left {
@@ -158,4 +177,17 @@ th.cloudtableheader {
 div.cloudtablevalues {
     width:25em;
     display:block !important;
+}
+
+div.machine_icons {
+    width:120px;
+}
+
+div.machine_icons_machine_details {
+    margin-left:20em;
+    margin-top:-2.5em;
+}
+
+div.margin_small {
+    margin:1em;
 }

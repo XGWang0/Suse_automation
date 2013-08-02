@@ -85,3 +85,7 @@ div.text-main	{ padding: 0.2em; }
     text-overflow:ellipsis;
     white-space:nowrap;
 }
+
+.sorting-arrow {
+    size:3.5em;
+}

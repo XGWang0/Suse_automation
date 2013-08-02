@@ -238,7 +238,7 @@ Single-machine jobs are configuration tasks or test runs that have been stored o
 
 
 <HR>
-<h2 class="text-medium text-blue bold">Multi-machine Jobs</h2>
+<h2 class="text-medium text-blue bold" id="multimachine" >Multi-machine Jobs</h2>
 <p class="text-main">
 This is a subcategory of pre-defined jobs intended for client/server tests, and for other tests that run on multiple machines.
 Jobs in this category have different roles for different machines, you will be asked to assign machines to roles.
@@ -356,14 +356,16 @@ if(is_dir($dir))
 <script type="text/javascript">
 <!--
 var TSort_Data = new Array ('mmjobs', '','s','' );
+var TSort_Icons = new Array ('<span class="text-blue sorting-arrow">&uArr;</span>', '<span class="text-blue sorting-arrow">&dArr;</span>');
 tsRegister();
 var TSort_Data = new Array ('mmjobs_custom', '','s','' );
+var TSort_Icons = new Array ('<span class="text-blue sorting-arrow">&uArr;</span>', '<span class="text-blue sorting-arrow">&dArr;</span>');
 tsRegister();
 -->
 </script>
 
 <HR>
-<h2 class="text-medium text-blue bold">QA-packages Jobs (require SLES install repo and SDK repo)</h2>
+<h2 class="text-medium text-blue bold" id="qapackage" >QA-packages Jobs (require SLES install repo and SDK repo)</h2>
 <p class="text-main">
 QA-packages Jobs are used to launch various test suites on your System Under Test (SUT) machines. Simply select one, or multiple test suites from the list below to run these on the currently selected SUT system(s).
 </p>
@@ -474,7 +476,7 @@ Autotest jobs.
 </form>
 
 <HR>
-<h2 class="text-medium text-blue bold">Custom Jobs</h2>
+<h2 class="text-medium text-blue bold" id="customjob">Custom Jobs</h2>
 <p class="text-main">
 Custom Jobs are used for running any kind of configuration task that you may need to send to your test systems. To set up and run a configuration task, simply fill out and submit this form. If this configuration task is one that you would like to re-use in the future, be sure to check the "Add this job to the custom job list" box so that you can return to this page later and run that same configuration task as a custom job.
 </p>

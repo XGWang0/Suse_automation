@@ -45,7 +45,7 @@ if (isset ($ns_machine_filter->fields)
 	 * WARNING! In PHP the continue statement does not work within
 	 * switch block nested in foreach loop. Hence if statemens are
 	 * used here. Just live with that. */
-	if ($key == 's_anything')
+	if ($key == 's_anything' || $key == 'search_hidden_field' || $key == 'hide_match_field')
 	  {
 	    continue;
 	  }
@@ -65,14 +65,26 @@ if (isset ($ns_machine_filter->fields)
 		$value = ' has ';
 	      }
 	  }
+	else if ($key == 'fulltext')	
+	{
+	    $filter_description = "\n\t" . '<span class="bold">' . ucfirst($key) . '</span> is "' . $value . '"';
+	}
 	else
 	  {
 	    /* Used by contains user id but login has to be displayed. */
 	    if ($key == 'used_by')
-	      {
-		$usr = User::getById ($value, $config);
-		$value = $usr->getLogin ();
-	      }
+	    {
+		    if ( isset($value) && ($value == 'free' || $value == 'others'))
+		    {
+			//do nothing special
+		    }
+		    else
+		    {
+			    $usr = User::getById ($value, $config);
+			    $value = $usr->getLogin ();	
+		    }
+	    }
+		
 	    $filter_description = "\n\t" . '<span class="bold">' . $fields_list[$key] . '</span> is "' . $value . '"';
 	  }
 	
@@ -108,7 +120,178 @@ if (! empty ($s_anything))
   }
 
 ?>
+<form id="filter" method="post">
+                <div>
+                        Machines:
+      <?php
+			if (isset($ns_machine_filter->fields) && isset($ns_machine_filter->fields["used_by"]))
+			{
+				$rough_filter_value = $ns_machine_filter->fields["used_by"];
+			}
+                        if ( isset($user))
+                        {
+				if (isset($rough_filter_value) && ($user->getId() == $rough_filter_value))
+					echo "<input type=\"checkbox\" name=\"my\" id=\"my\" checked/>";
+				else
+					echo "<input type=\"checkbox\" name=\"my\" id=\"my\"/>";
+				echo "<label for=\"my\">my</label>";
+                        }
+			if (isset($rough_filter_value) && 'free'==$rough_filter_value)
+                        	echo "<input type='checkbox' name='free' id='free' checked/>";
+			else
+                        	echo "<input type='checkbox' name='free' id='free'/>";
+	?>
+                        <label for="free">free</label>
+<?php
+			if (isset($rough_filter_value) && 'others'==$rough_filter_value)
+                        	echo "<input type='checkbox' name='others' id='others' checked/>";
+			else
+                        	echo "<input type='checkbox' name='others' id='others'/>";
+?>
+                        <label for="others">others</label>
 
+                        <label for="show_advanced" id="label_advanced">&dArr; advanced &dArr;</label>
+                        <input type="checkbox" name="show_advanced" id="show_advanced" class="hider"/>
+                        <div id="advanced">
+                                <table id="adv_tbl">
+					<tr>
+						<th>Search in hwinfo: </th>
+						<td>
+                        				<input type="checkbox" name="searchhwinfo" id="searchhwinfo" checked/>
+						</td>
+					</tr>
+                                        <tr id='hwinfo_search_ret'>
+                                                <th>hwinfo result: </th>
+                                                <td>
+                                                        <select name="s_anything_operator">
+                                                                <option value="like"
+						<?php if (! empty ($s_anything)
+       						      && ! empty ($s_anything_operator)
+						      && $s_anything_operator == 'LIKE')
+        						{
+        						    echo(' selected="selected"');
+     							}
+						?>>contains</option>
+                                                                <option value="equals"
+					 	<?php if (! empty ($s_anything)
+          						   && ! empty ($s_anything_operator)
+          						   && $s_anything_operator == "=")
+          						{
+          						  echo(' selected="selected"');
+          						}
+						?>>is</option>
+                                                        </select>
+                                                        <input name="s_anything" value='<?php
+          						if (!empty ($s_anything))
+          						{
+                						echo ($s_anything);
+          						}
+							?>'/>
+                                                </td>
+                                        </tr>
+                                        <tr>
+                                                <th valign="top">Installed Arch: </th>
+                                                <td>
+                                                        <select name="architecture">
+                                                                <option value="">Any</option>
+								<?php foreach(Machine::get_architectures() as $archid => $arch): ?>
+                                        			<option value="<?php echo($arch); ?>"
+  								<?php /* Function from include/Util.php*/
+        							$arch_reqest = request_str('architecture');
+        							if (isset ($ns_machine_filter) && machine_filter_value_selected ('architecture', $arch, $ns_machine_filter))
+                						{
+                        						echo(' selected="selected"');
+                						}
+  								?>><?php echo($arch);
+  								?></option>
+                                				<?php endforeach;?>
+                                                        </select>
+                                                </td>
+                                        </tr>
+                                        <tr>
+                                                <th valign="top">CPU Arch: </th>
+                                                <td>
+                                                        <select name="architecture_capable">
+                                                                <option value="" selected="selected">Any</option>
+								<?php foreach(Machine::get_architectures_capable() as $archid => $arch): ?>
+                                        			<option value="<?php echo($arch); ?>"
+          							<?php if (isset ($ns_machine_filter) && machine_filter_value_selected ('architecture_capable', $arch, $ns_machine_filter))
+                						{
+                        						echo(' selected="selected"');
+                						}
+  								?>><?php echo($arch); ?></option>
+                                				<?php endforeach;?>
+                                                        </select>
+                                                </td>
+                                        </tr>
+                                        <tr>
+                                                <th valign="top">Status: </th>
+                                                <td>
+                                                        <select name="status_string">
+                                                                <option value="">Any</option>
+								<?php foreach(Machine::get_statuses() as $status_id => $status_string): ?>
+                                        			<option value="<?php echo($status_string); ?>"
+          							<?php if (isset ($ns_machine_filter) && machine_filter_value_selected ('status_string', $status_string, $ns_machine_filter))
+        							{
+                							echo(' selected="selected"');
+        							}
+  								?>><?php echo($status_string); ?></option>
+                                				<?php endforeach;?>
+                                                        </select>
+                                                </td>
+                                        </tr>
+                                        <tr><th>Type</th><td><select name="type">
+						<?php foreach(Machine::get_all_hwtype() as $type): ?>
+						<option value="<?php echo($type); ?>"
+						<?php if (isset ($ns_machine_filter) && machine_filter_value_selected ('type', $type, $ns_machine_filter))
+						{
+							echo(' selected="selected"');
+						}
+						?>><?php echo($type); ?></option>
+                                                <?php endforeach;?>
+                                                        </select></td></tr>
+                                </table>
+
+                        </div>
+                </div>
+                <div>
+                        <nobr>
+                        <div id="fulltext_input">
+<?php
+			if (isset($ns_machine_filter->fields) && isset($ns_machine_filter->fields["fulltext"]))
+			{
+				$ft = $ns_machine_filter->fields["fulltext"];
+			}
+			if (isset($ft))
+				echo "<input type='text' id='fulltext' name='fulltext' class='inputctrl' value=" . $ft .  " />";
+			else
+				echo "<input type='text' id='fulltext' name='fulltext' class='inputctrl' placeholder='Fulltext search'/>";
+?>
+                                <input type="button" value="x" name="x" id="x" class="inputctrl"/>
+                                <input type="submit" value="Search" name="set" id="submit" class="inputctrl"/>
+                        </div>
+<?php
+			if (isset($ns_machine_filter->fields))
+			{
+				if (isset($ns_machine_filter->fields["search_hidden_field"]))
+					$shf = $ns_machine_filter->fields["search_hidden_field"];
+				if (isset($ns_machine_filter->fields["hide_match_field"]))
+					$hmf = $ns_machine_filter->fields["hide_match_field"];
+			}
+			if (isset($shf) && $shf=='on')
+				echo "<input type='checkbox' name='searchall' id='searchall' checked/><label for='searchall' id='searchlabel'>Search hidden field</label>";
+			else
+				echo "<input type='checkbox' name='searchall' id='searchall'/><label for='searchall' id='searchlabel'>Search hidden field</label>";
+			
+			if (isset($hmf) && $hmf == 'on')
+				echo "<input type='checkbox' name='hidematch' id='hidematch' checked/><label for='hidematch' id='displabel'>Hide matching columns</label>";
+			else
+				echo "<input type='checkbox' name='hidematch' id='hidematch'/><label for='hidematch' id='displabel'>Hide matching columns</label>";
+?>
+			</nobr>
+                </div>
+</form>
+<div id="blindwall"> </div>
 <form action="index.php?go=machines" method="post" name="machine_list" onSubmit="return checkcheckbox(this)">
 <table class="list text-main" id="machines">
   <thead>
@@ -137,7 +320,7 @@ if (! empty ($s_anything))
 
     <td title="<?php echo($machine->get_notes()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>&amp;highlight=<?php echo($highlight); ?>"><?php echo($machine->get_hostname()); ?></a><?php if ($machine->count_host_collide() >= 2) echo '<img src="images/27/host-collide.png" class="icon-notification" title="Hostnames collide! Merge or delete machine if MAC was changed, otherwise rename it.">'; ?></td>
 		    
-    <td><?php echo($machine->get_status_string());
+    <td class="<?php print (get_machine_status_class ($machine->get_status_id ())); ?>"><?php echo($machine->get_status_string());
 	$rh = new ReservationsHelper ();
 	if (isset ($machine) && isset ($user)) {
 		$users_machine = $rh->getForMachineUser ($machine, $user);
@@ -176,203 +359,144 @@ foreach ($fields_list as $key=>$value)
 }
 ?>
 		<td align="center">
-
+<!-- Fixed width so the icons stay horizontaly aligned. -->
+<div class="machine_icons">
 <?php print machine_icons($machine,$user); ?>
+</div>
           </td>
 	</tr>
 	<?php endforeach; ?>
   </tbody>
 </table>
 <script type="text/javascript">
-<!--
-                          var TSort_Data = new Array ('machines','', '0' <?php echo str_repeat(", 'h'", (isset ($display_fields) ? count($display_fields)+2 : 1)); ?>);
+//<!--
+var TSort_Data = new Array ('machines','', '0' <?php echo str_repeat(", 'h'", (isset ($display_fields) ? count($display_fields)+2 : 1)); ?>);
+var TSort_Icons = new Array ('<span class="text-blue sorting-arrow">&uArr;</span>', '<span class="text-blue sorting-arrow">&dArr;</span>');
 tsRegister();
--->
+
+var height = $(window).height(); 
+var width = $(window).width(); 
+var originLeft = $("#filter").css("left");
+var hoverThreshold = $("#header").height() + $("#filter").height() + $("h1").height();
+var originTheadWidth = $('#machines thead').width();
+var isChrome = navigator.userAgent.toLowerCase().match(/chrome/) != null;
+var browserWidthBoder = 16;
+var machinesLeft = parseInt($("#machines").css("margin-left").replace(/px/,""))+parseInt($("#content").css("padding-left").replace(/px/,""));
+//console.log('hoverthreshold ' + hoverThreshold);
+$(window).resize(tableAlign);
+$(window).scroll(tableAlign);
+function tableAlign(){
+    var scrollTop = $(window).scrollTop();
+    var scrollLeft = $(window).scrollLeft();
+    if (scrollTop > hoverThreshold)
+    {
+	$("body").width(window.screen.width-browserWidthBoder);
+        $('#filter').addClass("float");
+	$("#machines thead").css("left",machinesLeft-scrollLeft+"px");
+	if ( $("#machines tbody").width() > $("#machines thead").width() )
+                $("#machines thead").width($("#machines tbody").width());
+        else
+               $("#machines tbody").width($("#machines thead").width());
+	$("#machines tr:first-child td").each(function(index) {
+            var ind = index + 1;
+            if ( $(this).width() > $("#machines th:nth-child("+ind+")").width() )
+               	$("#machines th:nth-child("+ind+")").css("width",$(this).width());
+            else
+                $(this).css("width",$("#machines th:nth-child("+ind+")").width());
+        });
+	$("#blindwall").removeClass("hidden");
+	if (isChrome) {
+		$("#blindwall").addClass("show ChromeHeight");
+	} else {
+		$("#blindwall").addClass("show otherHeight");
+        }
+	$("#machines thead").removeClass("plain").addClass("float").css("top",$("#blindwall").height()); 
+    }
+    else
+    {
+	$('#filter').removeClass("float");
+	$("#machines thead").removeClass("float").addClass("plain");
+        $("#blindwall").addClass("hidden").removeClass("show otherHeight ChromeHeight");
+    }
+}
+
+$("#searchhwinfo").click(function(){
+    if ($(this).is(':checked'))
+    {
+        $("#hwinfo_search_ret").css('display', '');	
+    }
+    else
+    {
+        $("#hwinfo_search_ret").css('display', 'none');	
+    }
+});
+
+
+$('#fulltext').on('focus', function() {
+	$(this).attr('placeholder',"") ;
+}).on('blur', function(){
+	$(this).attr('placeholder',"Fulltext Search") ;
+});
+
+$('#x').on('click', function() {
+	$('#fulltext').attr('value', "");
+});
+
+//-->
 </script>
-<select name="action">
-<!--  <option value="">No action</option> -->
-  <option value="machine_send_job">Send job</option>
-  <option value="addsut">Add SUT</option>
-  <option value="edit">Edit/reserve</option>
-  <option value="machine_reinstall">Reinstall</option> 
-  <option value="create_group">Add to group</option>
-  <option value="group_del_machines">Remove from group</option>
-  <option value="vhreinstall">Reinstall as Virtualization Host</option> 
-  <option value="upgrade">Upgrade to higher</option> 
-<!--   <option value="create_autobuild">Add to Autobuild</option> -->
-<!--   <option value="delete_autobuild">Remove from Autobuild</option> -->
-  <option value="merge_machines">Merge machines</option>
-  <option value="machine_config">Configure machines</option>
-  <option value="delete">Delete</option>
-</select>
-<input type="submit" value="Go">
-<a href="../hamsta/helps/actions.html" target="_blank">
-  <img src="../hamsta/images/27/qmark.png" class="icon-small" name="qmark1" id="qmark1" title="actions to selected machine(s)" />
-</a>
+<input type="checkbox" id="actionCheck">
+<label id="action" class="action" for="actionCheck">
+<h3>&darr;  Action  &darr;</h3>
+<input type="checkbox" id="blkAni">
+<label class="noani" for="blkAni">
+<button name="action" class="button machine_send_job" value="machine_send_job" >Send job</button>
+<button name="action" class="button addsut" value="addsut" class="action_button_short_right" >Add SUT</button>
+<br>
+<button name="action" value="edit" class="button edit" >Edit/reserve</button>
+<button name="action" value="machine_reinstall" class="button machine_reinstall" >Reinstall</button>
+<br>
+<button name="action" value="delete" class="button delete" >Delete</button>
+<button name="action" value="merge_machines" class="button merge_machines" >Merge machines</button>
+<br>
+<button name="action" value="create_group" class="button create_group" >Add to group</button>
+<button name="action" class="button machine_config" value="machine_config" >Configure machines</button>
+<br>
+<button name="action" class="button group_del_machines" value="group_del_machines" >Remove from group</button>
+<button name="action" value="upgrade" class="button upgrade" >Upgrade to higher</button>
+<br>
+<button name="action" value="vhreinstall" class="buttonlong button vhreinstall" >Reinstall as Virtualization Host</button>
+</label>
+</label>
 </form>
-<?php
-	# Left column, search box
-	echo "<div style=\"float: left; width: 425px;\">";
-?>
-<h2 class="text-medium text-blue bold">Search</h2>
-<div class="text-main">Change the fields below and then hit "Search" to filter the above list of machines based on your selections.</div><br />
-<form action="index.php?go=machines" method="post">
-<table class="sort text-main" style="border: 1px solid #cdcdcd;">
-	<tr>
-		<th>hwinfo result: </th>
-		<td>
-			<select name="s_anything_operator">
-				<option value="like"
-   <?php if (! empty ($s_anything)
-	     && ! empty ($s_anything_operator)
-	     && $s_anything_operator == 'LIKE')
-	{
-	    echo(' selected="selected"');
-	}
-  ?>>contains</option>
-				<option value="equals"
-  <?php if (! empty ($s_anything)
-	     && ! empty ($s_anything_operator)
-	     && $s_anything_operator == "=")
-	  {
-	    echo(' selected="selected"');
-	  }
-  ?>>is</option>
-			</select>
-			<input name="s_anything" value='<?php
 
-	if (!empty ($s_anything))
-	  {
-		echo ($s_anything);
-	  }
-?>'>
-			<a href="../hamsta/helps/hwinfo.html" target="_blank">
-			<img src="../hamsta/images/27/qmark.png" class="icon-small" name="qmark2" id="qmark2" title="hwinfo search" /></a>
-		</td>
-	</tr>
-	<tr>
-		<th valign="top">Installed Arch: </th>
-		<td>
-			<select name="architecture">
-				<option value="">Any</option>
-				<?php foreach(Machine::get_architectures() as $archid => $arch): ?>
-					<option value="<?php echo($arch); ?>"
-  <?php	/* Function from include/Util.php*/
-	$arch_reqest = request_str('architecture');
-	if (isset ($ns_machine_filter) && machine_filter_value_selected ('architecture', $arch, $ns_machine_filter))
-		{
-			echo(' selected="selected"');
-		}
-  ?>><?php echo($arch);
-  ?></option>
-				<?php endforeach;?>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<th valign="top">CPU Arch: </th>
-		<td>
-			<select name="architecture_capable">
-				<option value="">Any</option>
-				<?php foreach(Machine::get_architectures_capable() as $archid => $arch): ?>
-					<option value="<?php echo($arch); ?>"
-	  <?php	if (isset ($ns_machine_filter) && machine_filter_value_selected ('architecture_capable', $arch, $ns_machine_filter))
-		{
-			echo(' selected="selected"');
-		}
-  ?>><?php echo($arch); ?></option>
-				<?php endforeach;?>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<th valign="top">Status: </th>
-		<td>
-			<select name="status_string">
-				<option value="">Any</option>
-				<?php foreach(Machine::get_statuses() as $status_id => $status_string): ?>
-					<option value="<?php echo($status_string); ?>"
-	  <?php if (isset ($ns_machine_filter) && machine_filter_value_selected ('status_string', $status_string, $ns_machine_filter))
-	{
-		echo(' selected="selected"');
-	}
-  ?>><?php echo($status_string); ?></option>
-				<?php endforeach;?>
-			</select>
-		</td>
-	</tr>
-	<tr>
-		<th valign="top">Display fields: </th>
-		<td>
-		<select name="d_fields[]" size=<?php echo sizeof($fields_list);?> multiple="multiple">
-		  <?php
-			foreach ($fields_list as $key=>$value)
-			{
-			  /* Due to connection of displayed fields and
-			   * filters I had to add an exception
-			   * here. */
-			  if (in_array ($key, $default_fields_list))
-			    {
-			      continue;
-			    }
-
-			  echo("\t\t\t\t\t<option value=$key");
-
-			  if ( isset ($display_fields ) && in_array($key, $display_fields))
-			    {
-			      echo(' selected="selected"');
-			    }
-
-			  echo (">$value</option>\n");
-			}
-		  ?>
-		</select>
-		</td>
-	</tr>
-	<tr>
-		<td colspan="2" align="center">
-                  <input type="submit" value="Search" name="set" style="background-color: #eeeeee; width: 100%; padding: 3px;" class="text-medium">
-                  <input type="submit" value="Reset" name="reset" style="background-color: #eeeeee; width: 100%; padding: 3px;" class="text-medium">
-		</td>
-	</tr>
-</table>
+<input type="checkbox" id="fieldsCheck">
+<label id="fields" class="fields" for="fieldsCheck">
+<form id="fields" method="post">
+        <h3>&darr;  Display fields  &darr;</h3>
+        <input type="checkbox" id="blkAni">
+	<label class="noani" for="blkAni">
+	<div id="fields_list">
+        <?php
+                foreach ($fields_list as $key=>$value)
+                {
+                    /* Due to connection of displayed fields and
+                     * filters I had to add an exception
+                     * here. */
+                    if (in_array ($key, $default_fields_list))
+                    {
+                        continue;
+                    }
+                    echo("\t\t\t\t\t<input type=\"checkbox\" name=\"DF_$key\" id=$key");
+                    if ( isset ($display_fields ) && in_array($key, $display_fields))
+                    {
+                        echo(' checked="checked"');
+                    }
+		    echo ('>'); // Close the input element
+                    echo("<label for=$key>$value</label><br>");
+                }
+        ?>
+        </div>
+	</label>
+        <input type="submit" value="show"/>
 </form>
-</div>
-<?php
-	/* Right column, latest features (here temporarily until we get a flashy new global WebUI).
-         * PK: Will we? */
-        /* TODO fix ampersands */
-	echo "<div style=\"float: left; width: 425px; margin-left: 20px;\">\n";
-		echo "<h2 class=\"text-medium text-blue bold\">Latest Features</h2>\n";
-		echo "<div class=\"text-main\">We are always working hard to create new, useful features to make your testing easier. Below, you will find just a few of these new capabilities that have been added recently. Check back here after each release to see what's new!</div><br />\n";
-		echo "<div style=\"border: 1px solid #cdcdcd; padding: 5px;\" class=\"text-main\">\n";
-			echo "<div style=\"border: 0px solid green;\">\n";
-			$totalFeatureCount = 0;
-			$maximumToShow = 10;
-			foreach($latestFeatures as $release => $featureArray)
-			{
-				echo ($totalFeatureCount == 0 ? "" : "<br /><br />") . "<div class=\"text-main text-orange bold\">$release Release</div>\n";
-				for($i = 0; $i < count($featureArray); $i++)
-				{
-					# Should we show a "See More" button?
-					$totalFeatureCount++;
-					if($totalFeatureCount > $maximumToShow)
-					{
-						echo "\t<div id=\"morefeatures-button\" style=\"border: 0px solid red;\"><br /><a href=\"#\" onclick=\"document.getElementById('morefeatures').style.display = 'block'; document.getElementById('morefeatures-button').style.display = 'none'; document.getElementById('morefeatures-button-2').style.display = 'block';\">See More</a></div>\n";
-						echo "</div>\n";
-						echo "<div id=\"morefeatures\" style=\"display: none; border: 0px solid blue;\">\n";
-					}
-					# Actually show the feature
-					$descriptionSplit = explode(" -- ", $featureArray[$i], 3);
-					echo ($totalFeatureCount != $maximumToShow+1 ? "<br />" : "") . "&bull; <strong>$descriptionSplit[0]:</strong> $descriptionSplit[1] <a href=\"#\" onclick=\"window.open('../hamsta/helps/LatestFeatures.php?release=$release&index=$i', 'channelmode', 'width=550, height=450, top=250, left=450')\" class=\"text-small\">(more details)</a>\n";
-				}
-			}
-			echo "</div>\n";
-			if($totalFeatureCount > $maximumToShow)
-			{
-				echo "<div id=\"morefeatures-button-2\" style=\"display: none; border: 0px solid red;\"><br /><a href=\"#\" onclick=\"document.getElementById('morefeatures').style.display = 'none'; document.getElementById('morefeatures-button').style.display = 'block'; document.getElementById('morefeatures-button-2').style.display = 'none';\">Hide</a></div>\n";
-			}
-		echo "</div>\n";
-	echo "</div>\n";
-    echo "<div style=\"clear: left;\">&nbsp;</div>\n"
-?>
+</label>

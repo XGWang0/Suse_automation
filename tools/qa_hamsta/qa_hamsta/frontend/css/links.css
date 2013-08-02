@@ -29,3 +29,7 @@
 .topright a{text-decoration:none; color:#FFFFFF; margin: 3px;}
 .topright a:active{color:#FFFFFF;}
 .topright a:link:hover, .topright a:visited:hover{color:#e78f08;}
+
+a.headerlinks {
+    text-decoration:none;
+}

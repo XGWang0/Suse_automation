@@ -1101,6 +1101,17 @@ class Machine {
 		else
 			return NULL;
 	}
+	/**
+	 * get_used_by
+	 * This is a workaround function for searching reservator in machine list.
+	 *
+	 * @access public
+	 * @return The reservator name of the machine. 
+	 */
+	function get_used_by() {
+		$rh = new ReservationsHelper ($this);
+		return $rh->prettyPrintUsers ();
+	}
 
 	/**
 	 * get_children
@@ -1521,6 +1532,24 @@ class Machine {
 		return $result;
 	}
 
+        /**
+         * get_all_hwtype
+         *
+         * @return All possible HW types stored in database. Such as hw,vm,xen
+         *
+         */
+        static public function get_all_hwtype() {
+                $stmt = get_pdo()->prepare('select DISTINCT type from machine ORDER BY type;');
+                $stmt->execute();
+
+                $result = array();
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                        array_push($result,$row["type"]);
+                }
+
+                return $result;
+        }
+
 	/**
 	 * del_machine
 	 *
@@ -1895,7 +1924,6 @@ class MachineSearch {
 		}
 
 		$sql .= $table_str." ".$this->condition_str.' ORDER BY machine.name';
-
 		// Create a statemt object and bind the parameters
 		if (!($stmt = get_pdo()->prepare($sql))) {
 			return null;
@@ -1936,11 +1964,11 @@ class MachineSearch {
             return false;
         }
 
-        if (!in_array($operator, array('=', 'LIKE', 'IN', 'IS NOT NULL'))) {
+        if (!in_array($operator, array('=', 'LIKE', 'IN', 'NOT IN', 'IS NOT NULL'))) {
             return false;
         }
 
-        if ($operator == 'IN') {
+        if ($operator == 'IN' || $operator=='NOT IN') {
             if (!is_array($value)) {
                 return false;
             }
@@ -1957,6 +1985,9 @@ class MachineSearch {
            $value = '(' . join(',', $value) . ')';
            $this->where[] = $field . ' ' . $operator . ' ' .$value;
 
+	} elseif ($operator == 'LIKE') {
+            $value = "'%".$value."%'";
+            $this->where[] = $field . ' ' . $operator . ' ' .$value;
         } elseif ($operator == 'IS NOT NULL') {
             $this->where[] = $field . ' IS NOT NULL';
         } else {
@@ -2111,6 +2142,10 @@ class MachineSearch {
 		$this->add_condition('machine.vh_id', $vh_id, $operator);
 	}
 
+	public function filter_type($type, $operator = 'LIKE')	
+	{
+		$this->add_condition('machine.type', $type, $operator);
+	}
 	/**
 	 * filter_role
 	 *
@@ -2192,6 +2227,61 @@ class MachineSearch {
 		$this->orwhere[] = "module_part.element " . $operator . " :module_part_element";
 		$this->params[":module_part_element"] = $text;
 	}
+
+        /**
+	 * filter_reservation
+	 *
+	 * Search machines for given type 'my', 'free', 'other'; 
+	 * 'my' means machines reserved by the login user.
+	 * 'free' means machines not reserved by anyone. 
+	 * 'others' means machines reserved by someone other than "my" 
+	 * 
+	 * @param string $user Text to search for
+	 * @type  string Search type
+	 * @return void
+	 */
+	public function filter_reservation($user, $type)
+	{
+		$machine_ids = array();
+		$operator = null;
+		if ($type == 'my')
+		{
+			$user_id = $user->getId();
+			$operator = "IN";
+			$stmt = get_pdo()->prepare("SELECT machine_id FROM user_machine where user_id = $user_id");
+		}
+		else if($type == 'free')
+		{
+			$machine_ids = array();
+			$operator = "NOT IN";
+			$stmt = get_pdo()->prepare('SELECT machine_id FROM user_machine');
+		}
+		else if ($type == 'others')
+		{
+			$machine_ids = array();
+			$operator = "IN";
+			if (isset($user))
+			{
+				$user_id = $user->getId();
+				$stmt = get_pdo()->prepare("SELECT machine_id FROM user_machine where user_id != $user_id");
+			}
+			else
+			{
+				$stmt = get_pdo()->prepare('SELECT machine_id FROM user_machine');
+			}
+		}
+		$r = $stmt->execute();
+		$records = $stmt->fetchAll();
+		foreach($records as  $r)
+		{
+			$machine_ids[] = $r[0];
+		}
+		if (count($machine_ids) > 0)
+		{
+			$this->orwhere[] = "machine_id ". $operator . "(". implode(',', $machine_ids) . ")";
+		}
+	}
+	
 }
 
 
