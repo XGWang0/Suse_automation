@@ -27,7 +27,7 @@
 	</div>
 	<div id="footer" class="text-main">
 		<span class="text-white text-small" id="copyright">
-			&copy; SUSE. - For assistance, please email qa-automation@suse.de
+			&copy; SUSE. - For assistance, please email <a href="mailto:qa-automation@suse.de">qa-automation@suse.de</a>
 		</span>
 	</div>
 </body>
