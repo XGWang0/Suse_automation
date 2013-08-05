@@ -267,7 +267,7 @@ if (! empty ($s_anything))
 			else
 				echo "<input type='text' id='fulltext' name='fulltext' class='inputctrl' placeholder='Fulltext search'/>";
 ?>
-                                <input type="button" value="x" name="x" id="x" class="inputctrl"/>
+                                <input type="button" value="X" name="x" id="x" class="inputctrl"/>
                                 <input type="submit" value="Search" name="set" id="submit" class="inputctrl"/>
                         </div>
 <?php
