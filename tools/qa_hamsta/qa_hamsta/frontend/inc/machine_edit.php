@@ -64,6 +64,9 @@ machine_permission_or_disabled($allmachines,$perm);
 
 /* Remove reservation for logged in user. */
 if (request_str("action") == "clear") {
+	machine_permission_or_redirect ($allmachines,
+					array ('owner'=>'machine_free',
+					       'other'=>'machine_free_reserved'));
 	$mecontroller->processRequest ('clear');
 	header ('Location: index.php');
 	exit ();

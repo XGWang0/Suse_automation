@@ -33,15 +33,24 @@ class MachineEditController
 	private function processClear ()
 	{
 		$user = User::getCurrent ();
-		foreach ($this->machine_list as $machine)
-		{
-			$rh = new ReservationsHelper ();
-			if ($rh->isLastReservator ($machine, $user)) {
-				$machine->set_usage('');
+		$rh = new ReservationsHelper ();
+		if (! isset ($user)) {
+			$this->addError ('You have to be logged and '
+					 . ' have privileges to clear this machine.');
+			return;
+		}
+
+		foreach ($this->machine_list as $machine) {
+			if ($rh->hasReservation ($machine, $user)) {
+				if ($rh->isLastReservator ($machine, $user)) {
+					$machine->set_usage('');
+				}
+				$rh->delete ($machine, $user);
+				Log::create($machine->get_id(), $user->getLogin (),
+					    'RELEASE', "has unreserved this machine");
+			} else {
+				$this->addMachineError ($machine, 'Can not unreserve. It is already free!');
 			}
-			$rh->delete ($machine, $user);
-			Log::create($machine->get_id(), $user->getLogin (),
-				    'RELEASE', "has unreserved this machine");
 		}
 	}
 
