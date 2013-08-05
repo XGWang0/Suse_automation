@@ -380,45 +380,14 @@ var originLeft = $("#filter").css("left");
 var hoverThreshold = $("#header").height() + $("#filter").height() + $("h1").height();
 var originTheadWidth = $('#machines thead').width();
 var isChrome = navigator.userAgent.toLowerCase().match(/chrome/) != null;
-var browserWidthBoder = 16;
-var machinesLeft = parseInt($("#machines").css("margin-left").replace(/px/,""))+parseInt($("#content").css("padding-left").replace(/px/,""));
-//console.log('hoverthreshold ' + hoverThreshold);
-$(window).resize(tableAlign);
+var screenRes = window.screen.width;
+var browserWidthBorder = 16;
+
+$(window).resize(function() {
+    $("body").width(($(window).width() + browserWidthBorder > screenRes)?$(window).width():(screenRes - browserWidthBorder));
+    tableAlign;
+});
 $(window).scroll(tableAlign);
-function tableAlign(){
-    var scrollTop = $(window).scrollTop();
-    var scrollLeft = $(window).scrollLeft();
-    if (scrollTop > hoverThreshold)
-    {
-	$("body").width(window.screen.width-browserWidthBoder);
-        $('#filter').addClass("float");
-	$("#machines thead").css("left",machinesLeft-scrollLeft+"px");
-	if ( $("#machines tbody").width() > $("#machines thead").width() )
-                $("#machines thead").width($("#machines tbody").width());
-        else
-               $("#machines tbody").width($("#machines thead").width());
-	$("#machines tr:first-child td").each(function(index) {
-            var ind = index + 1;
-            if ( $(this).width() > $("#machines th:nth-child("+ind+")").width() )
-               	$("#machines th:nth-child("+ind+")").css("width",$(this).width());
-            else
-                $(this).css("width",$("#machines th:nth-child("+ind+")").width());
-        });
-	$("#blindwall").removeClass("hidden");
-	if (isChrome) {
-		$("#blindwall").addClass("show ChromeHeight");
-	} else {
-		$("#blindwall").addClass("show otherHeight");
-        }
-	$("#machines thead").removeClass("plain").addClass("float").css("top",$("#blindwall").height()); 
-    }
-    else
-    {
-	$('#filter').removeClass("float");
-	$("#machines thead").removeClass("float").addClass("plain");
-        $("#blindwall").addClass("hidden").removeClass("show otherHeight ChromeHeight");
-    }
-}
 
 $("#searchhwinfo").click(function(){
     if ($(this).is(':checked'))

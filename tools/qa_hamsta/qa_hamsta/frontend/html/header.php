@@ -49,6 +49,7 @@ if( isset($disabled_css) && $disabled_css ) print '<link href="css/disabled.css"
 ?>  <link rel="icon" type="image/png" href="/hamsta/icon.png">
   <link rel="stylesheet" type="text/css" media="screen,projection" href="css/machines.css" />
   <script src="js/commfuncs.js" type="text/javascript"></script>
+  <script src="js/machines.js" type="text/javascript"></script>
   <script src="../scripts/gs_sortable.js" type="text/javascript"></script>
   <script src="../scripts/jquery.js" type="text/javascript"></script>
   <?php if (!empty($html_refresh_uri)): ?>
