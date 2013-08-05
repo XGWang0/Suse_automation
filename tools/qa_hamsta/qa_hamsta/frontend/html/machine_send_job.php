@@ -332,7 +332,7 @@ if(is_dir($dir))
                     echo "        <td><input type=\"radio\" name=\"filename\" value=\"$dir/$file\" title=\"Multi-machine custom job:$file\"></td>\n";
                     echo "        <td>$file</td>\n";
                     echo "        <td align=\"center\">";
-                    echo "            <a href=\"".$config->xml->dir->multimachine->web->custom."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/27/icon-vnc.png\" alt=\"vire\" title=\"View the job XML $file\" class=\"icon-small\" /></a>";
+                    echo "            <a href=\"".$config->xml->dir->multimachine->web->custom."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/27/xml_green.png\" alt=\"vire\" title=\"View the job XML $file\" class=\"icon-small\" /></a>";
                     echo "            <a href=\"index.php?go=edit_jobs&amp;file=multimachine/custom/$file&amp;opt=edit&amp;machine_list=$machine_list\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" alt=\"edit\" title=\"Edit the job XML $file\" class=\"icon-small\" /></a>";
                     echo "            <a href=\"index.php?go=machine_send_job&amp;file=multimachine/custom/$file&amp;opt=delete&amp;machine_list=$machine_list\" onclick=\"if(confirm('WARNING: You will delete the custom job XML file, are you sure?')) return true; else return false;\" title=\"delete $file\"><img src=\"images/27/icon-delete.png\" alt=\"delete\" title=\"Delete the job XML $file\" class=\"icon-small\" /></a>";
                     echo "        </td>\n";
