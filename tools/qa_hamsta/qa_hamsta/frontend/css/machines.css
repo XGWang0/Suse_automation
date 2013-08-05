@@ -206,11 +206,13 @@ div#fulltext_input {
 div#fulltext_input #x {
   font-weight: bold;
   color: #c63;
+  margin:1px 0;
 }
 div#fulltext_input #submit {
   color: transparent;  
   background: url("../images/search.png") no-repeat #79d center;
   width: 50px;
+  margin:1px 1px;
 }
 div#fields_list {
   width: 13em;
