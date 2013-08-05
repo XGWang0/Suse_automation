@@ -1875,6 +1875,7 @@ class MachineSearch {
 	const FILTER_IN = 3;
 	private $where;
 	private $orwhere;
+	private $orwhere_for_rough_search;
 	private $params;
 	private $tables;
 	private $postfilters;
@@ -1888,6 +1889,7 @@ class MachineSearch {
 	public function __construct() {
 		$this->where = array();
 		$this->orwhere = array ();
+		$this->orwhere_for_rough_search = array();
 		$this->params = array();
 		$this->tables = array();
 		$this->postfilters = array();
@@ -1923,6 +1925,10 @@ class MachineSearch {
 				. implode (' OR ', $this->orwhere) . ')';
 		}
 
+		if (count ($this->orwhere_for_rough_search)) {
+			$this->condition_str .= ' AND ('
+				. implode (' OR ', $this->orwhere_for_rough_search) . ')';
+		}
 		$sql .= $table_str." ".$this->condition_str.' ORDER BY machine.name';
 		// Create a statemt object and bind the parameters
 		if (!($stmt = get_pdo()->prepare($sql))) {
@@ -2278,7 +2284,7 @@ class MachineSearch {
 		}
 		if (count($machine_ids) > 0)
 		{
-			$this->orwhere[] = "machine_id ". $operator . "(". implode(',', $machine_ids) . ")";
+			$this->orwhere_for_rough_search[] = "machine.machine_id ". $operator . "(". implode(',', $machine_ids) . ")";
 		}
 	}
 	
