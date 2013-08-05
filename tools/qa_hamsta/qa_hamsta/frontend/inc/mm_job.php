@@ -85,7 +85,7 @@ else if( request_str('submit') )
 
 	# left div
 	$formdata .= "<div class=\"text-main\" style=\"float: left; width: 35%\">";
-	$formdata .= "<div class=\"text-main\"> Job <spam class=\"text-medium bold\" title=\"$test_description\">$test_name</spam> will be run on below SUT.</div>";
+	$formdata .= "<div class=\"text-main\"> Job <span class=\"text-medium bold\" title=\"$test_description\">$test_name</span> will be run on below SUT.</div>";
 	
 	foreach( $roles as $id=>$vals )
 	{

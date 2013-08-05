@@ -125,7 +125,7 @@ body
 	color: #ffffff;
 	text-align: left;
 	position: relative;
-	border-top:7em solid;
+	margin-top:7em;
 }
 
 #footer #copyright
