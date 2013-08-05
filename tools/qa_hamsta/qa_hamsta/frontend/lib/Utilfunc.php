@@ -171,8 +171,7 @@ print "<li><a href=\"" . $args['delete']['href'] . "\"><img src=\"" . $args['del
 print "</ul></li>";
 print "<li class='last'><img src=\"" . $args['vnc']['src']  . "\" alt=\"console\"/>";
 print "<ul>";
-print "<li><a href=\"" . $args['vnc']['href'] . "\"><img src=\"" . $args['vnc']['src']  . "\"/>	VNC</a></li>";
-print "<li><a href=\"" . $args['terminal']['href'] . "\"><img src=\"" . $args['terminal']['src']  . "\"/>Terminal</a></li>";
+print "<li><a href=\"" . $args['vnc']['href'] . "\"><img src=\"" . $args['vnc']['src']  . "\"/>VNC</a></li>";
 print "<li><a href=\"" . $args['console']['href'] . "\"><img src=\"" . $args['console']['src']  . "\"/>Console</a></li>";
 print "</ul></li>";
 print "</ul>";
@@ -265,7 +264,6 @@ function machine_icons($machine,$user)
 		'free'=>array('url'=>"$url_base&go=machine_edit&action=clear",'enbl'=>$users_machine,'err_noavail'=>"You cannot free $host because it is already free."),
 		'send-job'=>array(),
 		'vnc'=>array('url'=>"http://$ip:5801"),
-		'terminal'=>array('url'=>'http://'.$_SERVER['SERVER_ADDR']."/ajaxterm/?host=$ip"),
 		'console'=>array('url'=>'hamsta-cscreen:'.$config->cscreen->console->server."/$host"),
 		'delete'=>array('enbl'=>!preg_match('/^vm\//',$machine->get_type())),
 		'config'=>array('link'=>true),
@@ -346,7 +344,6 @@ function virtual_machine_icons ($machine, $user)
 					  'enbl' => $users_machine),
 		'send-job'	=> array ('url' => $url_base . '&go=machine_send_job'),
 		'vnc'		=> array ('url' => 'http://' . $ip . ':5801'),
-		'terminal'	=> array ('url' => 'http://' . $_SERVER['SERVER_ADDR'] . '/ajaxterm/?host=' . $ip),
 		'delete'	=> array ('url' => $url_base . '&go=del_virtual_machines',
 					  'fullname' => 'Delete virtual machine and all related data of')
 	);

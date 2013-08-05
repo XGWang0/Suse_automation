@@ -105,8 +105,6 @@ print (task_icon ( array ('url'		=> 'index.php?go=newvm-win&a_machines[]=' . $mi
 
       <a href="http://<?php echo($machine->get_ip_address()); ?>:5801" target="_blank"><img src="images/27/icon-vnc.png" alt="Open a VNC viewer" title="Open a VNC viewer on <?php echo($machine->get_hostname());?>" class="machine-actions icon-small"/></a>
 
-      <a href="http://<?php echo($_SERVER['SERVER_ADDR']); ?>/ajaxterm/?host=<?php echo($machine->get_ip_address()); ?>" target="_blank"><img src="images/icon-terminal.png" alt="Access the terminal" title="Access the terminal on <?php echo($machine->get_hostname());?>" class="machine-actions icon-small"/></a>
-
       <?php if(count($machine->get_children()) > 0) { ?>
         <img src="images/icon-delete.png" alt="Delete this machine and all related data" title="Delete <?php echo($machine->get_hostname()); ?> and all related data" class="machine-actions icon-small" onclick="alert('It is not possible to delete virtualization host that contain virtual machine(s)!');" /></a>
       <?php } else { ?>
