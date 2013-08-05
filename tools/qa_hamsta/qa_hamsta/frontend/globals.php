@@ -116,9 +116,9 @@ $config = ConfigFactory::build ("Ini", dirname(__FILE__) . '/config.ini',
 				  $configuration_group);
 /* header & footer links */
 $naviarr = array (
-	"List Machines"=>"index.php?go=machines",
-	"List Groups"=>"index.php?go=groups",
-	"List Jobs"=>"index.php?go=jobruns",
+	"Machines"=>"index.php?go=machines",
+	"Groups"=>"index.php?go=groups",
+	"Jobs"=>"index.php?go=jobruns",
 	"Validation Test"=>"index.php?go=validation",
 	"AutoPXE"=>"index.php?go=autopxe",
 	"QA Cloud"=>"index.php?go=qacloud",
