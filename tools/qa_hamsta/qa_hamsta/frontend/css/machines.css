@@ -209,7 +209,7 @@ div#fulltext_input #x {
 }
 div#fulltext_input #submit {
   color: transparent;  
-  background: url(http://marge.qa.suse.cz/search.png) no-repeat #79d center;
+  background: url("../images/search.png") no-repeat #79d center;
   width: 50px;
 }
 div#fields_list {
