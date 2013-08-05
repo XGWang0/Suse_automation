@@ -121,7 +121,6 @@
         }
     }
 
-	global $latestFeatures;
     
     $html_title = "QA Cloud";
 ?>

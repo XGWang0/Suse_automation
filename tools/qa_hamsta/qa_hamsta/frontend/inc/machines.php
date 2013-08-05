@@ -424,7 +424,6 @@
 		foreach ($machines as $machine)
 			$a_machines[] = $machine->get_id();
 
-	global $latestFeatures;
 	$html_title = "Machines";
 
 	if ($searched_fields) {
