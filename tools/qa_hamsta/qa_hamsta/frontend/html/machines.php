@@ -67,26 +67,33 @@ if (isset ($ns_machine_filter->fields)
 	  }
 	else if ($key == 'fulltext')	
 	{
-	    $filter_description = "\n\t" . '<span class="bold">' . ucfirst($key) . '</span> is "' . $value . '"';
+		$filter_description = "\n\t" . '<span class="bold">' . ucfirst($key) . '</span> is "' . $value . '"';
+	}
+	else if ($key == 'used_by')
+	{
+		$filter_description = "\n\t" . '<span class="bold">' . $fields_list[$key] . '</span> is ';
+		if (isset($value) && is_array($value))
+		{
+			if (isset($value['my']))
+			{
+				$usr = User::getById ($value['my'], $config);
+				$user_name = $usr->getLogin ();	
+				$filter_description = $filter_description . $user_name;
+			}
+			if (isset($value['free']) && $value['free'] == 'on')
+			{
+				$filter_description = $filter_description . ' free';
+			}
+			if (isset($value['others']) && $value['others'] == 'on')
+			{
+				$filter_description = $filter_description . ' others';
+			}
+		}
 	}
 	else
-	  {
-	    /* Used by contains user id but login has to be displayed. */
-	    if ($key == 'used_by')
-	    {
-		    if ( isset($value) && ($value == 'free' || $value == 'others'))
-		    {
-			//do nothing special
-		    }
-		    else
-		    {
-			    $usr = User::getById ($value, $config);
-			    $value = $usr->getLogin ();	
-		    }
-	    }
-		
-	    $filter_description = "\n\t" . '<span class="bold">' . $fields_list[$key] . '</span> is "' . $value . '"';
-	  }
+	{
+		$filter_description = "\n\t" . '<span class="bold">' . $fields_list[$key] . '</span> is "' . $value . '"';
+	}
 	
 	echo ("<span>$filter_description</span>&nbsp;&nbsp;");
       }
@@ -126,24 +133,25 @@ if (! empty ($s_anything))
       <?php
 			if (isset($ns_machine_filter->fields) && isset($ns_machine_filter->fields["used_by"]))
 			{
-				$rough_filter_value = $ns_machine_filter->fields["used_by"];
+				//$rough_filter_value = $ns_machine_filter->fields["used_by"];
+				$rough_filters = $ns_machine_filter->fields["used_by"];
 			}
-                        if ( isset($user))
+                        if (isset($user))
                         {
-				if (isset($rough_filter_value) && ($user->getId() == $rough_filter_value))
+				if (isset($rough_filters['my']) && ($user->getId() == $rough_filters['my']))
 					echo "<input type=\"checkbox\" name=\"my\" id=\"my\" checked/>";
 				else
 					echo "<input type=\"checkbox\" name=\"my\" id=\"my\"/>";
 				echo "<label for=\"my\">my</label>";
                         }
-			if (isset($rough_filter_value) && 'free'==$rough_filter_value)
+			if (isset($rough_filters['free']) && 'on'==$rough_filters['free'])
                         	echo "<input type='checkbox' name='free' id='free' checked/>";
 			else
                         	echo "<input type='checkbox' name='free' id='free'/>";
 	?>
                         <label for="free">free</label>
 <?php
-			if (isset($rough_filter_value) && 'others'==$rough_filter_value)
+			if (isset($rough_filters['others']) && 'on'==$rough_filters['others'])
                         	echo "<input type='checkbox' name='others' id='others' checked/>";
 			else
                         	echo "<input type='checkbox' name='others' id='others'/>";

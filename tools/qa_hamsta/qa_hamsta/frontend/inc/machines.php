@@ -294,37 +294,32 @@
 
 	if (request_str ('set') == 'Search')
 	{
-		$key = 'used_by';
 		$advanced_search = request_str("show_advanced"); 
 		$my = request_str("my");
 		$free = request_str("free");
 		$others = request_str("others");
 		$u = User::getCurrent();
+		$selected_searches = array();
 		if ( !empty($my) && $my=="on" )
 		{
 			$search->filter_reservation($u, 'my');
-			$ns_machine_filter->fields[$key] = $u->getId();
+			$selected_searches['my'] = $u->getId();
 		}
 	
 		if ( !empty($free) && $free=="on" )
 		{
 			$search->filter_reservation($u, 'free');
-			$ns_machine_filter->fields[$key] = 'free';
+			$selected_searches['free'] = $free;
 		}
 	
 		if ( !empty($others) && $others=="on" )
 		{
 			$search->filter_reservation($u, 'others');
-			//$ns_machine_filter->fields[$key] = 'others';
-			$ns_machine_filter->fields[$key] = 'others';
+			$selected_searches['others'] = $others;
 		}
-/* 
-                if (isset($display_fields)) 
-		{
-			if (!in_array($key, $display_fields) && !in_array($key, $default_fields_list))
-				$display_fields[] = $key;
-		}
-*/	
+
+		if (count($selected_searches) > 0)
+			$ns_machine_filter->fields["used_by"] = $selected_searches;
 
 		$filter = request_str("s_anything");
 		$op = request_operator ("s_anything_operator");
