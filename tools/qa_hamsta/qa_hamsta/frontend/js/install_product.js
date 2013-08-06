@@ -1,9 +1,9 @@
-
+<?php
 /* pkacer@suse.com: This file has to be included a php file because it
  * contains some PHP code: require ('<this-file-path>');.
  * That should be fixed in near future.
  */
-
+?>
 //<!--
 var sled_text = ["desktop-base"];
 var sled_gnome = ["<?php echo (str_replace (" ", "\", \"", $config->lists->gnome->default));?>"];

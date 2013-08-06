@@ -92,9 +92,10 @@
 ?>
 </form>
 
-<script>
 <?php
-}
-require ('js/install_product.js');
+} // else -- reinstallation happens
 ?>
+
+<script>
+<?php require ('js/install_product.js'); ?>
 </script>
