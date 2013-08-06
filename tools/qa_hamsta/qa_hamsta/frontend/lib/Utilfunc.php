@@ -153,7 +153,7 @@ print "<li><a href=\"" . $args['stop']['href'] . "\"><img src=\"" . $args['stop'
 print "</ul></li>";
 print "<li class='has-sub'><img src=\"" . $args['send-job']['src']. "\" alt=\"jobs\"/>";
 print "<ul>";
-print "<li class='has-sub'><a href='#'><img src=\"" . $args['send-job']['src']. "\"/>Send job</a>";
+print "<li class='has-sub'><a href=\"" . $args['send-job']['href'] . "\"><img src=\"" . $args['send-job']['src']. "\"/>Send job</a>";
 print "<ul>";
 print "<li><a href=\"" . $args['send-job']['href'] . "#predefined\"><img src=\"" . $args['send-job']['src']. "\"/>Pre-defined job</a></li>";
 print "<li><a href=\"" . $args['send-job']['href'] . "#qapackage\"><img src=\"" . $args['send-job']['src']. "\"/>QA package job</a></li>";
