@@ -80,7 +80,7 @@ form#fields  select[multiple]  {
 .fields  {
   position: fixed;
   top: 8.5em;
-  right:-10em;
+  right:-9em;
 /*  right:0; */  
   padding: 0 0.5em 0.5em 3em;
   border-radius: 1em 0 0 1em;
