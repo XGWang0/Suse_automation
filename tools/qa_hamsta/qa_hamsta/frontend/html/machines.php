@@ -467,6 +467,7 @@ $('#x').on('click', function() {
                     echo("<label for=$key>$value</label><br>");
                 }
         ?>
+        <input type="checkbox" name="flage_for_display_set" checked="checked" style="display:none" >
         </div>
 	</label>
         <input type="submit" value="show"/>

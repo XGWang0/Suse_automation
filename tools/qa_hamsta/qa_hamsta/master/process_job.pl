@@ -169,7 +169,7 @@ sub process_job($) {
 			);
 			&TRANSACTION_END;
 
-			if ($parsed{'text'} =~ /Start Kexec booting/) {
+			if ($parsed{'text'} =~ /kexecboot autoyast=/) {
 				&log(LOG_NOTICE, "$hostname: Job ($job_file) exits with ".$parsed{'text'}); 
 				$return_codes .= $parsed{'text'}."\n";
 				last;
