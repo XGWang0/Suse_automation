@@ -107,7 +107,8 @@ foreach ($machines as $machine) {
 			. $usr->getNameOrLogin ()
 			. '</span>' . PHP_EOL
 			. '<span class="userdet">' . PHP_EOL
-			. '<input type="datetime"  pattern="\d{4}-\d{2}-\d{2}"'
+			. '<input type="date" pattern="\d{4}-\d{2}-\d{2}"'
+			. ' min="' . date ('Y-m-d', time() + 24 * 3600). '"'
 			. ' title="YYYY-MM-DD" class="machineedit dateornote" name="'
 			. $expires_id . '" value="' . $expires . '" placeholder="Date of expiration: YYYY-MM-DD"/>'
 			. '<input type="text" class="machineedit" maxlength=64'
