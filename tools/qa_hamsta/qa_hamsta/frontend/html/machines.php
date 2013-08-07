@@ -318,12 +318,7 @@ if (! empty ($s_anything))
   </thead>
   <tbody>
     <?php foreach ($machines as $machine): ?>
-  <tr
-    <?php if (($machine->get_status_id() == MS_DOWN) && ($machine->is_busy())): ?>
-                   class="crashed_job"
-    <?php endif; ?>
-   >
-
+    <tr>
 		<td><input type="checkbox" name="a_machines[]" value="<?php echo($machine->get_id()); ?>"<?php if (isset ($a_machines) && in_array($machine->get_id(), $a_machines)) echo(' checked="checked"'); ?>></td>
 
     <td title="<?php echo($machine->get_notes()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>&amp;highlight=<?php echo($highlight); ?>"><?php echo($machine->get_hostname()); ?></a><?php if ($machine->count_host_collide() >= 2) echo '<img src="images/27/host-collide.png" class="icon-notification" title="Hostnames collide! Merge or delete machine if MAC was changed, otherwise rename it.">'; ?></td>
