@@ -118,6 +118,19 @@
 		array_push($d_fields,$key);
 	    }
 	}
+
+        /* The var $navi_or_form_request_flag  is used to differentiate 
+           where the request to display the machine list from.
+           0: means from the click of "Machines" menu at the top of the website or just http://ip/hamsta
+           1: means from the "display field" show button click, which is to change the display setting.
+        */
+        $navi_or_form_request_flag = 0;
+        $check_field = request_str("flage_for_display_set");
+        if ( $check_field == "on" )
+            {
+                $navi_or_form_request_flag = 1;
+            }
+
 	$search = new MachineSearch();
 	$search->filter_role('SUT');	# Only interested in SUT on this page
 
@@ -167,42 +180,49 @@
 	$group_filter = request_str ('group');
 
 	/* Set fields displayed in the machine list table.
-	 *
-	 * First try to get it from the last request, then from the
-	 * session and as a last resort set the value to defaults.
+	 * if the request is from form, then set display_fields as well as session data to what is set, none is allowed.
+	 * else if history session data is stored, then use stored session data as display_fields
+	 * else it is the first login or logout,then set the value to defaults.
 	 */
-	if (isset ($d_fields) && count ($d_fields) > 0)
-	  {
-	    $display_fields = $d_fields;
-	    /* Save decision to session if possible. */
-	    if (isset ($ns_machine_fields))
-	      {
-		/* Set only to values sent in the request. */
-		$ns_machine_fields->unsetAll ();
-		$ns_machine_fields->fields = $d_fields;
-	      }
-	  }
-	/* Get the fields array from session namespace. */
-	else if (isset ($ns_machine_fields)
-		 && isset ($ns_machine_fields->fields))
-	  {
-		$display_fields = $ns_machine_fields->fields;
-	  }
+        if($navi_or_form_request_flag)
+        {
+            $display_fields = $d_fields;
+            // Save decision to session if possible. 
+            // Set only to values sent in the request. 
+            if (isset ($ns_machine_fields) && isset ($ns_machine_fields->fields))
+                {
+                   $ns_machine_fields->unsetAll ();
+                   $ns_machine_fields->fields = $d_fields;
+                }
+        }
+        else
+        {
+            if (isset ($ns_machine_fields) && isset ($ns_machine_fields->fields))
+                {
+                   $display_fields = $ns_machine_fields->fields;
+                }
+            else
+                {
+                  if (!isset ($display_fields))
+                    {
+                        $display_fields = array ("usage", "expires_formated",
+                                             "product",
+                                             "architecture_capable",
+                                             "kernel");
+                        if ( ! empty ($group_filter) )
+                         {
+                                array_push ($display_fields, 'group');
+                         }
 
-	/* If the value is still not set, use defaults. */
-	if (! isset ($display_fields))
-	  {
-	    $display_fields = array ("usage", "expires_formated",
-				     "product",
-				     "architecture_capable",
-				     "kernel");
-	    if (! empty ($group_filter)
-		&& isset ($ns_machine_fields))
-	      {
-		array_push ($display_fields, 'group');
-		$ns_machine_fields->fields = $display_fields;
-	      }
-	  }
+                        if ( isset ($ns_machine_fields) )
+                        {
+                                $ns_machine_fields->unsetAll ();
+                                $ns_machine_fields->fields = $display_fields;
+                         }
+                     }
+                }
+        }
+
 
 	$a_machines = request_array("a_machines");
 
