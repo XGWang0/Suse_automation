@@ -42,14 +42,14 @@ function checkemail(emailvalue)
 	return true
 }
 
-function checkcheckbox(which){
+function checkcheckbox(which,action){
 	var ckpass=false
-	if ( which.name=="machine_list" && which.action.options[which.action.selectedIndex].value == "addsut") {
+	if ( which.name=="machine_list" && action == "addsut" ) {
 		return true;
 	}
 	for (i=0;i<which.length;i++) {
                 var tempobj=which.elements[i]
-                if (tempobj.type=="checkbox" && tempobj.checked) {
+                if (tempobj.type=="checkbox" && tempobj.id != "actionCheck" && tempobj.checked) {
 			ckpass=true
 			break
 		}

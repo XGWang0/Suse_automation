@@ -300,7 +300,7 @@ if (! empty ($s_anything))
                 </div>
 </form>
 <div id="blindwall"> </div>
-<form action="index.php?go=machines" method="post" name="machine_list" onSubmit="return checkcheckbox(this)">
+<form action="index.php?go=machines" method="post" name="machine_list" >
 <table class="list text-main" id="machines">
   <thead>
 	<tr>
@@ -414,6 +414,15 @@ $('#x').on('click', function() {
 	$('#fulltext').attr('value', "");
 });
 
+//-->
+</script>
+<script type="text/javascript">
+//<!--
+$(document).ready(function(){
+$("label#action button[name='action']").click(function(){
+        var objForm = document.forms["machine_list"];
+        return checkcheckbox(objForm,this.value);
+})});
 //-->
 </script>
 <input type="checkbox" id="actionCheck">
