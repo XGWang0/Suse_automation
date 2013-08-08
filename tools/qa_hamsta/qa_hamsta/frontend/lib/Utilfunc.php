@@ -142,7 +142,7 @@ function merge_unique ($s, &$ret, &$flag)
 
 function act_menu($args)
 {
-
+	$conf = ConfigFactory::build ();
 print "<div id='cssmenu'>";
 print "<ul>";
 print "<li class='active'><img src=\"" . $args['start']['src']  . "\" alt=\"power\"/>";
@@ -172,7 +172,10 @@ print "</ul></li>";
 print "<li class='last'><img src=\"" . $args['vnc']['src']  . "\" alt=\"console\"/>";
 print "<ul>";
 print "<li><a href=\"" . $args['vnc']['href'] . "\"><img src=\"" . $args['vnc']['src']  . "\"/>VNC</a></li>";
-print "<li><a href=\"" . $args['console']['href'] . "\"><img src=\"" . $args['console']['src']  . "\"/>Console</a></li>";
+/* Show serial console icon only if the server is properly configured. */
+if (! empty ($conf->cscreen->console->server)) {
+	print "<li><a href=\"" . $args['console']['href'] . "\"><img src=\"" . $args['console']['src']  . "\"/>Console</a></li>";
+}
 print "</ul></li>";
 print "</ul>";
 print "</div>";
