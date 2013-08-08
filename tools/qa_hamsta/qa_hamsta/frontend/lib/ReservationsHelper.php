@@ -195,8 +195,7 @@ class ReservationsHelper
 	{
 		if (isset ($machine) && isset ($user)) {
 			if (! empty ($expires)) {
-				$date = new Zend_Date ($expires);
-				$expires = $date->toString ('YYYY-MM-dd HH:mm:ss');
+				$expires = date ('c', strtotime ($expires));
 			} else {
 				$expires = NULL;
 			}
@@ -418,8 +417,7 @@ class ReservationsHelper
 	public function getFormattedDate ($date)
 	{
 		if (isset ($date) && ! empty ($date)) {
-			$zdate = new Zend_Date ($date);
-			$date = $zdate->toString ('YYYY-MM-dd');
+			$date = date ('Y-m-d', strtotime ($date));
 		}
 		return $date;
 	}
