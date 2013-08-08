@@ -243,15 +243,15 @@
 	}
 
 	/* Skip all this if we have a reset request. */
-	$advanced_search = request_str("show_advanced"); 
-	if (request_str ('reset') != 'Reset' && !empty($advanced_search))
+	if (request_str ('reset') != 'Reset')
 	{
 		/* Iterate over all available fields (table columns) and apply
 		 * filters on it. */
 		foreach ($fields_list as $key => $value)
 		{
 			$fname = "filter_" . $key;
-			$filter = request_str ($key);
+			//$filter = request_str ($key);
+			$filter = "";
 	
 			/* Use filter stored in the session, if it is not in
 			 * this request. */
@@ -270,15 +270,49 @@
 				}
 				else
 				{
-					$filter = $ns_machine_filter->fields[$key];
+					if ($key == 'used_by')
+					{
+						$filters = $ns_machine_filter->fields[$key];
+						if (isset($filters))
+						{
+							$u = User::getCurrent();
+							foreach ($filters as $k => $v)
+							{
+								if ($k=='my' && $v==$u->getId())
+								{
+									$search->filter_reservation($u, 'my');
+								}
+								if ($k=='free' && $v=='on')
+								{
+									$search->filter_reservation($u, 'free');
+								}
+								if ($k=='others' && $v=='on')
+								{
+									$search->filter_reservation($u, 'others');
+								}
+							}
+						}
+					}
+					else
+					{
+						$filter = $ns_machine_filter->fields[$key];
+					}
+				}
+			}
+			else 
+			{
+				if ($key == 'group')
+				{
+					$filter = request_str ($key);
 				}
 			}
 	
 			/* If the filter method is available we also set the
 			 * field to be displayed. */
-			if ( ! empty ($filter) && method_exists ($search, $fname)
-					&& (request_str ('set') == 'Search'
-						|| ($key == 'group')) )
+
+			if ( ! empty ($filter) && method_exists ($search, $fname))
+					//&& (request_str ('set') == 'Search'
+				//		|| ($key == 'group')) )
 			{
 				if ( isset ($ns_machine_filter->fields)
 						&& ! (in_array ($key, $ns_machine_fields->fields)
@@ -293,17 +327,7 @@
 					array_push ($display_fields, $key);
 				}
 			}
-	
-			/* If filter of some sort was used store it in
-			 * the session. */
-			if (isset ($ns_machine_filter))
-			{
-				if (! empty($filter) && method_exists ($search, $fname))
-				{
-					$ns_machine_filter->fields[$key] = $filter;
-				}
-			}
-	
+
 			if (! empty ($fname) && ! empty ($filter)
 					&& method_exists ($search, $fname))
 			{
@@ -311,9 +335,11 @@
 			}
 		}
 	}
+	
 
 	if (request_str ('set') == 'Search')
 	{
+		/* add search for rough reservation, such as, my, free, others*/
 		$advanced_search = request_str("show_advanced"); 
 		$my = request_str("my");
 		$free = request_str("free");
@@ -341,9 +367,81 @@
 		if (count($selected_searches) > 0)
 			$ns_machine_filter->fields["used_by"] = $selected_searches;
 
+		//add advanced search here
+		if (isset($advanced_search) && ! empty($advanced_search))
+		{
+			/* Iterate over all available fields (table columns) and apply
+			 * filters on it. */
+			foreach ($fields_list as $key => $value)
+			{
+				$fname = "filter_" . $key;
+				$filter = request_str ($key);
+		
+				/* Use filter stored in the session, if it is not in
+				 * this request. */
+/*
+				if (isset ($ns_machine_filter->fields)
+						&& empty ($filter)
+						&& in_array ($key, array_keys ($ns_machine_filter->fields)))
+				{
+					// Unset the value if the user sets empty value. /
+					if (request_str ('set') == 'Search'
+							&& isset ($ns_machine_filter->fields[$key])
+							&& $key != 'group')
+					{
+						unset ($ns_machine_filter->fields[$key]);
+						unset ($fname);
+						unset ($filter);
+					}
+					else
+					{
+						$filter = $ns_machine_filter->fields[$key];
+					}
+				}
+*/
+				/* If the filter method is available we also set the
+				 * field to be displayed. */
+				if ( ! empty ($filter) && method_exists ($search, $fname))
+						//&& (request_str ('set') == 'Search'
+						//	|| ($key == 'group')) )
+				{
+					if ( isset ($ns_machine_filter->fields) && 
+						! (in_array ($key, $ns_machine_fields->fields) || 
+							in_array ($key, $default_fields_list)))
+					{
+						$ns_machine_fields->fields[] = $key;
+					}
+		
+					if (! in_array ($key, $display_fields)
+							&& ! in_array ($key, $default_fields_list))
+					{
+						array_push ($display_fields, $key);
+					}
+				}
+		
+				/* If filter of some sort was used store it in
+				 * the session. */
+
+				if (isset ($ns_machine_filter))
+				{
+					if (! empty($filter) && method_exists ($search, $fname))
+					{
+						$ns_machine_filter->fields[$key] = $filter;
+					}
+				}
+
+		
+				if (! empty ($fname) && ! empty ($filter)
+						&& method_exists ($search, $fname))
+				{
+					$search->$fname ($filter);
+				}
+			}
+		}
+
+		//end of advanced search
 		$filter = request_str("s_anything");
 		$op = request_operator ("s_anything_operator");
-	
 		if (! empty ($filter) && ! empty ($op))
 		{
 			if (isset ($ns_machine_filter))
@@ -399,11 +497,54 @@
 
 	$machines = $search->query();
 
-	$fulltext = request_str('fulltext');
-	$s_hidden_field = request_str('searchall');
-	$hide_match_field = request_str('hidematch');
-	if (!empty($fulltext))
+	// apply fulltext search
+	if (request_str ('set') == 'Search')
 	{
+	
+		$fulltext = request_str('fulltext');
+		$s_hidden_field = request_str('searchall');
+		$hide_match_field = request_str('hidematch');
+	}
+	else
+	{
+		//if the search criteria is store in session, apply it.
+		if (isset($ns_machine_filter))
+		{
+			$fulltext = isset($ns_machine_filter->fields['fulltext']) ? 
+					$ns_machine_filter->fields['fulltext'] : null;
+			$s_hidden_field = isset($ns_machine_filter->fields['search_hidden_field']) ? 
+					$ns_machine_filter->fields['search_hidden_field'] : null;
+			$hide_match_field = isset($ns_machine_filter->fields['hide_match_field']) ? 
+					$ns_machine_filter->fields['hide_match_field'] : null;
+		}
+	}
+	if (isset($fulltext) && ! empty($fulltext))
+		$machines = fulltext_search($machines, $fulltext, $s_hidden_field, $hide_match_field);
+
+	if (request_str("s_group"))
+		foreach ($machines as $machine)
+			$a_machines[] = $machine->get_id();
+
+	$html_title = "Machines";
+
+	if ($searched_fields) {
+		$_SESSION['message'] = "Search Result: ";
+		foreach ($searched_fields as $c)
+			$_SESSION['message'] .= $c.", ";
+		$_SESSION['message'] = substr($_SESSION['message'], 0, strlen($_SESSION['message'])-2);
+		$_SESSION['mtype'] = "success";
+	}
+
+	function fulltext_search($machines, $fulltext, $s_hidden_field, $hide_match_field)
+	{
+		global $ns_machine_filter;
+		global $default_fields_list;
+		global $display_fields;
+		global $fields_list;
+		
+		if (! isset($machines) || count($machines) == 0)	
+			return array();
+
 		$ns_machine_filter->fields["fulltext"] = $fulltext;
 		require_once('lib/MachineFilter.php');
 		if (isset($s_hidden_field) && !empty($s_hidden_field))
@@ -432,20 +573,7 @@
 		if (isset($hide_match_field) && !empty($hide_match_field))
 			$ns_machine_filter->fields["hide_match_field"] = $hide_match_field;
 	
-	}
+		return $machines;
 
-
-	if (request_str("s_group"))
-		foreach ($machines as $machine)
-			$a_machines[] = $machine->get_id();
-
-	$html_title = "Machines";
-
-	if ($searched_fields) {
-		$_SESSION['message'] = "Search Result: ";
-		foreach ($searched_fields as $c)
-			$_SESSION['message'] .= $c.", ";
-		$_SESSION['message'] = substr($_SESSION['message'], 0, strlen($_SESSION['message'])-2);
-		$_SESSION['mtype'] = "success";
 	}
 ?>
