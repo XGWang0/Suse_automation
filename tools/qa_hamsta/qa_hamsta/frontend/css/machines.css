@@ -57,6 +57,7 @@ select {
 }
 input[type="submit"]  {
   font-weight:bold;
+  cursor: pointer;
 }
 
 

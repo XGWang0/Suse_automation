@@ -45,7 +45,7 @@ function tsInitOnload ()
 function tsInit()
 {
 
-	if	(TSort_Data.push == null)
+	if	(TSort_Data.push == null || TSort_Data[0] == undefined)
 		return;
 	var table_id = TSort_Data[0];
 	var table = document.getElementById(table_id);
