@@ -429,7 +429,7 @@ sub start_job() {
         &log(LOG_ERROR, "TIMEOUT,please logon SUT check the job manually!");
         &log(LOG_NOTICE, "Job TIMEOUT.");
 	print $sock "TIMEOUT running $sut_timeout seconds ,time is up \n";
-	print $sock "Please logon SUT check the job manually!";
+	print $sock "Please logon SUT check the job manually!\n";
         print $sock "Job ist fertig\n";
 	OUT: 
     }else{
