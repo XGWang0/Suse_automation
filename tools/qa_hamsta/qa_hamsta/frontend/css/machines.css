@@ -17,6 +17,7 @@ table#machines {
   margin: 1em 0 0.5em 4em;
   border-spacing: 0px 0px;
   empty-cells: show;
+  table-layout: fixed;
   box-shadow: 4px 4px 6px #000;
   -webkit-box-shadow: 4px 4px 6px #000;
   -moz-box-shadow: 4px 4px 6px #000;
@@ -31,6 +32,10 @@ table#machines td, table#machines th {
   padding:0.1em 0.2em 0.1em 0.2em;
   border: solid white;
   border-width: 1px 1px;
+  white-space: nowrap; /* css-3 */
+  white-space: -moz-nowrap; /* Mozilla, since 1999 */
+  white-space: -nowrap; /* Opera 4-6 */
+  white-space: -o-nowrap; /* Opera 7 */
 }
 table#machines td:last-child, table#machines th:last-child {
   border-right-width:1px;

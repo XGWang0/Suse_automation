@@ -381,11 +381,10 @@ var height = $(window).height();
 var width = $(window).width(); 
 var originLeft = $("#filter").css("left");
 var hoverThreshold = $("#header").height() + $("#filter").height() + $("h1").height();
-var originTheadWidth = $('#machines thead').width();
+var originWidth = $('#machines').width();
 var isChrome = navigator.userAgent.toLowerCase().match(/chrome/) != null;
 var screenRes = window.screen.width;
-var browserWidthBorder = 16;
-
+var browserWidthBorder = 22;
 $(window).resize(function() {
     $("body").width(($(window).width() + browserWidthBorder > screenRes)?$(window).width():(screenRes - browserWidthBorder));
     tableAlign;

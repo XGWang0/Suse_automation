@@ -28,7 +28,16 @@ function tableAlign(){
     if (scrollTop > hoverThreshold)
     {
         $('#filter').addClass("float");
+	$("#blindwall").removeClass("hidden");
+	if (isChrome) {
+		$("#blindwall").addClass("show ChromeHeight");
+	} else {
+		$("#blindwall").addClass("show otherHeight");
+        }
+	$("#machines thead").removeClass("plain").addClass("float").css("top",$("#blindwall").height()); 
         $("#machines thead").css("left",machinesLeft - scrollLeft + "px");
+	if ( originWidth + machinesLeft + browserWidthBorder > $("body").width() )
+		$("body").width(originWidth + machinesLeft + browserWidthBorder);
 	if ( $("#machines tbody").width() > $("#machines thead").width() )
                $("#machines thead").width($("#machines tbody").width());
         else
@@ -40,16 +49,10 @@ function tableAlign(){
             else
                 $(this).width($("#machines th:nth-child("+ind+")").width());
         });
-	$("#blindwall").removeClass("hidden");
-	if (isChrome) {
-		$("#blindwall").addClass("show ChromeHeight");
-	} else {
-		$("#blindwall").addClass("show otherHeight");
-        }
-	$("#machines thead").removeClass("plain").addClass("float").css("top",$("#blindwall").height()); 
     }
     else
     {
+    	$("body").width(($(window).width() + browserWidthBorder > screenRes)?$(window).width():(screenRes - browserWidthBorder));
 	$('#filter').removeClass("float");
 	$("#machines thead").removeClass("float").addClass("plain");
         $("#blindwall").addClass("hidden").removeClass("show otherHeight ChromeHeight");
