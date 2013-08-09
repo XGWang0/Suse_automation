@@ -43,7 +43,7 @@ if (User::isLogged())
   </tr>
   <tr>
     <td>Provide root password of the machine:</td>
-    <td><input type="text" name="rootpwd" id="rootpwd" /><span class="required">*</span></td>
+    <td><input type="password" name="rootpwd" id="rootpwd" /><span class="required">*</span></td>
   </tr>
   <tr>
     <td>Notification email address (optional):</td>

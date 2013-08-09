@@ -58,11 +58,15 @@ if ($ret != 0) { #SLE
 	$repo .= $OSVer;
 }
 my $repo_url = $pre_repo . "/" . $repos{$repo} . "/";
-$mycmd = "zypper --no-gpg-checks -n ar $repo_url hamsta 1>/dev/null";
-$ret = system($mycmd);
-if ($ret != 0) {
-	print "Cannot add hamsta repo as $repo_url to SUT.";
-	exit 256;
+$mycmd = "zypper lr -u|grep $repo_url|awk -F\\\| \'{print \$4}\'|grep \"Yes\" 1>/dev/null";
+$repoOK = system($mycmd);
+if ($repoOK != 0) {
+	$mycmd = "zypper --no-gpg-checks -n ar $repo_url hamsta 1>/dev/null";
+	$ret = system($mycmd);
+	if ($ret != 0) {
+		print "Cannot add hamsta repo as $repo_url to SUT.";
+		exit 256;
+	}
 }
 $mycmd = "zypper --no-gpg-checks --gpg-auto-import-keys in -y qa_hamsta 1>/dev/null";
 $ret = system($mycmd);
@@ -76,9 +80,8 @@ if ( $sut_net_addr == "" ) {
 	print "Can not get sut_net_addr.";
 	exit 256;
 }
-`echo $sut_net_addr $master_net >/tmp/jhao.log`;
 if ( $sut_net_addr ne $master_net ) {
-	$mycmd = "sed -i s/hamsta_multicast_address=\\\'239.192.10.10\\\'/hamsta_multicast_address=\\\'$master_ip\\\'/ /etc/qa/00-hamsta-common-default";
+	$mycmd = "sed -i s/hamsta_multicast_address=\\\'.*\\\'/hamsta_multicast_address=\\\'$master_ip\\\'/ /etc/qa/00-hamsta-common-default";
 	system($mycmd);
 	$conn_type = 'unicast';
 	$ret = system("grep -q \'$master_ip\' /etc/qa/00-hamsta-common-default");

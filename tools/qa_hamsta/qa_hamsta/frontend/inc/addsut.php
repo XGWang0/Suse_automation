@@ -42,17 +42,17 @@ if (request_str("proceed")) {
 	$sutname = request_str("sutname");
 	$rootpwd = request_str("rootpwd");
 	$mailto = request_str("mailto");
+	$master_ip = $_SERVER['SERVER_ADDR'];
 	# Check for errors
 	$errors = array();
 	# Processing the job
 	$cmd = "sshpass -p \"$rootpwd\" scp /usr/share/qa/tools/addsut.pl root@$sutname:/tmp/";
 	system($cmd,$ret);
 	if ( $ret != 0 ) {
-		$errors['fail'] = "Can not scp to $sutname";
+		$errors['fail'] = "Can not scp to $sutname,please check ssh service!";
 	} else {
 		$repo_url = `/usr/share/qa/tools/get_qa_config install_qa_repository`;
 		$repo_url = rtrim($repo_url);
-		$master_ip = $_SERVER['SERVER_ADDR'];
 		$master_net = `/usr/share/qa/tools/get_net_addr.pl`;
 		$cmd = "sshpass -p \"$rootpwd\" ssh -o StrictHostKeyChecking=no root@$sutname /tmp/addsut.pl $master_ip $master_net $repo_url";
 		$conn_type = `$cmd`;
