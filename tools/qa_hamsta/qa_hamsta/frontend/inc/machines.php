@@ -339,6 +339,7 @@
 
 	if (request_str ('set') == 'Search')
 	{
+		$flag_no_srch = true;
 		/* add search for rough reservation, such as, my, free, others*/
 		$advanced_search = request_str("show_advanced"); 
 		$my = request_str("my");
@@ -365,11 +366,15 @@
 		}
 
 		if (count($selected_searches) > 0)
+		{
 			$ns_machine_filter->fields["used_by"] = $selected_searches;
+			$flag_no_srch = false;
+		}
 
 		//add advanced search here
 		if (isset($advanced_search) && ! empty($advanced_search))
 		{
+			$flag_no_srch = false;
 			/* Iterate over all available fields (table columns) and apply
 			 * filters on it. */
 			foreach ($fields_list as $key => $value)
@@ -518,8 +523,33 @@
 					$ns_machine_filter->fields['hide_match_field'] : null;
 		}
 	}
+	
 	if (isset($fulltext) && ! empty($fulltext))
+	{
 		$machines = fulltext_search($machines, $fulltext, $s_hidden_field, $hide_match_field);
+		$flag_no_srch = false;
+	}
+	else
+	{
+		$ns_machine_filter->fields["fulltext"] = null;
+		unset($ns_machine_filter->fields["fulltext"]);
+	}
+
+	if (isset($flag_no_srch) && $flag_no_srch == true)
+	{
+		/*
+		   if there is no search condition specified, clean ns_machine_filter and $ns_machine_filed
+		 */
+		if (isset ($ns_machine_fields))
+		{
+			$ns_machine_fields->unsetAll ();
+		}
+	
+		if (isset ($ns_machine_filter))
+		{
+			$ns_machine_filter->unsetAll ();
+		}
+	}
 
 	if (request_str("s_group"))
 		foreach ($machines as $machine)
