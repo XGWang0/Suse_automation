@@ -212,24 +212,15 @@ sub process_job($) {
 	if( $reboot ) {
 		if($status == JS_PASSED){
 			sleep 300;
-			while( &machine_get_status($machine_id) != MS_UP ) {		
-				# wait for reinstall/reboot jobs
-				$dbc->commit(); # workaround of a DBI bug that would loop the statement
-				sleep 60;	
-			}
-			$message = "reinstall\/reboot $hostname completed";
+                        $message = "reinstall\/reboot $hostname completed";
+			&machine_status_timeout(120,$machine_id,$hostname,$status,$message); #Timeout for 2 Hours
 		}
 
 	} elsif($update_sut) {
 
 		if($status == JS_PASSED){
 			sleep 120;
-			while( &machine_get_status($machine_id) != MS_UP ) {		
-				# wait for reinstall/reboot jobs
-				$dbc->commit(); # workaround of a DBI bug that would loop the statement
-				sleep 30;	
-			}
-			$message = "hamsta updating on $hostname succeed" ;
+			&machine_status_timeout(10,$machine_id,$hostname,$status,$message); #Timeout for 10 Mins;
 		}
 
 	} else {
@@ -383,6 +374,24 @@ sub send_job($$$) {
 
 # Return the socket
 	return ($sock, $loglevel);
+}
+
+sub machine_status_timeout($$$$$) {
+	my $timeout = shift;
+	my $machine_id = shift;
+	my $hostname = shift;
+	$timeout *= 60;
+	my $init_time = 0;
+	while( &machine_get_status($machine_id) != MS_UP ) {
+		if($init_time>$timeout) {
+			#timeout we jump out
+			$_[0] = JS_FAILED;
+			$_[1] = "Reinstall/Reboot/Update $hostname Failed";
+			last;
+		}
+		sleep 60;
+		$init_time += 60;
+	}
 }
 
 unless(defined($ARGV[0]) and $ARGV[0] =~ /^(\d+)$/)
