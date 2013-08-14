@@ -169,7 +169,7 @@ sub process_job($) {
 			);
 			&TRANSACTION_END;
 
-			if ($parsed{'text'} =~ /kexecboot autoyast=/) {
+			if ($parsed{'text'} =~ /kexecboot/ and $parsed{'level'} eq 'RETURN') {
 				&log(LOG_NOTICE, "$hostname: Job ($job_file) exits with ".$parsed{'text'}); 
 				$return_codes .= $parsed{'text'}."\n";
 				last;
@@ -180,7 +180,7 @@ sub process_job($) {
 				$return_codes .= $parsed{'text'}."\n";
 			}	
 
-			if ($parsed{'test'} =~ /Please logon SUT check the job manually/)	{
+			if ($parsed{'text'} =~ /Please logon SUT check the job manually/)	{
 				&log(LOG_NOTICE, "$hostname: TIMTOUT Job ($job_file)" ); 
 				$return_codes .= "6\n";
 			}	
