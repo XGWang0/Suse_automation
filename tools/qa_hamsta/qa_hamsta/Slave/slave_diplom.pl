@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w 
 # ****************************************************************************
-# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
 # 
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -429,7 +429,7 @@ sub start_job() {
         &log(LOG_ERROR, "TIMEOUT,please logon SUT check the job manually!");
         &log(LOG_NOTICE, "Job TIMEOUT.");
 	print $sock "TIMEOUT running $sut_timeout seconds ,time is up \n";
-	print $sock "Please logon SUT check the job manually!";
+	print $sock "Please logon SUT check the job manually!\n";
         print $sock "Job ist fertig\n";
 	OUT: 
     }else{

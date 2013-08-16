@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -32,27 +32,6 @@ if (!defined('HAMSTA_FRONTEND')) {
 	return require("index.php");
 }
 
-/* First check if the user has privileges to run this functionality. */
-if ( $config->authentication->use )
-  {
-    if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
-      {
-        $user = User::getById (User::getIdent (), $config);
-        if ( ! $user->isAllowed ('machine_merge')
-             && ! $user->isAllowed ('machine_merge_reserved') )
-          {
-            Notificator::setErrorMessage ("You do not have privileges to merge machines.");
-            header ("Location: index.php");
-            exit ();
-          }
-      }
-    else
-      {
-        Notificator::setErrorMessage ("You have to logged in and registered to merge machines.");
-        header ("Location: index.php");
-        exit ();
-      }
-  }
 
 $ids = request_array("a_machines");
 if( count($ids)<2 )	{
@@ -60,9 +39,13 @@ if( count($ids)<2 )	{
 	header('Location: index.php');
 	exit();
 }
-
 sort($ids,SORT_NUMERIC);
 $ids = array_reverse($ids);
+
+/* First check if the user has privileges to run this functionality. */
+$perm=array('owner'=>'machine_merge','other'=>'machine_merge_reserved');
+machine_permission_or_disabled($ids,$perm);
+
 
 # 's' means a string type with concatenation possible (e.g. comments)
 # 'S' means a string type with one-of selection (e.g. MAC address)
@@ -85,10 +68,7 @@ $fields = array(
 	'default_option' => 'S',
 	'machine_status_id' => 'machine_status',
 	'maintainer_id' => 's',
-	'usedby' => 'S',
 	'usage' => 's',
-	'expires' => 'S',
-	'reserved' => 'S',
 	'description' => 'S',
 	'affiliation' => 's', 
 	'anomaly' => 's', 
@@ -98,8 +78,10 @@ $fields = array(
 );
 
 if( request_str('submit') )	{
+	machine_permission_or_redirect($ids,$perm);
 	$primary_machine_id=request_str('primary_machine_id');
 	$primary_machine = Machine::get_by_id($primary_machine_id);
+	$rh = new ReservationsHelper ();
 	if( $primary_machine )	{
 		$ret = true;
 
@@ -116,6 +98,8 @@ if( request_str('submit') )	{
 					continue;
 				$machine = Machine::get_by_id($id);
 				if($machine)	{
+					$ret = $rh->mergeForMachine ($primary_machine_id, $id);
+					// FIXME: Check if reservations were merged succesfully.
 					$ret = $ret && $primary_machine->merge_other_machine($id);
 					if( !$ret ) break;
 					$ret = $ret && $machine->del_machine();

@@ -1,5 +1,5 @@
 body { font-size:10px; }
-textarea { font-size:12px; margin:0 0 8px 0; } 
+textarea { font-size:12px; margin:0 0 8px 0; }
 pre { font-size:12px; }
 
 #subnav { display:none; }
@@ -16,10 +16,10 @@ pre { font-size:12px; }
 .tbl thead, .benchtbl thead { display:table-header-group; }
 .tbl tbody, .benchtbl tbody { display:table-row-group; }
 a { color: #000; }
-.tbl th a { text-decoration: none; } 
+.tbl th a { text-decoration: none; }
 .total { margin-top: 1em; }
 
-input { 
+input {
 	font-size:10px;
 	border:none;
 }
@@ -30,8 +30,8 @@ input[type="submit"] { display:none; }
 
 /* [multi]selects */
 .inputbody select { display:none; }
-.inputtitle { 
-	font-weight: bold; 
+.inputtitle {
+	font-weight: bold;
 	display: inline;
 	float: left;
 	margin-right: 1em;
@@ -39,7 +39,7 @@ input[type="submit"] { display:none; }
 }
 .inputbody { display:inline; }
 .inputblock.notset { display:none; }
-.inputblock.set { 
+.inputblock.set {
 	float: left;
 	clear: both;
 }
@@ -60,7 +60,7 @@ hr
 {
 	content: 'SUCCESS : ';
 	font-weight: bold;
-} 
+}
 .steps span.nosel { display:none; }
 .steps span.sel a:link, #steps span.sel a:visited
 {
@@ -83,7 +83,7 @@ textarea { border: none; }
 	text-align: center;
 }
 p.benchimg { text-align: center; }
-#bench_graphs h1 { 
+#bench_graphs h1 {
 	text-align: center;
 	text-transform: capitalize;
 }

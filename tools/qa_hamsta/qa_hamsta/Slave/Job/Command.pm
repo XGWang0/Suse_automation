@@ -1,5 +1,5 @@
 # ****************************************************************************
-# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
 # 
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -275,7 +275,8 @@ sub do_execution {
 
     waitpid $pid, 0;
     if ($self->{'type'} eq 'worker') {
-        &log(LOG_RETURN, "$? (".$self->{'data'}->{'name'}->{'content'}.')');
+	my $return_value = $? ;
+        &log(LOG_RETURN, $return_value?"$return_value (".$self->{'data'}->{'name'}->{'content'}.')':"$return_value");
     }
 
     # Clean up temporary script file

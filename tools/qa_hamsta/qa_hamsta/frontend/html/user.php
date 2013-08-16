@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
 
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -73,66 +73,40 @@ Your e-mail address is <b><?php echo ( ( isset ($user) )
 <?php endif; ?>
 
 <?php if ( isset ($user)): ?>
+<br />
 <!-- Form for changing user password. -->
 <div style="width: 40%">
 <p>
+This password is used for Hamsta web and command line authentication (the <tt>/usr/share/hamsta/feed_hamsta.pl</tt> script). Changes here do not have impact on other systems. Note that you have to set this password to be able to use the command line script even if you do not use it to log in to Hamsta.
+</p>
+
 <form method="post" action="index.php?go=user">
   <fieldset>
   <legend>Change your Hamsta password here</legend>
   <input type="hidden" name="chngpswd" value="new" />
-    <label id="notice">This password is only for Hamsta. Changes here do not have impact on other systems.</label>
-    <table>
-      <tr>
-        <td><label id="password">New password: </label></td>
-        <td><input id="password" type="password" name="pswd" /><br /></td>
-      </tr>
-      <tr>
-        <td><label id="pswdcheck">And for check: </label></td>
-        <td><input id="pswdcheck" type="password" name="pswdcheck" /></td>
-      </tr>
-      <tr>
-       <td colspan="2"><input type="submit" value="Change" /></td>
-      </tr>
-    </table>
+  <table>
+    <tr>
+      <td><label id="password">New password: </label></td>
+      <td><input id="password" type="password" name="pswd" /><br /></td>
+    </tr>
+    <tr>
+      <td><label id="pswdcheck">And for check: </label></td>
+      <td><input id="pswdcheck" type="password" name="pswdcheck" /></td>
+    </tr>
+    <tr>
+      <td colspan="2"><input type="submit" value="Change" /></td>
+    </tr>
+  </table>
   </fieldset>
 </form>
-</p>
+
 </div>
 <?php endif; ?>
 
 <?php
 if ( isset ($user) ) {
   echo ("<div>\n");
-  echo ("  <p>Your current role is <b>");
-  
-  $curRole = $user->getCurrentRole();
-  if ( isset ($curRole) ) {
-    echo ($curRole->getName());
-  } else {
-    echo ('not set');
-  }
-  echo ("</b>.<br />\n");
-
   $list = $user->getRoleList();
-
-  /* Display selection only if user has more than 2 roles available. The
-   * first is current role which is not displayed in the selection. */
-  if ( count($list) > 1 ) {
-    echo ("\nYou can select another current role from the list.</p>\n");
-    echo ("<form method=\"post\" action=\"index.php?go=user\">\n");
-    echo ("<select name=\"roles\">\n");
-
-    foreach ($user->getRoleList() as $roleName) {
-      if ( isset ($curRole) && $curRole->getName() != $roleName) {
-        echo ("<option value=\"$roleName\">" . $roleName . "</option>\n");
-      }
-    }
-    echo ("</select>\n");
-    echo ("<input type=\"hidden\" name=\"go\" value=\"user\" />\n");
-    echo ("<input type=\"submit\" name=\"role\" value=\"Change\" />\n");
-    echo ("</form>\n");
-  }
-
   if ($user->isAllowed ('user_administration'))
     {
 ?>
@@ -143,6 +117,9 @@ if ( isset ($user) ) {
   </div>
 <?php
     }
+  if( $user->isAllowed('master_administration') )	{
+	  print '<div><p>' . html_link('Global QA configuration','index.php?go=machine_config') . '</p></div>'."\n";
+  }
     echo ("</div>\n");
 }
 ?>

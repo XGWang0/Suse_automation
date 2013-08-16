@@ -1,5 +1,5 @@
 # ****************************************************************************
-# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
 # 
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -93,7 +93,10 @@ sub install_rpms # $upgrade_flag, @basenames
 
 	my $ret = 0;
 	foreach my $suite(@suites) {
-		$ret += &command("zypper -n install -l $suite") >> 8;
+		$ret += &command("zypper -n install -l $suite 2>/tmp/sut_rpm_stderr_tmp") >> 8;
+		my $rpm_stderr = `cat /tmp/sut_rpm_stderr_tmp`;
+		chomp($rpm_stderr);
+		&log(LOG_ERROR,"ERROR:RPM $suite install/update error: $rpm_stderr\n") if ( $rpm_stderr ne "" );
 	}
 	return $ret;
 }

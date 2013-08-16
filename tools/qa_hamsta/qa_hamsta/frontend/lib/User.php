@@ -16,7 +16,7 @@ require_once ('../frontenduser/Authenticator.php');
  * @version 1.0.0
  *
  * @copyright
- * Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.<br />
+ * Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.<br />
  * <br />
  * THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
  * CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -39,12 +39,6 @@ require_once ('../frontenduser/Authenticator.php');
  */
 class User {
 
-  /** @var string Default role for the user on login. */
-  const DEFAULT_ROLE = 'user';
-  /** @var string Namespace for the \Zend_Session_Namespace to save
-   * current role in session. */
-  const ROLE_SESSION_NAMESPACE = 'roles';
-
   /** @var int User id in the database. */
   private $user_id;
   /** @var string External login string (e.g. OpenId url). */
@@ -55,8 +49,6 @@ class User {
   private $name;
   /** @var string Email of the user. */
   private $email;
-  /** @var \UserRole Current role of the user. */
-  private $currentRole;
   /** @var \Zend_Config Application configuration. */
   private $config;
   /** @var string[] List of role names this user is cast in. */
@@ -71,12 +63,10 @@ class User {
    * @param string $login Login of the user.
    * @param string $name Full name of the user.
    * @param string $email E-mail of the user.
-   * @param \UserRole $role Role to set for the user.
    */
   private function __construct ( $config, $user_id,
                                  $extern_id, $login,
-                                 $name, $email,
-                                 $role)
+                                 $name, $email)
   {
     $this->config = $config;
     $this->user_id = $user_id;
@@ -84,7 +74,6 @@ class User {
     $this->login = $login;
     $this->name = $name;
     $this->email = $email;
-    $this->currentRole = $role;
     $this->userRoles = $this->getRoleList ();
   }
 
@@ -242,34 +231,6 @@ class User {
   }
 
   /**
-   * Returns role name that this user has cached.
-   *
-   * Default role name is returned, if no role name is cached. The
-   * cached role name is stored in session.
-   *
-   * @return string Cached role name or ROLE_SESSION_NAMESPACE.
-   */
-  private static function getCachedOrDefaultRole ()
-  {
-    try
-      {
-        $ns = new Zend_Session_Namespace (self::ROLE_SESSION_NAMESPACE);
-        if ( isset($ns->curRole) )
-          {
-            return $ns->curRole;
-          }
-        else
-          {
-            return self::DEFAULT_ROLE;
-          }
-      }
-    catch (Zend_Session_Exception $e)
-      {
-        return self::DEFAULT_ROLE;
-      }
-  }
-
-  /**
    * Returns some of the fields of the user.
    *
    * It should return one user or null in all cases. Access to the
@@ -329,8 +290,11 @@ class User {
    *
    * @return \User|null Returns the user if she is registered.
    */
-  public static function getByLogin ($login, $config)
+  public static function getByLogin ($login, $config = null)
   {
+	  if (! isset ($config)) {
+		  $config = ConfigFactory::build ();
+	  }
     $user_fields = self::getUserFields ($config, $login, null, null);
 
     if (isset ($user_fields))
@@ -340,8 +304,7 @@ class User {
                           $user_fields[0]['extern_id'],
                           $user_fields[0]['login'],
                           $user_fields[0]['name'],
-                          $user_fields[0]['email'],
-                          UserRole::getByName (self::getCachedOrDefaultRole(), $config) );
+                          $user_fields[0]['email']);
       }
     return null;
   }
@@ -349,13 +312,16 @@ class User {
   /**
    * Returns an instance of <b>registered</b> user by external id.
    *
-   * @param int $id Id of user. Can be either login for password identification or 
+   * @param int $id Id of user. Can be either login for password identification or database id.
    * @param \Zend_Config $config Application configuration.
    * 
    * @return \User|null Returns the user if she is registered.
    */
-  public static function getById ($id, $config)
+  public static function getById ($id, $config = null)
   {
+	if (! isset ($config)) {
+		$config = ConfigFactory::build ();
+	}
     if (is_numeric ($id))
       {
 	$user_fields = self::getUserFields ($config, null, null, $id);
@@ -382,11 +348,26 @@ class User {
                           $user_fields[0]['extern_id'],
                           $user_fields[0]['login'],
                           $user_fields[0]['name'],
-                          $user_fields[0]['email'],
-                          UserRole::getByName (self::getCachedOrDefaultRole(), $config) );
+                          $user_fields[0]['email']);
       }
     return null;
   }
+
+	/**
+	 * Get currently logged in and registered user.
+	 *
+	 * @return User Currently logged in user or null if the user
+	 * is not logged in or is not in the database.
+	 */
+	public static function getCurrent ()
+	{
+		$conf = ConfigFactory::build ();
+		if (User::isLogged ()
+		    && User::isRegistered (User::getIdent (), $conf)) {
+			return User::getById (User::getIdent ());
+		}
+		return null;
+	}
 
   /**
    * Authenticates this user using method set in configuration.
@@ -401,6 +382,7 @@ class User {
              && $_GET['action'] == "logout" )
           {
             self::logout ();
+	    header ('Location: index.php');
             return true;
           }
       }
@@ -442,8 +424,6 @@ class User {
 	     * fill out the registration form. */
             if (! self::isRegistered (self::getIdent(), $config))
               {
-		error_log ('Going to register new user "' . User::getIdent () . '".');
-
                 if (! isset ($_GET['go']) || $_GET['go'] != 'register')
                   {
                     header ('Location: index.php?go=register');
@@ -505,12 +485,7 @@ class User {
    */
   public static function logout ()
   {
-    if (self::isLogged ()
-	&& isset($_GET['action'])
-	&& $_GET['action'] == 'logout') {
-      Authenticator::logout ();
-      header ('Location: index.php');
-    }
+    Authenticator::logout ();
   }
 
   /**
@@ -541,8 +516,8 @@ class User {
    * Prints user status.
    *
    * Prints message displaying user status with clickable user name
-   * and role redirecting to user configuration page. If the she is
-   * not logged in the message is not printed.
+   * redirecting to user configuration page. If the user is not logged
+   * in the message is not printed.
    *
    * @param \Zend_Config $config Application configuration.
    */
@@ -551,15 +526,14 @@ class User {
     if ( self::isLogged () )
       {
         $ident = self::getIdent();
-	$registered = self::isRegistered ($ident, $config);
-        if ( $registered )
+
+        if ( self::isRegistered ($ident, $config) )
           {
             $user = self::getById ($ident, $config);
             $outName = $user->getName ();
             if ( ! isset ($outName) || empty ($outName) ) {
               $outName = $ident;
             }
-            $outRoleName = $user->getCurrentRole ()->getName ();
           }
         else
           {
@@ -567,12 +541,7 @@ class User {
           }
       
         echo ("Logged in as <a class=\"bold\" href=\"index.php?go=user\">"
-              . $outName . "</a>"
-              . (($registered && count ($user->getRoleList ()) > 1)
-                 ? ("(<a href=\"index.php?go=user\">" . $outRoleName
-                    . "</a>)")
-                 : "")
-              . "\n");
+              . $outName . "</a>\n");
       }
   }
 
@@ -619,18 +588,27 @@ class User {
    */
   public static function addUser ($extern_id, $login, $name, $email, $config)
   {
+    $added = 0;
     $db = Zend_Db::factory ($config->database);
-    $data = Array (
-                   'extern_id' => $extern_id,
+    $data = Array ('extern_id' => $extern_id,
                    'login' => $login,
                    'name' => $name,
-                   'email' => $email
-                   );
-    $added = $db->insert ('user', $data);
+                   'email' => $email);
+
+    try
+      {
+	$added = $db->insert ('user', $data);
+      }
+    catch (Exception $e)
+      {
+	error_log ('Error adding user to database. Exception message: ' . $e->getMessage ());
+      }
+
     if ($added > 0)
       {
         $user = User::getByLogin ($login, $config);
-        $defRole = UserRole::getByName (self::DEFAULT_ROLE, $config);
+	/* Cast user to the default role called 'user' if possible. */
+        $defRole = UserRole::getByName ('user', $config);
         if ( isset ($defRole) )
           {
             $defRole->addUser ($user);
@@ -778,81 +756,23 @@ class User {
   }
 
   /**
-   * Return current role of this user.
-   *
-   * @return \UserRole Current role this user is cast to.
-   */
-  public function getCurrentRole ()
-  {
-    return $this->currentRole;
-  }
-
-  /**
-   * Set current role of this user to roleName.
-   *
-   * @param string roleName Name of new role.
-   *
-   * @return True if change was succesfull, false otherwise.
-   */
-  public function setRole ($roleName)
-  {
-    if ( ! $this->isInRole($roleName)
-         && $this->couldBeInRole ($roleName))
-      {
-        $newRole = UserRole::getByName($roleName, $this->config);
-        if ( isset($newRole) )
-          {
-            $ns = new Zend_Session_Namespace (self::ROLE_SESSION_NAMESPACE);
-            $ns->curRole = $roleName;
-            $this->currentRole = $newRole;
-            return true;
-          }
-      }
-    return false;
-  }
-
-  /**
-   * Getter for the current role of this user.
-   *
-   * @return \UserRole Current role instance of this user. 
-   */
-  public function getRole ()
-  {
-    return $this->currentRole;
-  }
-
-  /**
-   * Returns result of comparison of current role name with provided
-   * roleName parameter.
-   *
-   * @param string $roleName Name of the role to compare.
-   *
-   * @return boolean True if user is in role with the same name as in
-   * parameter.
-   */
-  public function isInRole ($roleName)
-  {
-    return $this->getCurrentRole ()->getName () == $roleName;
-  }
-
-  /**
-   * Returns true if user can be cast in the role with name provided
-   * in parameter roleName.
+   * Returns true if user is cast in the role with name provided in
+   * parameter roleName.
    *
    * @param string $roleName Name of the role to search.
    *
-   * @return boolean True if user can be cast in the role with
+   * @return boolean True if user is cast in the role having the
    * provided name.
    */
-  public function couldBeInRole($roleName)
+  public function isInRole ($roleName)
   {
-    return in_array ($roleName, $this->getRoleList ());
+	  return in_array ($roleName, $this->getRoleList ());
   }
 
   /**
-   * Return list of roles this user can be cast in.
+   * Return list of roles this user is cast in.
    *
-   * @return string[] List of roles this user can be cast in.
+   * @return string[] List of roles this user is cast in.
    */
   public function getRoleList ()
   {
@@ -871,16 +791,23 @@ class User {
   }
 
   /**
-   * Checks if the user in current role has Privilege $privilege.
+   * Checks if the user has Privilege $privilege.
    *
    * @param string $privilege Privilege name.
    *
-   * @return boolean True if user in current role has the privilege,
+   * @return boolean True if user has the privilege,
    * false otherwise.
    */
   public function isAllowed ($privilege)
   {
-    return $this->getRole ()->isAllowed ($privilege);
+	  $role_names = $this->getRoleList ();
+	  foreach ($role_names as $role_name)
+	  {
+		  $role = UserRole::getByName ($role_name, $this->config);
+		  if ($role->isAllowed ($privilege))
+			  return true;
+	  }
+	  return false;
   }
 
   /**
@@ -893,8 +820,11 @@ class User {
    * @return \User[] An array of all users in the database ordered by
    * their logins.
    */
-  public static function getAllUsers ($config)
+  public static function getAllUsers ($config = null)
   {
+	  if (! isset ($config)) {
+		  $config = ConfigFactory::build ();
+	  }
     try {
       $db = Zend_Db::factory ($config->database);
       $sql = 'SELECT login FROM user ORDER BY name';
@@ -911,23 +841,162 @@ class User {
     }
   }
 
+  /**
+   * Returns a string representation of this user.
+   *
+   * @return string A textual representation of the user. Name and
+   * login is returned.
+   */
+  public function __toString ()
+  {
+    return $this->getName () . ' (' . $this->getLogin () . ')';
+  }
+
+  /**
+   * Compare with another user.
+   *
+   * Compares users using ID in the database.
+   *
+   * @param User $other_user Other user to compare to.
+   * @return boolean True if the objects are equal users.
+   */
+  public function equals ($other_user)
+  {
+    if (! isset ($other_user))
+      {
+	return false;
+      }
+    return $this->getId () == $other_user->getId ();
+  }
+
+}
+
+function user_get()
+{
+	global $config;
+	if( !$config->authentication->use )
+		return null;
+	return User::getCurrent ();
 }
 
 function capable ()
 {
-        global $config;
+        global $config,$user;
         $cap=func_get_args();
+	# everything allowed when not using authentication
         if( !$config->authentication->use )
                 return true;
-        $ident=User::getIdent();
-        if( !User::isLogged() || !User::isRegistered($ident,$config) )
-                return false;
-        $user=User::getById($ident,$config);
+	
+	# nothing allowed unless logged in
+	if( !$user )
+		return false;
+
+	# if no capabilities entered, we just check for being logged in
+	if( count($cap)==0 )
+		return true;
+
+	# need to have at least one of the permissions
         foreach($cap as $c) {
                 if( $user->isAllowed($c) )
                         return true;
         }
         return false;
+}
+
+/** 
+  * Check for machine's permissions.
+  * accepts args:
+  * - owner : permission(s) needed for those who own the machine
+  * - other : permission(s) required for those who don't own it, and sufficient for those who do; defaults to $owner . '_reserved' if $owner is a single string
+  * Returns if permissions are sufficient.
+  **/
+function machine_permission($machines,$args)
+{
+	$config = ConfigFactory::build ();
+	$user = User::getCurrent ();
+	$owner=hash_get($args,'owner',null);
+	$other=hash_get($args,'other',null);
+
+	# everything enabled if we don't use configuration
+	if( !$config->authentication->use )
+		return true;
+
+	# if no permission specified, we assume that user just needs to be logged in
+	if( !$owner )
+		return ( !is_null($user) );
+
+	# normalize $machines
+	$machines=to_array($machines);
+	for($i=0; $i<count($machines); $i++ )	{
+		if( is_numeric($machines[$i]) )
+			$machines[$i] = Machine::get_by_id($machines[$i]);
+	}
+
+	foreach( $machines as $machine )	{
+		/* If there is no reservation for the machine or there
+		 * is reservation for this user, then the machine can
+		 * be edited/reserved. */
+		$users_machine = false;
+		$reserved_machine = false;
+		if (isset ($machine))
+		{
+			$rh = new ReservationsHelper ();
+			$reserved_machine = $rh->hasReservation ($machine);
+			$users_machine = $rh->hasReservation ($machine, $user);
+		}
+		$perms=array_merge(to_array($other),
+				   ($users_machine
+				    || ! $reserved_machine
+				    ? to_array($owner) : array()));
+		if( ! call_user_func_array('capable',$perms) )
+			return false;
+	}
+	return true;
+}
+
+/** 
+  * Check for machine's permissions and redirects if missing.
+  * accepts args:
+  * - owner : permission(s) needed for those who own the machine
+  * - other : permission(s) required for those who don't own it, and sufficient for those who do; defaults to $owner . '_reserved' if $owner is a single string
+  * - url : redirect URL, default 'index.php'
+  * Returns if permissions are sufficient.
+  **/
+function machine_permission_or_redirect($machines,$args=array())
+{
+	if( !machine_permission( $machines, $args ) )
+		redirect( $args );
+}
+
+/** 
+  * Check for machine's permissions and sets 'disabled.css' if missing.
+  * accepts args:
+  * - owner : permission(s) needed for those who own the machine
+  * - other : permission(s) required for those who don't own it, and sufficient for those who do; defaults to $owner . '_reserved' if $owner is a single string
+  * - url : redirect URL, default 'index.php'
+  * Returns if permissions are sufficient.
+  **/
+
+function machine_permission_or_disabled($machines,$args)
+{
+	if( !machine_permission( $machines, $args ) )
+		disable($args);
+}
+
+$perm_send_job=array('owner'=>'machine_send_job','other'=>'machine_send_job_reserved');
+
+function permission_or_redirect($args=array())
+{
+	$perms=hash_get($args,'perm',array());
+	if( !call_user_func_array('capable',$perms) )
+		redirect($args);
+}
+
+function permission_or_disabled($args=array())
+{
+	$perms=hash_get($args,'perm',array());
+	if( !call_user_func_array('capable',$perms) )
+		disable($args);
 }
 
 ?>

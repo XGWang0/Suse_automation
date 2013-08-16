@@ -51,7 +51,7 @@ fi
 
 zypper --gpg-auto-import-keys ref
 
-TEST_PACKAGES="qa_test_ftpload qa_test_ltp qa_test_fs_stress qa_test_process_stress qa_test_sched_stress qa_test_bind qa_test_openssh qa_test_net-snmp qa_test_cpio qa_test_nfs qa_test_findutils qa_test_indent qa_test_sharutils qa_test_gzip qa_test_postfix qa_test_fetchmail qa_test_cracklib qa_test_coreutils qa_test_sysbench qa_test_lmbench qa_test_bonnie qa_test_dbench qa_test_interbench qa_test_kernbench qa_test_libmicro qa_test_reaim qa_test_siege qa_test_tiobench qa_test_bzip2 qa_test_newburn qa_test_newburn-memtst qa_test_netperf qa_test_memeat qa_test_memtester qa_test_autotest qa_test_apparmor qa_test_apparmor-profiles qa_test_apache_testsuite qa_test_php53 qa_test_lynis"
+TEST_PACKAGES="qa_test_ftpload qa_test_ltp qa_test_fs_stress qa_test_process_stress qa_test_sched_stress qa_test_bind qa_test_openssh qa_test_net-snmp qa_test_cpio qa_test_nfs qa_test_findutils qa_test_indent qa_test_sharutils qa_test_gzip qa_test_postfix qa_test_fetchmail qa_test_cracklib qa_test_coreutils qa_test_sysbench qa_test_lmbench qa_test_bonnie qa_test_dbench qa_test_interbench qa_test_kernbench qa_test_libmicro qa_test_reaim qa_test_siege qa_test_tiobench qa_test_bzip2 qa_test_newburn qa_test_newburn-memtst qa_test_netperf qa_test_memeat qa_test_memtester qa_test_autotest qa_test_apparmor qa_test_apparmor-profiles qa_test_apache_testsuite qa_test_php53"
 OTHER_QA_PACKAGES="qa_lib_ctcs2 qa_lib_keys qa_lib_perl qa_lib_config qa_tools qa_db_report qa_lib_internalapi"
 
 zypper -n in -l $TEST_PACKAGES $OTHER_QA_PACKAGES
@@ -136,9 +136,13 @@ echo -e "You can run acceptance/kernel/performance/regression tests now.\n"
 
 #start all tests
 
-echo -e "All tests starts now\n"
+echo -e "\nBEWARE: ALL TESTS are running, Please see screen -r tests\n" > /etc/motd
 
-        echo get sysinfo
+echo -e "All tests starts now, see screen -r tests for details\n"
+
+screen -L -S tests  -d -m /bin/bash -c '(
+
+        logger get sysinfo
         echo -e "\nuname -a\n" > /var/log/qa/ctcs2/sysinfo
         uname -a >> /var/log/qa/ctcs2/sysinfo 2>&1
         echo -e "\ncat /proc/meminfo\n" >> /var/log/qa/ctcs2/sysinfo
@@ -158,119 +162,120 @@ echo -e "All tests starts now\n"
 
 #Acceptance test start
 
-	echo NEW validation run
-
-	cd /usr/lib/ctcs2
-
-	echo file system stress test runs now
-	/usr/lib/ctcs2/tools/run /usr/share/qa/tcf/fs_stress.tcf
-
-	echo process_stress runs now
-	/usr/lib/ctcs2/tools/run /usr/share/qa/tcf/process_stress.tcf
-
-	echo sched_stress runs now
-	/usr/lib/ctcs2/tools/run /usr/share/qa/tcf/sched_stress.tcf
-
-	echo END of validation tests
-
-#Regression test start
-
-        echo NEW regression run
+        logger NEW validation run
 
         cd /usr/share/qa/tools
 
-        echo qa_test_bind runs now
+        logger file system stress test runs now
+        ./test_fs_stress-run
+
+        logger process_stress runs now
+        ./test_process_stress-run
+
+        logger sched_stress runs now
+        ./test_sched_stress-run
+
+        logger END of validation tests
+
+#Regression test start
+
+        logger NEW regression run
+
+        cd /usr/share/qa/tools
+
+        logger qa_test_bind runs now
         ./test_bind-run
 
-        echo qa_test_coreutils runs now
+        logger qa_test_coreutils runs now
         ./test_coreutils-run
 
-        echo qa_test_openssh runs now
+        logger qa_test_openssh runs now
         ./test_openssh-run
 
-        echo qa_test_apache_testsuite runs now
+        logger qa_test_apache_testsuite runs now
         ./test_apache_testsuite-run
 
-        echo qa_test_cpio runs now
+        logger qa_test_cpio runs now
         ./test_cpio-run
 
-        echo qa_test_net-snmp runs now
+        logger qa_test_net-snmp runs now
         ./test_net-snmp-run
 
-        echo qa_test_indent runs now
+        logger qa_test_indent runs now
         ./test_indent-run
 
-        echo qa_test_sharutils runs now
+        logger qa_test_sharutils runs now
         ./test_sharutils-run
 
-        echo qa_test_gzip runs now
+        logger qa_test_gzip runs now
         ./test_gzip-run
 
-        echo qa_test_findutils runs now
+        logger qa_test_findutils runs now
         ./test_findutils-run
 
-        echo qa_test_postfix runs now
+        logger qa_test_postfix runs now
         ./test_postfix-run
 
-        echo qa_test_fetchmail runs now
+        logger qa_test_fetchmail runs now
         ./test_fetchmail-run
 
         logger qa_test_php53 runs now
         ./test_php53-run
 
-        echo qa_test_nfs runs now
+        logger qa_test_nfs runs now
         ./test_nfs-run
 
-        echo qa_test_bzip2 runs now
+        logger qa_test_bzip2 runs now
         ./test_bzip2-run
 
-        echo qa_test_apparmor runs now
+        logger qa_test_apparmor runs now
         ./test_apparmor-run
 
-        echo qa_test_apparmor-profiles runs now
+        logger qa_test_apparmor-profiles runs now
         ./test_apparmor-profiles-run
 
-        echo qa_test_cracklib runs now
+        logger qa_test_cracklib runs now
         ./test_cracklib-run
 
-        echo END of regression tests
+        logger END of regression tests
 
 #Performance test start
 
         ARCH=$HOSTTYPE
         if [ "$ARCH" != "s390x" ] ; then
 
-	echo NEW performance run
+        logger NEW performance run
 
-	cd /usr/share/qa/tools
+        cd /usr/share/qa/tools
 
-	echo qa_test_siege runs now
-	./test_siege-run
+        logger qa_test_siege runs now
+        ./test_siege-run
 
-	echo qa_test_interbench runs now
-	./test_interbench-run
+        logger qa_test_interbench runs now
+        ./test_interbench-run
 
-	echo qa_test_libmicro runs now
-	./test_libmicro-run
-	./test_libmicro-bench-run
+        logger qa_test_libmicro runs now
+        ./test_libmicro-run
+        ./test_libmicro-bench-run
 
-	echo qa_test_bonnie runs now
-	./test_bonnie-run
+        logger qa_test_bonnie runs now
+        ./test_bonnie-run
 
-	echo qa_test_dbench runs now
-	mkdir -p /abuild
-	./test_dbench-run
-	rm -r /abuild/dbench*
+        logger qa_test_dbench runs now
+        mkdir -p /abuild
+        ./test_dbench-run
+        rm -r /abuild/dbench*
 
-	cd /usr/lib/ctcs2/tools
+        cd /usr/lib/ctcs2/tools
 
-	echo qa_test_reaim runs now
-	./test_reaim-run
+        logger qa_test_reaim runs now
+        ./test_reaim-run
 
-	echo qa_test_tiobench runs now
-	./test_tiobench-run
+        logger qa_test_tiobench runs now
+#       ./test_tiobench-run
+        ./test_tiobench-bench-run
 
-	echo END of performance tests
+        logger END of performance tests
 
         else
                 echo "skip performance tests on $ARCH architecture!"
@@ -278,82 +283,68 @@ echo -e "All tests starts now\n"
 
 #Kernel test start
 
-        echo NEW kerneltest run
+        logger NEW kerneltest run
 
-	cd /usr/lib/ctcs2
+        cd /usr/lib/ctcs2
 
-        echo qa_test_ltp runs now
+        logger qa_test_ltp runs now
         ./tools/test_ltp-run
         ARCH=$HOSTTYPE
         if [ "$ARCH" = "s390x" ] ; then
-		rm /test -rf
-	fi
+                rm /test -rf
+        fi
 
-        echo qa_test_newburn runs now
+        logger qa_test_newburn runs now
         ./tools/test_newburn-run
 
-	cd /usr/share/qa
+        logger qa_test_memtst runs now
+        ./tools/test_newburn-memtst-run
 
-        echo qa_test_memtester runs now
+        cd /usr/share/qa
+
+        logger qa_test_memtester runs now
         ./tools/test_memtester-run
 
-        echo qa_test_memeater runs now
+        logger qa_test_memeater runs now
         ./tools/test_memeat-run
 
-	### CHECKME Why use this strange tcf??? Does it contain correct paths?
-        echo qa_test_memtst runs now
-        /usr/lib/ctcs2/tools/run /suse/rd-qa/tcf/memtst.tcf
-
-        echo qa_test_netperf runs now
-        cp /usr/share/qa/tcf/netperf.tcf /usr/share/qa/tcf/netperf.tcf.bak
-        sed "s%1h%3h%" /usr/share/qa/tcf/netperf.tcf.bak > /usr/share/qa/tcf/netperf.tcf
+        logger qa_test_netperf runs now
         ./tools/test_netperf-run
 
-        echo qa_test_ftpload runs now
-        ARCH=$HOSTTYPE
-        if [ "$ARCH" != "s390x" ] ; then
-		ftpload -d /tmp -c 20 ftp://10.11.136.9/400MB
-        else
-		if [ ! -d /abuild/ftpload_test ] ; then
-			mkdir -p /abuild/ftpload_test
-		fi 
+        logger qa_test_ftpload runs now
+        ./tools/test_ftpload-run
 
-		ftpload -d /abuild/ftpload_test -c 20 ftp://10.11.136.9/400MB
-	fi
-
-        echo qa_lmbench runs now
-        cp /usr/share/qa/qa_test_lmbench/lmbench.tcf /usr/share/qa/qa_test_lmbench/lmbench.tcf.bk
-        sed "s%3h%24h%" /usr/share/qa/qa_test_lmbench/lmbench.tcf.bk > /usr/share/qa/qa_test_lmbench/lmbench.tcf
+        logger qa_lmbench runs now
         ./tools/test_lmbench-run
 
-        echo qa_test_sysbench runs now
-	if [ $ARCH = "s390x" ] ; then
-		if [ ! "`grep abuild /usr/lib/ctcs2/bin/runtest`" ] ; then
-        		cp /usr/lib/ctcs2/bin/runtest /usr/lib/ctcs2/bin/runtest.bak
-  	      		sed -i "s/testpath=.*/testpath=\"\/abuild\"/g" /usr/lib/ctcs2/bin/runtest
-		fi 
-		ulimit -s 4096 
-	fi
+        logger qa_test_sysbench runs now
+        if [ $ARCH = "s390x" ] ; then
+                if [ ! "`grep abuild /usr/lib/ctcs2/bin/runtest`" ] ; then
+                        cp /usr/lib/ctcs2/bin/runtest /usr/lib/ctcs2/bin/runtest.bak
+                        sed -i "s/testpath=.*/testpath=\"\/abuild\"/g" /usr/lib/ctcs2/bin/runtest
+                fi 
+                ulimit -s 4096 
+        fi
         cd /abuild
-	### CHECKME Why use this strange tcf??? Does it contain correct paths?
-        /usr/lib/ctcs2/tools/run /suse/rd-qa/tcf/sysbench.tcf
+        /usr/lib/ctcs2/tools/test_sysbench-run
         rm /abuild/testfile*
         rm /usr/lib/ctcs2/bin/testfile*
-	killall sysbench
-	if [ $ARCH = "s390x" ] ; then
-        	cp /usr/lib/ctcs2/bin/runtest.bak /usr/lib/ctcs2/bin/runtest
-		ulimit -s 8192
-	fi
+        killall sysbench
+        if [ $ARCH = "s390x" ] ; then
+                cp /usr/lib/ctcs2/bin/runtest.bak /usr/lib/ctcs2/bin/runtest
+                ulimit -s 8192
+        fi
 
-        echo qa_test_autotest runs now
+        logger qa_test_autotest runs now
         cd /abuild
-        /usr/lib/ctcs2/tools/run /usr/lib/ctcs2/tcf/autotest_quick.tcf
+        /usr/share/qa/tools/test_autotest-run
         rm /abuild/testfile*
         rm /usr/lib/ctcs2/bin/testfile*
 
-        echo END of Kernel tests
+        logger END of Kernel tests
 
-	echo "!!!All tests have finished. Next is to analyze results."
+        echo "!!!All tests have finished. Next is to analyze results."
+
 	/usr/share/hamsta/testscript/report
 	/usr/share/qa/tools/remote_qa_db_report.pl -b -c "SLES-11-SP3_KERNEL_TESTING"
 ]]>

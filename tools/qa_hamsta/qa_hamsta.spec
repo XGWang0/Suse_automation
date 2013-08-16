@@ -1,6 +1,6 @@
 #!BuildIgnore: post-build-checks
 # ****************************************************************************
-# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
 # 
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -103,10 +103,11 @@ Authors:
             Leon Wang      <llwang@novell.com>
 
 %package frontend
+BuildRequires:  ImageMagick
 License:        SUSE Proprietary  
 Summary:        HArdware Maintenance, Setup & Test Automation  
 Group:          System/Management  
-Requires:       mod_php_any httpd php-pdo php-mysql hamsta-jobs tblib ajaxterm jquery php5-curl php5-snmp ipmitool sshpass libvirt php5-ZendFramework php5-gmp php5-openssl perl-Config-IniFiles frontenduser
+Requires:       mod_php_any httpd php-pdo php-mysql hamsta-jobs tblib jquery php5-curl php5-snmp ipmitool sshpass libvirt php5-ZendFramework php5-gmp php5-openssl perl-Config-IniFiles frontenduser
 
 %if 0%{?sles_version} > 9
 Recommends:	mysql
@@ -211,11 +212,15 @@ shared between Hamsta master, multicast-forwarder and slave.
 %setup -n %{name}
 
 %build
+sh frontend/images/resize-icons.sh frontend/images
 
 %install
-install -m 755 -d $RPM_BUILD_ROOT/usr/share/man/man8
-install -m 644 %{S:3} $RPM_BUILD_ROOT/usr/share/man/man8
-gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
+install -m 755 -d $RPM_BUILD_ROOT/%{_mandir}/man8
+install -m 644 %{S:3} $RPM_BUILD_ROOT/%{_mandir}/man8
+gzip $RPM_BUILD_ROOT/%{_mandir}/man8/%{name}.8
+install -m 755 -d $RPM_BUILD_ROOT/%{_mandir}/man1
+install -m 644 feed_hamsta.1 $RPM_BUILD_ROOT/%{_mandir}/man1
+gzip $RPM_BUILD_ROOT/%{_mandir}/man1/feed_hamsta.1
 mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/init.d
 cp -a hamsta hamsta-master hamsta-multicast-forward $RPM_BUILD_ROOT/%{_sysconfdir}/init.d/
 mkdir -p $RPM_BUILD_ROOT/usr/sbin
@@ -253,7 +258,7 @@ echo %{version} > /usr/share/hamsta/Slave/.version
 %post master
 echo "=================== I M P O R T A N T ======================="
 echo "Please make sure that you have a database prepared."
-echo "To create a new DB, install and confugure mysql and than"
+echo "To create a new DB, install and configure mysql and then"
 echo "run 'cd %destdir/db; ./create_db.sh'."
 echo "To update the existing database to the newest version,"
 echo "run 'cd %destdir/db; ./update_db.sh'."
@@ -313,7 +318,7 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 
 %files
 %defattr(-, root, root)
-/usr/share/man/man8/%name.8.gz
+%{_mandir}/man8/%name.8.gz
 %{destdir}/testscript
 %{destdir}/Slave
 %dir /usr/share/hamsta/
@@ -342,6 +347,7 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %defattr(-, root, root)
 %{destdir}/command_frontend.pl
 %{destdir}/feed_hamsta.pl
+%{_mandir}/man1/feed_hamsta.1.gz
 %dir %{destdir}
 
 %files frontend
@@ -368,10 +374,12 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %dir %{destdir}/xml_files/templates
 %dir %{destdir}/xml_files/nonactive
 %dir %{destdir}/xml_files/multimachine
+%dir %{destdir}/xml_files/relax
 %attr(644,wwwrun,www) %{destdir}/xml_files/*.xml
 %attr(644,wwwrun,www) %{destdir}/xml_files/templates/*.xml
 %attr(644,wwwrun,www) %{destdir}/xml_files/multimachine/*.xml
 %attr(644,wwwrun,www) %{destdir}/xml_files/nonactive/*.xml
+%attr(644,wwwrun,www) %{destdir}/xml_files/relax/*
 
 %files common
 %defattr(-, root, root)
@@ -379,6 +387,18 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %{confdir}/00-hamsta-common-default
 
 %changelog
+* Fri Aug 16 2013 - pkacer@suse.com
+- New 2.6 release from QA Automation team
+- The Machines page has been greatly improved
+- Layout changes at the Machine details page
+- Web UI menu was changed (renamed entries and added link to documentation)
+- Web UI bottom menu was removed
+- Machine reservations can be shared by users
+- Improved QA network configuration (synchronization and web UI)
+- Title of Hamsta changed from image to text
+- All user roles are now checked for privileges (without need to switch user roles)
+- Ajaxterm was removed
+- A lot of bugs were fixed
 * Fri Jan 18 2013 - llipavsky@suse.com
 - New 2.5 release from QA Automation team
 - Authentication and Authorization in Hamsta

@@ -1,5 +1,5 @@
 # ****************************************************************************
-# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
 # 
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -131,6 +131,11 @@ then
     /etc/init.d/SuSEfirewall2_setup stop || true
     chkconfig -d SuSEfirewall2_setup || true
     chkconfig -d SuSEfirewall2_init || true
+fi
+if [ -e /etc/systemd/system/SuSEfirewall2_setup.service ]
+then
+    systemctl start SuSEfirewall2.service
+    systemctl disable SuSEfirewall2.service
 fi
 echo "Your system has been hacked successfuly."
 

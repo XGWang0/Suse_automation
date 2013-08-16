@@ -8,7 +8,7 @@
  * @version $Rev: 1771 $
  *
  * @copyright
- * Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.<br />
+ * Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.<br />
  * <br />
  * THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
  * CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -333,6 +333,15 @@ class JobRun {
 		return $stmt->fetchColumn();
 	}
 
+	/**
+	 * Returns true or false depending on the job finished status.
+	 *
+	 * @return boolean True if the job is in final state, false otherwise.
+	 */
+	public function is_finished () {
+		$status = $this->get_status_id ();
+		return in_array ($status, array (3, 4, 5));
+	}
 
 	/**
 	 * Cancels a scheduled job.

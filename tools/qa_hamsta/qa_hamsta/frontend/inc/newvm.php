@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -45,8 +45,12 @@ $machines = $search->query();
 $installoptions = request_str("installoptions");
 $installoptions_warning = "";
 
-//$resend_job=request_str("xml_file_name");
+# check permissions
+$perm=array('owner'=>'vm_admin','other'=>'vm_admin_reserved','url'=>'index.php?go=qacloud');
+machine_permission_or_disabled($machines,$perm);
+
 if (request_str("proceed")) {
+	machine_permission_or_redirect($machines,$perm);
 	$errors = array(); // Used for recording errors
 
 	# Request all variables 
@@ -61,6 +65,9 @@ if (request_str("proceed")) {
 	$virtinitmem = request_str("virtinitmem");
 	$virtmaxmem = request_str("virtmaxmem");
 	$virtdisksizes = request_array("virtdisksizes");
+	# Convert GB to MB for disk size.
+	foreach (array_keys($virtdisksizes) as $i) 
+		$virtdisksizes[$i] *= 1024;
 	$virtdisktypes = request_array("virtdisktypes");
 	$validation = request_str("validation");
 	$update = request_str("startupdate");
@@ -140,8 +147,10 @@ if (request_str("proceed")) {
 			$args .= " -D";
 		if ($virtcpu)
 			$args .= " -c $virtcpu";
-		if ($virtdisksizestring and $virtdisktypestring)
+		if ($virtdisksizestring and $virtdisktypestring) {
+			$virtdisktypestring = preg_replace("/def/","file",$virtdisktypestring); 
 			$args .= " -d $virtdisksizestring -T $virtdisktypestring";
+		}
 		#To-do: add disk size/type
 		if (request_str("startupdate") == "update-smt" and $smturl != "")
 			$args .= " -S " . $smturl;
@@ -159,7 +168,7 @@ if (request_str("proceed")) {
 			if (!$machine->send_job($autoyastfile)) {
 				$error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
 			} else {
-				Log::create($machine->get_id(), $machine->get_used_by_login(), 'VMNEW', "has installed new virtual machine using \"$producturl_raw\" (SDK: " . ($addon_url ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
+				Log::create($machine->get_id(), $user->getLogin (), 'VMNEW', "has installed new virtual machine using \"$producturl_raw\" (SDK: " . ($addon_url ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
 			}
 		}
 		# Check if a validation test is needed

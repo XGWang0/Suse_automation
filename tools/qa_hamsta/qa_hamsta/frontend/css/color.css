@@ -1,5 +1,5 @@
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -93,10 +93,12 @@ table.list tr.diff:hover	{ background-color: #f88; }
 table.list tr.search_result	{ background-color: #fd8; }
 table.list tr.search_result:hover	{ background-color: #fb6; }
 table.list tr.crashed_job	{ color: #f00; }
-table.list tr.small th { background-color:#aaa; }
-table.list tr.small:hover th { background-color:#888; }
-table.list tr.disabled th { background-color:#00a; }
+table.list tr.small th		{ background-color:#aaa; }
+table.list tr.small:hover th	{ background-color:#888; }
+table.list tr.disabled th 	{ background-color:#00a; }
 table.list tr.disabled:hover th { background-color:#008; }
+table.list tr.system		{ background-color: #abc; }
+table.list tr.system:hover	{ background-color: #89a; }
 tr.small, tr.small input, tr.small select { font-size:80%; }
 tr.disabled, tr.disabled input, tr.disabled select { font-size:50%; }
 tr.small { color: #666; }
@@ -137,3 +139,22 @@ tr.JOB_START:hover td, span.JOB_START:hover	{ background-color: #aee; }
 .JOB_FINISH td, .JOB_FINISH			{ background-color: #fbf; }
 tr.JOB_FINISH:hover td, span.JOB_FINISH:hover	{ background-color: #eae; }
 
+.machine_up {
+    color:#22bb22;
+    font-weight:bold;
+}
+
+.machine_down {
+    color:#ff0000;
+    font-weight:bold;
+}
+
+.machine_not_responding {
+    color:#9400d3;
+    font-weight:bold;
+}
+
+.machine_unknown {
+    color:#0000ff;
+    font-weight:bold;
+}

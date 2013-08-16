@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -38,10 +38,6 @@
 	}
 	else
 	{
-		if(isset($user)){
-			$user_id = $user->get_id();
-
-		}
 ?>
 
 <table class="list text-main">
@@ -49,7 +45,7 @@
         <th>Name</th>
         <th>Description</th>
         <th>Machines</th>
-        <th colspan="6">Actions</th>
+        <th>Actions</th>
     </tr>
     <?php foreach ($groups as $group): ?>
         <tr>
@@ -73,14 +69,7 @@
 		$group_name = str_replace(" ","%20",$group_name);
 		$group_id = $group->get_id();
             ?></td>
-	    <td<?php if($group_id==0) print ' colspan="5"' ?>><a href="index.php?go=machines&amp;group=<?php echo $group_name; ?>"><img src="images/icon-group-list-machine.png" class="icon-small" alt="List machines" title="List machines of group" /></a></td>
-<?php 		if( $group_id )	{ ?>
-            <td><a href="index.php?go=create_group&amp;action=edit&amp;group=<?php echo $group_name; ?>"><img src="images/icon-edit.png" class="icon-small" alt="Edit group" title="Edit this group" /></a></td>
-            <td><a href="index.php?go=create_group&amp;action=addmachine&amp;group=<?php echo $group_name; ?>"><img src="images/icon-group-add-machine.png" class="icon-small" alt="Add machines" title="Add machines to this group" /></a></td>
-            <td><a href="index.php?go=del_group_machines&amp;group=<?php echo $group_name; ?>"><img src="images/icon-group-delete-machine.png" class="icon-small" alt="Delete machines" title="Delete machines from this group" /></a></td>
-	    <td><a href="index.php?go=del_group&amp;group=<?php echo $group_name; ?>"><img src="images/icon-delete.png" class="icon-small" alt="Delete group" title="Delete this group" /></a></td>
-<?php } ?>
-	    <td><a href="index.php?go=qa_netconf&amp;group=<?php echo $group_name; ?>"><img src="images/icon-config.png" class="icon-small" alt="Config group" title="Config this group" /></a></td>
+	    <td><?php print group_icons($group,$user) ?></td>
         </tr>
     <?php endforeach; ?>
 </table>

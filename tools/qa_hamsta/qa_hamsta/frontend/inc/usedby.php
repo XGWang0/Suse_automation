@@ -5,7 +5,8 @@
 $name=http('name');
 if( $name )	{
 	$machine=Machine::get_by_hostname($name);
-	$ret=$machine->get_used_by_name($config);
+	$rh = new ReservationsHelper ($machine);
+	$ret = join (';', $rh->getUserNames ());
 }
 else
 	$ret="Usage: ".$_SERVER['REQUEST_URI']."&name=<hostname>";

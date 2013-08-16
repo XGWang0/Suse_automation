@@ -223,6 +223,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	$rd2='AND r.testcase_id=r2.testcase_id)';
 	# base fields for summaries
 	$sum=array('SUM(times_run) AS runs','SUM(succeeded) AS succ', 'SUM(failed) AS fail', 'SUM(internal_error) AS interr', 'SUM(skipped) AS skip', 'SUM(test_time) AS time', "CASE WHEN SUM(failed)>0 THEN 'failed' WHEN SUM(internal_error)>0 THEN 'interr' WHEN SUM(skipped)>0 THEN 'skipped' WHEN SUM(succeeded)>0 THEN 'success' ELSE NULL END AS status");
+#	$status="CASE WHEN failed THEN 'failed' WHEN internal_error THEN 'interr' WHEN skipped THEN 'skipped' WHEN succeeded THEN 'success' ELSE NULL END AS status";
 	# supported arguments
 	$attrs_known=array(
 		'date_from'	=> array('s.submission_date>=?',	's'),
@@ -252,6 +253,11 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 		# testcase differences - only for result search
 		'res_minus_sub'	=> array("$rd1 g2.submission_id=? $rd2",'i'),
 		'res_minus_tcf'	=> array("$rd1 g2.tcf_id=? $rd2",	'i'),
+		'has_succ'	=> array('r.succeeded>0'		   ),
+		'has_fail'	=> array('r.failed>0'			   ),
+		'has_interr'	=> array('r.internal_error>0'		   ),
+		'has_skip'	=> array('r.skipped>0'			   ),
+		'has_nosucc'	=> array('(r.failed+r.internal_error+r.skipped)>0' ),
 	);
 
 	# index into $sel0[], $sel1[] (SELECT ...), and $from0[] (FROM ...)
@@ -278,7 +284,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	# $sel1[ $i_main ] -- appends for full details
 	$sel1=array( 
 /* subms */  array('s.submission_date','s.host_id','s.tester_id','s.arch_id','s.product_id','s.release_id','s.related','s.status_id','s.comment','s.rpm_config_id','s.hwinfo_id','s.type','s.ref'),
-/* rslts */  array('g.tcf_id','g.testsuite_id','r.testcase_id','t.testcase','r.succeeded','r.failed','r.internal_error','r.skipped','r.times_run','r.test_time','w.waiver_id','t.relative_url','b.is_bench'),
+/* rslts */  array('g.tcf_id','g.testsuite_id','r.testcase_id','t.testcase','r.succeeded','r.failed','r.internal_error','r.skipped','r.times_run','r.test_time','w.waiver_id','t.relative_url','(SELECT COUNT(b.result) from bench_data b where b.result_id=r.result_id) AS bench_count'),
 /* suite */  array(),
 /* Dprod */  array('product','s.release_id','`release`'),
 /* Dsuit */  array(),
@@ -308,7 +314,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	# $from1[ $i_main ] -- append for full details
 	$from1=array( 
 /* subms */	'', 
-/* rslts */	' JOIN testcase t USING(testcase_id) LEFT OUTER JOIN waiver w USING(testcase_id) LEFT JOIN test b ON(w.testcase_id=b.testcase_id)', 
+/* rslts */	' JOIN testcase t USING(testcase_id) LEFT OUTER JOIN waiver w USING(testcase_id)', 
 /* suite */	' JOIN `result` r USING(tcf_id)', 
 /* Dprod */	'',
 /* Dsuit */	' JOIN `result` r USING(tcf_id)',
@@ -992,7 +998,8 @@ function common_header($args=null)
 	$defaults=array(
 		'session'=>true,
 		'connect'=>true,
-		'icon'=>'icons/qadb_ico.png'
+		'icon'=>'icons/qadb_ico.png',
+		'css_screen'=>'css/screen.css'
 	);
 	$args=args_defaults($args,$defaults);
 	if( $args['session'] )
@@ -1129,15 +1136,19 @@ function result_process_print(&$data,$sub_info,$transl,$pager,$id)
 		$url=$tcf_id_url[$my_tcf_id];
 		$data[$i]['logs']=($url ? html_link('logs',$tcf_id_url[$my_tcf_id].'/'.$data[$i]['relative_url']) : '');
                 #Display Graphs for benchmark results.
-		if( $data[$i]['is_bench'] )
+		if( $data[$i]['bench_count'] > 0 )
 		{
 			require_once($dir.'defs.php');
 		        $graphlink=$dir."benchmarks.php?tests[]=".$my_tcf_id."&testcase=".$data[$i]['testcase']."&group_by=0&graph_x=".$bench_def_width."&graph_y=".$bench_def_height."&legend_pos=".$bench_def_pos."&font_size=".$bench_def_font."&search=1";
 			$data[$i]['testcase']= html_link($data[$i]['testcase'],$graphlink);
 		}
+		else 
+		{
+			unset($data[$i]['bench_count']);
+			unset($data[0]['bench_count']);
+		}
 		unset($data[$i]['testcase_id']);
 		unset($data[$i]['relative_url']);
-		unset($data[$i]['is_bench']);
 
 		# append highlight info at the end
 		$data[$i][]=$classes;
@@ -1148,7 +1159,6 @@ function result_process_print(&$data,$sub_info,$transl,$pager,$id)
 	unset($data[0]['waiver_id']);
 	unset($data[0]['testcase_id']);
 	unset($data[0]['relative_url']);
-	unset($data[0]['is_bench']);
 
 	table_translate( $data, $transl );
 	print html_table( $data, array('callback'=>'highlight_result','id'=>$id,'sort'=>'iissiiiiiiss','pager'=>$pager,'total'=>1));

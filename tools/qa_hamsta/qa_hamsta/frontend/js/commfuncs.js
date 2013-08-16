@@ -1,5 +1,5 @@
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -42,14 +42,14 @@ function checkemail(emailvalue)
 	return true
 }
 
-function checkcheckbox(which){
+function checkcheckbox(which,action){
 	var ckpass=false
-	if ( which.name=="machine_list" && which.action.options[which.action.selectedIndex].value == "addsut") {
+	if ( which.name=="machine_list" && action == "addsut" ) {
 		return true;
 	}
 	for (i=0;i<which.length;i++) {
                 var tempobj=which.elements[i]
-                if (tempobj.type=="checkbox" && tempobj.checked) {
+                if (tempobj.type=="checkbox" && tempobj.id != "actionCheck" && tempobj.checked) {
 			ckpass=true
 			break
 		}
@@ -112,14 +112,15 @@ function checkcontents(which)
 
 function checkReinstallDropdownArchitectures()
 {
-	var repoArch = document.getElementById('repo_archs').options[document.getElementById('repo_archs').selectedIndex].value;
-	var sdkArch = document.getElementById('sdk_archs').options[document.getElementById('sdk_archs').selectedIndex].value;
-	if(repoArch == '' || sdkArch == '' || repoArch == sdkArch || (repoArch == 'i386' && sdkArch == 'i586') || (repoArch == 'i586' && sdkArch == 'i386')) {
-		document.getElementById('repo_archs_warning').innerHTML = '';
-		document.getElementById('sdk_archs_warning').innerHTML = '';
+	var repoArch = $("#repo_archs").val();
+	var addonArch = $("#addon_archs").val();
+	if(repoArch.length == 0 || addonArch.length == 0
+	   || repoArch == addonArch
+	   || (repoArch == 'i386' && addonArch == 'i586')
+	   || (repoArch == 'i586' && addonArch == 'i386')) {
+	    $("#addon_archs_warning").empty();
 	} else {
-		document.getElementById('repo_archs_warning').innerHTML = 'Warning';
-		document.getElementById('sdk_archs_warning').innerHTML = 'Architectures differ';
+	    $("#addon_archs_warning").text("Architecture is different than that of product.");
 	}
 }
 
@@ -129,12 +130,12 @@ function chkall(input1,input2)
     var objLen = objForm.length;
     for (var iCount = 0; iCount < objLen; iCount++) {
         if (input2.checked == true) {
-            if (objForm.elements[iCount].type == "checkbox") {
+            if (objForm.elements[iCount].type == "checkbox" && objForm.elements[iCount].id != "actionCheck") {
 
                 objForm.elements[iCount].checked = true;
             }
         } else {
-            if (objForm.elements[iCount].type == "checkbox") {
+            if (objForm.elements[iCount].type == "checkbox" && objForm.elements[iCount].id != "actionCheck") {
                 objForm.elements[iCount].checked = false;
             }
         }

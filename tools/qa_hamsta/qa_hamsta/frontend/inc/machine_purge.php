@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -41,30 +41,17 @@ if( $id )	{
 	$machine = Machine::get_by_id($id);
 }
 if( $machine )	{
-	/* Check the user is logged in. */
-	$user = null;
-	if ($config->authentication->use)
-	{
-		if (User::isLogged () && User::isRegistered (User::getIdent (), $config))
-		{
-			$user = User::getById (User::getIdent (), $config);
-		}
-		else
-		{
-			Notificator::setErrorMessage ('You have to log in to be allowed to purge machine history.');
-			header ('Location: index.php?go=machine_details&id=' . $machine->get_id ());
-			exit ();
-		}
-	}
+	/* Check the user is logged in and has permissions. */
+	machine_permission_or_redirect($machine,array('owner'=>'machine_edit','other'=>'machine_edit_reserved'));
 
 	if( !strcmp($purge,'log') )	{
 		$msg = "log";
 		$ret = $machine->purge_log();
 	}
-	else if( !strcmp($purge,'group') )	{
-		$msg = "group membership";
-		$ret = $machine->purge_group_membership();
-	}
+#	else if( !strcmp($purge,'group') )	{
+#		$msg = "group membership";
+#		$ret = $machine->purge_group_membership();
+#	}
 	else if( !strcmp($purge,'job') )	{
 		$msg = "job history";
 		$ret = $machine->purge_job_history();

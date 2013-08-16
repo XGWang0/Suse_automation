@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -123,11 +123,11 @@
 <?php else: ?>
 <a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;d_return=1&amp;d_job=<?php echo($d_job); ?><?php echo($refresh_interval.$xml_norefresh); ?>" class="text-main">Show returned data</a>
 <?php endif; ?>
-<?php if ($job->get_status_string() == "running" ) { ?>
-- <a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;finished_job=1" class="text-main">set finished flag</a>
+<?php if(isset ($user) &&  in_array($job->get_status_string(), array('running','connecting') )) { ?>
+- <a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;finished_job=1" class="text-main">Set finished flag</a>
 <?php } ?>
 	<!--td>
--	<a href="index.php?xml_file_name=<php echo($job->get_xml_filename()); ?>&amp;go=machines&amp;action=send_job&amp;machines[a_machines]=a_machines&amp;a_machines[0]=<php echo($job->get_machine()->get_id()); >" class="text-main">Resend job</a>
+-	<a href="index.php?xml_file_name=<php echo($job->get_xml_filename()); ?>&amp;go=machines&amp;action=machine_send_job&amp;machines[a_machines]=a_machines&amp;a_machines[0]=<php echo($job->get_machine()->get_id()); >" class="text-main">Resend job</a>
 	</td-->
 	
 <?php if ($d_job): ?>

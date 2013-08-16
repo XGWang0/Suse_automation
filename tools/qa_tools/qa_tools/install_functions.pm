@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # ****************************************************************************
-# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
 # 
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -225,6 +225,8 @@ sub _get_buildservice_repo
 	if( $type eq 'opensuse' ) {
 		return "openSUSE_11.4" if $version==11 and $subversion==4;
 		return "openSUSE_12.1" if $version==12 and $subversion==1;
+		return "openSUSE_12.2" if $version==12 and $subversion==2;
+		return "openSUSE_12.3" if $version==12 and $subversion==3;
 		return 'openSUSE_Factory';
 	} else {
 		return 'SLES_9' if $version==9;
@@ -452,6 +454,10 @@ EOF
 	        # write user config - if it is different
 	        my $qarepo=$qaconf{install_qa_repository};
 	        my $addrpms=$qaconf{install_additional_rpms};
+		my $hamsta_multicast_address = $qaconf{hamsta_multicast_address};
+		my $hamsta_multicast_port = $qaconf{hamsta_multicast_port};
+		my $hamsta_multicast_dev = $qaconf{hamsta_multicast_dev};
+		my $hamsta_client_port = $qaconf{hamsta_client_port};
 	        print $f "      <script>
 	          <filename>zzz_preserve_install_config</filename>
 	          <interpreter>shell</interpreter>
@@ -466,6 +472,10 @@ EOF
 		    [ '$testhome' == \"\`get_qa_config install_testuser_home\`\" ]     || different=1 ;
 		    [ '$qarepo'   == \"\`get_qa_config install_qa_repository\`\" ]     || different=1 ;
 		    [ '$addrpms'  == \"\`get_qa_config install_additional_rpms\`\" ]   || different=1 ;
+		    [ '$hamsta_multicast_address'  == \"\`get_qa_config hamsta_multicast_address\`\" ]   || different=1 ;
+		    [ '$hamsta_multicast_port'  == \"\`get_qa_config hamsta_multicast_port\`\" ]   || different=1 ;
+		    [ '$hamsta_multicast_dev'  == \"\`get_qa_config hamsta_multicast_dev\`\" ]   || different=1 ;
+		    [ '$hamsta_client_port'  == \"\`get_qa_config hamsta_client_port\`\" ]   || different=1 ;
 	
 		    if [ \$different -eq 1 ] ; then
 		      echo '# This file contains custom configuration, that has beed used to install'  > \$file;
@@ -481,6 +491,10 @@ EOF
 		      [ '$testhome' == \"\`get_qa_config install_testuser_home\`\" ]     || echo \"install_testuser_home='$testhome'\" >> \$file;
 		      [ '$qarepo'   == \"\`get_qa_config install_qa_repository\`\" ]     || echo \"install_qa_repository='$qarepo'\" >> \$file;
 		      [ '$addrpms'  == \"\`get_qa_config install_additional_rpms\`\" ]   || echo \"install_additional_rpms='$addrpms'\" >> \$file;
+		      [ '$hamsta_multicast_address'  == \"\`get_qa_config hamsta_multicast_address\`\" ]   || echo \"hamsta_multicast_address='$hamsta_multicast_address'\" >> \$file;
+		      [ '$hamsta_multicast_port'  == \"\`get_qa_config hamsta_multicast_port\`\" ]   || echo \"hamsta_multicast_port='$hamsta_multicast_port'\" >> \$file;
+		      [ '$hamsta_multicast_dev'  == \"\`get_qa_config hamsta_multicast_dev\`\" ]   || echo \"hamsta_multicast_dev='$hamsta_multicast_dev'\" >> \$file;
+		      [ '$hamsta_client_port'  == \"\`get_qa_config hamsta_client_port\`\" ]   || echo \"hamsta_client_port='$hamsta_client_port'\" >> \$file;
 		    fi
 	          </source> 
 	        </script>";
@@ -663,6 +677,15 @@ $postcmd
 				<startmode>auto</startmode>
 			</interface>
 EOF
+                       } elsif( $args->{'newvm'} ) {
+                                print $f <<EOF;
+                        <interface>
+                                <bootproto>dhcp</bootproto>
+                                <device>eth0</device>
+                                <startmode>onboot</startmode>
+                        </interface>
+EOF
+                        last;
 			} elsif($ip) { # phys + VM
 				print $f <<EOF;
 			<interface>

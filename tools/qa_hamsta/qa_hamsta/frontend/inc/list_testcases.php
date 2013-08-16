@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -31,7 +31,7 @@
 //error_reporting(E_ALL | E_STRICT);
 
      if (!defined('HAMSTA_FRONTEND')) {
-        $go = 'edit_machines';
+        $go = 'machine_edit';
         return require("index.php");
     }
 

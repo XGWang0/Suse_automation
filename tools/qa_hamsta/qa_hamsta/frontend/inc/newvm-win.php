@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -40,9 +40,12 @@ function filter($var) {
 $search = new MachineSearch();
 $search->filter_in_array(request_array("a_machines"));
 $machines = $search->query();
+$perm=array('owner'=>'vm_admin','other'=>'vm_admin_reserved','url'=>'index.php?go=newvm');
+machine_permission_or_disabled($machines,$perm);
 
 if (request_str("proceed")) {
 	$errors = array(); // Used for recording errors
+	machine_permission_or_redirect($machines,$perm);
 
 	# Request all variables 
 	$producturl = request_str("win_products");
@@ -82,7 +85,7 @@ if (request_str("proceed")) {
 			if (!$machine->send_job($autoyastfile)) {
 				$error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
 			} else {
-				Log::create($machine->get_id(), $machine->get_used_by_login(), 'VMNEW', "has installed new Windows virtual machine using \"$producturl_raw\"");
+				Log::create($machine->get_id(), $user->getLogin (), 'VMNEW', "has installed new Windows virtual machine using \"$producturl_raw\"");
 			}
 		}
 

@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -42,9 +42,11 @@ define('HAMSTA_FRONTEND', 1);
 
 require("globals.php");
 
+require_once ('Zend/Date.php');
 require_once ('lib/Notificator.php');
 require_once ('lib/UserRole.php');
 require_once ('lib/User.php');
+require_once ('lib/ReservationsHelper.php');
 
 require("lib/request.php");
 require("lib/db.php");
@@ -61,14 +63,16 @@ require("lib/powerswitch.php");
 
 require_once("../tblib/tblib.php");
 
+/* Get currently logged user (if possible). */
 User::authenticate();
+$user = User::getCurrent ();
 
 $go = request_str("go");
 
 $pages = array(
     "machines",
-    "edit_machines",
-    "del_machines",
+    "machine_edit",
+    "machine_delete",
     "install_client",
     "machine_details",
     "machine_purge",
@@ -95,9 +99,9 @@ $pages = array(
 
     "jobruns",
     "job_details",
-    "send_job",
+    "machine_send_job",
     "mm_job",
-    "reinstall",
+    "machine_reinstall",
     "autopxe",
     "vhreinstall",
     "newvm",
@@ -111,6 +115,7 @@ $pages = array(
     "login",
     "addsut",
     "adminusers",
+    "machine_config",
     "qa_netconf",
     "usedby",
 );
