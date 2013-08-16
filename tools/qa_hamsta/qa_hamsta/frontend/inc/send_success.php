@@ -22,53 +22,7 @@
   WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
   ****************************************************************************
  */
-
-	/**
-	 * Logic of the custom job page 
-	 */
-	if (!defined('HAMSTA_FRONTEND')) {
-		$go = 'customjob';
-		return require("../index.php");
-	}
-	$search = new MachineSearch();
-	$a_machines = request_array("a_machines");
-	$search->filter_in_array(request_array("a_machines"));
-	$machines = $search->query();
-	
-	$errors = array();
-
-	machine_permission_or_disabled($machines,$perm_send_job);
-	if (request_str("submit"))
-	{
-		machine_permission_or_redirect($machines,$perm_send_job);
-		require("inc/job_create.php");
-
-		if(count($errors) == 0)
-		{
-			if($roleNumber == 1)  # for Single-machine job, send it directly
-			{
-				foreach ($machines as $machine){
-					if ($machine->send_job($filename)) {
-						Log::create($machine->get_id(), $user->getLogin (), 'JOB_START', "has sent a \"custom\" job to this machine (Job name: \"" . htmlspecialchars($_POST['jobname']) . "\")");
-					} else {
-						$errors[] = $machine->get_hostname().": ".$machine->errmsg;
-					}
-				}
-			}
-			else    # for multi-machine job, redirect to "multi-machine job detail" page
-			{
-				$go = "mm_job";
-				return require("inc/mm_job.php");
-			}
-		}
-	}
-	
-	$html_title="Send custom job";
-
-	if (count($errors) != 0) {
-        	$_SESSION['message'] = implode("\n", $errors);
-        	$_SESSION['mtype'] = "fail";
-	} else {
-		require("send_success.php");
-	}
+    Notificator::setSuccessMessage ('The job[s] has/have been successfully sent.');
+    header("Location: index.php");
+    exit();
 ?>

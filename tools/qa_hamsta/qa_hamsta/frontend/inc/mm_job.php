@@ -209,7 +209,7 @@ else if( request_str('submit') )
 			}
 		}
 		if (count($errors) == 0)
-			header("Location: index.php");
+			require("send_success.php");
 	}
 }
 $html_title = "Multi-machine job details";

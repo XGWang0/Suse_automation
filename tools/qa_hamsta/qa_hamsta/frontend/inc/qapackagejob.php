@@ -86,7 +86,7 @@
 		}
 	}
 	if (empty($error)) {
-		header("Location: index.php");
+		require("send_success.php");
 	}
 	$html_title="Send qapackage job";
 ?>
