@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -33,6 +33,9 @@ if (!defined('HAMSTA_FRONTEND')) {
 ?>
 
 <?php foreach ($machines as $machine): ?>
+<?php $rh = new ReservationsHelper ();
+      $rh->getForMachine ($machine);
+?>
 <form action="index.php?go=qacloud" method="post" name="<?php echo "vh_".$machine->get_hostname(); ?>" id="<?php echo "vh_".$machine->get_hostname(); ?>">
 <div id="vhost_vms" style="float:left; width:100%;">
   <div id="vhost_details" style="float:left; width:30%;" class="vhost_details <?php if (($machine->get_status_id() == MS_DOWN) && ($machine->is_busy())): ?> crashed_job<?php endif; ?>" >
@@ -40,53 +43,100 @@ if (!defined('HAMSTA_FRONTEND')) {
       <a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>&amp;highlight=<?php echo($highlight); ?>"><?php echo($machine->get_hostname()); ?></a>
     </span>&nbsp;<span class="bold">Actions</span>
     <span>
+
+<?php
+$mid = $machine->get_id ();
+$hname = $machine->get_hostname ();
+if (count ($machine->get_children ()) < 1) {
+	print (task_icon ( array ('url'		=> 'index.php?go=vhreinstall&a_machines[]='
+							. $mid,
+				  'fullname'	=> 'reinstall',
+				  'type'	=> 'reinstall',
+				  'object'	=> $hname,
+				  'confirm'	=> true
+				   )));
+}
+
+print (task_icon ( array ('url'		=> 'index.php?go=machine_edit&a_machines[]='
+						. $mid,
+			  'fullname'	=> 'edit',
+			  'type'	=> 'edit',
+			  'object'	=> $hname,
+			   )));
+
+{ // Do not create global variables
+	$enabled = false;
+	$allowed = false;
+	if (count ($rh->getReservations ())) {
+		$enabled = true;
+	}
+	if( count ($rh->getForMachineUser ($machine, User::getCurrent ()))) {
+		$allowed = true;
+	}
+
+	print (task_icon ( array ('url'		=> 'index.php?go=machine_edit&a_machines[]='
+							. $mid . '&action=clear',
+				  'fullname'	=> 'Free up',
+				  'type'	=> 'free',
+				  'allowed'	=> $allowed,
+				  'err_noavail'	=> 'You do not have permissions to free '
+							. $hname,
+				  'enbl'	=> $enabled,
+				  'err_noavail'	=> 'You can not free ' . $hname
+				  . ' because it is already free.',
+				  'object'	=> $hname,
+				  'confirm'	=> true
+				   )));
+}
+
+print (task_icon ( array ('url'		=> 'index.php?go=newvm&a_machines[]=' . $mid,
+			  'type'	=> 'newvm',
+			  'fullname'	=> 'Create a new virtual machine on',
+			  'object'	=> $hname
+			   )));
+
+print (task_icon ( array ('url'		=> 'index.php?go=newvm-win&a_machines[]=' . $mid,
+			  'type'	=> 'win',
+			  'fullname'	=> 'Create new Windows virtual machine on',
+			  'object'	=> $hname
+			   )));
+
+?>
+
+      <a href="http://<?php echo($machine->get_ip_address()); ?>:5801" target="_blank"><img src="images/27/icon-vnc.png" alt="Open a VNC viewer" title="Open a VNC viewer on <?php echo($machine->get_hostname());?>" class="machine-actions icon-small"/></a>
+
       <?php if(count($machine->get_children()) > 0) { ?>
-        <img src="images/icon-reinstall.png" alt="Reinstall this virtualization host" title="Reinstall <?php echo($machine->get_hostname()); ?>" border="0" width="20" style="padding-left: 3px; padding-right: 3px;" onclick="alert('It is not possible to reinstall virtualization host that contain virtual machine(s)!');"/>
-        <?php } else { ?>
-        <a href="index.php?go=vhreinstall&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-reinstall.png" alt="Reinstall this virtualization host" title="Reinstall <?php echo($machine->get_hostname()); ?>" border="0" width="20" style="padding-left: 3px; padding-right: 3px;" /></a>
-      <?php } ?>
-      <a href="index.php?go=machine_edit&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-edit.png" alt="Edit/reserve this machine" title="Edit/reserve <?php echo($machine->get_hostname()); ?>" border="0" width="20" style="padding-right: 3px;" /></a>
-      <?php
-        echo "\t\t\t<img src=\"images/icon-free.png\" alt=\"Free up this machine\" title=\"Free up ". $machine->get_hostname()."\" border=\"0\" " .
-          "width=\"20\" style=\"padding-right: 3px;\" " .
-          "onclick=\"";
-        if(trim($machine->get_used_by_login()) == "" and trim($machine->get_usage()) == "") {
-            echo "alert('This machine is already free!');";
-        } else {
-            echo "var r = confirm('This will clear the \'Used by\' and \'Usage\' fields, making the selected machines free to use by anyone else. Are you sure you want to continue?');" .
-            "if(r==true)" .
-            "{" .
-              "window.location='index.php?go=machine_edit&amp;a_machines[]=" . $machine->get_id() . "&amp;action=clear';" .
-            "}";
-        }
-            echo "\" />\n";
-        ?>
-      <a href="index.php?go=newvm&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-newvm.png" alt="Create new virtual machine" title="Create new virtual machine SUT on <?php echo($machine->get_hostname()); ?>" border="0" width="20" style="padding-right: 3px;" /></a>
-      <a href="index.php?go=newvm-win&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-win.png" alt="Create new Windows virtual machine" title="Create new Windows virtual machine on <?php echo($machine->get_hostname()); ?>" border="0" width="20" style="padding-right: 3px;" /></a>
-      <a href="http://<?php echo($machine->get_ip_address()); ?>:5801" target="_blank"><img src="images/icon-vnc.png" alt="Open a VNC viewer" title="Open a VNC viewer on <?php echo($machine->get_hostname());?>" border="0" width="20" style="padding-right: 3px;" /></a>
-      <a href="http://<?php echo($_SERVER['SERVER_ADDR']); ?>/ajaxterm/?host=<?php echo($machine->get_ip_address()); ?>" target="_blank"><img src="images/icon-terminal.png" alt="Access the terminal" title="Access the terminal on <?php echo($machine->get_hostname());?>" border="0" width="20" style="padding-right: 3px;" /></a>
-      <?php if(count($machine->get_children()) > 0) { ?>
-        <img src="images/icon-delete.png" alt="Delete this machine and all related data" title="Delete <?php echo($machine->get_hostname()); ?> and all related data" border="0" width="20" style="padding-right: 3px;" onclick="alert('It is not possible to delete virtualization host that contain virtual machine(s)!');" /></a>
+        <img src="images/icon-delete.png" alt="Delete this machine and all related data" title="Delete <?php echo($machine->get_hostname()); ?> and all related data" class="machine-actions icon-small" onclick="alert('It is not possible to delete virtualization host that contain virtual machine(s)!');" /></a>
       <?php } else { ?>
-        <a href="index.php?go=machine_delete&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-delete.png" alt="Delete this machine and all related data" title="Delete <?php echo($machine->get_hostname()); ?> and all related data" border="0" width="20" style="padding-right: 3px;" /></a>
+        <a href="index.php?go=machine_delete&amp;a_machines[]=<?php echo($machine->get_id()); ?>"><img src="images/icon-delete.png" alt="Delete this machine and all related data" title="Delete <?php echo($machine->get_hostname()); ?> and all related data" class="machine-actions icon-small"/></a>
       <?php } ?>
       </span>
       <table class="text-medium">
       <?php
-        foreach ($fields_list as $key=>$value)
-          if (in_array($key, $vh_display_fields))
-	  {
-		  $fname = "get_".$key;
-		  $res = $machine->$fname();
-		  if ($key == 'used_by')
-		  {
-			  if ($usr = User::getById ($res, $config))
-			  {
-				  $res = $usr->getNameOrLogin ();
-			  }
-		  }
-		  echo("<tr><th>$value</th><td>$res</td></tr>\n");
-	  }
+	foreach ($fields_list as $key=>$value) {
+		if (in_array($key, $vh_display_fields)) {
+			$res = '';
+			$fname = "get_".$key;
+			$class = 'ellipsis-no-wrapped cloudtablevalues';
+			$title = '';
+			if ($key == 'used_by') {
+				$rh = new ReservationsHelper ();
+				$rh->getForMachine ($machine);
+				$res = $rh->prettyPrintUsers ();
+				$title = sprintf (' title="%s"', $res);
+			} else {
+				if (method_exists ($machine, $fname)) {
+					$res = $machine->$fname();
+					$title = sprintf (' title="%s"', $res);
+				}
+			}
+			if ($key == 'status_string') {
+				$class .= ' ' . get_machine_status_class ($machine->get_status_id ());
+			}
+			printf ('<tr><th class="text-left cloudtableheader">%1$s</th><td><div class="%2$s" %3$s>%4$s</div></td></tr>' . PHP_EOL,
+				$value, $class, $title, $res);
+		}
+	}
       ?>
       </table>
   </div>
@@ -113,32 +163,36 @@ if (!defined('HAMSTA_FRONTEND')) {
         >
           <td><input type="checkbox" name="a_machines[]" value="<?php echo($vm->get_id()); ?>" <?php if (in_array($vm->get_id(), $a_machines)) echo("checked"); ?>></td>
 	  <td title="<?php echo($vm->get_notes()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($vm->get_id()); ?>&amp;highlight=<?php echo($highlight); ?>"><?php echo($vm->get_hostname()); ?></a></td>
-	  <td><?php echo($vm->get_status_string()); if ($vm->get_tools_out_of_date()) echo('<img src="images/exclamation_yellow.png" alt="Tools out of date!" title="Tools out of date(v'.$vm->get_tools_version().')!" width="20" style="float:right; padding-left: 3px;"></img>'); ?></td>
-          <?php foreach ($fields_list as $key=>$value){
+	  <td><?php echo($vm->get_status_string()); if ($vm->get_update_status ()) echo('<img src="images/exclamation_yellow.png" alt="Tools out of date!" title="Tools out of date(v'.$vm->get_tools_version().')!" width="20" style="float:right; padding-left: 3px;"></img>'); ?></td>
+          <?php foreach ($fields_list as $key=>$value) {
             $fname = "get_".$key;
-            $res = $vm->$fname();
+	    $res = '';
+	    $title = '';
+	    $cls = '';
+	    if (method_exists ($vm, $fname)) {
+		    $res = $vm->$fname();
+	    }
+	    if ($key == 'used_by') {
+		    $rh->getForMachine ($vm);
+		    $users = join (', ', $rh->getUserNames ());
+		    $res = '<div class="ellipsis-no-wrapped machine_table_usedby">'
+			    . $users . '</div>';
+		    $title = $users;
+	    }
+	    if ($key == 'status_string') {
+		    $cls = get_machine_status_class ($vm->get_status_id ());
+	    }
+
             if (in_array($key, $vm_display_fields))
-              echo ("<td>$res</td>");
+              echo ("<td title=\"$title\" class=\"$cls\">$res</td>");
             }
           ?>
           <td align="center">
-            <a href="index.php?go=machine_edit&amp;a_machines[]=<?php echo($vm->get_id()); ?>"><img src="images/icon-edit.png" alt="Edit/reserve this machine" title="Edit/reserve <?php echo($vm->get_hostname()); ?>" border="0" width="20" style="padding-right: 3px;" /></a>
-            <?php
-               echo "\t\t\t<img src=\"images/icon-free.png\" alt=\"Free up this machine\" title=\"Free up ". $vm->get_hostname()."\" border=\"0\" " ."width=\"20\" style=\"padding-right: 3px;\" " . "onclick=\"";
-                 if(trim($vm->get_used_by_login()) == "" and trim($vm->get_usage()) == "") {
-                   echo "alert('This machine is already free!');";
-                 } else {
-                   echo "var r = confirm('This will clear the \'Used by\' and \'Usage\' fields, making the selected machines free to use by anyone else. Are you sure you want to continue?');" .
-                   "if(r==true) {" .
-                     "window.location='index.php?go=machine_edit&amp;a_machines[]=" . $vm->get_id() . "&amp;action=clear';" .
-                   "}";
-                 }
-                   echo "\" />\n";
-              ?>
-            <a href="index.php?go=machine_send_job&amp;a_machines[]=<?php echo($vm->get_id()); ?>"><img src="images/icon-send-job.png" alt="Send a job to this machine" title="Send a job to <?php echo($vm->get_hostname()); ?>" border="0" width="20" style="padding-right: 3px;" /></a>
-            <a href="http://<?php echo($vm->get_ip_address()); ?>:5801" target="_blank"><img src="images/icon-vnc.png" alt="Open a VNC viewer" title="Open a VNC viewer on <?php echo($vm->get_hostname());?>" border="0" width="20" style="padding-right: 3px;" /></a>
-            <a href="http://<?php echo($_SERVER['SERVER_ADDR']); ?>/ajaxterm/?host=<?php echo($vm->get_ip_address()); ?>" target="_blank"><img src="images/icon-terminal.png" alt="Access the terminal" title="Access the terminal on <?php echo($vm->get_hostname());?>" border="0" width="20" style="padding-right: 3px;" /></a>
-            <a href="index.php?go=del_virtual_machines&amp;a_machines[]=<?php echo($vm->get_id()); ?>"><img src="images/icon-delete.png" alt="Delete this virtual machine and all related data" title="Delete <?php echo($vm->get_hostname()); ?> and all related data" border="0" width="20" style="padding-right: 3px;" /></a>
+<?php
+
+print (virtual_machine_icons ($vm, $user));
+
+?>
           </td>
          </tr>
       <?php endforeach; ?>
@@ -161,10 +215,11 @@ if (!defined('HAMSTA_FRONTEND')) {
       <img src="../hamsta/images/27/qmark.png" class="icon-small" name="qmark1" id="qmark1" title="actions to selected machine(s)" /></a>
   </div>
   <script type="text/javascript">
-  <!--
-  var TSort_Data = new Array ('<?php echo "vm_".($machine->get_hostname()); ?>','', '0' <?php echo str_repeat(", 'h'",count($vh_display_fields)); ?>);
+  //<!--
+  var TSort_Data = new Array ('<?php echo "vm_".($machine->get_hostname()); ?>','', '0' <?php echo str_repeat(", 'h'",count($vh_display_fields) + 1); ?>);
+  var TSort_Icons = new Array ('<span class="text-blue sorting-arrow">&uArr;</span>', '<span class="text-blue sorting-arrow">&dArr;</span>');
   tsRegister();
-  -->
+  //-->
   </script>
 </div>
 </form>
@@ -265,8 +320,4 @@ if (!defined('HAMSTA_FRONTEND')) {
     </td>
   </tr>
 </table>
-<?php
-  echo "</div>\n";
-  echo "<div style=\"clear: left;\">&nbsp;</div>\n";
-?>
 </form>

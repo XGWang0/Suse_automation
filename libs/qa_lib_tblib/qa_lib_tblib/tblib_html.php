@@ -700,12 +700,14 @@ function html_message($msg, $type)
   * @param int $n return value of the update operation
   * @param bool $is_insert true for insert - will consider $n as new ID
   **/
-function update_result($n,$is_insert=false,$msg=null)
+function update_result($n,$is_insert=false,$msg=null,$errmsg=null)
 {
-	if( $n<0 )
-		print html_error(get_error());
-	else
+	if( $n<0 ) {
+		$err = isset ($errmsg) ? $errmsg : get_error ();
+		print html_error($err);
+	} else {
 		print html_success( $msg ? $msg : ($is_insert ? "Record inserted OK with ID=$n" : "$n row(s) processed OK") );
+	}
 }
 
 /* Constants for form elements */

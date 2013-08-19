@@ -1,5 +1,5 @@
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -26,6 +26,14 @@
 .navibar a:active{color:#FFFFFF;}
 .navibar a:link:hover, .navibar a:visited:hover {color:#e78f08;}
 
+#footer a{text-decoration:none; color:#FFFFFF; }
+#footer a:active{color:#FFFFFF;}
+#footer a:link:hover, #footer a:visited:hover {color:#e78f08;}
+
 .topright a{text-decoration:none; color:#FFFFFF; margin: 3px;}
 .topright a:active{color:#FFFFFF;}
 .topright a:link:hover, .topright a:visited:hover{color:#e78f08;}
+
+a.headerlinks {
+    text-decoration:none;
+}

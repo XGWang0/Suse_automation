@@ -1,7 +1,7 @@
 #
 # spec file for package qa_lib_tblib
 #
-# Copyright (c) 2008 SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) 2013 SUSE LINUX Products GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -87,6 +87,18 @@ echo %{version} > %{webdir}/.version
 %doc COPYING
 
 %changelog
+* Fri Aug 16 2013 - pkacer@suse.com
+- New 2.6 release from QA Automation team
+- The Machines page has been greatly improved
+- Layout changes at the Machine details page
+- Web UI menu was changed (renamed entries and added link to documentation)
+- Web UI bottom menu was removed
+- Machine reservations can be shared by users
+- Improved QA network configuration (synchronization and web UI)
+- Title of Hamsta changed from image to text
+- All user roles are now checked for privileges (without need to switch user roles)
+- Ajaxterm was removed
+- A lot of bugs were fixed
 * Fri Jan 18 2013 - llipavsky@suse.com
 - New 2.5 release from QA Automation team
 - Authentication and Authorization in Hamsta

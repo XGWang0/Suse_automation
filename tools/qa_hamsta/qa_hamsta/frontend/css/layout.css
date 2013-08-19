@@ -1,5 +1,5 @@
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -28,7 +28,7 @@ root
 }
 html
 {
-	background-color: #efefef;
+	background-color: #fff;
 }
 body
 {
@@ -59,18 +59,32 @@ body
 		position: relative;
 		text-align: left;
 	}
-	#hlogo	{ margin-left: 1em; }
+
+	#hlogo	{
+	    margin:0.5em 0 0.5em 0;
+	}
+
 	#hlogo a img	{	border: 0;	}
 	#hlogo img.logo
 	{
 		height: 40px;
-		margin: 20px 0px 20px 0px;
 	}
-	#hlogo img.caption	
+
+	#hlogo span#caption
 	{
-		height: 70px;
-		margin-left:20px;
+	    color:white;
+	    font-size:3.5em;
+	    font-weight:bold;
+	    text-shadow:#3a3a3b 3px 3px;
+	    margin-left:0.4em;
+	    white-space:nowrap;
 	}
+
+	#hlogo span#title
+	{
+	    margin:10px 0 10px 0;
+	}
+
 	#hlogo img.hamsta
 	{
 		width: 220px;
@@ -79,7 +93,8 @@ body
 		margin-top: -10px;
 		position: absolute;
 	}
-	#hlogo div.version
+
+	#header div.version
 	{
 		width: 150px;
 		position: absolute;
@@ -87,10 +102,11 @@ body
 		left: 5px;
 	}
 
-#hlogo div.rightmenu
+#header div.rightmenu
 {
-    float:right;
-    position:relative;
+    position:absolute;
+    top:5px;
+    right:5px;
     z-index:100;
 }
 
@@ -100,6 +116,7 @@ body
 	background-color: #ffffff;
 	min-height: 550px;
 }
+
 #footer
 {
 	background-color: #455560;
@@ -108,14 +125,69 @@ body
 	color: #ffffff;
 	text-align: left;
 	position: relative;
+	margin-top:7em;
 }
+
 #footer #copyright
 {	
 	position: absolute;
 	right: 10px;
-	top: 7px;
+	top: 0.9em;
 }
 
 .left {
     float:left;
+}
+
+input.machineedit {
+    margin:2px;
+    width:230px;
+}
+
+input.dateornote {
+    margin:5px 0px 5px 25px;
+    width:200px;
+}
+
+span.userdet {
+    display:none;
+    visibility:hidden;
+}
+
+input[type="checkbox"][name^="used_by"]:checked + span.username + span.userdet {
+    display:block;
+    visibility:visible;
+}
+
+div.other_users {
+    display:block;
+    visibility:visible;
+}
+
+input[type="checkbox"][name="show_others"]:not(:checked) + div.other_users {
+    display:none;
+    visibility:hidden;
+}
+
+th.cloudtableheader {
+    width:6em;
+    display:block;
+}
+
+div.cloudtablevalues {
+    width:25em;
+    display:block !important;
+}
+
+div.machine_icons {
+    width:120px;
+}
+
+div.machine_icons_machine_details {
+    margin-left:20em;
+    margin-top:-2.5em;
+}
+
+div.margin_small {
+    margin:1em;
 }

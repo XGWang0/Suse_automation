@@ -16,7 +16,7 @@ require_once ('../frontenduser/Authenticator.php');
  * @version 1.0.0
  *
  * @copyright
- * Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.<br />
+ * Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.<br />
  * <br />
  * THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
  * CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -290,8 +290,11 @@ class User {
    *
    * @return \User|null Returns the user if she is registered.
    */
-  public static function getByLogin ($login, $config)
+  public static function getByLogin ($login, $config = null)
   {
+	  if (! isset ($config)) {
+		  $config = ConfigFactory::build ();
+	  }
     $user_fields = self::getUserFields ($config, $login, null, null);
 
     if (isset ($user_fields))
@@ -314,8 +317,11 @@ class User {
    * 
    * @return \User|null Returns the user if she is registered.
    */
-  public static function getById ($id, $config)
+  public static function getById ($id, $config = null)
   {
+	if (! isset ($config)) {
+		$config = ConfigFactory::build ();
+	}
     if (is_numeric ($id))
       {
 	$user_fields = self::getUserFields ($config, null, null, $id);
@@ -346,6 +352,22 @@ class User {
       }
     return null;
   }
+
+	/**
+	 * Get currently logged in and registered user.
+	 *
+	 * @return User Currently logged in user or null if the user
+	 * is not logged in or is not in the database.
+	 */
+	public static function getCurrent ()
+	{
+		$conf = ConfigFactory::build ();
+		if (User::isLogged ()
+		    && User::isRegistered (User::getIdent (), $conf)) {
+			return User::getById (User::getIdent ());
+		}
+		return null;
+	}
 
   /**
    * Authenticates this user using method set in configuration.
@@ -798,8 +820,11 @@ class User {
    * @return \User[] An array of all users in the database ordered by
    * their logins.
    */
-  public static function getAllUsers ($config)
+  public static function getAllUsers ($config = null)
   {
+	  if (! isset ($config)) {
+		  $config = ConfigFactory::build ();
+	  }
     try {
       $db = Zend_Db::factory ($config->database);
       $sql = 'SELECT login FROM user ORDER BY name';
@@ -851,10 +876,7 @@ function user_get()
 	global $config;
 	if( !$config->authentication->use )
 		return null;
-	$ident=User::getIdent();
-	if( !User::isLogged() || !User::isRegistered($ident,$config) )
-		return null;
-	return User::getById($ident,$config);
+	return User::getCurrent ();
 }
 
 function capable ()
@@ -881,11 +903,6 @@ function capable ()
         return false;
 }
 
-function users_machine($user,$machine)
-{
-	return ( $user && $machine && ($user->getId()==$machine->get_used_by()) );
-}
-
 /** 
   * Check for machine's permissions.
   * accepts args:
@@ -895,7 +912,8 @@ function users_machine($user,$machine)
   **/
 function machine_permission($machines,$args)
 {
-	global $config,$user;
+	$config = ConfigFactory::build ();
+	$user = User::getCurrent ();
 	$owner=hash_get($args,'owner',null);
 	$other=hash_get($args,'other',null);
 
@@ -915,16 +933,20 @@ function machine_permission($machines,$args)
 	}
 
 	foreach( $machines as $machine )	{
-		/* If the value of used_by is not defined, then the
-		 * machine can be edited/reserved. */
+		/* If there is no reservation for the machine or there
+		 * is reservation for this user, then the machine can
+		 * be edited/reserved. */
+		$users_machine = false;
+		$reserved_machine = false;
 		if (isset ($machine))
 		{
-			$used_by = $machine->get_used_by ();
+			$rh = new ReservationsHelper ();
+			$reserved_machine = $rh->hasReservation ($machine);
+			$users_machine = $rh->hasReservation ($machine, $user);
 		}
-		$users_machine=users_machine( $user, $machine );
 		$perms=array_merge(to_array($other),
 				   ($users_machine
-				    || ! isset ($used_by)
+				    || ! $reserved_machine
 				    ? to_array($owner) : array()));
 		if( ! call_user_func_array('capable',$perms) )
 			return false;

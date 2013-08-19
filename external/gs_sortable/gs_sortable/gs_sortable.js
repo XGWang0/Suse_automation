@@ -45,7 +45,7 @@ function tsInitOnload ()
 function tsInit()
 {
 
-	if	(TSort_Data.push == null)
+	if	(TSort_Data.push == null || TSort_Data[0] == undefined)
 		return;
 	var table_id = TSort_Data[0];
 	var table = document.getElementById(table_id);
@@ -112,7 +112,7 @@ function tsInit()
 //			node.tsort_table_id = table_id;
 //			node.onclick = tsDraw;
 			node.innerHTML = "<a href='' onClick=\"tsDraw(" + i + ",'" +
-				table_id + "'); return false\">" + node.innerHTML +
+				table_id + "'); tableAlign(); return false\">" + node.innerHTML +
 				'</a><b><span id="TS_' + i + '_' + table_id + '"></span></b>';
 			node.style.cursor = "pointer";
 		}

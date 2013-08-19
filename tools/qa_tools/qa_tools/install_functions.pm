@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # ****************************************************************************
-# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
 # 
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -677,6 +677,15 @@ $postcmd
 				<startmode>auto</startmode>
 			</interface>
 EOF
+                       } elsif( $args->{'newvm'} ) {
+                                print $f <<EOF;
+                        <interface>
+                                <bootproto>dhcp</bootproto>
+                                <device>eth0</device>
+                                <startmode>onboot</startmode>
+                        </interface>
+EOF
+                        last;
 			} elsif($ip) { # phys + VM
 				print $f <<EOF;
 			<interface>

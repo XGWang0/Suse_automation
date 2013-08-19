@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -68,10 +68,7 @@ $fields = array(
 	'default_option' => 'S',
 	'machine_status_id' => 'machine_status',
 	'maintainer_id' => 's',
-	'usedby' => 'S',
 	'usage' => 's',
-	'expires' => 'S',
-	'reserved' => 'S',
 	'description' => 'S',
 	'affiliation' => 's', 
 	'anomaly' => 's', 
@@ -84,6 +81,7 @@ if( request_str('submit') )	{
 	machine_permission_or_redirect($ids,$perm);
 	$primary_machine_id=request_str('primary_machine_id');
 	$primary_machine = Machine::get_by_id($primary_machine_id);
+	$rh = new ReservationsHelper ();
 	if( $primary_machine )	{
 		$ret = true;
 
@@ -100,6 +98,8 @@ if( request_str('submit') )	{
 					continue;
 				$machine = Machine::get_by_id($id);
 				if($machine)	{
+					$ret = $rh->mergeForMachine ($primary_machine_id, $id);
+					// FIXME: Check if reservations were merged succesfully.
 					$ret = $ret && $primary_machine->merge_other_machine($id);
 					if( !$ret ) break;
 					$ret = $ret && $machine->del_machine();

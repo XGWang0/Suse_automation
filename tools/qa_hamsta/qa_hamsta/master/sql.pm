@@ -1,5 +1,5 @@
 # ****************************************************************************
-# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
 # 
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -82,7 +82,12 @@ sub machine_get_ip($) # machine_id
 {	return $dbc->scalar_query('SELECT ip FROM machine WHERE machine_id=?',$_[0]);	}
 
 sub machine_get_info($) # ip
-{	return $dbc->row_query('SELECT a.usage,b.name,a.maintainer_id FROM machine AS a JOIN `user` AS b ON a.usedby=b.user_id WHERE a.ip=?',$_[0]);	}
+{
+	my $sql = 'SELECT m.usage, group_concat(DISTINCT u.name SEPARATOR \', \'), m.maintainer_id '
+	    . 'FROM `machine` m INNER JOIN user_machine um ON (m.machine_id = um.machine_id) '
+	    . 'INNER JOIN `user` u ON (um.user_id = u.user_id) WHERE m.ip = ? GROUP BY m.ip';
+    return $dbc->row_query($sql, $_[0]);
+}
 
 # 0 = free, 1 = busy, 2 = blocked manually)
 sub machine_get_busy($) # machine_id
@@ -112,9 +117,11 @@ sub machine_get_ipname($) # machine_id
 sub machine_get_role_type($) # machine_id
 {   return $dbc->row_query('SELECT role,type FROM machine WHERE machine_id=?',$_[0]); }
 
-sub machine_get_id_by_ip_usedby($$) # ip, usedby
+sub machine_get_id_by_ip_user_id ($$) # ip, user_id
 {
-    return $dbc->scalar_query ('SELECT machine_id FROM `machine` WHERE ip = ? AND usedby = ?', $_[0], $_[1]);
+    my $sql = 'SELECT m.machine_id FROM `machine` m INNER JOIN user_machine um ON '
+	. '(m.machine_id = um.machine_id) WHERE m.ip = ? AND um.user_id = ?';
+    return $dbc->scalar_query ($sql, $_[0], $_[1]);
 }
 
 sub machine_get_known_unique_ids(@) # list of mac addresses
@@ -144,13 +151,13 @@ sub machine_search
 		$dbc->matrix_query(@args))));
 }
 
-sub machine_insert($$$$$$$$$$$$) # unique_id, arch_id, hostname, IP, description, kernel, rpm_list, cpu_nr, cpu_vendor_id, memsize, disksize, machine_status_id
-{	return $dbc->insert_query('INSERT INTO machine (unique_id,arch_id,name,ip,description,kernel,rpm_list,cpu_nr,cpu_vendor_id,memsize,disksize,machine_status_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',@_);	}
+sub machine_insert($$$$$$$$$$$$) # unique_id, arch_id, hostname, IP, description, kernel, cpu_nr, cpu_vendor_id, memsize, disksize, machine_status_id
+{	return $dbc->insert_query('INSERT INTO machine (unique_id,arch_id,name,ip,description,kernel,cpu_nr,cpu_vendor_id,memsize,disksize,machine_status_id) VALUES(?,?,?,?,?,?,?,?,?,?,?)',@_);	}
 
-sub machine_update($$$$$$$$$$$$$) # machine_id, unique_id, arch_id, hostname, IP, description, kernel, rpm_list, cpu_nr, cpu_vendor_id, memsize, disksize, machine_status_id
+sub machine_update($$$$$$$$$$$$) # machine_id, unique_id, arch_id, hostname, IP, description, kernel, cpu_nr, cpu_vendor_id, memsize, disksize, machine_status_id
 {	
 	my $machine_id = shift;
-	return $dbc->update_query('UPDATE machine SET unique_id=?,arch_id=?,name=?,ip=?,description=?,kernel=?,rpm_list=?,cpu_nr=?,cpu_vendor_id=?,memsize=?,disksize=?,machine_status_id=? WHERE machine_id=?',@_,$machine_id);
+	return $dbc->update_query('UPDATE machine SET unique_id=?,arch_id=?,name=?,ip=?,description=?,kernel=?,cpu_nr=?,cpu_vendor_id=?,memsize=?,disksize=?,machine_status_id=? WHERE machine_id=?',@_,$machine_id);
 }
 
 
@@ -167,7 +174,7 @@ sub machine_blocked($) # machine_id
 }
 
 sub machine_list_free()
-{	return $dbc->vector_query("SELECT machine_id FROM machine WHERE busy=0 AND machine_status_id=1 ORDER BY (ISNULL(usedby) OR usedby='') DESC, RAND()");	}
+{	return $dbc->vector_query("SELECT machine_id FROM machine WHERE busy=0 AND machine_status_id=1");	}
 
 sub machine_list_all()
 {
@@ -361,7 +368,7 @@ sub user_get_roles($) # user_id
 
 sub user_get_reserved_machines($) # user_id
 {
-	return $dbc->vector_query ('SELECT name FROM machine WHERE usedby = ?', $_[0]);
+	return $dbc->vector_query ('SELECT m.name FROM machine m INNER JOIN user_machine um ON (m.machine_id = um.machine_id) WHERE um.user_id = ?', $_[0]);
 }
 
 sub user_get_privileges($) # user_id

@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -92,9 +92,10 @@
 ?>
 </form>
 
-<script>
 <?php
-}
-require ('js/install_product.js');
+} // else -- reinstallation happens
 ?>
+
+<script>
+<?php require ('js/install_product.js'); ?>
 </script>

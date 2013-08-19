@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # ****************************************************************************
-# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
 # 
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -350,6 +350,9 @@ if( $args->{'newvm'} )	{
 	$cmdline .= "autoyast=$ay_xml install=".$args->{'source'};
 	$cmdline .= ' '.$args->{'installoptions'} if defined $args->{'installoptions'};
 	&command($cmdline);
+	#save the command return value
+	my $command_ret = $? ;
+	$command_ret = $command_ret >> 8;
         &command( "sleep 2" );
 
 	if ( "$boottype" eq "bootloader" ) {
@@ -361,7 +364,7 @@ if( $args->{'newvm'} )	{
 			$SIG{CHLD} = 'IGNORE';
 			exit 0;
 		} else {
-			&log(LOG_RETURN, "$? (".$cmdline.')');
+			&log(LOG_RETURN, "$command_ret (".$cmdline.')');
        			system("sleep 20");
 			exec("/sbin/kexec -e >/dev/null");
 		}

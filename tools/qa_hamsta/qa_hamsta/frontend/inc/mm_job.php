@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -84,8 +84,8 @@ else if( request_str('submit') )
 	# form HTML
 
 	# left div
-	$formdata .= "<div class=\"text-main\" style=\"float: left; width: 35%\">";
-	$formdata .= "<div class=\"text-main\"> Job <spam class=\"text-medium bold\" title=\"$test_description\">$test_name</spam> will be run on below SUT.</div>";
+	$formdata .= "<div class=\"text-main\" style=\"width: 35%\">";
+	$formdata .= "<div class=\"text-main\"> Job <span class=\"text-medium bold\" title=\"$test_description\">$test_name</span> will be run on below SUT.</div>";
 	
 	foreach( $roles as $id=>$vals )
 	{
@@ -203,13 +203,13 @@ else if( request_str('submit') )
 			}
 
 			if($machine->send_job($path)) {
-				Log::create($machine->get_id(), $machine->get_used_by_login(), 'JOB_START', "has sent a \"multi-machine\" job including this machine (Job name: \"" . htmlspecialchars(basename($filename)) . "\")");
+				Log::create($machine->get_id(), $user->getLogin (), 'JOB_START', "has sent a \"multi-machine\" job including this machine (Job name: \"" . htmlspecialchars(basename($filename)) . "\")");
 			} else {
 				$errors[] = $machine->get_hostname() . ': ' . $machine->errmsg;
 			}
 		}
 		if (count($errors) == 0)
-			header("Location: index.php");
+			require("send_success.php");
 	}
 }
 $html_title = "Multi-machine job details";

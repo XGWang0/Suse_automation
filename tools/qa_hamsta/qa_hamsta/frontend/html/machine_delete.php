@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -44,5 +44,8 @@ You are about to delete the following machines and remove them from any groups t
 <li>To simply purge old data and refresh the machine, just click Yes now (the client will disappear for a moment and then re-connect to the master with a fresh configuration).
 </ul>
 Hamsta will have no further record of these machines and they will need to be manually re-added if you want to start managing them through Hamsta once again later on.
+</p>
+<p>
+Machine deletion might take up to one minute. Please be patient and wait until the page reloads.
 </p>
 <?php require("req_delmachine2.php"); ?>

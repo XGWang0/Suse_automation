@@ -1,5 +1,5 @@
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -139,3 +139,22 @@ tr.JOB_START:hover td, span.JOB_START:hover	{ background-color: #aee; }
 .JOB_FINISH td, .JOB_FINISH			{ background-color: #fbf; }
 tr.JOB_FINISH:hover td, span.JOB_FINISH:hover	{ background-color: #eae; }
 
+.machine_up {
+    color:#22bb22;
+    font-weight:bold;
+}
+
+.machine_down {
+    color:#ff0000;
+    font-weight:bold;
+}
+
+.machine_not_responding {
+    color:#9400d3;
+    font-weight:bold;
+}
+
+.machine_unknown {
+    color:#0000ff;
+    font-weight:bold;
+}

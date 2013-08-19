@@ -1,5 +1,5 @@
 # ****************************************************************************
-# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
 # 
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -88,9 +88,6 @@ sub create_sql_backbone() {
 	}
 	my $disksize = join(" + ", map { $_."G" } @disks);
 
-	# rpm list
-	my $rpm_list = $hwinfo->{'rpm_list'}->[0]->{'RPMList'};
-
 	# devel tools
 	my $devel_tools = $hwinfo->{'devel_tools'}->[0]->{'DevelTools'};
 
@@ -107,7 +104,7 @@ sub create_sql_backbone() {
 	my @args = ( 
 		$unique_id, $arch_id, 
 		(map {$machine->{$_}} qw(hostname ip description kernel)), 
-		$rpm_list, $cpu_nr, $cpu_vendor_id, $memsize, $disksize, 
+		$cpu_nr, $cpu_vendor_id, $memsize, $disksize,
 		MS_UP );
 	
 	if (!$machine_id) {

@@ -70,6 +70,28 @@ function check_regex ($regex, $value)
 	return $res;
 }
 
+function check_user_login ($login) {
+	return check_regex ('/^[a-zA-Z]\w+/', $login);
+}
+
+function check_user_name ($name) {
+	return check_regex ('/[[:print:]]+/', $name);
+}
+
+function validate_user_input ($login, $email, $name) {
+	return check_email ($email) && check_user_login ($login)
+		&& check_user_name ($name);
+}
+
+function print_user_add_mod_error ($field, $values_arr) {
+	$aliases = array (
+		'login'		=> 'login',
+		'extern_id'	=> 'external identifier',
+		);
+	print html_error ('The user with ' . $aliases[$field] . ' "'
+			  . $values_arr[$field] . '" already exists.');
+}
+
 if (! isset ($page))
 {
 	$page=basename($_SERVER['PHP_SELF']);
@@ -106,27 +128,48 @@ if( token_read($wtoken) )	{
 	if( $submit=='priv' && $priv_got )	{
 		$descr=http('descr');
 		transaction();
-		update_result( privilege_update($priv_got,$descr) );
+		update_result( privilege_update($priv_got,$descr), false,
+			       'The privilege has been updated.');
 		commit();
 		$step='p';
 	}
 	else if( $submit=='roles' )	{
 		$checked=http('checked');
 		transaction();
-		update_result( user_in_role_delete_user($user_got) );
-		update_result( user_in_role_insert_all($user_got,$checked) );
+		$uir_delete = user_in_role_delete_user($user_got);
+		$uir_insert = user_in_role_insert_all($user_got,$checked);
 		commit();
+		if ($uir_delete < 0 || $uir_insert < 0) {
+			print html_error ('Error setting the roles. Contact your administrator.');
+		} else {
+			print html_success ('The roles have been set.');
+		}
 	}
 	else if( $submit=='usermod' && $user )	{
 		$login=http('login');
 		$name=http('name');
 		$email=http('email');
 		$extern_id=http('extern_id');
-		if (check_email ($email) && check_regex ('/^[a-zA-Z]\w+/', $login)
-		    && check_regex ('/[[:print:]]+/', $name)) {
-			transaction();
-			update_result( user_update($user_got,$login,$name,$email,$extern_id) );
-			commit();
+		$vals = array ('login'		=> $login,
+			       'extern_id'	=> $extern_id);
+		if (validate_user_input ($login, $email, $name)) {
+			$result = user_has_duplicities ($login, $extern_id, $user_got);
+			if (empty ($result)) {
+				transaction();
+				$res = user_update($user_got,$login,$name,$email,$extern_id);
+				commit();
+
+				if ($res < 0) {
+					$err = get_error ();
+					print html_error ($err);
+					$step = 'ue';
+				} else {
+					print html_success ('User was succesfully modified.');
+				}
+			} else {
+				print_user_add_mod_error ($result, $vals);
+				$step = 'ue';
+			}
 		} else {
 			$step = 'ue';
 		}
@@ -136,21 +179,40 @@ if( token_read($wtoken) )	{
 		$name=http('name');
 		$email=http('email');
 		$extern_id=http('extern_id');
-		/* Validate input. */
-		if (check_email ($email) && check_regex ('/^[a-zA-Z]\w+/', $login)
-		    && check_regex ('/[[:print:]]+/', $name)) {
-			transaction();
-			update_result( user_insert($login,$name,$email,$extern_id), 1 );
-			commit();
+		$vals = array ('login'		=> $login,
+			       'extern_id'	=> $extern_id);
+		if (validate_user_input ($login, $email, $name)) {
+			$result = user_has_duplicities ($login, $extern_id);
+			if (empty ($result)) {
+				transaction();
+				$res = user_insert($login,$name,$email,$extern_id);
+				commit();
+
+				if ($res < 0) {
+					$err = get_error ();
+					print html_error ($err);
+					$step = 'ue';
+				} else {
+					print html_success ('User was succesfully created.');
+				}
+			} else {
+				print_user_add_mod_error ($result, $vals);
+				$step = 'un';
+			}
 		} else {
 			$step='un';
 		}
 	}
 	else if( $submit=='userdel' && $user )	{
 		transaction();
-		update_result( user_in_role_delete_user($user_got) );
-		update_result( user_delete($user_got) );
+		$rolesdel =  user_in_role_delete_user ($user_got);
+		$userdel = user_delete ($user_got);
 		commit();
+		if ($rolesdel < 0 || $userdel < 0) {
+			print html_error (get_error ());
+		} else {
+			print html_success ('The user has been deleted.');
+		}
 	}
 	else if( $submit=='passwd' && $user )	{
 		$pwd1=http('pwd1');
@@ -161,7 +223,9 @@ if( token_read($wtoken) )	{
 		}
 		else	{
 			transaction();
-			update_result( user_set_password($user_got,$pwd1) );
+			update_result (user_set_password($user_got,$pwd1), false,
+				       'The password has been changed.',
+				       'Error changing the password. Contact your administrator.');
 			commit();
 		}
 	}
@@ -174,15 +238,23 @@ if( token_read($wtoken) )	{
 			}
 		}
 		transaction();
-		update_result( role_privilege_delete_role($role_got) );
-		update_result( role_privilege_insert_all($role_got,$valid_until) );
+		$rp_delete = role_privilege_delete_role($role_got);
+		$rp_insert = role_privilege_insert_all($role_got,$valid_until);
 		commit();
+		if ($rp_delete < 0 || $rp_insert < 0) {
+			print html_error ('There has been an error. Contact your administrator.');
+		} else {
+			print html_success ('The role privileges have been updated.');
+		}
 	}
 	else if( $submit=='role_update' && $role )	{
 		$role_name=http('role');
 		$descr=http('descr');
 		transaction();
-		update_result( role_update($role_got,$role_name,$descr) );
+		update_result( role_update($role_got,$role_name,$descr),
+			       false,
+			       'The role was succesfully updated.',
+			       'There has been an error updating the role. Contact your administrator.');
 		commit();
 	}
 	else if( $submit=='role_insert' )	{
@@ -190,7 +262,8 @@ if( token_read($wtoken) )	{
 		$descr=http('descr');
 		if (check_regex ('/\w+/', $role_name)) {
 			transaction();
-			update_result( role_insert($role_name,$descr), 1 );
+			update_result( role_insert($role_name,$descr), 1,
+				       'The role has been created.');
 			commit();
 		} else {
 			$step = 'rn';
@@ -198,9 +271,14 @@ if( token_read($wtoken) )	{
 	}
 	else if( $submit=='role_del' && $role )	{
 		transaction();
-		update_result( user_in_role_delete_role($role_got) );
-		update_result( role_privilege_delete_role($role_got) );
-		update_result( role_delete($role_got) );
+		$uir_delete = user_in_role_delete_role($role_got);
+		$rp_delete = role_privilege_delete_role($role_got);
+		$r_delete = role_delete($role_got);
+		if ($uir_delete < 0 || $rp_delete < 0 || $r_delete < 0) {
+			print html_error ('Error deleting the role. Contact your administrator.');
+		} else {
+			print html_success ('The role was deleted.');
+		}
 		commit();
 	}
 
@@ -278,15 +356,15 @@ else if( $step=='ue' && $user )	{
 else if( $step=='un' )	{
 	# new user
 	$what=array(
-		array('login','','',TEXT_ROW, 'Login', 'Fill out users login. It can contain only letters, digits and underscore and has to start with a letter.', true, '^[a-zA-Z]\w+'),
-		array('name','','',TEXT_ROW, 'Name', 'Fill out users name.', true),
-		array('email','','',EMAIL, 'E-mail', 'Fill out users e-mail.', true),
-		array('extern_id','','',TEXT_AREA, 'External identifier', 'This value can be used with some types of authentication such as OpenId.', true),
+		array('login','',http('login'),TEXT_ROW, 'Login', 'Fill out users login. It can contain only letters, digits and underscore and has to start with a letter.', true, '^[a-zA-Z]\w+'),
+		array('name','',http('name'),TEXT_ROW, 'Name', 'Fill out users name.', true),
+		array('email','',http('email'),EMAIL, 'E-mail', 'Fill out users e-mail.', true),
+		array('extern_id','',http('extern_id'),TEXT_AREA, 'External identifier', 'This value can be used with some types of authentication such as OpenId.', true),
 		array('submit','','useradd',HIDDEN),
 		array('wtoken','',token_generate(),HIDDEN),
 		(isset ($page_name) ? array('go', '', $page_name, HIDDEN): null)
 	);
-	print "<p><b>Note</b>: Each user has to be cast in the 'user' role. Do that after the user is created.</p>";
+	print "<p><b>Note</b>: <em>It is recommended to add a role to new user. Otherwise the user will not be able to perform any actions.</em></p>";
 	print html_search_form($page,$what);
 }
 else if( $step=='up' && $user )	{

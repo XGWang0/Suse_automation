@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -75,24 +75,11 @@ foreach( array_keys($vals) as $key )	{
 	foreach($vals[$key] as $val)	{
 		if( $is_enum )
 			$val = Machine::enumerate($key,$val);
-
-                /* We need to display user name instead of user_id from db.  */
-                if ( $key == 'usedby' )
-                  {
-		    $print_val = $val;
-                    if ( $mach_user = User::getById ($val, $config) )
-                      $print_val = $mach_user->getLogin ();
-                  }
-		else
-		  {
-		      $print_val = $val;
-		  }
-
-		print "<td>$print_val</td>";
+		print "<td>$val</td>";
 	}
 
 	# print merge column
-	if(is_array($ret) || $is_enum || $key == 'usedby')	{
+	if(is_array($ret) || $is_enum)	{
 		# enums and 'S' (one-of) produce a select
 		print "<td><select name=\"$key\">";
 		if( $is_enum ) {
@@ -105,24 +92,6 @@ foreach( array_keys($vals) as $key )	{
 			foreach ( $enum as $k=>$v ) {
 				$selected = ((!is_array($ret) && $k==$ret) || (is_array($ret) && $k==$vals[$key][0]) ? ' selected="yes"' : '');
 				printf('<option value="%s"%s>%s</option>',htmlspecialchars($k),$selected,htmlspecialchars($v));
-			}
-		} else if (! strcmp ($key, 'usedby')) {
-			# We need to print user login instead of number
-			if (is_array ($ret)) {
-				foreach ( $ret as $r ) {
-					$ulogin = $r;
-					if ( $mach_user = User::getById ($r, $config) ) {
-					  $ulogin = $mach_user->getLogin ();
-					}
-					printf('<option value="%s">%s</option>', $r, htmlspecialchars ($ulogin));
-				}
-			} else {
-				printf ('<option value=""></option>');
-				$ulogin = $ret;
-				if ( $mach_user = User::getById ($ulogin, $config) ) {
-					$ulogin = $mach_user->getLogin ();
-				}
-				printf ('<option value="%s" selected="selected">%s</option>', $val, $ulogin);
 			}
 		}
 		else {
@@ -143,5 +112,7 @@ foreach($ids as $id)
 	print '<input type="hidden" name="a_machines[]" value="'.$id."\"/>\n";
 print '<input type="submit" name="submit" value="Merge!"/>'."\n";
 print "</form>\n";
+
+print '<div>Machine reservations will migrated to the resulting machine. Please check the reservations for multiple users after the merge.</div>';
 
 ?>

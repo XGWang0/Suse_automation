@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # ****************************************************************************
-# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
 # 
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -169,7 +169,7 @@ sub process_job($) {
 			);
 			&TRANSACTION_END;
 
-			if ($parsed{'text'} =~ /Start Kexec booting/) {
+			if ($parsed{'text'} =~ /kexecboot/ and $parsed{'level'} eq 'RETURN') {
 				&log(LOG_NOTICE, "$hostname: Job ($job_file) exits with ".$parsed{'text'}); 
 				$return_codes .= $parsed{'text'}."\n";
 				last;
@@ -180,7 +180,7 @@ sub process_job($) {
 				$return_codes .= $parsed{'text'}."\n";
 			}	
 
-			if ($parsed{'test'} =~ /Please logon SUT check the job manually/)	{
+			if ($parsed{'text'} =~ /Please logon SUT check the job manually/)	{
 				&log(LOG_NOTICE, "$hostname: TIMTOUT Job ($job_file)" ); 
 				$return_codes .= "6\n";
 			}	
@@ -212,24 +212,15 @@ sub process_job($) {
 	if( $reboot ) {
 		if($status == JS_PASSED){
 			sleep 300;
-			while( &machine_get_status($machine_id) != MS_UP ) {		
-				# wait for reinstall/reboot jobs
-				$dbc->commit(); # workaround of a DBI bug that would loop the statement
-				sleep 60;	
-			}
-			$message = "reinstall\/reboot $hostname completed";
+                        $message = "reinstall\/reboot $hostname completed";
+			&machine_status_timeout(120,$machine_id,$hostname,$status,$message); #Timeout for 2 Hours
 		}
 
 	} elsif($update_sut) {
 
 		if($status == JS_PASSED){
 			sleep 120;
-			while( &machine_get_status($machine_id) != MS_UP ) {		
-				# wait for reinstall/reboot jobs
-				$dbc->commit(); # workaround of a DBI bug that would loop the statement
-				sleep 30;	
-			}
-			$message = "hamsta updating on $hostname succeed" ;
+			&machine_status_timeout(10,$machine_id,$hostname,$status,$message); #Timeout for 10 Mins;
 		}
 
 	} else {
@@ -350,17 +341,17 @@ sub send_job($$$) {
 	open (FH,'<',"$job_file");
 
 	#query "Used By" and "Usage" information
-        my($usage,$usedby,$maintainer_id)=&machine_get_info($ip);
+        my($usage,$users,$maintainer_id)=&machine_get_info($ip);
 	while (<FH>) { 
 		$_ =~ s/\n//g;
 
 		if ($_ =~ /<debuglevel>([0-9]+)<\/debuglevel>/) {
 			$loglevel = $1;
 		}
-		#add "Used By" and "Usage" "jobid" information
+		#add "Usage", list of users and "jobid" information
 
                 if(/<\/config>/) {
-                        $_="        <useinfo><![CDATA[ USAGE: $usage \t USEDBY: $usedby \t MAINTAINER: $maintainer_id \t ]]></useinfo> \n".$_ ;
+                        $_="        <useinfo><![CDATA[ USAGE: $usage \t USEDBY: $users \t MAINTAINER: $maintainer_id \t ]]></useinfo> \n".$_ ;
                         $_="        <job_id>http://$local_addr/hamsta/index.php?go=job_details&amp;id=$job_id</job_id> \n".$_ ;
                 }
 		eval {
@@ -383,6 +374,24 @@ sub send_job($$$) {
 
 # Return the socket
 	return ($sock, $loglevel);
+}
+
+sub machine_status_timeout($$$$$) {
+	my $timeout = shift;
+	my $machine_id = shift;
+	my $hostname = shift;
+	$timeout *= 60;
+	my $init_time = 0;
+	while( &machine_get_status($machine_id) != MS_UP ) {
+		if($init_time>$timeout) {
+			#timeout we jump out
+			$_[0] = JS_FAILED;
+			$_[1] = "Reinstall/Reboot/Update $hostname Failed";
+			last;
+		}
+		sleep 60;
+		$init_time += 60;
+	}
 }
 
 unless(defined($ARGV[0]) and $ARGV[0] =~ /^(\d+)$/)

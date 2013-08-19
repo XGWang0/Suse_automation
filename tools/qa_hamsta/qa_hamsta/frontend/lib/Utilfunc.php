@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -140,6 +140,49 @@ function merge_unique ($s, &$ret, &$flag)
     $ret = (count ($ret)) ? $ret[0] : '';
 }
 
+function act_menu($args)
+{
+	$conf = ConfigFactory::build ();
+print "<div id='cssmenu'>";
+print "<ul>";
+print "<li class='active'><img src=\"" . $args['start']['src']  . "\" alt=\"power\"/>";
+print "<ul>";
+print "<li><a href=\"" . $args['start']['href'] . "\"><img src=\"" . $args['start']['src']  . "\"/>Start</a></li>";
+print "<li><a href=\"" . $args['restart']['href'] . "\"><img src=\"" . $args['restart']['src']  . "\"/>Restart</a></li>";
+print "<li><a href=\"" . $args['stop']['href'] . "\"><img src=\"" . $args['stop']['src']  . "\"/>Stop</a></li>";
+print "</ul></li>";
+print "<li class='has-sub'><img src=\"" . $args['send-job']['src']. "\" alt=\"jobs\"/>";
+print "<ul>";
+print "<li class='has-sub'><a href=\"" . $args['send-job']['href'] . "\"><img src=\"" . $args['send-job']['src']. "\"/>Send job</a>";
+print "<ul>";
+print "<li><a href=\"" . $args['send-job']['href'] . "#predefined\"><img src=\"" . $args['send-job']['src']. "\"/>Pre-defined job</a></li>";
+print "<li><a href=\"" . $args['send-job']['href'] . "#qapackage\"><img src=\"" . $args['send-job']['src']. "\"/>QA package job</a></li>";
+print "<li><a href=\"" . $args['send-job']['href'] . "#multimachine\"><img src=\"" . $args['send-job']['src']. "\"/>Multi-machine job</a></li>";
+print "<li><a href=\"" . $args['send-job']['href'] . "#customjob\"><img src=\"" . $args['send-job']['src']. "\"/>Custom job</a></li>";
+print "</ul></li>";
+print "<li><a href=\"" . $args['reinstall']['href'] . "\"><img src=\"" . $args['reinstall']['src']  . "\"/>Reinstall</a></li>";
+print "<li><a href=\"" . $args['free']['href'] . "\"><img src=\"" . $args['free']['src']  . "\"/>Free</a></li>";
+print "</ul></li>";
+print "<li><img src=\"" . $args['edit']['src']  . "\" alt=\"edit/reserve\"/>";
+print "<ul>";
+print "<li><a href=\"" . $args['edit']['href'] . "\"><img src=\"" . $args['edit']['src']  . "\"/>Edit</a></li>";
+print "<li><a href=\"" . $args['config']['href'] . "\"><img src=\"" . $args['config']['src']  . "\"/>Configure</a></li>";
+print "<li><a href=\"" . $args['delete']['href'] . "\"><img src=\"" . $args['delete']['src']  . "\"/>Delete</a></li>";
+print "</ul></li>";
+print "<li class='last'><img src=\"" . $args['vnc']['src']  . "\" alt=\"console\"/>";
+print "<ul>";
+print "<li><a href=\"" . $args['vnc']['href'] . "\"><img src=\"" . $args['vnc']['src']  . "\"/>VNC</a></li>";
+/* Show serial console icon only if the server is properly configured. */
+if (! empty ($conf->cscreen->console->server)) {
+	print "<li><a href=\"" . $args['console']['href'] . "\"><img src=\"" . $args['console']['src']  . "\"/>Console</a></li>";
+}
+print "</ul></li>";
+print "</ul>";
+print "</div>";
+
+}
+
+
 function icon($args)	
 {
 	$args['border']=0;
@@ -163,7 +206,7 @@ function icon($args)
 # - 'err_noperm' : tooltip message if action not permitted
 # - 'err_noavail': tooltip message if action not available
 # - 'size': size of the icon (directory where icon lives, default value is '27')
-function task_icon($a)
+function task_icon($a,$ref=0)
 {
 	$a=array_merge(array( # merge with default values
 		'url'=>'','allowed'=>true,'link'=>false,'enbl'=>true,'confirm'=>false,'object'=>'',
@@ -173,20 +216,27 @@ function task_icon($a)
 	$imgurl='images/'.$size.'icon-'.$a['type'];
 	$err_noperm=hash_get($a,'err_noperm',"Cannot $fullname ".$a['object']." unless you are logged in and have enough privileges and/or have reserved the machine");
 	$err_noavail=hash_get($a,'err_noavail',preg_replace('/e?$/','ing ',$fullname,1).$a['object'].' is not supported');
-	if( !$a['enbl'] || !$a['allowed'] )	{
+
+	if( !$a['enbl'] || !$a['allowed'] ) {
 		$err_msg=( $a['enbl'] ? $err_noperm : $err_noavail );
-		$icon=icon(array('src'=>"$imgurl-grey.png",'alt'=>$err_msg,'title'=>$err_msg));
-		if(!$a['link'])
-			return $icon;
-	}
-	else	{
+		$icon=array('src'=>"$imgurl-grey.png",'alt'=>$err_msg,'title'=>$err_msg);
+		if(!$a['link'])	{
+			 $icon['href']='#';
+		}
+	} else {
 		$args=array('src'=>"$imgurl.png",'alt'=>"$fullname ".$a['object'],'title'=>"$fullname ".$a['object']);
 		if( $a['confirm'] )	{
 			$args['onclick']="return confirm('This will $fullname ".$a['object'].". Are you sure you want to continue?')\n";
 		}
-		$icon=icon($args);
+		$icon=$args;
 	}
-	return html_tag('a',$icon,array('href'=>$a['url']));
+
+	if (! $ref) {
+		$icon = html_tag('a', icon ($icon), array('href'=>$a['url']));
+	} else {
+		$icon['href']=$a['url'];
+	}
+	return $icon;
 }
 
 function machine_icons($machine,$user)
@@ -196,8 +246,9 @@ function machine_icons($machine,$user)
 		return "No such machine";
 	$id=$machine->get_id();
 	$ret='';
-	$usedby=$machine->get_used_by();
-	$users_machine = users_machine($user,$machine);
+	$rh = new ReservationsHelper ();
+	$users_machine = count ($rh->getForMachineUser ($machine, $user));
+	$number_of_users = count ($rh->getForMachine ($machine));
 	$has_pwr=(($machine->get_powerswitch()!=NULL) and ($machine->get_powertype()!=NULL) and $machine->check_powertype());
 	$host=$machine->get_hostname();
 	$ip=$machine->get_ip_address();
@@ -212,11 +263,10 @@ function machine_icons($machine,$user)
 		'restart'=>array('pwr'=>true),
 		'stop'=>array('pwr'=>true),
 		'reinstall'=>array(),
-		'edit'=>array('allowed'=>(!$auth || (($users_machine || !$usedby) ? capable('machine_edit','machine_edit_reserved') : capable('machine_edit_reserved'))),'link'=>true),
-		'free'=>array('url'=>"$url_base&go=machine_edit&action=clear",'enbl'=>$usedby,'err_noavail'=>"You cannot free $host because it is already free."),
+		'edit'=>array('allowed'=>(!$auth || (($users_machine || !$number_of_users) ? capable('machine_edit','machine_edit_reserved') : capable('machine_edit_reserved'))),'link'=>true),
+		'free'=>array('url'=>"$url_base&go=machine_edit&action=clear",'enbl'=>$users_machine,'err_noavail'=>"You cannot free $host because it is already free."),
 		'send-job'=>array(),
 		'vnc'=>array('url'=>"http://$ip:5801"),
-		'terminal'=>array('url'=>'http://'.$_SERVER['SERVER_ADDR']."/ajaxterm/?host=$ip"),
 		'console'=>array('url'=>'hamsta-cscreen:'.$config->cscreen->console->server."/$host"),
 		'delete'=>array('enbl'=>!preg_match('/^vm\//',$machine->get_type())),
 		'config'=>array('link'=>true),
@@ -238,9 +288,9 @@ function machine_icons($machine,$user)
 			$btn[$act]);
 		if( $is_pwr )
 			$b['err_noavail']="No powerswitch configured for $host.";
-		$ret.=task_icon($b);
+		$ret[$act]=task_icon($b,1);
 	}
-	return $ret;
+	return act_menu($ret);
 }
 
 function group_icons($group,$user)
@@ -270,6 +320,43 @@ function group_icons($group,$user)
 			),
 			$btn[$act]);
 		$ret.=task_icon($b);
+	}
+	return $ret;
+}
+
+function virtual_machine_icons ($machine, $user)
+{
+	$ret = '';
+	$conf = ConfigFactory::build ();
+	$auth = $conf->authentication->use;
+
+	$mid		= $machine->get_id ();
+	$hostname	= $machine->get_hostname ();
+	$ip		= $machine->get_ip_address();
+
+	$rh		= new ReservationsHelper ();
+	$users_machine	= count ($rh->getForMachineUser ($machine, $user));
+	$number_of_users = count ($rh->getForMachine ($machine));
+	$url_base	= 'index.php?a_machines[]=' . $mid;
+
+	$icons = array (
+		'edit'		=> array ('url' => $url_base . '&go=machine_edit',
+					  'allowed' => ! $auth || $users_machine || ! $number_of_users,
+					  'link' => true),
+		'free'		=> array ('url' => $url_base . '&go=machine_edit&action=clear',
+					  'enbl' => $users_machine),
+		'send-job'	=> array ('url' => $url_base . '&go=machine_send_job'),
+		'vnc'		=> array ('url' => 'http://' . $ip . ':5801'),
+		'delete'	=> array ('url' => $url_base . '&go=del_virtual_machines',
+					  'fullname' => 'Delete virtual machine and all related data of')
+	);
+
+	foreach (array_keys ($icons) as $icon) {
+		$icon_def = array_merge (array (
+				'type'	 => $icon,
+				'object' => $hostname),
+				$icons[$icon]);
+		$ret .= task_icon ($icon_def);
 	}
 	return $ret;
 }
@@ -304,6 +391,27 @@ function fail($msg)
 {
 	$_SESSION['message']=$msg;
 	$_SESSION['mtype']='fail';
+}
+
+function get_machine_status_class ($status_id) {
+	$class = '';
+	switch ($status_id) {
+	case 1:
+		return 'machine_up';
+		break;
+	case 2:
+		return 'machine_down';
+		break;
+	case 5:
+		return 'machine_not_responding';
+		break;
+	case 6:
+		return 'machine_unknown';
+		break;
+	default:
+		// No default action here.
+	}
+	return $class;
 }
 
 ?>

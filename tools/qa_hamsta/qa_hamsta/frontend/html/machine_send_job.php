@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -238,7 +238,7 @@ Single-machine jobs are configuration tasks or test runs that have been stored o
 
 
 <HR>
-<h2 class="text-medium text-blue bold">Multi-machine Jobs</h2>
+<h2 class="text-medium text-blue bold" id="multimachine" >Multi-machine Jobs</h2>
 <p class="text-main">
 This is a subcategory of pre-defined jobs intended for client/server tests, and for other tests that run on multiple machines.
 Jobs in this category have different roles for different machines, you will be asked to assign machines to roles.
@@ -332,7 +332,7 @@ if(is_dir($dir))
                     echo "        <td><input type=\"radio\" name=\"filename\" value=\"$dir/$file\" title=\"Multi-machine custom job:$file\"></td>\n";
                     echo "        <td>$file</td>\n";
                     echo "        <td align=\"center\">";
-                    echo "            <a href=\"".$config->xml->dir->multimachine->web->custom."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/27/icon-vnc.png\" alt=\"vire\" title=\"View the job XML $file\" class=\"icon-small\" /></a>";
+                    echo "            <a href=\"".$config->xml->dir->multimachine->web->custom."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/27/xml_green.png\" alt=\"vire\" title=\"View the job XML $file\" class=\"icon-small\" /></a>";
                     echo "            <a href=\"index.php?go=edit_jobs&amp;file=multimachine/custom/$file&amp;opt=edit&amp;machine_list=$machine_list\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" alt=\"edit\" title=\"Edit the job XML $file\" class=\"icon-small\" /></a>";
                     echo "            <a href=\"index.php?go=machine_send_job&amp;file=multimachine/custom/$file&amp;opt=delete&amp;machine_list=$machine_list\" onclick=\"if(confirm('WARNING: You will delete the custom job XML file, are you sure?')) return true; else return false;\" title=\"delete $file\"><img src=\"images/27/icon-delete.png\" alt=\"delete\" title=\"Delete the job XML $file\" class=\"icon-small\" /></a>";
                     echo "        </td>\n";
@@ -356,14 +356,16 @@ if(is_dir($dir))
 <script type="text/javascript">
 <!--
 var TSort_Data = new Array ('mmjobs', '','s','' );
+var TSort_Icons = new Array ('<span class="text-blue sorting-arrow">&uArr;</span>', '<span class="text-blue sorting-arrow">&dArr;</span>');
 tsRegister();
 var TSort_Data = new Array ('mmjobs_custom', '','s','' );
+var TSort_Icons = new Array ('<span class="text-blue sorting-arrow">&uArr;</span>', '<span class="text-blue sorting-arrow">&dArr;</span>');
 tsRegister();
 -->
 </script>
 
 <HR>
-<h2 class="text-medium text-blue bold">QA-packages Jobs (require SLES install repo and SDK repo)</h2>
+<h2 class="text-medium text-blue bold" id="qapackage" >QA-packages Jobs (require SLES install repo and SDK repo)</h2>
 <p class="text-main">
 QA-packages Jobs are used to launch various test suites on your System Under Test (SUT) machines. Simply select one, or multiple test suites from the list below to run these on the currently selected SUT system(s).
 </p>
@@ -474,7 +476,7 @@ Autotest jobs.
 </form>
 
 <HR>
-<h2 class="text-medium text-blue bold">Custom Jobs</h2>
+<h2 class="text-medium text-blue bold" id="customjob">Custom Jobs</h2>
 <p class="text-main">
 Custom Jobs are used for running any kind of configuration task that you may need to send to your test systems. To set up and run a configuration task, simply fill out and submit this form. If this configuration task is one that you would like to re-use in the future, be sure to check the "Add this job to the custom job list" box so that you can return to this page later and run that same configuration task as a custom job.
 </p>

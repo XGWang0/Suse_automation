@@ -1,5 +1,5 @@
 # ****************************************************************************
-# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
 #
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -225,9 +225,10 @@ sub cmd_print_active()  {
     my $sock_handle = shift @_;
 
     my $machines = &machine_search('fields'=>[qw(ip name description)],'return'=>'matrix','machine_status_id'=>MS_UP);
-
+    print $sock_handle "List of active machines (status up).\n";
+    printf $sock_handle "%15s : %15s : %s\n", "MACHINE", "IP ADDRESS", "DESCRIPTION";
     foreach my $machine (@$machines) {
-        printf $sock_handle "IP: %15s %10s: %s\n", $machine->[0], $machine->[1], $machine->[2];
+        printf $sock_handle "%15s : %15s : %s\n", $machine->[1], $machine->[0], $machine->[2];
     }
 }
 
@@ -1117,7 +1118,7 @@ sub print_status ($) # socket
 	    my @res_machines = user_get_reserved_machines ($user_id);
 	    local $" = "', '";
 	    if ( scalar @res_machines ) {
-		print $sock_handle "You have reserved machines '@res_machines'.\n";	
+		print $sock_handle "You have reserved machines '@res_machines'.\n";
 	    } else {
 		print $sock_handle "You have no reserved machines.\n";
 	    }
@@ -1232,7 +1233,7 @@ sub print_user_can_send_jobs ($)
     my $m_ip = $cmd[2];
 
     my $conf = use_master_authentication ();
-    my $my_machine = machine_get_id_by_ip_usedby ($m_ip, $user_id);
+    my $my_machine = machine_get_id_by_ip_user_id ($m_ip, $user_id);
     my $msj = is_allowed ($user_id, 'machine_send_job');
     my $msjr = is_allowed ($user_id, 'machine_send_job_reserved');
 
@@ -1246,8 +1247,8 @@ sub can_send_job_to_machine ($) # machine ip
     return 1 unless use_master_authentication ();
     my $m_ip = shift;
     return 0 unless (defined ($m_ip) && defined ($user_id));
-    my $my_machine = machine_get_id_by_ip_usedby ($m_ip, $user_id);
-    if (is_allowed ($user_id, 'machine_send_job') && defined $my_machine
+    my $my_machine = machine_get_id_by_ip_user_id ($m_ip, $user_id);
+    if ((is_allowed ($user_id, 'machine_send_job') && defined ($my_machine))
 	    || is_allowed ($user_id, 'machine_send_job_reserved')
 	    || is_allowed ($user_id, 'admin')) {
 	return 1;

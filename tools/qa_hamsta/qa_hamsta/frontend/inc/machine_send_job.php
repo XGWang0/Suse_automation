@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -90,16 +90,14 @@ machine_permission_or_disabled($machines,$perm_send_job);
 		foreach ($machines as $machine) {
 			foreach ($jobfilenames as $filename) {
 				if ($machine->send_job($filename)) {
-				    Log::create($machine->get_id(), $machine->get_used_by_login(), 'JOB_START', "has sent a \"pre-defined\" job to this machine (Job name: \"" . htmlspecialchars(basename($filename)) . "\")");
+					Log::create($machine->get_id(), $user->getLogin(), 'JOB_START', "has sent a \"pre-defined\" job to this machine (Job name: \"" . htmlspecialchars(basename($filename)) . "\")");
 				} else {
 					$error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
 				}
 			}
 		}
 		if (empty($error)) {
-			Notificator::setSuccessMessage ('The job[s] has/have been successfully sent.');
-			header("Location: index.php");
-			exit ();
+			require("send_success.php");
 		}
 	}
     $html_title = "Send job";

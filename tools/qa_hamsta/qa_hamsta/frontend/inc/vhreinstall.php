@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -169,7 +169,7 @@ if (request_str("proceed")) {
                    if (!$machine->send_job($autoyastfile)) {
                        $error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
                    } else {
-                       Log::create($machine->get_id(), $machine->get_used_by_login(), 'REINSTALL', "has reinstalled this machine as virtualization host using \"$producturl_raw\", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
+			Log::create($machine->get_id(), $user->getLogin (), 'REINSTALL', "has reinstalled this machine as virtualization host using \"$producturl_raw\", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
                    }
                    if ($virtualization_method == "xen") {
                        if(!$machine->send_job("/usr/share/hamsta/xml_files/set_xen_default.xml"))
