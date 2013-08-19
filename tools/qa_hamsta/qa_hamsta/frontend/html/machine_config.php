@@ -151,7 +151,7 @@ else if( $step=='e' || $step=='n' )	{
 		print html_div('list machines',"machines: ".join(' ',array_map('machine_get_name',$a_machines)));
 	}
 	print "<form method=\"post\" action=\"$page_base\" class=\"input\" id=\"qaconf_edit\">\n";
-	print html_search_form('',$what,array('form'=>0,'submit'=>($edit ? 'Update':'Insert')));
+	print html_search_form('',$what,array('form'=>0,'submit'=>($edit ? 'Update':'Insert'),'hr'=>false));
 	print "</form>\n";
 	print html_div('text-main',"Edit rows of the configuration. Rows should be in a form of \"<i>key=value # comment</i>\", otherwise they will be dropped on submit.");
 }
