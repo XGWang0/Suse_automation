@@ -90,6 +90,19 @@ sub install_rpms # $upgrade_flag, @basenames
 
 	@suites=@install if @install;
 	@suites=(@suites, @upgrade) if @upgrade; # Since zypper install can update package as well, and it can do better on SLES10
+	#make sure that zypper database is updated.
+	#3 times try if there is another zypper process running.
+	my $update_try = 3;
+	while ($update_try > 0){
+		my $run_ck = `ps -ef|grep "[z]ypper"|tail -1`;
+		chomp $run_ck;
+		if(not $run_ck){
+			system('zypper -n --gpg-auto-import-keys ref &>/dev/null' ) ;
+			last;
+		}
+		sleep 60;
+		$update_try --;
+	}
 
 	my $ret = 0;
 	foreach my $suite(@suites) {
