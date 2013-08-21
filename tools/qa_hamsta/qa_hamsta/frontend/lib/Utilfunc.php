@@ -361,11 +361,17 @@ function virtual_machine_icons ($machine, $user)
 	return $ret;
 }
 
-function redirect($args=array())
+function redirect($errmsg=NULL,$success=false,$url=NULL)
 {
-	$errmsg=hash_get($args,'errmsg','You need to be logged in and/or have permissions ');
-	$url=hash_get($args,'url','index.php');
-	fail($errmsg);
+	if(empty($errmsg))
+	    $errmsg='You need to be logged in and/or have permissions ';
+	if(empty($url))
+	    $url='index.php';
+	var_dump($errmsg);
+	if($success)
+	    success($errmsg);
+	else
+	    fail($errmsg);
 	header("Location: $url");
 	exit();
 }
