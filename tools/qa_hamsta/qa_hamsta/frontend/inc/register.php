@@ -56,7 +56,7 @@ if ( User::isLogged()
       $result = User::addUser (User::getIdent(), $login, $user_name, $user_email, $config);
       if ($result)
 	{
-          Notificator::setSuccessMessage ('You have been successfuly registered into Hamsta.');
+          Notificator::setSuccessMessage ('You have been successfuly registered into Hamsta. Please set your password on configuration page.');
 	  header ('Location: index.php');
 	}
       else
