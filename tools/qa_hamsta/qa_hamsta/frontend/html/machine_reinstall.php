@@ -66,30 +66,71 @@
 
 	} else {
 ?>
-<h5>You are trying to reinstall the following machine(s) with Autoyast:</h5>
-<ul>
+Machines:
 <?php foreach ($machines as $machine): ?>
-<li><input type="hidden" name="a_machines[]" value="<?php echo($machine->get_id()); ?>"><a class="text-small-bold" href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>"><?php echo($machine->get_hostname()); ?></a></li>
+<span class="machine_name">
+	<a class="text-small-bold" href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>"><?php echo($machine->get_hostname()); ?></a><input class="x" type="button" value="x"/>
+
+</span>
 <?php endforeach; ?>
-</ul>
 
 <form enctype="multipart/form-data" action="index.php?go=machine_reinstall" method="POST" onsubmit="return checkcontents(this);">
-<table class="text-medium">
-<?php require ("req_rein_all.php"); ?>
-<?php require ("req_rein.php"); ?>
-<?php require ("req_validation.php"); ?>
-<?php require ("req_sut.php"); ?>
-  <tr>
-	<td>Notification email address (optional):</td>
-	<td><input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} else if (isset($user)) { echo $user->getEmail(); } ?>" /> (if you want to be notified when the installation is finished)</td>
-  </tr>
-</table>	
-<input type="submit" name="proceed" value="Proceed">
+<input id="summary" type="checkbox"/>
+<label for="summary">show summary</label>
+<div id="finish">
+	<label for="summary"><input type="button" value="Edit"/></label>
+	<input type="submit" value="Submit"/>
+</div>
+<div class="tabs">
+	<div class="tab">
+		<input type="radio" id="tab1" name="tab-group-1" checked/>
+		<label for="tab1">Product</label>
+		<table class="content">
+			<tr>
+				<td class="breadcrumb" colspan="4">
+					<label for="tab1"><input type="button" value="Prev" class="disabled"/></label>
+					<label for="tab2"><input type="button" value="Next"/></label>
+					<label for="summary"><input type="button" value="Finish"/></label>
+				</td>
+			</tr>
+			<?php require ("req_rein_all.php"); ?>
+		</table>
+	</div>
+	<div class="tab">
+		<input type="radio" id="tab2" name="tab-group-1"/>
+		<label for="tab2">Disk</label>
+		<table class="content">
+			<tr>
+				<td class="breadcrumb" colspan="2">
+					<label for="tab1"><input type="button" value="Prev"/></label>
+					<label for="tab3"><input type="button" value="Next"/></label>
+					<label for="summary"><input type="button" value="Finish"/></label>
+				</td>
+			</tr>
+			<?php require ("req_rein.php"); ?>
+		</table>
+	</div>
+	<div class="tab">
+		<input type="radio" id="tab3" name="tab-group-1"/>
+		<label for="tab3">Advanced</label>
+		<table class="content">
+			<tr>
+				<td class="breadcrumb" colspan="2">
+					<label for="tab2"><input type="button" value="Prev"/></label>
+					<label for="tab3"><input type="button" value="Next" class="disabled"/></label>
+					<label for="summary"><input type="button" value="Finish"/></label>
+				</td>
+			</tr>
+			<?php require ("req_validation.php"); ?>
+		</table>
+	</div>
+</div>
 <?php
 	foreach ($machines as $machine):
 		echo('<input type="hidden" name="a_machines[]" value="'.$machine->get_id().'">');
 	endforeach;
 ?>
+
 </form>
 
 <?php
