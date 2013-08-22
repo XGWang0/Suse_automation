@@ -1,0 +1,137 @@
+
+body {
+    background-color: #FFFFFF;
+    font-family: arial,sans-serif;
+    font-size: 16px;
+}
+h1 {
+    -moz-border-bottom-colors: none;
+    -moz-border-left-colors: none;
+    -moz-border-right-colors: none;
+    -moz-border-top-colors: none;
+    background-color: #8899BB;
+    border-color: #000000;
+    border-image: none;
+    border-style: solid;
+    border-width: 1px 0 0 1px;
+    box-shadow: 2px 2px 2px #000000;
+    font-size: 1.5em;
+    padding-left: 3em;
+}
+span.machine_name {
+    border: 1px solid #DDDDDD;
+    padding: 3px;
+}
+span.machine_name a {
+    font-size: 0.9em;
+    text-decoration: none;
+}
+input.x {
+    background-color: #FFFFFF;
+    border: medium none;
+    color: #AA4444;
+    font-weight: bold;
+    position: relative;
+    top: -0.3em;
+    width: 1em;
+}
+.breadcrumb {
+    padding-left: 34em;
+    text-align: right;
+    white-space: nowrap;
+}
+.breadcrumb label {
+}
+div.tabs {
+    clear: both;
+    height: 370px;
+    margin: 25px 0;
+    position: relative;
+    width: 700px;
+}
+div.tab {
+    float: left;
+    padding: 0 8px;
+}
+div.tab > label {
+    background: none repeat scroll 0 0 #EEEEEE;
+    border: 1px solid #CCCCCC;
+    border-radius: 4px 4px 0 0;
+    left: 1px;
+    margin-left: -1px;
+    padding: 5px 10px;
+    position: relative;
+}
+div.tab > [type="radio"] {
+    display: none;
+}
+table.content {
+    background-color: #FFFFFF;
+    border: 1px solid #CCCCCC;
+    border-radius: 4px 4px 4px 4px;
+    bottom: 0;
+    left: 0;
+    margin-bottom: 0.8em;
+    padding: 20px;
+    position: absolute;
+    right: 0;
+    top: 22px;
+}
+div.tab > [type="radio"]:checked ~ label {
+    background: none repeat scroll 0 0 white;
+    border-bottom: 1px solid white;
+    z-index: 2;
+}
+div.tab > [type="radio"] ~ label ~ table.content {
+    display: none;
+}
+div.tab > [type="radio"]:checked ~ label ~ table.content {
+    display: table;
+    z-index: 1;
+}
+input#summary:checked ~ div.tabs div.tab > label {
+    display: none;
+}
+input#summary:checked ~ div.tabs table.content {
+    border: medium none;
+    display: block;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    top: 0;
+}
+input#summary:checked ~ div.tabs > div.tab > [type="radio"] ~ label ~ table.content {
+    display: block;
+}
+input#summary:checked ~ div.tabs button, input#summary:checked ~ div.tabs input[type="button"], input#summary:checked ~ div.tabs input[type="submit"] {
+    display: none;
+}
+input#summary:checked ~ div.tabs select, input#summary:checked ~ div.tabs input[type="text"], input#summary:checked ~ div.tabs input[type="file"] {
+    background: url("") no-repeat scroll right center #FFFFFF;
+    border: medium none;
+    pointer-events: none;
+}
+input#summary:checked ~ div.tabs [type="checkbox"] {
+    display: none;
+}
+input#summary:checked ~ div.tabs [type="checkbox"] + label {
+    display: none;
+}
+input#summary:checked ~ div.tabs [type="checkbox"]:checked + label {
+    display: inline;
+}
+input#summary:checked ~ div.tabs .breadcrumb {
+    display: none;
+}
+input#summary, form > label[for="summary"] {
+    display: none;
+}
+div#finish {
+    display: none;
+}
+input#summary:checked ~ div#finish {
+    display: table;
+    padding-left: 33em;
+    text-align: right;
+}
+
