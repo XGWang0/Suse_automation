@@ -577,7 +577,8 @@ class User {
    * Adds a user to the database.
    *
    * It is recommended to check if the user is not already registered
-   * before calling this method (see isRegistered ()).
+   * before calling this method (see isRegistered ()). This method
+   * sets the user password to a randomly generated string.
    * 
    * @param string $login Login identification of the user (e.g. openid url or login).
    * @param string $name User's name.
@@ -589,11 +590,13 @@ class User {
   public static function addUser ($extern_id, $login, $name, $email, $config)
   {
     $added = 0;
+    $passwd = sha1 (genRandomString (10));
     $db = Zend_Db::factory ($config->database);
     $data = Array ('extern_id' => $extern_id,
                    'login' => $login,
                    'name' => $name,
-                   'email' => $email);
+                   'email' => $email,
+		   'password' => $passwd);
 
     try
       {
