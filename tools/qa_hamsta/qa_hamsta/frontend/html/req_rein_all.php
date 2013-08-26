@@ -29,40 +29,37 @@ require("timezone.php");
 ?>
 
   <tr>
-	<td width="380">Installation repo URL (required): </td>
-	<td>
-	  <label for="repo_products">Product:</label> <select name="repo_products" id="repo_products" style="width: 200px;"></select>
-	  <label for="repo_archs">Arch:</label> <select name="repo_archs" id="repo_archs" style="width: 80px;" onchange="checkReinstallDropdownArchitectures()"></select>
+	<td class="">
+		<label for="repo_products">Product:</label> 
 	</td>
-   </tr>
-  <tr>
-	<td></td>
 	<td>
-	  <input type="text" name="repo_producturl" id="repo_producturl" size="70" value="<?php if(isset($_POST["repo_producturl"])){echo $_POST["repo_producturl"];} ?>" title="required: url" />
+		<select name="repo_products" id="repo_products" style=""></select>
+	</td>
+	<td>
+	  <input type="text" name="repo_producturl" id="repo_producturl" size="" value="<?php if(isset($_POST["repo_producturl"])){echo $_POST["repo_producturl"];} ?>" title="required: url" />
 	  <span class="required">*</span>
 	  <span id="mininotification" class="text-red text-small bold"></span>
 	</td>
   </tr>
+
   <tr>
-	<td>Add-on URL (optional, support multiple): </td>
 	<td>
-	  <label for="addon_products">Product:</label> <select name="addon_products" id="addon_products" style="width: 200px;"></select>
-	  <label for="addon_archs">Arch:</label> <select name="addon_archs" id="addon_archs" style="width: 80px;" onchange="checkReinstallDropdownArchitectures()"></select>
-	  <span id="addon_archs_warning" class="text-red text-small bold"></span>
+		<label for="addon_products">Add-on 1:</label>
+	<td>
+		<select name="addon_products" id="addon_products" style=""></select>
 	</td>
-   </tr>
-  <tr>
-	<td></td>
 	<td>
-	  Add-on #1: <input type="text" name="addon_url[]" id="addon_producturl" size="70" value="<?php if(isset($_POST["addon_producturl"])){echo $_POST["addon_producturl"];} ?>" />
+		<input type="text" name="addon_url[]" id="addon_producturl" size="" value="<?php if(isset($_POST["addon_producturl"])){echo $_POST["addon_producturl"];} ?>" />
+	</td>
+	<td>
 	  <button type="button" onclick="anotherrepo()"> + </button>
 	  <span id="mininotification" class="text-red text-small bold"></span>
 	  <div id="additional_repo"></div>
 	</td>
   </tr>
+
   <tr>
-	<td>Available patterns (optional) : </td>
-	<td>
+	<td colspan="4">
 	  <fieldset>
 		<legend>
 		  <select name="typicmode" id="typicmode">
@@ -73,62 +70,45 @@ require("timezone.php");
 		  </select>
                <span id='patterns_modified' class='modified'></span>
 		</legend>
-		<div id="available_patterns"></div>
-		<div id="addon_patterns"><div id="addon_pattern_1"></div></div>
-        <div id="more_patterns"><label style="width: 1000; float: left;">More patterns: <input type="text" size="75" name="patterns[]" /></label></div>
+		<input type="checkbox" id="pat1" checked/>
+		<label for="pat1">pat1</label>
+		<input type="checkbox" id="pat2"/>
+		<label for="pat2">pat2</label>
+		<input type="checkbox" id="pat3"/>
+		<label for="pat3">pat3</label>
+		<input type="checkbox" id="pat4" checked/>
+		<label for="pat4">pat4</label>
+		<input type="checkbox" id="pat5"/>
+		<label for="pat5">pat5</label>
+		<input type="checkbox" id="pat6"/>
+		<label for="pat6">pat6</label>
 	  </fieldset>
 	</td>
   </tr>
-  <tr>
-        <td>Additional RPMs (optional): </td>
-        <td><input type="text" name="additionalrpms" size="70" value="<?php if(isset($_POST["additionalrpms"])){echo $_POST["additionalrpms"];} else echo ($config->lists->arlist);?>" /></td>
-  </tr>
-  <tr>
-        <td>Installation options (optional): </td>
-        <td><input type="text" name="installoptions" size="70" value="<?php echo $installoptions; ?>" /> (e.g. <em>vnc=1 vncpassword=12345678</em>)<br /><strong>Note:</strong> Don't put any sensitive passwords, since it is plain text. VNC passwords must be 8+ bytes long.
-        <?php if($installoptions_warning != "") {echo ("</br> <font color=\"red\" >$installoptions_warning</font>");} ?>
-        </td>
-  </tr>
-  <tr>
-    <td>Install Updates for OS?</td>
-    <td>
-    <?php
-        # We provide a checkbox for them to say whether they want updates or not
-        # If they check the box, we give them additional update options
-        print "<select name=\"startupdate\" id=\"startupdate\">" .
-                "<option value=\"update-none\"" . ((isset($_POST['startupdate']) and $_POST['startupdate'] == "update-none") ? " selected=\"selected\"" : "") . ">Don't install updates</option>" .
-                "<option value=\"update-smt\"" . ((isset($_POST['startupdate']) and $_POST['startupdate'] == "update-smt") ? " selected=\"selected\"" : "") . ">Install updates (register using local SMT)" .
-                "<option value=\"update-reg\"" . ((isset($_POST['startupdate']) and $_POST['startupdate'] == "update-reg") ? " selected=\"selected\"" : "") . ">Install updates (register using registration code)" .
-                "<option value=\"update-opensuse\"" . ((isset($_POST['startupdate']) and $_POST['startupdate'] == "update-opensuse") ? " selected=\"selected\"" : "") . ">Install updates (for OpenSuSE only)" .
-        "</select> " .
-        "(Must choose \"register using registration code\" option if you fill registration code)";
 
-        # The additional update options are whether to update with SMT or regcode
-        print "<div id=\"updateoptions-smt\" class=\"text-small\" style=\"margin: 5px; padding: 5px; border: 1px solid red; display: " . ((isset($_POST['startupdate']) and $_POST['startupdate'] == "update-smt") ? "block" : "none") . ";\">" .
-                "SMT server: <strong>$config->smtserver</strong> (<strong>Note:</strong> This has to be configured in config.ini by admin.)." .
-                "<input type=\"hidden\" name=\"update-smt-url\" value=\"$config->smtserver\" />" .
-        "</div>";
-        print "<div id=\"updateoptions-reg\" class=\"text-small\" style=\"margin: 5px; padding: 5px; border: 1px solid red; display: " . ((isset($_POST['startupdate']) and $_POST['startupdate'] == "update-reg") ? "block" : "none") . ";\">" .
-        "Registration Email: <input type=\"text\" name=\"update-reg-email\" value=\"";
-	if (isset($_POST["update-reg-email"])) {
-		echo $_POST["update-reg-email"];
-	} else if (isset($user)) {
-		echo $user->getEmail();
-	}
-        print "\" /> <br />\n";
-	print "Registration Code for main product: <input type=\"text\" name=\"rcode[]\" id=\"rcode_product\" size=\"20\" value=\"";
-		if(isset($_POST["rcode"][0])){echo $_POST["rcode"][0];} 
-		print "\">\n<br />";
-		print "Registration Code for add-on repo #1: <input type=\"text\" name=\"rcode[]\" id=\"rcode_product\" size=\"20\" value=\"";
-		if(isset($_POST["rcode"][1])){echo $_POST["rcode"][1];}
-		print "\" /><input type=\"button\" onclick=\"anotherrcode()\" value=\"+\" /><br />";
-		print "<div id=\"additional_rcode\"></div></div>";
-?>
-    </td>
-  </tr>
   <tr>
-    <td>Select a timezone for your SUT: </td>
-    <td><select id="timezone" name="timezone">
+	<td>
+		<label for="additionalpatterns">Additional patterns</label>
+	</td>
+        <td>
+		<input type="text" name="additionalpatterns" size="" value="<?php if(isset($_POST["additionalrpms"])){echo $_POST["additionalrpms"];} else echo ($config->lists->arlist);?>" />
+	</td>
+  </tr>
+
+
+  <tr>
+	<td>
+		<label for="additionalrpms">Additional packages</label>
+	</td>
+        <td>
+		<input type="text" name="additionalrpms" size="" value="<?php if(isset($_POST["additionalrpms"])){echo $_POST["additionalrpms"];} else echo ($config->lists->arlist);?>" />
+	</td>
+  </tr>
+
+  <tr>
+    <td>Timezone </td>
+    <td>
+	<select id="timezone" name="timezone">
     <?php
 	$tz_default = $config->timezone->default;
 
@@ -145,3 +125,49 @@ require("timezone.php");
     ?>
 	</select></td>
   </tr>
+
+  <tr>
+	<td>Updates</td>
+	<td><select name="startupdate" id="startupdate">
+		<option value="update-none">no updates</option>
+		<option value="update-smt">local SMT</option>
+		<option value="update-reg">registration code</option>
+		<option value="update-opensuse">OpenSuSE only</option>
+	</select></td>
+  </tr>
+				
+				
+  <tr>
+	<td>Registration Email</td>
+	<td><input type="text" name="update-reg-email" value="bill.gates@microsoft.com"/></td>
+  </tr>
+  
+  <tr>
+	<td>Registration Code for product</td>
+	<td><input type="text" name="rcode" id="rcode_product" value="666-666-666"/></td>
+  </tr>
+
+  <tr>
+	<td>Registration Code for add-on repo #1:</td>
+	<td><input type="text" name="rcode" id="rcode_product" size="" value="123-456-789" /></td>
+	<td><input type="button" onclick="anotherrcode()" value="+" /></td>
+  </tr>
+
+  <tr>
+	<td>Installation options (optional): </td>
+        <td>
+		<input type="text" name="installoptions" size="" value="<?php echo $installoptions; ?>" /> 
+        	<?php 
+		if($installoptions_warning != "") 
+			{echo ("</br> <font color=\"red\" >$installoptions_warning</font>");} 
+		?>
+        </td>
+	<td colspan="2"> (e.g. <em>vnc=1 vncpassword=12345678</em>) </td>
+  </tr>
+ 
+  <tr>
+	<td colspan="4">
+		<strong>Note:</strong> Don't put any sensitive passwords, since it is plain text. VNC passwords must be 8+ bytes long.
+	</td>
+  </tr>
+

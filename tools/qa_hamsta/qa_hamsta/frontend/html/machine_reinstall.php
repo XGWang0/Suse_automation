@@ -121,7 +121,7 @@ Machines:
 					<label for="summary"><input type="button" value="Finish"/></label>
 				</td>
 			</tr>
-			<?php require ("req_validation.php"); ?>
+			<?php require ("req_sut.php"); ?>
 		</table>
 	</div>
 </div>

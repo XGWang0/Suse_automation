@@ -26,7 +26,7 @@
 
   <?php if(count($machines)==1): ?>
     <tr>
-	<td> available root partition (optional): </td>
+	<td> Root partition </td>
       <td>
         <select name="subpartition" id="subpartition">
         <?php 
@@ -40,8 +40,14 @@
       </td>
     </tr>
   <?php endif; ?>
+  
   <tr>
-	<td>File system for root partition (optional): </td>
+	<td>Use</td>
+	<td><input type="text" size="5" name="repartitiondisk" value=""/>% of free disk for root partition</td>
+  </tr>
+
+  <tr>
+	<td>Filesystem </td>
 	<td>
 	  <select name="rootfstype">
 		<option <?php if(isset($_POST["rootfstype"]) and $_POST["rootfstype"] == "reiser"){echo "selected";} ?> value="reiser">reiser</option>
@@ -52,18 +58,24 @@
 	  </select>
 	</td>
   </tr>
+
   <tr>
-    <td>Bootloader placement (Expert option):</td>
+    <td>Bootloader </td>
       <td>
         <select name="defaultboot">
           <option value="">root, no change</option>
           <option <?php if( isset($_POST["defaultboot"]) and $_POST["defaultboot"] == "root") {echo "selected";} ?> value="root">root, set active</option>
           <option <?php if( isset($_POST["defaultboot"]) and $_POST["defaultboot"] == "MBR") {echo "selected";} ?> value="MBR">MBR, set active</option>
         </select>
-       ( Where to place bootloader, if to set the active flag. )
     </td>
   </tr>
+
   <tr>
-	<td>Install and boot into XEN?</td>
-	<td><label><input type="checkbox" name="xen" value="xen">Yes, boot into XEN</label>
+	<td><input id="kexecboot" type="checkbox" class="left" name="kexecboot" value="yes"/></td>
+	<td><label for="kexecboot">Load installation by Kexec</label></td>
+  </tr>
+
+  <tr>
+	<td><input type="checkbox" name="xen" value="xen" id="xen"/></td>
+	<td><label for="xen">Install and boot into XEN</label></td>
   </tr>
