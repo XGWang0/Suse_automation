@@ -272,9 +272,9 @@ function task_icon($a,$ref=0)
 	} else {
 		$args=array('src'=>"$imgurl.png",'alt'=>"$fullname ".$a['object'],'title'=>"$fullname ".$a['object'],'onclick'=>false);
 		if ($a['allowed'] > 1) {
-			$args['onclick']="return confirm('This action requires admin privileges. Are you sure you want to continue?')" . PHP_EOL;
+			$args['onclick']=confirm_alert ();
 		} else if ($a['confirm']) {
-			$args['onclick']="return confirm('This will $fullname ".$a['object'].". Are you sure you want to continue?')\n";
+			$args['onclick']=confirm_alert ("This will $fullname ".$a['object'].". Are you sure you want to continue?");
 		}
 		$icon=$args;
 	}
@@ -470,6 +470,16 @@ function get_machine_status_class ($status_id) {
 		// No default action here.
 	}
 	return $class;
+}
+
+function confirm_alert ($msg = null) {
+	if (empty ($msg)) {
+		$msg = "return confirm('This action requires admin privileges."
+			. " Are you sure you want to continue?')";
+	} else {
+		$msg = "return confirm('" . htmlspecialchars ($msg) . "')";
+	}
+	return $msg . PHP_EOL;
 }
 
 ?>
