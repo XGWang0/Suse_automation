@@ -140,53 +140,99 @@ function merge_unique ($s, &$ret, &$flag)
     $ret = (count ($ret)) ? $ret[0] : '';
 }
 
+function action_menu_item ($values) {
+	$icon = icon (array ('width'=>'', 'class'=>'',
+			     'src'=>$values['src']));
+	return '<li><a href="' . $values['href']
+		. '" onclick="' . $values['onclick'] . '">'
+		. $icon
+		. $values['name'] . '</a></li>' . PHP_EOL;
+}
+
+function make_submenu ($args, $items) {
+	$menu = '<ul>' . PHP_EOL;
+	foreach ($items as $it) {
+		$vals = array_merge (array (), $args[$it]);
+		$menu .= action_menu_item ($vals);
+	}
+	$menu .= '</ul>' . PHP_EOL;
+	return $menu;
+}
+
 function act_menu($args)
 {
 	$conf = ConfigFactory::build ();
-print "<div id='cssmenu'>";
-print "<ul>";
-print "<li class='active'><img src=\"" . $args['start']['src']  . "\" alt=\"power\"/>";
-print "<ul>";
-print "<li><a href=\"" . $args['start']['href'] . "\"><img src=\"" . $args['start']['src']  . "\"/>Start</a></li>";
-print "<li><a href=\"" . $args['restart']['href'] . "\"><img src=\"" . $args['restart']['src']  . "\"/>Restart</a></li>";
-print "<li><a href=\"" . $args['stop']['href'] . "\"><img src=\"" . $args['stop']['src']  . "\"/>Stop</a></li>";
-print "</ul></li>";
-print "<li class='has-sub'><img src=\"" . $args['send-job']['src']. "\" alt=\"jobs\"/>";
-print "<ul>";
-print "<li class='has-sub'><a href=\"" . $args['send-job']['href'] . "\"><img src=\"" . $args['send-job']['src']. "\"/>Send job</a>";
-print "<ul>";
-print "<li><a href=\"" . $args['send-job']['href'] . "#predefined\"><img src=\"" . $args['send-job']['src']. "\"/>Pre-defined job</a></li>";
-print "<li><a href=\"" . $args['send-job']['href'] . "#qapackage\"><img src=\"" . $args['send-job']['src']. "\"/>QA package job</a></li>";
-print "<li><a href=\"" . $args['send-job']['href'] . "#multimachine\"><img src=\"" . $args['send-job']['src']. "\"/>Multi-machine job</a></li>";
-print "<li><a href=\"" . $args['send-job']['href'] . "#customjob\"><img src=\"" . $args['send-job']['src']. "\"/>Custom job</a></li>";
-print "</ul></li>";
-print "<li><a href=\"" . $args['reinstall']['href'] . "\"><img src=\"" . $args['reinstall']['src']  . "\"/>Reinstall</a></li>";
-print "<li><a href=\"" . $args['free']['href'] . "\"><img src=\"" . $args['free']['src']  . "\"/>Free</a></li>";
-print "</ul></li>";
-print "<li><img src=\"" . $args['edit']['src']  . "\" alt=\"edit/reserve\"/>";
-print "<ul>";
-print "<li><a href=\"" . $args['edit']['href'] . "\"><img src=\"" . $args['edit']['src']  . "\"/>Edit</a></li>";
-print "<li><a href=\"" . $args['config']['href'] . "\"><img src=\"" . $args['config']['src']  . "\"/>Configure</a></li>";
-print "<li><a href=\"" . $args['delete']['href'] . "\"><img src=\"" . $args['delete']['src']  . "\"/>Delete</a></li>";
-print "</ul></li>";
-print "<li class='last'><img src=\"" . $args['vnc']['src']  . "\" alt=\"console\"/>";
-print "<ul>";
-print "<li><a href=\"" . $args['vnc']['href'] . "\"><img src=\"" . $args['vnc']['src']  . "\"/>VNC</a></li>";
-/* Show serial console icon only if the server is properly configured. */
-if (! empty ($conf->cscreen->console->server)) {
-	print "<li><a href=\"" . $args['console']['href'] . "\"><img src=\"" . $args['console']['src']  . "\"/>Console</a></li>";
-}
-print "</ul></li>";
-print "</ul>";
-print "</div>";
+	print '<div id="cssmenu">';
+	print '<ul>';
 
-}
+	/* Powerswitch menu */
+	print '<li class="active"><img src="' . $args['start']['src']  . '" alt="power"/>';
+	print make_submenu ($args, array ('start', 'restart', 'stop'));
+	print '</li>';
 
+	/* Send job menu */
+	print '<li class="has-sub"><img src="' . $args['send-job']['src']. '" alt="jobs"/>';
+	print '<ul>';
+	print '<li class="has-sub"><a href="' . $args['send-job']['href'] . '"><img src="' . $args['send-job']['src']. '"/>Send job</a>';
+	print '<ul>';
+	print action_menu_item (array ('href'=>$args['send-job']['href'] . '#predefined',
+				       'onclick'=>$args['send-job']['onclick'],
+				       'src'=>$args['send-job']['src'],
+				       'name'=>'Pre-defined job'));
+	print action_menu_item (array ('href'=>$args['send-job']['href'] . '#qapackage',
+				       'onclick'=>$args['send-job']['onclick'],
+				       'src'=>$args['send-job']['src'],
+				       'name'=>'QA package job'));
+	print action_menu_item (array ('href'=>$args['send-job']['href'] . '#multimachine',
+				       'onclick'=>$args['send-job']['onclick'],
+				       'src'=>$args['send-job']['src'],
+				       'name'=>'Multi-machine job'));
+	print action_menu_item (array ('href'=>$args['send-job']['href'] . '#customjob',
+				       'onclick'=>$args['send-job']['onclick'],
+				       'src'=>$args['send-job']['src'],
+				       'name'=>'Custom job'));
+	print "</ul></li>";
+	print action_menu_item (array ('href'=>$args['reinstall']['href'],
+				       'onclick'=>$args['reinstall']['onclick'],
+				       'src'=>$args['reinstall']['src'],
+				       'name'=>'Reinstall'));
+	print action_menu_item (array ('href'=>$args['free']['href'],
+				       'onclick'=>$args['free']['onclick'],
+				       'src'=>$args['free']['src'],
+				       'name'=>'Free'));
+	print '</ul>';
+	print '</li>';
+
+	/* Edit menu */
+	print '<li>';
+	print '<img src="' . $args['edit']['src'] . '" alt="edit/reserve" onclick="' . $args['edit']['onclick'] . '"/>';
+	print make_submenu ($args, array ('edit', 'config', 'delete'));
+	print '</li>';
+
+	/* Console, VNC menu */
+	print "<li class='last'>"
+		. icon (array ('src'=>$args['vnc']['src'],'width'=>'','class'=>'',
+			       'alt'=>'console'));
+	print "<ul>";
+	print action_menu_item (array ('href'=>$args['vnc']['href'],
+				       'onclick'=>$args['vnc']['onclick'],
+				       'src'=>$args['vnc']['src'],
+				       'name'=>'VNC'));
+	/* Show serial console icon only if the server is properly configured. */
+	if (! empty ($conf->cscreen->console->server)) {
+		print action_menu_item (array ('href'=>$args['console']['href'],
+					       'onclick'=>$args['console']['onclick'],
+					       'src'=>$args['console']['src'],
+					       'name'=>'Console'));
+	}
+	print "</ul></li>";
+	print "</ul>";
+	print "</div>";
+}
 
 function icon($args)	
 {
-	$args['border']=0;
-	$args['width']=20;
+	$args = array_merge (array ('border'=>0, 'width'=>20), $args);
 	if( !isset($args['class']) )
 		$args['class']='machine_actions icon-small';
 	return html_tag('img',null,$args);
@@ -210,7 +256,7 @@ function task_icon($a,$ref=0)
 {
 	$a=array_merge(array( # merge with default values
 		'url'=>'','allowed'=>true,'link'=>false,'enbl'=>true,'confirm'=>false,'object'=>'',
-		'size'=>'27'),$a);
+		'size'=>'27','onclick'=>false,'name'=>$a['type']),$a);
 	$fullname=hash_get($a,'fullname',$a['type']);
 	$size = ($a['size'] > 0 ? $a['size'] . '/' : '');
 	$imgurl='images/'.$size.'icon-'.$a['type'];
@@ -219,17 +265,21 @@ function task_icon($a,$ref=0)
 
 	if( !$a['enbl'] || !$a['allowed'] ) {
 		$err_msg=( $a['enbl'] ? $err_noperm : $err_noavail );
-		$icon=array('src'=>"$imgurl-grey.png",'alt'=>$err_msg,'title'=>$err_msg);
+		$icon=array('src'=>"$imgurl-grey.png",'alt'=>$err_msg,'title'=>$err_msg,'onclick'=>false);
 		if(!$a['link'])	{
 			 $icon['href']='#';
 		}
 	} else {
-		$args=array('src'=>"$imgurl.png",'alt'=>"$fullname ".$a['object'],'title'=>"$fullname ".$a['object']);
-		if( $a['confirm'] )	{
+		$args=array('src'=>"$imgurl.png",'alt'=>"$fullname ".$a['object'],'title'=>"$fullname ".$a['object'],'onclick'=>false);
+		if ($a['allowed'] > 1) {
+			$args['onclick']="return confirm('This action requires admin privileges. Are you sure you want to continue?')" . PHP_EOL;
+		} else if ($a['confirm']) {
 			$args['onclick']="return confirm('This will $fullname ".$a['object'].". Are you sure you want to continue?')\n";
 		}
 		$icon=$args;
 	}
+
+	$icon['name'] = $a['name'];
 
 	if (! $ref) {
 		$icon = html_tag('a', icon ($icon), array('href'=>$a['url']));
@@ -255,21 +305,29 @@ function machine_icons($machine,$user)
 	$url_base="index.php?a_machines[]=$id";
 	$auth=$config->authentication->use;
 
+	$user_allowed_edit = 0;
+	$user_allowed_edit_reserved = 0;
+
+	if (isset ($user)) {
+		$user_allowed_edit = $user->isAllowed ('machine_edit');
+		$user_allowed_edit_reserved = $user->isAllowed ('machine_edit_reserved');
+	}
+
 	# button definition, plus non-default attributes.
 	# Default see below, description see above.
 	# - 'pwr': true if it is a powerswitch button
 	$btn=array(
-		'start'=>array('pwr'=>true),
-		'restart'=>array('pwr'=>true),
-		'stop'=>array('pwr'=>true),
-		'reinstall'=>array(),
-		'edit'=>array('allowed'=>(!$auth || (($users_machine || !$number_of_users) ? capable('machine_edit','machine_edit_reserved') : capable('machine_edit_reserved'))),'link'=>true),
-		'free'=>array('url'=>"$url_base&go=machine_edit&action=clear",'enbl'=>$users_machine,'err_noavail'=>"You cannot free $host because it is already free."),
-		'send-job'=>array(),
-		'vnc'=>array('url'=>"http://$ip:5801"),
-		'console'=>array('url'=>'hamsta-cscreen:'.$config->cscreen->console->server."/$host"),
-		'delete'=>array('enbl'=>!preg_match('/^vm\//',$machine->get_type())),
-		'config'=>array('link'=>true),
+		'start'=>array('pwr'=>true,'name'=>'Start'),
+		'restart'=>array('pwr'=>true,'name'=>'Restart'),
+		'stop'=>array('pwr'=>true,'name'=>'Stop'),
+		'reinstall'=>array('name'=>'Reinstall'),
+		'edit'=>array('allowed'=>(!$auth || ($users_machine || !$number_of_users) ? $user_allowed_edit : $user_allowed_edit_reserved),'link'=>true,'name'=>'Edit'),
+		'free'=>array('url'=>"$url_base&go=machine_edit&action=clear",'enbl'=>$users_machine,'err_noavail'=>"You cannot free $host because it is already free.",'name'=>'Free'),
+		'send-job'=>array('name'=>'Send job'),
+		'vnc'=>array('url'=>"http://$ip:5801",'name'=>'VNC'),
+		'console'=>array('url'=>'hamsta-cscreen:'.$config->cscreen->console->server."/$host", 'name'=>'Serial console'),
+		'delete'=>array('enbl'=>!preg_match('/^vm\//',$machine->get_type()),'name'=>'Delete machine'),
+		'config'=>array('link'=>true,'name'=>'Configure machine'),
 	);
 
 	foreach( array_keys($btn) as $act )	{
@@ -279,7 +337,7 @@ function machine_icons($machine,$user)
 		$b = array_merge( # we take defaults and overwrite them by $btn[$act]
 			array( # default values for a button
 				'url'=>$url_base.($is_pwr ? "&go=power&action=$act":"&go=$perm"),
-				'allowed'=>(!$auth || ($users_machine ? capable($perm,$permr) : capable($permr))),
+				'allowed'=>(!$auth ? 1 : ($users_machine ? capable($permr,$perm) : capable($permr))),
 				'enbl'=>($is_pwr ? $has_pwr : true),
 				'confirm'=>$is_pwr,
 				'object'=>$host,
