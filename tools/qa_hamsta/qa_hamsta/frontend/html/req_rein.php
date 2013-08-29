@@ -25,9 +25,8 @@
 ?>
 
   <?php if(count($machines)==1): ?>
-    <tr>
-	<td> Root partition </td>
-      <td>
+    <div class='row'>
+	Root partition
         <select name="subpartition" id="subpartition">
         <?php 
              $arr_partitions=explode(',',$root_partitions);
@@ -37,18 +36,16 @@
              } 
         ?>	
         </select>
-      </td>
-    </tr>
+    </div>
   <?php endif; ?>
   
-  <tr>
-	<td>Use</td>
-	<td><input type="text" size="5" name="repartitiondisk" value=""/>% of free disk for root partition</td>
-  </tr>
+  <div class='row'>
+	Use
+	<input type="text" size="5" name="repartitiondisk" value=""/>% of free disk for root partition
+  </div>
 
-  <tr>
-	<td>Filesystem </td>
-	<td>
+  <div class='row'>
+	Filesystem
 	  <select name="rootfstype">
 		<option <?php if(isset($_POST["rootfstype"]) and $_POST["rootfstype"] == "reiser"){echo "selected";} ?> value="reiser">reiser</option>
 		<option <?php if(isset($_POST["rootfstype"]) and $_POST["rootfstype"] == "ext2"){echo "selected";} ?> value="ext2">ext2</option>
@@ -56,26 +53,23 @@
 		<option <?php if(isset($_POST["rootfstype"]) and $_POST["rootfstype"] == "xfs"){echo "selected";} ?> value="xfs">xfs</option>
 		<option <?php if(isset($_POST["rootfstype"]) and $_POST["rootfstype"] == "jfs"){echo "selected";} ?> value="jfs">jfs</option>
 	  </select>
-	</td>
-  </tr>
+  </div>
 
-  <tr>
-    <td>Bootloader </td>
-      <td>
+  <div class='row'>
+    Bootloader
         <select name="defaultboot">
           <option value="">root, no change</option>
           <option <?php if( isset($_POST["defaultboot"]) and $_POST["defaultboot"] == "root") {echo "selected";} ?> value="root">root, set active</option>
           <option <?php if( isset($_POST["defaultboot"]) and $_POST["defaultboot"] == "MBR") {echo "selected";} ?> value="MBR">MBR, set active</option>
         </select>
-    </td>
-  </tr>
+  </div>
 
-  <tr>
-	<td><input id="kexecboot" type="checkbox" class="left" name="kexecboot" value="yes"/></td>
-	<td><label for="kexecboot">Load installation by Kexec</label></td>
-  </tr>
+  <div class='row'>
+	<input id="kexecboot" type="checkbox" class="left" name="kexecboot" value="yes"/>
+	<label for="kexecboot">Load installation by Kexec</label>
+  </div>
 
-  <tr>
-	<td><input type="checkbox" name="xen" value="xen" id="xen"/></td>
-	<td><label for="xen">Install and boot into XEN</label></td>
-  </tr>
+  <div class='row'>
+	<input type="checkbox" name="xen" value="xen" id="xen"/>
+	<label for="xen">Install and boot into XEN</label>
+  </div>

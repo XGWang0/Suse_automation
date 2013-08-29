@@ -28,146 +28,107 @@ if (User::isLogged())
 require("timezone.php");
 ?>
 
-  <tr>
-	<td class="">
-		<label for="repo_products">Product:</label> 
-	</td>
-	<td>
-		<select name="repo_products" id="repo_products" style=""></select>
-	</td>
-	<td>
-	  <input type="text" name="repo_producturl" id="repo_producturl" size="" value="<?php if(isset($_POST["repo_producturl"])){echo $_POST["repo_producturl"];} ?>" title="required: url" />
-	  <span class="required">*</span>
-	  <span id="mininotification" class="text-red text-small bold"></span>
-	</td>
-  </tr>
+  Registration &amp; update:
+  <input type='radio' id='reg_none' name='tab-reg' checked='checked'/><label for='reg_none'>none</label>
+  <input type='radio' id='reg_oss'  name='tab-reg' /><label for='reg_none'>openSUSE</label>
+  <input type='radio' id='reg_smt'  name='tab-reg' /><label for='reg_none'>SMT</label>
+  <input type='radio' id='reg_code' name='tab-reg'/><label for='reg_none'>code</label>
+  </br>
+  <div class='row' id='smt'> SMT server: https://smt.novell.com/certer/regsvc (Note: This has to be configured in config.ini by admin). ,</div>
+  <div class='row'>
+	<label for="repo_products">Product</label> 
+	<select name="repo_products" id="repo_products"></select>
+	<input type='radio' class='arch' name='product_arch' id='product_arch1' checked='checked' value='x86_64'/>
+	<label for='product_arch1'>x86_64</label>
+	<input type='radio' class='arch' name='product_arch' id='product_arch2'  value='i586'/>
+	<label for='product_arch1'>i586</label>
+	<label for='repo_produceurl'>URL</label>
+	<input type="text" name="repo_producturl" id="repo_producturl" value="<?php if(isset($_POST["repo_producturl"])){echo $_POST["repo_producturl"];} ?>" title="required: url" />
+	<span class='rcode'>
+		<label for='rcode_product'>Reg.code</label>
+		<input type='text' class='regprefix' name='regprefix_product' id='regprefix_prod' value='666'/>
+		<input type='text' class='regcode' name='rcode_product' id='rcode_product' value='123-456-789'/>
+	</span>
+  </div>
 
-  <tr>
-	<td>
-		<label for="addon_products">Add-on 1:</label>
-	<td>
-		<select name="addon_products" id="addon_products" style=""></select>
-	</td>
-	<td>
-		<input type="text" name="addon_url[]" id="addon_producturl" size="" value="<?php if(isset($_POST["addon_producturl"])){echo $_POST["addon_producturl"];} ?>" />
-	</td>
-	<td>
-	  <button type="button" onclick="anotherrepo()"> + </button>
-	  <span id="mininotification" class="text-red text-small bold"></span>
-	  <div id="additional_repo"></div>
-	</td>
-  </tr>
+  <div class='row addons' id='first-addon'>
+	<label for="addon_products0">Add-on 0</label>
+	<select name="addon_products[]" id="addon_products0" style=""></select>
+	<input type='radio' class='arch' name='addon0_arch' id='addon0_arch1' checked='checked' value='x86_64'/>
+	<label for='addon0_arch1'>x86_64</label>
+	<input type='radio' class='arch' name='addon0_arch' id='addon_arch2'  value='i586'/>
+	<label for='addon_arch2'>i586</label>
+	<label for='addon_url'>URL</label>
+	<input type="text" name="addon_url[]" id="addon0_url" value="<?php if(isset($_POST["addon_producturl"])){echo $_POST["addon_producturl"];} ?>" />
+	<span class='rcode'>
+		<label for="rcode_product">Reg.code</label>
+		<input type='text' class='regprefix' name="regprefox[]" id='regprefix0' value='666'/>
+		<input type='text' class='regcode'   name="regcode[]" id='rcode_a0' value='123-456-789'/>
+	</span>
+	<div class="addon_btns">
+		<label for='addon1'><input type='button' class='addonbtn' value='+' /></label>
+		<input type='button' class='addonbtn disabled' value='-'/>
+	</div>
+  </div>
 
-  <tr>
-	<td colspan="4">
+  <div class='row'>
 	  <fieldset>
 		<legend>
+		<label for="typicmode">Installation type</label>
 		  <select name="typicmode" id="typicmode">
   			<option value="text">Text</option>
   			<option value="gnome">Default Gnome</option>
 			<option value="kde">Default KDE</option>
 			<option value="full">Full distro</option>
 		  </select>
-               <span id='patterns_modified' class='modified'></span>
+		<span id='patterns_modified' class='modified'></span>
 		</legend>
-		<input type="checkbox" id="pat1" checked/>
-		<label for="pat1">pat1</label>
-		<input type="checkbox" id="pat2"/>
-		<label for="pat2">pat2</label>
-		<input type="checkbox" id="pat3"/>
-		<label for="pat3">pat3</label>
-		<input type="checkbox" id="pat4" checked/>
-		<label for="pat4">pat4</label>
-		<input type="checkbox" id="pat5"/>
-		<label for="pat5">pat5</label>
-		<input type="checkbox" id="pat6"/>
-		<label for="pat6">pat6</label>
-	  </fieldset>
-	</td>
-  </tr>
+		<div id="available_patterns" class='modified'></div>
+		<div id="addon_patterns"><div id="addon_pattern_1"></div></div>
+	</fieldset>
+  </div>
 
-  <tr>
-	<td>
-		<label for="additionalpatterns">Additional patterns</label>
-	</td>
-        <td>
-		<input type="text" name="additionalpatterns" size="" value="<?php if(isset($_POST["additionalrpms"])){echo $_POST["additionalrpms"];} else echo ($config->lists->arlist);?>" />
-	</td>
-  </tr>
+  <div id="more_patterns" class='row'>
+	<label for="patterns">Additional patterns</label>
+        <input type="text" name="patterns"/>
+  </div>
 
+  <div class='row'>
+	<label for="additionalrpms">Additional packages</label>
+	<input type="text" name="additionalrpms" value="<?php if(isset($_POST["additionalrpms"])){echo $_POST["additionalrpms"];} else echo ($config->lists->arlist);?>" />
+  </div>
 
-  <tr>
-	<td>
-		<label for="additionalrpms">Additional packages</label>
-	</td>
-        <td>
-		<input type="text" name="additionalrpms" size="" value="<?php if(isset($_POST["additionalrpms"])){echo $_POST["additionalrpms"];} else echo ($config->lists->arlist);?>" />
-	</td>
-  </tr>
-
-  <tr>
-    <td>Timezone </td>
-    <td>
+  <div class='row'>
+	<label for='timezone'>Timezone</label>
 	<select id="timezone" name="timezone">
-    <?php
-	$tz_default = $config->timezone->default;
-
-	foreach ($arrtimezones as $zone)
-	{
-		$opt = '<option';
-		if (isset ($tz_default) && $tz_default == $zone)
+	<?php
+		$tz_default = $config->timezone->default;
+	
+		foreach ($arrtimezones as $zone)
 		{
-			$opt .= ' selected="selected"';
+			$opt = '<option';
+			if (isset ($tz_default) && $tz_default == $zone)
+			{
+				$opt .= ' selected="selected"';
+			}
+			echo ($opt . " value=\"$zone\">$zone</option>" . PHP_EOL);
 		}
-		echo ($opt . " value=\"$zone\">$zone</option>" . PHP_EOL);
-	}
+	
+	?>
+	</select>
+  </div>
 
-    ?>
-	</select></td>
-  </tr>
-
-  <tr>
-	<td>Updates</td>
-	<td><select name="startupdate" id="startupdate">
-		<option value="update-none">no updates</option>
-		<option value="update-smt">local SMT</option>
-		<option value="update-reg">registration code</option>
-		<option value="update-opensuse">OpenSuSE only</option>
-	</select></td>
-  </tr>
-				
-				
-  <tr>
-	<td>Registration Email</td>
-	<td><input type="text" name="update-reg-email" value="bill.gates@microsoft.com"/></td>
-  </tr>
-  
-  <tr>
-	<td>Registration Code for product</td>
-	<td><input type="text" name="rcode" id="rcode_product" value="666-666-666"/></td>
-  </tr>
-
-  <tr>
-	<td>Registration Code for add-on repo #1:</td>
-	<td><input type="text" name="rcode" id="rcode_product" size="" value="123-456-789" /></td>
-	<td><input type="button" onclick="anotherrcode()" value="+" /></td>
-  </tr>
-
-  <tr>
-	<td>Installation options (optional): </td>
-        <td>
-		<input type="text" name="installoptions" size="" value="<?php echo $installoptions; ?>" /> 
-        	<?php 
-		if($installoptions_warning != "") 
+  <div class='row'>
+	<label for="installoptions">Installation options </label>
+	<input type="text" name="installoptions" value="<?php echo $installoptions; ?>" /> 
+        <?php 
+		if ($installoptions_warning != "") 
 			{echo ("</br> <font color=\"red\" >$installoptions_warning</font>");} 
-		?>
-        </td>
-	<td colspan="2"> (e.g. <em>vnc=1 vncpassword=12345678</em>) </td>
-  </tr>
+	?>
+	<span> (e.g. <em>vnc=1 vncpassword=12345678</em>) </span>
+  </div>
  
-  <tr>
-	<td colspan="4">
-		<strong>Note:</strong> Don't put any sensitive passwords, since it is plain text. VNC passwords must be 8+ bytes long.
-	</td>
-  </tr>
+  <div class='row note'>
+	<strong>Note:</strong> Don't put any sensitive passwords, since it is plain text. VNC passwords must be 8+ bytes long.
+  </div>
 

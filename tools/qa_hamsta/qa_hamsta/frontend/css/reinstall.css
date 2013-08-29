@@ -1,137 +1,280 @@
+body  {
+  background-color: #fff;
+  font-family:arial,sans-serif;
+  font-size: 16px;
+}
 
-body {
-    background-color: #FFFFFF;
-    font-family: arial,sans-serif;
-    font-size: 16px;
-}
+/* header */
 h1 {
-    -moz-border-bottom-colors: none;
-    -moz-border-left-colors: none;
-    -moz-border-right-colors: none;
-    -moz-border-top-colors: none;
-    background-color: #8899BB;
-    border-color: #000000;
-    border-image: none;
-    border-style: solid;
-    border-width: 1px 0 0 1px;
-    box-shadow: 2px 2px 2px #000000;
-    font-size: 1.5em;
-    padding-left: 3em;
+  font-size: 1.5em;
+  padding-left:3em;
+  background-color:#89b;
+  box-shadow: 2px 2px 2px #000;
+  -webkit-box-shadow: 2px 2px 2px #000;
+  -moz-box-shadow: 2px 2px 2px #000;
+  border:solid black;
+  border-width:1px 0 0 1px;
 }
+
+/* machine names */
 span.machine_name {
-    border: 1px solid #DDDDDD;
-    padding: 3px;
+  border: solid 1px #ddd;
+  padding: 0.2em;
 }
 span.machine_name a {
-    font-size: 0.9em;
-    text-decoration: none;
+  text-decoration: none;
+  font-size: 0.9em;
 }
 input.x {
-    background-color: #FFFFFF;
-    border: medium none;
-    color: #AA4444;
-    font-weight: bold;
-    position: relative;
-    top: -0.3em;
-    width: 1em;
+  border: none;
+  width: 1em;
+  background-color: #fff;
+  color: #a44;
+  font-weight: bold;
+  position: relative;
+  top:-0.3em;
 }
+
+/* breadcrumb */
 .breadcrumb {
-    padding-left: 34em;
-    text-align: right;
-    white-space: nowrap;
+  position: absolute;
+  text-align: right;
+  margin: -3em 0 0 -1em;
+  white-space: nowrap;
 }
 .breadcrumb label {
+  display: button;
 }
-div.tabs {
-    clear: both;
-    height: 370px;
-    margin: 25px 0;
-    position: relative;
-    width: 700px;
+
+/* tabs - credits to css-tricks.com */
+div.tabs{ 
+  clear: both;
+  margin: 1.7em 12em;
 }
-div.tab {
-    float: left;
-    padding: 0 8px;
+div.tab  {
+  padding: 0 0.5em;
+  float: left;
 }
 div.tab > label {
-    background: none repeat scroll 0 0 #EEEEEE;
-    border: 1px solid #CCCCCC;
-    border-radius: 4px 4px 0 0;
-    left: 1px;
-    margin-left: -1px;
-    padding: 5px 10px;
-    position: relative;
+  background: #eee; 
+  padding: 0.2em 0.5em; 
+  border: 1px solid #ccc;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
 }
-div.tab > [type="radio"] {
-    display: none;
+div.tab > [type=radio] {
+  display: none;   
 }
-table.content {
-    background-color: #FFFFFF;
-    border: 1px solid #CCCCCC;
-    border-radius: 4px 4px 4px 4px;
-    bottom: 0;
-    left: 0;
-    margin-bottom: 0.8em;
-    padding: 20px;
-    position: absolute;
-    right: 0;
-    top: 22px;
+div.content {
+  margin-bottom: 0.8em;
+  background-color:#fff;
+  position: absolute;
+  top: 16em;
+  left: 1em;
+  padding: 1em;
+  border: 1px solid #ccc;
+  border-radius: 0.5em;
+
+  /* minimal sizes */
+  display: table;
+  min-width: 45em;
+  min-height: 10em;
 }
-div.tab > [type="radio"]:checked ~ label {
-    background: none repeat scroll 0 0 white;
-    border-bottom: 1px solid white;
-    z-index: 2;
+div.tab > [type=radio]:checked + label {
+  background: white;
+  border-bottom: 1px solid white;
+  z-index: 2;
 }
-div.tab > [type="radio"] ~ label ~ table.content {
-    display: none;
+div.tab > [type=radio] + label + div.content {
+  display: none;
+  /*visibility: hidden;
+  -webkit-transition: all .3s .1s;
+   -moz-transition: all .3s .1s;
+     -o-transition: all .3s .1s;
+        transition: all .3s .1s;*/
+
 }
-div.tab > [type="radio"]:checked ~ label ~ table.content {
-    display: table;
-    z-index: 1;
+div.tab > [type=radio]:checked + label + div.content {
+  z-index: 1;
+  display: block;
+  /*visibility: visible;*/
 }
+
+/* rows, inputs etc. */
+div.row {
+  margin: 0.5em 0
+}
+
+div.content label {
+/*  margin-left:1em;*/
+}
+div.breadcrumb label, input[type="radio"]+label, label:first-child {
+  margin-left:0;
+}
+input[type="text"]  {
+  
+}
+input[type="text"].regprefix  {
+  width:3em;
+}
+input[type="text"].regcode  {
+  width:6em;
+}
+input[required]   {
+  box-shadow: 0px 0px 3px #f00;
+  -webkit-box-shadow: 0px 0px 3px #f00;
+  -moz-box-shadow: 0px 0px 3px #f00;
+}
+div.row>label:first-child,
+div.content>span.first {
+  display:inline-block;
+  min-width:10em;
+}
+div#tab-advanced label:first-child  {
+  min-width:14em;
+}
+
+/* add ':' after relevant labels */
+div.content label:after,
+div.content>span.first:after {
+  content:':';
+}
+div.breadcrumb label:after,
+input[type="radio"] + label:after,
+input[type="checkbox"] + label:after,
+div.addon_btns label:after {
+  content: normal;
+}
+
+/* summary moode - tabs */
 input#summary:checked ~ div.tabs div.tab > label {
-    display: none;
+  display:none;
 }
-input#summary:checked ~ div.tabs table.content {
-    border: medium none;
-    display: block;
-    margin: 0;
-    padding: 0;
-    position: relative;
-    top: 0;
+input#summary:checked ~ div.tabs>div.tab>div.content {
+  display:block;
+  position: static;
+  border: none;
+  margin: 0;
+  top: auto;
+  padding: 0;
+  min-height: 0;
 }
-input#summary:checked ~ div.tabs > div.tab > [type="radio"] ~ label ~ table.content {
-    display: block;
+input#summary:checked ~ div.tabs  {
+  margin-left:1em;
 }
-input#summary:checked ~ div.tabs button, input#summary:checked ~ div.tabs input[type="button"], input#summary:checked ~ div.tabs input[type="submit"] {
-    display: none;
+input#summary:checked ~ div.tabs>div.tab  {
+  clear:both;
 }
-input#summary:checked ~ div.tabs select, input#summary:checked ~ div.tabs input[type="text"], input#summary:checked ~ div.tabs input[type="file"] {
-    background: url("") no-repeat scroll right center #FFFFFF;
-    border: medium none;
-    pointer-events: none;
+
+/* summary mode - form fields */
+input#summary:checked ~ div.tabs button,
+input#summary:checked ~ div.tabs input[type="button"],
+input#summary:checked ~ div.tabs input[type="submit"] {
+  display:none;
 }
-input#summary:checked ~ div.tabs [type="checkbox"] {
-    display: none;
+input#summary:checked ~ div.tabs select,
+input#summary:checked ~ div.tabs [type="text"]
+{
+  background:transparent;
+  border: none;
+  pointer-events: none;
+  font-weight: bold;
+  font-size:90%;
+  min-width: 15em;
 }
-input#summary:checked ~ div.tabs [type="checkbox"] + label {
-    display: none;
+input#summary:checked ~ div.tabs input[type="file"] {
+  display:table;
+  background-color:#faa;
+}
+input#summary:checked ~ div.tabs [type="checkbox"],
+input#summary:checked ~ div.tabs [type="checkbox"] + label,
+input#summary:checked ~ div.tabs .breadcrumb,
+input#summary:checked ~ div.tabs .note {
+  display: none;
 }
 input#summary:checked ~ div.tabs [type="checkbox"]:checked + label {
-    display: inline;
+  display: inline;
 }
-input#summary:checked ~ div.tabs .breadcrumb {
-    display: none;
+input#summary:checked ~ div.tabs fieldset {
+  border: none;
+  margin-left:-0.5em;
 }
-input#summary, form > label[for="summary"] {
-    display: none;
+input#summary:checked ~ div.tabs .summary {
+  visibility:1;
 }
-div#finish {
-    display: none;
+
+/* summary mode - product archs & URLs hide help elements */
+input#summary:checked ~ div.tabs div.content input[type="radio"],
+input#summary:checked ~ div.tabs div.content input[type="radio"] + label,
+input#summary:checked ~ div.tabs label.url,
+input#summary:checked ~ div.tabs select.url {
+  display:none;
 }
-input#summary:checked ~ div#finish {
-    display: table;
-    padding-left: 33em;
-    text-align: right;
+input#summary:checked ~ div.tabs div.content input[type="radio"][name="tab-reg"]:checked + label  {
+  display:inline;
+  font-weight:bold;
 }
+
+/* finishing */
+input#summary, form>label[for="summary"] {
+  display: none;
+}
+div#finish  { display: none; }
+input#summary:checked ~ div#finish  {
+  display: block;
+  margin:1.1em 0 0 0.55em;
+}
+/* addon rows */
+input.addons  {
+  display:none;
+}
+input.addons:checked  + div.row  {
+  display: block;
+}
+input.addons  + div.row {
+  display:none;
+}
+
+div.addons {
+  position: relative;
+  margin-top:-2.5em;
+  padding: 0.5em 0 0.5em 0;
+  background-color:white;
+}
+input#summary:checked ~ div.tabs div.addons {
+  margin-top:-1.1em
+}
+input#summary:checked ~ div.tabs div#first-addon {
+  margin-top:0;
+}
+div#first-addon {
+  margin-top:1em;
+}
+
+/* addon reg types */
+input#reg_code ~ div.row span.rcode {
+  display: none;
+}
+input#reg_code:checked ~ div.row span.rcode {
+  display: inline;
+}
+input#reg_smt ~ div#smt {
+  display: none;
+}
+input#reg_smt:checked ~ div#smt {
+  display: block;
+}
+span#regmail  {
+  display:none;
+  margin-left: 1em;
+}
+input#reg_code:checked ~ span#regmail {
+  display: inline;
+}
+
+
+
+
+
+
 

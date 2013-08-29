@@ -82,47 +82,41 @@ Machines:
 	<input type="submit" value="Submit"/>
 </div>
 <div class="tabs">
-	<div class="tab">
+	<div id='tab-product' class="tab">
 		<input type="radio" id="tab1" name="tab-group-1" checked/>
 		<label for="tab1">Product</label>
-		<table class="content">
-			<tr>
-				<td class="breadcrumb" colspan="4">
-					<label for="tab1"><input type="button" value="Prev" class="disabled"/></label>
-					<label for="tab2"><input type="button" value="Next"/></label>
-					<label for="summary"><input type="button" value="Finish"/></label>
-				</td>
-			</tr>
+		<div class="content">
+			<div class="breadcrumb">
+				<label for="tab1"><input type="button" value="Prev" class="disabled"/></label>
+				<label for="tab2"><input type="button" value="Next"/></label>
+				<label for="summary"><input type="button" value="Finish"/></label>
+			</div>
 			<?php require ("req_rein_all.php"); ?>
-		</table>
+		</div>
 	</div>
-	<div class="tab">
+	<div id='tab-disk' class="tab">
 		<input type="radio" id="tab2" name="tab-group-1"/>
 		<label for="tab2">Disk</label>
-		<table class="content">
-			<tr>
-				<td class="breadcrumb" colspan="2">
-					<label for="tab1"><input type="button" value="Prev"/></label>
-					<label for="tab3"><input type="button" value="Next"/></label>
-					<label for="summary"><input type="button" value="Finish"/></label>
-				</td>
-			</tr>
+		<div class="content">
+			<div class="breadcrumb">
+				<label for="tab1"><input type="button" value="Prev"/></label>
+				<label for="tab3"><input type="button" value="Next"/></label>
+				<label for="summary"><input type="button" value="Finish"/></label>
+			</div>
 			<?php require ("req_rein.php"); ?>
-		</table>
+		</div>
 	</div>
-	<div class="tab">
+	<div id='tab-advanced' class="tab">
 		<input type="radio" id="tab3" name="tab-group-1"/>
 		<label for="tab3">Advanced</label>
-		<table class="content">
-			<tr>
-				<td class="breadcrumb" colspan="2">
-					<label for="tab2"><input type="button" value="Prev"/></label>
-					<label for="tab3"><input type="button" value="Next" class="disabled"/></label>
-					<label for="summary"><input type="button" value="Finish"/></label>
-				</td>
-			</tr>
+		<div class="content">
+			<div class="breadcrumb">
+				<label for="tab2"><input type="button" value="Prev"/></label>
+				<label for="tab3"><input type="button" value="Next" class="disabled"/></label>
+				<label for="summary"><input type="button" value="Finish"/></label>
+			</div>
 			<?php require ("req_sut.php"); ?>
-		</table>
+		</div>
 	</div>
 </div>
 <?php
