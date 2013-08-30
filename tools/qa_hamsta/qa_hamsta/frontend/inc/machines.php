@@ -38,11 +38,11 @@
 
 /* Retrieve an user instance if we can. */
 	switch (request_str("action")) {
-		case "edit":
+		case "machine_edit":
 			$go = "machine_edit";
 			return require("inc/machine_edit.php");
 
-		case "delete":
+		case "machine_delete":
 			$go = "machine_delete";
 			return require("inc/machine_delete.php");
 

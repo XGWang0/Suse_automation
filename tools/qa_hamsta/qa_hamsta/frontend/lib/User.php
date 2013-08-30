@@ -309,6 +309,27 @@ class User {
     return null;
   }
 
+  public static function getByName ($name) {
+	  $sql = 'SELECT * FROM `user` WHERE name = ?';
+	  $conf = ConfigFactory::build ();
+	  try {
+		  $db = Zend_Db::factory ($conf->database);
+		  $res = $db->fetchAll ($sql, $name);
+		  $db->closeConnection ();
+		  if (isset ($res[0])) {
+			  return new User ($conf,
+					   $res[0]['user_id'],
+					   $res[0]['extern_id'],
+					   $res[0]['login'],
+					   $res[0]['name'],
+					   $res[0]['email']);
+		  }
+		  return null;
+	  } catch (Zend_Db_Exception $e) {
+		  return null;
+	  }
+  }
+
   /**
    * Returns an instance of <b>registered</b> user by external id.
    *

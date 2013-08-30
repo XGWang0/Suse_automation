@@ -118,6 +118,7 @@ $pages = array(
     "machine_config",
     "qa_netconf",
     "usedby",
+    "machine_privileges"
 );
 
 if (!in_array($go, $pages)) {
