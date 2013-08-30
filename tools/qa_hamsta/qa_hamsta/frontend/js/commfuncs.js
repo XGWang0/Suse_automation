@@ -24,22 +24,22 @@
 
 function checkemail(emailvalue)
 {
-	var emails=trim(emailvalue)
+	var emails=trim(emailvalue);
 	emails = emails.toLowerCase();
-	emails = emails.replace(/\s*/g,"")
+	emails = emails.replace(/\s*/g,"");
 
-	var filter=/^([a-z0-9._-])+@([a-z0-9_-])+(\.[a-z0-9_-])+/
-	var arr_emails=emails.split(",")
+	var filter=/^([a-z0-9._-])+@([a-z0-9_-])+(\.[a-z0-9_-])+/;
+	var arr_emails=emails.split(",");
 
 	if (emails=="")     return true; //empty email address is valid
 
 	for (i=0; i<arr_emails.length; i++) {
 		if (filter.test(arr_emails[i])==false) {
-			alert ("Please input a valid email, or leave it blank. \n Invalid email: " + arr_emails[i])
-			return false
+			alert ("Please input a valid email, or leave it blank. \n Invalid email: " + arr_emails[i]);
+			return false;
 		}
 	}
-	return true
+	return true;
 }
 
 function checkcheckbox(which,action){
@@ -48,17 +48,19 @@ function checkcheckbox(which,action){
 		return true;
 	}
 	for (i=0;i<which.length;i++) {
-                var tempobj=which.elements[i]
+                var tempobj=which.elements[i];
                 if (tempobj.type=="checkbox" && tempobj.id != "actionCheck" && tempobj.checked) {
-			ckpass=true
-			break
+			ckpass=true;
+			break;
 		}
 	}
 	if(ckpass==false){
-		alert("At least choose one checkbox option.")
+		alert("Choose at least one checkbox option.");
 		return false;
 	}
-	return checkemail(which.mailto.value)
+	if (which.mailto && which.mailto.value)
+	    return checkemail(which.mailto.value);
+	return true;
 }
 
 function chkcompareradios(which) {
@@ -98,16 +100,16 @@ function checkcontents(which)
 			if ( (tempobj.type=="text") || (tempobj.type=="textarea") ) {
 				if ( (tempobj.name=="jobname") && (tempobj.value.indexOf(" ") >=0) ){
 					alert("The job name must be composed by number, letter, underscore or dash")
-					return false
+					return false;
 				}
 				if ((tempobj.value).replace(/(^\s*)|(\s*$)/g, '')=='') {
 					alert("Please input required fields of this job section.")
-					return false
+					return false;
 				}
 			}
 		}
 	}
-	return checkemail(which.mailto.value)
+	return checkemail(which.mailto.value);
 }
 
 function checkReinstallDropdownArchitectures()
