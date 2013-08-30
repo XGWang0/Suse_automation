@@ -9,6 +9,7 @@
         <logdir>/tmp</logdir>
         <description>[SLES] Test all packages, kernel and regression</description>
         <motd>Be careful, this computer is used for full test. Include kernel and regression test!</motd>
+        <reboot>0</reboot>
     </config>
     <parameters>
  	<parameter type="string" name="broadcast_ip" default="10.20.3.0" label="Broadcast IP address"/>

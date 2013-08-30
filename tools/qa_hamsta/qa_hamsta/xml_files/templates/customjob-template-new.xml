@@ -12,6 +12,7 @@
         <logdir>/tmp</logdir>
         <description>DESCRIPTION</description>
         <motd>MOTDMSG</motd>
+        <reboot>0</reboot>
     </config>
     <!-- Optional -->
     PARAMETERS_AREA

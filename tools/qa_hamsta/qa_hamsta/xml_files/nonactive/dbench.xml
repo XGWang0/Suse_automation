@@ -8,6 +8,7 @@
 	<description>runs dbench in async and sync modes, with different number of processes</description>
 	<logdir>/tmp</logdir>
 	<rpm>hamsta dbench-ctcs2-glue</rpm>
+        <reboot>0</reboot>
     </config>
 
     <commands>

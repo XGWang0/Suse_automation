@@ -36,6 +36,7 @@ use sql;
 use functions;
 use POSIX 'strftime';
 use hwinfo_xml_sql;
+use XML::Simple;
 
 use qaconfig('%qaconf','&get_qa_config');
 %qaconf = ( %qaconf, &get_qa_config('hamsta_master') );
@@ -206,9 +207,8 @@ sub process_job($) {
 	foreach my $ret ( split /\n/, $return_codes )
 	{	$status=JS_PASSED if $ret=~/^(\d+)/ and $1==0;	}
 
-	# send e-mail that the job has finished
-	my $reboot = ( $job_file =~ /install|reboot|XENGrub/ );
-	my $update_sut = ( $job_file =~ /hamsta-upgrade-restart/ );
+	my $reboot = &dump_job_xml_config($job_file,'reboot');
+	my $update_sut = &dump_job_xml_config($job_file,'update');
 	if( $reboot ) {
 		if($status == JS_PASSED){
 			sleep 300;
@@ -337,23 +337,21 @@ sub send_job($$$) {
 		return (undef, $loglevel);
 	}
 
-# Pass the XML job description to the slave
+	#query "Used By" and "Usage" information ,add them to job xml file.
+        my($usage,$users,$maintainer_id)=&machine_get_info($ip);
+	&modify_job_xml_config($job_file,'useinfo',"USAGE: $usage ; USEDBY: $users ; MAINTAINER: $maintainer_id ");
+	&modify_job_xml_config($job_file,'job_id',"http://$local_addr/hamsta/index.php?go=job_details&id=$job_id");
+	
+	#get log level from job xml file
+	
+	$loglevel = &dump_job_xml_config($job_file,'debuglevel');
+
+	# Pass the XML job description to the slave
+
 	open (FH,'<',"$job_file");
 
-	#query "Used By" and "Usage" information
-        my($usage,$users,$maintainer_id)=&machine_get_info($ip);
 	while (<FH>) { 
 		$_ =~ s/\n//g;
-
-		if ($_ =~ /<debuglevel>([0-9]+)<\/debuglevel>/) {
-			$loglevel = $1;
-		}
-		#add "Usage", list of users and "jobid" information
-
-                if(/<\/config>/) {
-                        $_="        <useinfo><![CDATA[ USAGE: $usage \t USEDBY: $users \t MAINTAINER: $maintainer_id \t ]]></useinfo> \n".$_ ;
-                        $_="        <job_id>http://$local_addr/hamsta/index.php?go=job_details&amp;id=$job_id</job_id> \n".$_ ;
-                }
 		eval {
 			&log(LOG_DEBUG, "Sent XML: $_");
 			$sock->send("$_\n");
@@ -392,6 +390,45 @@ sub machine_status_timeout($$$$$) {
 		sleep 60;
 		$init_time += 60;
 	}
+}
+
+#return the vaule of config option, 
+sub dump_job_xml_config($$) {
+
+	my $job_xml = shift;
+	my $option = shift;
+	return undef if(not $option);
+	my $job_xml_ref = XMLin($job_xml,ForceArray=>0);
+	#TODO : better mail handle. or remove the notify
+        if($option eq 'mail') {
+		return $job_xml_ref->{'config'}->{$option}->{'content'} if defined($job_xml_ref->{'config'}->{$option}->{'content'});
+		return undef;
+	}
+	return $job_xml_ref->{'config'}->{$option} if defined($job_xml_ref->{'config'}->{$option});
+	return undef;
+}
+
+#1. xml file 2.name  3. vaule
+sub modify_job_xml_config($$$) {
+	my $job_xml = shift;
+	my $name = shift;
+	my $value = shift;
+	my $job_xml_ref = XMLin($job_xml,ForceArray=>1);
+	if(not $job_xml_ref){
+		&log(LOG_ERR,"Can Not parser XML File !");
+		return undef;
+	}
+	#TODO : better mail handle. or remove the notify
+	if($name eq 'mail'){
+		$job_xml_ref->{'config'}->[0]->{$name}->[0]->{'content'} = $value;
+	}else{
+		$job_xml_ref->{'config'}->[0]->{$name} = [ $value ];
+	}
+	$job_xml_ref->{'config'}->[0]->{$name} = [ $value ];
+	open my $xmlfd,'>',$job_xml or &log(LOG_ERR,"Can Not Open XML File For Write !");
+	my $out = XMLout($job_xml_ref,RootName => 'job',XMLDecl => '1');
+	print $xmlfd $out;
+	close $xmlfd;
 }
 
 unless(defined($ARGV[0]) and $ARGV[0] =~ /^(\d+)$/)

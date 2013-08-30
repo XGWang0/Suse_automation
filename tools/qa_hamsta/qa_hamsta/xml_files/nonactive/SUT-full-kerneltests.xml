@@ -9,6 +9,7 @@
 	<mail notify="0">yxu@suse.de</mail>
         <description>SUT full kernel tests: validation, regression, performance</description>
         <motd>!!!BE AWARE: the system is running full kernel tests now. See screen -r kerneltests for details.!!!</motd>
+        <reboot>0</reboot>
     </config>
 
 

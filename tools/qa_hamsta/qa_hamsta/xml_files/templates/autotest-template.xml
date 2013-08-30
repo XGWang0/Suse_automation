@@ -10,6 +10,7 @@
         <description>Autotest tests, includes: AT_LIST.</description>
         <rpm>qa_hamsta qa_tools qa_lib_perl qa_test_autotest qa_lib_ctcs2</rpm>
         <motd>Be careful, this computer is running the following qa_test_autotest tests: AT_LIST!</motd>
+        <reboot>0</reboot>
     </config>
 
     <commands>

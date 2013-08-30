@@ -8,6 +8,7 @@
 	<description>runs sysbench benchmark</description>
 	<logdir>/tmp</logdir>
 	<rpm>hamsta sysbench-ctcs2-glue</rpm>
+        <reboot>0</reboot>
     </config>
 
     <commands>

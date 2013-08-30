@@ -8,6 +8,7 @@
         <logdir>/tmp</logdir>
 	<mail notify="0">yxu@suse.de</mail>
         <description>SUT setup</description>
+        <reboot>0</reboot>
     </config>
 
     <commands>

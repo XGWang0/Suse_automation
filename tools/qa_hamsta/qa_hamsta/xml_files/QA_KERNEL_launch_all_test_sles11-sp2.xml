@@ -10,6 +10,7 @@
         <logdir>/tmp</logdir>
         <description>SLES11-SP2 QA kernel test</description>
         <motd>[Custom job]: SLES11-SP2 QA kernel test is running</motd>
+        <reboot>0</reboot>
     </config>
 
     <commands>

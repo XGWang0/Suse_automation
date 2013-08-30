@@ -10,6 +10,7 @@
         <description>QA-packages test, includes: TS_LIST.</description>
         <rpm>qa_hamsta qa_tools qa_lib_perl TS_LIST</rpm>
         <motd>Be careful, this computer is testing the following packages: TS_LIST!</motd>
+        <reboot>0</reboot>
     </config>
 
     <commands>

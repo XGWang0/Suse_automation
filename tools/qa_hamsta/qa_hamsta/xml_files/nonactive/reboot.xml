@@ -8,6 +8,7 @@
         <mail notify="0">vmarsik@suse.cz</mail>
         <logdir>/tmp</logdir>
         <description>Immediate reboot</description>
+        <reboot>1</reboot>
     </config>
 
     <commands>
