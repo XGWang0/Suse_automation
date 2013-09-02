@@ -413,14 +413,52 @@ $('#x').on('click', function() {
 	$('#fulltext').attr('value', "");
 });
 
-//-->
-</script>
-<script type="text/javascript">
-//<!--
+/* Check privileges for the sliding actions. */
+function checkPrivileges (action) {
+	var ids = [];
+	var allowed = 0;
+
+	/* Get all ids of checked machines. */
+	$('form[name=machine_list] tbody input[type=checkbox]:checked').each (function () {
+	    ids.push ($(this).val ());
+	});
+
+	$.ajax('index.php',
+		{
+		    dataType: "json",
+		    async: false,
+		    data: { go: "machine_privileges",
+			    machine_ids : ids,
+			    user: $('div#login a.bold').text(),
+			    action: action
+			  },
+		    success:
+		    function (data) {
+			$(data).each (function (index, obj) {
+			    if (obj.allowed > allowed) {
+				allowed = obj.allowed;
+			    }
+			});
+		    }});
+	console.debug (allowed);
+	return allowed;
+}
+
+function checkForm (action) {
+	var objForm = document.forms["machine_list"];
+	var checkboxes = checkcheckbox (objForm, action);
+        var hasPriv = checkPrivileges (action);
+	var confirmed = true;
+
+	if (hasPriv == 2) {
+	    confirmed = confirm ('This action requires admin privileges. Do you want to continue?');
+	}
+	return checkboxes && confirmed;
+}
+
 $(document).ready(function(){
 $("label#action button[name='action']").click(function(){
-        var objForm = document.forms["machine_list"];
-        return checkcheckbox(objForm,this.value);
+	return checkForm (this.value);
 })});
 //-->
 </script>
@@ -432,10 +470,10 @@ $("label#action button[name='action']").click(function(){
 <button name="action" class="button machine_send_job" value="machine_send_job" >Send job</button>
 <button name="action" class="button addsut" value="addsut" class="action_button_short_right" >Add SUT</button>
 <br>
-<button name="action" value="edit" class="button edit" >Edit/reserve</button>
+<button name="action" value="machine_edit" class="button edit" >Edit/reserve</button>
 <button name="action" value="machine_reinstall" class="button machine_reinstall" >Reinstall</button>
 <br>
-<button name="action" value="delete" class="button delete" >Delete</button>
+<button name="action" value="machine_delete" class="button delete" >Delete</button>
 <button name="action" value="merge_machines" class="button merge_machines" >Merge machines</button>
 <br>
 <button name="action" value="create_group" class="button create_group" >Add to group</button>

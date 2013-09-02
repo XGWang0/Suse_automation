@@ -39,7 +39,7 @@
     $machines = $search->query();
 
     /* Check if user has privileges to delete a machines. */
-    $perm=array('owner'=>'machine_delete','other'=>'machine_delete_redirect','url'=>'index.php?go=machines');
+    $perm=array('owner'=>'machine_delete','other'=>'machine_delete_reserved','url'=>'index.php?go=machines');
     machine_permission_or_disabled($machines,$perm);
 
     if(request_str("submit"))

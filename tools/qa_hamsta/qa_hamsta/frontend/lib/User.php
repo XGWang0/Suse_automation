@@ -309,6 +309,27 @@ class User {
     return null;
   }
 
+  public static function getByName ($name) {
+	  $sql = 'SELECT * FROM `user` WHERE name = ?';
+	  $conf = ConfigFactory::build ();
+	  try {
+		  $db = Zend_Db::factory ($conf->database);
+		  $res = $db->fetchAll ($sql, $name);
+		  $db->closeConnection ();
+		  if (isset ($res[0])) {
+			  return new User ($conf,
+					   $res[0]['user_id'],
+					   $res[0]['extern_id'],
+					   $res[0]['login'],
+					   $res[0]['name'],
+					   $res[0]['email']);
+		  }
+		  return null;
+	  } catch (Zend_Db_Exception $e) {
+		  return null;
+	  }
+  }
+
   /**
    * Returns an instance of <b>registered</b> user by external id.
    *
@@ -794,21 +815,73 @@ class User {
   }
 
   /**
-   * Checks if the user has Privilege $privilege.
+   * Checks if the user has a privilege.
    *
    * @param string $privilege Privilege name.
    *
-   * @return boolean True if user has the privilege,
-   * false otherwise.
+   * @return integer Zero (0) if the user does not have the
+   * privilege. One (1) if the user has the privilege and two (2) if
+   * the user has the privilege and the role the privilege was
+   * acquired from is 'admin'.
    */
-  public function isAllowed ($privilege)
-  {
+  public function isAllowed ($privilege) {
+	  if (! $this->config->authentication->use) {
+		  return true;
+	  }
 	  $role_names = $this->getRoleList ();
+	  $allowed = 0;
+	  /* Sort them in descending order so admin will be last. */
+	  arsort ($role_names);
 	  foreach ($role_names as $role_name)
 	  {
 		  $role = UserRole::getByName ($role_name, $this->config);
-		  if ($role->isAllowed ($privilege))
-			  return true;
+		  if ($role->isAllowed ($privilege)) {
+			  $allowed = 1;
+			  if ($role->getId () == 1
+			      || $role->getName () == 'admin') {
+				  $allowed = 2;
+			  }
+			  break;
+		  }
+	  }
+	  return $allowed;
+  }
+
+  /**
+   * Returns true if user is allowed all privileges in the list.
+   *
+   * @param array[string] $list_of_privileges List of names of privileges.
+   *
+   * @return boolean Returns true if user is allowed all privileges,
+   * false otherwise.
+   */
+  public function isAllowedAll ($privilist) {
+	  foreach ($privilist as $priv) {
+		  if (! $this->isAllowed ($priv)) {
+			  return false;
+		  }
+	  }
+	  return true;
+  }
+
+  /**
+   * Returns non zero value if user is allowed at least one of the
+   * privileges.
+   *
+   * @param array[string] $list_of_privileges List of names of privileges.
+   *
+   * @return boolean Returns similar to function isAllowed (). Non
+   * zero value if user is allowed at least one of the privileges from
+   * the list. Returns false otherwise.
+   *
+   * @see isAllowed()
+   */
+  public function isAllowedAny ($privilist) {
+	  foreach ($privilist as $priv) {
+		  $alwd = $this->isAllowed ($priv);
+		  if ($alwd) {
+			  return $alwd;
+		  }
 	  }
 	  return false;
   }
@@ -899,11 +972,7 @@ function capable ()
 		return true;
 
 	# need to have at least one of the permissions
-        foreach($cap as $c) {
-                if( $user->isAllowed($c) )
-                        return true;
-        }
-        return false;
+	return $user->isAllowedAny ($cap);
 }
 
 /** 
