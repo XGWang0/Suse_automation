@@ -2,7 +2,12 @@
 
 export LANG=C
 
+FORCED_VERSION="$VERSION"
+
 [ -r PROJECT/config ] && source PROJECT/config
+
+# if version was defined externally, use that one
+[ "$FORCED_VERSION" == "" ] || VERSION="$FORCED_VERSION"
 
 project=QA:Head:Devel
 iosc="osc -A https://api.suse.de"
