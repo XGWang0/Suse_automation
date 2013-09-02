@@ -1,0 +1,49 @@
+#! /bin/bash
+
+GITROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+GITHOOKSDIR=.git/hooks
+OURHOOKSDIR=.git-hooks
+PRECOMMIT=pre-commit
+
+if [[ -z "$GITROOT" ]]; then
+    echo "Can not find git root directory. Are you running this in git repository?" >&2;
+    exit 1;
+fi
+
+if [[ ! -d $GITHOOKSDIR ]]; then
+    echo "error: The hooks directory does not exist. You should create it." >&2;
+    exit 1;
+fi
+
+if [[ ! -x $PRECOMMIT ]]; then
+    echo "Making the $PRECOMMIT file executable.";
+    chmod +x $PRECOMMIT;
+fi
+
+if [[ ! -h "$GITHOOKSDIR/$PRECOMMIT" ]]; then
+    cd "$GITHOOKSDIR";
+    ln -s "../../$OURHOOKSDIR/$PRECOMMIT" "$PRECOMMIT";
+fi
+
+cat <<EOF;
+git commit hooks created.
+
+Since now the pre-commit hook is executed when you run a 'git commit'
+command in this repository.
+
+It will check for any inconsistencies in your commit, report them and
+abort the commit.
+
+If you want to bypass this, you can use
+
+	'git commit --no-verify'
+
+or
+
+	'git commit -n'.
+
+If you want to disable this completely remove the link to the
+pre-commit in '.git/hooks' directory.
+EOF
+
+exit 0;
