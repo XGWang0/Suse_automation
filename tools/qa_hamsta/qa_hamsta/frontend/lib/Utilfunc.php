@@ -173,7 +173,8 @@ function act_menu($args)
 	/* Send job menu */
 	print '<li class="has-sub"><img src="' . $args['send-job']['src']. '" alt="jobs"/>';
 	print '<ul>';
-	print '<li class="has-sub"><a href="' . $args['send-job']['href'] . '"><img src="' . $args['send-job']['src']. '"/>Send job</a>';
+	print '<li class="has-sub"><a href="' . $args['send-job']['href'] . '" onclick="'
+		. $args['send-job']['onclick'] . '"><img src="' . $args['send-job']['src']. '"/>Send job</a>';
 	print '<ul>';
 	print action_menu_item (array ('href'=>$args['send-job']['href'] . '#predefined',
 				       'onclick'=>$args['send-job']['onclick'],
