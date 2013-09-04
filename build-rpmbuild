@@ -8,7 +8,7 @@ source shared.sh
 # override cleanup from shared.sh!!!
 function cleanup
 {
-	rm /usr/src/packages/SOURCES
+	rm -fr /usr/src/packages/SOURCES
 	mv /usr/src/packages/SOURCES.$$ /usr/src/packages/SOURCES
 	return 0
 }
@@ -47,5 +47,13 @@ popd > /dev/null
 # restore original SOURCES 
 cleanup
 echo -n "$1 "
-grep "RPM build errors:" /tmp/log || echo "Build Done! Builds are in /usr/src/packages/RPMS"
+grep "RPM build errors:" /tmp/log || {
+
+	for d in /usr/src/packages/RPMS/* 
+	do
+		[ -d $d ] && ls $d/*.rpm > /dev/null 2>&1 && cp -r $d "$DESTDIR" && rm -r $d/*.rpm
+	done
+	chown -R `stat -c %U:%G "$DESTDIR"` "$DESTDIR" # Fix ownership
+	echo "Build Done! Builds are in $DESTDIR"
+}
 
