@@ -338,7 +338,7 @@ function machine_icons($machine,$user)
 		$b = array_merge( # we take defaults and overwrite them by $btn[$act]
 			array( # default values for a button
 				'url'=>$url_base.($is_pwr ? "&go=power&action=$act":"&go=$perm"),
-				'allowed'=>(!$auth ? 1 : ($users_machine ? capable($permr,$perm) : capable($permr))),
+				'allowed'=>(!$auth ? 1 : ($users_machine ? capable($perm,$permr) : capable($permr))),
 				'enbl'=>($is_pwr ? $has_pwr : true),
 				'confirm'=>$is_pwr,
 				'object'=>$host,
