@@ -42,25 +42,36 @@ input.x {
   margin: -3em 0 0 -1em;
   white-space: nowrap;
 }
-.breadcrumb label {
-  display: button;
+.breadcrumb label.pos.first {
+  margin-left:4em;
+}
+.breadcrumb label.pos {
+  color:blue;
+  background-color:#eee;
+  padding:1px 1em;
+  border: solid #ddd;
+  border-width:2px 0;
+  display:inline-block;
+  text-align: center;
+  min-width:5em;
+  font-size:80%;
+}
+.breadcrumb label.pos.active {
+  display: inline-block;
+  border: solid #89b;
+  border-width: 3px 0;
+  padding:0 1em;
+  background-color:#bce;
+  font-weight: bold;
 }
 
 /* tabs - credits to css-tricks.com */
-div.tabs{ 
-  clear: both;
-  margin: 1.7em 12em;
+div.tabs{
+  margin-top: 3em;
+  display:table;
 }
 div.tab  {
   padding: 0 0.5em;
-  float: left;
-}
-div.tab > label {
-  background: #eee; 
-  padding: 0.2em 0.5em; 
-  border: 1px solid #ccc;
-  border-bottom: none;
-  border-radius: 4px 4px 0 0;
 }
 div.tab > [type=radio] {
   display: none;   
@@ -68,45 +79,35 @@ div.tab > [type=radio] {
 div.content {
   margin-bottom: 0.8em;
   background-color:#fff;
-  position: absolute;
-  top: 16em;
+/*  position: absolute;*/
+  top: 8em;
   left: 1em;
   padding: 1em;
-  border: 1px solid #ccc;
-  border-radius: 0.5em;
 
   /* minimal sizes */
   display: table;
   min-width: 45em;
-  min-height: 10em;
+  min-height: 8em;
 }
-div.tab > [type=radio]:checked + label {
-  background: white;
-  border-bottom: 1px solid white;
-  z-index: 2;
+div.content, fieldset  {
+  border: 1px solid #ccc;
+  border-radius: 0.5em;
 }
-div.tab > [type=radio] + label + div.content {
-  display: none;
-  /*visibility: hidden;
-  -webkit-transition: all .3s .1s;
-   -moz-transition: all .3s .1s;
-     -o-transition: all .3s .1s;
-        transition: all .3s .1s;*/
 
+div.tab > [type=radio] + div.content {
+  display: none;
 }
-div.tab > [type=radio]:checked + label + div.content {
+div.tab > [type=radio]:checked + div.content {
   z-index: 1;
   display: block;
-  /*visibility: visible;*/
 }
 
 /* rows, inputs etc. */
+div.tabs div {
+  display:table;
+}
 div.row {
   margin: 0.5em 0
-}
-
-div.content label {
-/*  margin-left:1em;*/
 }
 div.breadcrumb label, input[type="radio"]+label, label:first-child {
   margin-left:0;
@@ -126,17 +127,25 @@ input[required]   {
   -moz-box-shadow: 0px 0px 3px #f00;
 }
 div.row>label:first-child,
-div.content>span.first {
+div.content>span.first  {
   display:inline-block;
   min-width:10em;
 }
 div#tab-advanced label:first-child  {
   min-width:14em;
 }
+select.url  {
+  min-width:11em;
+}
+input#repartitiondisk {
+  width:2em;
+  min-width:2em !important;
+}
 
 /* add ':' after relevant labels */
 div.content label:after,
-div.content>span.first:after {
+div.content>span.first:after,
+fieldset>span:after {
   content:':';
 }
 div.breadcrumb label:after,
@@ -144,6 +153,17 @@ input[type="radio"] + label:after,
 input[type="checkbox"] + label:after,
 div.addon_btns label:after {
   content: normal;
+}
+
+/* notes */
+.note, div#smt {
+  font-size:90%;
+  font-style:italic;
+}
+div#smt:before  {
+  content: '\21d2';
+  color: blue;
+  margin: 0 0.3em;
 }
 
 /* summary moode - tabs */
@@ -182,9 +202,14 @@ input#summary:checked ~ div.tabs [type="text"]
   font-size:90%;
   min-width: 15em;
 }
+input#summary:checked ~ div.tabs select {
+    text-indent: 0.01px;
+    text-overflow: '';
+    -webkit-appearance: button;
+    -moz-appearance: button;
+    margin-left: -0.2em;
+}
 input#summary:checked ~ div.tabs input[type="file"] {
-  display:table;
-  background-color:#faa;
 }
 input#summary:checked ~ div.tabs [type="checkbox"],
 input#summary:checked ~ div.tabs [type="checkbox"] + label,
@@ -194,6 +219,11 @@ input#summary:checked ~ div.tabs .note {
 }
 input#summary:checked ~ div.tabs [type="checkbox"]:checked + label {
   display: inline;
+  font-weight: bold;
+  font-size: 90%;
+}
+input#summary:checked ~ div.tabs [type="checkbox"]:first-child:checked + label  {
+  margin-left: 11.5em;
 }
 input#summary:checked ~ div.tabs fieldset {
   border: none;
@@ -202,7 +232,12 @@ input#summary:checked ~ div.tabs fieldset {
 input#summary:checked ~ div.tabs .summary {
   visibility:1;
 }
-
+input#summary:checked ~ div.tabs legend > label,
+input#summary:checked ~ div.tabs legend + span {
+  display: inline-block;
+  min-width: 10em;
+  margin-left:-0.2em;
+}
 /* summary mode - product archs & URLs hide help elements */
 input#summary:checked ~ div.tabs div.content input[type="radio"],
 input#summary:checked ~ div.tabs div.content input[type="radio"] + label,
@@ -210,9 +245,13 @@ input#summary:checked ~ div.tabs label.url,
 input#summary:checked ~ div.tabs select.url {
   display:none;
 }
-input#summary:checked ~ div.tabs div.content input[type="radio"][name="tab-reg"]:checked + label  {
+input#summary:checked ~ div.tabs div.content input[type="radio"][name="startupdate"]:checked + label  {
   display:inline;
   font-weight:bold;
+  font-size:90%;
+}
+input#summary:checked ~ div.tabs input.regprefix {
+  min-width:3em;
 }
 
 /* finishing */
@@ -228,11 +267,11 @@ input#summary:checked ~ div#finish  {
 input.addons  {
   display:none;
 }
-input.addons:checked  + div.row  {
-  display: block;
-}
 input.addons  + div.row {
   display:none;
+}
+input.addons:checked  + div.row  {
+  display: block;
 }
 
 div.addons {
@@ -248,7 +287,7 @@ input#summary:checked ~ div.tabs div#first-addon {
   margin-top:0;
 }
 div#first-addon {
-  margin-top:1em;
+  margin-top:-0.5em;
 }
 
 /* addon reg types */
@@ -271,7 +310,6 @@ span#regmail  {
 input#reg_code:checked ~ span#regmail {
   display: inline;
 }
-
 
 
 

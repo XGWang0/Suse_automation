@@ -84,36 +84,48 @@ Machines:
 <div class="tabs">
 	<div id='tab-product' class="tab">
 		<input type="radio" id="tab1" name="tab-group-1" checked/>
-		<label for="tab1">Product</label>
 		<div class="content">
 			<div class="breadcrumb">
 				<label for="tab1"><input type="button" value="Prev" class="disabled"/></label>
 				<label for="tab2"><input type="button" value="Next"/></label>
 				<label for="summary"><input type="button" value="Finish"/></label>
+				<label class='pos active first' for="tab1">Product</label>
+				>>
+				<label class='pos' for="tab2">Disk</label>
+				>>
+				<label class='pos' for="tab3">Advanced</label>
 			</div>
 			<?php require ("req_rein_all.php"); ?>
 		</div>
 	</div>
 	<div id='tab-disk' class="tab">
 		<input type="radio" id="tab2" name="tab-group-1"/>
-		<label for="tab2">Disk</label>
 		<div class="content">
 			<div class="breadcrumb">
 				<label for="tab1"><input type="button" value="Prev"/></label>
 				<label for="tab3"><input type="button" value="Next"/></label>
 				<label for="summary"><input type="button" value="Finish"/></label>
+				<label class='pos first' for="tab1">Product</label>
+				>>
+				<label class='pos active' for="tab2">Disk</label>
+				>>
+				<label class='pos' for="tab3">Advanced</label>
 			</div>
 			<?php require ("req_rein.php"); ?>
 		</div>
 	</div>
 	<div id='tab-advanced' class="tab">
 		<input type="radio" id="tab3" name="tab-group-1"/>
-		<label for="tab3">Advanced</label>
 		<div class="content">
 			<div class="breadcrumb">
 				<label for="tab2"><input type="button" value="Prev"/></label>
 				<label for="tab3"><input type="button" value="Next" class="disabled"/></label>
 				<label for="summary"><input type="button" value="Finish"/></label>
+				<label class='pos first' for="tab1">Product</label>
+				>>
+				<label class='pos' for="tab2">Disk</label>
+				>>
+				<label class='pos active' for="tab3">Advanced</label>
 			</div>
 			<?php require ("req_sut.php"); ?>
 		</div>
