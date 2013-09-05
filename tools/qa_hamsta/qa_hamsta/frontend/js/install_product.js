@@ -176,10 +176,11 @@ function get_archs (product_type) {
     return false;
 }
 
-function get_urls (product_type) {
+function get_urls (product_type, arch_type) {
     var para = {
         product: $("#" + product_type + "_products").val(),
-        arch: $("#"  + product_type + "_archs").val()
+        //arch: $("#"  + product_type + "_archs").val()
+        arch: arch_type
     };
     var patterns_id = "";
     switch (product_type) {
@@ -376,21 +377,25 @@ $(document).ready(function() {
 
     /* Register events for specified form parts. */
     $("#repo_products").change( function () {
-	get_archs ('repo');
+        if ($("#repo_products").val())
+            get_urls ('repo', 'x86_64');
     });
 
-    $("#repo_archs").change( function () {
+    /*$("#repo_archs").change( function () {
 	get_urls ('repo');
     });
+    */
 
     $("#addon_products").change( function () {
-	get_archs ('addon');
+	if ($("#addon_products").val())
+            get_urls ('addon', 'x86_64');
+
     });
 
-    $("#addon_archs").change( function () {
+    /*$("#addon_archs").change( function () {
 	get_urls('addon');
     });
-
+    */
     $("#repo_producturl").change ( function () {
 	get_patterns ('#repo_producturl', 'available_patterns', 'distro');
 	auto_set_kexec ($(this).val ());
@@ -406,6 +411,19 @@ $(document).ready(function() {
 
     $('#kexecboot').change(function () {
 	kexec_manually_selected = $(this).attr ('checked');
+    });
+
+    $("input[name='product_arch']").change(function(){
+        if ($("input[name='product_arch']:checked").val() == 'i586')
+        {
+	    get_urls ('repo', 'i386');
+        }
+        else if ($("input[name='product_arch']:checked").val() == 'x86_64')
+        {
+	    get_urls ('repo', 'x86_64');
+        }
+        else
+	{}
     });
 
 });
