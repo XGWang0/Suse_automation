@@ -1,0 +1,118 @@
+#!/bin/bash
+
+export LANG=C
+
+this="`which "$0"`"
+cd "`dirname "$this"`"
+
+[ -r PROJECT/config ] && source PROJECT/config
+
+# Configuration - will be moved to some file later
+
+CURRENT_PRODUCT="`xmllint -xpath '/product/name/text()' /etc/products.d/baseproduct`-`xmllint -xpath '/product/version/text()' /etc/products.d/baseproduct`"
+
+ARCH=`arch`
+PRODUCT="$CURRENT_PRODUCT"
+REPOSITORY="/tmp/repo"
+BUILDSYSTEM='osc' # osc or rpmbuild
+
+
+if [ "$BUILDSYSTEM" == "rpmbuild" -a "$PRODUCT" != "$CURRENT_PRODUCT" ]
+then
+	echo "Error: rpmbuild can only build for same product that it runs on ($CURRENT_PRODUCT)" >&2
+	exit 1;
+fi
+
+mkdir -p "$REPOSITORY/$PRODUCT/$ARCH" || exit 1
+mkdir -p "$REPOSITORY/$PRODUCT/noarch" || exit 1
+mkdir -p "$REPOSITORY/$PRODUCT/METADATA" || exit 1
+
+PROJECT_VERSION=$VERSION
+
+# Set the custom version
+timestamp="`date '+%Y%m%d%H%M%S'`"
+gitcommit="`git log -1 --pretty=oneline | cut -f 1 -d ' '`"
+TESTVERSION="${PROJECT_VERSION}_${timestamp}_${gitcommit}"
+
+# For each package
+PACKDIRS="`find -maxdepth 2 -mindepth 2 | sed  's,^\./\?,,' | grep -v \.git | grep -v '^$'`"
+
+
+result=0
+
+for path in $PACKDIRS ; do
+        dir=${path%/*}
+        pack=${path#*/}
+        [ "$dir" == "obsolete" ] && continue
+        if [ -r $path/$pack.spec ] ; then
+	
+		# check whether to build it
+		if [ -z "`git status --porcelain "$path"`" ] 
+		then
+			# all changes commited
+			id=$gitcommit
+		else
+			# some changes in working dir are not commited
+			tfile=`mktemp`
+			git ls-files --exclude-per-directory=.gitignore "$path" > $tfile
+	                git ls-files --exclude-per-directory=.gitignore -o "$path" >> $tfile
+	                md5=`cat $tfile | sort | xargs ls -l --full-time | md5sum | cut -d ' ' -f 1`
+			id="wip$md5"
+			rm $tfile
+		fi
+	
+		old=""
+		[ -r "$REPOSITORY/$PRODUCT/METADATA/$pack" ] && old="`cat "$REPOSITORY/$PRODUCT/METADATA/$pack"`"
+#		for arch in $ARCH noarch
+#		do
+#			# if release version has changed, we will not match -> rebuild
+#			foo=`ls "$REPOSITORY/$PRODUCT/$arch" | grep "^$pack-${PROJECT_VERSION}_[0-9]\{14\}_[a-zA-Z0-9]\+-"`
+#			[ -z "$foo" ] || old="`echo $foo | sed "s/^$pack-${PROJECT_VERSION}_[0-9]\{14\}_\([a-zA-Z0-9]\+\)-[0-9]\+\(\.[0-9]\+\)\?\..*/\1/"`"
+#		done
+		echo "OLD VERSION: $old"
+		echo NEW VERSION: $id
+		rebuild="no"
+		if [ -z "$old" ]
+		then
+			# not built yet
+			rebuild="yes"
+		elif [ "$id" != "$old" ] 
+		then
+			if [[ "$old" =~ ^wip.* ]]
+			then
+				# gitcommit of old is wip# (and not same as current)
+				rebuild="yes"
+			elif [[ "$id" =~ ^wip.* ]]
+			then
+				# we have some uncommited changes and they are not same as last time
+				rebuild="yes"
+			elif ! git diff --quiet $old "$path"
+			then 
+				# our commit is different to previous commit
+				rebuild=yes
+			fi
+		fi
+	
+		# build it
+		if [ "$rebuild" == "yes" ] ; then 
+			VERSION="${PROJECT_VERSION}_${timestamp}_$id" DESTDIR="$REPOSITORY/$PRODUCT" ./build-$BUILDSYSTEM "$path"
+#echo BUILDING $pack
+			res=$?
+
+			# write metadata (commit id) if build was sucessful
+			[ $res -eq 0 ] && echo "$id" > "$REPOSITORY/$PRODUCT/METADATA/$pack"
+			result=$(( $result+$res ))
+		else
+			echo "INFO: $pack does not need to be rebuilt..."
+		fi
+        else
+                echo "INFO: $path is not a package directory... SKIPED"
+        fi
+        echo
+done
+
+
+# clean old versions
+
+# create repo
+
