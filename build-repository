@@ -9,7 +9,7 @@ source shared.sh
 
 CURRENT_PRODUCT="`xmllint -xpath '/product/name/text()' /etc/products.d/baseproduct`-`xmllint -xpath '/product/version/text()' /etc/products.d/baseproduct`"
 
-# Configuration - will be moved to some file later
+# Configuration
 if [ -r config ] 
 then
 	source config
@@ -22,25 +22,25 @@ assert_command createrepo
 if [ "$BUILDSYSTEM" == "rpmbuild" -a "$PRODUCT" != "$CURRENT_PRODUCT" ]
 then
 	echo "Error: rpmbuild can only build for same product that it runs on ($CURRENT_PRODUCT)" >&2
-	exit 1;
+	exit 1
 fi
 
 mkdir -p "$REPOSITORY/$PRODUCT/$ARCH" || exit 1
 mkdir -p "$REPOSITORY/$PRODUCT/noarch" || exit 1
 mkdir -p "$REPOSITORY/$PRODUCT/METADATA" || exit 1
+mkdir -p "$REPOSITORY/$PRODUCT/LOGS" || exit 1
 
 PROJECT_VERSION=$VERSION
 
-# Set the custom version
+# Set the custom version in format:
+# "${PROJECT_VERSION}_${timestamp}_${gitcommit}"
 timestamp="`date '+%Y%m%d%H%M%S'`"
 gitcommit="`git log -1 --pretty=oneline | cut -f 1 -d ' '`"
-TESTVERSION="${PROJECT_VERSION}_${timestamp}_${gitcommit}"
 
 # For each package
 PACKDIRS="`find -maxdepth 2 -mindepth 2 | sed  's,^\./\?,,' | grep -v \.git | grep -v '^$'`"
 
-
-result=0
+result=0 # count number of failed builds
 
 for path in $PACKDIRS ; do
         dir=${path%/*}
@@ -55,6 +55,8 @@ for path in $PACKDIRS ; do
 			id=$gitcommit
 		else
 			# some changes in working dir are not commited
+			# instead of gitcommit, use md5 of complete listing including mtimes
+			# ignore files that git ignores
 			tfile=`mktemp`
 			git ls-files --exclude-per-directory=.gitignore "$path" > $tfile
 	                git ls-files --exclude-per-directory=.gitignore -o "$path" >> $tfile
@@ -63,16 +65,13 @@ for path in $PACKDIRS ; do
 			rm $tfile
 		fi
 	
+		# Read the commit id (or md5) of the package that is already in the repo
+		# Read it from metadata (for external packages, we cannot store it in version)
 		old=""
 		[ -r "$REPOSITORY/$PRODUCT/METADATA/$pack" ] && old="`cat "$REPOSITORY/$PRODUCT/METADATA/$pack"`"
-#		for arch in $ARCH noarch
-#		do
-#			# if release version has changed, we will not match -> rebuild
-#			foo=`ls "$REPOSITORY/$PRODUCT/$arch" | grep "^$pack-${PROJECT_VERSION}_[0-9]\{14\}_[a-zA-Z0-9]\+-"`
-#			[ -z "$foo" ] || old="`echo $foo | sed "s/^$pack-${PROJECT_VERSION}_[0-9]\{14\}_\([a-zA-Z0-9]\+\)-[0-9]\+\(\.[0-9]\+\)\?\..*/\1/"`"
-#		done
-		echo "OLD VERSION: $old"
-		echo NEW VERSION: $id
+		
+		# Got the information, now determine whether the file needs to be rebuild
+		# = whether there were any changes
 		rebuild="no"
 		if [ -z "$old" ]
 		then
@@ -80,6 +79,7 @@ for path in $PACKDIRS ; do
 			rebuild="yes"
 		elif [ "$id" != "$old" ] 
 		then
+			# different commit id does not mean we have to rebuild - check for changes!
 			if [[ "$old" =~ ^wip.* ]]
 			then
 				# gitcommit of old is wip# (and not same as current)
@@ -91,19 +91,27 @@ for path in $PACKDIRS ; do
 			elif ! git diff --quiet $old "$path"
 			then 
 				# our commit is different to previous commit
-				rebuild=yes
+				rebuild="yes"
 			fi
 		fi
 	
 		# build it
 		if [ "$rebuild" == "yes" ] ; then 
-			VERSION="${PROJECT_VERSION}_${timestamp}_$id" DESTDIR="$REPOSITORY/$PRODUCT" ./build-$BUILDSYSTEM "$path"
-#echo BUILDING $pack
+			# rebuild with custom version and put it directly to the repo	
+			echo "INFO: Building $pack ..."
+			VERSION="${PROJECT_VERSION}_${timestamp}_$id" DESTDIR="$REPOSITORY/$PRODUCT" ./build-$BUILDSYSTEM "$path" > "$REPOSITORY/$PRODUCT/LOGS/$pack" 2>&1
 			res=$?
 
-			# write metadata (commit id) if build was sucessful
-			[ $res -eq 0 ] && echo "$id" > "$REPOSITORY/$PRODUCT/METADATA/$pack"
-			result=$(( $result+$res ))
+			if [ $res -eq 0 ] 
+			then
+				# write metadata (commit id) if build was sucessful
+				echo "$id" > "$REPOSITORY/$PRODUCT/METADATA/$pack"
+				echo "PASS: $pack build successful"
+			else
+				# otherwise increase failed build counter
+				result=$(( $result+1 ))
+				echo "FAIL: $pack build failed"
+			fi
 		else
 			echo "INFO: $pack does not need to be rebuilt..."
 		fi
@@ -114,10 +122,11 @@ for path in $PACKDIRS ; do
 done
 
 
-# clean old versions
+# clean old versions of package from repo (this is not mandatory - so not
+# fail if command not found
 if which repomanage > /dev/null 2>&1
 then
-	repomanage --old "$REPOSITORY/$PRODUCT/" | xargs rm 
+	repomanage --old "$REPOSITORY/$PRODUCT/" | xargs rm -f
 else
 	cat >&2 << EOM  
 ***************************** WARNING **********************************
@@ -132,6 +141,8 @@ Please install yum-utils package, which contains repomanage command.
 EOM
 fi
 
-# create repo
+# recreate repo
 createrepo "$REPOSITORY/$PRODUCT/"
 
+# return number of failed builds
+exit $result
