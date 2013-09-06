@@ -5,7 +5,7 @@ export LANG=C
 this="`which "$0"`"
 cd "`dirname "$this"`"
 
-[ -r PROJECT/config ] && source PROJECT/config
+source shared.sh
 
 # Configuration - will be moved to some file later
 
@@ -16,6 +16,7 @@ PRODUCT="$CURRENT_PRODUCT"
 REPOSITORY="/tmp/repo"
 BUILDSYSTEM='osc' # osc or rpmbuild
 
+assert_command createrepo
 
 if [ "$BUILDSYSTEM" == "rpmbuild" -a "$PRODUCT" != "$CURRENT_PRODUCT" ]
 then
@@ -113,6 +114,23 @@ done
 
 
 # clean old versions
+if which repomanage > /dev/null 2>&1
+then
+	repomanage --old "$REPOSITORY/$PRODUCT/" | xargs rm 
+else
+	cat >&2 << EOM  
+***************************** WARNING **********************************
+Command repomanage not found. It is not possible to remove old RPMs from 
+the repository. 
+
+The repository size will keep increasing!!!
+
+Please install yum-utils package, which contains repomanage command.
+***************************** WARNING **********************************
+
+EOM
+fi
 
 # create repo
+createrepo "$REPOSITORY/$PRODUCT/"
 
