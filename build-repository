@@ -7,14 +7,15 @@ cd "`dirname "$this"`"
 
 source shared.sh
 
-# Configuration - will be moved to some file later
-
 CURRENT_PRODUCT="`xmllint -xpath '/product/name/text()' /etc/products.d/baseproduct`-`xmllint -xpath '/product/version/text()' /etc/products.d/baseproduct`"
 
-ARCH=`arch`
-PRODUCT="$CURRENT_PRODUCT"
-REPOSITORY="/tmp/repo"
-BUILDSYSTEM='osc' # osc or rpmbuild
+# Configuration - will be moved to some file later
+if [ -r config ] 
+then
+	source config
+else
+	source config.example
+fi
 
 assert_command createrepo
 
