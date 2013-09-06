@@ -1,0 +1,22 @@
+#!/bin/bash
+
+export LANG=C
+
+this="`which "$0"`"
+cd "`dirname "$this"`"
+
+[ -r PROJECT/config ] && source PROJECT/config
+
+# Configuration - will be moved to some file later
+
+CURRENT_PRODUCT="`xmllint -xpath '/product/name/text()' /etc/products.d/baseproduct`-`xmllint -xpath '/product/version/text()' /etc/products.d/baseproduct`"
+
+PRODUCT="$CURRENT_PRODUCT"
+REPOSITORY="/tmp/repo"
+PORT=8888
+
+# start server 
+
+echo Now starting web server...
+webfsd -p $PORT -R $REPOSITORY -F -e 0
+echo Web server stopped...
