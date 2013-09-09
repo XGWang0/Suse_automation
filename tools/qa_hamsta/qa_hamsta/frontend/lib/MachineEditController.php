@@ -49,7 +49,8 @@ class MachineEditController
 				Log::create($machine->get_id(), $user->getLogin (),
 					    'RELEASE', "has unreserved this machine");
 			} else {
-				$this->addMachineError ($machine, 'Can not unreserve. It is already free!');
+				$this->addMachineError ($machine, 'Can not unreserve.'
+							.' You do not have reservation.');
 			}
 		}
 	}
