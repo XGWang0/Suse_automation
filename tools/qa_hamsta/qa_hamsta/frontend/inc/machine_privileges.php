@@ -33,8 +33,9 @@ if ($user) {
 	$rh = new ReservationsHelper ();
 
 	foreach ($machines as $m) {
+		$has_reservations = count ($rh->getForMachine ($m));
 		$users_machine = count ($rh->getForMachineUser ($m, $user));
-		if ($users_machine && $alw) {
+		if ((! $has_reservations || $users_machine) && $alw) {
 			$allowed = $alw;
 		} else if ($alw_res) {
 			$allowed = $alw_res;

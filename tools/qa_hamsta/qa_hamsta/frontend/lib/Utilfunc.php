@@ -173,7 +173,8 @@ function act_menu($args)
 	/* Send job menu */
 	print '<li class="has-sub"><img src="' . $args['send-job']['src']. '" alt="jobs"/>';
 	print '<ul>';
-	print '<li class="has-sub"><a href="' . $args['send-job']['href'] . '"><img src="' . $args['send-job']['src']. '"/>Send job</a>';
+	print '<li class="has-sub"><a href="' . $args['send-job']['href'] . '" onclick="'
+		. $args['send-job']['onclick'] . '"><img src="' . $args['send-job']['src']. '"/>Send job</a>';
 	print '<ul>';
 	print action_menu_item (array ('href'=>$args['send-job']['href'] . '#predefined',
 				       'onclick'=>$args['send-job']['onclick'],
@@ -337,7 +338,7 @@ function machine_icons($machine,$user)
 		$b = array_merge( # we take defaults and overwrite them by $btn[$act]
 			array( # default values for a button
 				'url'=>$url_base.($is_pwr ? "&go=power&action=$act":"&go=$perm"),
-				'allowed'=>(!$auth ? 1 : ($users_machine ? capable($permr,$perm) : capable($permr))),
+				'allowed'=>(!$auth ? 1 : ($users_machine ? capable($perm,$permr) : capable($permr))),
 				'enbl'=>($is_pwr ? $has_pwr : true),
 				'confirm'=>$is_pwr,
 				'object'=>$host,
