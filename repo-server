@@ -15,8 +15,34 @@ else
 	source config.example
 fi
 
+if ! which webfsd > /dev/null 2>&1 
+then
+	cat >&2 << EOF 
+************************** ERROR ********************************
+Package webfs is not installed (from QA:Head). 
+
+Please install and try again, or use configure other http server
+to publish repository $REPOSITORY
+*****************************************************************
+
+EOF
+	exit 1
+fi
+
 # start server 
 
-echo Now starting web server...
-webfsd -p $PORT -R $REPOSITORY -F -e 0
-echo Web server stopped...
+cat << EOF
+
+Now starting web server...
+
+You can connect to 
+
+	http://`hostname -f`:$PORT
+
+or 
+
+	http://`hostname -i`:$PORT
+
+(running)
+EOF
+exec webfsd -p $PORT -r $REPOSITORY -F -e 0
