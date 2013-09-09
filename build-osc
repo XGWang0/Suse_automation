@@ -35,11 +35,20 @@ $iosc help repairwc > /dev/null 2>&1 &&  $iosc repairwc .
 echo
 echo '+-- RUNNING BUILD ----------------------------------------------------------------'
 echo
-$iosc build --no-verify SUSE_SLE-11-SP2_GA
+$iosc build -k "$DESTDIR" --no-verify SUSE_SLE-11-SP2_GA
 res=$?
 echo
 echo '+-- BUILD FINISHED ---------------------------------------------------------------'
 echo
 rm -fr "$dir"
+
+# create directory structure
+cd "$DESTDIR"
+for p in *.rpm ; do
+	[ "$p" == '*.rpm' ] && continue
+	arch="`echo $p | sed 's/^.*\.\([^\.]\+\)\.rpm/\1/'`"
+	mkdir -p $arch
+	mv $p $arch
+done
 
 exit $res
