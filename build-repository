@@ -7,7 +7,7 @@ cd "`dirname "$this"`"
 
 source shared.sh
 
-CURRENT_PRODUCT="`xmllint -xpath '/product/name/text()' /etc/products.d/baseproduct`-`xmllint -xpath '/product/version/text()' /etc/products.d/baseproduct`"
+CURRENT_PRODUCT="`xmllint -xpath '/product/name/text()' /etc/products.d/baseproduct`_`xmllint -xpath '/product/version/text()' /etc/products.d/baseproduct`"
 
 # Configuration
 if [ -r config ] 

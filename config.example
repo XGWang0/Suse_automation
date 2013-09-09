@@ -6,7 +6,7 @@
 # (The file $REPO/confg is in gitignore, so it will not be commited)
 
 
-PRODUCT="`xmllint -xpath '/product/name/text()' /etc/products.d/baseproduct`-`xmllint -xpath '/product/version/text()' /etc/products.d/baseproduct`"
+PRODUCT="`xmllint -xpath '/product/name/text()' /etc/products.d/baseproduct`_`xmllint -xpath '/product/version/text()' /etc/products.d/baseproduct`"
 ARCH=`arch`
 REPOSITORY="/tmp/repo"
 BUILDSYSTEM='osc' # osc or rpmbuild
