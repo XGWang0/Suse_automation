@@ -90,6 +90,10 @@ if (isset ($ns_machine_filter->fields)
 			}
 		}
 	}
+	else if($key == 'group')
+	{
+		$filter_description = "\n\t" . "<span class='bold'> Machines from group</span> " . '"'. $value . '"';
+	}
 	else
 	{
 		$filter_description = "\n\t" . '<span class="bold">' . $fields_list[$key] . '</span> is "' . $value . '"';
