@@ -304,7 +304,8 @@
 				if ($key == 'group')
 				{
 					$filter = request_str ($key);
-					$ns_machine_filter->fields[$key] = $filter;
+					if ( isset($filter) && $filter != "" )
+						$ns_machine_filter->fields[$key] = $filter;
 				}
 			}
 	
