@@ -35,10 +35,16 @@ require("timezone.php");
   <input type='radio' id='reg_code' name='startupdate' value='update-reg'/><label for='reg_none'>code</label>
   <span id='regmail'>
     <label for='update-reg-mail'>Registration e-mail</label>
-    <input id='update-reg-email' type='text' value='bill.gates@microsoft.com' name='update-reg-email'/>
+    <input id='update-reg-email' type='text' value='' name='update-reg-email'/>
   </span>
   </br>
-  <div class='row' id='smt'> SMT server: https://smt.novell.com/certer/regsvc (Note: This has to be configured in config.ini by admin). ,</div>
+  <div class='row' id='smt'>
+<?php
+  print "SMT server: <strong>$config->smtserver</strong> (<strong>Note:</strong> This has to be configured in config.ini by admin.)."
+        . "<input type='hidden' value= $config->smtserver name='update-smt-url' />";
+
+?>
+  </div>
   <div class='row'>
 	<label for="repo_products">Product</label> 
 	<select name="repo_products" id="repo_products" class='url'></select>
@@ -50,14 +56,14 @@ require("timezone.php");
 	<input type="text" name="repo_producturl" id="repo_producturl" class='url'  value="<?php if(isset($_POST["repo_producturl"])){echo $_POST["repo_producturl"];} ?>" title="required: url" />
 	<span class='rcode'>
 		<label for='rcode_product'>Reg.code</label>
-		<input type='text' class='regprefix' name='regprefix_product' id='regprefix_prod' value='666'/>
-		<input type='text' class='regcode' name='rcode_product' id='rcode_product' value='123-456-789'/>
+		<input type='text' class='regprefix' name='regprefix_product' id='regprefix_prod' value=''/>
+		<input type='text' class='regcode'   name='rcode_product'     id='rcode_product'  value=''/>
 	</span>
   </div>
 
   <div class='row addons' id='first-addon'>
 	<label for="addon_products">Add-on 0</label>
-	<select name="addon_products[]" id="addon_products" class="url"></select>
+	<select name="addon_products" id="addon_products" class="url"></select>
 	<input type='radio' class='arch' name='addon0_arch' id='addon0_arch1' checked='checked' value='x86_64'/>
 	<label for='addon0_arch1'>x86_64</label>
 	<input type='radio' class='arch' name='addon0_arch' id='addon_arch2'  value='i586'/>
@@ -66,11 +72,11 @@ require("timezone.php");
 	<input type="text" name="addon_url[]" id="addon_producturl" class='url' value="<?php if(isset($_POST["addon_producturl"])){echo $_POST["addon_producturl"];} ?>" />
 	<span class='rcode'>
 		<label for="rcode_product">Reg.code</label>
-		<input type='text' class='regprefix' name="regprefox[]" id='regprefix0' value='666'/>
-		<input type='text' class='regcode'   name="regcode[]" id='rcode_a0' value='123-456-789'/>
+		<input type='text' class='regprefix' name="regprefox[]" id='regprefix0' value=''/>
+		<input type='text' class='regcode'   name="regcode[]" id='rcode_a0' value=''/>
 	</span>
 	<div class="addon_btns">
-		<label for='addon1'><input type='button' class='addonbtn' value='+' /></label>
+		<label for='addon1'><input type='button' class='addonbtn' value='+' onclick='anotherrepo()'/></label>
 		<input type='button' class='addonbtn disabled' value='-'/>
 	</div>
   </div>

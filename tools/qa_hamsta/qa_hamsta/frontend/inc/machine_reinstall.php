@@ -198,9 +198,42 @@ if (request_str("proceed")) {
 			$args .= " -Z " . $timezone;
 		if ($kexecboot == "yes")
 			$args .= " -k";
-		system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $autoyastfile");
-		system("sed -i 's/ARGS/$args/g' $autoyastfile");
-		system("sed -i 's/REPOURL/$producturl/g' $autoyastfile");
+
+		/* This is not good as it should be in its own
+		 * library. But it is still better than previous
+		 * numerous 'sed SOMETHING' script invocations. */
+		$job_xml = simplexml_load_file ($autoyastfile);
+		if ($job_xml === FALSE) {
+			Notificator::setErrorMessage ('Error reading job XML file ' . $autoyastfile . '.');
+			header ('Location: index.php');
+			exit ();
+		}
+
+		$job_xml->config->mail = $email;
+
+		{ /* Do not create global variables. */
+			$name = $job_xml->config->name;
+			$desc = $job_xml->config->description;
+			$command = $job_xml->commands[0]->worker[0]->command;
+
+			$job_xml->config->name = str_replace ('REPOURL', $producturl_raw, $name);
+			$job_xml->config->description = str_replace ('REPOURL', $producturl_raw, $desc);
+			$job_xml->commands[0]->worker[0]->command = str_replace ('ARGS', $args, $command);
+		}
+
+		if (! empty ($kexecboot)) {
+			$job_xml->config->addChild ('rpm', 'kexec-tools');
+		}
+
+		if (! $job_xml->asXML ($autoyastfile)) {
+			Notificator::setErrorMessage ('Error saving job XML file "' . $autoyastfile . '".');
+			header ('Location: index.php');
+			exit();
+		} else {
+			/* Written. Free resources. */
+			unset ($job_xml);
+		}
+
 		foreach ($machines as $machine) {
 			if ($machine->send_job($autoyastfile)) {
 				Log::create($machine->get_id(), $user->getLogin (), 'REINSTALL', "has reinstalled this machine using $producturl_raw (Addon: " . ($addonurl ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");

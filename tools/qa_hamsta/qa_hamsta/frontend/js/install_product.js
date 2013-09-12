@@ -301,7 +301,7 @@ function remove_repo (addon_number) {
     $('#addon_pattern_' + addon_number).remove();
     addonid -= 1;
 }
-
+/*
 function anotherrepo () {
     addonid += 1;
     var addon_refresh_button_id = "addon_" + addonid + "_refresh_button";
@@ -316,6 +316,45 @@ function anotherrepo () {
 				 + '</span><br /></span>');
     $(addon_url_name).change ( function() {
 	get_patterns (addon_url_name, addon_pattern_name, 'addon');
+    });
+}
+*/
+function anotherrepo () {
+    addonid += 1;
+    //var addon_refresh_button_id = "addon_" + addonid + "_refresh_button";
+    //var addon_url_name = '#addon_url_' + addonid;
+    //var addon_pattern_name = 'addon_pattern_' + addonid;
+
+    $('.addons').last().after("<div id=addon_row_" + addonid + " class='row addons'>"
+				+ "<label for=addon_products" + addonid + ">Add on " + addonid + "</label>"
+				+ "<select class='url' id=addon_products" + addonid + " name='addon_product[]'> </select>"
+				+ "<input type='radio' value='x86_64' checked='true' id='addon1_arch1' name=addon"+addonid+"_arch class='arch'><label for='addon1_arch1'>x86_64</label>"
+				+ "<input type='radio' value='i586' id='addon1_arch2' name=addon"+addonid+"_arch class='arch'><label for='addon1_arch2'>i586</label>"
+				+ "<label class='url' for=addon"+addonid+"_url>URL</label>"
+				+ "<input type='text' value='' id='addon"+addonid+"_url name='addon_url[]' class='url'>"
+				+ "<span class='rcode'>"
+				+ "<label for='rcode_product'>Reg.code</label>"
+				+ "<input type='text' value='666' id='regprefix1' name='regprefix[]' class='regprefix'>"
+				+ "<input type='text' value='123-456-789' id='rcode_a1' name='rcode[]' class='regcode'></span>"
+				+ "<div class='addon_btns'>"
+				+ "<label for='addon2'><input type='button' value='+' class='addonbtn' onclick='anotherrepo()'></label>"
+				+ "<label for='addon1'><input type='button' value='-' class='addonbtn' onclick=remove_repo("+addonid+")></label></div>" 
+				+ "</div>");
+				//+ "<input id=addon"+ addonid + " class='addons' type='checkbox'>");
+
+//    $(addon_url_name).change (function() {
+//	get_patterns (addon_url_name, addon_pattern_name, 'addon');
+//    });
+
+    //update addon option
+    $.getJSON("html/search_repo.php", { prod_type : "addon" }, function(data) {
+        insert_options("#addon_products"+addonid, data, old_addon_product);
+    });
+
+    $("#addon_products" + addonid).change( function () {
+	if ($("#addon_products" + addonid).val())
+            get_urls ('addon', 'x86_64');
+
     });
 }
 
