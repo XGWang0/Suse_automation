@@ -77,10 +77,11 @@ Options:
 		         	Assign SUT to roles , format like:
 					-r 'r0:host1,host2;r1:host3,host4'
 
-	-u|--re_url		set reinstall url
-	   --re_sdk		set reinstall sdk
-	   --pattern		set install pattern
-	   --rpms		set extra rpm packages
+	-u|--re_url [url]		set reinstall url
+	   --re_sdk [url]		set reinstall sdk
+	   --pattern [pattern1,...]	set install pattern
+	   --rpms [rpm1,rpm2,...]	set extra rpm packages
+	   --kexec			set kexec option
 
 	-U|--user		log in as user
 	-P|--password		use password (use with --user option)
@@ -117,6 +118,7 @@ my $opt_re_url		= "";
 my $opt_re_sdk		= "";
 my $opt_re_pattern	= "";
 my $opt_re_rpms		= "";
+my $opt_re_kexec	= "";
 #option for cmd 
 my $opt_cmd		= "";
 my $opt_mail		= "";
@@ -140,6 +142,7 @@ unless (GetOptions(
 		   'roles|r=s'		=> \$opt_roles,
 		   're_url|u=s'		=> \$opt_re_url,
 		   're_sdk=s'		=> \$opt_re_sdk,
+		   'kexec'		=> \$opt_re_kexec
 		   'pattern=s'		=> \$opt_re_pattern,
 		   'rpms=s'		=> \$opt_re_rpms,
 		   'cmd|x=s'		=> \$opt_cmd,
@@ -298,6 +301,14 @@ if ($opt_jobtype==1) {
 	(print "require install REPO \n" and exit 1) unless($opt_re_url);	
 	my $installopt="-p#$opt_re_url#";
 	$installopt.="-s#$opt_re_sdk#" if($opt_re_sdk);
+	if($opt_re_kexec) {
+	    if($opt_re_rpms){
+	        $opt_re_rpms = "$opt_re_rpms,kexec-utils";
+	    }else{
+	        $opt_re_rpms = "kexec-utils"
+	    }
+	        $installopt .= "#-k#";
+	}
 	$installopt.="-r#$opt_re_rpms#" if($opt_re_rpms);
 	if($opt_re_pattern) {
 		$opt_re_pattern="base,".$opt_re_pattern;
