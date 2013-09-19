@@ -45,4 +45,4 @@ or
 
 (running)
 EOF
-exec webfsd -p $PORT -r $REPOSITORY -F -e 0
+exec webfsd -p $PORT -r $REPO -F -e 0
