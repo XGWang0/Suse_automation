@@ -147,6 +147,10 @@ if (request_str("proceed")) {
 			$args .= " -D";
 		if ($virtcpu)
 			$args .= " -c $virtcpu";
+                if ($virtinitmem)
+                        $args .= " -m $virtinitmem";
+                if ($virtmaxmem)
+                        $args .= " -M $virtmaxmem";
 		if ($virtdisksizestring and $virtdisktypestring) {
 			$virtdisktypestring = preg_replace("/def/","file",$virtdisktypestring); 
 			$args .= " -d $virtdisksizestring -T $virtdisktypestring";
