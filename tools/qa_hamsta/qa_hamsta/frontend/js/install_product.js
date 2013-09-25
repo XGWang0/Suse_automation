@@ -40,7 +40,7 @@ function auto_set_kexec (value) {
     var product_regex = /opensuse-\d+\.\d+/i;
     var matched = value.match (product_regex);
     var parts = [];
-    if (matched[0]) {
+    if ( matched && matched[0] ) {
 	parts = matched[0].split (/-/g);
 	if (parts.length >= 2 && parts[1] > 12) {
 	    $('#kexecboot').attr ('checked', true);
@@ -176,12 +176,19 @@ function get_archs (product_type) {
     return false;
 }
 
-function get_urls (product_type, arch_type) {
+function get_urls (product_type, arch_type, addon_products_id, addon_products_url_id) {
+
     var para = {
         product: $("#" + product_type + "_products").val(),
         //arch: $("#"  + product_type + "_archs").val()
         arch: arch_type
     };
+
+    if (addon_products_id)
+    {
+        para.product = $("#" + addon_products_id).val();
+    }
+
     var patterns_id = "";
     switch (product_type) {
     case 'repo':
@@ -211,10 +218,18 @@ function get_urls (product_type, arch_type) {
     $.getJSON("html/search_repo.php", para,
               function(data) {
                   if (para['arch'] == "") {
-	              $("#" + product_type + "_producturl").empty();
+                      $("#" + product_type + "_producturl").empty();
                   } else {
-                      $("#" + product_type + "_producturl").val(data[0]);
-		      $("#" + product_type + "_producturl").change();
+                      if (addon_products_url_id)
+                      {
+                          $("#" + addon_products_url_id).val(data[0]);
+                          $("#" + addon_products_url_id).change();
+                      }
+                      else
+                      {
+                          $("#" + product_type + "_producturl").val(data[0]);
+                          $("#" + product_type + "_producturl").change();
+                      }
                   }
               });
     return false;
@@ -323,38 +338,41 @@ function anotherrepo () {
     addonid += 1;
     //var addon_refresh_button_id = "addon_" + addonid + "_refresh_button";
     //var addon_url_name = '#addon_url_' + addonid;
-    //var addon_pattern_name = 'addon_pattern_' + addonid;
+    var addon_pattern_name = 'addon_pattern_' + addonid;
+    
+    var addon_products_url_id = 'addon_products_url_' + addonid;
+    var addon_products_id = 'addon_products_' + addonid;
 
     $('.addons').last().after("<div id=addon_row_" + addonid + " class='row addons'>"
-				+ "<label for=addon_products" + addonid + ">Add on " + addonid + "</label>"
-				+ "<select class='url' id=addon_products" + addonid + " name='addon_product[]'> </select>"
+				+ "<label for=addon_products_" + addonid + ">Add on " + addonid + "</label>"
+				+ "<select class='url' id=addon_products_" + addonid + " name='addon_product[]'> </select>"
 				+ "<input type='radio' value='x86_64' checked='true' id='addon1_arch1' name=addon"+addonid+"_arch class='arch'><label for='addon1_arch1'>x86_64</label>"
 				+ "<input type='radio' value='i586' id='addon1_arch2' name=addon"+addonid+"_arch class='arch'><label for='addon1_arch2'>i586</label>"
-				+ "<label class='url' for=addon"+addonid+"_url>URL</label>"
-				+ "<input type='text' value='' id='addon"+addonid+"_url name='addon_url[]' class='url'>"
+				+ "<label class='url' for=" + addon_products_url_id + ">URL</label>"
+				+ "<input type='text'  id='" + addon_products_url_id + "' name='addon_url[]' class='url'>"
 				+ "<span class='rcode'>"
 				+ "<label for='rcode_product'>Reg.code</label>"
-				+ "<input type='text' value='666' id='regprefix1' name='regprefix[]' class='regprefix'>"
-				+ "<input type='text' value='123-456-789' id='rcode_a1' name='rcode[]' class='regcode'></span>"
+				+ "<input type='text' id='regprefix1' name='regprefix[]' class='regprefix'>"
+				+ "<input type='text' id='rcode_a1'   name='rcode[]'     class='regcode'></span>"
 				+ "<div class='addon_btns'>"
 				+ "<label for='addon2'><input type='button' value='+' class='addonbtn' onclick='anotherrepo()'></label>"
 				+ "<label for='addon1'><input type='button' value='-' class='addonbtn' onclick=remove_repo("+addonid+")></label></div>" 
 				+ "</div>");
-				//+ "<input id=addon"+ addonid + " class='addons' type='checkbox'>");
 
-//    $(addon_url_name).change (function() {
-//	get_patterns (addon_url_name, addon_pattern_name, 'addon');
-//    });
 
+    $("#" + addon_products_url_id).change (function() {
+	get_patterns ("#" + addon_products_url_id, addon_pattern_name, 'addon');
+    });
     //update addon option
     $.getJSON("html/search_repo.php", { prod_type : "addon" }, function(data) {
-        insert_options("#addon_products"+addonid, data, old_addon_product);
+        insert_options("#"+addon_products_id, data, old_addon_product);
     });
-
-    $("#addon_products" + addonid).change( function () {
-	if ($("#addon_products" + addonid).val())
-            get_urls ('addon', 'x86_64');
-
+ 
+    $("#"+addon_products_id).bind('change', {id: addon_products_url_id}, function () {
+	if ($(this).val())
+	{
+            get_urls ('addon', 'x86_64', addon_products_id, addon_products_url_id);
+	}
     });
 }
 
@@ -378,6 +396,22 @@ var anotherdisk = function (){
 
 var showvirtdisk = function () {
     $('#virtdisk').slideToggle("slow");
+}
+
+function guessProductCode(url) {
+    if (!url)
+        return;
+    
+    var slesPtn = new RegExp('sles', 'i');
+    var sledPtn = new RegExp('sled', 'i');
+    if (slesPtn.test(url)) 
+    {
+	$('#regprefix_prod').val('sles');
+    }
+    else if (sledPtn.test(url))
+    {
+	$('#regprefix_prod').val('sled');
+    }
 }
 
 $(document).ready(function() {
@@ -438,6 +472,7 @@ $(document).ready(function() {
     $("#repo_producturl").change ( function () {
 	get_patterns ('#repo_producturl', 'available_patterns', 'distro');
 	auto_set_kexec ($(this).val ());
+	guessProductCode($(this).val());
     });
 
     $("#addon_producturl").change ( function () {

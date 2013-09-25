@@ -79,7 +79,7 @@ Machines:
 <label for="summary">show summary</label>
 <div id="finish">
 	<label for="summary"><input type="button" value="Edit"/></label>
-	<input type="submit" value="Submit"/>
+	<input type="submit" value="Submit" name='proceed'/>
 </div>
 <div class="tabs">
 	<div id='tab-product' class="tab">

@@ -56,7 +56,11 @@ require("timezone.php");
 	<input type="text" name="repo_producturl" id="repo_producturl" class='url'  value="<?php if(isset($_POST["repo_producturl"])){echo $_POST["repo_producturl"];} ?>" title="required: url" />
 	<span class='rcode'>
 		<label for='rcode_product'>Reg.code</label>
-		<input type='text' class='regprefix' name='regprefix_product' id='regprefix_prod' value=''/>
+		<select type='text' class='regprefix' name='regprefix_product' id='regprefix_prod' value=''>
+			<option value=""></option>
+			<option value='sles'>SLES</option>
+			<option value='sled'>SLED</option>
+		</select>
 		<input type='text' class='regcode'   name='rcode_product'     id='rcode_product'  value=''/>
 	</span>
   </div>
