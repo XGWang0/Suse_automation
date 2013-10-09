@@ -33,10 +33,25 @@
  * </ol>
  */
 
-error_reporting(E_ALL | E_STRICT);
-
-/* Now starts with authentication. */
-//session_start();
+  /* This check has been added due to changes in PHP behavior between
+   * versions 5.0.0 and 5.3.0.
+   *
+   * The 'is_a' function in php-openid package throws E_STRICT
+   * warnings in PHP versions between 5.0.0 and 5.3.0 (see [1])
+   * because it was deprecated within these versions.
+   *
+   * For PHP since version 5.4.0 the E_STRICT is already part of the
+   * E_ALL level (see [2]).
+   *
+   * [1] http://php.net/manual/en/function.is-a.php
+   * [2] http://php.net/manual/en/function.error-reporting.php
+   */
+if (version_compare (phpversion(), '5.3.0', '<')
+    || version_compare (phpversion (), '5.4.0', '>=')) {
+	error_reporting (E_ALL);	
+} else {
+	error_reporting (E_ALL | E_STRICT);
+}
 
 define('HAMSTA_FRONTEND', 1);
 
