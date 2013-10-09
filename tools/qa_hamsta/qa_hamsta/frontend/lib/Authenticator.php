@@ -2,9 +2,10 @@
 
 require_once ('Zend/Config.php');
 require_once ('Zend/Auth.php');
-require_once ('Zend/Auth/Adapter/OpenId.php');
 require_once ('Zend/Auth/Adapter/DbTable.php');
 require_once ('Zend/Db.php');
+
+require_once ('Hamsta_Auth_Adapter_OpenId.php');
 
 /**
  * Class serves as wrapper around Zend_Auth class.
@@ -14,7 +15,7 @@ require_once ('Zend/Db.php');
  *
  * @package User
  * @author Pavel Kačer <pkacer@suse.com>
- * @version 1.0.0
+ * @version 2.0.0
  *
  * @copyright
  * Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.<br />
@@ -47,43 +48,21 @@ class Authenticator extends Zend_Auth
    * WARNING: This implementation works with Novell OpenId server. It
    * was not tested with other types of servers.
    *
-   * @param string $url URL of the OpenID provider.
+   * @param string $url Claimed identity.
    *
-   * @return boolean True if succeded, false otherwise.
+   * @return Zend_Auth_Result True or result of the authentication
+   * process.
    */
   public static function openid ($url) {
 
     $auth = parent::getInstance();
-    if ($auth->hasIdentity ())
-      {
-	/* User is already logged in. */
-	return true;
-      }
-    else
-      {
-	if (isset($_REQUEST['openid_mode']))
-	  {
-	    /* This is second request to validate identity. */
-	    $adapter = new Zend_Auth_Adapter_OpenId ();
-	  }
-	else
-	  {
-	    /* This is first request to obtain identity. */
-	    $adapter = new Zend_Auth_Adapter_OpenId ($url);
-	  }
-      }
-
-    $result = $auth->authenticate ($adapter);
-
-    if (! $result->isValid() ) {
-      $auth->clearIdentity();
-      foreach ($result->getMessages() as $message) {
-	print ("$message<br />\n");
-      }
-      return false;
-    } else {
-      return true;
+    if ($auth->hasIdentity ()) {
+	    /* User is already logged in. */
+	    return true;
     }
+    /* Create adapter. */
+    $adapter = new Hamsta_Auth_Adapter_OpenId ($url);
+    return $auth->authenticate ($adapter);
   }
 
   /**

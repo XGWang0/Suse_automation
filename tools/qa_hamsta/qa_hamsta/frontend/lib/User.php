@@ -5,7 +5,7 @@ require_once ('Zend/Session.php');
 
 require_once ('Notificator.php');
 require_once ('ConfigFactory.php');
-require_once ('../frontenduser/Authenticator.php');
+require_once ('Authenticator.php');
 
 /**
  * Class represents authenticated user and provides several methods to
@@ -390,115 +390,101 @@ class User {
 		return null;
 	}
 
-  /**
-   * Authenticates this user using method set in configuration.
-   */
-  public static function authenticate ()
-  {
-    $config = ConfigFactory::build ();
-    $auth = Authenticator::getInstance ();
-    if (self::isLogged ())
-      {
-        if ( isset($_GET['action'])
-             && $_GET['action'] == "logout" )
-          {
-            self::logout ();
-	    header ('Location: index.php');
-            return true;
-          }
-      }
+	/**
+	 * Authenticates this user using method set in configuration.
+	 */
+	public static function authenticate () {
+		$config = ConfigFactory::build ();
+		$auth = Authenticator::getInstance ();
+		if (self::isLogged ()) {
+			if (isset($_GET['action'])
+			    && $_GET['action'] == "logout" ) {
+				self::logout ();
+				header ('Location: index.php');
+				return true;
+			}
+		}
 
-    switch ($config->authentication->method)
-      {
-      case 'password':
-        if ( isset ($_POST['action'])
-             && $_POST['action'] == 'Login')
-          {
-            $login = isset ($_POST['login']) ? $_POST['login'] : '';
-            $password = isset ($_POST['password']) ? $_POST['password'] : '';
-            if ( empty($login) || empty ($password) )
-              {
-                Notificator::setErrorMessage ('Please fill in your credentials.');
-              }
-	    else
-              {
-                $res = Authenticator::password ($login, $password, $config);
-		if ($res)
-		  {
-		    header ('Location: index.php');
-		  }
-		else
-		  {
-		    Notificator::setErrorMessage ('Login attempt has failed. Check your credentials.');
-		  }
-              }
-          }
-        break;
-      case 'openid':
-	if (self::isLogged ())
-	  {
-	    /* If the user is logging in for the first time he has to
-	     * be registered in the database.
-	     *
-	     * If there is enough data from the OpenId provider, try
-	     * to register automatically. Otherwise the user has to
-	     * fill out the registration form. */
-            if (! self::isRegistered (self::getIdent(), $config))
-              {
-                if (! isset ($_GET['go']) || $_GET['go'] != 'register')
-                  {
-                    header ('Location: index.php?go=register');
-		    exit ();
-                  }
-              }
-            else if ( self::isRegistered (self::getIdent(), $config) )
-              {
-		/* Check if all data of the user are consistent. It
-		 * can change any time during the application use. */
-                $user = User::getById (self::getIdent (), $config);
-                $dbName = $user->getName ();
-                $dbEmail = $user->getEmail ();
+		switch ($config->authentication->method) {
+		case 'password':
+			if (isset ($_POST['action'])
+			    && $_POST['action'] == 'Login') {
+				$login = isset ($_POST['login']) ? $_POST['login'] : '';
+				$password = isset ($_POST['password']) ? $_POST['password'] : '';
+				if (empty ($login) || empty ($password)) {
+					Notificator::setErrorMessage ('Please fill in your credentials.');
+				} else {
+					$res = Authenticator::password ($login, $password, $config);
+					if ($res) {
+						header ('Location: index.php');
+					} else {
+						Notificator::setErrorMessage ('Login attempt has failed.'
+									      . ' Check your credentials.');
+					}
+				}
+			}
+			break;
+		case 'openid':
+			if (@$_REQUEST['action'] == 'login' || isset ($_REQUEST['openid_mode'])) {
+				$res = Authenticator::openid ($config->authentication->openid->url);
 
-                if ( (! isset ($dbName) || empty ($dbName)
-		      || ! isset ($dbEmail) || empty($dbEmail))
-		     && ( ! isset ($_GET['go'])
-			  || $_GET['go'] != 'register') )
-		  {
-		    header ('Location: index.php?go=register');
-		  }
-              }
-	  }
-	elseif (isset ($_REQUEST['action']) && $_REQUEST['action'] == 'login'
-	    || isset ($_REQUEST['openid_mode']) && $_REQUEST['openid_mode'] == 'id_res')
-	  {
-	    $res = Authenticator::openid ($config->authentication->openid->url);
-	    /* Store user data in the session for registration. */
-	    if (isset ($_GET['openid_sreg_fullname']))
-	      {
-		$_SESSION['user_name'] = $_GET['openid_sreg_fullname'];
-	      }
+				/* User is already logged in. */
+				if ($res === true) {
+					/* If the user is logging in for the first time
+					 * she has to be registered in the database.
+					 *
+					 * If there is enough data from the OpenId
+					 * provider, try to register
+					 * automatically. Otherwise the user has to fill
+					 * out the registration form. */
+					if (self::isRegistered (self::getIdent (), $config)) {
+						/* Check if all data of the user are
+						 * consistent. We want users to have
+						 * name and email values set. */
+						$user = User::getById (self::getIdent (), $config);
+						$dbName = $user->getName ();
+						$dbEmail = $user->getEmail ();
 
-	    if (isset ($_GET['openid_sreg_email']))
-	      {
-		$_SESSION['user_email'] = $_GET['openid_sreg_email'];
-	      }
-	    header ('Location: index.php');
-	    exit ();
-	  }
-	elseif (isset ($_GET['openid_mode']) && $_GET['openid_mode'] != 'id_res'
-		&& ! self::isLogged ())
-	  {
-	    self::logout ();
-	    error_log ('OpenId user authentication failed. The OpenId provider has not sent openid_mode="id_res"');
-	    Notificator::setErrorMessage ('Your OpenId provider has denied to authorize you. The provider URL is "' . $config->authentication->openid->url . '".');
-	    header ('Location: index.php');
-	    exit ();
-	  }
-        break;
-      default:
-        /* If no or invalid authentication type is set, there is no
-         * authentication possible. */
-      }
+						if ((empty ($dbName) || empty ($dbEmail))
+						    && (! isset ($_GET['go'])
+							|| $_GET['go'] != 'register')) {
+							header ('Location: index.php?go=register');
+							exit ();
+						}
+					} else {
+						if (@$_GET['go'] != 'register') {
+							header ('Location: index.php');
+							exit ();
+						}
+					}
+				} else {
+					$msgs = $res->getMessages ();
+					if ($res->isValid ()) {
+						/* Store user data in the session for registration page
+						 * (go=register). */
+						if (isset ($_GET['openid_sreg_fullname'])) {
+							$_SESSION['user_name'] = $_GET['openid_sreg_fullname'];
+						}
+
+						if (isset ($_GET['openid_sreg_email'])) {
+							$_SESSION['user_email'] = $_GET['openid_sreg_email'];
+						}
+					} else {
+						$msg = '';
+						foreach ($msgs as $message) {
+							$msg .= "$message ";
+						}
+						Notificator::setErrorMessage ($msg);
+						header ('Location: index.php');
+						exit ();
+					}
+				}
+			}
+			break;
+		default:
+			/* If no or invalid authentication type is set, there is no
+			 * authentication possible. */
+		}
   }
 
   /**
