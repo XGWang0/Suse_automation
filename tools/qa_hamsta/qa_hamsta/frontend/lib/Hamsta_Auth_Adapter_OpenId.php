@@ -343,6 +343,10 @@ class Hamsta_Auth_Adapter_OpenId implements Zend_Auth_Adapter_Interface
 			    // Optional
 			    array('fullname', 'email'));
 
+		    if ($sreg_request) {
+			    $auth_request->addExtension ($sreg_request);
+		    }
+
 		    $policy_uris = null;
 		    if (isset($_GET['policies'])) {
 			    $policy_uris = $_GET['policies'];
@@ -382,18 +386,18 @@ class Hamsta_Auth_Adapter_OpenId implements Zend_Auth_Adapter_Interface
 		    } else {
 			    /* Generate redirect form markup and render it. */
 			    $form_id = 'openid_message';
-			    $form_html = $auth_request->htmlMarkup($trust_root,
-								   $return_to,
-								   false,
-								   array('id' => $form_id));
+			    $form_html = $auth_request->htmlMarkup ($trust_root,
+								    $return_to,
+								    false,
+								    array('id' => $form_id));
 
-			    if (Auth_OpenID::isFailure($form_html)) {
-				    return new Zend_Auth_Result(
+			    if (Auth_OpenID::isFailure ($form_html)) {
+				    return new Zend_Auth_Result (
 					    Zend_Auth_Result::FAILURE,
 					    $id,
-					    array('Authentication failed',
-						  'Error redirecting to the provider.',
-						  $form_html->message));
+					    array ('Authentication failed',
+						   'Error redirecting to the provider.',
+						   $form_html->message));
 			    } else {
 				    print ($form_html);
 				    exit ();
@@ -402,7 +406,7 @@ class Hamsta_Auth_Adapter_OpenId implements Zend_Auth_Adapter_Interface
 	    } else {
 		    /* Complete the authentication process using the
 		     * server's response. */
-		    $response = $consumer->complete($return_to);
+		    $response = $consumer->complete ($return_to);
 		    $msg = array ();
 		    /* Check the response status. */
 		    if ($response->status == Auth_OpenID_CANCEL) {
@@ -416,7 +420,7 @@ class Hamsta_Auth_Adapter_OpenId implements Zend_Auth_Adapter_Interface
 			     * succeeded; extract the identity URL and
 			     * Simple Registration data (if it was
 			     * returned). */
-			    $identity = $response->getDisplayIdentifier();
+			    $identity = $response->getDisplayIdentifier ();
 			    $esc_identity = $this->_escapeHTML ($identity);
 
 			    $result = new Hamsta_Zend_Auth_Result (
@@ -424,13 +428,8 @@ class Hamsta_Auth_Adapter_OpenId implements Zend_Auth_Adapter_Interface
 				    $identity,
 				    $msg);
 
-			    if ($response->endpoint->canonicalID) {
-				    $escaped_canonicalID = $this->_escapeHTML ($response->endpoint->canonicalID);
-			    }
-
-			    $sreg_resp = Auth_OpenID_SRegResponse::fromSuccessResponse($response);
-
-			    $sreg = $sreg_resp->contents();
+			    $sreg_resp = Auth_OpenID_SRegResponse::fromSuccessResponse ($response);
+			    $sreg = $sreg_resp->contents ();
 			    foreach ($sreg as $key=>$val) {
 				    $result->addMessage ($this->_escapeHTML($val),
 							 $key);
@@ -440,7 +439,7 @@ class Hamsta_Auth_Adapter_OpenId implements Zend_Auth_Adapter_Interface
 
 	    }
 
-	    return new Zend_Auth_Result(
+	    return new Zend_Auth_Result (
 		    Zend_Auth_Result::FAILURE,
 		    $id,
 		    $msg);
