@@ -59,10 +59,13 @@ class Authenticator extends Zend_Auth
     if ($auth->hasIdentity ()) {
 	    /* User is already logged in. */
 	    return true;
+    } else if (@$_REQUEST['action'] == 'login'
+	       || isset ($_REQUEST['openid_mode'])) {
+	    /* Create adapter. */
+	    $adapter = new Hamsta_Auth_Adapter_OpenId ($url);
+	    return $auth->authenticate ($adapter);
     }
-    /* Create adapter. */
-    $adapter = new Hamsta_Auth_Adapter_OpenId ($url);
-    return $auth->authenticate ($adapter);
+    return false;
   }
 
   /**
