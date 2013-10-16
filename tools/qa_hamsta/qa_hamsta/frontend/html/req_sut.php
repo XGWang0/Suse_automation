@@ -36,7 +36,7 @@
 	</div>
 	<div class="row">
 		Notification email address (optional):
-		<input type="text" name="mailto" value="vmarsik@suse.cz" />
+		<input type="text" name="mailto" value="" />
 	</div>
 	<div class="row">
 		(if you want to be notified when the installation is finished)

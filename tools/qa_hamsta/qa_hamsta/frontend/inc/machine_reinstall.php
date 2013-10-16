@@ -109,15 +109,16 @@ if (request_str("proceed")) {
 	$update = request_str("startupdate");
 	$regmail = request_str("update-reg-email");
 	$regcodes = $_POST["rcode"];
+	$regprefixes = $_POST["regprefix"];
 	$validation = request_str("startvalidation");
 	$addonurls = array_filter($addonurls, "filter");
 	$regcodes = array_filter($regcodes, "filter");
+	$regprefixes= array_filter($regprefixes, "filter");
 	$installmethod = request_str("installmethod");
 	$setupfordesktop = request_str("setupfordesktop");
 	$timezone = request_str("timezone");
 	$kexecboot = request_str("kexecboot");
 	$timezone = str_replace ("/","_",$timezone);
-
 	# Check for errors
 	$errors = array();
 	if ($update == "update-smt")

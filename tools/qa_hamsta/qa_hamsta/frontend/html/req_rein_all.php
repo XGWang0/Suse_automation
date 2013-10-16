@@ -56,12 +56,12 @@ require("timezone.php");
 	<input type="text" name="repo_producturl" id="repo_producturl" class='url'  value="<?php if(isset($_POST["repo_producturl"])){echo $_POST["repo_producturl"];} ?>" title="required: url" />
 	<span class='rcode'>
 		<label for='rcode_product'>Reg.code</label>
-		<select type='text' class='regprefix' name='regprefix_product' id='regprefix_prod' value=''>
+		<select type='text' class='regprefix' name='regprefix[]' id='regprefix_prod' value=''>
 			<option value=""></option>
 			<option value='sles'>SLES</option>
 			<option value='sled'>SLED</option>
 		</select>
-		<input type='text' class='regcode'   name='rcode_product'     id='rcode_product'  value=''/>
+		<input type='text' class='regcode'   name='rcode[]'     id='rcode_product'  value=''/>
 	</span>
   </div>
 
@@ -76,8 +76,8 @@ require("timezone.php");
 	<input type="text" name="addon_url[]" id="addon_producturl" class='url' value="<?php if(isset($_POST["addon_producturl"])){echo $_POST["addon_producturl"];} ?>" />
 	<span class='rcode'>
 		<label for="rcode_product">Reg.code</label>
-		<input type='text' class='regprefix' name="regprefox[]" id='regprefix0' value=''/>
-		<input type='text' class='regcode'   name="regcode[]" id='rcode_a0' value=''/>
+		<input type='text' class='regprefix' name="regprefix[]" id='regprefix0' value=''/>
+		<input type='text' class='regcode'   name="rcode[]" id='rcode_a0' value=''/>
 	</span>
 	<div class="addon_btns">
 		<label for='addon1'><input type='button' class='addonbtn' value='+' onclick='anotherrepo()'/></label>
