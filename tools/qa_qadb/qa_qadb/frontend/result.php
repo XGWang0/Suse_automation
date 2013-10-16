@@ -67,6 +67,7 @@ if( $submission_id )
 		'has_fail'=>($status_got==3),
 		'has_interr'=>($status_got==4),
 		'has_skip'=>($status_got==5),
+		'order_by'=>'result_id',
 	);
 	
 	# legend
