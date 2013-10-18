@@ -354,15 +354,15 @@ EOF
 		print $f "\t    <email>".$args->{'ncc_email'}."</email>\n";
 		foreach my $rcode (split(/,/, $args->{'ncc_code'})) {
 			my $prname = "";
-			# Possible regi-codes could be: WORKFORCEID@PRV-EXT-SLES-XXXXXXXXXX
-			# or sles10XXXXXXXX
-			if ($rcode =~ /^.+(-.+){3}.+$/) {
-				$rcode =~ /^.*-([^-]+)-[^-]+$/;
-				$prname = lc $1;
-			} else {
-				$rcode =~ /^([a-zA-Z]+)\d+.+$/;
-				$prname = lc $1;
+			# According to the new proposal of reinstall page. The product code is not extracted from
+			# registration code any more, and let the user input the accurate one if not product name
+			# is guessed. Unified the code format as 'productname+xxxxxxxx"
+			if ($rcode=~ /^(.+)\+(.+)$/)
+			{
+			    $prname = lc $1;
+			    $rcode  = lc $2
 			}
+
 			print $f "		<regcode-$prname>$rcode</regcode-$prname>";
 		}
 		print $f "	  </registration_data>\n";

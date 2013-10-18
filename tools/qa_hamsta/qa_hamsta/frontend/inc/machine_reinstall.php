@@ -37,6 +37,11 @@ function filter($var) {
 	return true;
 } 
 
+function map_regcode($e1, $e2)
+{
+    return $e1.'+'.$e2;
+}
+
 /* Check if user is logged in, registered and have sufficient privileges. */
 $search = new MachineSearch();
 $search->filter_in_array(request_array("a_machines"));
@@ -119,6 +124,8 @@ if (request_str("proceed")) {
 	$timezone = request_str("timezone");
 	$kexecboot = request_str("kexecboot");
 	$timezone = str_replace ("/","_",$timezone);
+ 
+        $regcodes = array_map('map_regcode', $regprefixes, $regcodes);
 	# Check for errors
 	$errors = array();
 	if ($update == "update-smt")
@@ -199,7 +206,6 @@ if (request_str("proceed")) {
 			$args .= " -Z " . $timezone;
 		if ($kexecboot == "yes")
 			$args .= " -k";
-
 		/* This is not good as it should be in its own
 		 * library. But it is still better than previous
 		 * numerous 'sed SOMETHING' script invocations. */
