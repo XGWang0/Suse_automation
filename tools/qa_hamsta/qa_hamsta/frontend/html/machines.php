@@ -350,10 +350,15 @@ if (! empty ($s_anything))
 <?php
 $rh = new ReservationsHelper ($machine);
 $users_string = $rh->prettyPrintUsers ();
-print ('<td title="' . $users_string
-       . '"><div class="ellipsis-no-wrapped machine_table_usedby">'
-       . $users_string . "</div></td>\n");
-
+if (empty ($users_string)) {
+	print ('<td><a href="index.php?go=machine_reserve&amp;a_machines[]='
+	       . $machine->get_id()
+	       . '"><img class="machine_quick_reserve" src="images/27/icon-reserve.png" title="Reserve machine" alt="Reserve this machine"/></a></td>' . PHP_EOL);
+} else {
+	print ('<td title="' . $users_string
+	       . '"><div class="ellipsis-no-wrapped machine_table_usedby">'
+	       . $users_string . "</div></td>\n");
+}
 foreach ($fields_list as $key=>$value)
 {
 	$res = '';
@@ -415,6 +420,23 @@ $('#fulltext').on('focus', function() {
 
 $('#x').on('click', function() {
 	$('#fulltext').attr('value', "");
+});
+
+$('img[class="machine_quick_reserve"]').on('click', function () {
+	var usage = prompt('Please fill in usage for your reservation.', '');
+
+	if (usage != null) {
+		var a = $(this).parent().get(0);
+		if (usage != '' && a) {
+			var href = a.getAttribute ('href');
+			if (href) {
+				a.setAttribute ('href', href + encodeURI ('&usage=' + usage));
+			}
+		}
+		return true;
+	} else {
+		return false;
+	}
 });
 
 /* Check privileges for the sliding actions. */
