@@ -350,10 +350,10 @@ if (! empty ($s_anything))
 <?php
 $rh = new ReservationsHelper ($machine);
 $users_string = $rh->prettyPrintUsers ();
-if (empty ($users_string)) {
+if (empty ($users_string) && isset ($user)) {
 	print ('<td><a href="index.php?go=machine_reserve&amp;a_machines[]='
 	       . $machine->get_id()
-	       . '"><img class="machine_quick_reserve" src="images/27/icon-reserve.png" title="Reserve machine" alt="Reserve this machine"/></a></td>' . PHP_EOL);
+	       . '"><img class="machine_quick_reserve" src="images/27/icon-reserve.png" title="Reserve ' . $machine->get_hostname () . '" alt="Reserve this machine"/></a></td>' . PHP_EOL);
 } else {
 	print ('<td title="' . $users_string
 	       . '"><div class="ellipsis-no-wrapped machine_table_usedby">'
@@ -493,22 +493,23 @@ $("label#action button[name='action']").click(function(){
 <h3>&darr;  Action  &darr;</h3>
 <input type="checkbox" id="blkAni">
 <label class="noani" for="blkAni">
-<button name="action" class="button machine_send_job" value="machine_send_job" >Send job</button>
-<button name="action" class="button addsut" value="addsut" class="action_button_short_right" >Add SUT</button>
+<button name="action" value="machine_reserve" class="button machine_reserve">Reserve machines</button>
+<button name="action" value="machine_edit" class="button edit">Edit</button>
 <br>
-<button name="action" value="machine_edit" class="button edit" >Edit/reserve</button>
-<button name="action" value="machine_reinstall" class="button machine_reinstall" >Reinstall</button>
+<button name="action" value="machine_reinstall" class="button machine_reinstall">Reinstall</button>
+<button name="action" value="machine_send_job" class="button machine_send_job">Send job</button>
 <br>
-<button name="action" value="machine_delete" class="button delete" >Delete</button>
-<button name="action" value="merge_machines" class="button merge_machines" >Merge machines</button>
+<button name="action" value="merge_machines" class="button merge_machines">Merge machines</button>
+<button name="action" value="machine_delete" class="button delete">Delete</button>
 <br>
-<button name="action" value="create_group" class="button create_group" >Add to group</button>
-<button name="action" class="button machine_config" value="machine_config" >Configure machines</button>
+<button name="action" value="create_group" class="button create_group">Add to group</button>
+<button name="action" value="group_del_machines" class="button group_del_machines">Remove from group</button>
 <br>
-<button name="action" class="button group_del_machines" value="group_del_machines" >Remove from group</button>
-<button name="action" value="upgrade" class="button upgrade" >Upgrade to higher</button>
+<button name="action" value="machine_config" class="button machine_config">Configure machines</button>
+<button name="action" value="upgrade" class="button upgrade">Upgrade to higher</button>
 <br>
-<button name="action" value="vhreinstall" class="buttonlong button vhreinstall" >Reinstall as Virtualization Host</button>
+<button name="action" value="vhreinstall" class="button vhreinstall">Reinstall as Virt. Host</button>
+<button name="action" value="addsut" class="button addsut">Add SUT</button>
 </label>
 </label>
 </form>

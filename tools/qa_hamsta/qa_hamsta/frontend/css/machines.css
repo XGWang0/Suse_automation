@@ -137,7 +137,7 @@ label#action h3  {
   -moz-transform:rotate(270deg);
   -webkit-transform:rotate(270deg);
   float:right;
-  margin-top: 6.5em;
+  margin-top: 7em;
   margin-right:-2em;
   color: #fff;
 }
@@ -388,4 +388,7 @@ form.float {
 {
         content: url("../images/27/icon-vhreinstall.png");
 }
-
+.machine_reserve:before
+{
+        content: url("../images/27/icon-reserve.png");
+}

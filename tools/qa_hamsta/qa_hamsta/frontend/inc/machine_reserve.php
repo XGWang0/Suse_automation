@@ -49,6 +49,9 @@ if ($config->authentication->use) {
 	$names = array ();
 	$rh = new ReservationsHelper ();
 	foreach ($machines as $m) {
+		if ($rh->hasReservation ($m)) {
+			continue;
+		}
 		if ($rh->createReservation ($m, $user)) {
 			if (! empty ($usage)) {
 				$m->set_usage ($usage);
