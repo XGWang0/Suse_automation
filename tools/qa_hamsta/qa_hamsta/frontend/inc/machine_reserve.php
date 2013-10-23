@@ -63,9 +63,10 @@ if ($config->authentication->use) {
 			// TODO Add error reporting for this machine.
 		}
 	}
-
-	Notificator::setSuccessMessage ("These machines were succesfully reserved: "
-					. join (', ', $names));
+	if (count ($names)) {
+		Notificator::setSuccessMessage ("These machines were succesfully reserved: "
+						. join (', ', $names));
+	}
 } else {
 	Notificator::setErrorMessage ('You can use this type of reservation'
 				      . ' only with the user authentication.');

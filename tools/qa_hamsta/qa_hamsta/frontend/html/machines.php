@@ -466,7 +466,6 @@ function checkPrivileges (action) {
 			    }
 			});
 		    }});
-	console.debug (allowed);
 	return allowed;
 }
 
