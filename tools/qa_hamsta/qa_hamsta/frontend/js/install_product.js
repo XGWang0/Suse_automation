@@ -316,25 +316,9 @@ function remove_repo (addon_number) {
     $('#addon_pattern_' + addon_number).remove();
     addonid -= 1;
 }
-/*
-function anotherrepo () {
-    addonid += 1;
-    var addon_refresh_button_id = "addon_" + addonid + "_refresh_button";
-    var addon_url_name = '#addon_url_' + addonid;
-    var addon_pattern_name = 'addon_pattern_' + addonid;
 
-    $('#additional_repo').append('<span id="addon_row_' + addonid + '">Add-on #' + addonid
-				 + ': <input type="text" name="addon_url[]" id="addon_url_'
-				 + addonid + '" size="70" /> <button type="button" onclick="remove_repo('
-				 + addonid + ')">'
-				 + ' - </button> <span id="mininotification" class="text-red text-small bold">'
-				 + '</span><br /></span>');
-    $(addon_url_name).change ( function() {
-	get_patterns (addon_url_name, addon_pattern_name, 'addon');
-    });
-}
-*/
 function anotherrepo () {
+
     addonid += 1;
     //var addon_refresh_button_id = "addon_" + addonid + "_refresh_button";
     //var addon_url_name = '#addon_url_' + addonid;
@@ -344,7 +328,7 @@ function anotherrepo () {
     var addon_products_id = 'addon_products_' + addonid;
 
     $('.addons').last().after("<div id=addon_row_" + addonid + " class='row addons'>"
-				+ "<label for=addon_products_" + addonid + ">Add on " + addonid + "</label>"
+				+ "<label for=addon_products_" + addonid + ">Add-on " + addonid + "</label>"
 				+ "<select class='url' id=addon_products_" + addonid + " name='addon_product[]'> </select>"
 				+ "<input type='radio' value='x86_64' checked='true' id='addon1_arch1' name=addon"+addonid+"_arch class='arch'><label for='addon1_arch1'>x86_64</label>"
 				+ "<input type='radio' value='i586' id='addon1_arch2' name=addon"+addonid+"_arch class='arch'><label for='addon1_arch2'>i586</label>"
@@ -412,6 +396,25 @@ function guessProductCode(url) {
     {
 	$('#regprefix_prod').val('sled');
     }
+}
+
+function removeMachine(id, node) {
+
+    if (!id)
+        return;
+    var machines = $(".machine_name");
+    if (machines.length == 1)
+    {
+        return;
+    }
+
+    $(node).parent().remove();
+    $("input[name='a_machines[]']").each(function(index, m){
+        if (m.value == id)
+        {
+            $(m).remove();
+        }
+    });
 }
 
 $(document).ready(function() {

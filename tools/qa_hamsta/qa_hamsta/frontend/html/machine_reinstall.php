@@ -69,7 +69,7 @@
 Machines:
 <?php foreach ($machines as $machine): ?>
 <span class="machine_name">
-	<a class="text-small-bold" href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>"><?php echo($machine->get_hostname()); ?></a><input class="x" type="button" value="x"/>
+	<a class="text-small-bold" href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>"><?php echo($machine->get_hostname()); ?></a><input class="x" type="button" value="x" onclick="removeMachine(<?php echo($machine->get_id())?>, this)"/>
 
 </span>
 <?php endforeach; ?>

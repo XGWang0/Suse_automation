@@ -66,7 +66,7 @@ require("timezone.php");
   </div>
 
   <div class='row addons' id='first-addon'>
-	<label for="addon_products">Add-on 0</label>
+	<label for="addon_products">Add-on 1</label>
 	<select name="addon_products" id="addon_products" class="url"></select>
 	<input type='radio' class='arch' name='addon0_arch' id='addon0_arch1' checked='checked' value='x86_64'/>
 	<label for='addon0_arch1'>x86_64</label>
