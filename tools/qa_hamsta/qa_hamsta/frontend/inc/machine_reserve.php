@@ -68,7 +68,7 @@ if ($config->authentication->use) {
 			}
 			$names[] = $m->get_hostname();
 		} else {
-			$err_names[] = $m->get_hostname()
+			$err_names[] = $m->get_hostname();
 		}
 	}
 
