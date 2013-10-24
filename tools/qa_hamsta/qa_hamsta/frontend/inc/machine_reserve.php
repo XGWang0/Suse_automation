@@ -33,10 +33,17 @@ $config = ConfigFactory::build();
  * user. */
 if ($config->authentication->use) {
 	$user = User::getCurrent ();
-	// TODO check if user has privileges to reserve machines
+	$err_msg = '';
+
 	if (! isset ($user)) {
-		Notificator::setErrorMessage ('You have to be logged in'
-					      . ' to be able to reserve machines.');
+		$err_msg = 'You have to be logged in to be able to reserve machines.';
+	} else if (! $user->isAllowedAny (array ('machine_edit',
+						 'machine_edit_reserved'))) {
+		$err_msg = 'You do not have privileges to edit machines.';
+	}
+
+	if (! empty ($err_msg)) {
+		Notificator::setErrorMessage ($err_msg);
 		header ('Location: index.php');
 		exit ();
 	}
@@ -47,6 +54,7 @@ if ($config->authentication->use) {
 
 	$usage = request_str ('usage');
 	$names = array ();
+	$err_names = array ();
 	$rh = new ReservationsHelper ();
 	foreach ($machines as $m) {
 		if ($rh->hasReservation ($m)) {
@@ -60,12 +68,22 @@ if ($config->authentication->use) {
 			}
 			$names[] = $m->get_hostname();
 		} else {
-			// TODO Add error reporting for this machine.
+			$err_names[] = $m->get_hostname()
 		}
 	}
+
+	$msg = '';
 	if (count ($names)) {
-		Notificator::setSuccessMessage ("These machines were succesfully reserved: "
-						. join (', ', $names));
+		$msg = 'These machines were succesfully reserved: ' . join (', ', $names);
+	}
+	if (count ($err_names)) {
+		if ($msg) {
+			$msg .= ' ';
+		}
+		$msg .= 'Could not reserve machines: ' . join (', ', $err_names);
+	}
+	if ($msg) {
+		Notificator::setSuccessMessage ($msg);
 	}
 } else {
 	Notificator::setErrorMessage ('You can use this type of reservation'
