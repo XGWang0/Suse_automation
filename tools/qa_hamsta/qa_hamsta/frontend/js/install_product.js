@@ -320,24 +320,28 @@ function remove_repo (addon_number) {
 function anotherrepo () {
 
     addonid += 1;
-    //var addon_refresh_button_id = "addon_" + addonid + "_refresh_button";
-    //var addon_url_name = '#addon_url_' + addonid;
     var addon_pattern_name = 'addon_pattern_' + addonid;
-    
     var addon_products_url_id = 'addon_products_url_' + addonid;
     var addon_products_id = 'addon_products_' + addonid;
+    var addon_arch_x86_64 = "addon_arch_x86_64_" + addonid;
+    var addon_arch_i586 = "addon_arch_i586_" + addonid;
+    var reg_prefix_id = 'regprefix_' + addonid;
+    var reg_code_id = 'rcode_a' + addonid;
+    
 
     $('.addons').last().after("<div id=addon_row_" + addonid + " class='row addons'>"
 				+ "<label for=addon_products_" + addonid + ">Add-on " + addonid + "</label>"
 				+ "<select class='url' id=addon_products_" + addonid + " name='addon_product[]'> </select>"
-				+ "<input type='radio' value='x86_64' checked='true' id='addon1_arch1' name=addon"+addonid+"_arch class='arch'><label for='addon1_arch1'>x86_64</label>"
-				+ "<input type='radio' value='i586' id='addon1_arch2' name=addon"+addonid+"_arch class='arch'><label for='addon1_arch2'>i586</label>"
+				+ "<input type='radio' value='x86_64' checked='true' id="+addon_arch_x86_64 +" name=addon"+addonid+"_arch class='arch'>"
+                                + "<label for="+addon_arch_x86_64+">x86_64</label>"
+				+ "<input type='radio' value='i586' id="+addon_arch_i586+" name=addon"+addonid+"_arch class='arch'>"
+                                + "<label for="+addon_arch_i586+">i586</label>"
 				+ "<label class='url' for=" + addon_products_url_id + ">URL</label>"
 				+ "<input type='text'  id='" + addon_products_url_id + "' name='addon_url[]' class='url'>"
 				+ "<span class='rcode'>"
-				+ "<label for='rcode_product'>Reg.code</label>"
-				+ "<input type='text' id='regprefix1' name='regprefix[]' class='regprefix'>"
-				+ "<input type='text' id='rcode_a1'   name='rcode[]'     class='regcode'></span>"
+				+ "<label for="+ reg_code_id +">Reg.code</label>"
+				+ "<input type='text' id="+ reg_prefix_id +" name='regprefix[]' class='regprefix'>"
+				+ "<input type='text' id="+ reg_code_id +"   name='rcode[]'     class='regcode'></span>"
 				+ "<div class='addon_btns'>"
 				+ "<label for='addon2'><input type='button' value='+' class='addonbtn' onclick='anotherrepo()'></label>"
 				+ "<label for='addon1'><input type='button' value='-' class='addonbtn' onclick=remove_repo("+addonid+")></label></div>" 

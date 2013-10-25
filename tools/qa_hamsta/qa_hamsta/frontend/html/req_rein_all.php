@@ -30,9 +30,9 @@ require("timezone.php");
 
   Registration &amp; update:
   <input type='radio' id='reg_none' name='startupdate' value='update-none' checked='checked'/><label for='reg_none'>none</label>
-  <input type='radio' id='reg_oss'  name='startupdate' value='update-opensuse'/><label for='reg_none'>openSUSE</label>
-  <input type='radio' id='reg_smt'  name='startupdate' value='update-smt'/><label for='reg_none'>SMT</label>
-  <input type='radio' id='reg_code' name='startupdate' value='update-reg'/><label for='reg_none'>code</label>
+  <input type='radio' id='reg_oss'  name='startupdate' value='update-opensuse'/><label for='reg_oss'>openSUSE</label>
+  <input type='radio' id='reg_smt'  name='startupdate' value='update-smt'/><label for='reg_smt'>SMT</label>
+  <input type='radio' id='reg_code' name='startupdate' value='update-reg'/><label for='reg_code'>code</label>
   <span id='regmail'>
     <label for='update-reg-mail'>Registration e-mail</label>
     <input id='update-reg-email' type='text' value='' name='update-reg-email'/>
@@ -51,9 +51,9 @@ require("timezone.php");
 	<input type='radio' class='arch' name='product_arch' id='product_arch1' checked='checked' value='x86_64'/>
 	<label for='product_arch1'>x86_64</label>
 	<input type='radio' class='arch' name='product_arch' id='product_arch2'  value='i586'/>
-	<label for='product_arch1'>i586</label>
-	<label for='repo_produceurl' class='url'>URL</label>
-	<input type="text" name="repo_producturl" id="repo_producturl" class='url'  value="<?php if(isset($_POST["repo_producturl"])){echo $_POST["repo_producturl"];} ?>" title="required: url" />
+	<label for='product_arch2'>i586</label>
+	<label for='repo_producturl' class='url'>URL</label>
+	<input type="text" name="repo_producturl" id="repo_producturl" class='url' required="" placeholder="required" value="<?php if(isset($_POST["repo_producturl"])){echo $_POST["repo_producturl"];} ?>" title="required: url" />
 	<span class='rcode'>
 		<label for='rcode_product'>Reg.code</label>
 		<select type='text' class='regprefix' name='regprefix[]' id='regprefix_prod' value=''>
@@ -75,9 +75,9 @@ require("timezone.php");
 	<label for='addon_producturl' class='url'>URL</label>
 	<input type="text" name="addon_url[]" id="addon_producturl" class='url' value="<?php if(isset($_POST["addon_producturl"])){echo $_POST["addon_producturl"];} ?>" />
 	<span class='rcode'>
-		<label for="rcode_product">Reg.code</label>
-		<input type='text' class='regprefix' name="regprefix[]" id='regprefix0' value=''/>
-		<input type='text' class='regcode'   name="rcode[]" id='rcode_a0' value=''/>
+		<label for="rcode_a1">Reg.code</label>
+		<input type='text' class='regprefix' name="regprefix[]" id='regprefix_1' value=''/>
+		<input type='text' class='regcode'   name="rcode[]" id='rcode_a1' value=''/>
 	</span>
 	<div class="addon_btns">
 		<label for='addon1'><input type='button' class='addonbtn' value='+' onclick='anotherrepo()'/></label>

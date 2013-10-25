@@ -34,9 +34,14 @@
 		<input type="checkbox" name="setupfordesktop" value="yes">
 		Setup host for running desktop tests?
 	</div>
+<?php
+        $user = User::getCurrent();
+        $email = isset($user) ? $user->getEmail() : "";
+            
+?>
 	<div class="row">
 		Notification email address (optional):
-		<input type="text" name="mailto" value="" />
+		<input type="text" name="mailto" value=<?php echo $email; ?> />
 	</div>
 	<div class="row">
 		(if you want to be notified when the installation is finished)
