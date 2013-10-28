@@ -394,6 +394,9 @@ $(window).resize(function() {
     tableAlign;
 });
 $(window).scroll(tableAlign);
+$("#machines thead tr th").click(function() {
+       tableAlign();
+});
 
 $("#searchhwinfo").click(function(){
     if ($(this).is(':checked'))
