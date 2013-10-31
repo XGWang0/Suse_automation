@@ -98,6 +98,9 @@
 	   case "addsut":
 			$go = "addsut";
 			return require("inc/addsut.php");
+	   case 'machine_reserve':
+			$go = 'machine_reserve';
+			return require ('inc/machine_reserve.php');
 	}
 
 	$searched_fields = array();

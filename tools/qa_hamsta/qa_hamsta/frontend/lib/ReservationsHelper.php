@@ -394,16 +394,21 @@ class ReservationsHelper
 			       'reserved'	=> 'Reserved',
 			       'expires'	=> 'Expires',
 			       'note'		=> 'Note');
+		$reservations = $this->getReservations ();
+		if (! count ($reservations)) {
+			return '';
+		}
+
 		$res = '<table class="list text-main">';
 		$res .= '<tr><th>' . join ('</th><th>', array_values ($cols))
 			. '</th></tr>';
-		foreach ($this->getReservations () as $r) {
+		foreach ($reservations as $r) {
 			$user = $r->getUser ();
 			$td['user'] = $user->getNameOrLogin ();
 			$td['reserved'] = $this->getFormattedDate ($r->getReserved ());
 			$td['expires'] = $this->getFormattedDate ($r->getExpires ());
 			$td['note'] = $r->getUserNote ();
-			$res .= '<tr><td><div>' . join ('</div</td><td><div>', $td)
+			$res .= '<tr><td><div>' . join ('</div></td><td><div>', $td)
 				. '</div></td></tr>';
 		}
 		return $res .= '</table>';
