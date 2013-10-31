@@ -328,7 +328,7 @@ function anotherrepo () {
     var reg_prefix_id = 'regprefix_' + addonid;
     var reg_code_id = 'rcode_a' + addonid;
     
-
+    /*
     $('.addons').last().after("<div id=addon_row_" + addonid + " class='row addons'>"
 				+ "<label for=addon_products_" + addonid + ">Add-on " + addonid + "</label>"
 				+ "<select class='url' id=addon_products_" + addonid + " name='addon_product[]'> </select>"
@@ -347,7 +347,7 @@ function anotherrepo () {
 				+ "<label for='addon1'><input type='button' value='-' class='addonbtn' onclick=remove_repo("+addonid+")></label></div>" 
 				+ "</div>");
 
-
+    */
     $("#" + addon_products_url_id).change (function() {
 	get_patterns ("#" + addon_products_url_id, addon_pattern_name, 'addon');
     });
