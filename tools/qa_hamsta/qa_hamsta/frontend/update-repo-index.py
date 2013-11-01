@@ -62,6 +62,7 @@ def append_result(repo, product, arch, am):
 		matcharch = arch
 	re_arch = re.compile('\.' + matcharch + '\.pat(\.gz)?$')
 	re_pat = re.compile('^=Pat: ')
+	re_vis = re.compile('^=Vis: ')
 	try:
 		# patfiles contain list of .pat or .pat.gz files with pattern definitions
 		patfiles = filter(re_arch.search, urllib2.urlopen(baserepo + "/suse/setup/descr/patterns").read().split("\n"))
@@ -74,8 +75,19 @@ def append_result(repo, product, arch, am):
 			data = urllib2.urlopen(baserepo + "/suse/setup/descr/" + patfile).read()
 			if (patfile.endswith('.gz')):
 				data = gzip.GzipFile(fileobj = StringIO.StringIO(data)).read()
-			for line in filter(re_pat.search, data.split("\n")):
-				p['pattern'].append(line.split(' ')[2])
+
+			pattern = None
+			for line in data.split("\n"):
+				if re.match(re_pat, line):
+					pattern = line.split(' ')[2]
+				if re.match(re_vis, line) and pattern != None:
+					visible = line.split(' ')[1]
+					if(re.match(r"([Tt]rue|TRUE)", visible)):
+						p['pattern'].append(pattern)
+						pattern = None
+
+			#for line in filter(re_pat.search, data.split("\n")):
+			#	p['pattern'].append(line.split(' ')[2])
 	except:
 		print "Can not read " + baserepo + "/suse/setup/descr/patterns (either non-exsit or broken)"
 	print 'Found', product, arch, " on  ", repo
@@ -102,8 +114,8 @@ def generate_index(repo_url, theFilter):
 		for item in newlist:
 			dirs = list_dir(os.path.join(repo, item))
 			if 'suse' in dirs: #that means a plain mount, without ix86/DVD1. e.g. 147.2.207.242/iso_mnt
-				if 'DVD1' not in item and 'openSUSE' not in item and 'Media1' not in item:
-					continue
+				#if 'DVD1' not in item and 'openSUSE' not in item and 'Media1' not in item:
+				#	continue
 				subdirs = list_dir(os.path.join(repo, item, 'suse'))
 				for arch in supported_archs:
 					if arch in item:
