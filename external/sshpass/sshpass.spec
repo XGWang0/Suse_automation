@@ -1,13 +1,12 @@
 # norootforbuild
 Summary: noninteractive ssh password provider
 Name: sshpass
-Version: 1.04
+Version: 1.05
 Release: 1
 License: GPL v2 or later
 Vendor: Lingnu Open Source Consulting Ltd.
 Group: System Environment/Libraries
-Source0:  %{name}-%{version}.tar.bz2
-Source1:	sshpass.8
+Source0:  %{name}-%{version}.tar.gz
 URL: http://www.lingnu.com
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 BuildRequires: gcc-c++ pkgconfig
@@ -33,9 +32,6 @@ else
 fi
 
 %install
-install -m 755 -d $RPM_BUILD_ROOT/usr/share/man/man8
-install -m 644 %{S:1} $RPM_BUILD_ROOT/usr/share/man/man8
-gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
 make prefix=$RPM_BUILD_ROOT%{prefix} install 
 
 %clean
@@ -49,7 +45,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-, root, root)
-/usr/share/man/man8/sshpass.8.gz
 %{prefix}/bin/*
 %{prefix}/share/man/man1/*
 
