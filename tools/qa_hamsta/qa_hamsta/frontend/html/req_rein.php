@@ -26,7 +26,7 @@
 
   <?php if(count($machines)==1): ?>
     <div class='row'>
-	Root partition
+	<label for="subpartition">Root partition</label>
         <select name="subpartition" id="subpartition">
         <?php 
              $arr_partitions=explode(',',$root_partitions);
@@ -40,13 +40,13 @@
   <?php endif; ?>
   
   <div class='row'>
-	Use
-	<input type="text" size="5" name="repartitiondisk" value=""/>% of free disk for root partition
+	<label for="repartitiondisk">Use</label>
+	<input type="text" size="5" name="repartitiondisk" id="repartitiondisk" value=""/>% of free disk for root partition
   </div>
 
   <div class='row'>
-	Filesystem
-	  <select name="rootfstype">
+	<label for="rootfstype">Filesystem</label>
+	  <select name="rootfstype" id="rootfstype">
 		<option <?php if(isset($_POST["rootfstype"]) and $_POST["rootfstype"] == "reiser"){echo "selected";} ?> value="reiser">reiser</option>
 		<option <?php if(isset($_POST["rootfstype"]) and $_POST["rootfstype"] == "ext2"){echo "selected";} ?> value="ext2">ext2</option>
 		<option <?php if(!isset($_POST["rootfstype"]) or $_POST["rootfstype"] == "ext3"){echo "selected";} ?> value="ext3">ext3</option>
@@ -56,8 +56,8 @@
   </div>
 
   <div class='row'>
-    Bootloader
-        <select name="defaultboot">
+	<label for="defaultboot">Bootloader</label>
+        <select name="defaultboot" id="defaultboot">
           <option value="">root, no change</option>
           <option <?php if( isset($_POST["defaultboot"]) and $_POST["defaultboot"] == "root") {echo "selected";} ?> value="root">root, set active</option>
           <option <?php if( isset($_POST["defaultboot"]) and $_POST["defaultboot"] == "MBR") {echo "selected";} ?> value="MBR">MBR, set active</option>
@@ -65,7 +65,7 @@
   </div>
 
   <div class='row'>
-	<input id="kexecboot" type="checkbox" class="left" name="kexecboot" value="yes"/>
+	<input id="kexecboot" type="checkbox" name="kexecboot" value="yes"/>
 	<label for="kexecboot">Load installation by Kexec</label>
   </div>
 
