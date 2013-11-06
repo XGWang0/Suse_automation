@@ -28,13 +28,13 @@ if (User::isLogged())
 require("timezone.php");
 ?>
 
-  Registration &amp; update:
+  <span class='first'> Registration &amp; update</span>
   <input type='radio' id='reg_none' name='startupdate' value='update-none' checked='checked'/><label for='reg_none'>none</label>
   <input type='radio' id='reg_oss'  name='startupdate' value='update-opensuse'/><label for='reg_oss'>openSUSE</label>
   <input type='radio' id='reg_smt'  name='startupdate' value='update-smt'/><label for='reg_smt'>SMT</label>
   <input type='radio' id='reg_code' name='startupdate' value='update-reg'/><label for='reg_code'>code</label>
   <span id='regmail'>
-    <label for='update-reg-mail'>Registration e-mail</label>
+    <label for='update-reg-email'>Registration e-mail</label>
     <input id='update-reg-email' type='text' value='' name='update-reg-email'/>
   </span>
   </br>
@@ -64,7 +64,7 @@ require("timezone.php");
 		<input type='text' class='regcode'   name='rcode[]'     id='rcode_product'  value=''/>
 	</span>
   </div>
-
+  
   <div class='row addons' id='first-addon'>
 	<label for="addon_products">Add-on 1</label>
 	<select name="addon_products" id="addon_products" class="url"></select>
@@ -81,10 +81,6 @@ require("timezone.php");
 	</span>
 	<div class="addon_btns">
 		<label for='addon1'><input type='button' class='addonbtn' value='+' onclick='anotherrepo()'/></label>
-<!--
-		<label for='addon1'><input type='button' class='addonbtn' value='+' onclick='anotherrepo()'/></label>
-		<label for='addon1'><input type='button' class='addonbtn' value='+'/></label>
--->
 		<input type='button' class='addonbtn disabled' value='-'/>
 	</div>
   </div>
@@ -139,12 +135,12 @@ require("timezone.php");
 
   <div id="more_patterns" class='row'>
 	<label for="patterns">Additional patterns</label>
-        <input type="text" name="patterns"/>
+        <input type="text" name="patterns" id='patterns'/>
   </div>
 
   <div class='row'>
 	<label for="additionalrpms">Additional packages</label>
-	<input type="text" name="additionalrpms" value="<?php if(isset($_POST["additionalrpms"])){echo $_POST["additionalrpms"];} else echo ($config->lists->arlist);?>" />
+	<input type="text" name="additionalrpms" id='additionalrpms' value="<?php if(isset($_POST["additionalrpms"])){echo $_POST["additionalrpms"];} else echo ($config->lists->arlist);?>" />
   </div>
 
   <div class='row'>
@@ -169,7 +165,7 @@ require("timezone.php");
 
   <div class='row'>
 	<label for="installoptions">Installation options </label>
-	<input type="text" name="installoptions" value="<?php echo $installoptions; ?>" /> 
+	<input type="text" name="installoptions" id='installoptions' value="<?php echo $installoptions; ?>" /> 
         <?php 
 		if ($installoptions_warning != "") 
 			{echo ("</br> <font color=\"red\" >$installoptions_warning</font>");} 
