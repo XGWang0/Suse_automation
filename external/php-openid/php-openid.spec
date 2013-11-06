@@ -69,6 +69,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-, root, root)
 /usr/share/man/man8/%{name}.8.gz
+%{php_dir}
 %{php_dir}/%{auth}
 
 %changelog
