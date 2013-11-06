@@ -32,10 +32,10 @@ if(!defined('HAMSTA_FRONTEND')) {
  }
 $html_title = "Register";
 
-$user_name = isset ($_SESSION['user_name']) ? $_SESSION['user_name'] : '';
-$user_email = isset ($_SESSION['user_email']) ? $_SESSION['user_email'] : '';
-unset ($_SESSION['user_name']);
-unset ($_SESSION['user_email']);
+$user_name = isset ($_SESSION['fullname']) ? $_SESSION['fullname'] : '';
+$user_email = isset ($_SESSION['email']) ? $_SESSION['email'] : '';
+unset ($_SESSION['fullname']);
+unset ($_SESSION['email']);
 $login = substr (strrchr (User::getIdent (), "/"), 1);
 
 /* In case the Provider sent us *both* user full name and

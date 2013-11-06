@@ -5,7 +5,7 @@ require_once ('Zend/Session.php');
 
 require_once ('Notificator.php');
 require_once ('ConfigFactory.php');
-require_once ('../frontenduser/Authenticator.php');
+require_once ('Authenticator.php');
 
 /**
  * Class represents authenticated user and provides several methods to
@@ -117,7 +117,7 @@ class User {
         $db = Zend_Db::factory ($config->database);
         if ( isset ($ident) )
           $res = $db->fetchAll ('SELECT email FROM `user` WHERE login = ?', $ident);
-        
+
         $db->closeConnection ();
         return isset ($res[0]['email']) ? $res[0]['email'] : null;
       }
@@ -236,7 +236,7 @@ class User {
    * It should return one user or null in all cases. Access to the
    * result fields is like e.g. $res[0]['login']. Returned fields are
    * 'user_id', 'extern_id', 'login', 'name' and 'email'.
-   * 
+   *
    * @param \Zend_Config $config Instance of the Zend_Config class.
    * @param string $login Login of the user to the application.
    * @param string $extern_id External authentication identifier (e.g. OpenId).
@@ -335,7 +335,7 @@ class User {
    *
    * @param int $id Id of user. Can be either login for password identification or database id.
    * @param \Zend_Config $config Application configuration.
-   * 
+   *
    * @return \User|null Returns the user if she is registered.
    */
   public static function getById ($id, $config = null)
@@ -390,116 +390,114 @@ class User {
 		return null;
 	}
 
-  /**
-   * Authenticates this user using method set in configuration.
-   */
-  public static function authenticate ()
-  {
-    $config = ConfigFactory::build ();
-    $auth = Authenticator::getInstance ();
-    if (self::isLogged ())
-      {
-        if ( isset($_GET['action'])
-             && $_GET['action'] == "logout" )
-          {
-            self::logout ();
-	    header ('Location: index.php');
-            return true;
-          }
-      }
+	/**
+	 * Authenticates this user using method set in configuration.
+	 */
+	public static function authenticate () {
+		$config = ConfigFactory::build ();
+		$auth = Authenticator::getInstance ();
+		if (self::isLogged ()) {
+			if (isset($_GET['action'])
+			    && $_GET['action'] == "logout" ) {
+				self::logout ();
+				header ('Location: index.php');
+				return true;
+			}
+		}
 
-    switch ($config->authentication->method)
-      {
-      case 'password':
-        if ( isset ($_POST['action'])
-             && $_POST['action'] == 'Login')
-          {
-            $login = isset ($_POST['login']) ? $_POST['login'] : '';
-            $password = isset ($_POST['password']) ? $_POST['password'] : '';
-            if ( empty($login) || empty ($password) )
-              {
-                Notificator::setErrorMessage ('Please fill in your credentials.');
-              }
-	    else
-              {
-                $res = Authenticator::password ($login, $password, $config);
-		if ($res)
-		  {
-		    header ('Location: index.php');
-		  }
-		else
-		  {
-		    Notificator::setErrorMessage ('Login attempt has failed. Check your credentials.');
-		  }
-              }
-          }
-        break;
-      case 'openid':
-	if (self::isLogged ())
-	  {
-	    /* If the user is logging in for the first time he has to
-	     * be registered in the database.
-	     *
-	     * If there is enough data from the OpenId provider, try
-	     * to register automatically. Otherwise the user has to
-	     * fill out the registration form. */
-            if (! self::isRegistered (self::getIdent(), $config))
-              {
-                if (! isset ($_GET['go']) || $_GET['go'] != 'register')
-                  {
-                    header ('Location: index.php?go=register');
-		    exit ();
-                  }
-              }
-            else if ( self::isRegistered (self::getIdent(), $config) )
-              {
-		/* Check if all data of the user are consistent. It
-		 * can change any time during the application use. */
-                $user = User::getById (self::getIdent (), $config);
-                $dbName = $user->getName ();
-                $dbEmail = $user->getEmail ();
+		switch ($config->authentication->method) {
+		case 'password':
+			if (isset ($_POST['action'])
+			    && $_POST['action'] == 'Login') {
+				$login = isset ($_POST['login']) ? $_POST['login'] : '';
+				$password = isset ($_POST['password']) ? $_POST['password'] : '';
+				if (empty ($login) || empty ($password)) {
+					Notificator::setErrorMessage ('Please fill in your credentials.');
+				} else {
+					$res = Authenticator::password ($login, $password, $config);
+					if ($res) {
+						header ('Location: index.php');
+					} else {
+						Notificator::setErrorMessage ('Login attempt has failed.'
+									      . ' Check your credentials.');
+					}
+				}
+			}
+			break;
+		case 'openid':
+			/* Do the OpenID authentication. */
+			$res = Authenticator::openid ($config->authentication->openid->url);
 
-                if ( (! isset ($dbName) || empty ($dbName)
-		      || ! isset ($dbEmail) || empty($dbEmail))
-		     && ( ! isset ($_GET['go'])
-			  || $_GET['go'] != 'register') )
-		  {
-		    header ('Location: index.php?go=register');
-		  }
-              }
-	  }
-	elseif (isset ($_REQUEST['action']) && $_REQUEST['action'] == 'login'
-	    || isset ($_REQUEST['openid_mode']) && $_REQUEST['openid_mode'] == 'id_res')
-	  {
-	    $res = Authenticator::openid ($config->authentication->openid->url);
-	    /* Store user data in the session for registration. */
-	    if (isset ($_GET['openid_sreg_fullname']))
-	      {
-		$_SESSION['user_name'] = $_GET['openid_sreg_fullname'];
-	      }
+			/* User is logged in. */
+			if ($res) {
+				/* If the user is logging in for the
+				 * first time she has to be registered
+				 * in the database.
+				 *
+				 * If there is enough data from the
+				 * OpenId provider, try to register
+				 * automatically (see the else
+				 * clause). Otherwise the user has to
+				 * fill out the registration form. */
+				if (self::isRegistered (self::getIdent ())) {
+					/* Check if all data of the
+					 * user are consistent. We
+					 * want users to have name and
+					 * email values set. */
+					$user = User::getCurrent ();
+					$dbName = $user->getName ();
+					$dbEmail = $user->getEmail ();
 
-	    if (isset ($_GET['openid_sreg_email']))
-	      {
-		$_SESSION['user_email'] = $_GET['openid_sreg_email'];
-	      }
-	    header ('Location: index.php');
-	    exit ();
-	  }
-	elseif (isset ($_GET['openid_mode']) && $_GET['openid_mode'] != 'id_res'
-		&& ! self::isLogged ())
-	  {
-	    self::logout ();
-	    error_log ('OpenId user authentication failed. The OpenId provider has not sent openid_mode="id_res"');
-	    Notificator::setErrorMessage ('Your OpenId provider has denied to authorize you. The provider URL is "' . $config->authentication->openid->url . '".');
-	    header ('Location: index.php');
-	    exit ();
-	  }
-        break;
-      default:
-        /* If no or invalid authentication type is set, there is no
-         * authentication possible. */
-      }
-  }
+					/* We were not able to get the registration data
+					 * so the user has to fill out the form
+					 * herself. */
+					if ((empty ($dbName) || empty ($dbEmail))
+					    && @$_GET['go'] != 'register') {
+						self::_sendTo ('register');
+					} else if (! empty ($_GET['openid_mode'])) {
+						/* Go to the index page. Otherwise the GET data
+						 * from OpenID provider stay in the URL. */
+						self::_sendTo ();
+					}
+				} else {
+					if (is_object ($res)) {
+						/* Result stores SREG data from OpenID
+						 * provider response or error messages. */
+						$msgs = $res->getMessages ();
+						if ($res->isValid ()) {
+							self::_saveRegistrationData ($msgs);
+							self::_sendTo ('register');
+						} else {
+							Notificator::setErrorMessage (join (' ', $msgs));
+							self::_sendTo ();
+						}
+					}
+				}
+			}
+			break;
+		default:
+			/* If no or invalid authentication type is
+			 * set, no authentication is possible. */
+		}
+	}
+
+	/**
+	 *
+	 */
+	private static function _saveRegistrationData ($data) {
+		foreach ($data as $key=>$val) {
+			$_SESSION[$key] = $val;
+		}
+	}
+
+	private static function _sendTo ($where = '') {
+		$header = 'Location: index.php';
+		if (! empty ($where)) {
+			$header .= '?go=' . $where;
+		}
+		header ($header);
+		exit ();
+	}
 
   /**
    * Log out the user.
@@ -560,7 +558,7 @@ class User {
           {
             $outName = $ident;
           }
-      
+
         echo ("Logged in as <a class=\"bold\" href=\"index.php?go=user\">"
               . $outName . "</a>\n");
       }
@@ -600,7 +598,7 @@ class User {
    * It is recommended to check if the user is not already registered
    * before calling this method (see isRegistered ()). This method
    * sets the user password to a randomly generated string.
-   * 
+   *
    * @param string $login Login identification of the user (e.g. openid url or login).
    * @param string $name User's name.
    * @param string $email User's e-mail address.
@@ -642,39 +640,41 @@ class User {
     return $added;
   }
 
-  /**
-   * Checks if the user is registered in Hamsta.
-   *
-   * It simply asks database if the login is already there.
-   *
-   * @param string $login Login identification of the user.
-   * @param \Zend_Config $config Application configuration.
-   */
-  public static function isRegistered ($ident, $config)
-  {
-    $db = Zend_Db::factory ($config->database);
-    $sql = 'SELECT user_id FROM user WHERE ';
+	/**
+	 * Checks if the user is registered in Hamsta.
+	 *
+	 * It simply asks database if the login is already there.
+	 *
+	 * @param string $login Login identification of the user.
+	 * @param \Zend_Config $config Application configuration.
+	 */
+	public static function isRegistered ($ident, $config = null) {
+		if (! isset ($config)) {
+			$config = ConfigFactory::build();
+		}
+		$db = Zend_Db::factory ($config->database);
+		$sql = 'SELECT user_id FROM user WHERE ';
 
-    switch ($config->authentication->method) {
-    case "openid":
-      $sql .= 'extern_id = ?';
-      break;
-    case "password":
-      $sql .= 'login = ?';
-      break;
-    default:
-      return false;
-    }
+		switch ($config->authentication->method) {
+		case "openid":
+			$sql .= 'extern_id = ?';
+			break;
+		case "password":
+			$sql .= 'login = ?';
+			break;
+		default:
+			return false;
+		}
 
-    $res = $db->fetchAll ($sql, $ident);
-    return isset ($res[0]['user_id']);
-  }
+		$res = $db->fetchAll ($sql, $ident);
+		return isset ($res[0]['user_id']);
+	}
 
   public function getId ()
   {
     return $this->user_id;
   }
-  
+
   public function getExternId ()
   {
     return $this->extern_id;
@@ -730,8 +730,8 @@ class User {
    * Set new full name for this user.
    *
    * @param string $name New full name for this user.
-   * 
-   * @return boolean True if name has been changed, false otherwise. 
+   *
+   * @return boolean True if name has been changed, false otherwise.
    */
   public function setName ($name)
   {
@@ -962,7 +962,7 @@ function capable ()
 	# everything allowed when not using authentication
         if( !$config->authentication->use )
                 return true;
-	
+
 	# nothing allowed unless logged in
 	if( !$user )
 		return false;
@@ -975,7 +975,7 @@ function capable ()
 	return $user->isAllowedAny ($cap);
 }
 
-/** 
+/**
   * Check for machine's permissions.
   * accepts args:
   * - owner : permission(s) needed for those who own the machine
@@ -1026,7 +1026,7 @@ function machine_permission($machines,$args)
 	return true;
 }
 
-/** 
+/**
   * Check for machine's permissions and redirects if missing.
   * accepts args:
   * - owner : permission(s) needed for those who own the machine
@@ -1040,7 +1040,7 @@ function machine_permission_or_redirect($machines,$args=array())
 		redirect( $args );
 }
 
-/** 
+/**
   * Check for machine's permissions and sets 'disabled.css' if missing.
   * accepts args:
   * - owner : permission(s) needed for those who own the machine
