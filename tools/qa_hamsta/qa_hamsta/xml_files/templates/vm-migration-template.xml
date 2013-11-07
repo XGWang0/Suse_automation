@@ -18,7 +18,7 @@
             <command execution="threaded">/usr/share/qa/tools/vm-migrate-allhosttype.pl ARGS</command>
             <!-- Optional -->
             <directory>/</directory>
-            <timeout>120</timeout>
+            <timeout>1200</timeout>
         </worker>
     </commands>
 </job>

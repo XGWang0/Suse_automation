@@ -39,6 +39,16 @@ function usage() {
 	exit 1
 }
 
+function cleanup(){
+	# Disconnect from remote
+	export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "umount $domainDiskDir" 2>/dev/null
+	export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "rm -r $domainDiskDir" 2>&1
+	# Clean nfs export file
+	lineNum=`grep -n $domUname /etc/exports | cut -d: -f1`
+	sed -ie "$lineNum d" /etc/exports
+	exportfs -r 2>&1
+}
+
 if [ $# -ne 4 ] && [ $# -ne 6 ] && [ $# -ne 7 ] && [ $# -ne 5 ]; then
 	usage
 fi
@@ -121,14 +131,20 @@ then
 fi
 echo "Host IP address is $localIp..."
 
+#Get directory for the domain disk
+domainDiskDir=`find /var/lib/$hyperType -name $domUname`
+if [ -z $domainDiskDir ];then
+	echo "The domain does not exist!"
+	exit 1
+fi
 # Create the remote directory
-echo "Creating remote directory $migrateeIP :/var/lib/$hyperType/images/$domUname..."
-export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "mkdir /var/lib/$hyperType/images/$domUname" 2>&1
+echo "Creating remote directory $migrateeIP :$domainDiskDir..."
+export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "mkdir $domainDiskDir" 2>&1
 
 if [ $? -ne 0 ]
 then
 	# The remote directory exists, so we just need to make sure it is empty
-	totalResult=`export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "ls -lR /var/lib/$hyperType/images/$domUname/ | grep total" 2>&1`
+	totalResult=`export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "ls -lR $domainDiskDir | grep total" 2>&1`
         if [ "$totalResult" == "total 0" ]
         then
             echo "The remote directory already exists, but is empty, so we are OK to mount it."
@@ -140,12 +156,23 @@ fi
 
 # Now set up the export
 echo "Setting up local export..."
-echo "/var/lib/$hyperType/images/$domUname $migrateeIP(rw,sync,no_root_squash,no_subtree_check)" >> /etc/exports
+if ! grep "$domainDiskDir $migrateeIP" /etc/exports;then
+	echo "$domainDiskDir $migrateeIP(rw,sync,no_root_squash,no_subtree_check)" >> /etc/exports
+else
+	echo "There already is export item for \"$domainDiskDir $migrateeIP\", please remove it first!"
+	exit 1
+fi
 exportfs -r 2>&1
 
 # Remote mount it
 echo "Remote mounting the share..."
-export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "mount -t nfs $localIp:/var/lib/$hyperType/images/$domUname /var/lib/$hyperType/images/$domUname" 2> /dev/null
+export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "mount -t nfs $localIp:$domainDiskDir $domainDiskDir" 2> /dev/null
+if [ $? -eq 0 ];then
+	echo "Mount is successful!"
+else
+	echo "Mount fails!"
+	exit 1
+fi
 
 echo
 echo "		----------------------"
@@ -154,67 +181,49 @@ echo "		----------------------"
 echo
 
 # implement migration
-if [ $migrateTimes -eq 1 ]; then
+migrateRound=`expr $migrateTimes / 2`
+for ((i=0;i<$migrateRound;i++)); do
 	echo
-	echo "		---- one way migration ---"
+	echo "		---- roundtrip migration ----"
 	echo
+	echo "		---- migration forward  $((i+1)) times ----"
 	echo "		From: $localIp..."
 	echo "		To: $migrateeIP..."
 	echo "		VMName: $domUname..."
+	echo
 	if [ -z $livemigration ]; then
 		if [ $hyperType == "xen" ]; then
 			xm migrate $domUname $migrateeIP
-		else #else KVM
-			virsh migrate $domUname qemu+ssh://$migrateeIP/system tcp://$migrateeIP
+			export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "xm migrate $domUname $localIp" 2>/dev/null
+		else # KVM
+			virsh migrate --unsafe $domUname qemu+ssh://$migrateeIP/system tcp://$migrateeIP
+			export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "virsh migrate --unsafe $domUname qemu+ssh://$localIp/system tcp://$localIp" 2>/dev/null
 		fi
-	else
-		# live migration 
-		echo "		MigrationType: Live..."
+	else # live migration
+		echo "		MigrationType: live..."
 		if [ $hyperType == "xen" ]; then
 			xm migrate -l $domUname $migrateeIP
+			export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "xm migrate -l $domUname $localIp" 2>/dev/null
 		else
-			virsh migrate --live $domUname qemu+ssh://$migrateeIP/system tcp://$migrateeIP
+			virsh migrate --live --unsafe $domUname qemu+ssh://$migrateeIP/system tcp://$migrateeIP
+			export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "virsh migrate --live --unsafe $domUname qemu+ssh://$localIp/system tcp://$localIp" 2>/dev/null
 		fi
 	fi
-else
-	migrateRound=`expr $migrateTimes / 2`
-	for ((i=0;i<$migrateRound;i++)); do
-		echo
-		echo "		---- roundtrip migration ----"
-		echo
-		echo "		---- migration forward  $((i+1)) times ----"
-		echo "		From: $localIp..."
-		echo "		To: $migrateeIP..."
-		echo "		VMName: $domUname..."
-		echo
-		if [ -z $livemigration ]; then
-			if [ $hyperType == "xen" ]; then
-				xm migrate $domUname $migrateeIP
-				export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "xm migrate $domUname $localIp" 2>/dev/null
-			else # KVM
-				virsh migrate $domUname qemu+ssh://$migrateeIP/system tcp://$migrateeIP
-				export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "virsh migrate $domUname qemu+ssh://$localIp/system tcp://$localIp" 2>/dev/null
-			fi
-		else # live migration
-			echo "		MigrationType: live..."
-			if [ $hyperType == "xen" ]; then
-				xm migrate -l $domUname $migrateeIP
-				export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "xm migrate -l $domUname $localIp" 2>/dev/null
-			else
-				virsh migrate --live $domUname qemu+ssh://$migrateeIP/system tcp://$migrateeIP
-				export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "virsh migrate --live $domUname qemu+ssh://$localIp/system tcp://$localIp" 2>/dev/null
-			fi
-		fi
-		# Disconnect from remote
-		export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "umount /var/lib/$hyperType/images/$domUname" 2>/dev/null
-		echo "		---- migration back $((i+1)) times ----"
-		echo "		From: $migrateeIP..."
-		echo "		To: $localIp..."
-		echo "		VMName: $domUname..."
-		echo
-		export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "mount -t nfs $localIp:/var/lib/$hyperType/images/$domUname /var/lib/$hyperType/images/$domUname" 2> /dev/null
-	done
-fi
+        if [[ $? != 0 ]];then
+		echo "Migration fails!"
+                cleanup
+                exit 1
+        fi
+
+	# Disconnect from remote
+	export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "umount $domainDiskDir" 2>/dev/null
+	echo "		---- migration back $((i+1)) times ----"
+	echo "		From: $migrateeIP..."
+	echo "		To: $localIp..."
+	echo "		VMName: $domUname..."
+	echo
+	export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "mount -t nfs $localIp:$domainDiskDir $domainDiskDir" 2> /dev/null
+done
 
 if [ `expr $migrateTimes % 2` -eq 1 ]; then
         echo
@@ -228,16 +237,26 @@ if [ `expr $migrateTimes % 2` -eq 1 ]; then
                 if [ $hyperType == "xen" ]; then
                         xm migrate $domUname $migrateeIP
                 else # else KVM
-                        virsh migrate $domUname qemu+ssh://$migrateeIP/system tcp://$migrateeIP
+                        virsh migrate --unsafe $domUname qemu+ssh://$migrateeIP/system tcp://$migrateeIP
 		fi
        	else
 		echo "          MigrationType: live..."
 		if [ $hyperType == "xen" ]; then
 			xm migrate -l $domUname $migrateeIP
 		else
-			virsh migrate --live $domUname qemu+ssh://$migrateeIP/system tcp://$migrateeIP
+			virsh migrate --live --unsafe $domUname qemu+ssh://$migrateeIP/system tcp://$migrateeIP
 		fi
  	fi
+	if [[ $? != 0 ]];then
+        	echo "Migration fails!"
+              	cleanup
+                exit 1
+        fi  
+fi
+
+#cleanup for successful migration if finally the domain is till on source host
+if [ `expr $migrateTimes % 2` -eq 0 ]; then
+	cleanup
 fi
 
 echo
@@ -246,12 +265,4 @@ echo "		---  MIGRATE DONE  ---"
 echo "		----------------------"
 echo
 
-if [ `expr $migrateTimes % 2` -eq 0 ]; then
-	# Disconnect from remote
-	export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "umount /var/lib/$hyperType/images/$domUname" 2>/dev/null
-	# Clean nfs export file
-	lineNum=`grep -n $domUname /etc/exports | cut -d: -f1`
-	sed -ie "$lineNum d" /etc/exports
-	exportfs -r 2>&1
-fi
 
