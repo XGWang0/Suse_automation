@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<job>
+    <config>
+        <name>Virtual machine migration to specified remote IP host</name>
+        <debuglevel>4</debuglevel>
+        <distributable>0</distributable>
+        <parallel>0</parallel>
+        <mail notify="1"></mail>
+        <logdir>/tmp</logdir>
+        <rpm>qa_hamsta qa_tools qa_lib_perl qa_lib_virtauto</rpm>
+        <description>Migrate virtual machine with given domain name to remote host with given IP</description>
+        <reboot>0</reboot>
+    </config>
+
+    <commands>
+        <worker>
+            <!-- Required -->
+            <command execution="threaded">/usr/share/qa/tools/vm-migrate-allhosttype.pl ARGS</command>
+            <!-- Optional -->
+            <directory>/</directory>
+            <timeout>120</timeout>
+        </worker>
+    </commands>
+</job>
