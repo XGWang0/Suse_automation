@@ -121,7 +121,6 @@ $pages = array(
     "vhreinstall",
     "newvm",
     "newvm-win",
-    "vm_migrate",
     "del_virtual_machines",
     "upgrade",
     "merge_machines",

@@ -103,8 +103,6 @@ print (task_icon ( array ('url'		=> 'index.php?go=newvm-win&a_machines[]=' . $mi
 
 ?>
 
-      <a href="index.php?go=vm_migrate&a_machines[]=<?php echo ($machine->get_id ());?>"><img src="images/vm-migration.png" alt="Migrate a virtual machine" title="Migrate a virtual machine on <?php echo($machine->get_hostname());?> to a remote host" class="machine-actions icon-small"/></a> 
-
       <a href="http://<?php echo($machine->get_ip_address()); ?>:5801" target="_blank"><img src="images/27/icon-vnc.png" alt="Open a VNC viewer" title="Open a VNC viewer on <?php echo($machine->get_hostname());?>" class="machine-actions icon-small"/></a>
 
       <?php if(count($machine->get_children()) > 0) { ?>
