@@ -167,7 +167,7 @@ sub get_hwinfo_module($) {
 	chomp($block_disk_name);
 	my $root_pt_name = `df /|awk '{a=\$1}END{print a}'`;
 	chomp($root_pt_name);
-	my $pt_n_s = `parted $block_disk_name print | awk -v p=$block_disk_name '\$1~/[0-9]/ && \$5!~/extend/{ print p""\$1"("\$4")" }'`;
+	my $pt_n_s = `parted --script $block_disk_name print | awk -v p=$block_disk_name '\$1~/[0-9]/ && \$5!~/extend/{ print p""\$1"("\$4")" }'`;
 	chomp($pt_n_s);
 	my @pt_n_s = split (/\n/,$pt_n_s);
 	map { $_ = $_ ." [current_root / ]" if($_ =~ /$root_pt_name/)} @pt_n_s;
