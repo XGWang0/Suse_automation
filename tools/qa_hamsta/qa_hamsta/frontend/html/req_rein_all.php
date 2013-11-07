@@ -65,55 +65,42 @@ require("timezone.php");
 	</span>
   </div>
   
-  <div class='row addons' id='first-addon'>
-	<label for="addon_products">Add-on 1</label>
-	<select name="addon_products" id="addon_products" class="url"></select>
-	<input type='radio' class='arch' name='addon0_arch' id='addon0_arch1' checked='checked' value='x86_64'/>
-	<label for='addon0_arch1'>x86_64</label>
-	<input type='radio' class='arch' name='addon0_arch' id='addon_arch2'  value='i586'/>
-	<label for='addon_arch2'>i586</label>
-	<label for='addon_producturl' class='url'>URL</label>
-	<input type="text" name="addon_url[]" id="addon_producturl" class='url' value="<?php if(isset($_POST["addon_producturl"])){echo $_POST["addon_producturl"];} ?>" />
-	<span class='rcode'>
-		<label for="rcode_a1">Reg.code</label>
-		<input type='text' class='regprefix' name="regprefix[]" id='regprefix_1' value=''/>
-		<input type='text' class='regcode'   name="rcode[]" id='rcode_a1' value=''/>
-	</span>
-	<div class="addon_btns">
-		<label for='addon1'><input type='button' class='addonbtn' value='+' onclick='anotherrepo()'/></label>
-		<input type='button' class='addonbtn disabled' value='-'/>
-	</div>
-  </div>
-  <input id='addon1' class='addons' type='checkbox'/>
   <?php
-       $addon_id = 2;
+
+       $addon_id = 1;
        $ADDON_NUMS = 5;
        for (; $addon_id <= $ADDON_NUMS; $addon_id++)
        {
-	print "<div class='row addons'>" .
-             "<label for='addon_products_$addon_id'>Add-on $addon_id</label>" . 
-	     "<select id='addon_products_$addon_id'  class='url' name='addon_products[]'></select>" . 
-	     "<input type='radio' class='arch' id='addon_".$addon_id."_arch_x86_64' name='addon".$addon_id."arch' checked='checked' value='x86_64'/>" .
-	     "<label for='addon_".$addon_id."_arch_x86_64'>x86_64</label>" .
-	     "<input type='radio' class='arch' id='addon_".$addon_id."_arch_i586' name='addon".$addon_id."arch'  value='i586'/>" .
-	     "<label for='addon_".$addon_id."_arch_i586'>i586</label>" .
-	     "<label for='addon_products_url_$addon_id' class='url'>URL</label>" . 
-	     "<input type=text name=addon_url[] id=addon_products_url_$addon_id class='url'/>" .
-             "<span class='rcode'>" .
-		"<label for=rcode_a$addon_id >Reg.code</label>" .
-		"<input type='text' class='regprefix' name='regprefix[]' id='regprefix_$addon_id' value=''/>".
-		"<input type='text' class='regcode'   name='rcode[]' id='rcode_a$addon_id' value=''/>".
-             "</span>" .
-             "<div class='addon_btns'>";
+           if ($addon_id ==1)
+	        print "<div class='row addons'  id='first-addon'>\n";
+           else
+	        print "<div class='row addons'>\n";
+           print  "<label for='addon_products_$addon_id'>Add-on $addon_id</label>\n" . 
+	     "<select id='addon_products_$addon_id'  class='url' name='addon_products[]'></select>\n" . 
+	     "<input type='radio' class='arch' id='addon_".$addon_id."_arch_x86_64' name='addon".$addon_id."arch' checked='checked' value='x86_64'/>\n" .
+	     "<label for='addon_".$addon_id."_arch_x86_64'>x86_64</label>\n" .
+	     "<input type='radio' class='arch' id='addon_".$addon_id."_arch_i586' name='addon".$addon_id."arch'  value='i586'/>\n" .
+	     "<label for='addon_".$addon_id."_arch_i586'>i586</label>\n" .
+	     "<label for='addon_products_url_$addon_id' class='url'>URL</label>\n" . 
+	     "<input type=text name=addon_url[] id=addon_products_url_$addon_id class='url' value=''"; 
+             if(isset($_POST["addon_producturl"])){echo $_POST["addon_producturl"];} 
+           print "/>\n" .
+             "<span class='rcode'>\n" .
+		"<label for=rcode_a$addon_id >Reg.code</label>\n" .
+		"<input type='text' class='regprefix' name='regprefix[]' id='regprefix_$addon_id' value=''/>\n".
+		"<input type='text' class='regcode'   name='rcode[]' id='rcode_a$addon_id' value=''/>\n" .
+             "</span>\n" .
+             "<div class='addon_btns'>\n";
              if ( $addon_id == $ADDON_NUMS )
-	         print "<input type='button' class='addonbtn' value='+'/>";
+	         print "<input type='button' class='addonbtn' value='+'/>\n";
              else
-		 print "<label for='addon$addon_id'><input type='button' class='addonbtn' value='+' onclick='anotherrepo()'/></label>";
-	     print "<label for='addon". ($addon_id-1) ."'><input type='button' class='addonbtn disabled' value='-'/></label>".
-             "</div></div>"; 
+		 print "<label for='addon$addon_id'><input type='button' class='addonbtn' value='+' /></label>\n";
+	     print "<label for='addon". ($addon_id-1) ."'><input type='button' class='addonbtn disabled' value='-'/></label>\n".
+             "</div></div>\n"; 
              if ( $addon_id != $ADDON_NUMS )
-                 print "<input id='addon$addon_id' class='addons' type='checkbox'/>";
+                 print "<input id='addon$addon_id' class='addons' type='checkbox'/>\n";
         }
+
   ?>
 
   <div class='row'>

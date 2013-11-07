@@ -317,53 +317,6 @@ function remove_repo (addon_number) {
     addonid -= 1;
 }
 
-function anotherrepo () {
-
-    addonid += 1;
-    var addon_pattern_name = 'addon_pattern_' + addonid;
-    var addon_products_url_id = 'addon_products_url_' + addonid;
-    var addon_products_id = 'addon_products_' + addonid;
-    var addon_arch_x86_64 = "addon_arch_x86_64_" + addonid;
-    var addon_arch_i586 = "addon_arch_i586_" + addonid;
-    var reg_prefix_id = 'regprefix_' + addonid;
-    var reg_code_id = 'rcode_a' + addonid;
-    
-    /*
-    $('.addons').last().after("<div id=addon_row_" + addonid + " class='row addons'>"
-				+ "<label for=addon_products_" + addonid + ">Add-on " + addonid + "</label>"
-				+ "<select class='url' id=addon_products_" + addonid + " name='addon_product[]'> </select>"
-				+ "<input type='radio' value='x86_64' checked='true' id="+addon_arch_x86_64 +" name=addon"+addonid+"_arch class='arch'>"
-                                + "<label for="+addon_arch_x86_64+">x86_64</label>"
-				+ "<input type='radio' value='i586' id="+addon_arch_i586+" name=addon"+addonid+"_arch class='arch'>"
-                                + "<label for="+addon_arch_i586+">i586</label>"
-				+ "<label class='url' for=" + addon_products_url_id + ">URL</label>"
-				+ "<input type='text'  id='" + addon_products_url_id + "' name='addon_url[]' class='url'>"
-				+ "<span class='rcode'>"
-				+ "<label for="+ reg_code_id +">Reg.code</label>"
-				+ "<input type='text' id="+ reg_prefix_id +" name='regprefix[]' class='regprefix'>"
-				+ "<input type='text' id="+ reg_code_id +"   name='rcode[]'     class='regcode'></span>"
-				+ "<div class='addon_btns'>"
-				+ "<label for='addon2'><input type='button' value='+' class='addonbtn' onclick='anotherrepo()'></label>"
-				+ "<label for='addon1'><input type='button' value='-' class='addonbtn' onclick=remove_repo("+addonid+")></label></div>" 
-				+ "</div>");
-
-    */
-    $("#" + addon_products_url_id).change (function() {
-	get_patterns ("#" + addon_products_url_id, addon_pattern_name, 'addon');
-    });
-    //update addon option
-    $.getJSON("html/search_repo.php", { prod_type : "addon" }, function(data) {
-        insert_options("#"+addon_products_id, data, old_addon_product);
-    });
- 
-    $("#"+addon_products_id).bind('change', {id: addon_products_url_id}, function () {
-	if ($(this).val())
-	{
-            get_urls ('addon', 'x86_64', addon_products_id, addon_products_url_id);
-	}
-    });
-}
-
 var anotherrcode = function (){
     addoncodeid += 1;
     $('#additional_rcode').append('Registration Code for add-on repo #'
@@ -452,8 +405,52 @@ $(document).ready(function() {
     });
 
     $.getJSON("html/search_repo.php", { prod_type : "addon" }, function(data) {
-	insert_options("#addon_products", data, old_addon_product);
+        $("select[name*='addon_products']").each(function(index, value){
+	   insert_options($(this), data, old_addon_product);
+        });
     });
+    
+    /*Register events for select addon products*/ 
+    $("select[name*='addon_products']").each(function(index, value){
+                    var addon_id = index +1;
+                    var  addon_products_id      =  "addon_products_" + addon_id;
+                    var  addon_products_url_id  =  "addon_products_url_"+ addon_id;
+		    $(this).bind('change', {id: "addon_products_"+addon_id}, function () {
+			    if ($(this).val())
+			    {
+			        var arch = $(this).val();
+			        if (/x86_64/.test(arch))
+			            get_urls ('addon', 'x86_64', addon_products_id, addon_products_url_id);
+			        else if (/i[1-9]86/.test(arch))
+			            get_urls ('addon', 'i586', addon_products_id, addon_products_url_id);
+			        else
+			            get_urls ('addon', 'x86_64', addon_products_id, addon_products_url_id);
+			    }
+			    });
+
+		    $("input[name=addon"+addon_id+"arch]").bind('change', {id: "addon_products_url_"+addon_id}, function () {
+			    if ($(this).val())
+			    {
+			    var arch = $(this).val();
+			    if (/x86_64/.test(arch))
+			    get_urls ('addon', 'x86_64', addon_products_id, addon_products_url_id);
+			    else if (/i[1-9]86/.test(arch))
+			    get_urls ('addon', 'i586', addon_products_id, addon_products_url_id);
+			    else
+			    get_urls ('addon', 'x86_64', addon_products_id, addon_products_url_id);
+			    }
+			    });
+		    });
+
+    /* Register events for pattens change */
+    $("input[id*='addon_products_url']").each(function(index, value){
+        var addon_id = index + 1;
+        var addon_pattern_name = 'addon_pattern_' + addon_id;
+	$(this).bind('change', {id: "addon_products_url_"+addon_id}, function () {
+   		get_patterns ("#addon_products_url_"+addon_id  , addon_pattern_name, 'addon');
+        });
+    });
+
 
     /* Register events for specified form parts. */
     $("#repo_products").change( function () {
@@ -461,21 +458,6 @@ $(document).ready(function() {
             get_urls ('repo', 'x86_64');
     });
 
-    /*$("#repo_archs").change( function () {
-	get_urls ('repo');
-    });
-    */
-
-    $("#addon_products").change( function () {
-	if ($("#addon_products").val())
-            get_urls ('addon', 'x86_64');
-
-    });
-
-    /*$("#addon_archs").change( function () {
-	get_urls('addon');
-    });
-    */
     $("#repo_producturl").change ( function () {
 	get_patterns ('#repo_producturl', 'available_patterns', 'distro');
 	auto_set_kexec ($(this).val ());
