@@ -74,7 +74,7 @@ if (User::isLogged())
 </ul></h5>
 
 <p>
-This page will allow you to migrate virtual machines with given domain name on the virtual hosts you have selected to remote virtual hosts with given IP.
+This page will allow you to migrate virtual machines with given domain name on the virtual hosts you have selected to remote virtual hosts with given IP. The currently supported VH types includes kvm and xen.
 </p>
 
 <form enctype="multipart/form-data" action="index.php?go=vm_migrate" method="POST" onsubmit="return checkcontents(this);">
