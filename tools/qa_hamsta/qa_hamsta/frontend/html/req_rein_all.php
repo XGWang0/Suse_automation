@@ -35,7 +35,7 @@ require("timezone.php");
   <input type='radio' id='reg_code' name='startupdate' value='update-reg'/><label for='reg_code'>code</label>
   <span id='regmail'>
     <label for='update-reg-email'>Registration e-mail</label>
-    <input id='update-reg-email' type='text' value='' name='update-reg-email'/>
+    <input id='update-reg-email' type='text' required='' name='update-reg-email' placeholder="required" title='The email is required for registration'/>
   </span>
   </br>
   <div class='row' id='smt'>
@@ -61,7 +61,7 @@ require("timezone.php");
 			<option value='sles'>SLES</option>
 			<option value='sled'>SLED</option>
 		</select>
-		<input type='text' class='regcode'   name='rcode[]'     id='rcode_product'  value=''/>
+		<input type='text' class='regcode' name='rcode[]' id='rcode_product'  required='' placeholder='required' title="Please fill registration code"/>
 	</span>
   </div>
   
@@ -92,11 +92,14 @@ require("timezone.php");
              "</span>\n" .
              "<div class='addon_btns'>\n";
              if ( $addon_id == $ADDON_NUMS )
-	         print "<input type='button' class='addonbtn' value='+'/>\n";
+	         print "<input type='button' class='addonbtn' value='+' disabled/>\n";
              else
 		 print "<label for='addon$addon_id'><input type='button' class='addonbtn' value='+' /></label>\n";
-	     print "<label for='addon". ($addon_id-1) ."'><input type='button' class='addonbtn disabled' value='-'/></label>\n".
-             "</div></div>\n"; 
+             if ( $addon_id == 1 )
+	         print "<input type='button' class='addonbtn disabled' value='-' disabled/>\n";
+             else
+	         print "<label for='addon". ($addon_id-1) ."'><input type='button' class='addonbtn disabled' value='-'/></label>\n";
+             print "</div></div>\n"; 
              if ( $addon_id != $ADDON_NUMS )
                  print "<input id='addon$addon_id' class='addons' type='checkbox'/>\n";
         }
