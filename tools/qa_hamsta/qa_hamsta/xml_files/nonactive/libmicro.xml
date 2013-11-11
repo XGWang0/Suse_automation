@@ -8,6 +8,7 @@
 	<description>libmicro benchmark</description>
 	<logdir>/tmp</logdir>
 	<rpm>hamsta libmicro-ctcs2-glue</rpm>
+        <reboot>0</reboot>
     </config>
 
     <commands>

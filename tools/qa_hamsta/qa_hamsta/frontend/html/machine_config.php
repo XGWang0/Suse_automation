@@ -51,7 +51,19 @@ $group=http('group');
 $id_defined=array_key_exists('id',$_REQUEST);
 
 if( token_read($wtoken) )	{
-	if( ($submit=='new' && $desc) || $submit=='set' )	{
+	$step='l';
+	$failed=false;
+	if( ($submit=='new' || $submit=='update') && $desc )	{
+		# check for description collisions
+		$old_id=qaconf_get_by_desc($desc);
+		if( $old_id )
+			$failed=true;
+	}
+	if( $failed )	{
+		print html_error("Desc '$desc' already exists");
+		$step=($submit=='new' ? 'n' : 'e');
+	}
+	else if( ($submit=='new' && $desc) || $submit=='set' )	{
 		check_perm_redirect();
 		transaction();
 		if( $submit=='new' )	{
@@ -103,7 +115,6 @@ if( token_read($wtoken) )	{
 			commit();
 		}
 	}
-	$step='l';
 }
 
 $steps=array(

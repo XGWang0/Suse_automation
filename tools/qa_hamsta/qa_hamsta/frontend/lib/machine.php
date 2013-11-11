@@ -1451,8 +1451,13 @@ class Machine {
 			while (($s = fgets($sock, 4096)) != "$>") {
 				$response .= $s;
 			}
-			if (!stristr($response, "you were authenticated")) {
+
+			if (!stristr ($response, "you were authenticated")) {
 				$this->errmsg = $response;
+				if (stristr ($response, 'not enough parameters')) {
+					$this->errmsg = 'Could not authenticate to backend.'
+						. ' Check you have your Hamsta master password set.';
+				}
 				return false;
 			}
 		}

@@ -11,6 +11,7 @@
         <logdir>/tmp</logdir>
         <description>DESCRIPTION</description>
         <motd>[Custom job]: MOTDMSG</motd>
+        <reboot>0</reboot>
     </config>
 
     <commands>

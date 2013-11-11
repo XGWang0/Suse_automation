@@ -40,6 +40,7 @@
                           'description'=>"your job descption",
                           'motd'=>'your job motd message',
                           'mailto'=>(isset($user) ? $user->getEmail() : 'hamsta@suse.com'),
+			  'reboot'=>0,
                           'rpmlist'=>'');
 
         $roleCount = 0;
@@ -58,6 +59,7 @@
                 $jobInfo['motd'] = $xml->config->motd;
                 $jobInfo['mailto'] = $xml->config->mail;
                 $jobInfo['rpmlist'] = $xml->config->rpm;
+                $jobInfo['reboot'] = $xml->config->reboot;
 
                 # get parameter map
                 $jobParamMap = get_parameter_maps($xml);
@@ -131,6 +133,8 @@
     <tr><td>Needed rpms:</td>
     <td><input type="text" size="20" name="rpmlist" title="optional: divided by space, e.g: qa_tools qa_bind" value="<?php echo $jobInfo['rpmlist']; ?>"></td></tr>
     
+    <tr><td>Reboot:</td>
+    <td><input type="checkbox" size="20" name="reboot" title="optional: set it if job reboot the machine" value=1 "<?php if($jobInfo['reboot']==1) echo ' checked=\"checked\"'; ?>"></td></tr>
     <!-- Additional parameters -->
     <tr><td><input type="checkbox" name="param_flag" value="paramFlag" title="Edit additional Parameters" onclick="editParameters()">Edit addtional parameters</td>
     <td><div id="param_edit"><select id="param_type" name="param_type" title="required: please chose one parameter type">

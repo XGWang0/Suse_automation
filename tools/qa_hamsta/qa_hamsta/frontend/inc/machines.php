@@ -38,11 +38,11 @@
 
 /* Retrieve an user instance if we can. */
 	switch (request_str("action")) {
-		case "edit":
+		case "machine_edit":
 			$go = "machine_edit";
 			return require("inc/machine_edit.php");
 
-		case "delete":
+		case "machine_delete":
 			$go = "machine_delete";
 			return require("inc/machine_delete.php");
 
@@ -98,6 +98,9 @@
 	   case "addsut":
 			$go = "addsut";
 			return require("inc/addsut.php");
+	   case 'machine_reserve':
+			$go = 'machine_reserve';
+			return require ('inc/machine_reserve.php');
 	}
 
 	$searched_fields = array();
@@ -304,6 +307,8 @@
 				if ($key == 'group')
 				{
 					$filter = request_str ($key);
+					if ( ! empty($filter) )
+						$ns_machine_filter->fields[$key] = $filter;
 				}
 			}
 	

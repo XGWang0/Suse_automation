@@ -14,6 +14,7 @@
         <logdir>/tmp</logdir>
         <description>Run tests of security team</description>
         <motd>Running security tests</motd>
+        <reboot>0</reboot>
     </config>
     <!-- Optional -->
     <commands>

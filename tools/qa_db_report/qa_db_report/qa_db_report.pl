@@ -326,7 +326,7 @@ $dst->set_user();
 my $arch_id	= $dst->enum_get_id('arch',$args{'arch'})	
 	or &log_and_die( "Architecture '".$args{'arch'}."' not in the database" );
 my $release_id = $dst->enum_get_id_or_insert('release',$args{'release'});
-my $product_id = $dst->enum_get_id('product',$args{'product'})	
+my $product_id = $dst->enum_get_id_or_insert('product',$args{'product'})	
 	or &log_and_die( "Product '".$args{'product'}."' not found in the database" );	
 my $host_id = $dst->enum_get_id_or_insert('host',$args{'host'});
 my $tester_id = $dst->enum_get_id_or_insert('tester',$args{'tester'});

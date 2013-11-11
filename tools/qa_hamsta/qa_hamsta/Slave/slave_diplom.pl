@@ -179,14 +179,14 @@ while(1){
 # requests to process_request.
 # 
 sub chk_run() {
-	
-
   open my $sub_p,"pstree $slave_pid |" or return 0;
   my @pstreeo = <$sub_p>;
   close $sub_p;
   return 1 if(grep { /\-/ } @pstreeo);
   return 0 ;
 }
+
+# runs slave server, binds to port, responds to connections
 sub run_slave_server() {
     my $socket = new IO::Socket::INET(
         LocalPort => $Slave::slave_port,

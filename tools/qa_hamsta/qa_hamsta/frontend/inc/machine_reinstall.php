@@ -206,6 +206,7 @@ if (request_str("proceed")) {
 			$args .= " -Z " . $timezone;
 		if ($kexecboot == "yes")
 			$args .= " -k";
+
 		/* This is not good as it should be in its own
 		 * library. But it is still better than previous
 		 * numerous 'sed SOMETHING' script invocations. */

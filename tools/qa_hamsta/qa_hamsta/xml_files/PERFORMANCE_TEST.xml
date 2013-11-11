@@ -10,6 +10,7 @@
         <logdir>/tmp</logdir>
         <description>SLES10-SP4 performance test</description>
         <motd>[Custom job]: SLES10-SP4 performance test is running</motd>
+        <reboot>0</reboot>
     </config>
 
     <commands>

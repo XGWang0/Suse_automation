@@ -49,7 +49,8 @@ class MachineEditController
 				Log::create($machine->get_id(), $user->getLogin (),
 					    'RELEASE', "has unreserved this machine");
 			} else {
-				$this->addMachineError ($machine, 'Can not unreserve. It is already free!');
+				$this->addMachineError ($machine, 'Can not unreserve.'
+							.' You do not have reservation.');
 			}
 		}
 	}
@@ -193,19 +194,21 @@ class MachineEditController
 
 			/* Update the rest of the machine fields. */
 			$machine->set_usage ($machine_usage);
-			$machine->set_consolesetdefault(0);
 			$machine->set_perm ($this->formatPermissions (
 						    request_array("perm_".$machine_id)));
-			$this->processFields ($machine, $current_user);
-			$default_options = request_array("default_options");
-			$machine_option = isset ($default_options[$machine_id])
-						 ? $default_options[$machine_id] : '';
+			if ($current_user->isInRole ('admin')) {
+				$machine->set_consolesetdefault(0);
+				$this->processFields ($machine, $current_user);
+				$default_options = request_array("default_options");
+				$machine_option = isset ($default_options[$machine_id])
+					? $default_options[$machine_id] : '';
 
-			if ($machine->get_def_inst_opt() != trim ($machine_option)) {
-				$machine->set_def_inst_opt (trim ($machine_option));
-				Log::create($machine->get_id (), $current_user->getLogin (),
-					    'CONFIG', "has set the 'Default Install Options' to "
-					    . "'$machine_option'");
+				if ($machine->get_def_inst_opt() != trim ($machine_option)) {
+					$machine->set_def_inst_opt (trim ($machine_option));
+					Log::create($machine->get_id (), $current_user->getLogin (),
+						    'CONFIG', "has set the 'Default Install Options' to "
+						    . "'$machine_option'");
+				}
 			}
 		}
 	}

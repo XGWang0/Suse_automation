@@ -90,6 +90,10 @@ if (isset ($ns_machine_filter->fields)
 			}
 		}
 	}
+	else if($key == 'group')
+	{
+		$filter_description = "\n\t" . "<span class='bold'> Machines from group</span> " . '"'. $value . '"';
+	}
 	else
 	{
 		$filter_description = "\n\t" . '<span class="bold">' . $fields_list[$key] . '</span> is "' . $value . '"';
@@ -346,10 +350,15 @@ if (! empty ($s_anything))
 <?php
 $rh = new ReservationsHelper ($machine);
 $users_string = $rh->prettyPrintUsers ();
-print ('<td title="' . $users_string
-       . '"><div class="ellipsis-no-wrapped machine_table_usedby">'
-       . $users_string . "</div></td>\n");
-
+if (empty ($users_string) && isset ($user)) {
+	print ('<td><a href="index.php?go=machine_reserve&amp;a_machines[]='
+	       . $machine->get_id()
+	       . '"><img class="machine_quick_reserve" src="images/27/icon-reserve.png" title="Reserve ' . $machine->get_hostname () . '" alt="Reserve this machine"/></a></td>' . PHP_EOL);
+} else {
+	print ('<td title="' . $users_string
+	       . '"><div class="ellipsis-no-wrapped machine_table_usedby">'
+	       . $users_string . "</div></td>\n");
+}
 foreach ($fields_list as $key=>$value)
 {
 	$res = '';
@@ -390,6 +399,9 @@ $(window).resize(function() {
     tableAlign;
 });
 $(window).scroll(tableAlign);
+$("#machines thead tr th").click(function() {
+       tableAlign();
+});
 
 $("#searchhwinfo").click(function(){
     if ($(this).is(':checked'))
@@ -413,14 +425,68 @@ $('#x').on('click', function() {
 	$('#fulltext').attr('value', "");
 });
 
-//-->
-</script>
-<script type="text/javascript">
-//<!--
+$('img[class="machine_quick_reserve"]').on('click', function () {
+	var usage = prompt('Please fill in usage for your reservation.', '');
+
+	if (usage != null) {
+		var a = $(this).parent().get(0);
+		if (usage != '' && a) {
+			var href = a.getAttribute ('href');
+			if (href) {
+				a.setAttribute ('href', href + encodeURI ('&usage=' + usage));
+			}
+		}
+		return true;
+	} else {
+		return false;
+	}
+});
+
+/* Check privileges for the sliding actions. */
+function checkPrivileges (action) {
+	var ids = [];
+	var allowed = 0;
+
+	/* Get all ids of checked machines. */
+	$('form[name=machine_list] tbody input[type=checkbox]:checked').each (function () {
+	    ids.push ($(this).val ());
+	});
+
+	$.ajax('index.php',
+		{
+		    dataType: "json",
+		    async: false,
+		    data: { go: "machine_privileges",
+			    machine_ids : ids,
+			    user: $('div#login a.bold').text(),
+			    action: action
+			  },
+		    success:
+		    function (data) {
+			$(data).each (function (index, obj) {
+			    if (obj.allowed > allowed) {
+				allowed = obj.allowed;
+			    }
+			});
+		    }});
+	return allowed;
+}
+
+function checkForm (action) {
+	var objForm = document.forms["machine_list"];
+	var checkboxes = checkcheckbox (objForm, action);
+        var hasPriv = checkPrivileges (action);
+	var confirmed = true;
+
+	if (hasPriv == 2) {
+	    confirmed = confirm ('This action requires admin privileges. Do you want to continue?');
+	}
+	return checkboxes && confirmed;
+}
+
 $(document).ready(function(){
 $("label#action button[name='action']").click(function(){
-        var objForm = document.forms["machine_list"];
-        return checkcheckbox(objForm,this.value);
+	return checkForm (this.value);
 })});
 //-->
 </script>
@@ -429,22 +495,23 @@ $("label#action button[name='action']").click(function(){
 <h3>&darr;  Action  &darr;</h3>
 <input type="checkbox" id="blkAni">
 <label class="noani" for="blkAni">
-<button name="action" class="button machine_send_job" value="machine_send_job" >Send job</button>
-<button name="action" class="button addsut" value="addsut" class="action_button_short_right" >Add SUT</button>
+<button name="action" value="machine_reserve" class="button machine_reserve">Reserve machines</button>
+<button name="action" value="machine_edit" class="button edit">Edit</button>
 <br>
-<button name="action" value="edit" class="button edit" >Edit/reserve</button>
-<button name="action" value="machine_reinstall" class="button machine_reinstall" >Reinstall</button>
+<button name="action" value="machine_reinstall" class="button machine_reinstall">Reinstall</button>
+<button name="action" value="machine_send_job" class="button machine_send_job">Send job</button>
 <br>
-<button name="action" value="delete" class="button delete" >Delete</button>
-<button name="action" value="merge_machines" class="button merge_machines" >Merge machines</button>
+<button name="action" value="merge_machines" class="button merge_machines">Merge machines</button>
+<button name="action" value="machine_delete" class="button delete">Delete</button>
 <br>
-<button name="action" value="create_group" class="button create_group" >Add to group</button>
-<button name="action" class="button machine_config" value="machine_config" >Configure machines</button>
+<button name="action" value="create_group" class="button create_group">Add to group</button>
+<button name="action" value="group_del_machines" class="button group_del_machines">Remove from group</button>
 <br>
-<button name="action" class="button group_del_machines" value="group_del_machines" >Remove from group</button>
-<button name="action" value="upgrade" class="button upgrade" >Upgrade to higher</button>
+<button name="action" value="machine_config" class="button machine_config">Configure machines</button>
+<button name="action" value="upgrade" class="button upgrade">Upgrade to higher</button>
 <br>
-<button name="action" value="vhreinstall" class="buttonlong button vhreinstall" >Reinstall as Virtualization Host</button>
+<button name="action" value="vhreinstall" class="button vhreinstall">Reinstall as Virt. Host</button>
+<button name="action" value="addsut" class="button addsut">Add SUT</button>
 </label>
 </label>
 </form>

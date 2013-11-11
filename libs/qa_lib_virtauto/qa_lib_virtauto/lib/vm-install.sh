@@ -2008,6 +2008,7 @@ echo "    Waiting to let the VM install command register..."
 checkRunningTimesThrough=0
 retVal=`./vm-running.sh $xenHostIp $machineName $settingsFile`
 vmId=`echo "$retVal" | grep '\*\*\ VM\ ID\:\ ..*\ \*\*' | awk '{print $4;}'`
+vmState=`echo "$retVal" | grep "DiscoveredState" | sed 's/^.*DiscoveredState : \([a-zA-Z ]*\)\.*$/\1/'`
 if [[ ! "$vmId" =~ ^[[:digit:]][[:digit:]]*$ ]]
 then
 	#./vm-gone.sh $xenHostIp $hypervisor $machineName $machineNameFirstPart "000.000.000.000" $settingsFile
@@ -2018,10 +2019,11 @@ then
 	rm -rf /tmp/virtautolib.$$
 	popd > /dev/null; exit $rFAILED
 fi
-while [ $vmId -eq 0 ]
+while [ $vmId -eq 0 ]  || [ "$vmState" != "running" ]
 do
 	retVal=`./vm-running.sh $xenHostIp $machineName $settingsFile`
 	vmId=`echo "$retVal" | grep '\*\*\ VM\ ID\:\ ..*\ \*\*' | awk '{print $4;}'`
+	vmState=`echo "$retVal" | grep "DiscoveredState" | sed 's/^.*DiscoveredState : \([a-zA-Z ]*\)\.*$/\1/'`
 	
 	if [[ ! "$vmId" =~ ^[[:digit:]][[:digit:]]*$ ]]
 	then

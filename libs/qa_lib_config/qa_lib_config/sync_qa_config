@@ -35,6 +35,14 @@ else
 	host=$qaconf_host
 fi
 
-curl -s -m "$qaconf_timeout" "http://${host}${qaconf_path}" > "/etc/qa/$qaconf_file"
-
+outfile=`mktemp`
+url="http://${host}${qaconf_path}"
+curl -s -m "$qaconf_timeout" "$url" > "$outfile"
+if grep -i '<html' "$outfile" > /dev/null
+then
+	echo "ERROR: you either have a wrong qaconf_host/qaconf_path in your QAconf (is: $url), or use an old server version." >&2
+else
+	mv "$outfile" "/etc/qa/$qaconf_file"
+	echo "QAconf sync done."
+fi
 

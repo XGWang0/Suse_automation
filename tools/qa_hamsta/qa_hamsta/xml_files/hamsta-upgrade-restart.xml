@@ -8,6 +8,8 @@
         <logdir>/tmp</logdir>
         <description>Upgrade and restart Hamsta client</description>
         <motd>Hamsta upgrade and restart</motd>
+        <reboot>0</reboot>
+	<update>1</update>
     </config>
 
     <commands>

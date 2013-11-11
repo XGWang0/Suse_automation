@@ -93,9 +93,14 @@ then
 	echo "            ----------------"
 	echo " "
 else
-	echo "            ** VM ID: $discoveredId **"
-	echo "            VM is running (id=$discoveredId)"
-	echo "            ----------------"
-	echo " "
+        echo "            ** VM ID: $discoveredId **"
+        if [ "$discoveredState" == "running" ]
+        then
+                echo "            VM is running (id=$discoveredId)"
+        else
+                echo "            VM is not running..."
+        fi
+        echo "            ----------------"
+        echo " "
 fi
 

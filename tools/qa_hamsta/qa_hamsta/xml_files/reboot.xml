@@ -8,6 +8,7 @@
         <mail notify="1"></mail>
         <logdir>/tmp</logdir>
         <description>Reboot SUT</description>
+        <reboot>1</reboot>
     </config>
 
     <commands>

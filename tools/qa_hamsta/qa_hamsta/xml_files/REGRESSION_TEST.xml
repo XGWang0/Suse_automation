@@ -10,6 +10,7 @@
         <logdir>/tmp</logdir>
         <description>SLES10-SP4</description>
         <motd>[Custom job]: REGRESSION TEST of SLES10-SP4 is running</motd>
+        <reboot>0</reboot>
     </config>
 
     <commands>

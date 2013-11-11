@@ -7,9 +7,10 @@
         <parallel>0</parallel>
         <mail notify="1"></mail>
         <logdir>/tmp</logdir>
-        <rpm>qa_hamsta suse_register zypper</rpm>
+        <rpm>qa_hamsta suseregister zypper</rpm>
         <description>Regist on NCC and do zypper up (zypper version >1) or rug up</description>
         <motd>Be careful, this computer is used for Online update test. May takes a long time</motd>
+        <reboot>0</reboot>
     </config>
 
     <commands>

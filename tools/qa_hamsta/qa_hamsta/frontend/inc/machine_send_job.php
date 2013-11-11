@@ -97,7 +97,7 @@ machine_permission_or_disabled($machines,$perm_send_job);
 			}
 		}
 		if (empty($error)) {
-			require("send_success.php");
+			redirect("The job[s] has/have been successfully sent.",true);
 		}
 	}
     $html_title = "Send job";

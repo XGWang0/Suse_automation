@@ -6,6 +6,7 @@
         <distributable>0</distributable>
 	<logdir>/tmp</logdir>
 	<rpm>hamsta ltp-ctcs2-glue</rpm>
+        <reboot>0</reboot>
     </config>
 
     <commands>

@@ -8,6 +8,7 @@
 	<description>QA siege benchmark against http://localhost, different number of threads</description>
 	<logdir>/tmp</logdir>
 	<rpm>hamsta qa_siege</rpm>
+        <reboot>0</reboot>
     </config>
 
     <commands>

@@ -103,16 +103,12 @@ require_once ('lib/ConfigFactory.php');
 /*
  * Initialize global configuration. All subsequent calls to
  * ConfigFactory can be done without parameters and will receive the
- * same configuration.
- *
- * This configuration is accesible in the default namespace. If you
- * need to create it somewhere else, just call
- * `ConfigFactory::build()' without parameters.
- *
- * This works from anywhere provided this file stays in the same
- * directory as config.ini file.
+ * same configuration: $conf = ConfigFactory::build().
  */
-$config = ConfigFactory::build ("Ini", dirname(__FILE__) . '/config.ini',
+$hamsta_ini_file = (! empty ($_SERVER['HAMSTA_INI_FILE'])
+                    ? $_SERVER['HAMSTA_INI_FILE']
+                    : dirname(__FILE__) . '/config.ini');
+$config = ConfigFactory::build ("Ini", $hamsta_ini_file,
 				  $configuration_group);
 /* header & footer links */
 $naviarr = array (
