@@ -40,7 +40,7 @@ function auto_set_kexec (value) {
     var product_regex = /opensuse-\d+\.\d+/i;
     var matched = value.match (product_regex);
     var parts = [];
-    if (matched[0]) {
+    if ( matched && matched[0] ) {
 	parts = matched[0].split (/-/g);
 	if (parts.length >= 2 && parts[1] > 12) {
 	    $('#kexecboot').attr ('checked', true);
@@ -176,11 +176,19 @@ function get_archs (product_type) {
     return false;
 }
 
-function get_urls (product_type) {
+function get_urls (product_type, arch_type, addon_products_id, addon_products_url_id) {
+
     var para = {
         product: $("#" + product_type + "_products").val(),
-        arch: $("#"  + product_type + "_archs").val()
+        //arch: $("#"  + product_type + "_archs").val()
+        arch: arch_type
     };
+
+    if (addon_products_id)
+    {
+        para.product = $("#" + addon_products_id).val();
+    }
+
     var patterns_id = "";
     switch (product_type) {
     case 'repo':
@@ -210,10 +218,18 @@ function get_urls (product_type) {
     $.getJSON("html/search_repo.php", para,
               function(data) {
                   if (para['arch'] == "") {
-	              $("#" + product_type + "_producturl").empty();
+                      $("#" + product_type + "_producturl").empty();
                   } else {
-                      $("#" + product_type + "_producturl").val(data[0]);
-		      $("#" + product_type + "_producturl").change();
+                      if (addon_products_url_id)
+                      {
+                          $("#" + addon_products_url_id).val(data[0]);
+                          $("#" + addon_products_url_id).change();
+                      }
+                      else
+                      {
+                          $("#" + product_type + "_producturl").val(data[0]);
+                          $("#" + product_type + "_producturl").change();
+                      }
                   }
               });
     return false;
@@ -301,23 +317,6 @@ function remove_repo (addon_number) {
     addonid -= 1;
 }
 
-function anotherrepo () {
-    addonid += 1;
-    var addon_refresh_button_id = "addon_" + addonid + "_refresh_button";
-    var addon_url_name = '#addon_url_' + addonid;
-    var addon_pattern_name = 'addon_pattern_' + addonid;
-
-    $('#additional_repo').append('<span id="addon_row_' + addonid + '">Add-on #' + addonid
-				 + ': <input type="text" name="addon_url[]" id="addon_url_'
-				 + addonid + '" size="70" /> <button type="button" onclick="remove_repo('
-				 + addonid + ')">'
-				 + ' - </button> <span id="mininotification" class="text-red text-small bold">'
-				 + '</span><br /></span>');
-    $(addon_url_name).change ( function() {
-	get_patterns (addon_url_name, addon_pattern_name, 'addon');
-    });
-}
-
 var anotherrcode = function (){
     addoncodeid += 1;
     $('#additional_rcode').append('Registration Code for add-on repo #'
@@ -338,6 +337,41 @@ var anotherdisk = function (){
 
 var showvirtdisk = function () {
     $('#virtdisk').slideToggle("slow");
+}
+
+function guessProductCode(url) {
+    if (!url)
+        return;
+    
+    var slesPtn = new RegExp('sles', 'i');
+    var sledPtn = new RegExp('sled', 'i');
+    if (slesPtn.test(url)) 
+    {
+	$('#regprefix_prod').val('sles');
+    }
+    else if (sledPtn.test(url))
+    {
+	$('#regprefix_prod').val('sled');
+    }
+}
+
+function removeMachine(id, node) {
+
+    if (!id)
+        return;
+    var machines = $(".machine_name");
+    if (machines.length == 1)
+    {
+        return;
+    }
+
+    $(node).parent().remove();
+    $("input[name='a_machines[]']").each(function(index, m){
+        if (m.value == id)
+        {
+            $(m).remove();
+        }
+    });
 }
 
 $(document).ready(function() {
@@ -371,29 +405,63 @@ $(document).ready(function() {
     });
 
     $.getJSON("html/search_repo.php", { prod_type : "addon" }, function(data) {
-	insert_options("#addon_products", data, old_addon_product);
+        $("select[name*='addon_products']").each(function(index, value){
+	   insert_options($(this), data, old_addon_product);
+        });
     });
+    
+    /*Register events for select addon products*/ 
+    $("select[name*='addon_products']").each(function(index, value){
+                    var addon_id = index +1;
+                    var  addon_products_id      =  "addon_products_" + addon_id;
+                    var  addon_products_url_id  =  "addon_products_url_"+ addon_id;
+		    $(this).bind('change', {id: "addon_products_"+addon_id}, function () {
+			    if ($(this).val())
+			    {
+			        var arch = $(this).val();
+			        if (/x86_64/.test(arch))
+			            get_urls ('addon', 'x86_64', addon_products_id, addon_products_url_id);
+			        else if (/i[1-9]86/.test(arch))
+			            get_urls ('addon', 'i586', addon_products_id, addon_products_url_id);
+			        else
+			            get_urls ('addon', 'x86_64', addon_products_id, addon_products_url_id);
+			    }
+			    });
+
+		    $("input[name=addon"+addon_id+"arch]").bind('change', {id: "addon_products_url_"+addon_id}, function () {
+			    if ($(this).val())
+			    {
+			    var arch = $(this).val();
+			    if (/x86_64/.test(arch))
+			    get_urls ('addon', 'x86_64', addon_products_id, addon_products_url_id);
+			    else if (/i[1-9]86/.test(arch))
+			    get_urls ('addon', 'i586', addon_products_id, addon_products_url_id);
+			    else
+			    get_urls ('addon', 'x86_64', addon_products_id, addon_products_url_id);
+			    }
+			    });
+		    });
+
+    /* Register events for pattens change */
+    $("input[id*='addon_products_url']").each(function(index, value){
+        var addon_id = index + 1;
+        var addon_pattern_name = 'addon_pattern_' + addon_id;
+	$(this).bind('change', {id: "addon_products_url_"+addon_id}, function () {
+   		get_patterns ("#addon_products_url_"+addon_id  , addon_pattern_name, 'addon');
+        });
+    });
+
 
     /* Register events for specified form parts. */
     $("#repo_products").change( function () {
-	get_archs ('repo');
-    });
-
-    $("#repo_archs").change( function () {
-	get_urls ('repo');
-    });
-
-    $("#addon_products").change( function () {
-	get_archs ('addon');
-    });
-
-    $("#addon_archs").change( function () {
-	get_urls('addon');
+        if ($("#repo_products").val())
+            get_urls ('repo', 'x86_64');
     });
 
     $("#repo_producturl").change ( function () {
 	get_patterns ('#repo_producturl', 'available_patterns', 'distro');
 	auto_set_kexec ($(this).val ());
+	guessProductCode($(this).val());
     });
 
     $("#addon_producturl").change ( function () {
@@ -406,6 +474,19 @@ $(document).ready(function() {
 
     $('#kexecboot').change(function () {
 	kexec_manually_selected = $(this).attr ('checked');
+    });
+
+    $("input[name='product_arch']").change(function(){
+        if ($("input[name='product_arch']:checked").val() == 'i586')
+        {
+	    get_urls ('repo', 'i386');
+        }
+        else if ($("input[name='product_arch']:checked").val() == 'x86_64')
+        {
+	    get_urls ('repo', 'x86_64');
+        }
+        else
+	{}
     });
 
 });
