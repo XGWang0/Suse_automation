@@ -115,6 +115,9 @@ sub run {
     if ($self->{'data'}->{'command'}->{'execution'} eq 'forked') {
         # Forked execution
         my $exitcodepipe = new IO::Pipe;
+#TODO: better way to fix Bug 847224 
+#        my $outpipe = new IO::Pipe;
+#        my $errpipe = new IO::Pipe;
         
         child {
             # Don't maintain the inherited threads, the parent will
@@ -125,11 +128,17 @@ sub run {
             }
             
             # Run the command and put the output on the pipe
+#TODO: better way to fix Bug 847224 
+#            $outpipe->writer();
+#            $errpipe->writer();
             $exitcodepipe->writer();
 
             (my $exitcode, my $stdout, my $stderr) = $self->do_execution();
 
             print $exitcodepipe $exitcode;
+#TODO: better way to fix Bug 847224 
+#            print $outpipe $stdout;
+#            print $errpipe $stderr;
            
             exit;
         }
@@ -139,8 +148,13 @@ sub run {
             my $pid = shift;
             $self->{'pid'} = $pid;
 
+#TODO: better way to fix Bug 847224 
+#            $outpipe->reader();
+#            $errpipe->reader();
             $exitcodepipe->reader();
             
+#            $self->{'outpipe'} = $outpipe;
+#            $self->{'errpipe'} = $errpipe;
             $self->{'exitcodepipe'} = $exitcodepipe;
 	    waitpid $pid ,0;
         }
@@ -301,6 +315,17 @@ sub stop {
 
         $self->{'data'}->{'stdout'}->{'content'} = "";
         $self->{'data'}->{'stderr'}->{'content'} = "";
+
+#TODO: better way to fix Bug 847224 
+#        my $outpipe = $self->{'outpipe'};
+#        while (my $line = <$outpipe>) {
+#            $self->{'data'}->{'stdout'}->{'content'} .= $line;
+#        }
+#
+#        my $errpipe = $self->{'errpipe'};
+#        while (my $line = <$errpipe>) {
+#            $self->{'data'}->{'stderr'}->{'content'} .= $line;
+#        }
         
         my $exitcodepipe = $self->{'exitcodepipe'};
         while (my $line = <$exitcodepipe>) {
