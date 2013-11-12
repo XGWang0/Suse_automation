@@ -139,7 +139,7 @@ if [ -z $domainDiskDir ];then
 fi
 # Create the remote directory
 echo "Creating remote directory $migrateeIP :$domainDiskDir..."
-export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "mkdir $domainDiskDir" 2>&1
+export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "mkdir -p $domainDiskDir" 2>&1
 
 if [ $? -ne 0 ]
 then
