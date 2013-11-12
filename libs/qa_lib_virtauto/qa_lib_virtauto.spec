@@ -64,8 +64,8 @@ install -m 644 %{S:1} $RPM_BUILD_ROOT/usr/share/man/man8
 gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
 install -m 755 -d $RPM_BUILD_ROOT/usr/share/qa/virtautolib
 install -m 755 -d $RPM_BUILD_ROOT/usr/share/qa/tools
-cp -a *.sh $RPM_BUILD_ROOT/usr/share/qa/virtautolib
-cp vm-migrate-allhosttype.pl $RPM_BUILD_ROOT/usr/share/qa/tools
+cp -a * $RPM_BUILD_ROOT/usr/share/qa/virtautolib
+mv  $RPM_BUILD_ROOT/usr/share/qa/virtautolib/lib/vm-migrate-allhosttype.pl $RPM_BUILD_ROOT/usr/share/qa/tools
 find $RPM_BUILD_ROOT/usr/share/qa/virtautolib -depth -type d -name .svn -exec rm -rf {} \;
 
 %post
