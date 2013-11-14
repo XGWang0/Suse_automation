@@ -66,7 +66,7 @@ foreach( array_keys($vals) as $key )	{
 	$is_enum = ( strlen($type) > 1 );
 
 	# row class ( for highlight )
-	$class = ( $flag ? 'diff' : 'small"' );
+	$class = ( $flag ? 'diff' : 'small' );
 	if( $type=='n' )
 		$class.=" disabled";
 
@@ -75,7 +75,7 @@ foreach( array_keys($vals) as $key )	{
 	foreach($vals[$key] as $val)	{
 		if( $is_enum )
 			$val = Machine::enumerate($key,$val);
-		print "<td>$val</td>";
+		print "<td>".htmlspecialchars($val)."</td>";
 	}
 
 	# print merge column
@@ -104,7 +104,7 @@ foreach( array_keys($vals) as $key )	{
 		print "</select></td>\n";
 	}
 	else  # non-enums, same values or concatenation('s') -> text box
-		printf("<td><input name=\"%s\" type=\"text\" %s value=\"%s\"/></td>",$key,(strlen($ret)>20 ? 'size="'.strlen($ret).'"' : ''),$ret);
+		printf("<td><input name=\"%s\" type=\"text\" %s value=\"%s\"/></td>",$key,(strlen($ret)>20 ? 'size="'.strlen($ret).'"' : ''),htmlspecialchars($ret));
 	print "</tr>\n";
 }
 print "</table>\n";
