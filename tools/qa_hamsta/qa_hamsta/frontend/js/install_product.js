@@ -488,6 +488,26 @@ $(document).ready(function() {
         else
 	{}
     });
+    
+    $("input:radio").on("change", function(){
+        var item = $(this).val();
+        switch (item){
+            case "update-none": 
+            case "update-opensuse": 
+            case "update-smt": 
+                $('#update-reg-email').attr('required', false);
+                $('#rcode_product').attr('required', false);
+                break;
+            case "update-reg": 
+                $('#update-reg-email').attr('required', true);
+                $('#rcode_product').attr('required', true);
+
+                break;
+            default:
+                break;
+        }
+    });
+
 
 });
 //-->

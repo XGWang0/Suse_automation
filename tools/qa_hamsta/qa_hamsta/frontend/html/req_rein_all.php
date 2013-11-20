@@ -35,7 +35,7 @@ require("timezone.php");
   <input type='radio' id='reg_code' name='startupdate' value='update-reg'/><label for='reg_code'>code</label>
   <span id='regmail'>
     <label for='update-reg-email'>Registration e-mail</label>
-    <input id='update-reg-email' type='text' required='' name='update-reg-email' placeholder="required" title='The email is required for registration'/>
+    <input id='update-reg-email' type='text' name='update-reg-email' placeholder="required" title='The email is required for registration'/>
   </span>
   </br>
   <div class='row' id='smt'>
@@ -61,7 +61,7 @@ require("timezone.php");
 			<option value='sles'>SLES</option>
 			<option value='sled'>SLED</option>
 		</select>
-		<input type='text' class='regcode' name='rcode[]' id='rcode_product'  required='' placeholder='required' title="Please fill registration code"/>
+		<input type='text' class='regcode' name='rcode[]' id='rcode_product'  placeholder='required' title="Please fill registration code"/>
 	</span>
   </div>
   
