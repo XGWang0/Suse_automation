@@ -1971,7 +1971,7 @@ class MachineSearch {
 	 *	  on error
 	 */
     protected function add_condition($field, $value, $operator = '=') {
-        if (!ereg("[a-z_`]+", $field)) {
+        if (! preg_match ('/[a-z_`]+/', $field)) {
             return false;
         }
 
@@ -2019,7 +2019,7 @@ class MachineSearch {
 	 * @return boolean true on success; false otherwise
 	 */
 	protected function add_table($table, $join_condition) {
-		if (!ereg("[a-z_]+", $table)) {
+		if (! preg_match ('/[a-z_]+/', $table)) {
 			return false;
 		}
 
