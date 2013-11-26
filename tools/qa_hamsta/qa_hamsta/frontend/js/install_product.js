@@ -19,7 +19,6 @@ var addoncodeid = 1;
 var product_patterns = [];
 var all_patterns = [];
 var product_type = 'others';
-var kexec_manually_selected = false;
 
 // Iterate $data and insert all options to select box $id
 function insert_options (id, data, old_selected) {
@@ -30,24 +29,6 @@ function insert_options (id, data, old_selected) {
     });//each
     $(id).val(old_selected);
     $(id).change();
-}
-
-function auto_set_kexec (value) {
-    $('#kexecnote').empty ();
-    if (! kexec_manually_selected) {
-    $('#kexecboot').attr ('checked', false);
-    }
-    var product_regex = /opensuse-\d+\.\d+/i;
-    var matched = value.match (product_regex);
-    var parts = [];
-    if ( matched && matched[0] ) {
-    parts = matched[0].split (/-/g);
-    if (parts.length >= 2 && parts[1] > 12) {
-        $('#kexecboot').attr ('checked', true);
-        $('#kexecnote').append ('You have selected a product that requires'
-                    + ' a Kexec because it uses grub2.');
-    }
-    }
 }
 
 /* Insert check boxes to provided patterns. */
@@ -468,7 +449,6 @@ $(document).ready(function() {
 
     $("#repo_producturl").change ( function () {
     get_patterns ('#repo_producturl', 'available_patterns', 'distro');
-    auto_set_kexec ($(this).val ());
     guessProductCode($(this).val());
     });
 
@@ -478,10 +458,6 @@ $(document).ready(function() {
 
     $("#typicmode").change(function () {
     change_patterns ();
-    });
-
-    $('#kexecboot').change(function () {
-    kexec_manually_selected = $(this).attr ('checked');
     });
 
     $("input[name='product_arch']").change(function(){
