@@ -91,9 +91,9 @@ sub process_product($)
 	# expected $prod is:
 	#    3.0.58-0.9-default;SLES11(x86_64)VERSION=11PATCHLEVEL=3
 	#    3.7.1-1-desktop;openSUSE12.3Beta1(x86_64)VERSION=12.3CODENAME=DartmouthBeta1-Kernel\r
-	if( $prod =~ /^([\w\.\-\+_]+);(SLES4SAP|[[:alpha:]]+|openSUSE[\d\.]+\w*)([\dSP\.]+)?(\(([\w\-]+)\))?VERSION=/ )
+        if( $prod =~ /^([\w\.\-\+_]+);(SLES4SAP|openSUSE|[[:alpha:]]+)([\dSP\.]+)?(\w*)?(\(([\w\-]+)\))?VERSION=/ ) 
 	{
-		my ($base,$major,$sp,$rel,$dom,$build,$arch)=($2,$3,'','','','','');
+		my ($base,$major,$sp,$rel,$dom,$build,$arch)=($2,$3,$4,'','','','');
 		$sp 	="SP$1" if $prod =~ /PATCHLEVEL=(\d+)/;
 		$major	= $1 if $major =~ /(\d+)SP/;
 		$arch	= $1 if $prod  =~ /\(([^\)]+)\)/;
