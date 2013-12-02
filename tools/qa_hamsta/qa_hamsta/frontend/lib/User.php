@@ -793,6 +793,10 @@ class User {
 	  return in_array ($roleName, $this->getRoleList ());
   }
 
+  public function isAdmin () {
+	  return $this->isInRole ('admin');
+  }
+
   /**
    * Return list of roles this user is cast in.
    *

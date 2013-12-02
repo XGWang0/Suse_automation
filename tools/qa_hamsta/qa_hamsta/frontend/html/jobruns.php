@@ -66,8 +66,9 @@ print ($hostname);
             <td align="center">
 <?php
 
-if (isset ($user) && $job->can_cancel())
-{
+if (isset ($user) && $job->can_cancel()
+    && ($rh->hasReservation ($mach, $user)
+	|| $user->isAdmin())) {
 	echo "<a href=\"index.php?go=jobruns&amp;action=cancel&amp;id=" . $job->get_id() . "\">Cancel</a>";
 }
 else
