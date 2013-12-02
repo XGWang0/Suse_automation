@@ -112,6 +112,7 @@ sub process_product($)
 	if ($kernel and $product and $arch) {
 	    # Initialize target hash and use some gathered values
 	    my %parts = (
+		product	=> '',
 		kernel	=> $kernel,
 		major	=> '',
 		sp	=> '',
@@ -122,13 +123,13 @@ sub process_product($)
 	    );
 
 	    # Assign specific values
-	    $parts{'major'}	= $1 if $product =~ /(SLES4SAP|[[:alpha:]]+)/;
-	    $parts{'sp'}	= $1 if $product =~ /(SP\d+)/;
+	    ($parts{'product'},$parts{'major'})= ($1, $2) if $product =~ /(SLES4SAP|[[:alpha:]]+)([\d\.]+)/;
+	    $parts{'sp'}    ="SP$1" if $rest  =~ /PATCHLEVEL=(\d+)/;
 	    $parts{'rel'}	= $1 if $product  =~ /(Alpha\d+|Beta\d+|GMC?|Build\d+|RC\d+|Internal|Maintained)/i;
 	    $parts{'dom'}	= "xen$1" if $product =~ /Dom([A-Z\d]+)/;
 	    $parts{'build'}	= $1 if $product  =~ /(Build\d+)/;
 
-	    my $product = join '-', grep /\w/, ($parts{'kernel'},$parts{'major'},$parts{'sp'});
+	    my $product = join '-', grep /\w/, ($parts{'product'},$parts{'major'},$parts{'sp'}, $parts{'rel'});
 	    my $release = join '-', grep /\w/, ($parts{'rel'},$parts{'build'});
 	    my $p_arch  = join '-', grep /\w/, ($parts{'dom'},$parts{'arch'});
 	    return [$product,$release,$p_arch];
