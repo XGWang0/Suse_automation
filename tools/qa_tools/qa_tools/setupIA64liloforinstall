@@ -72,7 +72,8 @@ fi
 
 ###add vnc and ssh tag to kernel parameter #######
 #params="$params $ssh_enable $vnc_enable"
-bootloaderconf=/boot/efi/efi/SuSE/elilo.conf
+bootefi=/boot/efi/efi/SuSE
+bootloaderconf=$bootefi/elilo.conf
 imagedir='/boot/loader'
 TMPFILE=`mktemp -q /tmp/distinst.XXXXXX`
 if [ $? -ne 0 ]
@@ -105,32 +106,45 @@ then
 fi
 
 mount -o loop ${imagedir}/image /mnt
-cp /mnt/efi/boot/initrd `dirname $bootloaderconf`
-cp /mnt/efi/boot/linux `dirname $bootloaderconf`
+cp /mnt/efi/boot/initrd $bootefi 
+cp /mnt/efi/boot/linux $bootefi
 umount /mnt
 
-# extract the product part from the URL, ugly but seems to work
-title=`echo $insturl | sed -e 's/\//\n/g' | grep -v '\..\+\.' | awk '{ print length, $0 }' | sort -gr | cut -d\  -f2 | head -n1`
-count=`grep "label = Installation" $bootloaderconf | grep -c "$title"`
-if [ $count -gt 0 ]
-then
-    title="$title ($((count+1)))"
+boottype="$1"
+params=`echo $params |sed "/$boottype/s/$boottype //g"`
+if [ "$boottype" = "kexecboot" ]; then
+    # start the installation with kexec
+    comments="
+    echo \"Install booting by Kexec\"
+    echo \"kexec -l $bootefi/linux --initrd=$bootefi/initrd --append='$params'\"
+    kexec -l '$bootefi/linux' --initrd='$bootefi/initrd' --append='$params'"
+    sh -c "$comments"
+    sleep 5
+    echo "done."
+else
+    # extract the product part from the URL, ugly but seems to work
+    title=`echo $insturl | sed -e 's/\//\n/g' | grep -v '\..\+\.' | awk '{ print length, $0 }' | sort -gr | cut -d\  -f2 | head -n1`
+    count=`grep "label = Installation" $bootloaderconf | grep -c "$title"`
+    if [ $count -gt 0 ]
+    then
+        title="$title ($((count+1)))"
+    fi
+    
+    echo "" >> $bootloaderconf
+    echo "image = linux" >> $bootloaderconf
+    echo "    label = Installation-$title" >> $bootloaderconf
+    echo "    append = \"$params\"" >> $bootloaderconf
+    echo "    description = Reinstall" >> $bootloaderconf
+    echo "    initrd = initrd" >> $bootloaderconf
+    cat $bootloaderconf | grep root -m 1 >> $bootloaderconf
+    sync
+    
+    # start the installation with reboot
+    sed "s/^default.*$/default = Installation-$title/" $bootloaderconf > $TMPFILE
+    cp -v $TMPFILE $bootloaderconf	# workaround, instead of using perl
+    echo "edited bootloader config"
+    
+    echo "done."
 fi
-
-echo "" >> $bootloaderconf
-echo "image = linux" >> $bootloaderconf
-echo "    label = Installation-$title" >> $bootloaderconf
-echo "    append = \"$params\"" >> $bootloaderconf
-echo "    description = Reinstall" >> $bootloaderconf
-echo "    initrd = initrd" >> $bootloaderconf
-cat $bootloaderconf | grep root -m 1 >> $bootloaderconf
-sync
-
-# start the installation with reboot
-sed "s/^default.*$/default = Installation-$title/" $bootloaderconf > $TMPFILE
-cp -v $TMPFILE $bootloaderconf	# workaround, instead of using perl
-echo "edited bootloader config"
-
-echo "done."
 
 
