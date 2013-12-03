@@ -126,7 +126,7 @@ function merge_unique($s, &$ret, &$flag)
 		if ( isset($ret[$i]) )
 			rtrim($ret[$i]);
 
-		if ( !isset($ret[$i]) || strlen($s[$i]) == 0 )
+		if ( !isset($ret[$i]) || empty($s[$i]) )
 			array_splice($ret, $i, 1);
 	}
 
