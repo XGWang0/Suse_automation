@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -48,18 +48,25 @@
 		<td><span class="<?php echo($job->get_status_string()); ?>">
             	    <?php echo($job->get_status_string()); ?></span>
 		</td>
-            <td><?php if ($job->get_machine()):
-                echo('<a href="index.php?go=machine_details&amp;id='.$job->get_machine()->get_id().'">');
-                echo($job->get_machine()->get_hostname());
-                echo('</a>');
-            endif; ?></td>
+<?php
+$mach = $job->get_machine();
+$cls = '';
+$hostname = '';
+if (isset ($mach)) {
+	$hostname = '<a href="index.php?go=machine_details&amp;id='.$mach->get_id().'">'
+		. $mach->get_hostname() . '</a>';
+	$cls = ' class="' . get_machine_status_class ($mach->get_status_id ()) . '"';
+}
+print ("<td$cls>");
+print ($hostname);
+?></td>
             <td><?php echo($job->get_name()); ?></td>
             <td><?php echo($job->get_started()); ?></td>
             <td><?php echo($job->get_stopped()); ?></td>
             <td align="center">
 <?php
 
-if($job->can_cancel())
+if (isset ($user) && $job->can_cancel())
 {
 	echo "<a href=\"index.php?go=jobruns&amp;action=cancel&amp;id=" . $job->get_id() . "\">Cancel</a>";
 }

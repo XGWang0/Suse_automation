@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -24,7 +24,7 @@
  */
 
     /**
-     * Logic of the del_machines page
+     * Logic of the del_virtual_machines page
      *
      * Deletes the selected machines.
      */
@@ -35,11 +35,15 @@
 
     if(request_str("submit"))
     {
-        $successfulDeletions = array();
-        $failedDeletions = array();
-        $allmachines = request_array("a_machines");
-        foreach($allmachines as $machine_id)
-        {
+	$successfulDeletions = array();
+	$failedDeletions = array();
+	$allmachines = request_array("a_machines");
+
+	/* check permissions */
+	machine_permission_or_redirect($allmachines,array('owner'=>'vm_admin','other'=>'vm_admin_reserved'));
+
+	foreach($allmachines as $machine_id)
+	{
             $machine = Machine::get_by_id($machine_id);
 	    $machineName = $machine->get_hostname();
 
@@ -65,7 +69,7 @@
 		if (!$vh->send_job($job)) {
                         $error = (empty($error) ? "" : $error) . "<p>".$vh->get_hostname().": ".$vh->errmsg."</p>";
 		} else {
-			Log::create($vh->get_id(), $vh->get_used_by_login(), 'VMDEL', "has deleted virtual machine $machineName.");
+			Log::create($vh->get_id(), $user->getLogin (), 'VMDEL', "has deleted virtual machine $machineName.");
                 }
 
             }

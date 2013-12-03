@@ -1,7 +1,7 @@
 #! /usr/bin/perl
 # ****************************************************************************
-# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
-# 
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
+#
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
 # RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
@@ -12,7 +12,7 @@
 # PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
 # AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
 # LIABILITY.
-# 
+#
 # SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
 # WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
@@ -23,7 +23,8 @@
 # ****************************************************************************
 
 use strict;
-#use warnings;
+# use warnings;
+
 use Term::ReadLine;
 use threads;
 use threads::shared;
@@ -35,39 +36,34 @@ my $master;
 my $port;
 # handle HUP INT PIPE TERM ABRT QUIT with die, so the END block is executed
 # This is important, because this client gets an ^D (EOF) and then it (transfer and) exits the Master and himself.
-# 
-use sigtrap qw(handler my_handler  any normal-signals error-signals);
+#
+use sigtrap qw(handler my_handler any normal-signals error-signals);
 
 sub my_handler() {
-    #print "caugth signal \n";
+    print "Exiting normally.\n";
+    exit 0;
 }
 
 # catch arguments, or set default values
-if ($ARGV[0]) {
-    if ($ARGV[0] =~ /-h|--help/) {
-        print "Distributed Test Automation and Hardware Maintenance, client-console,\n";  
-        print "\t usage command_frontend.pl <Master Server IP> <Master Server Port>\n";  
-        exit(0);
-    }
-    $master = $ARGV[0];
+if (@ARGV < 1 || $ARGV[0] =~ /-h|--help/) {
+    print "Distributed Test Automation and Hardware Maintenance, client-console.\n";
+    print "\t Usage: $0 MASTER_SERVER_IP [MASTER_SERVER_PORT]\n";
+    exit(0);
 } else {
-    $master = "testbox.suse.de";
+    $master = $ARGV[0];
 }
+
 if ($ARGV[1]) {
     $port = $ARGV[1];
 } else {
     $port = "18431";
 }
 
-
-my $DataQueue = Thread::Queue->new; 
+my $DataQueue = Thread::Queue->new;
 my $term = new Term::ReadLine 'cmdline_interface';
-my $OUT = $term->OUT || *STDOUT{IO}; 
-
+my $OUT = $term->OUT || *STDOUT{IO};
 
 # the job is done by a thread
-
-
 my $stop : shared = 0;
 my @arr_ref : shared;
 my $thr = threads->new(\&com_netcat,\@arr_ref);
@@ -86,13 +82,13 @@ sub com_netcat() {
 	print "\n Error: $! \n";
 	#exit(-1);
     }
-        
-    while (!$stop) { 
+
+    while (!$stop) {
         if (!$DataQueue->pending()) {
             threads->yield();
             next;
         }
-    
+
         my $cmd = $DataQueue->dequeue;
 
         if ($cmd) {
@@ -107,20 +103,20 @@ sub com_netcat() {
                 exit(-1);
             }
         }
-        
+
         while (1) {
             my $line = "";
 
             while (($_ = $sock->getc()) ne "") {
                 $line .= $_;
                 last if ($_ eq "\n");
-                if ($line =~ /\$>/) { 
+                if ($line =~ /\$>/) {
                     unshift @{$arr_ref}, "EOM.";
-                    goto OUT; 
+                    goto OUT;
                 }
             }
             $_ = $line;
-            
+
             if ($_ eq '') {
                 print "Master $master possibly terminated our session. \n Please
                 restart ! \n Aborting! \n";
@@ -129,15 +125,15 @@ sub com_netcat() {
             push @{$arr_ref}, $_;
         }
         OUT:
-    } 
+    }
 }
 
-# main 
+# main
 my $line = 0;
 print "Welcome to distributed test automation and hardware maintenance, client-console. Master $master at $port\n";
 
 # Get the welcome string
-$DataQueue->enqueue(""); 
+$DataQueue->enqueue("");
 
 1 while (!(pop @{$latest}));
 1 while ($$latest[0] ne "EOM.");
@@ -145,21 +141,21 @@ $DataQueue->enqueue("");
 
 while (defined($_ = $term->readline("$line> ")) ) {
     my $cmd = $_;
-    $cmd =~ s/^\s+|\s+$//g;    
+    $cmd =~ s/^\s+|\s+$//g;
     if (lc($cmd) eq 'quit' || lc($cmd) eq 'exit') {
         $stop = 1;
         last;
     } else {
-        if ($cmd eq '') { 
+        if ($cmd eq '') {
             print "try 'help' \n";
             goto NEXT;
         }	# to help the user
-        
-        $DataQueue->enqueue($cmd); 
-       
+
+        $DataQueue->enqueue($cmd);
+
         threads->yield() while ($$latest[0] ne "EOM.");
         shift @{$latest};
-  
+
         if (${$latest}[0] eq '') {
             print "Message could not be send, possibly Master on $master terminated.\n (Guess: Try reconnect to $master) \nAborting ! \n";
             exit(-1);
@@ -169,11 +165,10 @@ while (defined($_ = $term->readline("$line> ")) ) {
         {
             $string = $text.$string;
         }
-        print $string;  
+        print $string;
     }
     NEXT:
     $line++;
-} 
+}
 
 $thr->join();
-

@@ -14,7 +14,7 @@ require_once ('Zend/Session.php');
  * @version 1.0.0
  *
  * @copyright
- * Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.<br />
+ * Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.<br />
  * <br />
  * THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
  * CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -89,8 +89,11 @@ class Notificator
   public static function setMessage ($message, $type)
   {
     $ns = self::getNamespace (self::MESSAGE_SESSION_NAMESPACE);
-    $ns->message = $message;
-    $ns->messType = $type;
+    if (isset ($ns))
+      {
+	$ns->message = $message;
+	$ns->messType = $type;
+      }
   }
 
   /**

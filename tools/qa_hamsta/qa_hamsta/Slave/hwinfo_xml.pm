@@ -1,5 +1,5 @@
 # ****************************************************************************
-# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
 # 
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -59,7 +59,7 @@ sub get_hwinfo_module($) {
 	if($module_name eq 'swap'){
 		my $module = {};
 		$module->{'Description'} = "swap partition";
-		$module->{'Partition_path'} = `cat /proc/swaps |awk '{a=\$1}END{print a}'`;
+		$module->{'Partition_path'} = `cat /proc/swaps |awk '{if(\$2=="partition")a=\$1}END{print a}'`;
 		push @result, $module;
 		return \@result;
 	}
@@ -163,7 +163,7 @@ sub get_hwinfo_module($) {
 	}
 
 	if($module_name eq 'system_partition'){
-	my $block_disk_name = `awk '{a=\$1}END{gsub("[0-9]","",a);print a}' /proc/swaps`;
+	my $block_disk_name = `df /|awk '{a=\$1}END{gsub("[0-9]","",a);print a}'`;
 	chomp($block_disk_name);
 	my $root_pt_name = `df /|awk '{a=\$1}END{print a}'`;
 	chomp($root_pt_name);

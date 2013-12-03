@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -23,45 +23,47 @@
   ****************************************************************************
  */
 
-    /**
-     * Logic of the group_del_machines page
-     */
-    if (!defined('HAMSTA_FRONTEND')) {
-        $go = 'del_group_machines';
-        return require("index.php");
-    }
+/**
+ * Logic of the group_del_machines page
+ */
+if (!defined('HAMSTA_FRONTEND')) {
+	$go = 'del_group_machines';
+	return require("index.php");
+}
 
-    $name = request_str("group");
-    $group = Group::get_by_name($name);
-    $machines = $group->get_machines();
-    
-    if (request_str("submit")) {
-		$machine_list = request_array("machine_list");
-		if (is_null($machine_list)) {
-			$error = "No groups selected.";
-		} else {
-			$failed = 0;
-			
-			$machine_num = count($machine_list);
+$name = request_str("group");
+$group = Group::get_by_name($name);
+$machines = $group->get_machines();
+$perm=array('perm'=>'group_edit','url'=>'index.php?go=groups');
+permission_or_disabled($perm);
+if (request_str("submit")) {
+	permission_or_redirect($perm);
+	$machine_list = request_array("machine_list");
+	if (is_null($machine_list)) {
+		$error = "No groups selected.";
+	} else {
+		$failed = 0;
 
-			$search = new MachineSearch();
-			$search->filter_in_array($machine_list);
-			$machines = $search->query();
+		$machine_num = count($machine_list);
 
-			foreach ($machines as $machine) {
-				if (!$group->del_machine($machine)) {
-					$failed++;
-				}
-			} //end of foreach
+		$search = new MachineSearch();
+		$search->filter_in_array($machine_list);
+		$machines = $search->query();
+
+		foreach ($machines as $machine) {
+			if (!$group->del_machine($machine)) {
+				$failed++;
+			}
+		} //end of foreach
+	}
+	if (empty($error)) {
+		if ($failed) {
+			$error = $failed . " machine(s) could not be deleted (possibly were not member?)";
 		}
-        if (empty($error)) {
-            if ($failed) {
-                $error = $failed . " machine(s) could not be deleted (possibly were not member?)";
-            }
-            $go = "groups";
-            return require('inc/groups.php');
-        }
-    }
+		$go = "groups";
+		return require('inc/groups.php');
+	}
+}
 
-    $html_title = "Remove from group";
+$html_title = "Remove from group";
 ?>

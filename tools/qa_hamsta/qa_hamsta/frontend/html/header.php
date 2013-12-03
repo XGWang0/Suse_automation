@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -32,18 +32,24 @@ header('Content-Type: text/html; charset=utf-8');
 require_once("include/Util.php");
 
 ?>
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE html>
 <html>
 <head>
-  <title><?php if(isset($html_title) && !empty($html_title)) echo($html_title." - "); ; ?>HAMSTA</title>
+  <title><?php if(! empty ($html_title)) echo ($html_title . ' - '); ?>HAMSTA</title>
   <link href="css/style.css" rel="stylesheet" type="text/css">
   <link href="../tblib/css/common.css" rel="stylesheet" type="text/css">
   <link href="css/layout.css" rel="stylesheet" type="text/css">
   <link href="css/text.css" rel="stylesheet" type="text/css">
   <link href="css/links.css" rel="stylesheet" type="text/css">
   <link href="css/color.css" rel="stylesheet" type="text/css">
-  <link rel="icon" type="image/png" href="/hamsta/icon.png">
+  <link href="css/machine_actions.css" rel="stylesheet" type="text/css">
+
+ <?php
+if( isset($disabled_css) && $disabled_css ) print '<link href="css/disabled.css" rel="stylesheet" type="text/css">'."\n";
+?>  <link rel="icon" type="image/png" href="/hamsta/icon.png">
+  <link rel="stylesheet" type="text/css" media="screen,projection" href="css/machines.css" />
   <script src="js/commfuncs.js" type="text/javascript"></script>
+  <script src="js/machines.js" type="text/javascript"></script>
   <script src="../scripts/gs_sortable.js" type="text/javascript"></script>
   <script src="../scripts/jquery.js" type="text/javascript"></script>
   <?php if (!empty($html_refresh_uri)): ?>
@@ -52,20 +58,26 @@ require_once("include/Util.php");
 </head>
 <body>
   <div id="header">
+    <div class="version text-main text-white bold">
+      <em>v<?php $version = explode("-", $hamstaVersion); echo($version[2]);?></em>
+    </div>
+
     <div id="hlogo">
-      <a href="/hamsta" style="text-decoration: none;">
-	<img src="images/logo-hamsta.png" class="logo" alt="Hamsta Logo" title="Click to return to the main page" />
-	<img src="images/logo-suse.png" class="logo" alt="Suse Logo" title="Click to return to the main page" />
-	<img src="images/header.png" class="caption" alt="SUSE QA Automation" title="Click to return to the main page" />
-	<img src="images/hamsta.png" class="hamsta" alt="Hamsta" title="Hamsta" />
-      </a>
+      <span id="title">
+	<a href="" class="headerlinks">
+	  <img src="images/logo-hamsta.png" class="logo" alt="Hamsta Logo" title="Click to return to the main page" />
+	</a>
+	<a href="http://www.suse.com/" class="headerlinks">
+	  <img src="images/logo-suse.png" class="logo" alt="Suse Logo" title="SUSE Home" />
+	</a>
+	<a href="" class="headerlinks" title="HArdware Maintenance, Setup &amp; Test Automation">
+	  <span id="caption">SUSE HAMSTA</span>
+	</a>
+      </span>
+    </div>
 
-      <div class="version text-main text-white bold">
-        <em>v<?php $version = explode("-", $hamstaVersion); echo($version[2]);?></em>
-      </div>
-
-      <div class="rightmenu topright text-white text-main">
-        <?php
+    <div id="login" class="rightmenu topright text-white text-main">
+      <?php
            User::printStatus($config);
            switch ($config->authentication->method) {
            case 'openid':
@@ -78,8 +90,7 @@ require_once("include/Util.php");
              User::printLogInOut();
            }
            ?>
-        <a href="index.php?go=install_client">Install Client</a>
-      </div>
+      <a href="index.php?go=install_client">Install Client</a>
     </div>
 
     <div id="header-links" class="text-medium bold">

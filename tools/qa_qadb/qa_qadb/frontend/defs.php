@@ -5,7 +5,8 @@ $bench_def_height = 600;
 $bench_def_pos    = 0;
 $bench_def_font   = 1;
 
-$cookies = array( 'graph_x', 'graph_y', 'legend_pos', 'font_size' );
+$cookies = array( 'group_by', 'graph_x', 'graph_y', 'legend_pos', 'font_size' );
+$cookie_defaults = array( 0, 800, 500, 0, 2 );
 
 $group_by = array(
 	array( 0, 'testsuite, host, product, release', 't.testsuite,h.host,pr.product,rel.release' ),

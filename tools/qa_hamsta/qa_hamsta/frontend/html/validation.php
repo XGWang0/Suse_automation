@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -26,29 +26,44 @@
 ?>
 
 <script>
-$(document).ready(function() {
-	var archs = Array("i386","x86","x86-xen","x86_64","x86_64-xen","ia64","ppc","s390");
-	for(i=0;i<archs.length;i++) {
-		$("#"+archs[i]).hide();
-	}
-});
+//<!--
+$(document).ready(function () {
+		var selector = '#buildnumber';
+		hideAllArchs ();
+		$(selector).change ( function () {
+			validArchs ();
+		});
+	});
 
-function validarch(archs) {
+function hideAllArchs () {
+	var archs = Array('i386','x86','x86-xen','x86_64','x86_64-xen','ia64','ppc','s390','ppc64');
+	$.each (archs, function (index, val) {
+		$('#'+val).hide ();
+	});
+}
+
+function showArchs (archs) {
 	var reg = /i.86/;
-	var usedarchs = archs.toString().split(",");
-
-	for(i=0;i<usedarchs.length;i++) {
-		if (usedarchs[i] == "x86_64" ) {
+	$.each (archs, function (i, value) {
+		if (value == "x86_64")  {
 			$("#x86_64").show();
 			$("#x86_64-xen").show();
-		} else if (reg.exec(usedarchs[i])) {
+		} else if (reg.exec (value)) {
 			$("#i386").show();
 			$("#x86-xen").show();
 		} else {
-			$("#"+usedarchs[i]).show();
+			$("#"+value).show();
 		}
-	}
+	});
 }
+
+function validArchs() {
+	var archs = $('option:selected', '#buildnumber').attr('archs');
+	var usedarchs = archs.toString().split(",");
+	hideAllArchs ();
+	showArchs (usedarchs);
+}
+//-->
 </script>
 
 <?php
@@ -57,7 +72,6 @@ $json = @file_get_contents($config->url->index->repo);
 if ($json !== FALSE && $json != "") {
 ?>
 
-<p>
 <form action="index.php?go=validation" method="post" name="validation" onsubmit="return checkcheckbox(this);">
 
 <?php
@@ -72,11 +86,11 @@ if ($json !== FALSE && $json != "") {
 				$archs[$iso->{"product"}] = $iso->{"arch"};
 			}
 	}
-	echo "<select name=\"buildnumber\" id=\"buildnumber\" style=\"width: 200px;\">\n";
-	echo "<option selected=\"\"></option>\n";
+	echo "<select name=\"buildnumber\" id=\"buildnumber\">\n";
+	echo "<option selected></option>\n";
 	foreach(array_unique($products) as $buildnr) {
 		$arch = $archs["$buildnr"];
-		echo "<option value=\"$buildnr\" onclick=\"validarch('$arch')\">$buildnr</option>\n";
+		echo "<option archs=\"$arch\" value=\"$buildnr\">$buildnr</option>\n";
 	}
 	echo "</select>\n";
 	} else {
@@ -91,7 +105,6 @@ if (! $error_occured) {
 ?>
 <br><b>SDK repo URL (only required by some test suites): </b>
 <input type="text" name="sdk_producturl" id="sdk_producturl" size="55" value="<?php if(isset($_POST["sdk_producturl"])){echo $_POST["sdk_producturl"];}?>" />
-</p>
 
 <h3>Please choose which arch(s) you want to validate:</h3>
 
@@ -102,7 +115,7 @@ if (! $error_occured) {
 		$vmlist = $config->vmlist->toArray ();
 		while (list($key, $value) = each($vmlist)) {
 			if ($i%4==0) {echo "\t<tr>\n";}
-			if ($value != "N/A" && $value != "") {
+			if (! empty ($value) && $value != "N/A") {
 				$machine=Machine::get_by_ip($value);
 				if ($machine) { 
 					echo "\t<td><div id=\"$key\"><input name=\"validationmachine[]\" type=\"checkbox\" value=\"$key\" />$key,(".$machine->get_hostname()." IP: ".$value.")&nbsp;&nbsp</div></td>\n";
@@ -120,7 +133,7 @@ if (! $error_occured) {
 </div>
   <p>Write your email here: <input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} else if (isset($user)) { echo $user->getEmail(); } ?>" />
   <a href="../hamsta/helps/email.html" target="_blank">
-    <img src="../hamsta/images/qmark.png" class="icon-small" name="qmark" id="qmark" title="click me for clues of email" /></a>
+    <img src="../hamsta/images/27/qmark.png" class="icon-small" name="qmark" id="qmark" title="click me for clues of email" /></a>
   </p>
   <input type="submit" name="submit" value="Start Validation">
 </form>

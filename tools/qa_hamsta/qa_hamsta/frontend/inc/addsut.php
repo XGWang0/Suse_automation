@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -31,93 +31,37 @@ if (!defined('HAMSTA_FRONTEND')) {
 	return require("index.php");
 }
 
-/* Check if user is logged in, registered and have sufficient privileges. */
-if ( $config->authentication->use
-     && ( ! User::isLogged() || ! User::isRegistered (User::getIdent (), $config) ) )
-  {
-    Notificator::setErrorMessage ('You have to be logged in to add a machine as SUT to HAMSTA.');
-    header('Location: index.php');
-    exit ();
-  }
+/* Check if user is logged in + registered. */
+permission_or_disabled();
 
 # Procee the request
 if (request_str("proceed")) {
+	permission_or_redirect();
 	# Request parameters
 	//$hostnametype = request_str("hostnametype");
 	$sutname = request_str("sutname");
 	$rootpwd = request_str("rootpwd");
 	$mailto = request_str("mailto");
-	$conn_type = 'multicast';
-	$repos = array(
-			"SLE_10_SP1" => "SLE_10_SP1_Head",
-			"SLE_10_SP2" => "SLE_10_SP2_Head",
-			"SLE_10_SP3" => "SLE_10_SP3",
-			"SLE_10_SP4" => "SLE_10_SP4",
-			"SLE_10_SP4_Update" => "SLE_10_SP4_Update",
-			"SLE_11_SP1_Update" => "SLE_11_SP1_Update",
-			"SLE_Factory" => "SLE_Factory",
-			"Factory_Head" => "SUSE_Factory_Head",
-			"SLE_11_SP1" => "SUSE_SLE-11-SP1_GA",
-			"SLE_11_SP2" => "SUSE_SLE-11-SP2_GA",
-			"SLE_11_SP3" => "SUSE_SLE-11-SP3_GA",
-			"SLE_11" => "SUSE_SLE-11_GA",
-			"SLE_11_Update" => "SUSE_SLE-11_Update",
-			"openSUSE_11.4" => "openSUSE_11.4",
-			"openSUSE_12.1" => "openSUSE_12.1",
-			"openSUSE_12.2" => "openSUSE_12.2",
-			"openSUSE_Factory" => "openSUSE_Factory");
-
+	$master_ip = $_SERVER['SERVER_ADDR'];
 	# Check for errors
 	$errors = array();
 	# Processing the job
-	$cmd = "sshpass -p \"$rootpwd\" ssh -o StrictHostKeyChecking=no root@$sutname ";
-	$mycmd = $cmd . "\"grep -qi openSUSE /etc/issue\"";
-	system($mycmd, $ret);
-	if ($ret != 0) { //SLE
-		$repo = "SLE_";
-		$mycmd = $cmd . "\"grep -i VERSION /etc/SuSE-release | sed -e 's/[A-Za-z =]//g'\"";
-		$OSVer = system($mycmd, $ret);
-		$mycmd = $cmd . "\"grep PATCHLEVEL /etc/SuSE-release | sed -e 's/[A-Za-z= ]//g'\"";	
-		$PVer = system($mycmd, $ret);
-		if ($ret == 0) { // OS like: SLE_11_SP2 etc
-			$repo .= $OSVer . "_SP" . $PVer;
-		} else {
-			$repo .= $OSVer;
-		}
+	$cmd = "sshpass -p \"$rootpwd\" scp /usr/share/qa/tools/addsut.pl root@$sutname:/tmp/";
+	system($cmd,$ret);
+	if ( $ret != 0 ) {
+		$errors['fail'] = "Can not scp to $sutname,please check ssh service!";
 	} else {
-		$repo = "openSUSE_";
-		$mycmd = $cmd . "\"cat /etc/SuSE-release | grep -i VERSION | sed -e 's/[A-Za-z =]//g'\"";
-		$OSVer = system($mycmd);
-		$repo .= $OSVer;
-	}
-	$repo_url = `/usr/share/qa/tools/get_qa_config install_qa_repository`;
-	$repo_url = rtrim($repo_url) . "/" . $repos[$repo] . "/";
-	$mycmd = $cmd . " zypper --no-gpg-checks -n ar $repo_url hamsta 1>/dev/null";
-	system($mycmd, $ret);
-	if ($ret != 0) {
-		$errors["repo_add"] = "Cannot add hamsta repo as $repo_url to SUT.";
-	}
-	$mycmd = $cmd . " zypper --no-gpg-checks --gpg-auto-import-keys in -y qa_hamsta 1>/dev/null";
-	system($mycmd, $ret);
-	if ($ret != 0) {
-		$errors["hamsta_inst"] = "qa_hamsta cannot be added to SUT.";
-	}
-	$mycmd = $cmd . " /usr/share/qa/tools/get_net_addr.pl";
-	$sut_net_addr = system($mycmd);
-	$master_ip = $_SERVER['SERVER_ADDR'];
-	if ( $sut_net_addr != system("/usr/share/qa/tools/get_net_addr.pl") ) {
-		$mycmd =$cmd . "\"sed -i s/hamsta_multicast_address=\'239.192.10.10\'/hamsta_multicast_address=\'$master_ip\'/ /etc/qa/00-hamsta-common-default\"";
-		system($mycmd, $ret);
-		$conn_type = 'unicast';
-		if ($ret != 0) {
-			$errors["unicast"] = "config unicast failed.";
+		$repo_url = `/usr/share/qa/tools/get_qa_config install_qa_repository`;
+		$repo_url = rtrim($repo_url);
+		$master_net = `/usr/share/qa/tools/get_net_addr.pl`;
+		$cmd = "sshpass -p \"$rootpwd\" ssh -o StrictHostKeyChecking=no root@$sutname /tmp/addsut.pl $master_ip $master_net $repo_url";
+		$conn_type = `$cmd`;
+        	if ( $conn_type != 'unicast' && $conn_type != 'multicast' ) {
+			$errors['sutfail'] = $conn_type;
+		} else {
+			system("sshpass -p \"$rootpwd\" ssh -o StrictHostKeyChecking=no root@$sutname rm /tmp/addsut.pl");
 		}
-	}
-	$mycmd = $cmd . "rchamsta start";
-	system($mycmd, $ret);
-	if ($ret != 0) {
-		$errors["hamsta_start"] = "Cannot start hamsta service on SUT.";
-	}
+	}	
 	if (count($errors)==0) {
 		$_SESSION['message'] = "$sutname is connected by $conn_type";
 		$_SESSION['mtype'] = "success";
@@ -132,5 +76,5 @@ if (request_str("proceed")) {
 		system("echo $mailtext | mailx $mailto -s $mailsub -r hamsta-master@suse.de");
 	}
 }
-$html_title = "Add_SUT";
+$html_title = "Add SUT";
 ?>

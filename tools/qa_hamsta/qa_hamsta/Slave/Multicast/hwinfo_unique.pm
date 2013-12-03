@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # ****************************************************************************
-# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
 # 
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -203,10 +203,12 @@ sub get_update_status {
 	#get the hamsta version sum from local
 	my $current_v=`rpm -qa|grep 'qa_hamsta-[0-9]\\|qa_hamsta-cmdline\\|qa_hamsta-common\\|qa_tools\\|qa_lib_perl\\|qa_lib_config\\|qa_lib_keys'|sed -r 's/.*-([^-]+-[^-]+)\$/\\1/'|awk -F"-" '{split(\$NF""\$(NF-1),a,"");for(i in a){if(a[i]~/[0-9]/)s+=a[i]}}END{print s}'`;
 	chomp($current_v);
+	return 0 unless($current_v);
 	#get the hamsta version sum from repo
 	system('zypper -n --gpg-auto-import-keys ref &>/dev/null' );
-	my $repo_v=`zypper se -st package qa_|grep 'qa_hamsta[^-]\\|qa_hamsta-cmdline\\|qa_hamsta-common\\|qa_tools\\|qa_lib_perl\\|qa_lib_config\\|qa_lib_keys'|awk -F\"|\" '!b[\$2]++{split(\$4,a,"");for(i in a){if(a[i]~/[0-9]/)s+=a[i]}}END{print s}'`;
+	my $repo_v=`zypper se -st package qa_ 2>/dev/null|grep 'qa_hamsta[^-]\\|qa_hamsta-cmdline\\|qa_hamsta-common\\|qa_tools\\|qa_lib_perl\\|qa_lib_config\\|qa_lib_keys'|awk -F\"|\" '!b[\$2]++{split(\$4,a,"");for(i in a){if(a[i]~/[0-9]/)s+=a[i]}}END{print s}'`;
 	chomp($repo_v);
+	return 0 unless($repo_v);
 	return 1 if($current_v!=$repo_v);
 	return 0;
 }

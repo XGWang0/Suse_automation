@@ -32,7 +32,6 @@ require_once('qadb.php');
 #require_once($_SERVER['DOCUMENT_ROOT'].'/qadb/bench/phplot/phplot_data.php');
 #require_once($_SERVER['DOCUMENT_ROOT'].'/qadb/bench/phplot_log.php');
 require_once('bench/phplot_log.php');
-require_once('bench/common.php');
 
 # 4. set cookies for graph settings etc.
 $cookie_val=array();

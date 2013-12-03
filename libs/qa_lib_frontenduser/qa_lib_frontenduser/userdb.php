@@ -42,6 +42,31 @@ function user_list($user_id=null)	{
 		return mhash_query(1,null,"$sql $group");
 }
 
+/**
+ * Check if an user already exists in database.
+ *
+ * @return mixed String with name of the existing attribute (first found is returned) or NULL if none is found.
+ */
+function user_has_duplicities ($login, $extern_id, $user_id = null) {
+	$login = row_query ('SELECT user_id, login FROM `user` WHERE login = ?', 's', $login);
+	$extern_id = row_query ('SELECT user_id, extern_id FROM `user` WHERE extern_id = ?', 's', $extern_id);
+
+	if (isset ($user_id)) {
+		if (isset ($login['login']) && $login['user_id'] != $user_id) {
+			return 'login';
+		}
+		if (isset ($extern_id['extern_id']) && $extern_id['user_id'] != $user_id) {
+			return 'extern_id';
+		}
+	} else {
+		if (isset ($login['login']))
+			return 'login';
+		if (isset ($extern_id['extern_id']))
+			return 'extern_id';
+	}
+	return NULL;
+}
+
 function user_update($user_id,$login,$name,$email,$extern_id)	{
 	return update_query('UPDATE `user` SET login=?,name=?,email=?,extern_id=? WHERE user_id=?','ssssi',$login,$name,$email,$extern_id,$user_id);
 }
@@ -123,12 +148,12 @@ function role_privilege_insert_all($role_id,$valid_until)	{
 	$vals=array();
 	$args=array();
 	foreach($valid_until as $k=>$v)	{
-		$vals[]='(?,?,NOW(),?)';
+		$vals[]='(?,?,?)';
 		$args[]=$role_id;
 		$args[]=$k;
 		$args[]=($v ? $v:null);
 	}
-	$a=array_merge(array('INSERT INTO role_privilege(role_id,privilege_id,valid_since,valid_until) VALUES '.join(',',$vals),str_repeat('iid',count($vals))),$args);
+	$a=array_merge(array('INSERT INTO role_privilege(role_id,privilege_id,valid_until) VALUES '.join(',',$vals),str_repeat('iid',count($vals))),$args);
 	return call_user_func_array('update_query',$a);
 }
 

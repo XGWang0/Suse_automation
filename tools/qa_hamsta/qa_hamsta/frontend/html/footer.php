@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -27,15 +27,7 @@
 	</div>
 	<div id="footer" class="text-main">
 		<span class="text-white text-small" id="copyright">
-			&copy; SUSE. - For assistance, please email qa-automation@suse.de
-		</span>
-
-		<span class="text-main navibar">
-<?php
-	foreach ($naviarr as $key=>$value){
-		echo createLink($value, $key);
-	}
-?>
+			&copy; SUSE. - For assistance, please email <a href="mailto:qa-automation@suse.de">qa-automation@suse.de</a>
 		</span>
 	</div>
 </body>

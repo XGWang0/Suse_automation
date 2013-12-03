@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -30,31 +30,12 @@
 if (!defined('HAMSTA_FRONTEND')) {
   $go = 'validation';
   return require("index.php");
- }
+}
+
+
+
 $html_title="Validation test";
 
-/* First check if the user has privileges to run this functionality. */
-if ( $config->authentication->use )
-  {
-    if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
-      {
-        $user = User::getById (User::getIdent (), $config);
-        if ( ! $user->isAllowed ('validation_start') )
-          {
-            Notificator::setErrorMessage ("You do not have privileges to "
-                                          . "run validation tests.");
-            header ("Location: index.php");
-            exit ();
-          }
-      }
-    else
-      {
-        Notificator::setErrorMessage ("You have to logged in and registered to "
-                                      . "run validation tests.");
-        header ("Location: index.php");
-        exit ();
-      }
-  }
 	/* pkacer@suse.com: I have suppressed warnings here because if
 	 * the file is not reachable, the warning is always displayed
 	 * (Hamsta displays all warnings, see 'index.php') and that
@@ -73,10 +54,14 @@ if ( $config->authentication->use )
 		$newdic[$product] = $tmp[0];
 	}
 
+	$perm=array('perm'=>'validation_start','url'=>'index.php?go=validation');
+	/* First check if the user has privileges to run this functionality. */
+	permission_or_disabled($perm);
 	if (request_str("submit")) {
-		$vmlist = $config->vmlist->toArray ();
+		permission_or_redirect($perm);
 		$buildnr = $_POST['buildnumber'];
 		$baseurl = "$newdic[$buildnr]" . "$buildnr";
+		$vmlist = $config->vmlist->toArray ();
 		foreach( $_POST['validationmachine'] as $vm ) {
 			$isxen = 0; //clean singal in each loop
 			$machineIP=$vmlist["$vm"];
@@ -130,7 +115,7 @@ if ( $config->authentication->use )
 				}
 				foreach ( $validationfiles as &$validationfile ) {
 					if ($machine->send_job($validationfile)) {
-						Log::create($machine->get_id(), $machine->get_used_by_login(), 'JOB_START', "has started the automated build validation for this machine (install + tests)");
+						Log::create($machine->get_id(), $user->getLogin (), 'JOB_START', "has started the automated build validation for this machine (install + tests)");
 					} else {
 						$error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
 					}

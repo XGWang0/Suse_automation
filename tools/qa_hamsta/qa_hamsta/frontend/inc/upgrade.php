@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -27,7 +27,7 @@
  * Logic of the upgrade page
  */
 if (!defined('HAMSTA_FRONTEND')) {
-	$go = 'reinstall';
+	$go = 'upgrade';
 	return require("index.php");
 }
 
@@ -49,28 +49,25 @@ foreach($machines as $m) {
 	$m->get_children();
 }
 
-$user = null;
 /* Check if user is logged in, registered and have sufficient privileges. */
-if ($config->authentication->use) {
-  if (User::isLogged() && User::isRegistered (User::getIdent (), $config)) {
-    $user = User::getById (User::getIdent (), $config);
-  } else {
-    Notificator::setErrorMessage ('You have to be logged in to update a machine.');
+if ($config->authentication->use && ! isset ($user)) {
+    Notificator::setErrorMessage ('You have to be logged in to upgrade a machine.');
     header('Location: index.php');
     exit ();
-  }
-
-  foreach($machines as $m) {
-    $users_machine = isset ($user) && $m->get_used_by_login () == $user->getLogin ();
-    if (! (isset ($user)
-	   && (($users_machine && $user->isAllowed ('machine_reinstall'))
-	       || ($user->isAllowed ('machine_reinstall_reserved'))))) {
-      Notificator::setErrorMessage ('You do not have privileges to update a machine.');
-      header ('Location: index.php');
-      exit ();
-    }
-  }
 }
+
+foreach($machines as $m) {
+	$rh = new ReservationsHelper ();
+	$users_machine = $rh->getForMachineUser ($m, $user);
+	if (! (isset ($user)
+	       && (($users_machine && $user->isAllowed ('machine_reinstall'))
+		   || ($user->isAllowed ('machine_reinstall_reserved'))))) {
+		Notificator::setErrorMessage ('You do not have privileges to upgrade a machine.');
+		header ('Location: index.php');
+		exit ();
+	}
+}
+
 
 # If install options are set in the DB, they will show up in upgrade page, else use what user set in upgrade page even it's empty.
 $installoptions_warning="";
@@ -90,6 +87,7 @@ if (request_str("proceed")) {
 	# Request parameters
 	$installmethod = request_str("installmethod");
 	$producturl_raw = request_str("repo_producturl");
+	$email = request_str("mailto");
 	$producturl = $producturl_raw;
 	if ($installmethod == "custom") {
 		$installoptions = request_str("installoptions");
@@ -98,7 +96,6 @@ if (request_str("proceed")) {
 		$additionalrpms = request_str("additionalrpms");
 		$pattern_list = $_POST["patterns"];
 		//$validation = request_str("startvalidation");
-		$email = request_str("mailto");
 		$update = request_str("startupdate");
 		$regmail = request_str("update-reg-email");
 		$regcodes = $_POST["rcode"];
@@ -165,7 +162,7 @@ if (request_str("proceed")) {
 		system("sed -i 's/REPOURL/$producturl/g' $autoyastfile");
 		foreach ($machines as $machine) {
 			if ($machine->send_job($autoyastfile)) {
-				Log::create($machine->get_id(), $machine->get_used_by_login(), 'REINSTALL', "has reinstalled this machine using $producturl_raw (Addon: " . ($addonurl ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
+				Log::create($machine->get_id(), $user->getLogin (), 'REINSTALL', "has reinstalled this machine using $producturl_raw (Addon: " . ($addonurl ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
 			} else {
 				$errors['autoyastjob']=$machine->get_hostname().": ".$machine->errmsg;
 			}
@@ -189,5 +186,5 @@ if (request_str("proceed")) {
 	echo "</ul>";
 	echo "</div>";
 }
-$html_title = "Upgrade (Only support upgrade to SLE-11-sp2 or higher)";
+$html_title = "Upgrade (only supports upgrade to SLE-11-SP2 or higher)";
 ?>

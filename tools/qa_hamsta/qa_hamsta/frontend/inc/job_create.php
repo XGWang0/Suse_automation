@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -244,6 +244,10 @@
 
 	$fileCustom = str_replace("ROLES_AREA", $rolesCustom, str_replace("PARAMETERS_AREA", $parametersCustom,
 		      str_replace("COMMANDS_AREA", $commandsCustom, $fileCustom)));
+	/* Prepend a custom job label to the message of the day. */
+	if (strpos ($motdmsg, '[Custom job]') === false) {
+		$motdmsg = '[Custom job]: ' . $motdmsg;
+	}
 
 	$fileJob = fopen($filename, "w");
 	if($fileJob == NULL)

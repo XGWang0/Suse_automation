@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -38,12 +38,11 @@
     $d_return = request_int("d_return");
     $d_job= request_int("d_job");
     $delete_job= request_int("finished_job");
-	if ($delete_job) {
-		$job->set_status(4);	
-		$job->set_stopped();	
+if (isset ($user) && $delete_job) {
+	$job->set_status(4);
+	$job->set_stopped();
+}
 
-	}
-    
     $html_title = "Job ".$job->get_id();
 
 	# Figure out if there are any links to qadb inside the log output (supports multiple submission links from any host, qadb, elzar, etc.)

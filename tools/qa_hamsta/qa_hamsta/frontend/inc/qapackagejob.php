@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -37,41 +37,7 @@
 	$search->filter_in_array(request_array("a_machines"));
 	$machines = $search->query();
 
-	/* Check if user has privileges to send a job to machine. */
-	if ( $config->authentication->use )
-	  {
-	    if ( User::isLogged () && User::isRegistered (User::getIdent (), $config) )
-	      {
-		$user = User::getById (User::getIdent (), $config);
-		if ( $user->isAllowed ('machine_send_job')
-		     || $user->isAllowed ('machine_send_job_reserved') )
-		  {
-		    foreach ($machines as $machine)
-		      {
-			if ( ! ( $machine->get_used_by_login () == $user->getLogin ()
-				 || $user->isAllowed ('machine_send_job_reserved')) )
-			  {
-			    Notificator::setErrorMessage ("You cannot send a job to a machine that is not reserved"
-							  . " or is reserved by other user.");
-			    header ("Location: index.php?go=machines");
-			    exit ();
-			  }
-		      }
-		  }
-		else
-		  {
-		    Notificator::setErrorMessage ("You do not have privileges to send a job to a machine.");
-		    header ("Location: index.php?go=machines");
-		    exit ();
-		  }
-	      }
-	    else
-	      {
-		Notificator::setErrorMessage ("You have to be logged in and registered to send a job to a machine.");
-		header ("Location: index.php");
-		exit ();
-	      }
-	  }
+	machine_permission_or_redirect($machines,$perm_send_job);
 
 	$tslist = $_POST['testsuite'];
 	$rand = rand();
@@ -113,14 +79,14 @@
 		foreach( $machines as $machine )
 		{
 			if( $machine->send_job($qapackagejobfile) )	{
-				Log::create($machine->get_id(), $machine->get_used_by_login(), 'JOB_START', "has sent a \"qa-package\" job to this machine (Job name: \"" . htmlspecialchars($jobname) . "\")");
+				Log::create($machine->get_id(), $user->getLogin (), 'JOB_START', "has sent a \"qa-package\" job to this machine (Job name: \"" . htmlspecialchars($jobname) . "\")");
 			} else {
 				$error = (empty($error) ? "" : $error) . "<p>" . $machine->get_hostname() . ": " . $machine->errmsg . "</p>";
 			}
 		}
 	}
 	if (empty($error)) {
-		header("Location: index.php");
+		require("send_success.php");
 	}
 	$html_title="Send qapackage job";
 ?>

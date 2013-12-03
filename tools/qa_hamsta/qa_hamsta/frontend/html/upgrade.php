@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -24,7 +24,7 @@
  */
 
 	if (!defined('HAMSTA_FRONTEND')) {
-		$go = 'send_job';
+		$go = 'machine_send_job';
 		return require("index.php");
 	}
 	$blockedMachines = array();
@@ -62,30 +62,25 @@
 
 	} else {
 ?>
-<h5>You are trying to upgrade the following machine(s) to a higher release with Autoyast:<br />
+<h5>You are trying to upgrade the following machine(s) to a higher release with Autoyast</h5>
 
 <ul>
 <?php foreach ($machines as $machine): ?>
-<li><input type="hidden" name="a_machines[]" value="<?php echo($machine->get_id()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>"><?php echo($machine->get_hostname()); ?></a></li>
+<li><input type="hidden" name="a_machines[]" value="<?php echo($machine->get_id()); ?>"><a class="text-small-bold" href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>"><?php echo($machine->get_hostname()); ?></a></li>
 <?php endforeach; ?>
-</ul></h5>
-<script language="javascript">
-//Will provide a better way
-function upmethod(myvar)
-{
-	if (myvar == "default") {
-		alert ("upgrade by default! Only \"Installation repo URL\" is useable, others will not be included.");
-	} else {
-		alert ("upgrade by customized options, all below options can work!");
-	}
-}
-</script>
+</ul>
+
+<p>
+With default upgrade method only the product at the installation repo URL. All other options will be ignored.<br/>
+If you need to change parameters of the installation in this form, select the custom type.
+</p>
+
 <form enctype="multipart/form-data" action="index.php?go=upgrade" method="POST" onsubmit="return checkcontents(this);">
 <table class="text-medium">
   <tr>
     <td>Upgrade method:</td>
-    <td><label><input type="radio" id="upgradedef" name="installmethod" value="default" onclick="upmethod('default');">By default</label>
-      <label><input type="radio" id="upgradediy" name="installmethod" value="custom" onclick="upmethod('custom');">Customized</label>
+    <td><label><input type="radio" id="upgradedef" name="installmethod" value="default">By default</label>
+      <label><input type="radio" id="upgradediy" name="installmethod" value="custom">Customized</label>
     </td>
   </tr>
   <tr>
@@ -99,23 +94,23 @@ function upmethod(myvar)
   <tr>
 	<td></td>
 	<td>
-	  <input type="text" name="repo_producturl" id="repo_producturl" size="70" value="<?php if(isset($_POST["repo_producturl"])){echo $_POST["repo_producturl"];} ?>" title="required: url" onchange="alert('WARNING!\n\nIf you change the \'Installation repo URL\' manually then the \'Available patterns\' shown on this page may not reflect the actual product you are installing. The installation itself may work just fine, however, it is likely that you will not end up with the right set of patterns.\n\nWhile we support editing the installation URL manually, it is not advised to do so (rather, you should use the pre-populated installation URLs in the dropdown boxes).\n\nIf you insist on modifying the URL by hand, your safest bet is to de-select all of the \'Available patterns\' below and then install the patterns that you want after the installation completes.\n\n(Note: This will be fixed in our next release).');" /><span class="required">*</span>
+	  <input type="text" name="repo_producturl" id="repo_producturl" size="70" value="<?php if(isset($_POST["repo_producturl"])){echo $_POST["repo_producturl"];} ?>" title="required: url" /><span class="required">*</span>
 	  &nbsp;&nbsp;Registration Code:&nbsp;<input type="text" name="rcode[]" id="rcode_product" size="20" value="<?php if(isset($_POST["rcode"][0])){echo $_POST["rcode"][0];} ?>"/>
 	</td>
   </tr>
   <tr>
-	<td>SDK/Addon URL (optional, support multiple): </td>
+	<td>Addon URL (optional, support multiple): </td>
 	<td>
-	  <label for="sdk_products">Product:</label> <select name="sdk_products" id="sdk_products" style="width: 200px;"></select>
-	  <label for="sdk_archs">Arch:</label> <select name="sdk_archs" id="sdk_archs" style="width: 80px;" onchange="checkReinstallDropdownArchitectures()"></select>
-	  <span id="sdk_archs_warning" class="text-red text-small bold"></span>
+	  <label for="addon_products">Product:</label> <select name="addon_products" id="addon_products" style="width: 200px;"></select>
+	  <label for="addon_archs">Arch:</label> <select name="addon_archs" id="addon_archs" style="width: 80px;" onchange="checkReinstallDropdownArchitectures()"></select>
+	  <span id="addon_archs_warning" class="text-red text-small bold"></span>
 	</td>
    </tr>
   <tr>
 	<td></td>
 	<td>
-	  <input type="text" name="addon_url[]" id="sdk_producturl" size="70" value="<?php if(isset($_POST["sdk_producturl"])){echo $_POST["sdk_producturl"];} ?>" />
-	  &emsp;Registration Code:&nbsp;<input type="text" name="rcode[]" id="rcode_sdk" size="20" value="<?php if(isset($_POST["rcode_product"][1])){echo $_POST["rcode_product"][1];} ?>"/>
+	  <input type="text" name="addon_url[]" id="addon_producturl" size="70" value="<?php if(isset($_POST["addon_producturl"])){echo $_POST["addon_producturl"];} ?>" />
+	  &emsp;Registration Code:&nbsp;<input type="text" name="rcode[]" id="rcode_addon" size="20" value="<?php if(isset($_POST["rcode_product"][1])){echo $_POST["rcode_product"][1];} ?>"/>
 	  &emsp;<button type="button" onclick="anotherrepo()"> + </button>
 	  <div id="additional_repo"></div>
 	</td>
@@ -129,12 +124,12 @@ function upmethod(myvar)
   			<option value="text">Text</option>
   			<option value="gnome">Default Gnome</option>
 			<option value="kde">Default KDE</option>
-  			<option value="full">Full install</option>
+  			<option value="full">Full distro</option>
 		  </select>
 		<span id='patterns_modified' class='modified'></span>
 		</legend>
 		<div id="available_patterns"></div>
-		<div id="sdk_patterns"></div>
+		<div id="addon_patterns"></div>
         <div id="more_patterns"><label style="width: 1000; float: left;">More patterns: <input type="text" size="75" name="patterns[]" /></label></div>
 	  </fieldset>
 	</td>
@@ -191,7 +186,9 @@ function upmethod(myvar)
 ?>
 </form>
 
+<script>
 <?php
 }
-require("req_reinstfuncs.php");
+require ('js/install_product.js');
 ?>
+</script>

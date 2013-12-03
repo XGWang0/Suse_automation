@@ -1,5 +1,5 @@
 # ****************************************************************************
-# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
 # 
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -88,7 +88,10 @@ sub process_product($)
 	$prod =~ s/;SUSELinuxEnterpriseDesktop/;SLED/;
 	$prod =~ s/SLESforSAPApplications/;SLES4SAP/;
 	return [(split /;/,$prod)[0],'',''] if( $prod =~ /BRANCH/ );
-	if( $prod =~ /^([\w\.\-\+_]+);(SLES4SAP|[\w\.]+)([\dSP\.]+)?(\(([\w\-]+)\))?VERSION=/ )
+	# expected $prod is:
+	#    3.0.58-0.9-default;SLES11(x86_64)VERSION=11PATCHLEVEL=3
+	#    3.7.1-1-desktop;openSUSE12.3Beta1(x86_64)VERSION=12.3CODENAME=DartmouthBeta1-Kernel\r
+	if( $prod =~ /^([\w\.\-\+_]+);(SLES4SAP|[[:alpha:]]+|openSUSE[\d\.]+\w*)([\dSP\.]+)?(\(([\w\-]+)\))?VERSION=/ )
 	{
 		my ($base,$major,$sp,$rel,$dom,$build,$arch)=($2,$3,'','','','','');
 		$sp 	="SP$1" if $prod =~ /PATCHLEVEL=(\d+)/;

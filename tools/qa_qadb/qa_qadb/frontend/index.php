@@ -1,5 +1,9 @@
 <?php
 require_once('qadb.php');
+if( !preg_match('/\.php/',$_SERVER['REQUEST_URI']) )    {
+	header('Location: submission.php?search=1');
+	exit;
+}
 common_header(array('title'=>'Welcome to the QA database'));
 print "<center><h2>Welcome to the QA database</h2>\n";
 

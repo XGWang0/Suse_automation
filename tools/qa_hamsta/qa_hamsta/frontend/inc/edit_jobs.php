@@ -1,7 +1,7 @@
 <?php
 
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
 
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -40,10 +40,12 @@
     $file = request_str("file");
     $opt = request_str("opt");
     $machine_list = request_str("machine_list");
+    $perm=array('perm'=>'job_edit');
+    permission_or_disabled($perm);
 
     if (request_str("cancel") == "Cancel")
     {
-	header("Location: index.php?go=send_job&machine_list=$machine_list");
+	header("Location: index.php?go=machine_send_job&machine_list=$machine_list");
 	exit ();
     }
 
@@ -73,10 +75,11 @@
 
     if(request_str("submit"))
     {
+        permission_or_redirect($perm);
         require("inc/job_create.php");
 
 	if(count($errors) == 0) {
-            header("Location: index.php?go=send_job&machine_list=$machine_list");
+            header("Location: index.php?go=machine_send_job&machine_list=$machine_list");
 	    Notificator::setSuccessMessage ('A custom job has been created.');
 	    exit ();
 	}

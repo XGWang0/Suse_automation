@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # ****************************************************************************
-# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
 # 
 # THIS IS AN UNPUBLISHED WORK OF SUSE.	IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.	SUSE
@@ -87,7 +87,8 @@ Options:
 	-x|--cmd		set cmd for jobtype command_line
 	-m|--mail		set email address for job result
 	-p|--print-active	print all active machines
-	-h|--host <ip>	        set the target SUT for test
+	-h|--host <ip-or-hostname>
+				set the target SUT for the test
 	-g|--group <name>	set the target host group for test
 	-v|--version	        print program version
 	-d|--debug <level>	set debugging level (defaults to $debug)
@@ -121,7 +122,6 @@ my $opt_cmd		= "";
 my $opt_mail		= "";
 my $opt_user		= "";
 my $opt_password	= "";
-my $opt_userrole	= "";
 
 # parse command line options
 unless (GetOptions(
@@ -146,7 +146,6 @@ unless (GetOptions(
 		   'mail|m=s'		=> \$opt_mail,
 		   'user|U=s'		=> \$opt_user,
 		   'password|P=s'	=> \$opt_password,
-		   'userrole|R=s'	=> \$opt_userrole
 		  )) {
 	&usage ();
 	exit 1;
@@ -203,9 +202,6 @@ my $job_id="";
 
 if ($opt_user && $opt_password) {
     my $cmd = "log in ${opt_user} ${opt_password}";
-    if ($opt_userrole) {
-	$cmd .= " ${opt_userrole}";
-    }
     my $output = send_command ($cmd . "\n");
     if ($output !~ "[Yy]ou were authenticated") {
 	print STDERR $output;
@@ -241,23 +237,33 @@ if (! $opt_jobtype) {
 	print "please specify a jobtype\n";
 	print "more help use --help\n";
 	exit 1;
-}	
+}
 
 #list testcases 
 if ($opt_listcases) {
 	my $command="list jobtype $opt_jobtype \n";
 	my $cases=&send_command("$command");
-	print $cases;
+
+	if ($opt_jobtype != 5 && $opt_jobtype != 4) {
+		if ($cases=~s/(----\w.*----\n)//) {
+			print "$1";
+		}
+		
+		foreach (split(/\s+/, $cases)) {
+			print "$_\n";
+		}
+	} else {
+		print $cases;
+	}
+
 	exit 0;
 }
-
-
 
 if ($opt_jobtype==1) {
 	#send pre_define job
 	(print "require testcase name \n" and exit 1) unless($opt_testname);	
 	(print "require host name/ip \n" and exit 1) unless($opt_host);	
-	my $cmd = "send qa_predefine_job $opt_host $opt_testname $opt_mail";
+	my $cmd = "send qa_predefine_job ip $opt_host $opt_testname $opt_mail";
 	$job_id=&send_command($cmd."\n");
 	print $job_id;
 } elsif ($opt_jobtype==2) {

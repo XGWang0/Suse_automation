@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
 
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -68,6 +68,7 @@ $mysqlhost = $config->database->params->host;
 $mysqldb = $config->database->params->dbname;
 $mysqluser = $config->database->params->username;
 $mysqlpasswd = $config->database->params->password;
+$is_pdo = 1;
 
 require ('../frontenduser/useradmin.php');
 

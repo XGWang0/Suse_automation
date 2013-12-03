@@ -1,6 +1,6 @@
 <?php
 /* ****************************************************************************
-  Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
   
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -37,8 +37,10 @@
 	
 	$errors = array();
 
+	machine_permission_or_disabled($machines,$perm_send_job);
 	if (request_str("submit"))
 	{
+		machine_permission_or_redirect($machines,$perm_send_job);
 		require("inc/job_create.php");
 
 		if(count($errors) == 0)
@@ -47,7 +49,7 @@
 			{
 				foreach ($machines as $machine){
 					if ($machine->send_job($filename)) {
-						Log::create($machine->get_id(), $machine->get_used_by_login(), 'JOB_START', "has sent a \"custom\" job to this machine (Job name: \"" . htmlspecialchars($_POST['jobname']) . "\")");
+						Log::create($machine->get_id(), $user->getLogin (), 'JOB_START', "has sent a \"custom\" job to this machine (Job name: \"" . htmlspecialchars($_POST['jobname']) . "\")");
 					} else {
 						$errors[] = $machine->get_hostname().": ".$machine->errmsg;
 					}
@@ -67,6 +69,6 @@
         	$_SESSION['message'] = implode("\n", $errors);
         	$_SESSION['mtype'] = "fail";
 	} else {
-		header("Location: index.php");
+		require("send_success.php");
 	}
 ?>

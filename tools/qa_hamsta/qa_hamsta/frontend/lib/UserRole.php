@@ -10,7 +10,7 @@ require_once ('Zend/Db.php');
  * @version 1.0.0
  *
  * @copyright
- * Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.<br />
+ * Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.<br />
  * <br />
  * THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
  * CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -33,12 +33,8 @@ require_once ('Zend/Db.php');
  */
 class UserRole
 {
-
-  /** @var string Name of this role. */
-  private $name;
-
-  /** @var string Description of this role. */
-  private $description;
+	/** @var array List of Role attributes. */
+	private $role_data;
 
   /** @var \Zend_Config Application configuration. */
   private $config;
@@ -53,12 +49,10 @@ class UserRole
    * @param string $description Description of the role.
    * @param \Zend_Config $config Application configuration.
    */
-  private function __construct ($name, $description, $config, $privileges)
-  {
-    $this->name = $name;
-    $this->description = $description;
-    $this->config = $config;
-    $this->privileges = $privileges;
+  private function __construct ($data, $config, $privileges) {
+	  $this->role_data = $data;
+	  $this->config = $config;
+	  $this->privileges = $privileges;
   }
 
   /**
@@ -70,19 +64,17 @@ class UserRole
    * @return \UserRole|null New UserRole instance if name is found in
    * database. NULL is returned otherwise.
    */
-  public static function getByName ($name, $config)
-  {
-    $db = Zend_Db::factory ($config->database);
-    $res = $db->fetchAll ('SELECT * FROM user_role WHERE role = ?', $name);
-    $priv = self::getPrivilegesFromDb ($db, $name);
-    
-    $db->closeConnection ();
-    return isset ($res[0])
-      ? new UserRole ($res[0]['role'],
-                      $res[0]['descr'],
-                      $config,
-                      $priv)
-      : NULL;
+  public static function getByName ($name, $config) {
+	  $db = Zend_Db::factory ($config->database);
+	  $res = $db->fetchAll ('SELECT * FROM user_role WHERE role = ?', $name);
+	  $priv = self::getPrivilegesFromDb ($db, $name);
+
+	  $db->closeConnection ();
+	  return isset ($res[0])
+		  ? new UserRole ($res[0],
+				  $config,
+				  $priv)
+		  : NULL;
   }
 
   /**
@@ -119,14 +111,17 @@ class UserRole
     return null;
   }
 
+  public function getId () {
+	  return $this->role_data['role_id'];
+  }
+
   /**
    * Returns name of this Role.
    *
    * @return string Name of this role.
    */
-  public function getName ()
-  {
-    return $this->name;
+  public function getName () {
+	  return $this->role_data['role'];
   }
 
   /**
@@ -142,12 +137,12 @@ class UserRole
     $db = Zend_Db::factory ($this->config->database);
     $data = array ( 'role' => $newName );
     if ( isset ($ident) ) {
-      $res = $db->update ('user_role', $data, 'role = '
-                          . $db-quote ( htmlspecialchars ($this->name) ) );
+      $res = $db->update ('user_role', $data, 'role_id = '
+                          . $this->role_data['role_id']);
     }
 
     if ($res) {
-      $this->name = $newName;
+      $this->role_data['role'] = $newName;
     }
 
     $db->closeConnection ();
@@ -167,13 +162,12 @@ class UserRole
       && ! in_array ($this->getName(), $user->getRoleList()) )
       {
         $db = Zend_Db::factory ($this->config->database);
-        $roleId = $db->fetchCol ('SELECT role_id FROM user_role WHERE role = ?', $this->getName ());
         $userId = $db->fetchCol ('SELECT user_id FROM user WHERE login = ?', $user->getLogin ());
         if ( isset ($roleId[0]) && isset ($userId[0]) )
           {
             $data = Array (
                            'user_id' => $userId[0],
-                           'role_id' => $roleId[0]
+                           'role_id' => $this->getId ()
                            );
             return $db->insert ('user_in_role', $data);
           }

@@ -1,6 +1,6 @@
 #!/bin/bash
 # ****************************************************************************
-# Copyright (c) 2011 Unpublished Work of SUSE. All Rights Reserved.
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
 # 
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -2261,10 +2261,10 @@ then
 		fi
 		
 		# Echo out the text to the file on the DHCP server
-		export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo 'default $machineName' > $pxeFileName" 2> /dev/null
-		export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo >> $pxeFileName" 2> /dev/null
-		export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo 'label $machineName' >> $pxeFileName" 2> /dev/null
-		export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo '        kernel /qa-virtauto/$pxe_os/$pxe_rl/$pxe_sp/$archFolder/linux' >> $pxeFileName" 2> /dev/null
+		#export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo 'default $machineName' > $pxeFileName" 2> /dev/null
+		#export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo >> $pxeFileName" 2> /dev/null
+		#export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo 'label $machineName' >> $pxeFileName" 2> /dev/null
+		#export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo '        kernel qa-virtauto/$pxe_os/$pxe_rl/$pxe_sp/$archFolder/linux' >> $pxeFileName" 2> /dev/null
 		if [ -z $autoinstProfile ] 
 		then
 			autoyastURL="http://$httpServer/$httpAutoyastWeb/$autoyastFileName"
@@ -2274,8 +2274,10 @@ then
 		else
 			autoyastURL="$autoinstProfile"
 		fi
+		# re-use autopxe.pl to generate booting files on pxe Server
+		export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "autopxe.pl $pxeInstallSource mac $installMac on on 1>/dev/null " 2> /dev/null
 
-		export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo '        append initrd=/qa-virtauto/$pxe_os/$pxe_rl/$pxe_sp/$archFolder/initrd $pxeInstallOptions $installBootOption=$pxeInstallSource $autoInstallationType=$autoyastURL $customInstallBootOption' >> $pxeFileName" 2> /dev/null
+		#export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo '        append initrd=qa-virtauto/$pxe_os/$pxe_rl/$pxe_sp/$archFolder/initrd $pxeInstallOptions $installBootOption=$pxeInstallSource $autoInstallationType=$autoyastURL $customInstallBootOption' >> $pxeFileName" 2> /dev/null
 	fi
 fi
 

@@ -223,6 +223,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	$rd2='AND r.testcase_id=r2.testcase_id)';
 	# base fields for summaries
 	$sum=array('SUM(times_run) AS runs','SUM(succeeded) AS succ', 'SUM(failed) AS fail', 'SUM(internal_error) AS interr', 'SUM(skipped) AS skip', 'SUM(test_time) AS time', "CASE WHEN SUM(failed)>0 THEN 'failed' WHEN SUM(internal_error)>0 THEN 'interr' WHEN SUM(skipped)>0 THEN 'skipped' WHEN SUM(succeeded)>0 THEN 'success' ELSE NULL END AS status");
+#	$status="CASE WHEN failed THEN 'failed' WHEN internal_error THEN 'interr' WHEN skipped THEN 'skipped' WHEN succeeded THEN 'success' ELSE NULL END AS status";
 	# supported arguments
 	$attrs_known=array(
 		'date_from'	=> array('s.submission_date>=?',	's'),
@@ -252,6 +253,11 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 		# testcase differences - only for result search
 		'res_minus_sub'	=> array("$rd1 g2.submission_id=? $rd2",'i'),
 		'res_minus_tcf'	=> array("$rd1 g2.tcf_id=? $rd2",	'i'),
+		'has_succ'	=> array('r.succeeded>0'		   ),
+		'has_fail'	=> array('r.failed>0'			   ),
+		'has_interr'	=> array('r.internal_error>0'		   ),
+		'has_skip'	=> array('r.skipped>0'			   ),
+		'has_nosucc'	=> array('(r.failed+r.internal_error+r.skipped)>0' ),
 	);
 
 	# index into $sel0[], $sel1[] (SELECT ...), and $from0[] (FROM ...)
@@ -989,7 +995,8 @@ function common_header($args=null)
 	$defaults=array(
 		'session'=>true,
 		'connect'=>true,
-		'icon'=>'icons/qadb_ico.png'
+		'icon'=>'icons/qadb_ico.png',
+		'css_screen'=>'css/screen.css'
 	);
 	$args=args_defaults($args,$defaults);
 	if( $args['session'] )

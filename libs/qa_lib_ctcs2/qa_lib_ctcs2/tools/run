@@ -24,6 +24,7 @@ use lib '/usr/lib/ctcs2/lib/perl';
 use POSIX;
 use POSIX qw(:signal_h :errno_h :sys_wait_h);
 use Time::HiRes qw(usleep);
+use strict;
 
 #
 # If PATH_PREFIX is set we use it to locate perl libraries
@@ -35,7 +36,7 @@ use Time::HiRes qw(usleep);
 #
 BEGIN {
 	if (defined($ENV{PATH_PREFIX})) {
-		$include_dir = "$ENV{PATH_PREFIX}/lib/perl/";
+		my $include_dir = "$ENV{PATH_PREFIX}/lib/perl/";
 	
 		print "INFO: Using perl include directory '$include_dir'\n";
 
@@ -48,6 +49,9 @@ BEGIN {
 use color;
 use timecalc;
 use hashstore;
+
+# -t parameter
+my $timestamp_file = 0;
 
 # tcf being parsed
 my $filename;
@@ -64,9 +68,6 @@ my $ctrlc = 0;
 # all my children, indexed by pid and returning the hash key for the processes
 # table
 my %running_pids;
-
-# get sub pids from pstree
-my @previous_pids = ();
 
 # hash of arrays for test results, indexed by the Friendly test name
 my %test_results = ();
@@ -108,8 +109,8 @@ my %daytoletter = ("Sun","S","Mon","M","Tue","T","Wed","W","Thu","U","Fri","F","
 
 # Global variables to support show the case name and it's status
 my $opt_width = 0;                # width of console
-my $total_case = 0;               # total case number
-my $case_num = 0;                 # current case number
+my $total_cases = 0;              # total number of testcases
+my $cur_case = 0;                 # current case number
 my $casename_width = 0;           # width of current case name 
 my $process_foreground = 0;       # the process is foreground process or not
 my $current_case = "";            # current test case name
@@ -248,13 +249,10 @@ sub display_notify {
 }
 
 sub display_clock {
-	#color("bold","fwhite");
-	#print("Running for: ");
-
 	color("fcyan");
-	print("\n\e[1A\e[K");  # Avoid user push any key when job is running
-	printf("\e[1A\e[${casename_width}C\e[KRTTT: %-18s\n", sectotime(shift));
+	printf("\r\e[${casename_width}C\e[KTTIME: %-18s", sectotime(shift));
 	color("reset");
+	STDOUT->flush();
 }
 
 sub timer_start {
@@ -307,9 +305,8 @@ sub process_start {
 # the width will be caculated by the case name and the total number of the test cases
 sub ptr_n {
 	my $name = shift;
-	$case_num = $case_num + 1;
-
-	my $num_len = length($total_case) - 1;
+	
+	my $num_len = length($total_cases);
 	my $label_len = $num_len * 2 + 4;
 
 	# if some crazy guys name his cases by a big lone string, cut it
@@ -319,14 +316,15 @@ sub ptr_n {
 		$name = "$name...";
 	}
 
-	my $label = sprintf("[%${num_len}d/%${num_len}d] ", $case_num, $total_case);
+	my $label = sprintf("[%${num_len}d/%${num_len}d] ", ++$cur_case, $total_cases);
 	$name = "$label$name";
 
 	$casename_width = $opt_width - $label_len - 20;
 	$ENV{CASENAMEWIDTH} = $casename_width;
 
 	if ($process_foreground) {
-		printf("%-${casename_width}s\n", $name);
+		printf("%-${casename_width}s", $name);
+		STDOUT->flush();
 	}
 }
 
@@ -337,18 +335,23 @@ sub ptr_r {
 	my $case = shift;
 	my $color = shift;
 	my $result = shift;
-	my $cursor = shift;
+	my $bg = shift;
 
 	if ($process_foreground) {
+		# Print name for background running tests
+		if ($bg) {
+			color("bold", "fblack");
+			print("\r($case)");
+			color("reset");
+		}
+
 		color($color);
 	
 		# The string should can cover all of the time string
-		print("\n\e[1A\e[K");  # Avoid user push any key when job is running
-		printf("\e[1A\e[${casename_width}C\e[K%-18s\n", $result) if ($cursor == 0);
-		printf("\e[${casename_width}C\e[K%-18s\n", $result) if ($cursor == 1);
+		printf("\r\e[${casename_width}C\e[K%-18s\n", $result);
         	color("reset");
 	} else {
-		printf("%s ... ... %s", $case,  "$result\n");
+		printf("%s ... ... %s", $case, "$result\n");
 	}
 }
 
@@ -356,7 +359,7 @@ sub ptr_r {
 # need show the clock, it will print some special character which should
 # be ignored for background process.
 sub process_fb {
-	if(-t STDOUT) {
+	if (-t STDOUT) {
 		return 1;
 	} else {
 		return 0;
@@ -391,6 +394,7 @@ sub process_stop {
 	open (LOGFILE, $testarray[1]);
 	while (<LOGFILE>) {
 		$line = $_;
+		last if $line =~ /(\d+\s+\w+\s+){4}\d+/ ;
 	}
 	close LOGFILE;
 	
@@ -400,7 +404,16 @@ sub process_stop {
 	$skip = 0;
 	$count = 0;
 	$time = $endtime - $starttime;
-	
+
+	# if the finish case name is not the current case name, it means that 
+	# it is a background test case, we don't care this type of cases, 
+	# and we don't print any information for them.
+	my $bg = 1;
+
+	if ("$key" eq "$current_case") {
+		$bg = 0;
+	}
+
 	if ($line =~ /(\d+)\s+\w+\s+(\d+)\s+\w+\s+(\d+)\s+\w+\s+(\d+)\s+\w+\s+(\d+)/) {
 		$fail = $1;
 		$succeed = $2;
@@ -408,29 +421,28 @@ sub process_stop {
 		$internal_err = $4;
 		$skip = $5;
 
-		# if the finish case name is not the current case name, it means that 
-		# it is a background test case, we don't care this type of cases, 
-		# and we don't print any information for them.
-		if ("$key" eq "$current_case") {
-			if (($fail == 0) && ($skip == 0) && ($internal_err == 0)) {
-				if ($ENV{RUNIN_VERBOSE}){
-					ptr_r($key, "fgreen", "PASS", 1);
-				} else {
-					ptr_r($key, "fgreen", "PASS", 0);
-				}
+
+		if ($count >= $testarray[3] && ($fail == 0) && ($skip == 0) && ($internal_err == 0)) {
+			if ($ENV{RUNIN_VERBOSE}){
+				ptr_r($key, "fgreen", "PASSED", $bg);
+			} else {
+				ptr_r($key, "fgreen", "PASSED", $bg);
 			}
-			if (($fail == 0) && ($internal_err == 0) && ($skip != 0)) {
-				ptr_r($key, "fyellow", "SKIP", 1);
-			}
-			if (($internal_err != 0) || ($fail != 0)) {
-				ptr_r($key, "fred", "FAIL", 1);
-			}
+		}
+		if (($fail == 0) && ($internal_err == 0) && ($skip != 0)) {
+			ptr_r($key, "fyellow", "SKIPPED", $bg);
+		}
+		if (($internal_err != 0) || ($fail != 0)) {
+			ptr_r($key, "fred", "FAILED", $bg);
+		}
+		if ($count < $testarray[3]) {
+			ptr_r($key, "fmagenta", "TIMEOUT", $bg);
 		}
 	} else {
 		# no result, some error occured
-		print("\e[1A\e[${casename_width}C\e[K\n");
+		print("\r\e[${casename_width}C\e[K\n");
 		warn("    Test result inconclusive for $key, no results found\n");
-		ptr_r($key, "fred", "FAIL" , 1) if("$key" eq "$current_case");
+		ptr_r($key, "fred", "FAIL" , $bg);
 	}
 	
 	if (defined($test_results{$key}->[0])) {
@@ -507,7 +519,7 @@ sub run {
 	} elsif (defined ($pid)) {
 		# in child, exec program
 		# we don't want to pretend we're the parent, so,
-		disable_handlers;
+		disable_handlers();
 		# set my process group so I can be killed later
 		POSIX::setpgid($$,$$);
 		
@@ -531,8 +543,8 @@ sub run {
 		# This is also a fix for bnc#216220 - ctcs2 + qa_php5 problems
 		open STDIN, "</dev/null" or die "Cannot set test's STDIN to /dev/null!";
 
-		# lets try letting channel 2 through
-		exec("sh","-c","exec $runtest_path $iterations $testprogram $tp >> $logfilename") or die ("Can't exec subprocess\n");
+		# Redirect stderr to /dev/null, keeps the ctcs2 terminal output readable
+		exec("sh","-c","exec $runtest_path $iterations $testprogram $tp >> $logfilename 2> /dev/null") or die ("Can't exec subprocess\n");
 	} else {
 		warn("Fork error, aieeeee!\n");
 	}
@@ -595,23 +607,10 @@ sub wait_on_tests {
 	my $current_next_check=$current_check_every;
 	my $autoexit_check_every=20;
 	my $autoexit_next_check=$autoexit_check_every;
-	
+
 	if (defined(POSIX::nice(-10))) {
 		++$nice;
 	}
-	#kill the previous process tree before monitor running status
-	&clean_pre;
-
-	#find the processtree of pid
-	if ($waitfor) {
-		my $cmd = q^ |sed 's/`\||\|+/#/g'|awk -F# '{if($2~/([0-9]+)/){gsub(/.*\(/,"",$2);gsub(/\).*/,"",$2);printf $2" " }}'^;
-		$cmd = "pstree -Acp $waitfor" . $cmd;
-		my $sub_pids = `$cmd`; 
-		chomp($sub_pids);
-		$sub_pids =~ s/.$//;
-		@previous_pids = split(/[[:space:]]+/,$sub_pids);
-	}
-	
 
 	# this allows us to switch between waiting for a specific process or all processes.
 	if (defined($waitfor)) {
@@ -628,7 +627,7 @@ sub wait_on_tests {
 	# periodically check state.
 	# Another thing -- it's not possible to rely on signal delivery under Linux
 	# while things like burn are running.  See my attempts to stop processes in cleanup()
-       	$last_time = 0;
+	my $last_time = 0;
 
 	while (&$testfunc($waitfor) and (not $eexit) and (not $timers{state} eq "finished")) {
 		$current_time = $timers{gtime} + (time - $timers{gstart});
@@ -676,13 +675,6 @@ sub wait_on_tests {
 	# Write processes - so we see what is running
 	save_hash(\%processes, $environment{"save_directory"}."/process_state") or warn "Can't save process state!\n";
 }
-#kill the previous pstree
-
-sub clean_pre {
-	map { kill 15, $_ } @previous_pids if($#previous_pids >= 0);
-	@previous_pids = ();
-}
-
 
 # kill off all subprocesses
 sub cleanup {
@@ -701,8 +693,8 @@ sub cleanup {
 	set_interrupt_flag;
 
 	foreach $key (@pids) {
-		kill INT => -$key;
-	}   
+		kill TERM=> -$key;
+	}
 
 	# After a while, start sending more signals, until
 	# patience runs out.  Then send SIGKILLs.  Yes, it's brutal.
@@ -718,7 +710,7 @@ sub cleanup {
 		$patience -= 1;
 		if ($patience % 30 == 0) {
 				foreach $key (keys %running_pids) {
-					kill INT=> -$key;
+					kill TERM=> -$key;
 				}
 		}
 		if ($patience < 0) {
@@ -726,7 +718,7 @@ sub cleanup {
 				kill KILL=> -$key;
 			}
 		}
-	}				
+	}
 
 	# this is now handled by the check_processes call in the loop above
 	#foreach $key (@pids) {
@@ -827,13 +819,13 @@ sub report {
 		color("fmagenta");
 		print("Tests with internal errors:\n");
 		color("bold");
-		foreach $k (@interr_failed) {
-			$fail = @{$test_results{$k}}[0];
-			$attempt = @{$test_results{$k}}[2];
-			$succeed = @{$test_results{$k}}[1];
-			$time = sectotime(@{$test_results{$k}}[3]);
-			$interr = @{$test_results{$k}}[4];
-			print("$k ran $attempt times in $time, had internal errors on $interr attempts.\n");
+		foreach (@interr_failed) {
+			$fail = @{$test_results{$_}}[0];
+			$attempt = @{$test_results{$_}}[2];
+			$succeed = @{$test_results{$_}}[1];
+			$time = sectotime(@{$test_results{$_}}[3]);
+			$interr = @{$test_results{$_}}[4];
+			print("$_ ran $attempt times in $time, had internal errors on $interr attempts.\n");
 		}
 		color("reset");
 	}
@@ -842,12 +834,12 @@ sub report {
 		color("fblue");
 		print("Tests skipped:\n");
 		color("bold");
-		foreach $k (@skipped) {
-			$fail = @{$test_results{$k}}[0];
-			$attempt = @{$test_results{$k}}[2];
-			$time = sectotime(@{$test_results{$k}}[3]);
-			$skip = @{$test_results{$k}}[5];
-			print("$k ran $attempt times in $time, had skipped on $skip attempts.\n");
+		foreach (@skipped) {
+			$fail = @{$test_results{$_}}[0];
+			$attempt = @{$test_results{$_}}[2];
+			$time = sectotime(@{$test_results{$_}}[3]);
+			$skip = @{$test_results{$_}}[5];
+			print("$_ ran $attempt times in $time, had skipped on $skip attempts.\n");
 		}
 		color("reset");
 	}
@@ -857,17 +849,16 @@ sub report {
 		print("Tests passed:\n");
 		color("bold");	
 		if ($environment{"verbose"}) {
-			foreach $i (@passing) {
-				my $key = $i;
-				$fail = @{$test_results{$key}}[0];
-				$attempt = @{$test_results{$key}}[2];
-				$succeed = @{$test_results{$key}}[1];
-				$time = sectotime(@{$test_results{$key}}[3]);
-				print("$key ran $attempt times in $time, failed on $fail attempts.\n");
+			foreach (@passing) {
+				$fail = @{$test_results{$_}}[0];
+				$attempt = @{$test_results{$_}}[2];
+				$succeed = @{$test_results{$_}}[1];
+				$time = sectotime(@{$test_results{$_}}[3]);
+				print("$_ ran $attempt times in $time, failed on $fail attempts.\n");
 			}
 		} else {
-			foreach $i (@passing) {
-				print "$i ";
+			foreach (@passing) {
+				print "$_ ";
 			}
 			print "\n";
 		}
@@ -946,20 +937,19 @@ sub display_events {
 # state up to speed.
 sub restore_state {
 	# strip path from filename
-	@tmp = split /\//, $filename;
+	my @tmp = split /\//, $filename;
 	$filename = $tmp[$#tmp];
 
 	# set up the log directory
-
-	($sec, $min, $std, $mtag, $mon, $jahr) = localtime(time);
-	my $timestamp = sprintf( "%4d-%02d-%02d-%02d-%02d-%02d", $jahr+1900, $mon+1, $mtag, $std, $min, $sec);	
+	my ($sec, $min, $hour, $day, $mon, $year) = localtime(time);
+	my $timestamp = sprintf( "%4d-%02d-%02d-%02d-%02d-%02d", $year+1900, $mon+1, $day, $hour, $min, $sec);	
 	my $basename = $logdir . "/" . substr( $filename, 0, -4 ) . "-" . $timestamp;	 
 
         if (! -d $logdir) {
                 `mkdir -m 0755 -p "$logdir"`
         }
 
-	$realname = $basename;
+	my $realname = $basename;
 
 	mkdir $realname, 0755 or die "Could not create $realname";
 	
@@ -1119,7 +1109,12 @@ sub parse_control_file {
 	my $controlfile = shift;
 	my @lines = <$controlfile>;
 	my $l;
-	
+
+	$total_cases = 0;
+	foreach (@lines) {
+		$total_cases += $_ =~ /^\s*fg/;
+	}
+
 	$l = $environment{LINE};
 
 	if ($timestamp_file) {
@@ -1293,7 +1288,6 @@ sub print_help {
 
 sub main {
 	my @params = @_;
-	$timestamp_file=0;
 
 	# get the width of console for output the test name and test status 
 	$opt_width = `stty size 2>/dev/null | cut -d' ' -f2`;
@@ -1304,19 +1298,18 @@ sub main {
         	$opt_width = 80;
 	}
 
-	foreach $i (@_) {
-		if (($i eq "-h") or ($i eq "--help")) {
+	foreach (@_) {
+		if (($_ eq "-h") or ($_ eq "--help")) {
 			print_help();
-		} elsif (($i eq "-t") or ($i eq "--timestamp")) {
+		} elsif (($_ eq "-t") or ($_ eq "--timestamp")) {
 			$timestamp_file=1;	
-		} elsif (not $eexit and open(DATAFILE,$i)) {
-			$filename = $i;
-			$total_case = `cat $filename | grep "^fg" | wc -l`;
+		} elsif (not $eexit and open('DATAFILE', $_)) {
+			$filename = $_;
 			restore_state($filename);
-			parse_control_file(DATAFILE);
-			close DATAFILE;
+			parse_control_file('DATAFILE');
+			close('DATAFILE');
 		} elsif (not $eexit) {
-			die ("Can not open file $i\n");
+			die ("Can not open file $_\n");
 		}
 	}
 }
