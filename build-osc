@@ -36,15 +36,11 @@ cd - > /dev/null
 
 # build
 cd $dir
-$iosc help repairwc > /dev/null 2>&1 &&  $iosc repairwc .
-echo
-echo '+-- RUNNING BUILD ----------------------------------------------------------------'
-echo
+$iosc repairwc .
+echo -e '\n+-- RUNNING BUILD ----------------------------------------------------------------\n'
 $iosc build $BUILDARGS -k "$DESTDIR" --no-verify $REPOSITORY $ARCH
 res=$?
-echo
-echo '+-- BUILD FINISHED ---------------------------------------------------------------'
-echo
+echo -e '\n+-- BUILD FINISHED ---------------------------------------------------------------\n'
 rm -fr "$dir"
 
 # create directory structure
