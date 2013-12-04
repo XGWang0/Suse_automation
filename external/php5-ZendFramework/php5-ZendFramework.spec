@@ -38,9 +38,9 @@ BuildArch:      noarch
 # Satisfy common hard requirements
 Requires:       pcre php-ctype php-curl php-dom php-hash php-iconv
 Requires:       php-mbstring php-sqlite php-pdo php-xmlreader php-zlib
-# %if 0%{?suse_version} > 1130
-# BuildRequires:  php5 >= 5.3
-# %endif
+%if 0%{?suse_version} > 1130
+BuildRequires:  php5 >= 5.3
+%endif
 # BuildRequires:  php5-sqlite php5-xmlreader
 
 # Suggested modules for improved performance/functionality
