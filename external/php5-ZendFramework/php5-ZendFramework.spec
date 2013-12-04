@@ -36,21 +36,21 @@ Url:            http://framework.zend.com/
 BuildArch:      noarch
 
 # Satisfy common hard requirements
-Requires:       pcre php5 >= 5.2.4 php5-ctype php5-curl php5-dom php5-hash php5-iconv
-Requires:       php5-mbstring php5-sqlite php5-pdo php5-xmlreader php5-zlib
-%if 0%{?suse_version} > 1130
-BuildRequires:  php5 >= 5.3
-%endif
-BuildRequires:  php5-sqlite php5-xmlreader
+Requires:       pcre php-ctype php-curl php-dom php-hash php-iconv
+Requires:       php-mbstring php-sqlite php-pdo php-xmlreader php-zlib
+# %if 0%{?suse_version} > 1130
+# BuildRequires:  php5 >= 5.3
+# %endif
+# BuildRequires:  php5-sqlite php5-xmlreader
 
 # Suggested modules for improved performance/functionality
-Suggests:       php5-bcmath php5-bitset php5-json php5-posix
+Suggests:       php-bcmath php-bitset php-json php-posix
 
 # Documentation & dojo requirements
 BuildRequires:  autoconf make unzip
 BuildRequires:  libxml2 libxslt
 BuildRequires:  docbook-xsl-stylesheets docbook_4 iso_ent sgml-skel xmlcharent
-Provides:	qa_lib_openid
+Provides:	qa_lib_openid php-ZendFramework
 Obsoletes:	qa_lib_openid
 
 %description
