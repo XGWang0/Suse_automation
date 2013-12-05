@@ -156,23 +156,16 @@ class UserRole
    *
    * @return integer Number greater than zero if user has been added, zero otherwise.
    */
-  public function addUser ($user)
-  {
-    if ( isset ($user)
-      && ! in_array ($this->getName(), $user->getRoleList()) )
-      {
-        $db = Zend_Db::factory ($this->config->database);
-        $userId = $db->fetchCol ('SELECT user_id FROM user WHERE login = ?', $user->getLogin ());
-        if ( isset ($roleId[0]) && isset ($userId[0]) )
-          {
-            $data = Array (
-                           'user_id' => $userId[0],
-                           'role_id' => $this->getId ()
-                           );
-            return $db->insert ('user_in_role', $data);
-          }
-      }
-    return 0;
+  public function addUser ($user) {
+	  if ( isset ($user) ) {
+		  $db = Zend_Db::factory ($this->config->database);
+		  $data = Array (
+			  'user_id' => $user->getId (),
+			  'role_id' => $this->getId ()
+			  );
+		  return $db->insert ('user_in_role', $data);
+	  }
+	  return 0;
   }
 
   /**
