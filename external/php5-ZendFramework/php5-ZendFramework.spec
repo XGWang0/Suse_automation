@@ -76,7 +76,7 @@ Pdf, Search-Lucene and Services subpackages.
 Summary:        Unit tests for the Zend Framework
 Group:          Development/Libraries/Other
 Requires:       %{name} = %{version}-%{release}
-Requires:       php5-pear-phpunit
+Requires:       php-pear-phpunit
 
 %description tests
 This package includes Zend Framework unit tests for all available subpackages.
@@ -96,7 +96,7 @@ This package includes the ZendX libraries.
 Summary:        Zend Framework APC cache backend
 Group:          Development/Libraries/Other
 Requires:       %{name} = %{version}-%{release}
-Requires:       php5-APC
+Requires:       php-APC
 
 %description cache-backend-apc
 This package contains the backend for Zend_Cache to store and retrieve data via
@@ -107,7 +107,7 @@ APC.
 Summary:        Zend Framework memcache cache backend
 Group:          Development/Libraries/Other
 Requires:       %{name} = %{version}-%{release}
-Requires:       php5-pecl-memcache
+Requires:       php-pecl-memcache
 
 %description cache-backend-memcached
 This package contains the back end for Zend_Cache to store and retrieve data
@@ -118,7 +118,7 @@ via memcache.
 Summary:        Zend Framework sqlite back end
 Group:          Development/Libraries/Other
 Requires:       %{name} = %{version}-%{release}
-Requires:       php5-sqlite
+Requires:       php-sqlite
 
 %description cache-backend-sqlite
 This package contains the back end for Zend_Cache to store and retrieve data
@@ -129,7 +129,7 @@ via sqlite databases.
 Summary:        Zend Framework CAPTCHA component
 Group:          Development/Libraries/Other
 Requires:       %{name} = %{version}-%{release}
-Requires:       php5-gd
+Requires:       php-gd
 
 %description captcha
 This package contains the Zend Framework CAPTCHA extension.
@@ -182,7 +182,7 @@ to build custom Dojo layers for deployment with your site.
 Summary:        PDF document creation and manipulation
 Group:          Development/Libraries/Other
 Requires:       %{name} = %{version}-%{release}
-Requires:       php5-gd
+Requires:       php-gd
 
 %description pdf
 Portable Document Format (PDF) from Adobe is the de facto standard for

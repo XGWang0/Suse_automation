@@ -32,7 +32,7 @@ Summary:        PHP OpenID library
 Url:            http://www.openidenabled.com/
 Source:         %{auth}-%{version}.tar.bz2
 Source1:	%{name}.8
-Requires:	php5 >= 4.3.0 php-gmp php-pear php-curl
+Requires:	php >= 4.3.0 php-gmp php-pear php-curl
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 PreReq:         coreutils
