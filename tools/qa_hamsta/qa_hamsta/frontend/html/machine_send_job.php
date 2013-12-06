@@ -50,7 +50,7 @@
 <script type="text/javascript" src="js/edit_job.js"></script>
 
 <span class="text-main">(<span class="required">*</span>) required field(s)</span>
-<h2 class="text-medium text-blue bold">Single-machine Jobs</h2>
+<h2 class="text-medium text-blue bold" id="singlemachine">Single-machine Jobs</h2>
 <p class="text-main">
 Single-machine jobs are configuration tasks or test runs that have been stored on the automation servers, this is a subcategory of pre-defined jobs intended for single machine tests. If you want to pre-define a job and add it to this list, please email qa-automation@suse.de
 </p>
