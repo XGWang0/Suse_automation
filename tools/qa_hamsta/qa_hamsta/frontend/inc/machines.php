@@ -590,7 +590,7 @@
 		else
 		{
 			$tmp_fields_list = array_merge($default_fields_list, $display_fields);
-			$tmp_fields_list = array_unique($tmp_fields_list, SORT_STRING);
+			$tmp_fields_list = array_unique($tmp_fields_list);
 			$mf = new MachineFilter($machines, $fulltext, $tmp_fields_list);
 		}
 		$machines = $mf->filter();
