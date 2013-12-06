@@ -123,8 +123,8 @@ sub process_product($)
 	    );
 
 	    # Assign specific values
-	    ($parts{'product'},$parts{'major'})= ($1, $2) if $product =~ /(SLES4SAP|[[:alpha:]]+)([\d\.]+)/;
-	    $parts{'sp'}    ="SP$1" if $rest  =~ /PATCHLEVEL=(\d+)/;
+	    ($parts{'product'},$parts{'major'})	= ($1, $2) if $product =~ /(SLES4SAP|[[:alpha:]]+)([\d\.]+)/;
+	    $parts{'sp'}	= "SP$1" if $rest  =~ /PATCHLEVEL=(\d+)/;
 	    $parts{'rel'}	= $1 if $product  =~ /(Alpha\d+|Beta\d+|GMC?|Build\d+|RC\d+|Internal|Maintained)/i;
 	    $parts{'dom'}	= "xen$1" if $product =~ /Dom([A-Z\d]+)/;
 	    $parts{'build'}	= $1 if $product  =~ /(Build\d+)/;
