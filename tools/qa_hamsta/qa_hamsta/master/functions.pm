@@ -91,21 +91,50 @@ sub process_product($)
 	# expected $prod is:
 	#    3.0.58-0.9-default;SLES11(x86_64)VERSION=11PATCHLEVEL=3
 	#    3.7.1-1-desktop;openSUSE12.3Beta1(x86_64)VERSION=12.3CODENAME=DartmouthBeta1-Kernel\r
-	if( $prod =~ /^([\w\.\-\+_]+);(SLES4SAP|[[:alpha:]]+|openSUSE[\d\.]+\w*)([\dSP\.]+)?(\(([\w\-]+)\))?VERSION=/ )
-	{
-		my ($base,$major,$sp,$rel,$dom,$build,$arch)=($2,$3,'','','','','');
-		$sp 	="SP$1" if $prod =~ /PATCHLEVEL=(\d+)/;
-		$major	= $1 if $major =~ /(\d+)SP/;
-		$arch	= $1 if $prod  =~ /\(([^\)]+)\)/;
-		$rel	= $1 if $prod  =~ /(Alpha\d+|Beta\d+|GMC?|Build\d+|RC\d+|Internal|Maintained)/i;
-		$dom	= "xen$1" if $prod  =~ /Dom([A-Z\d]+)/;
-		$build	= $1 if $prod  =~ /(Build\d+)/;
-		my $product = join '-', grep /\w/, ($base,$major,$sp);
-		my $release = join '-', grep /\w/, ($rel,$build);
-		my $p_arch  = join '-', grep /\w/, ($dom,$arch);
-#		return [$base,$major,$sp,$rel,$dom,$build,$arch];
-		return [$product,$release,$p_arch];
+
+	my ($kernel, $product, $arch, $rest) = ('', '', '', '');
+	# Chop the whole product line into categorical pieces
+	#
+	# kernel contains everything before ';'
+	# product contains the product (between the ';' and the left of the opening '(')
+	# arch contains the architecture in '(...)' without the parenthesis
+	# rest contains the rest of the line
+	$kernel = $1 if $prod =~ /^([\w.-]+);/;
+	$product = $1 if $prod =~ /;([\w\d.]+)/;
+
+	# Gather architecture and the rest of the line,
+	# e.g. from (x86_64)VERSION=11PATCHLEVEL=3
+	if ($prod =~ /\(([\w_]+)\)([\w=.+-]+)$/) {
+	    $arch = $1;
+	    $rest = $2
 	}
+
+	if ($kernel and $product and $arch) {
+	    # Initialize target hash and use some gathered values
+	    my %parts = (
+		product	=> '',
+		kernel	=> $kernel,
+		major	=> '',
+		sp	=> '',
+		rel	=> '',
+		dom	=> '',
+		build	=> '',
+		arch	=> $arch,
+	    );
+
+	    # Assign specific values
+	    ($parts{'product'},$parts{'major'})	= ($1, $2) if $product =~ /(SLES4SAP|[[:alpha:]]+)([\d\.]+)/;
+	    $parts{'sp'}	= "SP$1" if $rest  =~ /PATCHLEVEL=(\d+)/;
+	    $parts{'rel'}	= $1 if $product  =~ /(Alpha\d+|Beta\d+|GMC?|Build\d+|RC\d+|Internal|Maintained)/i;
+	    $parts{'dom'}	= "xen$1" if $product =~ /Dom([A-Z\d]+)/;
+	    $parts{'build'}	= $1 if $product  =~ /(Build\d+)/;
+
+	    my $product = join '-', grep /\w/, ($parts{'product'},$parts{'major'},$parts{'sp'}, $parts{'rel'});
+	    my $release = join '-', grep /\w/, ($parts{'rel'},$parts{'build'});
+	    my $p_arch  = join '-', grep /\w/, ($parts{'dom'},$parts{'arch'});
+	    return [$product,$release,$p_arch];
+	}
+
 	return [$prod,'',''];
 }
 
