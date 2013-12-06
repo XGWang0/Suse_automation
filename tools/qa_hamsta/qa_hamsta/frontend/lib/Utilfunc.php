@@ -188,10 +188,10 @@ function act_menu($args)
 	print '<li class="has-sub"><a href="' . $args['send-job']['href'] . '" onclick="'
 		. $args['send-job']['onclick'] . '"><img src="' . $args['send-job']['src']. '"/>Send job</a>';
 	print '<ul>';
-	print action_menu_item (array ('href'=>$args['send-job']['href'] . '#predefined',
+	print action_menu_item (array ('href'=>$args['send-job']['href'] . '#singlemachine',
 				       'onclick'=>$args['send-job']['onclick'],
 				       'src'=>$args['send-job']['src'],
-				       'name'=>'Pre-defined job'));
+				       'name'=>'Single-machine job'));
 	print action_menu_item (array ('href'=>$args['send-job']['href'] . '#qapackage',
 				       'onclick'=>$args['send-job']['onclick'],
 				       'src'=>$args['send-job']['src'],
