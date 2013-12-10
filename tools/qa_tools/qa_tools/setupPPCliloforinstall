@@ -46,6 +46,8 @@ fi
 insturl=$1
 shift
 arch=`uname -m`
+boottype=$1
+shift
 
 curlprobe()
 {
@@ -108,6 +110,19 @@ then
 	exit 1
 fi
 
+# for kexec boot , download linux64.gz
+if [ "$boottype" == "kexecboot" ]
+then
+	linuxgzurl="$insturl/suseboot/linux64.gz"
+	$curl -f -L -o "$imagedir"/linux64.gz "$linuxgzurl"
+	if [ ! -e "$imagedir"/linux64.gz ]
+	then
+		echo "Could not download image(linux64.gz) from '$insturl' to '$imagedir'"
+		exit 1
+	fi
+	gzip -d "$imagedir"/linux64.gz
+fi
+
 # But since the initrd is optional, it can be skipped if it isn't there
 if [ -e "$imagedir"/initrd64 ]
 then
@@ -121,32 +136,43 @@ fi
 # it makes initrd is NEVER used even when it is present in the repo
 skipInitrd="yes"
 
-
-title="Installation"
-count=`grep -c "label = Installation" $bootloaderconf`
-if [ $count -gt 0 ]
-then
-    title="${title}$((count+1))"
+if [ "$boottype" = "kexecboot" ]; then
+    # start the installation with kexec
+    comments="
+    echo \"Install booting by Kexec\"
+    echo \"kexec -l $imagedir/linux64 --initrd=$imagedir/initrd64 --append='$params'\"
+    kexec -l '$imagedir/linux64' --initrd='$imagedir/initrd64' --append='$params'"
+    sh -c "$comments"
+    if [ $? == 0 ]; then
+        kexec -e
+    fi
+    echo "done."
+else
+    title="Installation"
+    count=`grep -c "label = Installation" $bootloaderconf`
+    if [ $count -gt 0 ]
+    then
+        title="${title}$((count+1))"
+    fi
+    
+    echo "" >> $bootloaderconf
+    echo "image = $imagedir/inst64" >> $bootloaderconf
+    echo "    label = $title" >> $bootloaderconf
+    echo "    optional" >>$bootloaderconf
+    echo "    append = \"$params\"" >> $bootloaderconf
+    if [ "$skipInitrd" == "no" ]
+    then
+    	echo "    initrd = $imagedir/initrd64" >> $bootloaderconf
+    fi
+    cat $bootloaderconf | grep root -m 1 >> $bootloaderconf
+    sync
+    
+    # start the installation with reboot
+    sed "s/^default.*$/default = $title/" $bootloaderconf > $TMPFILE
+    cp -v $TMPFILE $bootloaderconf	# workaround, instead of using perl
+    echo "edited bootloader config"
+    lilo
+    
+    echo "done."
 fi
-
-echo "" >> $bootloaderconf
-echo "image = $imagedir/inst64" >> $bootloaderconf
-echo "    label = $title" >> $bootloaderconf
-echo "    optional" >>$bootloaderconf
-echo "    append = \"$params\"" >> $bootloaderconf
-if [ "$skipInitrd" == "no" ]
-then
-	echo "    initrd = $imagedir/initrd64" >> $bootloaderconf
-fi
-cat $bootloaderconf | grep root -m 1 >> $bootloaderconf
-sync
-
-# start the installation with reboot
-sed "s/^default.*$/default = $title/" $bootloaderconf > $TMPFILE
-cp -v $TMPFILE $bootloaderconf	# workaround, instead of using perl
-echo "edited bootloader config"
-lilo
-
-echo "done."
-
-
+    

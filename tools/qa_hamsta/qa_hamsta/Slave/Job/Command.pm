@@ -156,7 +156,6 @@ sub run {
 #            $self->{'outpipe'} = $outpipe;
 #            $self->{'errpipe'} = $errpipe;
             $self->{'exitcodepipe'} = $exitcodepipe;
-	    waitpid $pid ,0;
         }
         error {
             &log(LOG_ERROR, "Forking ".$self->{'data'}->{'name'}->{'content'}." has a problem"); 

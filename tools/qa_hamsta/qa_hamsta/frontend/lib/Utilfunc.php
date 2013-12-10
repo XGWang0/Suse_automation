@@ -85,51 +85,67 @@
 
 /**
  * Merge and concatenate strings (type 's').
- *
  * @param string[] $s Array of strings to merge.
  * @param string $ret String where strings will be merged to.
  * @param boolena $flag True if there were differences.
  */
-function merge_strings($s, &$ret, &$flag)
+function merge_strings($s, &$ret, &$flag, $prim=0)
 {
-	$s = array_unique($s);
-	$ret = $s[0];
-	$flag = 0;
-	$i = 1;
+	# if $s[$prim] is defined, put it at beginning
+	if (array_key_exists($prim, $s))
+		array_unshift($s, $s[$prim]);
 
-	for ( ; $i < count($s); $i++ )	{
-		if ( !isset($s[$i]) )
+	# filter out duplicities (and handle double $s[$prim])
+	$s = array_values(array_unique($s));
+
+	$ret = '';
+	$choices = 0;
+
+	for ( $i=0; $i < count($s); $i++ )	{
+		if ( isset($s[$i]) )
+			rtrim($s[$i]);
+
+		if ( !isset($s[$i]) || strlen($s[$i]) == 0 )
 			continue;
 
-		if ( strlen($ret) )	{
+		if ( strlen($ret) )
 			$ret = $ret . ', ' . $s[$i];
-		}
-		else	{
+		else
 			$ret = $s[$i];
-		}
+
+		$choices++;
 	}
 
-	$flag = $i - 1;
+	# are there multiple choices?
+	$flag = ($choices > 1);
 }
 
 /**
  * Merge arrays (type 'S', one-of).
- *
  * @param array $s Array of values to merge.
  * @param array $ret Array in which the result will be merged.
  * @param boolean $flag True if there were differences.
+ * @param prim int index of string that should go first (for defaults)
  */
-function merge_unique($s, &$ret, &$flag)
+function merge_unique($s, &$ret, &$flag, $prim=0)
 {
-	$ret = array_unique ($s);
+	# if $s[$prim] is defined, put it at beginning
+	if (array_key_exists($prim, $s))
+		array_unshift($s, $s[$prim]);
+
+	# filter out duplicities (and handle double $s[$prim])
+	$ret = array_values(array_unique($s));
+
+	# process result - remove trailing spaces and empty lines
 	for ( $i = 0; $i < count($ret); $i++ )	{
 		if ( isset($ret[$i]) )
 			rtrim($ret[$i]);
 
-		if ( !isset($ret[$i]) || strlen($s[$i]) == 0 )
+		if ( !isset($ret[$i]) || empty($s[$i]) )
 			array_splice($ret, $i, 1);
 	}
 
+	# report if there are multiple choices
 	$flag = ( count($ret) > 1) ? 1 : 0;
 
 	if( !$flag )
@@ -172,10 +188,10 @@ function act_menu($args)
 	print '<li class="has-sub"><a href="' . $args['send-job']['href'] . '" onclick="'
 		. $args['send-job']['onclick'] . '"><img src="' . $args['send-job']['src']. '"/>Send job</a>';
 	print '<ul>';
-	print action_menu_item (array ('href'=>$args['send-job']['href'] . '#predefined',
+	print action_menu_item (array ('href'=>$args['send-job']['href'] . '#singlemachine',
 				       'onclick'=>$args['send-job']['onclick'],
 				       'src'=>$args['send-job']['src'],
-				       'name'=>'Pre-defined job'));
+				       'name'=>'Single-machine job'));
 	print action_menu_item (array ('href'=>$args['send-job']['href'] . '#qapackage',
 				       'onclick'=>$args['send-job']['onclick'],
 				       'src'=>$args['send-job']['src'],

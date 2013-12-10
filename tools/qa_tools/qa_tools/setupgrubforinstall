@@ -125,13 +125,13 @@ then
 fi
 
 boottype="$1"
+params=`echo $params |sed "/$boottype/s/$boottype //g"`
 if [ "$boottype" = "kexecboot" ]; then
 	# start the installation with kexec
 	if [ ! -e '/sbin/kexec' ]; then
 	echo "Could not find kexec-utils package"
 	exit 1
 	fi
-	params=`echo $params |sed "/$boottype/s/$boottype //g"`
 	comments="
 	echo \"Install booting by Kexec\"
 	echo \"kexec -d -l $imagedir/linux --initrd=$imagedir/initrd --append='$params'\"

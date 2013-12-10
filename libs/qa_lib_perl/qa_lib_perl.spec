@@ -68,7 +68,6 @@ Authors:
 %build
 pod2man log.pm > log.pm.3
 pod2man results.pm > results.pm.3
-pod2man results/autotest.pm > autotest.pm.3
 pod2man results/ctcs2.pm > ctcs2.pm.3
 pod2man results/hazard.pm > hazard.pm.3
 pod2man results/ooo.pm > ooo.pm.3
