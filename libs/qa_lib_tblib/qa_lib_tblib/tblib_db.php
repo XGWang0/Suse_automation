@@ -743,8 +743,11 @@ function cached_query()
 				$statement->bindValue($i,$args[$i],$type);
 			}
 		}
-		else
+		else	{
+			foreach($args as $key => $value)
+				$args[$key] = &$args[$key];
 			call_user_func_array(array($statement,'bind_param'),$args);
+		}
 	}
 	if( !$statement->execute() )	{
 		if( $is_pdo && $statement->errorCode()==42000 )	{
