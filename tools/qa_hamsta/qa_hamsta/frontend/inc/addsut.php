@@ -49,7 +49,7 @@ if (request_str("proceed")) {
 	$cmd = "sshpass -p \"$rootpwd\" scp /usr/share/qa/tools/addsut.pl root@$sutname:/tmp/";
 	system($cmd,$ret);
 	if ( $ret != 0 ) {
-		$errors['fail'] = "Can not scp to $sutname,please check ssh service!";
+		$errors['fail'] = "Can not scp to $sutname. Check the ssh service.";
 	} else {
 		$repo_url = `/usr/share/qa/tools/get_qa_config install_qa_repository`;
 		$repo_url = rtrim($repo_url);
@@ -65,11 +65,11 @@ if (request_str("proceed")) {
 	if (count($errors)==0) {
 		$_SESSION['message'] = "$sutname is connected by $conn_type";
 		$_SESSION['mtype'] = "success";
-		$mailsub = "\"Add SUT:$sutname to master:$master_ip success\"";
+		$mailsub = "\"Add SUT: $sutname to master: $master_ip success\"";
 	} else {
 		$_SESSION['message'] = implode("\n", $errors);
 		$_SESSION['mtype'] = "fail";
-		$mailsub = "\"Add SUT:$sutname to master:$master_ip failed\"";
+		$mailsub = "\"Add SUT: $sutname to master: $master_ip failed\"";
 	}
 	if (!empty($mailto)) {
 		$mailtext = "\"".$_SESSION['message']."\"";
