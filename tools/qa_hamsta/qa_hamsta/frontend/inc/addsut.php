@@ -1,7 +1,7 @@
 <?php
 /* ****************************************************************************
   Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
-  
+
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
   RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
@@ -12,7 +12,7 @@
   PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
   AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
   LIABILITY.
-  
+
   SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
   WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
@@ -24,7 +24,7 @@
  */
 
 /**
- * Logic of the reinstall page 
+ * Logic of the reinstall page
  */
 if (!defined('HAMSTA_FRONTEND')) {
 	$go = 'addsut';
@@ -38,30 +38,45 @@ permission_or_disabled();
 if (request_str("proceed")) {
 	permission_or_redirect();
 	# Request parameters
-	//$hostnametype = request_str("hostnametype");
 	$sutname = request_str("sutname");
 	$rootpwd = request_str("rootpwd");
 	$mailto = request_str("mailto");
 	$master_ip = $_SERVER['SERVER_ADDR'];
-	# Check for errors
+
+	# Save errors here
 	$errors = array();
-	# Processing the job
-	$cmd = "sshpass -p \"$rootpwd\" scp /usr/share/qa/tools/addsut.pl root@$sutname:/tmp/";
-	system($cmd,$ret);
+
+	$sshpass_cmd = sprintf ('sshpass -p "%s"', $rootpwd);
+	$addsut_path = '/usr/share/qa/tools/addsut.pl';
+	$ssh_options = 'StrictHostKeyChecking=no';
+
+	# Copy the executable to the host machine
+	$scp_cmd = "scp -o $ssh_options $addsut_path root@$sutname:/tmp/";
+	$cmd = escapeshellcmd ($sshpass_cmd . ' ' . $scp_cmd);
+	system ($cmd, $ret);
+
+	# In case of success, the command is executed, otherwise an error is reported
 	if ( $ret != 0 ) {
 		$errors['fail'] = "Can not scp to $sutname,please check ssh service!";
 	} else {
 		$repo_url = `/usr/share/qa/tools/get_qa_config install_qa_repository`;
 		$repo_url = rtrim($repo_url);
 		$master_net = `/usr/share/qa/tools/get_net_addr.pl`;
-		$cmd = "sshpass -p \"$rootpwd\" ssh -o StrictHostKeyChecking=no root@$sutname /tmp/addsut.pl $master_ip $master_net $repo_url";
-		$conn_type = `$cmd`;
+		$ssh_cmd = "ssh -o $ssh_options root@$sutname /tmp/addsut.pl"
+			. " $master_ip $master_net $repo_url";
+		$cmd = escapeshellcmd ($sshpass_cmd . ' ' . $ssh_cmd);
+		$conn_type = system ($cmd);
+
         	if ( $conn_type != 'unicast' && $conn_type != 'multicast' ) {
 			$errors['sutfail'] = $conn_type;
 		} else {
-			system("sshpass -p \"$rootpwd\" ssh -o StrictHostKeyChecking=no root@$sutname rm /tmp/addsut.pl");
+			# Remove the binary from temporary location
+			$ssh_cmd = "ssh -o $ssh_options root@$sutname rm /tmp/addsut.pl";
+			$cmd = escapeshellcmd ($sshpass_cmd . ' ' . $ssh_cmd);
+			system ($cmd);
 		}
-	}	
+	}
+
 	if (count($errors)==0) {
 		$_SESSION['message'] = "$sutname is connected by $conn_type";
 		$_SESSION['mtype'] = "success";
@@ -71,6 +86,7 @@ if (request_str("proceed")) {
 		$_SESSION['mtype'] = "fail";
 		$mailsub = "\"Add SUT:$sutname to master:$master_ip failed\"";
 	}
+
 	if (!empty($mailto)) {
 		$mailtext = "\"".$_SESSION['message']."\"";
 		system("echo $mailtext | mailx $mailto -s $mailsub -r hamsta-master@suse.de");
