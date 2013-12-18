@@ -125,7 +125,7 @@ require("timezone.php");
 
   <div id="more_patterns" class='row'>
 	<label for="patterns">Additional patterns</label>
-        <input type="text" name="patterns" id='patterns'/>
+        <input type="text" name="patterns[]" id='patterns'/>
   </div>
 
   <div class='row'>
