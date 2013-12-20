@@ -1,3 +1,4 @@
+#!BuildIgnore: post-build-checks
 #
 # spec file for package libqainternal (Version 0.2)
 #
@@ -11,7 +12,7 @@
 # norootforbuild
 
 Name:           qa_lib_internalapi
-BuildRequires:  doxygen libpng swig autoconf
+BuildRequires:  doxygen libpng swig autoconf automake libtool
 License:        SUSE Proprietary, GPL v2 or later
 Group:          SuSE internal
 Autoreqprov:    on
