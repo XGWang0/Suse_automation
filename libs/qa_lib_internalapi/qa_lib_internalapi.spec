@@ -1,3 +1,4 @@
+#!BuildIgnore: post-build-checks
 #
 # spec file for package libqainternal (Version 0.2)
 #
