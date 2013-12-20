@@ -11,7 +11,7 @@
 # norootforbuild
 
 Name:           qa_lib_internalapi
-BuildRequires:  doxygen libpng swig
+BuildRequires:  doxygen libpng swig autoconf
 License:        SUSE Proprietary, GPL v2 or later
 Group:          SuSE internal
 Autoreqprov:    on
