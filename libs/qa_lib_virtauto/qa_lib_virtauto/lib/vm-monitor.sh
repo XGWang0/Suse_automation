@@ -276,23 +276,22 @@ then
 	exit 1
 fi
 timeLimit3=0
-#Double the original maxTime limit to wait for some long time installatioin finish
 if [ "$vmOs" == "os" ] && [ "$vmRelease" == "11" ] && [ "$vmServicePack" == "sp1" ] && [ "$vmVirtType" == "fv" ]
 then
-	maxTime=7200
+	maxTime=3600
 elif [ "$vmOs" == "sles" ] || [ "$vmOs" == "rhel" ] || [ "$vmOs" == "oes" ] || [ "$vmOs" == "os" ]
 then
-	maxTime=3600
+	maxTime=1800
 elif [ "$vmOs" == "win" ]
 then
 	if [ "$vmRelease" == "2k" ] || [ "$vmRelease" == "xp" ] || [ "$vmRelease" == "2k3" ]
 	then
-		maxTime=7200
-	else
 		maxTime=3600
+	else
+		maxTime=1800
 	fi
 else
-	maxTime=5400
+	maxTime=2700
 fi
 
 # FIXME: Temporal hack for KVM, which is really slow, need better fix!
