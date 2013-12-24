@@ -4,18 +4,6 @@ body  {
   font-size: 16px;
 }
 
-/* header */
-h1 {
-  font-size: 1.5em;
-  padding-left:3em;
-  background-color:#89b;
-  box-shadow: 2px 2px 2px #000;
-  -webkit-box-shadow: 2px 2px 2px #000;
-  -moz-box-shadow: 2px 2px 2px #000;
-  border:solid black;
-  border-width:1px 0 0 1px;
-}
-
 /* machine names */
 span.machine_name {
   border: solid 1px #ddd;
