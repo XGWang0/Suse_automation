@@ -4,6 +4,13 @@ body  {
   font-size: 16px;
 }
 
+h1 {
+  font-size: 1.5em;
+  padding-left:3em;
+  width: 90%;
+  background-color:#fff;
+}
+
 /* table's colors etc. */
 table#machines {
   margin: 1em 0 0.5em 4em;
