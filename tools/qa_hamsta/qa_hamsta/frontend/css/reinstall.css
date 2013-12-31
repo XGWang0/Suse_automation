@@ -120,7 +120,8 @@ input[required]   {
 div.row>label:first-child,
 div.content>span.first  {
   display:inline-block;
-  min-width:10em;
+  min-width:15em;
+  max-width:15em;
 }
 div#tab-advanced label:first-child  {
   min-width:14em;

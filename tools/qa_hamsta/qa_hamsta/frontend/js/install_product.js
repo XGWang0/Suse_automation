@@ -308,12 +308,14 @@ var anotherrcode = function (){
 }
 
 var anotherdisk = function (){
-    $('#additional_disk').append('<br>Virtual Disk type: <select id="virtdisktypes" name="virtdisktypes[]">'
+    $('#additional_disk').after('<div class="row"> <label> </label> <span>'
+                 + 'Virtual Disk type: <select id="virtdisktypes" name="virtdisktypes[]">'
                  + '<?php foreach ($virtdisktypes as $type) { echo "<option value=\"$type\">$type</option>"; } ?>'
                  + '</select>&nbsp;&nbsp;&nbsp;Virtual Disk size (GB): <input type="text"'
                  + ' id="virtdisksizes" name="virtdisksizes[]" size="4">&nbsp;'
                  + '(put a dot "." for default size)&nbsp;&nbsp;<input type="button"'
-                 + ' size="5" onclick="anotherdisk()" value="+">');
+                 + ' size="5" onclick="anotherdisk()" value="+">'
+                 + ' </span></div>');
 }
 
 var showvirtdisk = function () {
