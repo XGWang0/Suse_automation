@@ -648,6 +648,15 @@ $postcmd
 			print $f "	  <hostname>".$args->{'hostname'}."</hostname>\n";
 			print $f "	  <domain>".$args->{'domainname'}."</domain>\n";
 		}
+		# fix bug 832698 - Entry for HOSTNAME is absent in /etc/hosts
+		my $curHostName=`hostname`;
+		chomp($curHostName);
+		my $curDomain=`hostname -d 2>/dev/null`;
+		my $ret=system("grep -E \"^127.0.0.2\\s+$curHostName.$curDomain\\s+$curHostName\" /etc/hosts");
+		if( $ret eq 0 ) {
+	                print $f "	  <write_hostname config:type=\"boolean\">true</write_hostname>\n";
+		}
+
 		print $f "	</dns>\n";
 		print $f "	<interfaces config:type=\"list\">\n";
 		foreach my $if ( glob "/sys/class/net/*" )	{
