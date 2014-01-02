@@ -41,7 +41,7 @@
 ?>
 	<div class="row">
 		<label for='mailto'>Notification email address</label>
-		<input type="text" name="mailto" id="mailto" value=<?php echo $email; ?> />
+		<input type="text" name="mailto" id="mailto" value=<?php echo $email; ?> >
 	</div>
 	<div class="row">
 		(if you want to be notified when the installation is finished)
