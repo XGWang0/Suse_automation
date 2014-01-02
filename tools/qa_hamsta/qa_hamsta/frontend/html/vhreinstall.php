@@ -103,6 +103,7 @@ This page will allow you to customize the AutoYaST product installation for the 
   <div class='row'>
     <label for='mailto'>Notification email address (optional):</label>
     <input type="text" name="mailto" id="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} else if (isset($user)) { echo $user->getEmail(); } ?>" /> (if you want to be notified when the installation is finished)
+  </div>
 <br />
 <?php
         echo ('<input type="submit" name="proceed" value="Proceed">');
