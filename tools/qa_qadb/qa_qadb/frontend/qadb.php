@@ -985,7 +985,7 @@ $glob_dest=array(
 	array( array(
 		array("http://qadb.suse.de/hamsta/", "De"),
 		array("http://hamsta.qa.suse.cz/hamsta/", "Cz"),
-		array("http://hamsta.sled.lab.novell.com/hamsta/","Us"),
+		array("http://xen80.virt.lab.novell.com/hamsta/","Us"),
 		array("http://147.2.207.30/hamsta/index.php","Cn"),
 		), 'Hamsta:'),
 	array($dir.'doc.php','Docs')); 
