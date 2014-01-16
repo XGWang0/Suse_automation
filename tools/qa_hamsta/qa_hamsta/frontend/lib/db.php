@@ -45,7 +45,8 @@ function get_pdo() {
 			   $conf->database->params->username,
 			   $conf->database->params->password);
 
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+	    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+	    $pdo->exec('SET NAMES UTF8');
         } catch (PDOException $e) {
 	    print $e->getMessage () . "\n";
             die("Could not connect to database.");

@@ -838,6 +838,7 @@ function connect_to_mydb()
 		try {
 			$pdo=new PDO("mysql:dbname=$mysqldb;host=$mysqlhost",$mysqluser,$mysqlpasswd);
 			$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+			$pdo->exec("SET NAMES UTF8");
 			return $pdo;
 		} catch( Exception $e ) {
 			return null;
@@ -847,6 +848,7 @@ function connect_to_mydb()
 		$mysqli=@new mysqli($mysqlhost,$mysqluser,$mysqlpasswd,$mysqldb);
 		if( mysqli_connect_error() )
 			return null;
+		mysqli_query("SET NAMES UTF8");
 		return $mysqli;
 	}
 }
