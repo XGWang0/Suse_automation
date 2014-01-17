@@ -58,7 +58,9 @@ sub parse_source_url
 	if( $name =~ /(os|opensuse|suse-linux|suse)-?(\d+)\.(\d+)/i  or
 			$name =~ /(full)-(\d+).(\d+)-(\w+)/i) {
 		($type,$ver,$sub) = ( 'opensuse', $2, $3 );
-	} elsif(  $name =~ /(sles?|sled)-?(\d+)(.*?-?sp-?(\d+))?/i or
+	}elsif( $name =~ /factory/i ) {
+		($type,$ver,$sub) = ( 'opensuse',99,99 );
+	}elsif(  $name =~ /(sles?|sled)-?(\d+)(.*?-?sp-?(\d+))?/i or
 			$name =~ /full-(sles?)(\d+)(-sp(\d+))?/i ) {
 		($type,$ver,$sub) = ( 'sles', $2, $4 );
 		$type=lc($1) if lc($1) eq 'sled';
@@ -207,6 +209,8 @@ sub get_packages
 	$ret .= ",atk-devel,at-spi,gconf2" if $args->{'setupfordesktoptest'};
 	$ret .= ",".$args->{'additionalrpms'} if (defined $args->{'additionalrpms'});
 	$ret .= ','.$qaconf{install_additional_rpms}  if $qaconf{install_additional_rpms};
+	$ret .= ',grub2' if( ($args->{'to_type'} eq 'opensuse' and $args->{'to_version'} >11)||( $args->{'to_type'} =~ /sle/i and $args->{'to_version'} > 12 ));
+	$ret .= ',sw_management' if($args->{'to_type'} eq 'opensuse' and $args->{'to_version'} >11);
 	$args->{'packages'} = $ret;
 }
 
@@ -912,7 +916,11 @@ sub _print_profile_bootloader
 					print $f "	<generic_mbr>false</generic_mbr>\n";
 					print $f "	<timeout config:type=\"integer\">5</timeout>\n";
 					print $f "    </global>\n";
-					print $f "    <loader_type>grub</loader_type>\n";
+					#detect the grub version
+					my $grub = 'grub2';
+					$grub = 'grub' if( $args->{'to_type'} eq 'opensuse' and $args->{'to_version'} < 12 );
+					$grub = 'grub' if( $args->{'to_type'} =~ /sle/i and $args->{'to_version'} < 12 );
+					print $f "    <loader_type>$grub</loader_type>\n";
 				}
 				print $f "  </bootloader>\n";
 			}
