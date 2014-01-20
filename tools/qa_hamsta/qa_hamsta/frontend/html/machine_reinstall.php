@@ -34,7 +34,6 @@
 	$blockedMachines = array();
 	$virtualMachines = array();
 	$hasChildren = array();
-	$requires_kexec = false;
 	foreach ($machines as $machine) {
 		if( ! $machine->has_perm('job') || ! $machine->has_perm('install') ) {
 			$blockedMachines[] = $machine->get_hostname();
@@ -45,13 +44,7 @@
 		if(count($machine->get_children()) > 0) {
 			$hasChildren[] = $machine->get_hostname();
 		}
-		if (preg_match ('/openSUSE-?(\d+)\.\d+/i', $machine->get_product (), $matches)) {
-			/* If installing from openSUSE 12 and higher,
-			 * kexec is needed because of grub2. */
-			if (! empty ($matches[1]) && $matches[1] >= 12) {
-				$requires_kexec = true;
-			}
-		}
+
 	}
 	if(count($blockedMachines) != 0) {
 		echo "<div class=\"text-medium\">" .

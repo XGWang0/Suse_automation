@@ -446,6 +446,11 @@ $(document).ready(function() {
                 get_urls ('repo', 'i386');
             else
                 get_urls ('repo', arch);
+	
+	    $("#btrfs").remove();
+	    if(/factory/i.test($("#repo_products").val())) $("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option>');
+	    if(/openSUSE-(\d+)\./i.test($("#repo_products").val()) && RegExp.$1 >= 12) $("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option>');
+	    if(/sle.-(\d+)/i.test($("#repo_products").val()) && RegExp.$1 >= 11) $("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option>');
         }
     });
 
