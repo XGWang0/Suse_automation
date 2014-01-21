@@ -123,4 +123,9 @@ $naviarr = array (
 		 ? $config->documentation->link : '') ,
 	"About Hamsta"=>"index.php?go=about");
 
+$header_charset = $config->database->params->charset;
+if (preg_match ('/^utf-?8$/i', $header_charset)) {
+	$header_charset = 'utf-8';
+}
+
 ?>

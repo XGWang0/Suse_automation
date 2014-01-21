@@ -28,7 +28,7 @@
      * title and page selection bar if needed.
      */
 
-header('Content-Type: text/html; charset=utf-8');
+header(sprintf ('Content-Type: text/html; charset=%s', $header_charset));
 require_once("include/Util.php");
 
 ?>
