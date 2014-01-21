@@ -448,9 +448,10 @@ $(document).ready(function() {
                 get_urls ('repo', arch);
 	
 	    $("#btrfs").remove();
-	    if(/factory/i.test($("#repo_products").val())) $("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option>');
-	    if(/openSUSE-(\d+)\./i.test($("#repo_products").val()) && RegExp.$1 >= 12) $("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option>');
-	    if(/sle.-(\d+)/i.test($("#repo_products").val()) && RegExp.$1 >= 11) $("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option>');
+	    $("#ext4").remove();
+	    if(/factory/i.test($("#repo_products").val())) $("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option> <option id="ext4" value="ext4">ext4</option>');
+	    if(/openSUSE-(\d+)\./i.test($("#repo_products").val()) && RegExp.$1 >= 12) $("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option> <option id="ext4" value="ext4">ext4</option>');
+	    if(/sle.-(\d+)/i.test($("#repo_products").val()) && RegExp.$1 >= 12) $("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option> <option id="ext4" value="ext4">ext4</option>');
         }
     });
 
