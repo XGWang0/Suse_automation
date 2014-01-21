@@ -65,10 +65,8 @@
   </div>
 
   <div class='row'>
-	<input id="kexecboot" type="checkbox" name="kexecboot" value="yes"
-		<?php if ($requires_kexec) print ' checked="checked"'?>/>
+	<input id="kexecboot" type="checkbox" name="kexecboot" value="yes" />
 	<label for="kexecboot">Load installation by Kexec</label>
-	<?php if ($requires_kexec) print '(Some machine requires kexec for reinstall because it uses grub2.)'; ?>
   </div>
 
   <div class='row'>
