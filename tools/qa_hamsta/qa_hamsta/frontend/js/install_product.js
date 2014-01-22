@@ -24,8 +24,8 @@ var product_type = 'others';
 function insert_options (id, data, old_selected) {
     $(id).empty();
     $(id).append('<option value=""></option>');
-    $.each(data, function(i, item){
-    $(id).append('<option value="' + item + '">' + item + '</option>');
+    $.each(data, function(i, item) {
+	$(id).append('<option value="' + item + '">' + item + '</option>');
     });//each
     $(id).val(old_selected);
     $(id).change();
@@ -123,35 +123,35 @@ function get_archs (product_type) {
     /* Get architecture of the machine. */
     var para = {
         product: $("#" + product_type + "_products").val(),
-    capable: "<?php echo $machine->get_architecture_capable(); ?>"
+        capable: "<?php echo ((isset ($machine) ? $machine->get_architecture_capable() : '')); ?>"
     };
 
     switch (product_type) {
     case 'repo':
-    para['prod_type'] = "distro";
+	para['prod_type'] = "distro";
         old_repo_product = para['product'];
         if (old_repo_product.length == 0) {
-        $("#repo_archs").empty();
+            $("#repo_archs").empty();
             $("#available_patterns").empty();
-        return false;
+            return false;
         }
-    break;
+	break;
     case 'addon':
-    para['prod_type'] = "addon";
+	para['prod_type'] = "addon";
         old_addon_product = para['product'];
         if (old_addon_product.length == 0) {
-        $("#addon_archs").empty();
+            $("#addon_archs").empty();
             $("#addon_pattern_1").empty();
-        return false;
+            return false;
         }
-    break;
+	break;
     default:
-    return;
+	return;
     }
 
     $.getJSON("html/search_repo.php", para,
               function(data) {
-              insert_options("#" + product_type + "_archs", data, old_repo_arch);
+		  insert_options("#" + product_type + "_archs", data, old_repo_arch);
               });
 
     return false;
@@ -165,35 +165,34 @@ function get_urls (product_type, arch_type, addon_products_id, addon_products_ur
         arch: arch_type
     };
 
-    if (addon_products_id)
-    {
+    if (addon_products_id) {
         para.product = $("#" + addon_products_id).val();
     }
 
     var patterns_id = "";
     switch (product_type) {
     case 'repo':
-    para['prod_type'] = "distro";
+	para['prod_type'] = "distro";
         old_repo_arch = para['arch'];
         patterns_id = "#available_patterns";
         if (old_repo_arch.length == 0) {
-        $("#available_patterns").empty();
-        $("#repo_producturl").empty();
-        return;
+            $("#available_patterns").empty();
+            $("#repo_producturl").empty();
+            return;
         }
-    break;
+	break;
     case 'addon':
-    para['prod_type'] = "addon";
+	para['prod_type'] = "addon";
         old_addon_arch = para['arch'];
         patterns_id = "#addon_pattern_1";
         if (old_addon_arch.length == 0) {
-        $("#addon_pattern_1").empty();
+            $("#addon_pattern_1").empty();
             $("#addon_producturl").empty();
             return;
         }
-    break;
+	break;
     default:
-    return;
+	return;
     }
 
     $.getJSON("html/search_repo.php", para,
@@ -201,15 +200,18 @@ function get_urls (product_type, arch_type, addon_products_id, addon_products_ur
                   if (para['arch'] == "") {
                       $("#" + product_type + "_producturl").empty();
                   } else {
-                      if (addon_products_url_id)
-                      {
+                      if (addon_products_url_id) {
                           $("#" + addon_products_url_id).val(data[0]);
                           $("#" + addon_products_url_id).change();
-                      }
-                      else
-                      {
-                          $("#" + product_type + "_producturl").val(data[0]);
-                          $("#" + product_type + "_producturl").change();
+                      } else {
+			  if ($("#" + product_type + "_producturl").length) {
+                              $("#" + product_type + "_producturl").val(data[0]);
+                              $("#" + product_type + "_producturl").change();
+			  } else {
+			      /* AutoPXE page */
+			      $("#" + product_type + "url").val(data[0]);
+                              $("#" + product_type + "url").change();
+			  }
                       }
                   }
               });
@@ -436,22 +438,36 @@ $(document).ready(function() {
         });
     });
 
-
     /* Register events for specified form parts. */
     $("#repo_products").change( function () {
-        if ($("#repo_products").val())
-        {
+        if ($("#repo_products").val()) {
             var arch = $("input[name='product_arch']:checked").val();
-            if (arch == 'i586')
-                get_urls ('repo', 'i386');
-            else
-                get_urls ('repo', arch);
-	
+
+            if (arch) {
+		if (arch == 'i586') {
+                    get_urls ('repo', 'i386');
+		} else {
+                    get_urls ('repo', arch);
+		}
+	    } else {
+		/* This is for the AutoPXE page. */
+		get_archs ('repo');
+	    }
+
 	    $("#btrfs").remove();
 	    $("#ext4").remove();
-	    if(/factory/i.test($("#repo_products").val())) $("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option> <option id="ext4" value="ext4">ext4</option>');
-	    if(/openSUSE-(\d+)\./i.test($("#repo_products").val()) && RegExp.$1 >= 12) $("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option> <option id="ext4" value="ext4">ext4</option>');
-	    if(/sle.-(\d+)/i.test($("#repo_products").val()) && RegExp.$1 >= 12) $("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option> <option id="ext4" value="ext4">ext4</option>');
+
+	    if(/factory/i.test($("#repo_products").val())) {
+		$("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option> <option id="ext4" value="ext4">ext4</option>');
+	    }
+
+	    if(/openSUSE-(\d+)\./i.test($("#repo_products").val()) && RegExp.$1 >= 12) {
+		$("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option> <option id="ext4" value="ext4">ext4</option>');
+	    }
+
+	    if(/sle.-(\d+)/i.test($("#repo_products").val()) && RegExp.$1 >= 12) {
+		$("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option> <option id="ext4" value="ext4">ext4</option>');
+	    }
         }
     });
 
@@ -468,6 +484,10 @@ $(document).ready(function() {
     change_patterns ();
     });
 
+    $('#repo_archs').change(function () {
+	get_urls ('repo', $(this).val());
+    });
+
     $("input[name='product_arch']").change(function(){
         if ($("input[name='product_arch']:checked").val() == 'i586')
         {
@@ -478,7 +498,7 @@ $(document).ready(function() {
             get_urls ('repo', 'x86_64');
         }
         else
-    {}
+        {}
     });
     
     $("input:radio").on("change", function(){
@@ -500,7 +520,5 @@ $(document).ready(function() {
         }
     });
 
-
 });
 //-->
-
