@@ -111,19 +111,20 @@ sub unique_id () {
 
     # MAC address workaround (for machines with exact duplicate HW, etc)
     &log(LOG_DEBUG, "  MAC");
-    my @data = `/sbin/ifconfig -a | grep HWaddr | awk '{print \$NF;}' | sort`;
-    foreach my $i (@data)
+    #get the route gateway  interface
+    my $routei = `route -n|awk '\$3~/0.0.0.0/{print \$NF}'`;
+    chomp $routei;
+    #find the mac for the route gateway interface
+    my $uid = `ifconfig $routei|awk '{print \$NF;exit}'`;
+    chomp $uid;
+    
+    if($uid =~ /^([0-9a-f]{2}([:]|$)){6}$/i)
     {
-        $i =~ s/\s+$//;
-        if($i =~ /^([0-9a-f]{2}([:]|$)){6}$/i)
-        {
-            $unique_id = "$unique_id.$i";
-        }
-        else
-        {
-            $unique_id = "$unique_id.NoMAC";
-        }
-        last;
+        $unique_id = "$unique_id.$uid";
+    }
+    else
+    {
+        $unique_id = "$unique_id.NoMAC";
     }
 
     &log(LOG_DETAIL, "Unique ID == $unique_id");
