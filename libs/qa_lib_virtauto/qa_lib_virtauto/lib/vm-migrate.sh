@@ -45,22 +45,22 @@ function recoverVirtConfig(){
 		mv /etc/libvirt/libvirtd.conf.org /etc/libvirt/libvirtd.conf 2>/dev/null
         	rclibvirtd restart 2>/dev/null
 		echo "Recover souce libvirtd configuration done."
-		export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "mv /etc/libvirt/libvirtd.conf.org /etc/libvirt/libvirtd.conf" 2>/dev/null
-      		export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "rclibvirtd restart" 2>/dev/null
+		$sshNoPass $migrateeUser@$migrateeIP "mv /etc/libvirt/libvirtd.conf.org /etc/libvirt/libvirtd.conf" 2>/dev/null
+      		$sshNoPass $migrateeUser@$migrateeIP "rclibvirtd restart" 2>/dev/null
 		echo "Recover destination libvirtd configuration done."
 		mv /etc/xen/xend-config.sxp.org /etc/xen/xend-config.sxp 2>/dev/null
 		rcxend restart
 		echo "Recover source xend configuration done."
-		export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "mv /etc/xen/xend-config.sxp.org /etc/xen/xend-config.sxp" 2>/dev/null
-		export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "rcxend restart" 2>/dev/null
+		$sshNoPass $migrateeUser@$migrateeIP "mv /etc/xen/xend-config.sxp.org /etc/xen/xend-config.sxp" 2>/dev/null
+		$sshNoPass $migrateeUser@$migrateeIP "rcxend restart" 2>/dev/null
 		echo "Recover destination xend configuration done."
 	fi
 
 }
 function cleanup(){
 	# Disconnect from remote
-	export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "umount $domainDiskDir" 2>/dev/null
-	export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "rm -r $domainDiskDir" 2>/dev/null
+	$sshNoPass $migrateeUser@$migrateeIP "umount $domainDiskDir" 2>/dev/null
+	$sshNoPass $migrateeUser@$migrateeIP "rm -r $domainDiskDir" 2>/dev/null
 	echo "Unmount remote files done."
 	# Clean nfs export file
 	lineNum=`grep -n $domUname /etc/exports | cut -d: -f1`
@@ -110,6 +110,9 @@ sshNoPass="sshpass -e ssh -o StrictHostKeyChecking=no"
 getSettings="./get-settings.sh"
 migrateeUser=`$getSettings migratee.user`
 migrateePass=`$getSettings migratee.pass`
+
+# Export SSHPASS
+export SSHPASS=$migrateePass
 
 # Check firewall status
 echo "Checking the firewall status..."
@@ -166,12 +169,12 @@ if [ -z $domainDiskDir ];then
 fi
 # Create the remote directory
 echo "Creating remote directory $migrateeIP :$domainDiskDir..."
-export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "mkdir -p $domainDiskDir" 2>&1
+$sshNoPass $migrateeUser@$migrateeIP "mkdir -p $domainDiskDir" 2>&1
 
 if [ $? -ne 0 ]
 then
 	# The remote directory exists, so we just need to make sure it is empty
-	totalResult=`export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "ls -lR $domainDiskDir | grep total" 2>&1`
+	totalResult=`$sshNoPass $migrateeUser@$migrateeIP "ls -lR $domainDiskDir | grep total" 2>&1`
         if [ "$totalResult" == "total 0" ]
         then
             echo "The remote directory already exists, but is empty, so we are OK to mount it."
@@ -193,7 +196,7 @@ exportfs -r 2>&1
 
 # Remote mount it
 echo "Remote mounting the share..."
-export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "mount -t nfs $localIp:$domainDiskDir $domainDiskDir" 2> /dev/null
+$sshNoPass $migrateeUser@$migrateeIP "mount -t nfs $localIp:$domainDiskDir $domainDiskDir" 2> /dev/null
 if [ $? -eq 0 ];then
 	echo "Mount is successful!"
 else
@@ -212,19 +215,19 @@ if [ $hyperType == "xen" ]; then
         #cat /etc/libvirt/libvirtd.conf | grep "auth_tcp"
 	rclibvirtd restart
 	if [[ $? != 0 ]];then
-		echo "Source libvirtd change configuration fail!\n"
+		echo "Source libvirtd change configuration failed!\n"
 		cleanup
 		exit 1
 	fi
-	export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "cp /etc/libvirt/libvirtd.conf /etc/libvirt/libvirtd.conf.org" 2>/dev/null
-	export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "sed -i '/listen_tcp =/c listen_tcp = 1' /etc/libvirt/libvirtd.conf" 2>/dev/null
-	export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "sed -i '/auth_tcp =/c auth_tcp = \"none\"' /etc/libvirt/libvirtd.conf" 2>/dev/null
+	$sshNoPass $migrateeUser@$migrateeIP "cp /etc/libvirt/libvirtd.conf /etc/libvirt/libvirtd.conf.org" 2>/dev/null
+	$sshNoPass $migrateeUser@$migrateeIP "sed -i '/listen_tcp =/c listen_tcp = 1' /etc/libvirt/libvirtd.conf" 2>/dev/null
+	$sshNoPass $migrateeUser@$migrateeIP "sed -i '/auth_tcp =/c auth_tcp = \"none\"' /etc/libvirt/libvirtd.conf" 2>/dev/null
         #echo "checking content...."
-        #export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP 'cat /etc/libvirt/libvirtd.conf | grep "listen_tcp"' 2>/dev/null
-        #export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP 'cat /etc/libvirt/libvirtd.conf | grep "auth_tcp"' 2>/dev/null
-	export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "rclibvirtd restart" 2>/dev/null
+        #$sshNoPass $migrateeUser@$migrateeIP 'cat /etc/libvirt/libvirtd.conf | grep "listen_tcp"' 2>/dev/null
+        #$sshNoPass $migrateeUser@$migrateeIP 'cat /etc/libvirt/libvirtd.conf | grep "auth_tcp"' 2>/dev/null
+	$sshNoPass $migrateeUser@$migrateeIP "rclibvirtd restart" 2>/dev/null
 	if [[ $? != 0 ]];then
-		echo "Destination libvirtd change configuration fail!\n"
+		echo "Destination libvirtd change configuration failed!\n"
 		cleanup
 		exit 1
 	fi	
@@ -241,15 +244,15 @@ if [ $hyperType == "xen" ]; then
 	sed -i "/(xend-address localhost)/c #\(xend-address localhost\)" $fileName
 	rcxend restart
 	if [[ $? != 0 ]];then
-		echo "Source xend configuration changes fail to take effect!\n"
+		echo "Source xend configuration changes failed to take effect!\n"
 		cleanup
 		exit 1
         fi
-	export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "cp /etc/xen/xend-config.sxp /etc/xen/xend-config.sxp.org" 2>/dev/null
-	export SSHPASS=$migrateePass; cat /etc/xen/xend-config.sxp | $sshNoPass $migrateeUser@$migrateeIP " cat - > /etc/xen/xend-config.sxp" 2>/dev/null
-	export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "rcxend restart" 2>/dev/null
+	$sshNoPass $migrateeUser@$migrateeIP "cp /etc/xen/xend-config.sxp /etc/xen/xend-config.sxp.org" 2>/dev/null
+	cat /etc/xen/xend-config.sxp | $sshNoPass $migrateeUser@$migrateeIP " cat - > /etc/xen/xend-config.sxp" 2>/dev/null
+	$sshNoPass $migrateeUser@$migrateeIP "rcxend restart" 2>/dev/null
         if [[ $? != 0 ]];then
-                echo "Destination xend configuration changes fail to take effect!\n"
+                echo "Destination xend configuration changes failed to take effect!\n"
                 cleanup
                 exit 1
         fi
@@ -273,8 +276,8 @@ if [ $hyperType == "xen" ]; then
 else
 	migrateCmd=$migrateCmd" --unsafe $domUname qemu+ssh://IP/system tcp://IP"
 fi
-migrateCmdSrc=`echo $migrateCmd | sed "s/IP/$migrateeIP/g"`
-migrateCmdDst=`echo $migrateCmd | sed "s/IP/$localIp/g"`
+migrateCmdSrc=${migrateCmd//IP/$migrateeIP}
+migrateCmdDst=${migrateCmd//IP/$localIp}
 echo "Migrate command executed on source is $migrateCmdSrc"
 echo "Migrate command executed on destination is $migrateCmdDst"
 #read contd
@@ -289,7 +292,7 @@ for ((i=0;i<$migrateRound;i++)); do
 	echo
 	$migrateCmdSrc
         if [[ $? != 0 ]];then
-		echo "Migration forward fails!"
+		echo "Migration forward failed!"
                 cleanup
                 exit 1
         fi
@@ -298,16 +301,16 @@ for ((i=0;i<$migrateRound;i++)); do
 	echo "		To: $localIp..."
 	echo "		VMName: $domUname..."
 	echo
-	export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "$migrateCmdDst" 2>/dev/null
+	$sshNoPass $migrateeUser@$migrateeIP "$migrateCmdDst" 2>/dev/null
         if [[ $? != 0 ]];then
-		echo "Migration back fails!"
+		echo "Migration back failed!"
                 cleanup
                 exit 1
         fi
 
 	# Disconnect from remote
-	export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "umount $domainDiskDir" 2>/dev/null
-	export SSHPASS=$migrateePass; $sshNoPass $migrateeUser@$migrateeIP "mount -t nfs $localIp:$domainDiskDir $domainDiskDir" 2> /dev/null
+	$sshNoPass $migrateeUser@$migrateeIP "umount $domainDiskDir" 2>/dev/null
+	$sshNoPass $migrateeUser@$migrateeIP "mount -t nfs $localIp:$domainDiskDir $domainDiskDir" 2> /dev/null
 done
 
 if [ `expr $migrateTimes % 2` -eq 1 ]; then
@@ -320,7 +323,7 @@ if [ `expr $migrateTimes % 2` -eq 1 ]; then
         echo "          VMName: $domUname..."
 	$migrateCmdSrc
 	if [[ $? != 0 ]];then
-        	echo "Migration forward fails!"
+        	echo "Migration forward failed!"
               	cleanup
                 exit 1
         fi  

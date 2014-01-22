@@ -47,14 +47,9 @@ my $myret;
 
 sub exitWithError{
         $myret = 1;
-        system ("touch /var/lib/hamsta/stats_changed");
+        system ("rpm -q qa_hamsta > /dev/null 2>&1 && touch /var/lib/hamsta/stats_changed");
         exit $myret;
 }
-# get source and destination host type
-  # if type not equal
-    # call cross type migration args
-  # else
-    # call /usr/share/qa/virtautolib/lib/vm-migrate.sh args
 
 # Get options
 my $domainName = "";
@@ -103,7 +98,7 @@ if ( $myret == 0 ){
 } elsif ($myret == 256) {
 	    $remoteHyperType = "kvm";
 } else {
-	    print "Failed to get migratee host virtulization type. \n";
+	    print "Failed to get migration target host virtualization type. \n";
             &exitWithError;
 }
 print "localHyperType is ".$localHyperType.", remoteHyperType is ".$remoteHyperType."\n";
@@ -139,7 +134,7 @@ elsif ( $localHyperType eq "xen" &&  $remoteHyperType eq "kvm" ){
     }
 }
 else{
-        print "Migration from kvm to xen is not valid!";
+        print "Migration from kvm to xen is not valid! Only xen2xen/kvm2kvm/xen2kvm are valid migration types!\n";
         &exitWithError;
 }
 
@@ -157,13 +152,11 @@ if ($myret == 0 && ( $migratetimes % 2 == 1 ) ){
 }
 
 # Let hamsta master query the latest vm list status
-system ("touch /var/lib/hamsta/stats_changed;sleep 5");
-print "Touch source VH hamsta status file done.\n";
-system ('export SSHPASS='.$migrateePass.'; '.$sshNoPass.' '.$migrateeUser.'@'.$migrateeIP.' "touch /var/lib/hamsta/stats_changed"');
-print "Touch destination VH hamsta status file done.\n";
+system ("rpm -q qa_hamsta > /dev/null 2>&1 && touch /var/lib/hamsta/stats_changed && echo \"Touch source VH hamsta status file done.\";sleep 5");
+system ('export SSHPASS='.$migrateePass.'; '.$sshNoPass.' '.$migrateeUser.'@'.$migrateeIP.' "rpm -q qa_hamsta > /dev/null 2>&1 && touch /var/lib/hamsta/stats_changed && echo \"Touch destination VH hamsta status file done.\""');
 
 if ($myret != 0){
-    print "The migration fails !\n";
+    print "The migration failed !\n";
 }else{
     print "The migration is successful!\n";
 }
