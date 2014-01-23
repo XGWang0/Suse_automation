@@ -179,6 +179,7 @@ sub get_patterns
 		$ret .= ",".$args->{'patterns'};
 	} else	{
 		# case 3: patterns set without '+', use instead of detected
+		$args->{'patterns'} .= ",sw_management" if($args->{'to_type'} eq 'opensuse' and $args->{'to_version'} > 11);
 		return $args->{'patterns'};
 	}
 	if($args->{'to_type'} eq 'sled') { 
@@ -194,8 +195,9 @@ sub get_patterns
 sub get_packages
 {
 	my $args = shift;
-	my $ret='qa_tools,qa_hamsta,autoyast2,vim,mc,iputils,less,screen,lsof,pciutils,tcpdump,telnet,zip,yast2-runlevel,SuSEfirewall2,curl,wget,perl,openssh';
-	if( $args->{'to_type'} eq 'opensuse' or $args->{'to_type'} eq 'sled') {
+	my $ret='qa_tools,qa_hamsta,autoyast2,vim,mc,iputils,less,screen,lsof,pciutils,tcpdump,telnet,zip,SuSEfirewall2,curl,wget,perl,openssh';
+	$ret .= ",yast2-runlevel" if $args->{'to_version'} < 12;
+	if( $args->{'to_type'} eq 'opensuse' or $args->{'to_type'} eq 'sled' or $args->{'to_version'} > 11) {
 		$ret .= ',nfs-client';	
 	} else {	
 		$ret .= ',nfs-utils';	
@@ -209,8 +211,7 @@ sub get_packages
 	$ret .= ",atk-devel,at-spi,gconf2" if $args->{'setupfordesktoptest'};
 	$ret .= ",".$args->{'additionalrpms'} if (defined $args->{'additionalrpms'});
 	$ret .= ','.$qaconf{install_additional_rpms}  if $qaconf{install_additional_rpms};
-	$ret .= ',grub2' if( ($args->{'to_type'} eq 'opensuse' and $args->{'to_version'} >11)||( $args->{'to_type'} =~ /sle/i and $args->{'to_version'} > 12 ));
-	$ret .= ',sw_management' if($args->{'to_type'} eq 'opensuse' and $args->{'to_version'} >11);
+	$ret .= ',grub2' if( ($args->{'to_type'} eq 'opensuse' and $args->{'to_version'} > 11)||( $args->{'to_type'} =~ /sle/i and $args->{'to_version'} > 11 ));
 	$args->{'packages'} = $ret;
 }
 
@@ -231,6 +232,7 @@ sub _get_buildservice_repo
 		return "openSUSE_12.1" if $version==12 and $subversion==1;
 		return "openSUSE_12.2" if $version==12 and $subversion==2;
 		return "openSUSE_12.3" if $version==12 and $subversion==3;
+		return "openSUSE_13.1" if $version==13 and $subversion==1;
 		return 'openSUSE_Factory';
 	} else {
 		return 'SLES_9' if $version==9;
@@ -242,7 +244,8 @@ sub _get_buildservice_repo
 		return 'SUSE_SLE-11-SP1_GA' if $version==11 and $subversion==1;
 		return 'SUSE_SLE-11-SP2_GA' if $version==11 and $subversion==2;
 		return 'SUSE_SLE-11-SP3_GA' if $version==11 and $subversion==3;
-		return 'SLE_Factory' if $version>11;
+		return 'SUSE_SLE-12_GA' if $version==12 and $subversion==0;
+		return 'SLE_Factory' if $version > 12;
 	}
 	return undef;
 }
