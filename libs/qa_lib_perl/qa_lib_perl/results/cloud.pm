@@ -293,8 +293,7 @@ sub testsuite_complete
 
 sub testsuite_tc_output_rel_url
 {
-	my ($self) = @_;
-	return $self->{TC_NAME};
+	return "";
 }
 
 1;
