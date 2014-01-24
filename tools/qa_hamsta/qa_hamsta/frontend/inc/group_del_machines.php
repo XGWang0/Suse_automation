@@ -44,7 +44,7 @@
 		} else {
 			$failed = 0;
 			foreach ($machine_group_pairs as $pair) {
-				list($machine_id, $group_id) = split ("_",$pair);
+				list($machine_id, $group_id) = explode ("_",$pair);
 				$group = Group::get_by_id($group_id);
 				$machine = Machine::get_by_id($machine_id);
 				if (!$group->del_machine($machine)) {

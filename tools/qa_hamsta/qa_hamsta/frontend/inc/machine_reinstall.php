@@ -253,7 +253,7 @@ if (request_str("proceed")) {
 			if ($setupfordesktop == "yes")  # Needs reboot so accesible technologies starts correctly (bnc#710624)
 				$machine->send_job("/usr/share/hamsta/xml_files/reboot.xml") or $errors['setxenjob']=$machine->get_hostname().": ".$machine->errmsg;
 			if ($validation) {
-				$validationfiles = split (" ", $config->xml->validation);
+				$validationfiles = explode (" ", $config->xml->validation);
 				foreach ( $validationfiles as &$validationfile ) {
 					$rand = rand();
 					$randfile= "/tmp/validation_$rand.xml";

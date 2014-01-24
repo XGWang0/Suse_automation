@@ -384,7 +384,7 @@ QA-packages Jobs are used to launch various test suites on your System Under Tes
 
 	$tslist=$config->lists->tslist;
 	$test_suites="";
-	$arr=split (" ", $tslist);
+	$arr = explode (" ", $tslist);
         $i=0;
 	sort ($arr);
         foreach ($arr as $value)
@@ -406,7 +406,7 @@ QA-packages Jobs are used to launch various test suites on your System Under Tes
 <tr><td><b>UI tests:</b></td></tr>
 	<?php
 		$UIlist=$config->lists->uilist;
-		$arr=split(" ", $UIlist);
+		$arr= explode (" ", $UIlist);
 		sort($arr);
 		$i=0;
 		foreach ($arr as $value) {
@@ -453,7 +453,7 @@ Autotest jobs.
 
     $atlist=$config->lists->atlist;
     $test_suites="";
-    $arr=split (" ", $atlist);
+    $arr = explode (" ", $atlist);
     $i=0;
     sort ($arr);
         foreach ($arr as $value)
