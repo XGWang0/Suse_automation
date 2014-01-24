@@ -1,4 +1,3 @@
-# norootforbuild
 Summary: Tools for the Linux Kernel's network block device.
 Name: nbd
 Version: 2.9.20
