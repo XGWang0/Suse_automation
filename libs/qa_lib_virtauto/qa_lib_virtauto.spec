@@ -30,7 +30,7 @@ Group:          SuSE internal
 Summary:        (rd-)qa package for virtualization automation
 Provides:	virtautolib
 Obsoletes:	virtautolib
-Requires:       ssh libvirt perl-XML-XPath qa_keys expect qa_libperl virtautolib-data
+Requires:       ssh libvirt perl-XML-XPath qa_keys expect qa_libperl virtautolib-data nbd
 #sshpass 1.04 version has bug for ssh commands which forever hang sometimes,and is fixed in 1.05.
 Requires:       sshpass >= 1.05
 %if 0%{?sles_version} == 10
