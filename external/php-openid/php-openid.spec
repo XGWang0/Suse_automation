@@ -1,7 +1,7 @@
 #
 # spec file for package php-openid
 #
-# Copyright (c) 2013 SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) 2013, 2014 SUSE LINUX Products GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -23,7 +23,7 @@
 
 BuildRequires:  coreutils
 Name:           php-openid
-License:        Apache License version 2.0
+License:        Apache-2.0
 Group:          Development/Libraries/Sources
 AutoReqProv:    on
 Version:        2.2.2
