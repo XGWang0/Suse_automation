@@ -10,12 +10,12 @@
 Name:           perl-IO-Socket-Multicast
 Version:        1.05
 Release:        1
-Requires:       perl
+Requires:       perl perl-base
 AutoReqProv:    on
 Group:          Development/Libraries/Perl
-License:        Artistic or GPL v1 or later
+License:        Artistic-1.0 or GPL-1.0+Artistic or GPL v1 or later
 Url:            http://search.cpan.org/~lds/IO-Socket-Multicast-1.05/Multicast.pm
-Summary:        A Perl Module IO::Socket::Multicast - Send and receive multicast messages.
+Summary:        A Perl Module IO::Socket::Multicast - Send and receive multicast messages
 Source:         IO-Socket-Multicast-%{version}.tar.bz2
 Source1:	perl-IO-Socket-Multicast.8
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -39,6 +39,8 @@ Authors:
 %build
 perl Makefile.PL OPTIMIZE="$RPM_OPT_FLAGS"
 make
+
+%check
 make test
 
 %install
@@ -73,12 +75,10 @@ rm -rf $RPM_BUILD_ROOT
 %{perl_vendorarch}/auto/IO/
 %{perl_vendorarch}/auto/IO/Socket
 %{perl_vendorarch}/auto/IO/Socket/Multicast
-#%{perl_vendorlib}/IO/
-#$RPM_BUILD_ROOT/IO/Socket/Multicast
 
 %changelog
 * Mon May 02 2011 vmarsik@suse.de
-- workaround for redesigned %perl_process_packlist
+- workaround for redesigned %%perl_process_packlist
   see http://lists.opensuse.org/opensuse-packaging/2010-11/msg00221.html
 * Mon Feb 26 2007 pkirsch@suse.de
 - initial package
