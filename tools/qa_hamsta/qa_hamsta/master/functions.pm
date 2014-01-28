@@ -104,7 +104,7 @@ sub process_product($)
 
 	# Gather architecture and the rest of the line,
 	# e.g. from (x86_64)VERSION=11PATCHLEVEL=3
-	if ($prod =~ /\(([\w_]+)\)([\w=.+-]+)$/) {
+	if ($prod =~ /\(([\w_]+)\)([#\/\w=,.+-]+)$/) {
 	    $arch = $1;
 	    $rest = $2
 	}
