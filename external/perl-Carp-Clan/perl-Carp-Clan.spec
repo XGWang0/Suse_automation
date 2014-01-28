@@ -18,7 +18,7 @@ Release:        1
 Requires:       perl
 AutoReqProv:    on
 Group:          Development/Libraries/Perl
-License:        Artistic License or GPL v2
+License:        Artistic-1.0 or GPL-1.0+
 Url:            http://cpan.org/modules/by-module/Carp/
 Summary:        Report Errors from the Perspective of the Caller of a "Clan" of Modules
 Source:         Carp-Clan-%{version}.tar.bz2
