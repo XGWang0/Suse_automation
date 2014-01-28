@@ -8,6 +8,7 @@
 	<description>Interbench interactivity benchmark</description>
 	<logdir>/tmp</logdir>
 	<rpm>hamsta interbench-ctcs2-glue</rpm>
+        <reboot>0</reboot>
     </config>
 
     <commands>

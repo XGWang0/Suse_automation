@@ -30,7 +30,9 @@ Group:          SuSE internal
 Summary:        (rd-)qa package for virtualization automation
 Provides:	virtautolib
 Obsoletes:	virtautolib
-Requires:       ssh libvirt perl-XML-XPath qa_keys expect sshpass qa_libperl virtautolib-data
+Requires:       ssh libvirt perl-XML-XPath qa_keys expect qa_libperl virtautolib-data
+#sshpass 1.04 version has bug for ssh commands which forever hang sometimes,and is fixed in 1.05.
+Requires:       sshpass >= 1.05
 %if 0%{?sles_version} == 10
 Requires:       xen-tools
 %else
@@ -63,7 +65,9 @@ install -m 755 -d $RPM_BUILD_ROOT/usr/share/man/man8
 install -m 644 %{S:1} $RPM_BUILD_ROOT/usr/share/man/man8
 gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
 install -m 755 -d $RPM_BUILD_ROOT/usr/share/qa/virtautolib
+install -m 755 -d $RPM_BUILD_ROOT/usr/share/qa/tools
 cp -a * $RPM_BUILD_ROOT/usr/share/qa/virtautolib
+mv  $RPM_BUILD_ROOT/usr/share/qa/virtautolib/lib/vm-migrate-allhosttype.pl $RPM_BUILD_ROOT/usr/share/qa/tools
 find $RPM_BUILD_ROOT/usr/share/qa/virtautolib -depth -type d -name .svn -exec rm -rf {} \;
 
 %post

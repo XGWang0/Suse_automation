@@ -51,7 +51,19 @@ $group=http('group');
 $id_defined=array_key_exists('id',$_REQUEST);
 
 if( token_read($wtoken) )	{
-	if( ($submit=='new' && $desc) || $submit=='set' )	{
+	$step='l';
+	$failed=false;
+	if( ($submit=='new' || $submit=='update') && $desc )	{
+		# check for description collisions
+		$old_id=qaconf_get_by_desc($desc);
+		if( $old_id )
+			$failed=true;
+	}
+	if( $failed )	{
+		print html_error("Desc '$desc' already exists");
+		$step=($submit=='new' ? 'n' : 'e');
+	}
+	else if( ($submit=='new' && $desc) || $submit=='set' )	{
 		check_perm_redirect();
 		transaction();
 		if( $submit=='new' )	{
@@ -103,7 +115,6 @@ if( token_read($wtoken) )	{
 			commit();
 		}
 	}
-	$step='l';
 }
 
 $steps=array(
@@ -151,7 +162,7 @@ else if( $step=='e' || $step=='n' )	{
 		print html_div('list machines',"machines: ".join(' ',array_map('machine_get_name',$a_machines)));
 	}
 	print "<form method=\"post\" action=\"$page_base\" class=\"input\" id=\"qaconf_edit\">\n";
-	print html_search_form('',$what,array('form'=>0,'submit'=>($edit ? 'Update':'Insert')));
+	print html_search_form('',$what,array('form'=>0,'submit'=>($edit ? 'Update':'Insert'),'hr'=>false));
 	print "</form>\n";
 	print html_div('text-main',"Edit rows of the configuration. Rows should be in a form of \"<i>key=value # comment</i>\", otherwise they will be dropped on submit.");
 }

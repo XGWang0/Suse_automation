@@ -8,6 +8,7 @@
 	<description>lmbench benchmark</description>
 	<logdir>/tmp</logdir>
 	<rpm>hamsta lmbench-ctcs2-glue</rpm>
+        <reboot>0</reboot>
     </config>
 
     <commands>

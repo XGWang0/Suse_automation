@@ -33,7 +33,7 @@ BuildArch:      noarch
 PreReq:         coreutils
 Provides:	frontenduser
 Obsoletes:	frontenduser
-Requires:       tblib php5-ZendFramework php5-gmp
+Requires:       tblib php-ZendFramework php-gmp
 
 %description
 This library contains shared classes, functions and pages for user

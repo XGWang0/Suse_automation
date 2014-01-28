@@ -8,9 +8,11 @@
         <mail notify="1"></mail>
         <logdir>/tmp</logdir>
         <rpm>qa_hamsta</rpm>
-        <rpm upgrade="1">qa_tools qa_lib_perl</rpm>
+        <rpm upgrade="1">qa_tools</rpm>
+	<rpm upgrade="1">qa_lib_perl</rpm>
         <description>Reinstalls the machine from REPOURL</description>
         <motd>Machine being reinstalled</motd>
+        <reboot>1</reboot>
     </config>
 
     <commands>

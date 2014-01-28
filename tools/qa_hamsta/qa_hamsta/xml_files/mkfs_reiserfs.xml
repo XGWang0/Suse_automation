@@ -8,6 +8,7 @@
         <mail notify="1"></mail>        
         <logdir>/tmp</logdir>
         <description>Format abuild work space into reiserfs</description>
+        <reboot>0</reboot>
     </config>
 
     <commands>

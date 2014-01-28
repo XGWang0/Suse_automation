@@ -2008,6 +2008,7 @@ echo "    Waiting to let the VM install command register..."
 checkRunningTimesThrough=0
 retVal=`./vm-running.sh $xenHostIp $machineName $settingsFile`
 vmId=`echo "$retVal" | grep '\*\*\ VM\ ID\:\ ..*\ \*\*' | awk '{print $4;}'`
+vmState=`echo "$retVal" | grep "DiscoveredState" | sed 's/^.*DiscoveredState : \([a-zA-Z ]*\)\.*$/\1/'`
 if [[ ! "$vmId" =~ ^[[:digit:]][[:digit:]]*$ ]]
 then
 	#./vm-gone.sh $xenHostIp $hypervisor $machineName $machineNameFirstPart "000.000.000.000" $settingsFile
@@ -2018,10 +2019,11 @@ then
 	rm -rf /tmp/virtautolib.$$
 	popd > /dev/null; exit $rFAILED
 fi
-while [ $vmId -eq 0 ]
+while [ $vmId -eq 0 ]  || [ "$vmState" != "running" ]
 do
 	retVal=`./vm-running.sh $xenHostIp $machineName $settingsFile`
 	vmId=`echo "$retVal" | grep '\*\*\ VM\ ID\:\ ..*\ \*\*' | awk '{print $4;}'`
+	vmState=`echo "$retVal" | grep "DiscoveredState" | sed 's/^.*DiscoveredState : \([a-zA-Z ]*\)\.*$/\1/'`
 	
 	if [[ ! "$vmId" =~ ^[[:digit:]][[:digit:]]*$ ]]
 	then
@@ -2260,24 +2262,24 @@ then
 			popd > /dev/null; exit $rFAILED
 		fi
 		
-		# Echo out the text to the file on the DHCP server
-		#export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo 'default $machineName' > $pxeFileName" 2> /dev/null
-		#export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo >> $pxeFileName" 2> /dev/null
-		#export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo 'label $machineName' >> $pxeFileName" 2> /dev/null
-		#export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo '        kernel qa-virtauto/$pxe_os/$pxe_rl/$pxe_sp/$archFolder/linux' >> $pxeFileName" 2> /dev/null
 		if [ -z $autoinstProfile ] 
 		then
+			# Echo out the text to the file on the DHCP server
+			export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo 'default $machineName' > $pxeFileName" 2> /dev/null
+			export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo >> $pxeFileName" 2> /dev/null
+			export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo 'label $machineName' >> $pxeFileName" 2> /dev/null
+			export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo '        kernel qa-virtauto/$pxe_os/$pxe_rl/$pxe_sp/$archFolder/linux' >> $pxeFileName" 2> /dev/null
 			autoyastURL="http://$httpServer/$httpAutoyastWeb/$autoyastFileName"
 		
 			# Get the autoyast file over to the http server
 			export SSHPASS=$httpPass; cat $newLocation | $sshNoPass $httpUser@$httpServer "cat - > $httpAutoyastLocal/$autoyastFileName" 2> /dev/null
+			export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo '        append initrd=qa-virtauto/$pxe_os/$pxe_rl/$pxe_sp/$archFolder/initrd $pxeInstallOptions $installBootOption=$pxeInstallSource $autoInstallationType=$autoyastURL $customInstallBootOption' >> $pxeFileName" 2> /dev/null
 		else
 			autoyastURL="$autoinstProfile"
+			# re-use autopxe.pl to generate booting files on pxe Server
+			export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "autopxe.pl $pxeInstallSource mac $installMac on on 1>/dev/null " 2> /dev/null
 		fi
-		# re-use autopxe.pl to generate booting files on pxe Server
-		export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "autopxe.pl $pxeInstallSource mac $installMac on on 1>/dev/null " 2> /dev/null
 
-		#export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo '        append initrd=qa-virtauto/$pxe_os/$pxe_rl/$pxe_sp/$archFolder/initrd $pxeInstallOptions $installBootOption=$pxeInstallSource $autoInstallationType=$autoyastURL $customInstallBootOption' >> $pxeFileName" 2> /dev/null
 	fi
 fi
 

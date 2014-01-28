@@ -39,6 +39,7 @@ def retrieve_patterns(repo):
 			matcharch = arch
 		re_arch = re.compile('\.' + matcharch + '\.pat(\.gz)?$')
 		re_pat = re.compile('^=Pat: ')
+		re_vis = re.compile('^=Vis: ')
 		patterns = []
 		try:
 			# patfiles contain list of .pat or .pat.gz files with pattern definitions
@@ -53,8 +54,20 @@ def retrieve_patterns(repo):
 				data = urllib2.urlopen(pattern).read()
 				if (patfile.endswith('.gz')):
 					data = gzip.GzipFile(fileobj = StringIO.StringIO(data)).read()
-				for line in filter(re_pat.search, data.split("\n")):
-					patterns.append(line.split(' ')[2])
+				
+				pattern = None
+				for line in data.split("\n"):
+					if re.match(re_pat, line):
+						pattern = line.split(' ')[2]
+					if re.match(re_vis, line) and pattern != None:
+						visible = line.split(' ')[1]
+						if(re.match(r"([Tt]rue|TRUE)", visible)):
+							patterns.append(pattern)
+							pattern = None
+
+				#for line in filter(re_pat.search, data.split("\n")):
+				#	patterns.append(line.split(' ')[2])
+
 		except:
 			pass
 		return patterns

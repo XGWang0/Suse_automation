@@ -121,6 +121,7 @@ $pages = array(
     "vhreinstall",
     "newvm",
     "newvm-win",
+    "vm_migrate",
     "del_virtual_machines",
     "upgrade",
     "merge_machines",
@@ -133,7 +134,8 @@ $pages = array(
     "machine_config",
     "qa_netconf",
     "usedby",
-    "machine_privileges"
+    "machine_privileges",
+    "machine_reserve"
 );
 
 if (!in_array($go, $pages)) {

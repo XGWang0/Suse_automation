@@ -355,18 +355,18 @@ if( $args->{'newvm'} )	{
 	$command_ret = $command_ret >> 8;
         &command( "sleep 2" );
 
-	if ( "$boottype" eq "bootloader" ) {
-        	&command( "(sleep 10;reboot)&" );
-		exit 0;
-	} else {
-		my $pid = fork();
-		if ( $pid > 0 ) {
-			$SIG{CHLD} = 'IGNORE';
+	if ( $command_ret == 0 ) {
+		if ( "$boottype" eq "bootloader" ) {
+			&log(LOG_RETURN, "$command_ret (".$cmdline.')');
+			&command( "(sleep 10;reboot)&" );
 			exit 0;
 		} else {
 			&log(LOG_RETURN, "$command_ret (".$cmdline.')');
-       			system("sleep 20");
-			exec("/sbin/kexec -e >/dev/null");
-		}
+			&command("(sleep 20;/sbin/kexec -e >/dev/null)&");
+			exit 0;
+			}
+	}else {
+		&log(LOG_RETURN, "$command_ret (".$cmdline.')');
+		exit $command_ret;
 	}
 }

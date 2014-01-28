@@ -40,6 +40,8 @@
 	$mailto=$_POST['mailto'];
 	$rpmlist=$_POST['rpmlist'];
 	$jobType=$_POST['jobType'];
+	$reboot=request_int('reboot');
+	if($reboot != 0) $reboot=1;
 	$roleNumber=($jobType == 1)?1:$_POST['rolenumber'];
 	if($roleNumber == 1)
 		$commandsArray[] = request_str("commands_content_single");
@@ -254,7 +256,7 @@
 		$errors[] = "Can not open job file to write";
 	fwrite($fileJob, $fileCustom);
 	fclose($fileJob);
-	system("sed -i -e \"s/JOBNAME/$jobname/g\" -e \"s/DEBUGLEVEL/$debuglevel/g\" -e \"s/MAILTO/$mailto/g\" -e \"s/RPMLIST/$rpmlist/g\" -e \"s/DESCRIPTION/$description/g\" -e \"s/MOTDMSG/$motdmsg/g\" -e \"/^\s*$/d\" $filename");
+	system("sed -i -e \"s/JOBNAME/$jobname/g\" -e \"s/DEBUGLEVEL/$debuglevel/g\" -e \"s/MAILTO/$mailto/g\" -e \"s/RPMLIST/$rpmlist/g\" -e \"s/DESCRIPTION/$description/g\" -e \"s/MOTDMSG/$motdmsg/g\"  -e \"s/<reboot>[^>]\+</<reboot>$reboot</\" -e \"/^\s*$/d\" $filename");
 
 	# save the custom job
         # For "SAVEING" custom job when send job  OR "EDITING" job

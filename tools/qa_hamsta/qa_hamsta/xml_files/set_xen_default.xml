@@ -10,6 +10,7 @@
         <logdir>/tmp</logdir>
         <description>Add XEN kernel for default grub boot</description>
         <motd>[Custom job]: </motd>
+        <reboot>1</reboot>
     </config>
 
     <commands>

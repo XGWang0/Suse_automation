@@ -8,6 +8,7 @@
 	<description>QA siege benchmark against http://localhost, different number of threads</description>
 	<logdir>/tmp</logdir>
 	<rpm>hamsta tiobench-ctcs2-glue</rpm>
+        <reboot>0</reboot>
     </config>
 
     <commands>

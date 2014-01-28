@@ -50,7 +50,7 @@ $html_title="Validation test";
 	$repos = json_decode($json);
 	foreach($repos as $repo) {
 		$product = $repo->{"product"};
-		$tmp = split($product, $repo->{"url"});
+		$tmp = explode ($product, $repo->{"url"});
 		$newdic[$product] = $tmp[0];
 	}
 
@@ -88,7 +88,7 @@ $html_title="Validation test";
 			if (!$ret){
 				$rand = rand();
 				$autoyastfile = "/tmp/reinstall_$rand.xml";
-				$validationfiles = split (" ", $config->xml->validation);
+				$validationfiles = explode (" ", $config->xml->validation);
 				foreach ( $validationfiles as &$validationfile ) {
 					$rand = rand();
 					$randfile= "/tmp/validation_$rand.xml";

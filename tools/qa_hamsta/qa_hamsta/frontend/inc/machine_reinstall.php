@@ -37,6 +37,11 @@ function filter($var) {
 	return true;
 } 
 
+function map_regcode($e1, $e2)
+{
+    return $e1.'+'.$e2;
+}
+
 /* Check if user is logged in, registered and have sufficient privileges. */
 $search = new MachineSearch();
 $search->filter_in_array(request_array("a_machines"));
@@ -109,15 +114,18 @@ if (request_str("proceed")) {
 	$update = request_str("startupdate");
 	$regmail = request_str("update-reg-email");
 	$regcodes = $_POST["rcode"];
+	$regprefixes = $_POST["regprefix"];
 	$validation = request_str("startvalidation");
 	$addonurls = array_filter($addonurls, "filter");
 	$regcodes = array_filter($regcodes, "filter");
+	$regprefixes= array_filter($regprefixes, "filter");
 	$installmethod = request_str("installmethod");
 	$setupfordesktop = request_str("setupfordesktop");
 	$timezone = request_str("timezone");
 	$kexecboot = request_str("kexecboot");
 	$timezone = str_replace ("/","_",$timezone);
-
+ 
+        $regcodes = array_map('map_regcode', $regprefixes, $regcodes);
 	# Check for errors
 	$errors = array();
 	if ($update == "update-smt")
@@ -198,9 +206,42 @@ if (request_str("proceed")) {
 			$args .= " -Z " . $timezone;
 		if ($kexecboot == "yes")
 			$args .= " -k";
-		system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $autoyastfile");
-		system("sed -i 's/ARGS/$args/g' $autoyastfile");
-		system("sed -i 's/REPOURL/$producturl/g' $autoyastfile");
+
+		/* This is not good as it should be in its own
+		 * library. But it is still better than previous
+		 * numerous 'sed SOMETHING' script invocations. */
+		$job_xml = simplexml_load_file ($autoyastfile);
+		if ($job_xml === FALSE) {
+			Notificator::setErrorMessage ('Error reading job XML file ' . $autoyastfile . '.');
+			header ('Location: index.php');
+			exit ();
+		}
+
+		$job_xml->config->mail = $email;
+
+		{ /* Do not create global variables. */
+			$name = $job_xml->config->name;
+			$desc = $job_xml->config->description;
+			$command = $job_xml->commands[0]->worker[0]->command;
+
+			$job_xml->config->name = str_replace ('REPOURL', $producturl_raw, $name);
+			$job_xml->config->description = str_replace ('REPOURL', $producturl_raw, $desc);
+			$job_xml->commands[0]->worker[0]->command = str_replace ('ARGS', $args, $command);
+		}
+
+		if (! empty ($kexecboot)) {
+			$job_xml->config->addChild ('rpm', 'kexec-tools');
+		}
+
+		if (! $job_xml->asXML ($autoyastfile)) {
+			Notificator::setErrorMessage ('Error saving job XML file "' . $autoyastfile . '".');
+			header ('Location: index.php');
+			exit();
+		} else {
+			/* Written. Free resources. */
+			unset ($job_xml);
+		}
+
 		foreach ($machines as $machine) {
 			if ($machine->send_job($autoyastfile)) {
 				Log::create($machine->get_id(), $user->getLogin (), 'REINSTALL', "has reinstalled this machine using $producturl_raw (Addon: " . ($addonurl ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
@@ -212,7 +253,7 @@ if (request_str("proceed")) {
 			if ($setupfordesktop == "yes")  # Needs reboot so accesible technologies starts correctly (bnc#710624)
 				$machine->send_job("/usr/share/hamsta/xml_files/reboot.xml") or $errors['setxenjob']=$machine->get_hostname().": ".$machine->errmsg;
 			if ($validation) {
-				$validationfiles = split (" ", $config->xml->validation);
+				$validationfiles = explode (" ", $config->xml->validation);
 				foreach ( $validationfiles as &$validationfile ) {
 					$rand = rand();
 					$randfile= "/tmp/validation_$rand.xml";

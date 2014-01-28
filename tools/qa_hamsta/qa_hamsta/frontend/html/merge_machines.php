@@ -32,26 +32,46 @@ if (!defined('HAMSTA_FRONTEND')) {
 	return require("index.php");
 }
 
+# field values [ field ] [ machine ]
 $vals = array();
-$machines = array();
+
+# primary machine, i.e. source for default values, where available
+$prim = -1;
+
+# prepare data
+$i=0;
 foreach( $ids as $id )	{
+	# read machine data
 	$machine = Machine::get_by_id($id);
-	$machines[] = $machine;
-	foreach( array_keys($fields) as $field )	{
-		$vals[$field][] = $machine->get($field);
-	}
+
+	# store the items
+	foreach( array_keys($fields) as $field )
+		$vals[$field][$i] = $machine->get($field);
+
+	# find first machine that is up
+	if ( $prim == -1 && $machine->get_status_id() == MS_UP)
+		$prim = $i;
+
+	$i++;
 }
+
+# let's use first machine as primary, if no machine is 'up'
+if ($prim == -1)
+	$prim = 0;
+
+#  --- output starts here ----
+
 
 # HTML form & table head
 print '<form name="merge_machines" action="index.php?go=merge_machines" method="post">'."\n";
 if( count($ids) )
-	print '<input type="hidden" name="primary_machine_id" value="'.$ids[0]."\"/>\n";
+	print '<input type="hidden" name="primary_machine_id" value="'.$ids[$prim]."\"/>\n";
 print "<table class=\"list\">\n\t<tr><th>ID</th>";
 
-# first row
+# first row - table head
 foreach( $ids as $id )
 	print "<th>$id</th>";
-print "<th>merged</th></tr>\n";
+print "<th>Result</th></tr>\n";
 
 # iterate over machine attributes
 foreach( array_keys($vals) as $key )	{
@@ -60,13 +80,13 @@ foreach( array_keys($vals) as $key )	{
 	$type = $fields[$key];
 	$flag=0;
 	if( $type!='s' )
-		merge_unique($vals[$key],$ret,$flag);
+		merge_unique($vals[$key],$ret,$flag,$prim);
 	else
-		merge_strings($vals[$key],$ret,$flag);
+		merge_strings($vals[$key],$ret,$flag,$prim);
 	$is_enum = ( strlen($type) > 1 );
 
 	# row class ( for highlight )
-	$class = ( $flag ? 'diff' : 'small"' );
+	$class = ( $flag ? 'diff' : 'small' );
 	if( $type=='n' )
 		$class.=" disabled";
 
@@ -75,7 +95,7 @@ foreach( array_keys($vals) as $key )	{
 	foreach($vals[$key] as $val)	{
 		if( $is_enum )
 			$val = Machine::enumerate($key,$val);
-		print "<td>$val</td>";
+		print "<td>".htmlspecialchars($val)."</td>";
 	}
 
 	# print merge column
@@ -90,29 +110,31 @@ foreach( array_keys($vals) as $key )	{
 
 			# print the options
 			foreach ( $enum as $k=>$v ) {
-				$selected = ((!is_array($ret) && $k==$ret) || (is_array($ret) && $k==$vals[$key][0]) ? ' selected="yes"' : '');
+				$selected = ((!is_array($ret) && $k==$ret) || (is_array($ret) && $k==$vals[$key][$prim]) ? ' selected="yes"' : '');
 				printf('<option value="%s"%s>%s</option>',htmlspecialchars($k),$selected,htmlspecialchars($v));
 			}
 		}
 		else {
 			# non-enums, one-of('S'), different values -> just print them
 			foreach ( $ret as $r )
-                          {
-			     printf('<option value="%s">%s</option>',$r,htmlspecialchars($r));
-			  }
+				printf('<option value="%s">%s</option>',$r,htmlspecialchars($r));
 		}
 		print "</select></td>\n";
 	}
-	else  # non-enums, same values or concatenation('s') -> text box
-		printf("<td><input name=\"%s\" type=\"text\" %s value=\"%s\"/></td>",$key,(strlen($ret)>20 ? 'size="'.strlen($ret).'"' : ''),$ret);
+	else	{
+		# non-enums, same values or concatenation('s') -> text box
+		printf("<td><input name=\"%s\" type=\"text\" %s value=\"%s\"/></td>",$key,(strlen($ret)>20 ? 'size="'.strlen($ret).'"' : ''),htmlspecialchars($ret));
+	}
 	print "</tr>\n";
 }
+
+# table footer, end form
 print "</table>\n";
 foreach($ids as $id)
 	print '<input type="hidden" name="a_machines[]" value="'.$id."\"/>\n";
 print '<input type="submit" name="submit" value="Merge!"/>'."\n";
 print "</form>\n";
 
-print '<div>Machine reservations will migrated to the resulting machine. Please check the reservations for multiple users after the merge.</div>';
+print '<div>Machine reservations will be migrated to the resulting machine. Please check the reservations for multiple users after the merge.</div>';
 
 ?>

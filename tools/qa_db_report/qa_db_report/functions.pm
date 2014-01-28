@@ -178,10 +178,11 @@ sub scp	# srcdir, destdir
 	my $ret4 = 0;
 	if ( $destdir =~ /\/Maintenance\/Kernel\// )
 	{
-		my @parts = split /\//, $srcdir;
+		my @parts = split /\//;
+		my $srcdir;
 		my $name = $parts[-1];
 		$ret3 = system("ssh $login\@$hostname '[ -e $destdir/ltp ] || ln -sf . $destdir/ltp'") if is_ltp($name);
-		for my $suite qw(reaim newburn) {
+		foreach my $suite (qw(reaim newburn)) {
 			$ret4 += system("ssh $login\@$hostname '[ -e $destdir/$suite ] || ln -sf $name $destdir/$suite'") if $name =~ /^$suite(-\d{1,4})*$/;
 		}
 	}

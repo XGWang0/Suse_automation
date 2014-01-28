@@ -1,0 +1,94 @@
+#!/bin/bash
+# A tool to change Hamsta passwords from the commandline
+
+source /usr/share/qa/lib/config hamsta_master_sql
+
+# read QACONF DB settings
+for A in db host port pwd user
+do
+	export db$A="`get_qa_config $A`"
+done
+
+# print help if requested
+if [ "$1" = "--help" ]
+then
+	echo "Usage: $0 --list | [<user>]"
+	echo "  --list: lists all existing users"
+	echo "  otherwise changes <user>'s password for Hamsta"
+	echo "  with no options, changes administrator's password"
+	exit
+fi
+
+# change administrator's password by default
+if [ -z "$1" ]
+then
+	user="administrator"
+else
+	user="$1"
+fi
+
+# create base mysql connect command
+base="mysql \"$dbdb\""
+for A in host port user
+do
+	var="db$A"
+	if [ ! -z "${!var}" ]
+	then
+		base="$base --$A=\"${!var}\""
+	fi
+done
+if [ ! -z $dbpwd ]
+then
+	base="$base --password=\"$dbpwd\""
+fi
+
+# check connection 
+if ! echo | eval $base
+then
+	echo "DB connection not working - please set DB access in you QAconf"
+	exit
+fi
+
+
+# list mode ?
+if [ $user = "--list" ]
+then
+	echo "Users (marked those with password set):"
+	eval "$base -BNe \"SELECT CONCAT('  ',login,IF(password<>'',' (*)','')) FROM user\""
+	exit
+fi
+
+# check if user exists in the database
+count=`eval "$base -BNe \"SELECT COUNT(*) FROM user WHERE login='$user'\""`
+if [ $count -eq 0 ]
+then
+	echo "User '$user' does not exist."
+	exit;
+fi
+
+# ask for new password
+echo -n "Enter  NEW password for Hamsta user '$user': "
+stty -echo
+read pass
+echo
+echo -n "Retype NEW password for Hamsta user '$user': "
+read pass2
+echo
+stty echo
+
+# check if they match
+if [ ! "$pass" = "$pass2" ]
+then
+	echo "Passwords do not match."
+	exit;
+fi
+
+# do the update
+if [ -z "$pass" ]
+then
+	eval "$base -BNe \"UPDATE user SET password='' WHERE login='$user'\""
+else
+	eval "$base -BNe \"UPDATE user SET password=SHA1('$pass') WHERE login='$user'\""
+fi
+
+

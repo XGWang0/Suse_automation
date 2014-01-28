@@ -98,6 +98,9 @@
 	   case "addsut":
 			$go = "addsut";
 			return require("inc/addsut.php");
+	   case 'machine_reserve':
+			$go = 'machine_reserve';
+			return require ('inc/machine_reserve.php');
 	}
 
 	$searched_fields = array();
@@ -304,6 +307,8 @@
 				if ($key == 'group')
 				{
 					$filter = request_str ($key);
+					if ( ! empty($filter) )
+						$ns_machine_filter->fields[$key] = $filter;
 				}
 			}
 	
@@ -585,7 +590,7 @@
 		else
 		{
 			$tmp_fields_list = array_merge($default_fields_list, $display_fields);
-			$tmp_fields_list = array_unique($tmp_fields_list, SORT_STRING);
+			$tmp_fields_list = array_unique($tmp_fields_list);
 			$mf = new MachineFilter($machines, $fulltext, $tmp_fields_list);
 		}
 		$machines = $mf->filter();

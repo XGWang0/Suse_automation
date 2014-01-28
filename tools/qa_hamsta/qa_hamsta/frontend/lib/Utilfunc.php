@@ -85,59 +85,71 @@
 
 /**
  * Merge and concatenate strings (type 's').
- *
  * @param string[] $s Array of strings to merge.
  * @param string $ret String where strings will be merged to.
  * @param boolena $flag True if there were differences.
  */
-function merge_strings ($s, &$ret, &$flag)
+function merge_strings($s, &$ret, &$flag, $prim=0)
 {
-  $s = array_unique ($s);
-  $ret = $s[0];
-  $flag = 0;
-  $i = 1;
+	# if $s[$prim] is defined, put it at beginning
+	if (array_key_exists($prim, $s))
+		array_unshift($s, $s[$prim]);
 
-  for ( ; $i < count ($s); $i++ )
-    {
-       if ( ! isset ($s[$i]) )
-         continue;
+	# filter out duplicities (and handle double $s[$prim])
+	$s = array_values(array_unique($s));
 
-       if ( strlen ($ret) )
-         {
-           $ret = $ret . ', ' . $s[$i];
-         }
-       else
-         {
-           $ret = $s[$i];
-         }
-    }
+	$ret = '';
+	$choices = 0;
 
-  $flag = $i - 1;
+	for ( $i=0; $i < count($s); $i++ )	{
+		if ( isset($s[$i]) )
+			rtrim($s[$i]);
+
+		if ( !isset($s[$i]) || strlen($s[$i]) == 0 )
+			continue;
+
+		if ( strlen($ret) )
+			$ret = $ret . ', ' . $s[$i];
+		else
+			$ret = $s[$i];
+
+		$choices++;
+	}
+
+	# are there multiple choices?
+	$flag = ($choices > 1);
 }
 
 /**
  * Merge arrays (type 'S', one-of).
- *
  * @param array $s Array of values to merge.
  * @param array $ret Array in which the result will be merged.
  * @param boolean $flag True if there were differences.
+ * @param prim int index of string that should go first (for defaults)
  */
-function merge_unique ($s, &$ret, &$flag)
+function merge_unique($s, &$ret, &$flag, $prim=0)
 {
-  $ret = array_unique ($s);
-  for ( $i = 0; $i < count ($ret); $i++ )
-    {
-      if ( isset ($ret[$i]) )
-        rtrim ($ret[$i]);
+	# if $s[$prim] is defined, put it at beginning
+	if (array_key_exists($prim, $s))
+		array_unshift($s, $s[$prim]);
 
-      if ( ! isset ($ret[$i]) || strlen ($s[$i]) == 0 )
-        array_splice ($ret, $i, 1);
-    }
+	# filter out duplicities (and handle double $s[$prim])
+	$ret = array_values(array_unique($s));
 
-  $flag = (count ($ret) > 1) ? 1 : 0;
+	# process result - remove trailing spaces and empty lines
+	for ( $i = 0; $i < count($ret); $i++ )	{
+		if ( isset($ret[$i]) )
+			rtrim($ret[$i]);
 
-  if ( ! $flag )
-    $ret = (count ($ret)) ? $ret[0] : '';
+		if ( !isset($ret[$i]) || empty($s[$i]) )
+			array_splice($ret, $i, 1);
+	}
+
+	# report if there are multiple choices
+	$flag = ( count($ret) > 1) ? 1 : 0;
+
+	if( !$flag )
+		$ret = ( count($ret) ) ? $ret[0] : '';
 }
 
 function action_menu_item ($values) {
@@ -176,10 +188,10 @@ function act_menu($args)
 	print '<li class="has-sub"><a href="' . $args['send-job']['href'] . '" onclick="'
 		. $args['send-job']['onclick'] . '"><img src="' . $args['send-job']['src']. '"/>Send job</a>';
 	print '<ul>';
-	print action_menu_item (array ('href'=>$args['send-job']['href'] . '#predefined',
+	print action_menu_item (array ('href'=>$args['send-job']['href'] . '#singlemachine',
 				       'onclick'=>$args['send-job']['onclick'],
 				       'src'=>$args['send-job']['src'],
-				       'name'=>'Pre-defined job'));
+				       'name'=>'Single-machine job'));
 	print action_menu_item (array ('href'=>$args['send-job']['href'] . '#qapackage',
 				       'onclick'=>$args['send-job']['onclick'],
 				       'src'=>$args['send-job']['src'],
@@ -420,11 +432,17 @@ function virtual_machine_icons ($machine, $user)
 	return $ret;
 }
 
-function redirect($args=array())
+function redirect($errmsg=NULL,$success=false,$url=NULL)
 {
-	$errmsg=hash_get($args,'errmsg','You need to be logged in and/or have permissions ');
-	$url=hash_get($args,'url','index.php');
-	fail($errmsg);
+	if(empty($errmsg))
+	    $errmsg='You need to be logged in and/or have permissions ';
+	if(empty($url))
+	    $url='index.php';
+	var_dump($errmsg);
+	if($success)
+	    success($errmsg);
+	else
+	    fail($errmsg);
 	header("Location: $url");
 	exit();
 }

@@ -8,6 +8,7 @@
         <mail notify="1"></mail>        
         <logdir>/tmp</logdir>
         <description>Format abuild work space into ext3</description>
+        <reboot>0</reboot>
     </config>
 
     <commands>

@@ -793,6 +793,10 @@ class User {
 	  return in_array ($roleName, $this->getRoleList ());
   }
 
+  public function isAdmin () {
+	  return $this->isInRole ('admin');
+  }
+
   /**
    * Return list of roles this user is cast in.
    *
@@ -1067,6 +1071,9 @@ function permission_or_redirect($args=array())
 function permission_or_disabled($args=array())
 {
 	$perms=hash_get($args,'perm',array());
+	if (! is_array ($perms)) {
+		$perms = array ($perms);
+	}
 	if( !call_user_func_array('capable',$perms) )
 		disable($args);
 }

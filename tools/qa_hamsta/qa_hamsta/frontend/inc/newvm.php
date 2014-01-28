@@ -147,6 +147,10 @@ if (request_str("proceed")) {
 			$args .= " -D";
 		if ($virtcpu)
 			$args .= " -c $virtcpu";
+                if ($virtinitmem)
+                        $args .= " -m $virtinitmem";
+                if ($virtmaxmem)
+                        $args .= " -M $virtmaxmem"; 
 		if ($virtdisksizestring and $virtdisktypestring) {
 			$virtdisktypestring = preg_replace("/def/","file",$virtdisktypestring); 
 			$args .= " -d $virtdisksizestring -T $virtdisktypestring";
@@ -173,7 +177,7 @@ if (request_str("proceed")) {
 		}
 		# Check if a validation test is needed
 		if ($validation) {
-			$validationfiles = split (" ", $config->xml->validation);
+			$validationfiles = explode (" ", $config->xml->validation);
 			foreach ( $validationfiles as &$validationfile ) {
 				$randfile= "/tmp/validation_$rand.xml";
 				system("cp $validationfile $randfile");

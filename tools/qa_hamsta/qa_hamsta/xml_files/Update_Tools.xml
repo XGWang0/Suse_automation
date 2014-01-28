@@ -10,6 +10,7 @@
         <logdir>/tmp</logdir>
         <description>Update the tools.</description>
         <motd>[Custom job]: </motd>
+        <reboot>0</reboot>
     </config>
 
     <commands>

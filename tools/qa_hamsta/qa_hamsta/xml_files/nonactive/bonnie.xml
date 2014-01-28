@@ -8,6 +8,7 @@
 	<description>Bonnie filesystem benchmark, approximate runtime 20 minutes</description>
 	<logdir>/tmp</logdir>
 	<rpm>hamsta bonnie-ctcs2-glue</rpm>
+        <reboot>0</reboot>
     </config>
 
     <commands>

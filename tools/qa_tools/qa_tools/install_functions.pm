@@ -58,7 +58,9 @@ sub parse_source_url
 	if( $name =~ /(os|opensuse|suse-linux|suse)-?(\d+)\.(\d+)/i  or
 			$name =~ /(full)-(\d+).(\d+)-(\w+)/i) {
 		($type,$ver,$sub) = ( 'opensuse', $2, $3 );
-	} elsif(  $name =~ /(sles?|sled)-?(\d+)(.*?-?sp-?(\d+))?/i or
+	}elsif( $name =~ /factory/i ) {
+		($type,$ver,$sub) = ( 'opensuse',99,99 );
+	}elsif(  $name =~ /(sles?|sled)-?(\d+)(.*?-?sp-?(\d+))?/i or
 			$name =~ /full-(sles?)(\d+)(-sp(\d+))?/i ) {
 		($type,$ver,$sub) = ( 'sles', $2, $4 );
 		$type=lc($1) if lc($1) eq 'sled';
@@ -177,6 +179,7 @@ sub get_patterns
 		$ret .= ",".$args->{'patterns'};
 	} else	{
 		# case 3: patterns set without '+', use instead of detected
+		$args->{'patterns'} .= ",sw_management" if($args->{'to_type'} eq 'opensuse' and $args->{'to_version'} > 11);
 		return $args->{'patterns'};
 	}
 	if($args->{'to_type'} eq 'sled') { 
@@ -192,8 +195,9 @@ sub get_patterns
 sub get_packages
 {
 	my $args = shift;
-	my $ret='qa_tools,qa_hamsta,autoyast2,vim,mc,iputils,less,screen,lsof,pciutils,tcpdump,telnet,zip,yast2-runlevel,SuSEfirewall2,curl,wget,perl,openssh';
-	if( $args->{'to_type'} eq 'opensuse' or $args->{'to_type'} eq 'sled') {
+	my $ret='qa_tools,qa_hamsta,autoyast2,vim,mc,iputils,less,screen,lsof,pciutils,tcpdump,telnet,zip,SuSEfirewall2,curl,wget,perl,openssh';
+	$ret .= ",yast2-runlevel" if $args->{'to_version'} < 12;
+	if( $args->{'to_type'} eq 'opensuse' or $args->{'to_type'} eq 'sled' or $args->{'to_version'} > 11) {
 		$ret .= ',nfs-client';	
 	} else {	
 		$ret .= ',nfs-utils';	
@@ -207,6 +211,7 @@ sub get_packages
 	$ret .= ",atk-devel,at-spi,gconf2" if $args->{'setupfordesktoptest'};
 	$ret .= ",".$args->{'additionalrpms'} if (defined $args->{'additionalrpms'});
 	$ret .= ','.$qaconf{install_additional_rpms}  if $qaconf{install_additional_rpms};
+	$ret .= ',grub2' if( ($args->{'to_type'} eq 'opensuse' and $args->{'to_version'} > 11)||( $args->{'to_type'} =~ /sle/i and $args->{'to_version'} > 11 ));
 	$args->{'packages'} = $ret;
 }
 
@@ -227,6 +232,7 @@ sub _get_buildservice_repo
 		return "openSUSE_12.1" if $version==12 and $subversion==1;
 		return "openSUSE_12.2" if $version==12 and $subversion==2;
 		return "openSUSE_12.3" if $version==12 and $subversion==3;
+		return "openSUSE_13.1" if $version==13 and $subversion==1;
 		return 'openSUSE_Factory';
 	} else {
 		return 'SLES_9' if $version==9;
@@ -238,7 +244,8 @@ sub _get_buildservice_repo
 		return 'SUSE_SLE-11-SP1_GA' if $version==11 and $subversion==1;
 		return 'SUSE_SLE-11-SP2_GA' if $version==11 and $subversion==2;
 		return 'SUSE_SLE-11-SP3_GA' if $version==11 and $subversion==3;
-		return 'SLE_Factory' if $version>11;
+		return 'SUSE_SLE-12_GA' if $version==12 and $subversion==0;
+		return 'SLE_Factory' if $version > 12;
 	}
 	return undef;
 }
@@ -354,15 +361,15 @@ EOF
 		print $f "\t    <email>".$args->{'ncc_email'}."</email>\n";
 		foreach my $rcode (split(/,/, $args->{'ncc_code'})) {
 			my $prname = "";
-			# Possible regi-codes could be: WORKFORCEID@PRV-EXT-SLES-XXXXXXXXXX
-			# or sles10XXXXXXXX
-			if ($rcode =~ /^.+(-.+){3}.+$/) {
-				$rcode =~ /^.*-([^-]+)-[^-]+$/;
-				$prname = lc $1;
-			} else {
-				$rcode =~ /^([a-zA-Z]+)\d+.+$/;
-				$prname = lc $1;
+			# According to the new proposal of reinstall page. The product code is not extracted from
+			# registration code any more, and let the user input the accurate one if not product name
+			# is guessed. Unified the code format as 'productname+xxxxxxxx"
+			if ($rcode=~ /^(.+)\+(.+)$/)
+			{
+			    $prname = lc $1;
+			    $rcode  = lc $2
 			}
+
 			print $f "		<regcode-$prname>$rcode</regcode-$prname>";
 		}
 		print $f "	  </registration_data>\n";
@@ -648,6 +655,15 @@ $postcmd
 			print $f "	  <hostname>".$args->{'hostname'}."</hostname>\n";
 			print $f "	  <domain>".$args->{'domainname'}."</domain>\n";
 		}
+		# fix bug 832698 - Entry for HOSTNAME is absent in /etc/hosts
+		my $curHostName=`hostname`;
+		chomp($curHostName);
+		my $curDomain=`hostname -d 2>/dev/null`;
+		my $ret=system("grep -E \"^127.0.0.2\\s+$curHostName.$curDomain\\s+$curHostName\" /etc/hosts");
+		if( $ret eq 0 ) {
+	                print $f "	  <write_hostname config:type=\"boolean\">true</write_hostname>\n";
+		}
+
 		print $f "	</dns>\n";
 		print $f "	<interfaces config:type=\"list\">\n";
 		foreach my $if ( glob "/sys/class/net/*" )	{
@@ -903,7 +919,11 @@ sub _print_profile_bootloader
 					print $f "	<generic_mbr>false</generic_mbr>\n";
 					print $f "	<timeout config:type=\"integer\">5</timeout>\n";
 					print $f "    </global>\n";
-					print $f "    <loader_type>grub</loader_type>\n";
+					#detect the grub version
+					my $grub = 'grub2';
+					$grub = 'grub' if( $args->{'to_type'} eq 'opensuse' and $args->{'to_version'} < 12 );
+					$grub = 'grub' if( $args->{'to_type'} =~ /sle/i and $args->{'to_version'} < 12 );
+					print $f "    <loader_type>$grub</loader_type>\n";
 				}
 				print $f "  </bootloader>\n";
 			}

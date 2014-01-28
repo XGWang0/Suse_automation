@@ -13,7 +13,7 @@ Release:        2
 Requires:       perl
 AutoReqProv:    on
 Group:          Development/Libraries/Perl
-License:        Artistic; GPL v1 or later
+License:        Artistic-1.0 or GPL-1.0+
 Url:            http://cpan.org/modules/by-module/Term/
 Summary:        Term::ReadPassword - Asking the user for a password
 Source:         Term-ReadPassword-%{version}.tar.bz2

@@ -1,0 +1,48 @@
+#!/bin/bash
+
+export LANG=C
+
+this="`which "$0"`"
+cd "`dirname "$this"`"
+
+[ -r PROJECT/config ] && source PROJECT/config
+
+# Configuration - will be moved to some file later
+if [ -r config ] 
+then
+	source config
+else
+	source config.example
+fi
+
+if ! which webfsd > /dev/null 2>&1 
+then
+	cat >&2 << EOF 
+************************** ERROR ********************************
+Package webfs is not installed (from QA:Head). 
+
+Please install and try again, or use configure other http server
+to publish repository $REPOSITORY
+*****************************************************************
+
+EOF
+	exit 1
+fi
+
+# start server 
+
+cat << EOF
+
+Now starting web server...
+
+You can connect to 
+
+	http://`hostname -f`:$PORT
+
+or 
+
+	http://`hostname -i`:$PORT
+
+(running)
+EOF
+exec webfsd -p $PORT -r $REPO -F -e 0

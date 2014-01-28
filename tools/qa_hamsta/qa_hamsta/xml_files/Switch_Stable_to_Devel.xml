@@ -9,6 +9,7 @@
         <logdir>/tmp</logdir>
         <rpm>qa_hamsta zypper</rpm>
         <description>If machine is running QA:Head, than it is switched to QA:Head:Devel. This job always fails since the hamsta is restarted in the last step! See job output to check whether it was successful.</description>
+        <reboot>0</reboot>
     </config>
 
     <commands>

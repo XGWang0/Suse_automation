@@ -743,8 +743,11 @@ function cached_query()
 				$statement->bindValue($i,$args[$i],$type);
 			}
 		}
-		else
+		else	{
+			foreach($args as $key => $value)
+				$args[$key] = &$args[$key];
 			call_user_func_array(array($statement,'bind_param'),$args);
+		}
 	}
 	if( !$statement->execute() )	{
 		if( $is_pdo && $statement->errorCode()==42000 )	{
@@ -826,7 +829,10 @@ function uncached_query($sql)
   **/
 function connect_to_mydb()
 {
-	global $mysqli,$mysqlhost,$mysqluser,$mysqlpasswd,$mysqldb,$pdo,$is_pdo;
+	global $mysqli,$mysqlhost,$mysqluser,$mysqlpasswd,$mysqldb,$mysqlcharset,$pdo,$is_pdo;
+	if ( !isset($mysqlcharset)) {
+		$mysqlcharset = 'UTF8';
+	}
 	if( !isset($mysqlhost) || !isset($mysqluser) || !isset($mysqldb) )	{
 		require_once('myconnect.inc.php');
 	}
@@ -835,6 +841,7 @@ function connect_to_mydb()
 		try {
 			$pdo=new PDO("mysql:dbname=$mysqldb;host=$mysqlhost",$mysqluser,$mysqlpasswd);
 			$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+			$pdo->exec("SET NAMES $mysqlcharset");
 			return $pdo;
 		} catch( Exception $e ) {
 			return null;
@@ -844,6 +851,7 @@ function connect_to_mydb()
 		$mysqli=@new mysqli($mysqlhost,$mysqluser,$mysqlpasswd,$mysqldb);
 		if( mysqli_connect_error() )
 			return null;
+		mysqli_query("SET NAMES UTF8");
 		return $mysqli;
 	}
 }

@@ -10,6 +10,7 @@
         <logdir>/tmp</logdir>
         <description>Force-off and Delete virtual machine and all its data and disk images</description>
         <motd>Deletion of virtual machine in progress...</motd>
+        <reboot>0</reboot>
     </config>
 
     <commands>

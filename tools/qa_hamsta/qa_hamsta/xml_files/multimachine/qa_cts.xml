@@ -11,6 +11,7 @@
         <mail notify="0">vmarsik@suse.cz</mail>        
 	<description>HA cluster CTS test</description>
 	<logdir>/tmp</logdir>
+        <reboot>0</reboot>
     </config>
 
     <commands>

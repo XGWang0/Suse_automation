@@ -19,6 +19,7 @@
         <rpm>qa_test_yast_HA</rpm>      
         <description>HA Server yast2 tools UI Automation test</description>
         <logdir>/tmp</logdir>
+        <reboot>0</reboot>
     </config>
     <commands>
      <worker>
