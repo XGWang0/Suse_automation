@@ -6,7 +6,7 @@
 Name:		pssh
 Version:	2.2.2
 Release:	1
-License:	BSD 2-Clause
+License:	BSD-2-Clause
 Group:		Productivity/Networking/SSH
 Summary:	Parallel SSH tools
 Source:		%{name}-%{version}.tar.bz2
@@ -19,7 +19,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 %description
 Authors: Brent N. Chun, Andrew McNabb
 Parallel SSH
-PSSH provides parallel versions of OpenSSH and related tools. 
+PSSH provides parallel versions of OpenSSH and related tools.
 Included are pssh, pscp, prsync, pnuke, and pslurp.
 
 %package python

@@ -1,7 +1,7 @@
 #
 # spec file for package epoch
 #
-# Copyright (c) 2013 SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) 2013, 2014 SUSE LINUX Products GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -19,12 +19,12 @@
 
 BuildRequires:  coreutils
 Name:           epoch
-License:        LGPL v2.1 or later
+License:        LGPL-2.1+
 Group:          Development/Sources
 AutoReqProv:    on
 Version:        1.06
 Release:        0
-Summary:        Epoch JavaScript calendar
+Summary:        JavaScript calendar
 Url:            http://www.epoch-calendar.com
 Source:         %{name}-%{version}.tar.bz2
 Source1:	%{name}.8

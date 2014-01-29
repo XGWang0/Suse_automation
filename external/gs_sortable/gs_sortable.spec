@@ -1,7 +1,7 @@
 #
 # spec file for package gs_sortable
 #
-# Copyright (c) 2013 SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) 2013, 2014 SUSE LINUX Products GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -19,12 +19,12 @@
 
 BuildRequires:  coreutils
 Name:           gs_sortable
-License:        GPL v2 only, X11/MIT
+License:        LGPL-3.0
 Group:          Development/Sources
 AutoReqProv:    on
 Version:        1.8
 Release:        0
-Summary:        gs_sortable.js table sort script
+Summary:        Table sort script
 Url:            http://www.allmyscripts.com/Table_Sort/index.html
 Source:         %{name}-%{version}.tar.bz2
 Source1:	%{name}.8

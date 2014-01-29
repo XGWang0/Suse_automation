@@ -1,7 +1,7 @@
 #
 # spec file for package jquery
 #
-# Copyright (c) 2013 SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) 2013, 2014 SUSE LINUX Products GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -19,12 +19,12 @@
 
 BuildRequires:  coreutils
 Name:           jquery
-License:        GPL v2 only, X11/MIT
+License:        GPL-2.0
 Group:          Development/Sources
 AutoReqProv:    on
 Version:        1.7
 Release:        0
-Summary:        jQuery Javascript tool 
+Summary:        JavaScript framework
 Url:            http://jquery.com
 Source:         %{name}-%{version}.tar.bz2
 Source1:	%{name}.8
@@ -33,7 +33,7 @@ BuildArch:      noarch
 PreReq:         coreutils
 
 %description
-jQuery Javascript library.
+jQuery JavaScript library.
 
 
 Authors:

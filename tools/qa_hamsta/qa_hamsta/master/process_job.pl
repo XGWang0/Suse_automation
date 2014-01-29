@@ -381,6 +381,7 @@ sub machine_status_timeout($$$$$) {
 	$timeout *= 60;
 	my $init_time = 0;
 	while( &machine_get_status($machine_id) != MS_UP ) {
+		$dbc->commit();	# do not remove, or cause a deadlock
 		if($init_time>$timeout) {
 			#timeout we jump out
 			$_[0] = JS_FAILED;
@@ -390,6 +391,7 @@ sub machine_status_timeout($$$$$) {
 		sleep 60;
 		$init_time += 60;
 	}
+	$dbc->commit();
 }
 
 #return the vaule of config option, 
