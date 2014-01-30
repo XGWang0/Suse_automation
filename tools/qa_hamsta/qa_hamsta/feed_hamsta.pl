@@ -47,7 +47,7 @@ binmode(STDOUT, ":utf8");
 my $debug = 0;
 
 #correspond with version of hamsta.
-my $version = "2.3";
+my $version = "2.7";
 
 
 #my $tmpfile = "/tmp/$progname.$$";
@@ -61,18 +61,17 @@ $progname version $version
 $progname [OPTIONS] <master>[:<port>]
 
 Options:
-	-t|--jobtype <jobtype>  set the job type(number):
-				1 pre-define 
-				2 qa_package
-				3 autotest
-				4 mult_machine
-				5 reinstall
+	-t|--jobtype <jobtype>  set the job type (number)
+				1 Single machine
+				2 QA package
+				3 Autotest
+				4 Multi machine
+				5 Reinstall
 	-n|--testname <testname>
 				set test name for the job work with -t option 
 		                (only for pre-define, qa_package, autotest, mult_machine)
 		                seperate by ',' for qa_package&autotest job
-	-l|--listcases		print the support test case name for each jobtype
-				work with -t option
+	-l|--listcases		print the support test case names for jobtypes 1 to 4
 	-r|--roles		for mult-machine jobs, set roles number and host
 		         	Assign SUT to roles , format like:
 					-r 'r0:host1,host2;r1:host3,host4'
@@ -81,7 +80,7 @@ Options:
 	   --re_sdk [url]		set reinstall sdk
 	   --pattern [pattern1,...]	set install pattern
 	   --rpms [rpm1,rpm2,...]	set extra rpm packages
-	   --kexec			set kexec option
+	   --kexec			use kexec
 
 	-U|--user		log in as user
 	-P|--password		use password (use with --user option)
@@ -142,7 +141,7 @@ unless (GetOptions(
 		   'roles|r=s'		=> \$opt_roles,
 		   're_url|u=s'		=> \$opt_re_url,
 		   're_sdk=s'		=> \$opt_re_sdk,
-		   'kexec'		=> \$opt_re_kexec
+		   'kexec'		=> \$opt_re_kexec,
 		   'pattern=s'		=> \$opt_re_pattern,
 		   'rpms=s'		=> \$opt_re_rpms,
 		   'cmd|x=s'		=> \$opt_cmd,

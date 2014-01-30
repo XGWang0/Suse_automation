@@ -1,48 +1,82 @@
 ." Manpage for feed_hamsta.pl.
 ." Written by Cyril Hrubis <chrubis@suse.cz>
-.TH man 1 "22 May 2013" "1.0" "feed_hamsta.pl"
+.TH HAMSTA 1 "22 May 2013" "1.0" "feed_hamsta.pl"
 .SH NAME
 feed_hamsta.pl \- Hamsta command-line client
 .SH SYNOPSIS
 .B feed_hamsta.pl
-[OPTIONS] <master>[:port]
+[\fIOPTIONS\fR] \fIMASTER\fR[:\fIPORT\fR]
 .SH DESCRIPTION
 Hamsta command-line client
 .SH OPTIONS
 .TP
-\fB\-U\fR, \fB\-\-user\fR
-Authenticated as given user.
+\fB\-U\fR=\fILOGIN\fR, \fB\-\-user\fR=\fILOGIN\fR
+Authenticate as user with \fILOGIN\fR.
 .TP
-\fB\-P\fR, \fB\-\-password\fR
-User password.
+\fB\-P\fR=\fIPASS\fR, \fB\-\-password\fR=\fIPASS\fR
+User's password.
 
-\fINote:\fR this may not be the same password that you use to log into the Web
-UI. See Hamsta password settings in the Web UI for details.
+\fINote:\fR This may not be the same password that you use to log into
+the Web UI. See Hamsta password settings in the Web UI for details.
 .TP
 \fB\-p\fR, \fB\-\-print-active\fR
-Prints list of machines active in the Hamsta master.
+Prints list of machines active at the Hamsta \fIMASTER\fR.
 .TP
-\fB\-h\fR, \fB\-\-host\fR
-Machine to work with, either name or IP.
+\fB\-h\fR=\fIHOST\fR, \fB\-\-host\fR=\fIHOST\fR
+Machine to work with. The \fIHOST\fR can be the machine's hostname or IP address.
 .TP
-\fB\-x\fR, \fB\-\-cmd\fR
-Executes arbitrary command.
+\fB\-x\fR=\fICOMMAND\fR, \fB\-\-cmd\fR=\fICOMMAND\fR
+Executes an arbitrary \fICOMMAND\fR.
 .TP
-\fB\-t\fR, \fB\-\-jobtype\fR
-Sets the group of jobs (1-5) to work with, either for job listing or execution.
+\fB\-t\fR=\fIN\fR, \fB\-\-jobtype\fR=\fIN\fR
+Sets the group of jobs to work with, either for job listing or
+execution. The \fIN\fR is an integer in range from 1 to 5 inclusive.
+
+The \fIN\fR has following meanings.
+
+    \fB1\fR \- Single machine job
+    \fB2\fR \- QA package job
+    \fB3\fR \- Autotest job
+    \fB4\fR \- Multi machine job
+    \fB5\fR \- Reinstall job
 .TP
 \fB\-l\fR, \fB\-\-listcases\fR
-List the testcases given the jobtype (the jobtype must be set).
+List the testcases given the jobtype (the jobtype must be set). Does
+not work for jobtype 5.
 .TP
 \fB\-n\fR, \fB\-\-testname\fR
-Testname to be executed given the jobtype (the jobtype must be set).
+Testname to be executed given the jobtype. Only works with jobtypes from 1 to 4.
 .TP
-\fB\-u\fR, \fB\-\-re_url\fR
-Reinstallation source URL.
+\fB\-u\fR=\fIURL\fR, \fB\-\-re_url\fR=\fIURL\fR
+Reinstallation source \fIURL\fR. Works only with jobtype 5.
 .TP
-\fB\-m\fR, \fB\-\-mail\fR
-Mail address to send notification to. The notification is send when the job is
-finished and contains basic information about the job result.
+\fB\-\-re_sdk\fR=\fIURL\fR
+The SDK source \fIURL\fR. Only works with jobtype 5.
+.TP
+\fB\-\-pattern\fR=\fIPAT\fR[,\fIPAT\fR...]
+Use one or more installation patterns during the installation. Only
+works with jobtype 5.
+.TP
+\fB\-\-rpms\fR=\fIRPM\fR[,\fIRPM\fR...]
+Install also \fIRPM\fR packages. Only works with jobtype 5.
+.TP
+\fB\-\-roles\fR=\fIROLESPEC\fR
+Assign \fIHOST\fRs to roles according to \fIROLESPEC\fR. Only works
+with the jobtype 5. The \fIROLESPEC\fR (role specification) general
+format is following.
+
+    r0:host1[,host2...][;r1:host3[,host4...]...]
+
+The role number starts at 0 and increments by one. There can be any
+number of hosts in each role but at least one.
+.TP
+\fB\-\-kexec\fR
+Reload using \fBkexec\fR(8). Only works with the jobtype 5.
+.TP
+\fB\-m\fR=\fIADDRESS\fR, \fB\-\-mail\fR=\fIADDRESS\fR
+Use the mail \fIADDRESS\fR to send notification when job
+completes. The notification contains basic information about the job
+result.
 .TP
 \fB\-\-help\fR
 Prints help.
@@ -53,7 +87,7 @@ feed_hamsta.pl -p hamsta.master.foo
 Prints list of active machines in hamsta.master.foo.
 .TP
 feed_hamsta.pl -t 1 -l hamsta.master.foo
-Prints possible pre-defined jobs.
+Prints possible single machine jobs.
 .PP
 \fBFor all actions that modify the machine user must register the
 machine in Web UI beforehand.\fR
@@ -75,7 +109,7 @@ have to have matching Hamsta master and client.
 .SH WARNINGS
 None.
 .SH SEE ALSO
-None.
+\fBkexec\fR(8)
 .SH BUGS
 None.
 .SH DISTRIBUTION
