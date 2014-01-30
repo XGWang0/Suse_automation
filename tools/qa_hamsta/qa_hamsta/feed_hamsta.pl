@@ -47,7 +47,7 @@ binmode(STDOUT, ":utf8");
 my $debug = 0;
 
 #correspond with version of hamsta.
-my $version = "2.3";
+my $version = "2.7";
 
 
 #my $tmpfile = "/tmp/$progname.$$";
@@ -81,7 +81,7 @@ Options:
 	   --re_sdk [url]		set reinstall sdk
 	   --pattern [pattern1,...]	set install pattern
 	   --rpms [rpm1,rpm2,...]	set extra rpm packages
-	   --kexec			set kexec option
+	   --kexec			use kexec
 
 	-U|--user		log in as user
 	-P|--password		use password (use with --user option)
@@ -142,7 +142,7 @@ unless (GetOptions(
 		   'roles|r=s'		=> \$opt_roles,
 		   're_url|u=s'		=> \$opt_re_url,
 		   're_sdk=s'		=> \$opt_re_sdk,
-		   'kexec'		=> \$opt_re_kexec
+		   'kexec'		=> \$opt_re_kexec,
 		   'pattern=s'		=> \$opt_re_pattern,
 		   'rpms=s'		=> \$opt_re_rpms,
 		   'cmd|x=s'		=> \$opt_cmd,
