@@ -1,7 +1,7 @@
 #!BuildIgnore: post-build-checks
 # ****************************************************************************
 # Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
-# 
+#
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
 # RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
@@ -12,7 +12,7 @@
 # PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
 # AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
 # LIABILITY.
-# 
+#
 # SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
 # WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
@@ -26,31 +26,50 @@
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
-# norootforbuild
 
-BuildRequires:  coreutils
 Name:           qa_hamsta
-License:        SUSE Proprietary
-Group:          System/Management
-AutoReqProv:    on
 Version:        @@VERSION@@
 Release:        0
+License:        SUSE Proprietary
 Summary:        HArdware Maintenance, Setup & Test Automation
 Url:            http://qa.suse.de/hamsta
+Group:          System/Management
 Source:         %{name}-%{version}.tar.bz2
 Source1:        perl_module_usage
-NoSource:       1       
-Source3:	qa_hamsta.8
+Source2:        qa_hamsta.8
+BuildRequires:  coreutils
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
+NoSource:       1
 %if 0%{?sles_version} == 9
-Requires:       perl perl-Net-Server perl-URI perl-XML-Dumper perl-IO-Socket-Multicast perl-Proc-Fork perl-XML-Simple qa_tools qa_libperl hamsta-common hamsta-cmdline screen
+Requires:       hamsta-cmdline
+Requires:       hamsta-common
+Requires:       perl
+Requires:       perl-IO-Socket-Multicast
+Requires:       perl-Net-Server
+Requires:       perl-Proc-Fork
+Requires:       perl-URI
+Requires:       perl-XML-Dumper
+Requires:       perl-XML-Simple
+Requires:       qa_libperl
+Requires:       qa_tools
+Requires:       screen
 %else
-Requires:       perl perl-Net-Server perl-URI perl-XML-Dumper perl-IO-Socket-Multicast perl-Proc-Fork perl-XML-Simple qa_tools qa_libperl hamsta-common
-Recommends:	hamsta-cmdline screen
+Requires:       hamsta-common
+Requires:       perl
+Requires:       perl-IO-Socket-Multicast
+Requires:       perl-Net-Server
+Requires:       perl-Proc-Fork
+Requires:       perl-URI
+Requires:       perl-XML-Dumper
+Requires:       perl-XML-Simple
+Requires:       qa_libperl
+Requires:       qa_tools
+Recommends:     hamsta-cmdline
+Recommends:     screen
 %endif
-Provides:	hamsta
-Obsoletes:	hamsta
+Provides:       hamsta
+Obsoletes:      hamsta
 
 %description
 Allows to build a network of test machines. Machines are monitored by
@@ -70,19 +89,42 @@ Authors:
             Vilem Marsik   <vmarsik@suse.cz>
             Leon Wang      <llwang@novell.com>
 
-
-%package master  
-License:        SUSE Proprietary  
-Summary:        HArdware Maintenance, Setup & Test Automation  
-Group:          System/Management  
+%package master
+License:        SUSE Proprietary
+Summary:        HArdware Maintenance, Setup & Test Automation
+Group:          System/Management
 %if 0%{?sles_version} == 9
-Requires:       perl perl-DBD-mysql perl-IO-Socket-Multicast perl-XML-Dumper perl-XML-Simple perl-Proc-Fork perl-MIME-Lite screen hamsta-cmdline hamsta-jobs qa_libperl perl-URI
+Requires:       hamsta-cmdline
+Requires:       hamsta-jobs
+Requires:       perl
+Requires:       perl-DBD-mysql
+Requires:       perl-IO-Socket-Multicast
+Requires:       perl-MIME-Lite
+Requires:       perl-Proc-Fork
+Requires:       perl-URI
+Requires:       perl-XML-Dumper
+Requires:       perl-XML-Simple
+Requires:       qa_libperl
+Requires:       screen
 %else
-Requires:       perl perl-DBD-mysql perl-IO-Socket-Multicast perl-XML-Dumper perl-XML-Simple perl-Proc-Fork perl-MIME-Lite screen hamsta-jobs qa_libperl hamsta-common perl-URI perl-Config-IniFiles perl-Digest-SHA1
-Recommends:	hamsta-cmdline
+Requires:       hamsta-common
+Requires:       hamsta-jobs
+Requires:       perl
+Requires:       perl-Config-IniFiles
+Requires:       perl-DBD-mysql
+Requires:       perl-Digest-SHA1
+Requires:       perl-IO-Socket-Multicast
+Requires:       perl-MIME-Lite
+Requires:       perl-Proc-Fork
+Requires:       perl-URI
+Requires:       perl-XML-Dumper
+Requires:       perl-XML-Simple
+Requires:       qa_libperl
+Requires:       screen
+Recommends:     hamsta-cmdline
 %endif
-Provides:	hamsta-master
-Obsoletes:	hamsta-master
+Provides:       hamsta-master
+Obsoletes:      hamsta-master
 
 %description master
 Allows to build a network of test machines. Machines are monitored by
@@ -96,24 +138,35 @@ in a distributed and large scale computing environment.
 This is the master package, the controller that rules the entire network.
 You will need only one master per test network.
 
-Authors:
---------
-            Patrick Kirsch <pkirsch@suse.de>
-            Vilem Marsik   <vmarsik@suse.cz>
-            Leon Wang      <llwang@novell.com>
-
 %package frontend
+License:        SUSE Proprietary
+Summary:        HArdware Maintenance, Setup & Test Automation
+Group:          System/Management
 BuildRequires:  ImageMagick
-License:        SUSE Proprietary  
-Summary:        HArdware Maintenance, Setup & Test Automation  
-Group:          System/Management  
-Requires:       mod_php_any httpd php-pdo php-mysql hamsta-jobs tblib jquery php-curl php-snmp ipmitool sshpass libvirt php-ZendFramework php-gmp php-openssl perl-Config-IniFiles frontenduser php-openid
+Requires:       frontenduser
+Requires:       hamsta-jobs
+Requires:       httpd
+Requires:       ipmitool
+Requires:       jquery
+Requires:       libvirt
+Requires:       mod_php_any
+Requires:       perl-Config-IniFiles
+Requires:       php-ZendFramework
+Requires:       php-curl
+Requires:       php-gmp
+Requires:       php-mysql
+Requires:       php-openid
+Requires:       php-openssl
+Requires:       php-pdo
+Requires:       php-snmp
+Requires:       sshpass
+Requires:       tblib
 
 %if 0%{?sles_version} > 9
-Recommends:	mysql
+Recommends:     mysql
 %endif
-Provides:	hamsta-frontend
-Obsoletes:	hamsta-frontend
+Provides:       hamsta-frontend
+Obsoletes:      hamsta-frontend
 
 %description frontend
 Allows to build a network of test machines. Machines are monitored by
@@ -134,12 +187,16 @@ Authors:
             Leon Wang      <llwang@novell.com>
 
 %package cmdline
-License:        SUSE Proprietary  
-Summary:        HArdware Maintenance, Setup & Test Automation  
-Group:          System/Management  
-Requires:       perl perl-Term-ReadPassword perl-TermReadKey perl-TermReadLine-Gnu hamsta-common
-Provides:	hamsta-cmdline
-Obsoletes:	hamsta-cmdline
+License:        SUSE Proprietary
+Summary:        HArdware Maintenance, Setup & Test Automation
+Group:          System/Management
+Requires:       hamsta-common
+Requires:       perl
+Requires:       perl-Term-ReadPassword
+Requires:       perl-TermReadKey
+Requires:       perl-TermReadLine-Gnu
+Provides:       hamsta-cmdline
+Obsoletes:      hamsta-cmdline
 
 %description cmdline
 Allows to build a network of test machines. Machines are monitored by
@@ -157,12 +214,15 @@ Authors:
             Patrick Kirsch <pkirsch@suse.de>
 
 %package multicast-forward
-License:	SUSE Proprietary
-Summary:	Hamsta UDP multicast forwarder
-Group:		System/Management
-Requires:	perl perl-IO-Socket-Multicast screen hamsta-common
-Provides:	hamsta-multicast-forward
-Obsoletes:	hamsta-multicast-forward
+License:        SUSE Proprietary
+Summary:        Hamsta UDP multicast forwarder
+Group:          System/Management
+Requires:       hamsta-common
+Requires:       perl
+Requires:       perl-IO-Socket-Multicast
+Requires:       screen
+Provides:       hamsta-multicast-forward
+Obsoletes:      hamsta-multicast-forward
 
 %description multicast-forward
 This is a support package for Hamsta. It allows you to forward UDP
@@ -175,11 +235,11 @@ Authors:
 	Vilem Marsik	<vmarsik@suse.cz>
 
 %package jobs
-License:	SUSE Proprietary
-Summary:        HArdware Maintenance, Setup & Test Automation  
+License:        SUSE Proprietary
+Summary:        HArdware Maintenance, Setup & Test Automation
 Group:          System/Management
-Provides:	hamsta-jobs
-Obsoletes:	hamsta-jobs
+Provides:       hamsta-jobs
+Obsoletes:      hamsta-jobs
 
 %description jobs
 This package contains Hamsta job XML files.
@@ -190,17 +250,16 @@ but then it sends a LOCAL path to the master. This won't work if master
 and frontend run on different machines. Need to fix that.
 
 %package common
-License:	SUSE Proprietary
-Summary:        HArdware Maintenance, Setup & Test Automation  
+License:        SUSE Proprietary
+Summary:        HArdware Maintenance, Setup & Test Automation
 Group:          System/Management
-Requires:	qa-config
-Provides:	hamsta-common
-Obsoletes:	hamsta-common
+Requires:       qa-config
+Provides:       hamsta-common
+Obsoletes:      hamsta-common
 
 %description common
 This package contains Hamsta configuration files that are
 shared between Hamsta master, multicast-forwarder and slave.
-
 
 %define destdir /usr/share/hamsta
 %define initfile %{_sysconfdir}/init.d/hamsta
@@ -213,43 +272,40 @@ shared between Hamsta master, multicast-forwarder and slave.
 
 %build
 sh frontend/images/resize-icons.sh frontend/images
-sed -i 's/HAMSTA_VERSION/%{version}/g' feed_hamsta.{1,pl} frontend/globals.php
+sed -i 's/HAMSTA_VERSION/%{version}/g' feed_hamsta.{1,pl} frontend/globals.php %{SOURCE2}
 
 %install
-install -m 755 -d $RPM_BUILD_ROOT/%{_mandir}/man8
-install -m 644 %{S:3} $RPM_BUILD_ROOT/%{_mandir}/man8
-gzip $RPM_BUILD_ROOT/%{_mandir}/man8/%{name}.8
-install -m 755 -d $RPM_BUILD_ROOT/%{_mandir}/man1
-install -m 644 feed_hamsta.1 $RPM_BUILD_ROOT/%{_mandir}/man1
-gzip $RPM_BUILD_ROOT/%{_mandir}/man1/feed_hamsta.1
-mkdir -p $RPM_BUILD_ROOT/%{_sysconfdir}/init.d
-cp -a hamsta hamsta-master hamsta-multicast-forward $RPM_BUILD_ROOT/%{_sysconfdir}/init.d/
-mkdir -p $RPM_BUILD_ROOT/usr/sbin
-ln -s %{_sysconfdir}/init.d/hamsta $RPM_BUILD_ROOT/%{_sbindir}/rchamsta
-ln -s %{_sysconfdir}/init.d/hamsta-master $RPM_BUILD_ROOT/%{_sbindir}/rchamsta-master
-ln -s %{_sysconfdir}/init.d/hamsta-multicast-forward $RPM_BUILD_ROOT/%{_sbindir}/rchamsta-multicast-forward
-mkdir -p $RPM_BUILD_ROOT/usr/bin
-cp -a Slave/hamsta.sh $RPM_BUILD_ROOT/usr/bin/
-mkdir -p $RPM_BUILD_ROOT/usr/sbin
-cp -a starthamstamaster $RPM_BUILD_ROOT/usr/sbin/
-mkdir -p $RPM_BUILD_ROOT%{webdir}
-cp -a -r --target-directory=$RPM_BUILD_ROOT%{webdir} frontend/*
-ln -s %{destdir}/xml_files $RPM_BUILD_ROOT%{xml_link}
-install -m 755 -d $RPM_BUILD_ROOT%{destdir}
-cp -a -r --target-directory=$RPM_BUILD_ROOT%{destdir} Slave command_frontend.pl feed_hamsta.pl master testscript xml_files db hamsta-multicast-forward.pl 
-#find $RPM_BUILD_ROOT%{destdir}/xml_files -name '*.xml' -exec chown wwwrun:www {} \;
-#find $RPM_BUILD_ROOT%{destdir} -type d -exec chown wwwrun:www {} \; -exec chmod 1777 {} \;
-#install -m 1777 -d %{webdir}/profiles
-mkdir -p $RPM_BUILD_ROOT%{webdir}/profiles
-install -m 755 -d $RPM_BUILD_ROOT%{confdir}
-cp --target-directory=$RPM_BUILD_ROOT%{confdir} 00-hamsta-common-default 00-hamsta-default 00-hamsta-master-default 00-hamsta-multicast-forward-default
-rm -rf `find $RPM_BUILD_ROOT -name .svn`
-mkdir -p $RPM_BUILD_ROOT/var/log/hamsta/master
-mkdir -p $RPM_BUILD_ROOT/var/lib/hamsta
+install -m 755 -d %{buildroot}/%{_mandir}/man8
+install -m 644 %{SOURCE2} %{buildroot}/%{_mandir}/man8
+gzip %{buildroot}/%{_mandir}/man8/%{name}.8
+install -m 755 -d %{buildroot}/%{_mandir}/man1
+install -m 644 feed_hamsta.1 %{buildroot}/%{_mandir}/man1
+gzip %{buildroot}/%{_mandir}/man1/feed_hamsta.1
+mkdir -p %{buildroot}/%{_sysconfdir}/init.d
+cp -a hamsta hamsta-master hamsta-multicast-forward %{buildroot}/%{_sysconfdir}/init.d/
+mkdir -p %{buildroot}%{_prefix}/sbin
+ln -s %{_sysconfdir}/init.d/hamsta %{buildroot}/%{_sbindir}/rchamsta
+ln -s %{_sysconfdir}/init.d/hamsta-master %{buildroot}/%{_sbindir}/rchamsta-master
+ln -s %{_sysconfdir}/init.d/hamsta-multicast-forward %{buildroot}/%{_sbindir}/rchamsta-multicast-forward
+mkdir -p %{buildroot}%{_prefix}/bin
+cp -a Slave/hamsta.sh %{buildroot}%{_bindir}/
+mkdir -p %{buildroot}%{_prefix}/sbin
+cp -a starthamstamaster %{buildroot}%{_sbindir}/
+mkdir -p %{buildroot}%{webdir}
+cp -a -r --target-directory=%{buildroot}%{webdir} frontend/*
+ln -s %{destdir}/xml_files %{buildroot}%{xml_link}
+install -m 755 -d %{buildroot}%{destdir}
+cp -a -r --target-directory=%{buildroot}%{destdir} Slave command_frontend.pl feed_hamsta.pl master testscript xml_files db hamsta-multicast-forward.pl
+mkdir -p %{buildroot}%{webdir}/profiles
+install -m 755 -d %{buildroot}%{confdir}
+cp --target-directory=%{buildroot}%{confdir} 00-hamsta-common-default 00-hamsta-default 00-hamsta-master-default 00-hamsta-multicast-forward-default
+rm -rf `find %{buildroot} -name .svn`
+mkdir -p %{buildroot}%{_localstatedir}/log/hamsta/master
+mkdir -p %{buildroot}%{_localstatedir}/lib/hamsta
 
 
 %clean
-rm -rf $RPM_BUILD_ROOT/*
+rm -rf %{buildroot}/*
 
 %post
 /sbin/insserv -f %{initfile}
@@ -269,37 +325,10 @@ echo "=================== I M P O R T A N T ======================="
 %post frontend
 sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 /etc/init.d/apache2 restart
-#install -m 1777 -d %{webdir}/profiles
 
-#mysql -u root < /usr/share/hamsta/hamsta.sql
-# after installation patch perl modul IPC::Open3
-# due to return value on failed command
-#cat <<EOF | perl
-#my @paths_to_open3 = grep {-e $_."/IPC/Open3.pm"} @INC;
-#if( @paths_to_open3 > 0 ) {
-#    my $open3_path=$paths_to_open3[0];
-#    `perl -i -pe 's/exec \@cmd # XXX: /system \@cmd ;# XXX: /ig; s/or croak "\$Me: exec of \@cmd failed";/ if (\$\? == -1) {print "OPEN3_FAILURE: \$\?\n";} else { printf "OPEN3_FAILURE: \%d\n", \$\? >> 8; }/ig; ' $open3_path`;
-#    my @check = `cat $open3_path | grep OPEN3_FAILURE`;
-#    if (@check) {
-#	print "Check OK: $check[0] \n";
-#    } else {
-#	print "Check failed for patching $open3_path \n It is ";
-#	print "not 'that' important, due to missing return values of executed code \n";
-#    }
-#}
-#else {
-#    print STDERR "WARNING: File 'IPC/Open3.pm' not found in \@INC. Hope it won't do any harm.\n";
-#}
-#EOF
-#/sbin/insserv %{initfile}
-#%{initfile} start || true
 
 %preun
 %stop_on_removal
-#if [ "$1" = "0" ]; then
-#    %{initfile} stop || true
-#    /sbin/insserv -r %{initfile}
-#fi
 
 %preun master
 %stop_on_removal
@@ -319,22 +348,22 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 
 %files
 %defattr(-, root, root)
-%{_mandir}/man8/%name.8.gz
+%{_mandir}/man8/%{name}.8.gz
 %{destdir}/testscript
 %{destdir}/Slave
-%dir /usr/share/hamsta/
-/usr/bin/hamsta.sh
+%dir %{_datadir}/hamsta/
+%{_bindir}/hamsta.sh
 %{_sysconfdir}/init.d/hamsta
 %{_sbindir}/rchamsta
 %{confdir}/00-hamsta-default
-%dir /var/lib/hamsta
+%dir %{_localstatedir}/lib/hamsta
 %doc COPYING
 
-%files master  
+%files master
 %defattr(-, root, root)
-%{_sysconfdir}/init.d/hamsta-master  
-/usr/sbin/starthamstamaster  
-%{destdir}/master  
+%{_sysconfdir}/init.d/hamsta-master
+%{_sbindir}/starthamstamaster
+%{destdir}/master
 %{destdir}/db
 %attr(755,root,root) %{destdir}/db/create_db.sh
 %attr(755,root,root) %{destdir}/db/update_db.sh
@@ -342,7 +371,7 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %dir %{destdir}
 %{_sbindir}/rchamsta-master
 %{confdir}/00-hamsta-master-default
-%dir /var/log/hamsta/master
+%dir %{_localstatedir}/log/hamsta/master
 
 %files cmdline
 %defattr(-, root, root)
@@ -355,7 +384,6 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %defattr(-, root, root)
 %{webdir}
 %attr(-,wwwrun,www) %{webdir}/profiles
-#%config(noreplace) %{webdir}/config.php
 %config(noreplace) %{webdir}/config.ini
 %dir %{destdir}
 
@@ -369,9 +397,9 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 
 %files jobs
 %defattr(-, root, root)
-/srv/www/htdocs/xml_files 
+%{xml_link}
 %defattr(755,wwwrun,www)
-%dir %{destdir}/xml_files  
+%dir %{destdir}/xml_files
 %dir %{destdir}/xml_files/templates
 %dir %{destdir}/xml_files/nonactive
 %dir %{destdir}/xml_files/multimachine
@@ -613,4 +641,3 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 - added initscripts
 * Tue Nov 13 2007 vmarsik@suse.cz
 - created an RPM
-
