@@ -443,7 +443,7 @@ sub start_job() {
 # deconstruct()
 # Does some cleanup (TODO well, at least it should do so...)
 sub deconstruct() {
- exit -1;
+ exit 0;
 }
 
 
