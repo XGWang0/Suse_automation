@@ -10,7 +10,7 @@ Version:	@@VERSION@@
 Release:	0
 Summary:	"generate a .spec file"
 Group:		SUSE internal
-License:	SUSE Proprietary
+License:	SUSE-NonFree
 Provides:	Novell
 Source0:		%{name}-%{version}.tar.bz2
 Source1:	qa_sdk_spec_generator.8

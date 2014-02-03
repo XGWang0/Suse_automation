@@ -32,7 +32,7 @@
 BuildRequires:  coreutils
 
 Name:           qa_db_report
-License:		SUSE Proprietary
+License:		SUSE-NonFree
 Group:          SUSE internal
 AutoReqProv:    on
 Version:        @@VERSION@@

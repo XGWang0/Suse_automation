@@ -30,7 +30,7 @@
 Name:           qa_hamsta
 Version:        @@VERSION@@
 Release:        0
-License:        SUSE Proprietary
+License:        SUSE-NonFree
 Summary:        HArdware Maintenance, Setup & Test Automation
 Url:            http://qa.suse.de/hamsta
 Group:          System/Management
@@ -90,7 +90,7 @@ Authors:
             Leon Wang      <llwang@novell.com>
 
 %package master
-License:        SUSE Proprietary
+License:        SUSE-NonFree
 Summary:        HArdware Maintenance, Setup & Test Automation
 Group:          System/Management
 %if 0%{?sles_version} == 9
@@ -139,7 +139,7 @@ This is the master package, the controller that rules the entire network.
 You will need only one master per test network.
 
 %package frontend
-License:        SUSE Proprietary
+License:        SUSE-NonFree
 Summary:        HArdware Maintenance, Setup & Test Automation
 Group:          System/Management
 BuildRequires:  ImageMagick
@@ -187,7 +187,7 @@ Authors:
             Leon Wang      <llwang@novell.com>
 
 %package cmdline
-License:        SUSE Proprietary
+License:        SUSE-NonFree
 Summary:        HArdware Maintenance, Setup & Test Automation
 Group:          System/Management
 Requires:       hamsta-common
@@ -214,7 +214,7 @@ Authors:
             Patrick Kirsch <pkirsch@suse.de>
 
 %package multicast-forward
-License:        SUSE Proprietary
+License:        SUSE-NonFree
 Summary:        Hamsta UDP multicast forwarder
 Group:          System/Management
 Requires:       hamsta-common
@@ -235,7 +235,7 @@ Authors:
 	Vilem Marsik	<vmarsik@suse.cz>
 
 %package jobs
-License:        SUSE Proprietary
+License:        SUSE-NonFree
 Summary:        HArdware Maintenance, Setup & Test Automation
 Group:          System/Management
 Provides:       hamsta-jobs
@@ -250,7 +250,7 @@ but then it sends a LOCAL path to the master. This won't work if master
 and frontend run on different machines. Need to fix that.
 
 %package common
-License:        SUSE Proprietary
+License:        SUSE-NonFree
 Summary:        HArdware Maintenance, Setup & Test Automation
 Group:          System/Management
 Requires:       qa-config

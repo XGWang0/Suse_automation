@@ -32,7 +32,7 @@
 
 BuildRequires:	coreutils
 Name:		qa_lib_perl
-License:        SUSE Proprietary
+License:        SUSE-NonFree
 Group:		SUSE internal
 AutoReqProv:	on
 Version:	@@VERSION@@

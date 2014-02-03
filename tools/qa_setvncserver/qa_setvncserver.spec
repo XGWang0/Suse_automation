@@ -3,7 +3,7 @@
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 
 Name:           qa_setvncserver
-License:        SUSE Proprietary
+License:        SUSE-NonFree
 Group:          SuSE internal
 AutoReqProv:    on
 Version:        @@VERSION@@

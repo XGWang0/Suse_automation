@@ -25,7 +25,7 @@
 # norootforbuild
 
 Name:               qa_conf_virtteam
-License:            SUSE Proprietary
+License:            SUSE-NonFree
 Group:              QA Automation
 AutoReqProv:        on
 Version:            0.1
