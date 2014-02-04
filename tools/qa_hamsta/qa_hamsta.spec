@@ -1,6 +1,6 @@
 #!BuildIgnore: post-build-checks
 # ****************************************************************************
-# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
+# Copyright (c) 2013, 2014 Unpublished Work of SUSE. All Rights Reserved.
 # 
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -27,6 +27,13 @@
 #
 
 # norootforbuild
+
+%define with_systemd 0
+
+%if 0%{?suse_version} >= 1310 || 0%{?sles_version} >= 12
+%define with_systemd 1
+%define _unitdir /usr/lib/systemd/system
+%endif
 
 BuildRequires:  coreutils
 Name:           qa_hamsta
@@ -227,6 +234,11 @@ mkdir -p $RPM_BUILD_ROOT/usr/sbin
 ln -s %{_sysconfdir}/init.d/hamsta $RPM_BUILD_ROOT/%{_sbindir}/rchamsta
 ln -s %{_sysconfdir}/init.d/hamsta-master $RPM_BUILD_ROOT/%{_sbindir}/rchamsta-master
 ln -s %{_sysconfdir}/init.d/hamsta-multicast-forward $RPM_BUILD_ROOT/%{_sbindir}/rchamsta-multicast-forward
+# Install systemd unit file
+%if %{?with_systemd}
+install -d %{buildroot}/%{_unitdir}
+install -m 644 hamsta.service %{buildroot}/%{_unitdir}/
+%endif
 mkdir -p $RPM_BUILD_ROOT/usr/bin
 cp -a Slave/hamsta.sh $RPM_BUILD_ROOT/usr/bin/
 mkdir -p $RPM_BUILD_ROOT/usr/sbin
@@ -251,7 +263,12 @@ mkdir -p $RPM_BUILD_ROOT/var/lib/hamsta
 rm -rf $RPM_BUILD_ROOT/*
 
 %post
+%if %{?with_systemd}
+systemctl daemon-reload
+systemctl start hamsta
+%else
 /sbin/insserv -f %{initfile}
+%endif
 echo %{version} > /usr/share/hamsta/.version
 echo %{version} > /usr/share/hamsta/Slave/.version
 
@@ -324,6 +341,10 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %dir /usr/share/hamsta/
 /usr/bin/hamsta.sh
 %{_sysconfdir}/init.d/hamsta
+%if %{?with_systemd}
+%dir %{_unitdir}
+%{_unitdir}/hamsta.service
+%endif
 %{_sbindir}/rchamsta
 %{confdir}/00-hamsta-default
 %dir /var/lib/hamsta
