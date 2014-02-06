@@ -154,7 +154,7 @@ if __name__ == '__main__':
 	else:
 		if options.output:
 			basename = options.output
-		theFilter = {'+':["sles","sled","opensuse"], '-':["sdk"]}
+		theFilter = {'+':["sles","sled","opensuse","server","desktop"], '-':["sdk"]}
 		json.dump(generate_index(options.repourl, theFilter),
 		open("%s.repo.json" %basename, 'w'), indent = 2)
 		theFilter = {'+':["sdk"], '-':["vmware"]}
