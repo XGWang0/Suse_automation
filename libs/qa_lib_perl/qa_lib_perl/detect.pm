@@ -273,7 +273,8 @@ sub guess_product_from_url # URL
 		$url =~ /\Wsles\W+(\d+)/i or 
 		$url =~ /\Wenterprise\W+(?:server|desktop)\W+(\d+)/i or 
 		$url =~ /full-sle(\d+)-/ or
-		$url =~ /SLES for SAP.* (\d+)/
+		$url =~ /SLES for SAP.* (\d+)/ or
+		$url =~ /SLE-(\d+)-(?:Server|Desktop)/i
 	)
 	{
 		$version = $1;
