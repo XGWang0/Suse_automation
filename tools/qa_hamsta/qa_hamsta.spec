@@ -53,8 +53,8 @@ BuildArch:      noarch
 %if 0%{?sles_version} == 9
 Requires:       perl perl-Net-Server perl-URI perl-XML-Dumper perl-IO-Socket-Multicast perl-Proc-Fork perl-XML-Simple qa_tools qa_libperl hamsta-common hamsta-cmdline screen
 %else
-Requires:       perl perl-Net-Server perl-URI perl-XML-Dumper perl-IO-Socket-Multicast perl-Proc-Fork perl-XML-Simple qa_tools qa_libperl hamsta-common
-Recommends:	hamsta-cmdline screen
+Requires:       perl perl-Net-Server perl-URI perl-XML-Dumper perl-IO-Socket-Multicast perl-Proc-Fork perl-XML-Simple qa_tools qa_libperl hamsta-common screen
+Recommends:	hamsta-cmdline
 %endif
 Provides:	hamsta
 Obsoletes:	hamsta
