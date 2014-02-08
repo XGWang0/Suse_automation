@@ -53,7 +53,7 @@ getopts('cm:',\%opts);
 $file_mod=$opts{'m'};
 if( $opts{'c'} )
 {   
-    &command( 'yast /usr/share/YaST2/clients/clone_system.ycp' );
+    &command( 'yast clone_system' );
     $file_in ='/root/autoinst.xml';
     $file_out=$ARGV[0];
 }
