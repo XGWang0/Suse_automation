@@ -278,6 +278,9 @@ echo %{version} > /usr/share/hamsta/.version
 echo %{version} > /usr/share/hamsta/Slave/.version
 
 %post master
+%if %{?with_systemd}
+systemctl daemon-reload
+%endif
 echo "=================== I M P O R T A N T ======================="
 echo "Please make sure that you have a database prepared."
 echo "To create a new DB, install and configure mysql and then"
@@ -366,6 +369,10 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %attr(755,root,root) %{destdir}/master/hamsta_cycle.pl
 %dir %{destdir}
 %{_sbindir}/rchamsta-master
+%if %{?with_systemd}
+%dir %{_unitdir}
+%{_unitdir}/hamsta-master.service
+%endif
 %{confdir}/00-hamsta-master-default
 %dir /var/log/hamsta/master
 
