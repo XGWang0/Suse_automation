@@ -88,6 +88,11 @@ Requires:       perl perl-DBD-mysql perl-IO-Socket-Multicast perl-XML-Dumper per
 Requires:       perl perl-DBD-mysql perl-IO-Socket-Multicast perl-XML-Dumper perl-XML-Simple perl-Proc-Fork perl-MIME-Lite screen hamsta-jobs qa_libperl hamsta-common perl-URI perl-Config-IniFiles perl-Digest-SHA1
 Recommends:	hamsta-cmdline
 %endif
+# Since openSUSE 13.1 and SLES 12 the switch statement is provided by
+# following package
+%if 0%{?suse_version} >= 1310 || 0%{?sles_version} >= 12
+Requires:	perl-Switch
+%endif
 Provides:	hamsta-master
 Obsoletes:	hamsta-master
 
