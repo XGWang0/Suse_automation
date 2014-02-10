@@ -43,6 +43,7 @@ Group:          System/Management
 Source:         %{name}-%{version}.tar.bz2
 Source1:        perl_module_usage
 Source2:        qa_hamsta.8
+Source3:	AUTHORS
 BuildRequires:  coreutils
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
@@ -78,11 +79,6 @@ in a distributed and large scale computing environment.
 This package should be installed on every machine you want to control
 using Hamsta.
 
-Authors:
---------
-            Patrick Kirsch <pkirsch@suse.de>
-            Vilem Marsik   <vmarsik@suse.cz>
-            Leon Wang      <llwang@novell.com>
 
 %package master
 License:        SUSE-NonFree
@@ -166,11 +162,6 @@ in a distributed and large scale computing environment.
 This package provides a web frontend for the Hamsta master.
 You will need only one frontend per test network.
 
-Authors:
---------
-            Patrick Kirsch <pkirsch@suse.de>
-            Vilem Marsik   <vmarsik@suse.cz>
-            Leon Wang      <llwang@novell.com>
 
 %package cmdline
 License:        SUSE-NonFree
@@ -195,9 +186,6 @@ in a distributed and large scale computing environment.
 
 This package is for command line access to Hamsta.
 
-Authors:
---------
-            Patrick Kirsch <pkirsch@suse.de>
 
 %package multicast-forward
 License:        SUSE-NonFree
@@ -216,9 +204,6 @@ multicast messages from subnets behind a router that does not forward them.
 
 Do not run more than one instance on the subnet.
 
-Authors:
---------
-	Vilem Marsik	<vmarsik@suse.cz>
 
 %package jobs
 License:        SUSE-NonFree
@@ -255,6 +240,7 @@ shared between Hamsta master, multicast-forwarder and slave.
 
 %prep
 %setup -n %{name}
+cp %{SOURCE3} .
 
 %build
 sh frontend/images/resize-icons.sh frontend/images
@@ -367,6 +353,7 @@ systemctl restart apache2
 %{confdir}/00-hamsta-default
 %dir %{_localstatedir}/lib/hamsta
 %doc COPYING
+%doc AUTHORS
 
 %files master
 %defattr(-, root, root)
