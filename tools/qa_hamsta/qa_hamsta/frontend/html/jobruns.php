@@ -45,20 +45,23 @@
 <?php 
 foreach ($jobs as $job):
 	$job_link='index.php?go=job_details&amp;id='.$job->get_id();
-?>        <tr>
-	    <td><a href="<?php echo $job_link; ?>"><?php echo($job->get_id()); ?></a></td>
-		<td><span class="<?php echo($job->get_status_string()); ?>">
+?>    <tr>
+	<td><a href="<?php echo $job_link; ?>"><?php echo($job->get_id()); ?></a></td>
+	<td><span class="<?php echo($job->get_status_string()); ?>">
             	    <?php echo($job->get_status_string()); ?></span>
-	    </td>
-            <td>
+	</td>
 <?php
 $mach = $job->get_machine();
+$cls = '';
+$hostname = '';
 if (isset ($mach)) {
-	print '<a href="index.php?go=machine_details&amp;id='.$mach->get_id().'">'
-		. $mach->get_hostname() . "</a>\n";
+	$hostname = '<a href="index.php?go=machine_details&amp;id='.$mach->get_id().'">'
+		. $mach->get_hostname() . '</a>';
+	$cls = ' class="' . get_machine_status_class ($mach->get_status_id ()) . '"';
 }
-?></td>
-	    <td><a href="<?php echo $job_link;?>"><?php echo($job->get_name()); ?></a></td>
+print "            <td$cls>$hostname</td>";
+print "            <td><a href=\"$job_link\">".$job->get_name()."</a></td>\n";
+?>
             <td><?php echo($job->get_started()); ?></td>
             <td><?php echo($job->get_stopped()); ?></td>
             <td align="center">
