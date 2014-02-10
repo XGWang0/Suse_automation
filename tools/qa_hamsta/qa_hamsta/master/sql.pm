@@ -152,7 +152,7 @@ sub machine_search
 }
 
 sub machine_insert($$$$$$$$$$$$) # unique_id, arch_id, hostname, IP, description, kernel, cpu_nr, cpu_vendor_id, memsize, disksize, machine_status_id
-{	return $dbc->insert_query('INSERT INTO machine (unique_id,arch_id,name,ip,description,kernel,cpu_nr,cpu_vendor_id,memsize,disksize,machine_status_id) VALUES(?,?,?,?,?,?,?,?,?,?,?)',@_);	}
+{	return $dbc->insert_query("INSERT INTO machine (unique_id,arch_id,name,ip,description,kernel,cpu_nr,cpu_vendor_id,memsize,disksize,machine_status_id,last_used,affiliation,`usage`,anomaly) VALUES(?,?,?,?,?,?,?,?,?,?,?,NOW(),'','','')",@_);	}
 
 sub machine_update($$$$$$$$$$$$) # machine_id, unique_id, arch_id, hostname, IP, description, kernel, cpu_nr, cpu_vendor_id, memsize, disksize, machine_status_id
 {	
