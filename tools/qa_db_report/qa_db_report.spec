@@ -1,6 +1,6 @@
 # ****************************************************************************
 # Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
-# 
+#
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
 # RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
@@ -11,7 +11,7 @@
 # PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
 # AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
 # LIABILITY.
-# 
+#
 # SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
 # WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
@@ -27,27 +27,27 @@
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
-# norootforbuild
 
 BuildRequires:  coreutils
 
 Name:           qa_db_report
-License:		SUSE-NonFree
-Group:          SUSE internal
-AutoReqProv:    on
 Version:        @@VERSION@@
 Release:        0
+License:        SUSE-NonFree
 Summary:        QADB submit code
-#Url:          http://qa.suse.de/hamsta
+Group:          SUSE internal
 Source0:        %{name}-%{version}.tar.bz2
-Source1:	%{name}.8
-Source2:	%{name}-rpmlintrc
-#Patch:        %{name}-%{version}.patch
+Source1:        %{name}.8
+Source2:        %{name}-rpmlintrc
+Source3:	AUTHORS
+Requires:	coreutils
+Requires:       perl
+Requires:       perl-DBD-mysql
+Requires:       qa-config
+Requires:       qa_libperl
+Requires:       qa_tools
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
-Requires:       perl perl-DBD-mysql qa_tools qa_libperl
-Requires:  	qa-config
 BuildArch:      noarch
-PreReq:         coreutils
 
 %description
 Formerly part of qa_tools, this package contains qa_db_report.pl and
@@ -55,13 +55,6 @@ related files. These files now should only be installed on one central
 server that alone does the direct MySQL writing. Clients only send
 test results and basic configuration, code in this package does the
 actual QADB submit.
-
-
-Authors:
---------
-    Vilem Marsik <vmarsik@suse.cz>
-    Patrick Kirsch <pkirsch@suse.de>
-    Lukas Lipavsky <llipavsky@suse.cz>
 
 %define destdir /usr/share/qa
 %define bindir %{destdir}/tools
@@ -72,40 +65,40 @@ Authors:
 %define permdir /etc/permissions.d
 
 %prep
-%setup -n %{name}
-#%patch
+%setup -q -n %{name}
+cp %{SOURCE3} .
 
 %build
 
 %install
-install -m 755 -d $RPM_BUILD_ROOT/usr/share/man/man8
-install -m 644 %{S:1} $RPM_BUILD_ROOT/usr/share/man/man8
-gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
-install -m 755 -d $RPM_BUILD_ROOT%{destdir}
-install -m 755 -d $RPM_BUILD_ROOT%{bindir}
-install -m 755 -d $RPM_BUILD_ROOT%{libdir}
-install -m 755 -d $RPM_BUILD_ROOT%{confdir}
-install -m 777 -d $RPM_BUILD_ROOT%{remoteresdir}
-install -m 755 -d $RPM_BUILD_ROOT%{mandir}/man1
-install -m 755 -d $RPM_BUILD_ROOT%{mandir}/man5
-install -m 755 -d $RPM_BUILD_ROOT%{permdir}
+install -m 755 -d %{buildroot}%{_mandir}/man8
+install -m 644 %{SOURCE1} %{buildroot}%{_mandir}/man8
+gzip %{buildroot}%{_mandir}/man8/%{name}.8
+install -m 755 -d %{buildroot}%{destdir}
+install -m 755 -d %{buildroot}%{bindir}
+install -m 755 -d %{buildroot}%{libdir}
+install -m 755 -d %{buildroot}%{confdir}
+install -m 777 -d %{buildroot}%{remoteresdir}
+install -m 755 -d %{buildroot}%{mandir}/man1
+install -m 755 -d %{buildroot}%{mandir}/man5
+install -m 755 -d %{buildroot}%{permdir}
 gzip -9 *.1 *.5
-cp -r --target-directory=$RPM_BUILD_ROOT%{libdir} qadb.pm bench_parsers.pm functions.pm
-cp --target-directory=$RPM_BUILD_ROOT%{bindir} qa_db_report.pl
-cp --target-directory=$RPM_BUILD_ROOT%{bindir} fix_qadb_stat.pl
-cp --target-directory=$RPM_BUILD_ROOT%{bindir} select_db.pl
-echo ${version} > $RPM_BUILD_ROOT%{libdir}/.version
-cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man1 *.1.gz
-cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man5 *.5.gz
-cp --target-directory=$RPM_BUILD_ROOT%{permdir} permissions.d/qa_db_report
-cp --target-directory=$RPM_BUILD_ROOT%{confdir} 00-qa_db_report-default
+cp -r --target-directory=%{buildroot}%{libdir} qadb.pm bench_parsers.pm functions.pm
+cp --target-directory=%{buildroot}%{bindir} qa_db_report.pl
+cp --target-directory=%{buildroot}%{bindir} fix_qadb_stat.pl
+cp --target-directory=%{buildroot}%{bindir} select_db.pl
+echo ${version} > %{buildroot}%{libdir}/.version
+cp --target-directory=%{buildroot}%{mandir}/man1 *.1.gz
+cp --target-directory=%{buildroot}%{mandir}/man5 *.5.gz
+cp --target-directory=%{buildroot}%{permdir} permissions.d/qa_db_report
+cp --target-directory=%{buildroot}%{confdir} 00-qa_db_report-default
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
 %files
 %defattr(0644,root,root,0755)
-/usr/share/man/man8/qa_db_report.8.gz
+%{_mandir}/man8/qa_db_report.8.gz
 %dir %{destdir}
 %dir %{libdir}
 %dir %{bindir}
@@ -124,6 +117,6 @@ rm -rf $RPM_BUILD_ROOT
 %{libdir}/.version
 %{confdir}
 %doc COPYING
+%doc AUTHORS
 
 %changelog
-
