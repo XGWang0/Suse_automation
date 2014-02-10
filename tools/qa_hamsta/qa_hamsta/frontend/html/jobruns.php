@@ -45,11 +45,11 @@
 <?php 
 foreach ($jobs as $job):
 	$job_link='index.php?go=job_details&amp;id='.$job->get_id();
-?>    <tr>
-	<td><a href="<?php echo $job_link; ?>"><?php echo($job->get_id()); ?></a></td>
-	<td><span class="<?php echo($job->get_status_string()); ?>">
+?>        <tr>
+	    <td><a href="<?php echo $job_link; ?>"><?php echo($job->get_id()); ?></a></td>
+		<td><span class="<?php echo($job->get_status_string()); ?>">
             	    <?php echo($job->get_status_string()); ?></span>
-	</td>
+		</td>
 <?php
 $mach = $job->get_machine();
 $cls = '';
