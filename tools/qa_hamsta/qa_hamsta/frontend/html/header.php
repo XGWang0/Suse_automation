@@ -60,7 +60,7 @@ if( isset($disabled_css) && $disabled_css ) print '<link href="css/disabled.css"
 <body>
   <div id="header">
     <div class="version text-main text-white bold">
-      <em>v<?php $version = explode("-", $hamstaVersion); echo($version[2]);?></em>
+	<em>v<?php echo ($hamstaVersion); ?></em>
     </div>
 
     <div id="hlogo">

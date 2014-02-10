@@ -1,0 +1,338 @@
+-------------------------------------------------------------------
+Fri Aug 16 00:00:00 UTC 2013 - pkacer@suse.com
+
+- New 2.6 release from QA Automation team
+- The Machines page has been greatly improved
+- Layout changes at the Machine details page
+- Web UI menu was changed (renamed entries and added link to documentation)
+- Web UI bottom menu was removed
+- Machine reservations can be shared by users
+- Improved QA network configuration (synchronization and web UI)
+- Title of Hamsta changed from image to text
+- All user roles are now checked for privileges (without need to switch user roles)
+- Ajaxterm was removed
+- A lot of bugs were fixed
+
+-------------------------------------------------------------------
+Fri Jan 18 00:00:00 UTC 2013 - llipavsky@suse.com
+
+- New 2.5 release from QA Automation team
+- Authentication and Authorization in Hamsta
+- ctcs2 improvements, speedup, and new tcf commands
+- New SUT can be added to Hamsta from hamsta web interface
+- Timezone support in reinstall
+- Reinstall can now be done using kexec
+- Centralized configuration of SUTs
+- Sessions support in Hamsta
+- AutoPXE now supports ia64 architecture
+- Hamsta is no longer configured using config.php, config.ini is used instead
+- ...and many small improvements and bug fixes
+
+-------------------------------------------------------------------
+Tue Dec 11 00:00:00 UTC 2012 - pkacer@suse.com
+
+- Added dependency on perl-Config-IniFiles and fixed command line to read ini file.
+- Removed config.php file.
+
+-------------------------------------------------------------------
+Mon Nov  5 00:00:00 UTC 2012 - pkacer@suse.com
+
+- Changed the configuration to be read only from config.ini file.
+
+-------------------------------------------------------------------
+Fri Aug 31 00:00:00 UTC 2012 - pkacer@suse.com
+
+- Changed dependency from qa_lib_openid to php5-ZendFramework.
+
+-------------------------------------------------------------------
+Fri Aug 17 00:00:00 UTC 2012 - pkacer@suse.com
+
+- OpenID authentication only on request by user (see header.php).
+- OpenID is on by default in configuration.
+- Added login/logout links and user name at the top right corner.
+- Added page with user configuration (configuration is available, yet).
+
+-------------------------------------------------------------------
+Fri Aug 10 00:00:00 UTC 2012 - llipavsky@suse.cz
+
+- Web user-friendly editor for jobs
+- HA Server yast2 UI Automation
+- Build mapping in QADB (buildXXX -> beta Y)
+- Improved regression analysis
+- Support for benchmark parsers in benchmark testsuite (author of testsuite will also provide a script to parse the results)
+- Power switch support in Hamsta (thanks mpluskal!)
+- Only results created in the job are submitted to QADB
+- QADB improvements
+
+-------------------------------------------------------------------
+Wed May  2 00:00:00 UTC 2012 - llipavsky@suse.cz
+
+- New 2.3 release from QA Automation team, includes:
+- out-of date and developement SUTs are marked in web frontend and can be updated from the frontend
+- HA Server yast2-cluster UI Automation
+- Improved CLI interface to Hamsta
+- It is possible to get/choose all patterns from all products during SUT intallation (until now, only SLES/D & SDK patterns were shown)
+- Parametrized jobs
+- Better web editors of jobs. Now with multimachine job support
+- Hamsta client one-click installer
+- QADB improvements
+- No more Novell icon in Hamsta ;-)
+
+-------------------------------------------------------------------
+Mon Nov 14 00:00:00 UTC 2011 - llipavsky@suse.cz
+
+- New 2.2 release from QA Automation team, includes:
+- Automated stage testing
+- Repartitioning support during reinstall
+- Possible to leave some space unparditioned during reinstall
+- Added "default additional RPMs to hamsta frontend"
+- Optimized hamsta mutlticast format
+- Mutliple build-validation jobs
+- Code cleanup
+- Bugfixes
+
+-------------------------------------------------------------------
+Sun Sep  4 00:00:00 UTC 2011 - llipavsky@suse.cz
+
+- New, updated release from the automation team. Includes:
+- Improved virtual machine handling/QA cloud
+- Rename of QA packages
+- Upgrade support
+- More teststsuites
+- Many bug fixes
+
+-------------------------------------------------------------------
+Tue Aug 16 00:00:00 UTC 2011 - llipavsky@suse.cz
+
+- Package rename: hamsta -> qa_hamsta
+
+-------------------------------------------------------------------
+Fri Jun 17 00:00:00 UTC 2011 - dcollingridge@novell.com
+
+- New, updated release from the automation team. Includes:
+- Reinstall pattern list customization
+- Additional add-on repository capability
+- Chainloader selective root partition install
+- Improved virtual machine integration/QA cloud (technical preview)
+- Plus, logs of bug fixes
+
+-------------------------------------------------------------------
+Wed Apr 13 00:00:00 UTC 2011 - dcollingridge@novell.com
+
+- New, updated release from the automation team. Includes:
+- Improved job output and filtering
+- New page showing the entire action history
+- Hamsta logo added to main page
+- Revision/feature history added to main page
+- Better filtering of repo index lists
+- New dispaly field options shown (RAM, procs, disks, etc.)
+- Graphical desktop selection possible on reinstall
+- Improved/unified WebUI error reporting
+- Plus, lots of bug fixes
+
+-------------------------------------------------------------------
+Fri Jan 28 00:00:00 UTC 2011 - llipavsky@suse.cz
+
+- migrate hamsta (excluding frontend) to new QA config schema
+
+-------------------------------------------------------------------
+Fri Jan 21 00:00:00 UTC 2011 - dcollingridge@novell.com
+
+- New, updated release from the automation team. Includes:
+- New machine action history logs important events
+- New job logging format (color-coded, severity-separated)
+- Serial console device/speed and default install options added
+- Xen host install improvements
+- Lots of bug fixes
+
+-------------------------------------------------------------------
+Thu Nov 18 00:00:00 UTC 2010 - dcollingridge@novell.com
+
+- Lots of recent bug fixes from the automation team.
+
+-------------------------------------------------------------------
+Sat Aug 21 00:00:00 UTC 2010 - vmarsik@suse.cz
+
+- Milestone release notes:
+ - Added autotest tests to the "Send job" page of Hamsta
+ - Automatical installation of latest online updates during reinstall
+ - Allowed running jobs across multiple machines
+ - Enhancements to autopxe page
+ - New quick unlock/unreserve button
+ - Hamsta now shows "real" server architecture and "installed" arch for x86
+
+-------------------------------------------------------------------
+Fri Aug 13 00:00:00 UTC 2010 - llipavsky@suse.cz
+
+- New, updated release from the automation team. Includes:
+  - AutoPXE support to restore broken installations
+  - Various bugfixes
+
+-------------------------------------------------------------------
+Wed Aug  4 00:00:00 UTC 2010 - llipavsky@suse.cz
+
+- Named all foreign keys in db, so we can easily modify them
+  in future patches
+
+-------------------------------------------------------------------
+Mon Aug  2 00:00:00 UTC 2010 - llipavsky@suse.cz
+
+- Add update support to the DB
+
+-------------------------------------------------------------------
+Fri Jun 18 00:00:00 UTC 2010 - dcollingridge@novell.com
+
+- New, updated release from the automation team. Includes:
+- Automated build validation
+- Improved job status
+- DB cleanup and enhancements
+- More autoyast customizations for auto-installs
+- Improved form validation and handling
+- Email notifications for completed jobs
+- SUT VNC and terminal access
+- PPC installation support
+- Context help
+- Improved logging and monitoring
+- Various bug fixes
+
+-------------------------------------------------------------------
+Fri Apr 23 00:00:00 UTC 2010 - dcollingridge@novell.com
+
+- New, updated release from the automation team. Includes:
+- Steps towards getting an automatic build validation
+- Added dropdown selectors for installation repos on install
+- Now able to run any qa_ package test from frontend
+- Multiple jobs can be queued
+- Custom job with arbitrary command creation from frontend
+- Auto-repopulation of some fields on form submit error
+- Improved framework for future front-end enhancements
+- RPM updates can now be defined in the job XML
+- Email notifications enabled
+- Hamsta client auto-starts on reboot
+- Lots of bug fixes
+
+-------------------------------------------------------------------
+Fri Apr  9 00:00:00 UTC 2010 - vmarsik@novell.com
+
+- made a few changes to make rpmlint more happy
+- created the package jobs
+
+-------------------------------------------------------------------
+Thu Mar 25 00:00:00 UTC 2010 - dcollingridge@novell.com
+
+- New, updated release from the automation team. Includes:
+- SLED no longer depends on SDK for install
+- Updated dependencies
+- Added options to reinstall
+- Added custom autoyast upload
+- Installation repo auto-complete
+- Automatically update qa_tools before system reinstall
+- UI enhancements and updates
+- Added the ability to specify rpms to install for a job
+- Better diagnostics
+- Separated install job from standard jobs
+- Better tracking of reinstall job
+- Able to delete machines
+- Lots of bug fixes
+
+-------------------------------------------------------------------
+Wed Mar  3 00:00:00 UTC 2010 - vmarsik@novell.com
+
+- added a new package multicast-forward
+
+-------------------------------------------------------------------
+Fri Feb 19 00:00:00 UTC 2010 - vmarsik@novell.com
+
+- changed /usr/share/hamsta to /usr/share/hamsta
+- changed /srv/www/htdocs/hamsta/frontend to /srv/www/htdocs/hamsta
+
+-------------------------------------------------------------------
+Thu Feb 18 00:00:00 UTC 2010 - vmarsik@novell.com
+
+- split packages into 4 pieces
+- removed qa_tools from dependencies
+- modified PHP dependencies not do depend on PHP5
+- marked config files as %%config
+- removed obsolete old installation files
+
+-------------------------------------------------------------------
+Tue Feb 16 00:00:00 UTC 2010 - dcollingridge@novell.com
+
+- New, updated release from the automation team. Includes:
+- added first listed MAC address to system unique ID
+- added installation repo support in hamsta frontend
+- auto-generation of reinstall job
+- added sdk repo support in hamsta frontend
+- added smoke test job
+- added test_all job
+- added status for /etc/init.d/hamsta-master
+- frontend page added showing current version
+- set up list of test packages to install
+- added automatic qadb submit for smoke and test_all jobs
+- bug fixes
+
+-------------------------------------------------------------------
+Fri Jan 15 00:00:00 UTC 2010 - llwang@novell.com
+
+- added database prepare, bugfixes, auto-install support
+
+-------------------------------------------------------------------
+Thu Nov 26 00:00:00 UTC 2009 - vmarsik@suse.cz
+
+- added bugfixes
+- added master control scripts
+
+-------------------------------------------------------------------
+Wed Aug  6 00:00:00 UTC 2008 - vmarsik@suse.cz
+
+- no more automatic starting (crashed autoinstall)
+
+-------------------------------------------------------------------
+Mon Apr 14 00:00:00 UTC 2008 - pkirsch@suse.de
+
+- added GPLv2 COPYRIGHT file
+
+-------------------------------------------------------------------
+Thu Apr 10 00:00:00 UTC 2008 - pkirsch@suse.de
+
+- changed Group to System/Management
+
+-------------------------------------------------------------------
+Thu Apr  3 00:00:00 UTC 2008 - pkirsch@suse.de
+
+- removed requirement perl-Mail-Mailer, added
+  perl-MailTools
+
+-------------------------------------------------------------------
+Fri Mar 14 00:00:00 UTC 2008 - pkirsch@suse.de
+
+- fixed install requires
+
+-------------------------------------------------------------------
+Tue Feb 26 00:00:00 UTC 2008 - pkirsch@suse.de
+
+- removed setupgrubfornfsinstall, it's suse intern
+- minor changes due to build system requirements
+
+-------------------------------------------------------------------
+Mon Jan 21 00:00:00 UTC 2008 - vmarsik@suse.cz
+
+- added a clickable XML list to the frontend
+- added screen as a requirement
+
+-------------------------------------------------------------------
+Wed Nov 28 00:00:00 UTC 2007 - vmarsik@suse.cz
+
+- commented the code that stops Hamsta when uninstalling
+- this caused to fail the reinstall process
+
+-------------------------------------------------------------------
+Thu Nov 15 00:00:00 UTC 2007 - vmarsik@suse.cz
+
+- added initscripts
+
+-------------------------------------------------------------------
+Tue Nov 13 00:00:00 UTC 2007 - vmarsik@suse.cz
+
+- created an RPM
+

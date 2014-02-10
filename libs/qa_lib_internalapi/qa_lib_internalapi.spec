@@ -13,7 +13,7 @@
 
 Name:           qa_lib_internalapi
 BuildRequires:  doxygen libpng swig autoconf automake libtool
-License:        SUSE Proprietary, GPL v2 or later
+License:        SUSE-NonFree, GPL-2.0+
 Group:          SuSE internal
 Autoreqprov:    on
 Version:        @@VERSION@@

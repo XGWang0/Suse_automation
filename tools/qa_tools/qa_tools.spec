@@ -33,7 +33,7 @@
 BuildRequires:  coreutils perl qa_libperl qa-config
 
 Name:           qa_tools
-License:        SUSE Proprietary
+License:        SUSE-NonFree
 Group:          SUSE internal
 AutoReqProv:    on
 Version:        @@VERSION@@

@@ -25,7 +25,7 @@
 # norootforbuild
 
 Name:           qa_lib_virtauto
-License:        SUSE Proprietary
+License:        SUSE-NonFree
 Group:          SuSE internal
 Summary:        (rd-)qa package for virtualization automation
 Provides:	virtautolib

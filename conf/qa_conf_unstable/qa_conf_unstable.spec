@@ -31,7 +31,7 @@
 # norootforbuild
 
 Name:           qa_conf_unstable
-License:		SUSE Proprietary
+License:		SUSE-NonFree
 Group:		QA Automation
 AutoReqProv:    on
 Version:        @@VERSION@@

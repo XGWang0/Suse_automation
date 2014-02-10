@@ -19,7 +19,7 @@
 
 BuildRequires:  coreutils
 Name:           qa_qadb
-License:        SUSE Proprietary
+License:        SUSE-NonFree
 Group:          System/Management
 AutoReqProv:    on
 Version:        @@VERSION@@

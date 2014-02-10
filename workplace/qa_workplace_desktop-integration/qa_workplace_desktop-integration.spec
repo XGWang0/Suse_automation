@@ -39,7 +39,7 @@
 # norootforbuild
 
 Name:           qa_workplace_desktop-integration
-License:        SUSE Proprietary
+License:        SUSE-NonFree
 Group:          SuSE internal
 AutoReqProv:    on
 Version:        @@VERSION@@
