@@ -107,7 +107,7 @@ sub load_config() {
 #################################
 # the startup sequence
 #################################
-$SIG{'HUP'} = sub { die(); };
+$SIG{'HUP'} = sub { exit (0); };
 $SIG{'CHLD'} = 'IGNORE';
 
 # configuration:

@@ -51,7 +51,9 @@ my $num_hal_devices = 0;
 
 sub hal_devices_have_changed() {
 	return 0 if (! (-e "/usr/bin/dbus-send" or -e "/bin/dbus-send" ));
-	my @hal_answer = `dbus-send --system --dest=org.freedesktop.Hal --print-reply /org/freedesktop/Hal/Manager org.freedesktop.Hal.Manager.GetAllDevices | tail +2`;
+#	my @hal_answer = `dbus-send --system --dest=org.freedesktop.Hal --print-reply /org/freedesktop/Hal/Manager org.freedesktop.Hal.Manager.GetAllDevices | tail +2`;
+#	Workaround of Bug 858037 - multi-cast can not get hal_devices_have_changed in openSUSE_Factory
+	my @hal_answer = `dbus-send --system --dest=org.freedesktop.Hal --print-reply /org/freedesktop/Hal/Manager org.freedesktop.Hal.Manager.GetAllDevices 2>/dev/null| tail +2 2>/dev/null`;
 	if ($num_hal_devices != $#hal_answer) {
 		# hardware changed
 		&log(LOG_NOTICE, "MCAST: DBUS_HWINFO_CHANGE ".$#hal_answer);
