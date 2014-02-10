@@ -1,6 +1,6 @@
 # ****************************************************************************
 # Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
-# 
+#
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
 # RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
@@ -11,7 +11,7 @@
 # PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
 # AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
 # LIABILITY.
-# 
+#
 # SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
 # WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
@@ -28,40 +28,40 @@
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
-# norootforbuild
 
 BuildRequires:  coreutils
 
 Name:           qa_kotd_test
-License:        SUSE-NonFree
-Group:          SUSE internal
-AutoReqProv:    on
 Version:        @@VERSION@@
 Release:        0
+License:        SUSE-NonFree
 Summary:        QA KOTD test controller
-#Url:          http://qa.suse.de/hamsta
+Group:          SUSE internal
 Source:         %{name}-%{version}.tar.bz2
-Source1:	%{name}.8
-#Patch:        %{name}-%{version}.patch
+Source1:        %{name}.8
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+Requires:       perl
+Requires:       qa-config
+Requires:       qa_tools
 %if 0%{?sles_version} == 9
-Requires:       perl qa_tools qa_libperl qa-config qa_lmbench_test qa_tiobench_test qa_ltp_test qa_libmicro_test
+Requires:       qa_libmicro_test
+Requires:       qa_libperl
+Requires:       qa_lmbench_test
+Requires:       qa_ltp_test
+Requires:       qa_tiobench_test
 %else
-Requires:       perl qa_tools qa_libperl qa-config
-Recommends:	qa_lmbench_test qa_tiobench_test qa_ltp_test qa_libmicro_test
+Recommends:     qa_libmicro_test
+Recommends:     qa_lmbench_test
+Recommends:     qa_ltp_test
+Recommends:     qa_tiobench_test
 %endif
-Provides:	kotd_test
-Obsoletes:	kotd_test
+Requires:       coreutils
+Provides:       kotd_test
+Obsoletes:      kotd_test
 BuildArch:      noarch
-PreReq:         coreutils
 
 %description
 QA KOTD test controller.
-
-
-Authors:
---------
-    Vilem Marsik <vmarsik@suse.cz>
 
 %define destdir /usr/share/qa
 %define bindir %{destdir}/tools
@@ -72,30 +72,30 @@ Authors:
 %define kotddir %{vardir}/kerneltest
 
 %prep
-%setup -n %{name}
+%setup -q -n %{name}
 #%patch
 
 %build
 
 %install
-install -m 755 -d $RPM_BUILD_ROOT%{bindir}
-install -m 755 -d $RPM_BUILD_ROOT%{libdir}
-install -m 755 -d $RPM_BUILD_ROOT%{mandir}/man8
-install -m 755 -d $RPM_BUILD_ROOT%{confdir}
-install -m 755 -d $RPM_BUILD_ROOT%{_sysconfdir}/init.d
-install -m 755 -d $RPM_BUILD_ROOT%{_sbindir}
-install -m 755 -d $RPM_BUILD_ROOT%{kotddir}
-install -m 644 %{S:1} $RPM_BUILD_ROOT/usr/share/man/man8
-gzip -9 $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
-cp --target-directory=$RPM_BUILD_ROOT%{bindir} *.pl
-echo ${version} > $RPM_BUILD_ROOT%{libdir}/kotd_test.version
-cp --target-directory=$RPM_BUILD_ROOT%{confdir} 25-kotd
-cp --target-directory=$RPM_BUILD_ROOT%{_sysconfdir}/init.d kotd_test
-ln -s %{_sysconfdir}/init.d/kotd_test $RPM_BUILD_ROOT%{_sbindir}/rckotd_test
-cp --target-directory=$RPM_BUILD_ROOT%{kotddir} kerneltest/test
+install -m 755 -d %{buildroot}%{bindir}
+install -m 755 -d %{buildroot}%{libdir}
+install -m 755 -d %{buildroot}%{mandir}/man8
+install -m 755 -d %{buildroot}%{confdir}
+install -m 755 -d %{buildroot}%{_sysconfdir}/init.d
+install -m 755 -d %{buildroot}%{_sbindir}
+install -m 755 -d %{buildroot}%{kotddir}
+install -m 644 %{SOURCE1} %{buildroot}%{_mandir}/man8
+gzip -9 %{buildroot}%{_mandir}/man8/%{name}.8
+cp --target-directory=%{buildroot}%{bindir} *.pl
+echo ${version} > %{buildroot}%{libdir}/kotd_test.version
+cp --target-directory=%{buildroot}%{confdir} 25-kotd
+cp --target-directory=%{buildroot}%{_sysconfdir}/init.d kotd_test
+ln -s %{_sysconfdir}/init.d/kotd_test %{buildroot}%{_sbindir}/rckotd_test
+cp --target-directory=%{buildroot}%{kotddir} kerneltest/test
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
 %post
 cd %{kotddir}
@@ -127,4 +127,3 @@ done
 %doc COPYING
 
 %changelog
-
