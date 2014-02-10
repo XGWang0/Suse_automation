@@ -243,6 +243,7 @@ ln -s %{_sysconfdir}/init.d/hamsta-multicast-forward $RPM_BUILD_ROOT/%{_sbindir}
 %if %{?with_systemd}
 install -d %{buildroot}/%{_unitdir}
 install -m 644 hamsta.service %{buildroot}/%{_unitdir}/
+install -m 644 hamsta-master.service %{buildroot}/%{_unitdir}/
 %endif
 mkdir -p $RPM_BUILD_ROOT/usr/bin
 cp -a Slave/hamsta.sh $RPM_BUILD_ROOT/usr/bin/
