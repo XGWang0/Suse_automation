@@ -1,6 +1,6 @@
 #!BuildIgnore: post-build-checks
 # ****************************************************************************
-# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
+# Copyright (c) 2013, 2014 Unpublished Work of SUSE. All Rights Reserved.
 # 
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
@@ -28,6 +28,13 @@
 
 # norootforbuild
 
+%define with_systemd 0
+
+%if 0%{?suse_version} >= 1310 || 0%{?sles_version} >= 12
+%define with_systemd 1
+%define _unitdir /usr/lib/systemd/system
+%endif
+
 BuildRequires:  coreutils
 Name:           qa_hamsta
 License:        SUSE Proprietary
@@ -46,8 +53,8 @@ BuildArch:      noarch
 %if 0%{?sles_version} == 9
 Requires:       perl perl-Net-Server perl-URI perl-XML-Dumper perl-IO-Socket-Multicast perl-Proc-Fork perl-XML-Simple qa_tools qa_libperl hamsta-common hamsta-cmdline screen
 %else
-Requires:       perl perl-Net-Server perl-URI perl-XML-Dumper perl-IO-Socket-Multicast perl-Proc-Fork perl-XML-Simple qa_tools qa_libperl hamsta-common
-Recommends:	hamsta-cmdline screen
+Requires:       perl perl-Net-Server perl-URI perl-XML-Dumper perl-IO-Socket-Multicast perl-Proc-Fork perl-XML-Simple qa_tools qa_libperl hamsta-common screen
+Recommends:	hamsta-cmdline
 %endif
 Provides:	hamsta
 Obsoletes:	hamsta
@@ -80,6 +87,11 @@ Requires:       perl perl-DBD-mysql perl-IO-Socket-Multicast perl-XML-Dumper per
 %else
 Requires:       perl perl-DBD-mysql perl-IO-Socket-Multicast perl-XML-Dumper perl-XML-Simple perl-Proc-Fork perl-MIME-Lite screen hamsta-jobs qa_libperl hamsta-common perl-URI perl-Config-IniFiles perl-Digest-SHA1
 Recommends:	hamsta-cmdline
+%endif
+# Since openSUSE 13.1 and SLES 12 the switch statement is provided by
+# following package
+%if 0%{?suse_version} >= 1310 || 0%{?sles_version} >= 12
+Requires:	perl-Switch
 %endif
 Provides:	hamsta-master
 Obsoletes:	hamsta-master
@@ -227,6 +239,11 @@ mkdir -p $RPM_BUILD_ROOT/usr/sbin
 ln -s %{_sysconfdir}/init.d/hamsta $RPM_BUILD_ROOT/%{_sbindir}/rchamsta
 ln -s %{_sysconfdir}/init.d/hamsta-master $RPM_BUILD_ROOT/%{_sbindir}/rchamsta-master
 ln -s %{_sysconfdir}/init.d/hamsta-multicast-forward $RPM_BUILD_ROOT/%{_sbindir}/rchamsta-multicast-forward
+# Install systemd unit file
+%if %{?with_systemd}
+install -d %{buildroot}/%{_unitdir}
+install -m 644 hamsta.service %{buildroot}/%{_unitdir}/
+%endif
 mkdir -p $RPM_BUILD_ROOT/usr/bin
 cp -a Slave/hamsta.sh $RPM_BUILD_ROOT/usr/bin/
 mkdir -p $RPM_BUILD_ROOT/usr/sbin
@@ -251,11 +268,19 @@ mkdir -p $RPM_BUILD_ROOT/var/lib/hamsta
 rm -rf $RPM_BUILD_ROOT/*
 
 %post
+%if %{?with_systemd}
+systemctl daemon-reload
+systemctl start hamsta
+%else
 /sbin/insserv -f %{initfile}
+%endif
 echo %{version} > /usr/share/hamsta/.version
 echo %{version} > /usr/share/hamsta/Slave/.version
 
 %post master
+%if %{?with_systemd}
+systemctl daemon-reload
+%endif
 echo "=================== I M P O R T A N T ======================="
 echo "Please make sure that you have a database prepared."
 echo "To create a new DB, install and configure mysql and then"
@@ -324,6 +349,10 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %dir /usr/share/hamsta/
 /usr/bin/hamsta.sh
 %{_sysconfdir}/init.d/hamsta
+%if %{?with_systemd}
+%dir %{_unitdir}
+%{_unitdir}/hamsta.service
+%endif
 %{_sbindir}/rchamsta
 %{confdir}/00-hamsta-default
 %dir /var/lib/hamsta
@@ -340,6 +369,10 @@ sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %attr(755,root,root) %{destdir}/master/hamsta_cycle.pl
 %dir %{destdir}
 %{_sbindir}/rchamsta-master
+%if %{?with_systemd}
+%dir %{_unitdir}
+%{_unitdir}/hamsta-master.service
+%endif
 %{confdir}/00-hamsta-master-default
 %dir /var/log/hamsta/master
 
