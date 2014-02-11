@@ -68,7 +68,7 @@ cp -a * %{buildroot}%{_datadir}/qa/virtautolib
 mv  %{buildroot}%{_datadir}/qa/virtautolib/lib/vm-migrate-allhosttype.pl %{buildroot}%{_datadir}/qa/tools
 find %{buildroot}%{_datadir}/qa/virtautolib -depth -type d -name .svn -exec rm -rf {} \;
 
-%post -p /sbin/ldconfig
+%post
 
 %clean
 rm -rf %{buildroot}
