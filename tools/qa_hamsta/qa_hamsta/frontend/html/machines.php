@@ -308,7 +308,7 @@ if (! empty ($s_anything))
 <table class="list text-main" id="machines">
   <thead>
 	<tr>
-		<th><input type="checkbox" onChange='chkall("machine_list", this)'></th>
+		<th><input type="checkbox" id="checkall" onChange='chkall("machine_list", this)'></th>
 		<th><?php print ($fields_list['hostname']); ?></th>
 		<th><?php print ($fields_list['status_string']); ?></th>
 		<th><?php print ($fields_list['used_by']); ?></th>
@@ -323,7 +323,7 @@ if (! empty ($s_anything))
   <tbody>
     <?php foreach ($machines as $machine): ?>
     <tr>
-		<td><input type="checkbox" name="a_machines[]" value="<?php echo($machine->get_id()); ?>"<?php if (isset ($a_machines) && in_array($machine->get_id(), $a_machines)) echo(' checked="checked"'); ?>></td>
+	<td><input type="checkbox" name="a_machines[]" onChange='attachToTab(this,"<?php echo($machine->get_id()); ?>")' value="<?php echo($machine->get_id()); ?>"<?php if (isset ($a_machines) && in_array($machine->get_id(), $a_machines)) echo(' checked="checked"'); ?>></td>
 
     <td title="<?php echo($machine->get_notes()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>&amp;highlight=<?php echo($highlight); ?>"><?php echo($machine->get_hostname()); ?></a><?php if ($machine->count_host_collide() >= 2) echo '<img src="images/27/host-collide.png" class="icon-notification" title="Hostnames collide! Merge or delete machine if MAC was changed, otherwise rename it.">'; ?></td>
 		    
@@ -385,6 +385,15 @@ foreach ($fields_list as $key=>$value)
 var TSort_Data = new Array ('machines','', '0' <?php echo str_repeat(", 'h'", (isset ($display_fields) ? count($display_fields)+2 : 1)); ?>);
 var TSort_Icons = new Array ('<span class="text-blue sorting-arrow">&uArr;</span>', '<span class="text-blue sorting-arrow">&dArr;</span>');
 tsRegister();
+
+var sutList = new Object();
+var sutCnt = 0;
+var machines = {
+		<?php foreach ($machines as $machine)
+			echo('"'.$machine->get_id().'":"'.$machine->get_hostname().'",');
+		?>
+		};
+
 
 var height = $(window).height(); 
 var width = $(window).width(); 
@@ -483,7 +492,6 @@ function checkForm (action) {
 	}
 	return checkboxes && confirmed;
 }
-
 $(document).ready(function(){
 $("label#action button[name='action']").click(function(){
 	return checkForm (this.value);
@@ -492,26 +500,36 @@ $("label#action button[name='action']").click(function(){
 </script>
 <input type="checkbox" id="actionCheck">
 <label id="action" class="action" for="actionCheck">
-<h3>&darr;  Action  &darr;</h3>
+<h3>&darr;  Action  &darr;<div id="chkedsut"></div></h3>
 <input type="checkbox" id="blkAni">
 <label class="noani" for="blkAni">
-<button name="action" value="machine_reserve" class="button machine_reserve">Reserve machines</button>
-<button name="action" value="machine_edit" class="button edit">Edit</button>
-<br>
-<button name="action" value="machine_reinstall" class="button machine_reinstall">Reinstall</button>
-<button name="action" value="machine_send_job" class="button machine_send_job">Send job</button>
-<br>
-<button name="action" value="merge_machines" class="button merge_machines">Merge machines</button>
-<button name="action" value="machine_delete" class="button delete">Delete</button>
-<br>
-<button name="action" value="create_group" class="button create_group">Add to group</button>
-<button name="action" value="group_del_machines" class="button group_del_machines">Remove from group</button>
-<br>
-<button name="action" value="machine_config" class="button machine_config">Configure machines</button>
-<button name="action" value="upgrade" class="button upgrade">Upgrade to higher</button>
-<br>
-<button name="action" value="vhreinstall" class="button vhreinstall">Reinstall as Virt. Host</button>
-<button name="action" value="addsut" class="button addsut">Add SUT</button>
+<div id="chkedlist"></div>
+<table>
+<tr>
+<td><button name="action" value="machine_reserve" class="button machine_reserve">Reserve machines</button></td>
+<td><button name="action" value="machine_edit" class="button edit">Edit</button></td>
+</tr>
+<tr>
+<td><button name="action" value="machine_reinstall" class="button machine_reinstall">Reinstall</button></td>
+<td><button name="action" value="machine_send_job" class="button machine_send_job">Send job</button></td>
+</tr>
+<tr>
+<td><button name="action" value="merge_machines" class="button merge_machines">Merge machines</button></td>
+<td><button name="action" value="machine_delete" class="button delete">Delete</button></td>
+</tr>
+<tr>
+<td><button name="action" value="create_group" class="button create_group">Add to group</button></td>
+<td><button name="action" value="group_del_machines" class="button group_del_machines">Remove from group</button></td>
+</tr>
+<tr>
+<td><button name="action" value="machine_config" class="button machine_config">Configure machines</button></td>
+<td><button name="action" value="upgrade" class="button upgrade">Upgrade to higher</button></td>
+</tr>
+<tr>
+<td><button name="action" value="vhreinstall" class="button vhreinstall">Reinstall as Virt. Host</button></td>
+<td><button name="action" value="addsut" class="button addsut">Add SUT</button></td>
+</tr>
+</table>
 </label>
 </label>
 </form>
