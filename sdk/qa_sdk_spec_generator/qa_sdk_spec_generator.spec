@@ -3,64 +3,38 @@
 # package are under the same license as the package itself.
 #
 
-# norootforbuild
 
 Name:           qa_sdk_spec_generator
-Version:	@@VERSION@@
-Release:	0
-Summary:	"generate a .spec file"
-Group:		SUSE internal
-License:	SUSE-NonFree
-Provides:	Novell
-Source0:		%{name}-%{version}.tar.bz2
-Source1:	qa_sdk_spec_generator.8
+Version:        @@VERSION@@
+Release:        0
+License:        SUSE-NonFree
+Summary:        Spec file generator
+Group:          SUSE internal
+Source0:        %{name}-%{version}.tar.bz2
+Source1:        qa_sdk_spec_generator.8
+Provides:       Novell
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
-AutoReqProv:    on
 
 %description
-Spec generator 
-
+This is a helper to create spec files.
 
 %prep
 %setup -n %{name}
 
 %install
-install -m 755 -d $RPM_BUILD_ROOT/usr/share/man/man8
-install -m 644 %{S:1} $RPM_BUILD_ROOT/usr/share/man/man8
-gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
-install -m 755 -d $RPM_BUILD_ROOT/usr/bin
-cp spec_generator $RPM_BUILD_ROOT/usr/bin
-%clean
-rm -rf $RPM_BUILD_ROOT
+install -m 755 -d %{buildroot}%{_mandir}/man8
+install -m 644 %{SOURCE1} %{buildroot}%{_mandir}/man8
+gzip %{buildroot}%{_mandir}/man8/%{name}.8
+install -m 755 -d %{buildroot}%{_prefix}/bin
+cp spec_generator %{buildroot}%{_prefix}/bin
 
+%clean
+rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root)
-/usr/share/man/man8/qa_sdk_spec_generator.8.gz
-/usr/bin/qa_sdk_spec_generator
+%{_mandir}/man8/qa_sdk_spec_generator.8.gz
+%{_bindir}/qa_sdk_spec_generator
 
 %changelog
-* Mon Nov 14 2011 - llipavsky@suse.cz
-- New 2.2 release from QA Automation team, includes:
-- Automated stage testing
-- Repartitioning support during reinstall
-- Possible to leave some space unparditioned during reinstall
-- Added "default additional RPMs to hamsta frontend"
-- Optimized hamsta mutlticast format
-- Mutliple build-validation jobs
-- Code cleanup
-- Bugfixes
-* Sun Sep 04 2011 - llipavsky@suse.cz
-- New, updated release from the automation team. Includes:
-- Improved virtual machine handling/QA cloud
-- Rename of QA packages
-- Upgrade support
-- Changed format od /etc/qa files
-- More teststsuites
-- Many bug fixes
-* Tue Aug 16 2011 - llipavsky@suse.cz
-- Package rename: spec_generator -> qa_sdk_spec_generator
-* Fri Aug 27 2010 - jtang@novell.com
-- initial release
-
