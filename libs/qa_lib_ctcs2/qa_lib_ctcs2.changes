@@ -1,304 +1,100 @@
 -------------------------------------------------------------------
-Fri Aug 16 15:28:43 CEST 2013 - pkacer@suse.com
+Tue Jun 29 00:00:00 UTC 2010 - vmarsik@suse.cz
 
-- New 2.6 release from QA Automation team
-- The Machines page has been greatly improved
-- Layout changes at the Machine details page
-- Web UI menu was changed (renamed entries and added link to documentation)
-- Web UI bottom menu was removed
-- Machine reservations can be shared by users
-- Improved QA network configuration (synchronization and web UI)
-- Title of Hamsta changed from image to text
-- All user roles are now checked for privileges (without need to switch user roles)
-- Ajaxterm was removed
-- A lot of bugs were fixed
+- fixed permissions for /usr/lib/ctcs2/tools/report.py
 
 -------------------------------------------------------------------
-Fri Jan 18 15:17:37 CET 2013 - llipavsky@suse.cz
+Thu Apr  1 00:00:00 UTC 2010 - vmarsik@suse.cz
 
-- New 2.5 release from QA Automation team
-- Authentication and Authorization in Hamsta
-- ctcs2 improvements, speedup, and new tcf commands
-- New SUT can be added to Hamsta from hamsta web interface
-- Timezone support in reinstall
-- Reinstall can now be done using kexec
-- Centralized configuration of SUTs
-- Sessions support in Hamsta
-- AutoPXE now supports ia64 architecture
-- Hamsta is no longer configured using config.php, config.ini is used instead
-- ...and many small improvements and bug fixes
-
+- removed dependency on perl-DBD-myslq, not available in SLED
+- this was only needed by the obsolete report script
+- use remote_qa_db_report.pl from qa_tools instead
+- addded dependency on perl, there is enough perl code
 
 -------------------------------------------------------------------
-Mon Jan  7 15:07:59 CET 2013 - chrubis@suse.cz
+Fri Feb 27 00:00:00 UTC 2009 - ehamera@suse.cz
 
-- fixed bug #789630: the default polling interval has changed to 0.1
-  second. If your results differ set ONE_SEC_POLLING variable before
-  you start the testing to get the original 1 second polling back.
-
--------------------------------------------------------------------
-Thu Jan  3 17:13:22 CET 2013 - chrubis@suse.cz
-
-- small cleanup
-- fixed bug #793914
+- repaired bnc#197135 - temeouted tests are marked as internal
+  error instead of pass.
 
 -------------------------------------------------------------------
+Tue Jan  6 00:00:00 UTC 2009 - mmrazik@suse.cz
 
-Mon Aug 13 14:06:24 CEST 2012 - pkacer@suse.com
-
-- qa_lib_ctcs2.8: Fixed formatting and typos. Refrased some setences.
-
--------------------------------------------------------------------
-
-Fri Aug 10 13:15:20 CEST 2012 - llipavsky@suse.cz
-
-- Web user-friendly editor for jobs
-- HA Server yast2 UI Automation
-- Build mapping in QADB (buildXXX -> beta Y)
-- Improved regression analysis
-- Support for benchmark parsers in benchmark testsuite (author of testsuite will also provide a script to parse the results)
-- Power switch support in Hamsta (thanks mpluskal!)
-- Only results created in the job are submitted to QADB
-- QADB improvements
+- don't ignore SIGUSR1 (bnc#446597). Patch provided by dgollub.
 
 -------------------------------------------------------------------
+Tue Oct 28 00:00:00 UTC 2008 - dgollub@suse.de
 
-Thu May 17 15:34:49 CEST 2012 - llipavsky@suse.cz
-
-- Add benchparser command support in TCF file
-
--------------------------------------------------------------------
-
-Wed May  2 15:13:00 CEST 2012 - vmarsik@suse.cz
-
-- Added info about running kernel's RPM
+- Modified pdisk_openpower.patch:
+  Redirect stderr also to /dev/null for the `which pdisk` call
 
 -------------------------------------------------------------------
-
-Wed May  2 09:08:03 CEST 2012 - llipavsky@suse.cz
-
-- New 2.3 release from QA Automation team, includes: 
-- out-of date and developement SUTs are marked in web frontend and can be updated from the frontend 
-- HA Server yast2-cluster UI Automation 
-- Improved CLI interface to Hamsta 
-- It is possible to get/choose all patterns from all products during SUT intallation (until now, only SLES/D & SDK patterns were shown) 
-- Parametrized jobs 
-- Better web editors of jobs. Now with multimachine job support 
-- Hamsta client one-click installer 
-- QADB improvements 
-- No more Novell icon in Hamsta ;-) 
-
--------------------------------------------------------------------
-Mon Nov 14 11:08:55 CET 2011 - llipavsky@suse.cz
-
-- New 2.2 release from QA Automation team, includes:
-- Automated stage testing
-- Repartitioning support during reinstall
-- Possible to leave some space unparditioned during reinstall
-- Added "default additional RPMs to hamsta frontend"
-- Optimized hamsta mutlticast format
-- Mutliple build-validation jobs 
-- Code cleanup
-- Bugfixes
- 
-
--------------------------------------------------------------------
-Sun Sep  4 21:55:20 CEST 2011 - llipavsky@suse.cz
-
-- New, updated release from the automation team. Includes:
-- Improved virtual machine handling/QA cloud
-- Rename of QA packages
-- Upgrade support
-- Changed format od /etc/qa files
-- More teststsuites
-- Many bug fixes
-
--------------------------------------------------------------------
-Tue Aug 16 22:09:45 CEST 2011 - llipavsky@suse.cz
-
-- Package rename: ctcs2 -> qa_lib_ctcs2
-
--------------------------------------------------------------------
-Fri Jun 24 13:07:24 CEST 2011 - llipavsky@suse.cz
-
-- Allow ctcs2 to run as non-root, logs will be stored in
-  $HOME/var-log-qa/ctcs2
-
--------------------------------------------------------------------
-Fri Jun 17 10:33:00 MDT 2011 - dcollingridge@novell.com
-
-- New, updated release from the automation team. Includes:
-- Version update to 2.0.0
-- Various bug fixes
-
--------------------------------------------------------------------
-Thu Mar 17 11:32:43 CET 2011 - llipavsky@suse.cz
-
-- fix bnc#216220
-
--------------------------------------------------------------------
-Fri Jan  7 11:00:34 CET 2011 - llipavsky@suse.cz
-
-- removed filtering of hwinfo. Hwinfo will be filtered during 
-  result submission automatically
-
--------------------------------------------------------------------
-Tue Nov  9 14:09:57 CET 2010 - llipavsky@suse.cz
-
-- fix incorrect counting of skipped testcases
-
--------------------------------------------------------------------
-Wed Nov  3 10:55:24 CET 2010 - llipavsky@suse.cz
-
-- Fixed many bugs caused by incorrect usage of @test_order in run
-  - in general, all bugs which showd something like 
-    '@order provided but different size...' should be fixed now!
-
--------------------------------------------------------------------
-Thu Oct 14 14:18:01 CEST 2010 - llipavsky@suse.cz
-
-- Fixed typo: lib/perl/fpdisk.pm: line 49
--        system("fdisk -l 2>1 /dev/null");
-+        system("fdisk -l >/dev/null 2>&1");
-
-Thanks Klaus!
-
--------------------------------------------------------------------
-Tue Oct 12 19:42:16 CEST 2010 - llipavsky@suse.cz
-
-- fixed ctcs2 pre script (thanks Klaus!)
-
--------------------------------------------------------------------
-Mon Oct 11 13:43:08 CEST 2010 - llipavsky@suse.cz
-
-- full fix of bnc#632312 - ctcs2 can not be updated from the QA 
-                           Milestone5 release
-
--------------------------------------------------------------------
-Fri Aug  6 15:12:26 CEST 2010 - llipavsky@suse.cz
-
-- tcf now creates file 'done' in logs when whole tcf has been
-  processed. The file contain current date&time in UTC format.
-  Existence of this file will make it easier to decide whether
-  testsuite run is already completed -> needed in for live 
-  reporting
-
--------------------------------------------------------------------
-Tue Aug  3 17:55:05 CEST 2010 - llipavsky@suse.cz
-
-Added minor ctcs2 modification in order to be able to do live 
-  reporting later:
-1. test_results are written after every testcase is finished and the
-   testcase order is preserved (until now, it was random order and the
-   file was written after whole TCF run)
-2. process_state is updated on start of process and after wait for process 
-   end -> we can tell what testcase(s) is running
-
--------------------------------------------------------------------
-Mon Aug  2 11:46:51 CEST 2010 - llipavsky@suse.cz
-
-- re-add va_detect.pm and fpdisk.pm to fix bnc#626573 - newburn 
-  test doesn't start
-
--------------------------------------------------------------------
-Thu Jul 22 15:51:36 CEST 2010 - llipavsky@suse.cz
-
-- Default logdirectory is /var/log/qa/ctcs2 now
-
--------------------------------------------------------------------
-Thu Jun 10 09:10:17 CEST 2010 - llipavsky@suse.cz
-
-- Clean up ctcs2 - keep only the functionality we use (if we need 
-  more in the future, it would be better to switch to upstream)
-- Add support for skipped testcase (return value SKIP 22)
-
--------------------------------------------------------------------
-Fri May 28 11:11:48 CEST 2010 - llipavsky@suse.cz
-
-- Re-added return value 11 as INTERNAL ERROR
-- marked return value 2 as DEPRECATED INTERNAL ERROR
-- moved exit (when internal error) after cleanup call, so the 
-  cleanup is also called after internal error
-
--------------------------------------------------------------------
-Mon Feb 22 16:42:21 CET 2010 - llipavsky@suse.cz
-
-- bnc#560428 - QADB: qa_db_report.pl (qa_tools) requires impossibly 
-  consistent hwinfo 
-
--------------------------------------------------------------------
-Wed Feb 10 12:22:24 CET 2009 - llipavsky@suse.cz
-
-- Applied sorting: ctcs2 - sort rpmlist -> makes sure that systems
-  with same packages will get same rpmlist
-
--------------------------------------------------------------------
-Fri Aug  8 20:06:24 CEST 2008 - dgollub@suse.de
+Fri Aug  8 00:00:00 UTC 2008 - dgollub@suse.de
 
 - Added cleanup syntax, which is the opposite of wait, and
   terminates unfinished background processes once it got called.
 
 -------------------------------------------------------------------
-Thu Jun 12 11:12:23 CEST 2008 - pkirsch@suse.de
+Thu Jun 12 00:00:00 UTC 2008 - pkirsch@suse.de
 
-- added dependency psmisc because of internal call of pstree 
+- added dependency psmisc because of internal call of pstree
 
 -------------------------------------------------------------------
-Tue May  6 14:51:35 CEST 2008 - pkirsch@suse.de
+Tue May  6 00:00:00 UTC 2008 - pkirsch@suse.de
 
 - removed Requires kernel-source, the test packages should correct
-  their dependencies  
+  their dependencies
 
 -------------------------------------------------------------------
-Thu Apr 10 16:47:57 CEST 2008 - pkirsch@suse.de
+Thu Apr 10 00:00:00 UTC 2008 - pkirsch@suse.de
 
-- removed Group SuSE intern 
+- removed Group SuSE intern
 
 -------------------------------------------------------------------
-Thu Jan 31 16:31:26 CET 2008 - pkirsch@suse.de
+Thu Jan 31 00:00:00 UTC 2008 - pkirsch@suse.de
 
 - pdisk does not work on OpenPOWER 'no valid block' (this is
   wanted: olh), so there is a new check in fpdisk.pm
 
 -------------------------------------------------------------------
-Tue Jan 15 13:35:04 CET 2008 - mmrazik@suse.cz
+Tue Jan 15 00:00:00 UTC 2008 - mmrazik@suse.cz
 
 - fixed colors during test execution (correct escape sequences are now
   used when test fails)
 
 -------------------------------------------------------------------
-Mon May  7 14:20:01 CEST 2007 - pkirsch@suse.de
+Mon May  7 00:00:00 UTC 2007 - pkirsch@suse.de
 
 - added kernel-source as requirement, some testcases need that
 
 -------------------------------------------------------------------
-Wed Apr 18 12:35:10 CEST 2007 - pkirsch@suse.de
+Wed Apr 18 00:00:00 UTC 2007 - pkirsch@suse.de
 
-- wrong patch in fpdisk, there was a stdout redirection 2>1 missing 
+- wrong patch in fpdisk, there was a stdout redirection 2>1 missing
 
 -------------------------------------------------------------------
-Mon Mar 12 13:37:20 CET 2007 - pkirsch@suse.de
+Mon Mar 12 00:00:00 UTC 2007 - pkirsch@suse.de
 
 - for clarification, in report.py the default log directory
- is mentioned
+  is mentioned
 
 -------------------------------------------------------------------
-Fri Feb 16 09:12:07 CET 2007 - pkirsch@suse.de
+Fri Feb 16 00:00:00 UTC 2007 - pkirsch@suse.de
 
-- in fpdisc.pm added correct return value query 
+- in fpdisc.pm added correct return value query
 
 -------------------------------------------------------------------
-Fri Oct 13 14:01:37 CEST 2006 - yxu@suse.de
+Fri Oct 13 00:00:00 UTC 2006 - yxu@suse.de
 
 - add link-logfile.diff, which will make correct link at report html
-files for each testcase to its log file
+  files for each testcase to its log file
 - (olli) remove logdir.patch, use new-logdir.patch instead
 
 -------------------------------------------------------------------
-Fri Aug 18 20:58:02 CEST 2006 - ehamera@suse.cz
+Fri Aug 18 00:00:00 UTC 2006 - ehamera@suse.cz
 
 - added timestamp_logging.patch
-  when -t switch used, it makes file timestamp_log in logging 
+  when -t switch used, it makes file timestamp_log in logging
   directory and log times when testsuite has been ran (in seconds
   from 1.1.1970)
 - added logdir.patch
@@ -308,17 +104,17 @@ Fri Aug 18 20:58:02 CEST 2006 - ehamera@suse.cz
 - removed netcat patch
 
 -------------------------------------------------------------------
-Fri Mar 17 14:51:05 CET 2006 - fseidel@suse.de
+Fri Mar 17 00:00:00 UTC 2006 - fseidel@suse.de
 
 - prealpha netcat utilization
 
 -------------------------------------------------------------------
-Wed Jan 25 21:35:15 CET 2006 - mls@suse.de
+Wed Jan 25 00:00:00 UTC 2006 - mls@suse.de
 
 - converted neededforbuild to BuildRequires
 
 -------------------------------------------------------------------
-Mon Nov 21 16:51:20 CET 2005 - fseidel@suse.de
+Mon Nov 21 00:00:00 UTC 2005 - fseidel@suse.de
 
 - added patch which adds two new commands for tcf-files
   that are:
@@ -328,69 +124,69 @@ Mon Nov 21 16:51:20 CET 2005 - fseidel@suse.de
   successfull
 
 -------------------------------------------------------------------
-Thu Oct 27 13:31:23 CEST 2005 - ories@suse.de
+Thu Oct 27 00:00:00 UTC 2005 - ories@suse.de
 
 - default dir for ctcs2 is /usr/lib/ctcs2 !
-- set absolute paths in bin/runtest & tools/run 
+- set absolute paths in bin/runtest & tools/run
 
 -------------------------------------------------------------------
-Fri Aug 11 12:47:22 CEST 2005 - gpayer@suse.de
+Thu Aug 11 00:00:00 UTC 2005 - gpayer@suse.de
 
 - package is now built for all architectures to stop autobuild bitching
 
 -------------------------------------------------------------------
-Tue Aug 02 16:10:21 CEST 2005 - gpayer@suse.de
+Tue Aug  2 00:00:00 UTC 2005 - gpayer@suse.de
 
 - installs now to default libdir
 
 -------------------------------------------------------------------
-Tue Mar 15 13:25:20 CEST 2005 - gpayer@suse.de
+Tue Mar 15 00:00:00 UTC 2005 - gpayer@suse.de
 
 - testcases hitting timeout are now marked by tools/report.py
 
 -------------------------------------------------------------------
-Wed Jan 26 15:16:19 CEST 2005 - gpayer@suse.de
+Wed Jan 26 00:00:00 UTC 2005 - gpayer@suse.de
 
 - fixed internal error propagation in bin/runtest, tools/run and tools/report.py
 
 -------------------------------------------------------------------
-Tue Jan 11 16:29:18 CEST 2005 - gpayer@suse.de
+Tue Jan 11 00:00:00 UTC 2005 - gpayer@suse.de
 
 - now bin/runtest can handle absolute paths for real
 
 -------------------------------------------------------------------
-Mon Dec 13 13:46:18 CEST 2004 - gpayer@suse.de
+Mon Dec 13 00:00:00 UTC 2004 - gpayer@suse.de
 
 - included fixed fpdisk.pm (thanks to fseidel@suse.de)
 
 -------------------------------------------------------------------
-Tue Sep 21 12:45:17 CEST 2004 - gpayer@suse.de
+Tue Sep 21 00:00:00 UTC 2004 - gpayer@suse.de
 
 - now report.py sorts testresults by testcase name
 
 -------------------------------------------------------------------
-Mon Aug 16 12:13:16 CEST 2004 - gpayer@suse.de
+Mon Aug 16 00:00:00 UTC 2004 - gpayer@suse.de
 
-- simplified entries in %files section
+- simplified entries in %%files section
 
 -------------------------------------------------------------------
-Fri Jul 30 12:01:15 CEST 2004 - gpayer@suse.de
+Fri Jul 30 00:00:00 UTC 2004 - gpayer@suse.de
 
 - fixed occurance of old installation path in tools/run
 
 -------------------------------------------------------------------
-Wed Jul 28 15:46:14 CEST 2004 - gpayer@suse.de
+Wed Jul 28 00:00:00 UTC 2004 - gpayer@suse.de
 
 - changed install location to /usr/lib/ctcs2
 
 -------------------------------------------------------------------
-Wed May 19 16:45:13 CEST 2004 - gpayer@suse.de
+Wed May 19 00:00:00 UTC 2004 - gpayer@suse.de
 
 - added missing files and scripts from ctcs CVS
 - fixed relative path bug in runtest
 
 -------------------------------------------------------------------
-Wed May 12 15:13:03 CEST 2004 - gpayer@suse.de
+Wed May 12 00:00:00 UTC 2004 - gpayer@suse.de
 
 - initial package
 - derived from internal QA tool ctcs-1.3.0pre4
