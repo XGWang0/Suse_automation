@@ -56,7 +56,7 @@ if( token_read($wtoken) )	{
 	if( ($submit=='new' || $submit=='update') && $desc )	{
 		# check for description collisions
 		$old_id=qaconf_get_by_desc($desc);
-		if( $old_id )
+		if( $old_id && $submit=='new' )
 			$failed=true;
 	}
 	if( $failed )	{
