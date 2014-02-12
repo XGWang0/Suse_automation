@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<job>
+    <config>
+        <name>ping qadb.suse.de</name>
+        <debuglevel>10</debuglevel>
+        <distributable>0</distributable>
+        <parallel>0</parallel>
+        <mail notify="0">vmarsik@suse.cz</mail>
+        <logdir>/tmp</logdir>
+        <description>Test job - pinging qadb.suse.de 100 times.</description>
+        <motd>Hamsta testjob - pinging qadb.suse.de</motd>
+    </config>
+
+    <commands>
+        <worker>
+            <!-- Required -->
+            <command execution="threaded">ping -c 100 qadb.suse.de</command>
+
+            <!-- Optional -->
+            <directory>/</directory>
+            <timeout>42</timeout>
+            <notify pattern="" mail="" />
+
+            <!-- Created for output -->
+            <stdout />
+            <stderr />
+        </worker>
+        
+        <!-- cycle_sec is required, cycle_count optional -->
+        <monitor cycle_sec="10" cycle_count="5">
+            <command execution="forked">who</command>
+        </monitor>
+
+        <!-- Same options as in worker -->
+        <logger>
+            <command>tail -f /var/log/messages</command>
+        </logger>
+    </commands>
+</job>
