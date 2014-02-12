@@ -285,7 +285,7 @@ function print_conf_list($ids=array(),$id_active=null)
 		$cantdel=(!$nonsys ? 'is a system configuration' : 
 			(!$local ? 'not a local configuration' : ($attached ? 'need to be detached first':'')));
 		$ctrl=array(
-			'rows'=>array('url'=>$base1.'v','enbl'=>true,'fullname'=>'content show','allowed'=>true),
+#			'rows'=>array('url'=>$base1.'v','enbl'=>true,'fullname'=>'content show','allowed'=>true),
 			'edit'=>array('url'=>$base1.'e','enbl'=>!$row['sync_url'],'err_noavail'=>'remote configurations cannot be edited, delete sync_URL first'),
 			'net' =>array('url'=>$base1.'eu','enbl'=>!($local&&$row['rows']),'fullname'=>'URL edit','err_noavail'=>'local configurations cannot be changed to remotes, delete rows first'),
 			'sync'=>array('url'=>$base1.'sync','enbl'=>!$local,'allowed'=>true,'err_noavail'=>'sync_url not set'),
@@ -296,9 +296,13 @@ function print_conf_list($ids=array(),$id_active=null)
 		$defaults=array('enbl'=>$local_nonsys,'object'=>$row['desc']);
 		foreach( array_keys($ctrl) as $c )
 			$row['ctrls'].=task_icon(array_merge(array('type'=>$c,'allowed'=>($nonsys ? $logged : $admin)),$defaults,$ctrl[$c]));
+
+		$row['id']=html_link($row['qaconf_id'],$base1.'v');
+		$row['desc']=html_link($row['desc'],$base1.'v');
 	}
 	$data[0]['ctrls']='controls';
-	$data[0]['qaconf_id']='id';
+	$data[0]=array('id'=>'id')+$data[0];
+	unset($data[0]['qaconf_id']);
 	tbl_add_color_class($data,$id_active);
 
 	print "<h3>Configurations involved</h3>\n";
