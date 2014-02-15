@@ -382,7 +382,16 @@ foreach ($fields_list as $key=>$value)
 </table>
 <script type="text/javascript">
 //<!--
-var TSort_Data = new Array ('machines','', '0' <?php echo str_repeat(", 'h'", (isset ($display_fields) ? count($display_fields)+2 : 1)); ?>);
+<?php
+    $types = array();
+    isset ($display_fields) ? $types = array_merge($types, array("'h'", "'h'")) : array_push($types, "'h'");
+    for ($i=0; $i<count($display_fields); $i++)
+    {
+        $type =  isset($display_fields[$i]) ? isset($fields_list_type[$display_fields[$i]]) ? $fields_list_type[$display_fields[$i]] : "h" : "h";
+        array_push($types, "'".$type."'");
+    }
+?>
+var TSort_Data = new Array ('machines','', '0', <?php echo implode(',', $types); ?>);
 var TSort_Icons = new Array ('<span class="text-blue sorting-arrow">&uArr;</span>', '<span class="text-blue sorting-arrow">&dArr;</span>');
 tsRegister();
 

@@ -57,6 +57,40 @@
 		'type'=>'Type',
 		'vh'=>'Virtual Host'
 	);
+    $fields_list_type = array(
+		'hostname'=>'h',
+		'status_string'=>'h',
+		'used_by'=>'h',
+		'usage'=>'h',
+		'job_overview'=>'h',
+		'group'=>'h',
+		'product'=>'h',
+		'architecture'=>'h',
+		'architecture_capable'=>'h',
+		'kernel'=>'h',
+		'cpu_numbers'=>'i',
+		'memory_size'=>'f',
+		'disk_size'=>'i',
+		'cpu_vendor'=>'h',
+		'affiliation'=>'h',
+		'ip_address'=>'h',
+		'maintainer_string'=>'h',
+		'notes'=>'h',
+		'unique_id'=>'h',
+		'serialconsole'=>'h',
+		'consolesetdefault'=>'h',
+		'consolespeed'=>'f',
+		'consoledevice'=>'h',
+		'powerswitch'=>'h',
+		'powertype'=>'h',
+		'powerslot'=>'h',
+		'def_inst_opt'=>'h',
+		'perm'=>'h',
+		'role'=>'h',
+		'type'=>'h',
+		'vh'=>'h'
+	);
+
 
 /* These fields are displayed by default. That means the user
  * cannot hide them nor display again. */
