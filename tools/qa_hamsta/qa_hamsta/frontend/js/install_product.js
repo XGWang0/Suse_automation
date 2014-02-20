@@ -465,7 +465,7 @@ $(document).ready(function() {
 		$("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option> <option id="ext4" value="ext4">ext4</option>');
 	    }
 
-	    if(/sle.-(\d+)/i.test($("#repo_products").val()) && RegExp.$1 >= 12) {
+	    if(/sle.?-(\d+)/i.test($("#repo_products").val()) && RegExp.$1 >= 12) {
 		$("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option> <option id="ext4" value="ext4">ext4</option>');
 	    }
         }
