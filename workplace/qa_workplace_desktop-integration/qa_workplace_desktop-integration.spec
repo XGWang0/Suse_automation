@@ -63,9 +63,6 @@ hamsta-cscreen:
   The qaserial.qa is the console server, the ix64ph043 is the hamsta client
   machine which link the console server with serial cable.
 
-Author:
---------
-	Dominik Heidler <dheidler@suse.com>
 
 %prep
 %setup -q -n %{name}
