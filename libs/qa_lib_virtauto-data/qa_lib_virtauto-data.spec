@@ -1,6 +1,6 @@
 # ****************************************************************************
 # Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
-# 
+#
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
 # RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
@@ -11,7 +11,7 @@
 # PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
 # AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
 # LIABILITY.
-# 
+#
 # SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
 # WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
@@ -22,30 +22,22 @@
 # ****************************************************************************
 #
 
-# norootforbuild
 
 Name:           qa_lib_virtauto-data
-License:        SUSE-NonFree
-Group:          SuSE internal
-Summary:        (rd-)qa package for virtualization automation - data package
-AutoReqProv:    on
 Version:        @@VERSION@@_111103
 Release:        0
-Source:         %name-%version.tar.bz2
-Source1:	qa_lib_virtauto-data.8
+License:        SUSE-NonFree
+Summary:        (rd-)qa package for virtualization automation - data package
+Group:          SuSE internal
+Source:         %{name}-%{version}.tar.bz2
+Source1:        qa_lib_virtauto-data.8
+Provides:       virtautolib-data
+Obsoletes:      virtautolib-data
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
-Provides:	virtautolib-data
-Obsoletes:	virtautolib-data
 BuildArchitectures: noarch
 
 %description
 Data for virtualization automation library
-
-
-Authors:
---------
-    Dan Collingridge <dcollingridge@suse.com>
-    Lukas Lipavsky   <llipavsky@suse.com>
 
 %prep
 %setup -n %{name}
@@ -53,23 +45,22 @@ Authors:
 %build
 
 %install
-install -m 755 -d $RPM_BUILD_ROOT/usr/share/man/man8
-install -m 644 %{S:1} $RPM_BUILD_ROOT/usr/share/man/man8
-gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
-mkdir -p $RPM_BUILD_ROOT/usr/share/qa/virtautolib/data
-cp -a * $RPM_BUILD_ROOT/usr/share/qa/virtautolib/data
-find $RPM_BUILD_ROOT/usr/share/qa/virtautolib -depth -type d -name .svn -exec rm -rf {} \;
+install -m 755 -d %{buildroot}%{_mandir}/man8
+install -m 644 %{SOURCE1} %{buildroot}%{_mandir}/man8
+gzip %{buildroot}%{_mandir}/man8/%{name}.8
+mkdir -p %{buildroot}%{_datadir}/qa/virtautolib/data
+cp -a * %{buildroot}%{_datadir}/qa/virtautolib/data
+find %{buildroot}%{_datadir}/qa/virtautolib -depth -type d -name .svn -exec rm -rf {} \;
 
 %post
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
 %files
 %defattr(-, root, root)
-/usr/share/man/man8/qa_lib_virtauto-data.8.gz
-/usr/share/qa
+%{_mandir}/man8/qa_lib_virtauto-data.8.gz
+%{_datadir}/qa
 %doc COPYING
 
 %changelog
-
