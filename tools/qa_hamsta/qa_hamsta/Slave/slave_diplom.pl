@@ -47,6 +47,7 @@ $log::loginfo='slave_diplom';
 
 use Slave::hwinfo_xml;
 use Slave::stats_xml;
+use Slave::rsv_rls qw(allow_connection reserve release);
 
 use Slave::Multicast::mcast;
 use Slave::functions;
@@ -186,6 +187,7 @@ sub chk_run() {
   return 0 ;
 }
 
+
 # runs slave server, binds to port, responds to connections
 sub run_slave_server() {
     my $socket = new IO::Socket::INET(
@@ -210,7 +212,13 @@ sub run_slave_server() {
             &log(LOG_NOTICE,"Connection established from $ip_addr");
             
             $SIG{'PIPE'} = 'IGNORE';
-            process_request($connection, $ip_addr);
+
+            if ( &allow_connection($ip_addr) ){
+		    process_request($connection, $ip_addr);
+            }else{
+		    &log(LOG_NOTICE,"Refuse connection from non-reserved master $ip_addr.");
+		    print $connection "The SUT is reserved by other hamsta already!\n";
+            }
         };  
         if ($@) {
             &log(LOG_ERROR, "$@ Will retry."); 
@@ -256,6 +264,11 @@ sub run_slave_server() {
 #
 # * ping
 #	Returns the String "pong"
+# * reserve
+#	Return the string whether reservation is successful,"Reservation succeeded/failed.".
+#
+# * release
+#	Return the string whether release is successful, "Release succeeded/failed."
 #
 # * Anything else is treated as XML serialized job description
 #	TODO Better add a header line or something to get rid of this
@@ -306,7 +319,13 @@ sub process_request {
             } elsif ($incoming =~ /^ping$/) {
                 print $sock "pong\n" ;	
 		last;
-            } else {
+            } elsif ($incoming =~ /^reserve$/) {
+		print $sock &reserve($ip_addr);
+		last;	    
+            } elsif ($incoming =~ /^release$/) {
+		print $sock &release($ip_addr);   
+		last;
+	    } else {
                 my $job = $incoming."\n";
 		&log(LOG_NOTICE, "[$ip_addr] Start of XML job");
                 while ($incoming = <$sock>) {
