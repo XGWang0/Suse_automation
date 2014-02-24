@@ -216,6 +216,7 @@ sub testsuite_next
 	my($tcname, $result) = split(/\.\.\./, $tcl);
 
 	$tcname =~ s/^\s+|\s+$//g;
+	$tcname =~ s/\[.*//g;
 	$result =~ s/^\s+|\s+$//g;
 
 	return () unless $tcname;
@@ -293,7 +294,8 @@ sub testsuite_complete
 
 sub testsuite_tc_output_rel_url
 {
-	return "";
+	my ($self) = @_;
+	return $self->{'TC_NAME'};
 }
 
 1;
