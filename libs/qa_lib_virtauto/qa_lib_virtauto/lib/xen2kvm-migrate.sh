@@ -24,19 +24,12 @@ if [ $? != "0" ];then
 fi
 }
 
-function build_sshpass() {
- REPO_PATH=`gen_http_repo_path /tmp/repo_path.sh host`
- zypper ar $REPO_PATH $REPO_NAME >/dev/null 2>&1
- zypper --non-interactive in --no-recommends --type pattern Basis-Devel >/dev/null 2>&1
- zypper --non-interactive in --no-recommends gcc >/dev/null 2>&1
+function install_sshpass() {
  if ! which sshpass >/dev/null 2>&1;then
-   rm sshpass-1.05* -rf
-   wget -P /tmp http://jaist.dl.sourceforge.net/project/sshpass/sshpass/1.05/sshpass-1.05.tar.gz && \
-   tar xvf /tmp/sshpass-1.05.tar.gz -C /tmp && cd /tmp/sshpass-1.05 && \
-   ./configure && make && make install
+   zypper --non-interactive --gpg-auto-import-keys in --no-recommends sshpass >/dev/null 2>&1
    if [ $? != "0" ];then
-     echo sshpass building error.
-     exit 100
+     echo sshpass installing error.
+     exit 60
    fi
  fi
 }
@@ -56,7 +49,7 @@ function cold_add_nic {
 }
 
 function get_nic_info {
- if virsh domiflist $GUEST_NAME | awk 'NR >= 3 {print $2}' | grep -q bridge ;then
+ if virsh domiflist $GUEST_NAME | awk -v rs=1 'NR >= 3 && /bridge/ {rs=0} END {exit rs}';then
    nic_info=(`virsh domiflist $GUEST_NAME | awk 'NR >= 3 && $2=="bridge" {print $3,$5}'`)
    GUEST_IF_SRC_DEV=${nic_info[0]}
    GUEST_IF_MAC=${nic_info[1]}
@@ -90,7 +83,7 @@ function get_guest_ip {
    for ip in $(seq 1 254); do #Assume the subnet mask is 255.255.255.0, This thing takes time if there are too many ip in a subnet.
      ping -c 1 $net_id.$ip>/dev/null
    done
-   GUEST_IP=`arp -a | grep -i $GUEST_IF_MAC | awk '{print $2}' | sed 's/.*(//g;s/).*//g'`
+   GUEST_IP=`arp -a | awk -v IGNORECASE=1 "/${GUEST_IF_MAC}/ { gsub(/\(|\)/, \"\"); print \$2; }"`
    echo Finish detection.         `date`
    if [ -z $GUEST_IP ];then
      echo Not found guest ip.
@@ -166,7 +159,7 @@ function get_kvm_guest_ip {
    net_id=${bridge_ip%.*}
    echo Start kvm guest ip detection.   `date`
    sshpass -p $KVM_HOST_PASSWORD ssh $SSH_OPTS -p $KVM_HOST_SSHD_PORT $KVM_HOST_USERNAME@$KVM_HOST_IP "for ip in \$(seq 1 254); do ping -c 1 $net_id.\$ip >/dev/null; done"
-   GUEST_IP=`sshpass -p $KVM_HOST_PASSWORD ssh $SSH_OPTS -p $KVM_HOST_SSHD_PORT $KVM_HOST_USERNAME@$KVM_HOST_IP "arp -a | grep -i $GUEST_IF_MAC | awk '{print $2}' | sed 's/.*(//g;s/).*//g'"`
+   GUEST_IP=`sshpass -p $KVM_HOST_PASSWORD ssh $SSH_OPTS -p $KVM_HOST_SSHD_PORT $KVM_HOST_USERNAME@$KVM_HOST_IP "arp -a | awk -v IGNORECASE=1 \"/${GUEST_IF_MAC}/ { gsub(/\(|\)/, \\\\\"\\\\\"); print \\\\\\$2; }\""`
    echo Finish kvm guest ip detection.  `date`
    if [ -z $GUEST_IP ];then
      echo Not found kvm guest ip.
@@ -211,8 +204,8 @@ if grep -q Desktop /etc/SuSE-release;then
 else
  product_name=sles
 fi
-rel_num=\`grep VERSION /etc/SuSE-release | awk '{print \$3}'\`
-sp_num=\`grep PATCHLEVEL /etc/SuSE-release | awk '{print \$3}'\`
+rel_num=\`awk '/VERSION/ {print \$3}' /etc/SuSE-release\`
+sp_num=\`awk '/PATCHLEVEL/ {print \$3}' /etc/SuSE-release\`
 if [ \$sp_num != "0" ];then
  ver_info=\$rel_num-sp\$sp_num
 else
@@ -264,8 +257,8 @@ if grep -q Desktop /etc/SuSE-release;then
 else
  product_name=sle
 fi
-rel_num=\`grep VERSION /etc/SuSE-release | awk '{print \$3}'\`
-sp_num=\`grep PATCHLEVEL /etc/SuSE-release | awk '{print \$3}'\`
+rel_num=\`awk '/VERSION/ {print \$3}' /etc/SuSE-release\`
+sp_num=\`awk '/PATCHLEVEL/ {print \$3}' /etc/SuSE-release\`
 if [ \$sp_num != "0" ];then
  ver_info=-\$rel_num-sp\$sp_num
 else
@@ -311,10 +304,10 @@ EOF
 function devname2uuid_in_guest {
  cat > $1 <<EOF
 #!/bin/bash
-for i in \`grep $GUEST_DEV_NAME /etc/fstab | awk '{print \$1}'\` ; do
+for i in \`awk '/$GUEST_DEV_NAME/ {print \$1}' /etc/fstab\` ; do
   PARTITION_BY_NAME=\$i
-  PARTITION_BY_UUID=/dev/disk/by-uuid/\`blkid -s UUID | grep \$PARTITION_BY_NAME | awk -F\" '{print \$2}'\`
   partition_by_name=\`echo \$PARTITION_BY_NAME | sed 's#\/#\\\\\/#g' | sed 's#\*#\\\\\*#g'\`
+  PARTITION_BY_UUID=/dev/disk/by-uuid/\`blkid -s UUID | awk -F\" "/\$partition_by_name/ {print \\\\\$2}"\`
   partition_by_uuid=\`echo \$PARTITION_BY_UUID | sed 's#\/#\\\\\/#g' | sed 's#\*#\\\\\*#g'\`
   sed -i s/\$partition_by_name/\$partition_by_uuid/ /etc/fstab
   if [ "$GUEST_GRUB_VER" == "1" ];then
@@ -356,37 +349,22 @@ function is_linux_guest {
  return 1
 }
 
-function build_nbd {
+function install_nbd {
  if ! which nbd-server >/dev/null 2>&1;then
-   REPO_PATH=`gen_sdk_http_repo_path /tmp/repo_path.sh host`
-   zypper ar $REPO_PATH ${REPO_NAME}_sdk >/dev/null 2>&1
-   zypper --non-interactive in --no-recommends glib2-devel
-   NBD_URL=http://cznic.dl.sourceforge.net/project/nbd/nbd/2.9.20/nbd-2.9.20.tar.bz2
-   NBD_PKG_NAME=`basename $NBD_URL`
-   rm -rf /tmp/$NBD_PKG_NAME && wget -P /tmp $NBD_URL && tar jxf /tmp/$NBD_PKG_NAME -C /tmp
-   NBD_TMP=${NBD_PKG_NAME%.*}
-   NBD_PREFIX=${NBD_TMP%.*}
-   echo $NBD_PREFIX
-   cd /tmp/$NBD_PREFIX && ./configure && make && make install
-   if [ $? == "1" ];then
-     echo nbd building error.
-     cleanup_and_exit 2
+   zypper --non-interactive --gpg-auto-import-keys in -l --no-recommends nbd >/dev/null 2>&1
+   if [ $? != "0" ];then
+     echo nbd installing error.
+     cleanup_and_exit 8
    fi
  fi
 }
 
-function build_nbd_on_kvmhost {
+function install_nbd_on_kvmhost {
  sshpass -p $KVM_HOST_PASSWORD ssh $SSH_OPTS -p $KVM_HOST_SSHD_PORT $KVM_HOST_USERNAME@$KVM_HOST_IP "which nbd-client">/dev/nul 2>&1
  if [ $? != "0" ];then
-   REPO_PATH=`gen_sdk_http_repo_path /tmp/repo_path.sh kvmhost`
-   sshpass -p $KVM_HOST_PASSWORD ssh $SSH_OPTS -p $KVM_HOST_SSHD_PORT $KVM_HOST_USERNAME@$KVM_HOST_IP "zypper ar $REPO_PATH ${REPO_NAME}_sdk ; zypper --non-interactive in --no-recommends glib2-devel" >/dev/null 2>&1
-   NBD_URL=http://cznic.dl.sourceforge.net/project/nbd/nbd/2.9.20/nbd-2.9.20.tar.bz2
-   NBD_PKG_NAME=`basename $NBD_URL`
-   NBD_TMP=${NBD_PKG_NAME%.*}
-   NBD_PREFIX=${NBD_TMP%.*}
-   sshpass -p $KVM_HOST_PASSWORD ssh $SSH_OPTS -p $KVM_HOST_SSHD_PORT $KVM_HOST_USERNAME@$KVM_HOST_IP "modprobe nbd && rm -rf /tmp/$NBD_PKG_NAME && wget -P /tmp $NBD_URL && tar jxf /tmp/$NBD_PKG_NAME -C /tmp && cd /tmp/$NBD_PREFIX && ./configure && make && make install">/dev/nul 2>&1
-   if [ $? == "1" ];then
-     echo nbd building error on kvm host.
+   sshpass -p $KVM_HOST_PASSWORD ssh $SSH_OPTS -p $KVM_HOST_SSHD_PORT $KVM_HOST_USERNAME@$KVM_HOST_IP "modprobe nbd && zypper --non-interactive --gpg-auto-import-keys in -l --no-recommends nbd">/dev/nul 2>&1
+   if [ $? != "0" ];then
+     echo nbd installing error on kvm host.
      cleanup_and_exit 8
    fi
  fi
@@ -409,7 +387,7 @@ function nfs_export_guest_backend {
 }
 
 function nbd_export_phy_guest_backend {
- build_nbd
+ install_nbd
  modprobe nbd
  nbd-server -p /tmp/nbd_srv.pid $NBD_PORT $GUEST_BACKEND_NAME
  if [ $? != "0" ];then
@@ -537,7 +515,7 @@ function show_information()
   echo " 5: Libvirtd not running on xen host"
   echo " 6: Libvirtd not running on kvm host"
   echo " 7: Invalid guest name"
-  echo " 8: NBD building error on kvm host"
+  echo " 8: NBD installing error"
   echo " 9: Failed to shutdown the guest in func get_guest_ip"
   echo "10: Failed to install tcpdump in host"
   echo "11: Failed to start the guest in func get_guest_ip"
@@ -577,11 +555,38 @@ function show_information()
 
 function usage() {
   echo "Usage: `basename $0` GUEST-NAME GUEST-USERNAME GUEST-PASSWORD KVM-HOST-IP KVM-HOST-USERNAME KVM-HOST-PASSWORD [inactive]"
-  exit 100
+  exit 60
 }
 if [ $# -lt 6 ]; then
   usage
 fi
+
+function add_qa_repo() {
+ product_name=SLE
+ if [ "$1" != "kvmhost" ];then
+  rel_num=`awk '/VERSION/ {print \$3}' /etc/SuSE-release`
+  sp_num=`awk '/PATCHLEVEL/ {print \$3}' /etc/SuSE-release`
+  if [ $sp_num != "0" ];then
+   ver_info=$rel_num-SP${sp_num}_GA
+  else
+   ver_info=${rel_num}_GA
+  fi
+  qa_repo_path=http://dist.nue.suse.com/ibs/QA:/Head:/Devel/SUSE_$product_name-$ver_info
+  qa_repo_name=qa_repo
+  zypper ar -f $qa_repo_path $qa_repo_name >/dev/null 2>&1
+ else
+  rel_num=`sshpass -p $KVM_HOST_PASSWORD ssh $SSH_OPTS -p $KVM_HOST_SSHD_PORT $KVM_HOST_USERNAME@$KVM_HOST_IP "awk '/VERSION/ {print \\$3}' /etc/SuSE-release"`>/dev/null 2>&1
+  sp_num=`sshpass -p $KVM_HOST_PASSWORD ssh $SSH_OPTS -p $KVM_HOST_SSHD_PORT $KVM_HOST_USERNAME@$KVM_HOST_IP "awk '/PATCHLEVEL/ {print \\$3}' /etc/SuSE-release"`>/dev/null 2>&1
+  if [ $sp_num != "0" ];then
+   ver_info=$rel_num-SP${sp_num}_GA
+  else
+   ver_info=${rel_num}_GA
+  fi
+  qa_repo_path=http://dist.nue.suse.com/ibs/QA:/Head:/Devel/SUSE_$product_name-$ver_info
+  qa_repo_name=qa_repo
+  sshpass -p $KVM_HOST_PASSWORD ssh $SSH_OPTS -p $KVM_HOST_SSHD_PORT $KVM_HOST_USERNAME@$KVM_HOST_IP "zypper ar -f $qa_repo_path $qa_repo_name" >/dev/null 2>&1
+ fi
+}
 
 show_information
 REPO_PATH=""
@@ -636,7 +641,8 @@ if test `id -u` != 0 ; then
   cleanup_and_exit 2
 fi
 
-build_sshpass
+add_qa_repo
+install_sshpass
 
 sshpass -p $KVM_HOST_PASSWORD ssh $SSH_OPTS -p $KVM_HOST_SSHD_PORT $KVM_HOST_USERNAME@$KVM_HOST_IP "lsmod | grep kvm">/dev/null 2>&1
 if [ $? == "1" ];then
@@ -684,8 +690,9 @@ if [ -z "$GUEST_STATE" ];then
 fi
 
 if [ $GUEST_BACKEND_FOLDER == "/dev" ] ;then
-  echo [INFO] Building nbd on kvmhost...
-  build_nbd_on_kvmhost
+  add_qa_repo kvmhost
+  echo [INFO] Installing nbd on kvmhost...
+  install_nbd_on_kvmhost
   echo [INFO] Done.
 fi
 
@@ -862,5 +869,3 @@ else
 fi
 echo [INFO] Script gone.
 cleanup_and_exit 0
-
-
