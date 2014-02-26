@@ -16,12 +16,6 @@
     <dbpassword></dbpassword>
   </arkmanager>
   <bootloader>
-    <device_map config:type="list">
-      <device_map_entry>
-        <firmware>hd0</firmware>
-        <linux>/dev/sda</linux>
-      </device_map_entry>
-    </device_map>
     <global>
       <activate>true</activate>
       <default>SUSE Linux Enterprise Server 11 SP3 - 3.0.76-0.11</default>
@@ -45,31 +39,6 @@
       </initrd_module>
     </initrd_modules>
     <loader_type>grub</loader_type>
-    <sections config:type="list">
-      <section>
-        <append>resume=/dev/sda1 splash=silent crashkernel=256M-:128M showopts</append>
-        <image>(hd0,1)/boot/vmlinuz</image>
-        <initial>1</initial>
-        <initrd>(hd0,1)/boot/initrd</initrd>
-        <lines_cache_id>0</lines_cache_id>
-        <name>SUSE Linux Enterprise Server 11 SP3 - 3.0.76-0.11</name>
-        <original_name>linux</original_name>
-        <root>/dev/sda2</root>
-        <type>image</type>
-        <vgamode>0x314</vgamode>
-      </section>
-      <section>
-        <append>showopts ide=nodma apm=off noresume edd=off powersaved=off nohz=off highres=off processor.max_cstate=1 nomodeset x11failsafe</append>
-        <image>(hd0,1)/boot/vmlinuz</image>
-        <initrd>(hd0,1)/boot/initrd</initrd>
-        <lines_cache_id>1</lines_cache_id>
-        <name>Failsafe -- SUSE Linux Enterprise Server 11 SP3 - 3.0.76-0.11</name>
-        <original_name>failsafe</original_name>
-        <root>/dev/sda2</root>
-        <type>image</type>
-        <vgamode>0x314</vgamode>
-      </section>
-    </sections>
   </bootloader>
   <deploy_image>
     <image_installation config:type="boolean">false</image_installation>
@@ -1434,7 +1403,7 @@
   </software>
   <timezone>
     <hwclock>UTC</hwclock>
-    <timezone>Europe/Prague</timezone>
+    <timezone>America/New_York</timezone>
   </timezone>
   <user_defaults>
     <expire></expire>
