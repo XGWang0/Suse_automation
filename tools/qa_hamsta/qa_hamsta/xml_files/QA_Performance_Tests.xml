@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<job>
+    <config>
+        <name>QA Kernel Test Set</name>
+        <debuglevel>4</debuglevel>
+        <distributable>0</distributable>
+        <parallel>0</parallel>
+        <mail notify="1"></mail>
+	<rpm>qa_testset_performance</rpm>
+	<rpm>qa_tools</rpm>
+	<rpm>qa_hamsta</rpm>
+        <logdir>/tmp</logdir>
+        <description>QA APACII set of performance testsuites</description>
+        <motd>[Custom job]: QA Performance Test Set is running</motd>
+        <reboot>0</reboot>
+    </config>
+
+    <commands>
+        <worker>
+            <!-- Required -->
+            <command execution="forked">
+#!/bin/bash
+/usr/share/qa/tools/testset_performance-run
+/usr/share/qa/tools/remote_qa_db_report -c 'QA APACII Performance Test Set'
+</command>
+            <!-- Optional -->
+            <directory>/</directory>
+            <timeout>300000</timeout>
+        </worker>
+    </commands>
+</job>
