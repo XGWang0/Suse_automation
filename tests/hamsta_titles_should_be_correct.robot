@@ -1,6 +1,6 @@
 *** Settings ***
 Documentation	 Verify that all page titles are correct
-Resource         web-resources.txt
+Resource         web-resources.robot
 Suite Setup      Open Browser      ${BASE_URL}
 Suite Teardown   Close Browser
 Force Tags	 hamsta web

@@ -1,5 +1,6 @@
 *** Settings ***
-Resource         web-resources.txt
+Documentation    Verify that login page works properly
+Resource         web-resources.robot
 Suite Setup      Open Browser      ${BASE_URL}
 Suite Teardown   Close Browser
 Force Tags	 hamsta web
@@ -7,8 +8,8 @@ Force Tags	 hamsta web
 *** Variables ***
 
 *** Test Cases ***
-Login and logout
-	[Documentation]    Hamsta login and logout test
+Valid Login and Logout Should Work
+	[Documentation]    Hamsta valid login and logout test
 	Log In to Hamsta	    ${USER_LOGIN}  ${USER_PASSWORD}
 	Page Should Contain         Logged in as ${USER_NAME}
 	Page Should Contain Link    Logout
