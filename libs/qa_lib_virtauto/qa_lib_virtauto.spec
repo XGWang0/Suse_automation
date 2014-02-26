@@ -33,9 +33,11 @@ Requires:       perl-XML-XPath
 Requires:       qa_keys
 Requires:       qa_libperl
 Requires:       ssh
-#sshpass 1.04 version has bug for ssh commands which forever hang sometimes,and is fixed in 1.05.
+# sshpass version 1.04 has bug for ssh commands which sometimes hang
+# forever. Is fixed in 1.05.
 Requires:       sshpass >= 1.05
 Requires:       virtautolib-data
+Requires:       nbd
 Provides:       virtautolib
 Obsoletes:      virtautolib
 %if 0%{?sles_version} == 10

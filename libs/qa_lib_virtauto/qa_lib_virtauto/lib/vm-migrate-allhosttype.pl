@@ -43,11 +43,13 @@ use log;
 
 $ENV{'LC_ALL'}='en_US';
 
-# get source and destination host type
-  # if type not equal
-    # call cross type migration args
-  # else
-    # call /usr/share/qa/virtautolib/lib/vm-migrate.sh args
+my $myret;
+
+sub exitWithError{
+        $myret = 1;
+        system ("rpm -q qa_hamsta > /dev/null 2>&1 && touch /var/lib/hamsta/stats_changed");
+        exit $myret;
+}
 
 # Get options
 my $domainName = "";
@@ -64,7 +66,7 @@ GetOptions(
 #error check
 if ( !$domainName || !$migrateeIP || !$migratetimes){
     print "$0: Invalid null input parameters!!";
-    exit 255;
+    &exitWithError;
 }
 
 
@@ -72,7 +74,6 @@ if ( !$domainName || !$migrateeIP || !$migratetimes){
 my $localHyperType;
 my $remoteHyperType;
 my $mycmd;
-my $myret;
 $mycmd = "uname -a | grep -iq xen 2>/dev/null";
 $myret = system($mycmd);
 if ( $myret == 0 ){
@@ -90,38 +91,74 @@ my $migrateePass = `$mycmd migratee.pass`;
 chomp($migrateeUser);
 chomp($migrateePass);
 $mycmd = 'export SSHPASS='.$migrateePass.'; '.$sshNoPass.' '.$migrateeUser.'@'.$migrateeIP.' "uname -a | grep -iq xen 2>/dev/null"';
-print "cmd is : ".$mycmd."\n";
+#print "cmd is : ".$mycmd."\n";
 $myret = system($mycmd);
 if ( $myret == 0 ){
 	    $remoteHyperType = "xen";
-} else {
+} elsif ($myret == 256) {
 	    $remoteHyperType = "kvm";
+} else {
+	    print "Failed to get migration target host virtualization type. \n";
+            &exitWithError;
 }
-
 print "localHyperType is ".$localHyperType.", remoteHyperType is ".$remoteHyperType."\n";
 
-# Find out which script to use
+# Get the to-be migrated virtual machine info
+$mycmd = "/usr/share/qa/virtautolib/lib/get-settings.sh";
+my $vmUser = `$mycmd migratee.vm.user`;
+my $vmPass = `$mycmd migratee.vm.pass`;
+chomp($vmUser);
+chomp($vmPass);
+
+# Find out which type of migration, valid types: xen2xen,kvm2kvm,xen2kvm.
 if ( $localHyperType eq $remoteHyperType ) {
+    # This is xen to xen or kvm to kvm migration.
     chdir('/usr/share/qa/virtautolib/lib/');
     $mycmd = "/usr/share/qa/virtautolib/lib/vm-migrate.sh ";
+    $mycmd .= "-n $domainName -p $migrateeIP -t $migratetimes ";
+    if ($livemigration){
+        $mycmd .= "-l";
+    } 
+}
+elsif ( $localHyperType eq "xen" &&  $remoteHyperType eq "kvm" ){
+    # This is xen to kvm migration.
+    chdir('/usr/share/qa/virtautolib/lib/');
+    $mycmd = "/usr/share/qa/virtautolib/lib/xen2kvm-migrate.sh ";
+    $mycmd .= "$domainName $vmUser $vmPass $migrateeIP $migrateeUser $migrateePass";
+    if ( $migratetimes && $migratetimes  > 1 ){
+        print "This is xen to kvm migration, so migrate times will be set to 1, ignoring the set value!\n";
+        $migratetimes = 1;
+    }
+    if ( $livemigration ){
+        print "This is xen to kvm migration, so ignore live option!\n";
+    }
 }
 else{
-    #TODO: create the cross virtual type migration script
-    $mycmd = "";
+        print "Migration from kvm to xen is not valid! Only xen2xen/kvm2kvm/xen2kvm are valid migration types!\n";
+        &exitWithError;
 }
-$mycmd .= "-n $domainName -p $migrateeIP -t $migratetimes ";
-if ($livemigration){
-    $mycmd .= "-l";
-}
+
 print "The migration finally calls cmd: ".$mycmd."\n";
 $myret = system($mycmd);
 $myret = $myret >> 8;
-system ("touch /var/lib/hamsta/stats_changed");
+
+#if migration is successful, undefine the migrated vm on source host to avoid machine competition.
+if ($myret == 0 && ( $migratetimes % 2 == 1 ) ){
+	if ( $localHyperType eq $remoteHyperType){
+		print "If you want to recover the domain $domainName on source VH, please firstly execute \"virsh destroy $domainName\" on destination VH, then execute on source VH \" virsh create /var/lib/$localHyperType/images/$domainName/$domainName.orig.xml\", it will automatically start running and list the vm on QA Cloud page.\n";
+	}
+	print "Undefining the domain $domainName on source VH ... \n";
+	system("virsh destroy $domainName 2>/dev/null;virsh undefine $domainName 2>/dev/null");
+}
+
+# Let hamsta master query the latest vm list status
+system ("rpm -q qa_hamsta > /dev/null 2>&1 && touch /var/lib/hamsta/stats_changed && echo \"Touch source VH hamsta status file done.\";sleep 5");
+system ('export SSHPASS='.$migrateePass.'; '.$sshNoPass.' '.$migrateeUser.'@'.$migrateeIP.' "rpm -q qa_hamsta > /dev/null 2>&1 && touch /var/lib/hamsta/stats_changed && echo \"Touch destination VH hamsta status file done.\""');
 
 if ($myret != 0){
-    print "The migration fails !";
+    print "The migration failed !\n";
 }else{
-    print "The migration is successful!";
+    print "The migration is successful!\n";
 }
 exit $myret;
 
