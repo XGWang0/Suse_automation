@@ -902,7 +902,6 @@
   </oes-ldap>
   <partitioning config:type="list">
     <drive>
-      <device>/dev/sda</device>
       <initialize config:type="boolean">true</initialize>
       <partitions config:type="list">
         <partition>
