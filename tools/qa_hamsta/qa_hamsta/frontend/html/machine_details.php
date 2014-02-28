@@ -68,7 +68,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 			echo ("</td><td>");
 			if(method_exists('MachineSearch',"filter_$key"))
 				foreach ($arr_res as $res)
-					echo ("<a href=\"index.php?go=machines&amp;".$key."=".urlencode($res)."\">Search_".$res."</a> ");
+					echo ("<a href=\"index.php?go=machines&set=Search&show_advanced=on&amp;".$key."=".urlencode($res)."\">Search_".$res."</a> ");
 		} else {
 			if (in_array ($key, array ('used_by', 'reserved'))) {
 				echo ("<tr><td>$value</td><td>"
@@ -83,7 +83,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 				}
 				echo ("<tr><td>$value</td><td$cls>$valuer</td><td>");
 				if ($valuer != NULL && method_exists('MachineSearch',"filter_$key")) {
-					echo("<a href=\"index.php?go=machines&amp;".$key."=".urlencode($valuer)."\">Search</a>");
+					echo("<a href=\"index.php?go=machines&set=Search&show_advanced=on&amp;".$key."=".urlencode($valuer)."\">Search</a>");
 				}
 			}
 		}
