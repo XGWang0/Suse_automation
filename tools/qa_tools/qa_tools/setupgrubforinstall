@@ -146,6 +146,12 @@ fi
 customname="${customname}_autoinstall"
 echo "create config file $customname"
 
+
+#find out the rootsubvol
+
+. /usr/share/grub2/grub-mkconfig_lib
+
+rootsubvol=`make_system_path_relative_to_its_root /`
 	
 #build the config file
 
@@ -155,8 +161,8 @@ insmod gzio
 insmod part_msdos
 insmod $bootfs
 search --no-floppy --fs-uuid --set=root $uuid
-linux $imagedir/linux $params
-initrd $imagedir/initrd
+linux ${rootsubvol}$imagedir/linux $params
+initrd ${rootsubvol}$imagedir/initrd
 }"
 eof
 
