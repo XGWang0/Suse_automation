@@ -208,13 +208,6 @@
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
-      <gid>33</gid>
-      <group_password>x</group_password>
-      <groupname>video</groupname>
-      <userlist>jnovak</userlist>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
       <gid>3</gid>
       <group_password>x</group_password>
       <groupname>sys</groupname>
@@ -261,13 +254,6 @@
       <group_password>!</group_password>
       <groupname>puppet</groupname>
       <userlist></userlist>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>16</gid>
-      <group_password>x</group_password>
-      <groupname>dialout</groupname>
-      <userlist>jnovak</userlist>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
@@ -1417,24 +1403,6 @@
   <users config:type="list">
     <user>
       <encrypted config:type="boolean">true</encrypted>
-      <fullname>Jan Novak</fullname>
-      <gid>100</gid>
-      <home>/home/jnovak</home>
-      <password_settings>
-        <expire></expire>
-        <flag></flag>
-        <inact></inact>
-        <max>99999</max>
-        <min>0</min>
-        <warn>7</warn>
-      </password_settings>
-      <shell>/bin/bash</shell>
-      <uid>1000</uid>
-      <user_password>$2y$05$UWqYi/hdGoVVn9Kj4g.y2O34MZmjz2KVtZP15LwVJX1z6WYF/bXF6</user_password>
-      <username>jnovak</username>
-    </user>
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
       <fullname>Games account</fullname>
       <gid>100</gid>
       <home>/var/games</home>
@@ -1628,7 +1596,7 @@
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>0</uid>
-      <user_password>$2y$05$fz9516sg9AuRmAM./39tx.mce.6mxAODTy6v12Wp6NTaKFz4ADToa</user_password>
+      <user_password>$2a$05$tvuIlgZ.sSzeCvQD6JN84uqsL26g17B7It3pTYPmJa.Qt7L03XjMu</user_password>
       <username>root</username>
     </user>
     <user>
