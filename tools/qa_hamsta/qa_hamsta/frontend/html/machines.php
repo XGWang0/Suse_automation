@@ -71,7 +71,7 @@ if (isset ($ns_machine_filter->fields)
 	}
 	else if ($key == 'used_by')
 	{
-		$filter_description = "\n\t" . '<span class="bold">' . $fields_list[$key] . '</span> is ';
+		$filter_description = "\n\t" . '<span class="bold">' . $fields_list[$key]['name'] . '</span> is ';
 		if (isset($value) && is_array($value))
 		{
 			if (isset($value['my']))
@@ -96,7 +96,7 @@ if (isset ($ns_machine_filter->fields)
 	}
 	else
 	{
-		$filter_description = "\n\t" . '<span class="bold">' . $fields_list[$key] . '</span> is "' . $value . '"';
+		$filter_description = "\n\t" . '<span class="bold">' . $fields_list[$key]['name'] . '</span> is "' . $value . '"';
 	}
 	
 	echo ("<span>$filter_description</span>&nbsp;&nbsp;");
@@ -309,13 +309,13 @@ if (! empty ($s_anything))
   <thead>
 	<tr>
 		<th><input type="checkbox" id="checkall" onChange='chkall("machine_list", this)'></th>
-		<th><?php print ($fields_list['hostname']); ?></th>
-		<th><?php print ($fields_list['status_string']); ?></th>
-		<th><?php print ($fields_list['used_by']); ?></th>
+		<th><?php print ($fields_list['hostname']['name']); ?></th>
+		<th><?php print ($fields_list['status_string']['name']); ?></th>
+		<th><?php print ($fields_list['used_by']['name']); ?></th>
 		<?php
 			foreach ($fields_list as $key=>$value)
                                 if (isset ($display_fields) && in_array($key, $display_fields))
-					echo("<th>$value</th>");
+					echo("<th>" . $value['name'] . "</th>");
 		?>
 		<th id='actions'><a>Actions</a></th>
 	</tr>
@@ -387,7 +387,7 @@ foreach ($fields_list as $key=>$value)
     isset ($display_fields) ? $types = array_merge($types, array("'h'", "'h'")) : array_push($types, "'h'");
     for ($i=0; $i<count($display_fields); $i++)
     {
-        $type =  isset($display_fields[$i]) ? isset($fields_list_type[$display_fields[$i]]) ? $fields_list_type[$display_fields[$i]] : "h" : "h";
+        $type =  isset($display_fields[$i]) ? isset($fields_list[$display_fields[$i]]['type']) ? $fields_list[$display_fields[$i]]['type'] : "h" : "h";
         array_push($types, "'".$type."'");
     }
 ?>
@@ -566,7 +566,7 @@ $("label#action button[name='action']").click(function(){
                         echo(' checked="checked"');
                     }
 		    echo ('>'); // Close the input element
-                    echo("<label for=$key>$value</label><br>");
+                    echo("<label for=$key>" . $value['name'] . "</label><br>");
                 }
         ?>
         <input type="checkbox" name="flage_for_display_set" checked="checked" style="display:none" >
