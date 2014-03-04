@@ -4,7 +4,8 @@
   <add-on>
     <add_on_products config:type="list">
       <listentry>
-        <media_url><![CDATA[http://xen100.virt.lab.novell.com/install/oes11sp2/x86_64/]]></media_url>
+        <!-- 151.155.144.100 should be xen100.virt.lab.novell.com's IP, give direct IP for BJ DNS issue for test machine-->
+        <media_url><![CDATA[http://151.155.144.100/install/oes11sp2/x86_64/]]></media_url>
         <product>Open_Enterprise_Server</product>
         <product_dir>/</product_dir>
       </listentry>
@@ -16,12 +17,6 @@
     <dbpassword></dbpassword>
   </arkmanager>
   <bootloader>
-    <device_map config:type="list">
-      <device_map_entry>
-        <firmware>hd0</firmware>
-        <linux>/dev/sda</linux>
-      </device_map_entry>
-    </device_map>
     <global>
       <activate>true</activate>
       <default>SUSE Linux Enterprise Server 11 SP3 - 3.0.76-0.11</default>
@@ -45,31 +40,6 @@
       </initrd_module>
     </initrd_modules>
     <loader_type>grub</loader_type>
-    <sections config:type="list">
-      <section>
-        <append>resume=/dev/sda1 splash=silent crashkernel=256M-:128M showopts</append>
-        <image>(hd0,1)/boot/vmlinuz</image>
-        <initial>1</initial>
-        <initrd>(hd0,1)/boot/initrd</initrd>
-        <lines_cache_id>0</lines_cache_id>
-        <name>SUSE Linux Enterprise Server 11 SP3 - 3.0.76-0.11</name>
-        <original_name>linux</original_name>
-        <root>/dev/sda2</root>
-        <type>image</type>
-        <vgamode>0x314</vgamode>
-      </section>
-      <section>
-        <append>showopts ide=nodma apm=off noresume edd=off powersaved=off nohz=off highres=off processor.max_cstate=1 nomodeset x11failsafe</append>
-        <image>(hd0,1)/boot/vmlinuz</image>
-        <initrd>(hd0,1)/boot/initrd</initrd>
-        <lines_cache_id>1</lines_cache_id>
-        <name>Failsafe -- SUSE Linux Enterprise Server 11 SP3 - 3.0.76-0.11</name>
-        <original_name>failsafe</original_name>
-        <root>/dev/sda2</root>
-        <type>image</type>
-        <vgamode>0x314</vgamode>
-      </section>
-    </sections>
   </bootloader>
   <deploy_image>
     <image_installation config:type="boolean">false</image_installation>
@@ -239,13 +209,6 @@
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
-      <gid>33</gid>
-      <group_password>x</group_password>
-      <groupname>video</groupname>
-      <userlist>jnovak</userlist>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
       <gid>3</gid>
       <group_password>x</group_password>
       <groupname>sys</groupname>
@@ -292,13 +255,6 @@
       <group_password>!</group_password>
       <groupname>puppet</groupname>
       <userlist></userlist>
-    </group>
-    <group>
-      <encrypted config:type="boolean">true</encrypted>
-      <gid>16</gid>
-      <group_password>x</group_password>
-      <groupname>dialout</groupname>
-      <userlist>jnovak</userlist>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
@@ -933,7 +889,6 @@
   </oes-ldap>
   <partitioning config:type="list">
     <drive>
-      <device>/dev/sda</device>
       <initialize config:type="boolean">true</initialize>
       <partitions config:type="list">
         <partition>
@@ -1434,7 +1389,7 @@
   </software>
   <timezone>
     <hwclock>UTC</hwclock>
-    <timezone>Europe/Prague</timezone>
+    <timezone>America/New_York</timezone>
   </timezone>
   <user_defaults>
     <expire></expire>
@@ -1447,24 +1402,6 @@
     <umask>022</umask>
   </user_defaults>
   <users config:type="list">
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
-      <fullname>Jan Novak</fullname>
-      <gid>100</gid>
-      <home>/home/jnovak</home>
-      <password_settings>
-        <expire></expire>
-        <flag></flag>
-        <inact></inact>
-        <max>99999</max>
-        <min>0</min>
-        <warn>7</warn>
-      </password_settings>
-      <shell>/bin/bash</shell>
-      <uid>1000</uid>
-      <user_password>$2y$05$UWqYi/hdGoVVn9Kj4g.y2O34MZmjz2KVtZP15LwVJX1z6WYF/bXF6</user_password>
-      <username>jnovak</username>
-    </user>
     <user>
       <encrypted config:type="boolean">true</encrypted>
       <fullname>Games account</fullname>
@@ -1660,7 +1597,7 @@
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>0</uid>
-      <user_password>$2y$05$fz9516sg9AuRmAM./39tx.mce.6mxAODTy6v12Wp6NTaKFz4ADToa</user_password>
+      <user_password>$2a$05$tvuIlgZ.sSzeCvQD6JN84uqsL26g17B7It3pTYPmJa.Qt7L03XjMu</user_password>
       <username>root</username>
     </user>
     <user>
