@@ -4,7 +4,8 @@
   <add-on>
     <add_on_products config:type="list">
       <listentry>
-        <media_url><![CDATA[http://xen100.virt.lab.novell.com/install/oes11sp2/x86_64/]]></media_url>
+        <!-- 151.155.144.100 should be xen100.virt.lab.novell.com's IP, give direct IP for BJ DNS issue for test machine-->
+        <media_url><![CDATA[http://151.155.144.100/install/oes11sp2/x86_64/]]></media_url>
         <product>Open_Enterprise_Server</product>
         <product_dir>/</product_dir>
       </listentry>

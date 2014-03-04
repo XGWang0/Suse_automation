@@ -37,6 +37,10 @@
 #source.ftp.oes-11-fcs-64=
 source.http.oes-11-fcs-64=http://xen100.virt.lab.novell.com/install/oes11sp1/x86_64/
 
+# dist.suse.de'IP should be 10.120.0.100, give direct IP for DNS issue in BJ
+#source.ftp.oes-11-sp1-64=ftp://10.120.0.100/install/SLP/SLES-11-SP2-GM/x86_64/DVD1/
+source.ftp.oes-11-sp2-64=ftp://10.120.0.100/install/SLP/SLES-11-SP3-GM/x86_64/DVD1/
+
 # OpenSUSE
 
 ##source.ftp.os-10-sp3-32=ftp://xen100.virt.lab.novell.com/install/os10.3/i386
