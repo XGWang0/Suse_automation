@@ -196,6 +196,9 @@ source.http.rhel-6-fcs-64=http://xen100.virt.lab.novell.com/install/rhel6/x86_64
 source.iso.rhel-6-fcs-64=/VIRT-ISO/rhel-server-6.0-x86_64-dvd.iso
 source.iso.rhel-6-fcs-32=/VIRT-ISO/rhel-server-6.0-i386-dvd.iso
 
+#151.155.144.100 should be ip of xen100.virt.lab.novell.com, give direct ip for dns issue in bj
+source.http.rhel-6-u4-64=http://151.155.144.100/install/rhel6u4/x86_64/
+
 # SLED
 
 ##source.ftp.sled-10-sp1-32=ftp://xen100.virt.lab.novell.com/install/sled10sp1/i386
