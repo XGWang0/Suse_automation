@@ -287,7 +287,7 @@ sub guess_product_from_url # URL
 		else
 		{	$type = 'SLES';		}
 		$subversion = '';
-		$subversion = $1 if $url =~ /sp\s*(\d+)/i or $url =~ /service\s*pack\s*(\d+)/i or $url =~ /[\.\-](\d)\W/;
+		$subversion = $1 if $url =~ /sp\s*(\d+)/i or $url =~ /service\s*pack\s*(\d+)/i or $url =~ /(?:sles|sled|sle|server|desktop).*[\.\-](\d)\W/;
 	}
 	# openSuSE
 	elsif( $url =~ /\Wopensuse(?:-?(?:CD|DVD))?\W*(\d+)(?:\.(\d+))?/i or $url =~ /full-(\d+)(?:\.(\d+))?-/ )
