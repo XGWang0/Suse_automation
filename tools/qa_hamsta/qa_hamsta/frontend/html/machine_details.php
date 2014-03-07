@@ -54,6 +54,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 		$fstring = "get_".$key;
 		$valuer = null;
 		$cls = '';
+                $value = $value['name'];
 
 		if (method_exists ($machine, $fstring)) {
 			$valuer = $machine->$fstring();

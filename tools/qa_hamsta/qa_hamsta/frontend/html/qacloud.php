@@ -136,7 +136,7 @@ print (task_icon ( array ('url'		=> 'index.php?go=newvm-win&a_machines[]=' . $mi
 				$class .= ' ' . get_machine_status_class ($machine->get_status_id ());
 			}
 			printf ('<tr><th class="text-left cloudtableheader">%1$s</th><td><div class="%2$s" %3$s>%4$s</div></td></tr>' . PHP_EOL,
-				$value, $class, $title, $res);
+				$value['name'], $class, $title, $res);
 		}
 	}
       ?>
@@ -151,7 +151,7 @@ print (task_icon ( array ('url'		=> 'index.php?go=newvm-win&a_machines[]=' . $mi
 	<th>Status</th>
           <?php foreach ($fields_list as $key=>$value)
                 if (in_array($key, $vm_display_fields))
-                  echo("<th>$value</th>");
+                  echo("<th>" . $value['name'] . "</th>");
           ?>
         <th>Actions</th>
       </tr>
@@ -295,7 +295,7 @@ print (virtual_machine_icons ($vm, $user));
           echo("\t\t\t\t\t<option value=$key");
           if (in_array($key, $vh_display_fields))
             echo(' selected');
-          echo (" >$value</option>\n");
+          echo (" >" . $value['name'] . "</option>\n");
         }
         ?>
       </select>
@@ -307,7 +307,7 @@ print (virtual_machine_icons ($vm, $user));
           echo("\t\t\t\t\t<option value=$key");
           if (in_array($key, $vm_display_fields))
             echo(' selected');
-          echo (" >$value</option>\n");
+          echo (" >" . $value['name'] . "</option>\n");
         }
         ?>
       </select>
