@@ -41,7 +41,17 @@ def retrieve_patterns(repo):
 		re_pat = re.compile('^=Pat: ')
 		re_vis = re.compile('^=Vis: ')
 		patterns = []
+		#pattern name search
+		re_patrpm = re.compile('patterns-sles-[^ ]+rpm\s')
+		re_sles12 = re.compile('[Ss][Ll][Ee][Ss]?-12')
 		try:
+			#work wrong that sles 12 does not have pattern file, get the file name
+			if re.search(re_sles12,product):
+				temprepo = repo.replace('setup/descr','')
+				rpmpage = urllib2.urlopen(temprepo + "/suse/"+arch).read()
+				rpmpat = re.findall('<img.*?href="patterns-sles-([^-]+)-',rpmpage)
+				patterns = rpmpat
+				return patterns
 			# patfiles contain list of .pat or .pat.gz files with pattern definitions
 			patfiles = filter(re_arch.search, urllib2.urlopen(repo + "/patterns").read().split("\n"))
 			if not patfiles:

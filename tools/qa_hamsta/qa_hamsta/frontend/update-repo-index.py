@@ -63,7 +63,15 @@ def append_result(repo, product, arch, am):
 	re_arch = re.compile('\.' + matcharch + '\.pat(\.gz)?$')
 	re_pat = re.compile('^=Pat: ')
 	re_vis = re.compile('^=Vis: ')
+	#pattern name search
+	re_patrpm = re.compile('patterns-sles-[^ ]+rpm\s')
+	re_sles12 = re.compile('[Ss][Ll][Ee][Ss]?-12')
 	try:
+		#work wrong that sles 12 does not have pattern file, get the file name
+		if re.match(re_sles12,product):
+			rpmpage = urllib2.urlopen(baserepo + "/suse/"+arch).read()
+			rpmpat = re.findall('<img.*?href="patterns-sles-([^-]+)-',rpmpage)
+			p['pattern'] = rpmpat
 		# patfiles contain list of .pat or .pat.gz files with pattern definitions
 		patfiles = filter(re_arch.search, urllib2.urlopen(baserepo + "/suse/setup/descr/patterns").read().split("\n"))
 		if not patfiles:
