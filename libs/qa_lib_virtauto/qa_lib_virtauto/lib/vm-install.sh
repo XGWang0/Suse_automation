@@ -1496,6 +1496,7 @@ workingLocation=
 newLocation=
 osFlag=
 additionalInstallSource=
+supportedGuestOSTypes="empty"
 
 # Other Settings
 if [ "$virtType" == "pv" ]
@@ -1508,8 +1509,14 @@ else
 	diskPrefix=hd
 	virtOption=-V
 fi
+
 workingLocation=$autoInstallation/$operatingSystem/$release/$servicePack/$architecture/$virtType
 newLocation=$machineName.autoinstall
+# The vm-install prints the output of '-O' option to stderr. This has
+# been reported and fixed. Feel free to remove the redirection if that
+# is fixed already.
+supportedGuestOSTypes=$(vm-install -O 2>&1);
+
 if [ "$operatingSystem" == "sles" ] || [ "$operatingSystem" == "rhel" ] || [ "$operatingSystem" == "sled" ]
 then
 	osFlag=$operatingSystem$release
@@ -1607,6 +1614,12 @@ then
 	echo "ERROR - $tmpError"
 	echo "ERROR - $tmpError" >&2
 	popd > /dev/null; exit $rERROR
+elif [ $(expr "$supportedGuestOSTypes" : ".*$osFlag") -eq 0 ]
+then
+	tmpError="The OS type '$osFlag' is not supported by vm-install command."
+	echo "SKIPPED - $tmpError"
+	echo "SKIPPED - $tmpError" >&2
+	popd > /dev/null; exit $rSKIPPED
 fi
 if [ "$operatingSystem" == "oes" ] && [ "$release" == "2" ]
 then
