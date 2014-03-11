@@ -287,6 +287,7 @@ rm -rf %{buildroot}/*
 %post
 %if %{?with_systemd}
 systemctl daemon-reload
+systemctl enable hamsta
 systemctl start hamsta
 %else
 /sbin/insserv -f %{initfile}
@@ -298,6 +299,7 @@ echo %{version} > /usr/share/hamsta/Slave/.version
 %post master
 %if %{?with_systemd}
 systemctl daemon-reload
+systemctl enable hamsta-master
 %endif
 echo "=================== I M P O R T A N T ======================="
 echo "Please make sure that you have a database prepared."
