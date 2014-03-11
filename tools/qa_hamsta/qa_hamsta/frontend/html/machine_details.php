@@ -77,7 +77,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 				      ."</td><td>");
 			} else {
 				if ($key == 'status_string') {
-					$cls = get_machine_status_class ($machine->get_status_id ());
+					$cls = 'bold '.get_machine_status_class ($machine->get_status_id ());
 				}
 				if (! empty ($cls)) {
 					$cls = ' class="' . $cls . '"';
