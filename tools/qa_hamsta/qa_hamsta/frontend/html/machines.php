@@ -45,12 +45,13 @@ if (isset ($ns_machine_filter->fields)
 	 * WARNING! In PHP the continue statement does not work within
 	 * switch block nested in foreach loop. Hence if statemens are
 	 * used here. Just live with that. */
-	if ($key == 's_anything' || $key == 'search_hidden_field' || $key == 'hide_match_field')
-	  {
+	if ($key == 's_anything' || $key == 'search_hidden_field' || $key == 'hide_match_field' 
+		|| $key == 's_module' || $key == 's_module_element_value')
+	{
 	    continue;
-	  }
+	}
 	else if ($key == 's_anything_operator' && isset ($ns_machine_filter->fields['s_anything']))
-	  {
+	{
 	    $filter_description = "\n\t" . '<span class="bold">Hwinfo</span>';
 	    switch ($value)
 	      {
@@ -64,7 +65,19 @@ if (isset ($ns_machine_filter->fields)
 		/* This shoud not be displayed. Never ever. */
 		$value = ' has ';
 	      }
-	  }
+	}
+        else if ($key == 's_module_description' && isset ($ns_machine_filter->fields['s_module']))
+	{
+		$filter_description = "\n\t" . '<span class="bold">' . implode($ns_machine_filter->fields['s_module']) . '</span> is ' . implode($ns_machine_filter->fields[$key]);
+	}
+        else if ($key == 's_module_driver' && isset ($ns_machine_filter->fields['s_module']))
+	{
+		$filter_description = "\n\t" . '<span class="bold">' . implode($ns_machine_filter->fields['s_module']) . ' Driver</span> is ' . implode($ns_machine_filter->fields[$key]);
+	}
+        else if ($key == 's_module_element' && isset ($ns_machine_filter->fields['s_module']) && isset($ns_machine_filter->fields['s_module_element_value']))
+	{
+		$filter_description = "\n\t" . '<span class="bold">' . implode($ns_machine_filter->fields[$key]) . '</span>is ' . implode($ns_machine_filter->fields['s_module_element_value']);
+	}
 	else if ($key == 'fulltext')	
 	{
 		$filter_description = "\n\t" . '<span class="bold">' . ucfirst($key) . '</span> is "' . $value . '"';
