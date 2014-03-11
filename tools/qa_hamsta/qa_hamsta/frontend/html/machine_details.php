@@ -54,6 +54,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 		$fstring = "get_".$key;
 		$valuer = null;
 		$cls = '';
+                $value = $value['name'];
 
 		if (method_exists ($machine, $fstring)) {
 			$valuer = $machine->$fstring();
@@ -171,14 +172,14 @@ if (!defined('HAMSTA_FRONTEND')) {
 		>
 			<td><a href="index.php?go=module_details&amp;module=<?php echo($module->get_name()); ?>&amp;id=<?php echo($module->get_version()); ?>&amp;highlight=<?php echo($highlight); ?>"><?php echo($module->get_name()); ?></a></td>
 			<td><?php echo($module->__toString()); ?></td>
-			<td><a href="index.php?go=machines&amp;s_module=<?php echo(urlencode($module->get_name())); ?>&amp;s_module_description=<?php echo(urlencode($module->__toString())); ?>">Search</a></td>
+			<td><a href="index.php?go=machines&set=Search&show_advanced=on&amp;s_module=<?php echo(urlencode($module->get_name())); ?>&amp;s_module_description=<?php echo(urlencode($module->__toString())); ?>">Search</a></td>
 			<td><?php echo($module->get_driver()); ?></td>
 <?php
 $driver_name = $module->get_driver();
 ?>
 			<td>
 <?php if (! empty ($driver_name)): ?>
-<a href="index.php?go=machines&amp;s_module=<?php echo(urlencode($module->get_name())); ?>&amp;s_module_driver=<?php echo(urlencode($driver_name)); ?>">Search</a>
+<a href="index.php?go=machines&set=Search&show_advanced=on&amp;s_module=<?php echo(urlencode($module->get_name())); ?>&amp;s_module_driver=<?php echo(urlencode($driver_name)); ?>">Search</a>
 <?php endif; ?>
 </td>
 		</tr>
