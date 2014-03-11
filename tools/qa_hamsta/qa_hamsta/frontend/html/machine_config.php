@@ -284,25 +284,38 @@ function print_conf_list($ids=array(),$id_active=null)
 		$attached=(isset($row['groups']) || isset($row['machines']));
 		$cantdel=(!$nonsys ? 'is a system configuration' : 
 			(!$local ? 'not a local configuration' : ($attached ? 'need to be detached first':'')));
+		# controls - network URL
 		$ctrl=array(
-#			'rows'=>array('url'=>$base1.'v','enbl'=>true,'fullname'=>'content show','allowed'=>true),
-			'edit'=>array('url'=>$base1.'e','enbl'=>!$row['sync_url'],'err_noavail'=>'remote configurations cannot be edited, delete sync_URL first'),
 			'net' =>array('url'=>$base1.'eu','enbl'=>!($local&&$row['rows']),'fullname'=>'URL edit','err_noavail'=>'local configurations cannot be changed to remotes, delete rows first'),
-			'sync'=>array('url'=>$base1.'sync','enbl'=>!$local,'allowed'=>true,'err_noavail'=>'sync_url not set'),
-			'detach'=>array('url'=>$base2.'detach','enbl'=>$attached,'confirm'=>true,'err_noavail'=>'cannot detach - not attached to groups/machines'),
-			'delete'=>array('url'=>$base2.'delete','enbl'=>!$cantdel,'confirm'=>true,'err_noavail'=>"Cannot delete - $cantdel"),
 		);
+		# edit local config / sync remote config
+		if( $local )
+			$ctrl['edit'] = array('url'=>$base1.'e');
+		else
+			$ctrl['sync'] = array('url'=>$base1.'sync','allowed'=>true);
+		# detach attached / delete detached
+		if( $attached )
+			$ctrl['detach'] = array('url'=>$base2.'detach','confirm'=>true);
+		else
+			$ctrl['delete'] = array('url'=>$base2.'delete','enbl'=>!$cantdel,'confirm'=>true,'err_noavail'=>"Cannot delete - $cantdel");
 		$row['ctrls']='';
-		$defaults=array('enbl'=>$local_nonsys,'object'=>$row['desc']);
+		# default settings
+		$defaults=array(
+			'object'=>$row['desc'],
+			'allowed'=>($nonsys ? $logged : $admin)
+		);
 		foreach( array_keys($ctrl) as $c )
-			$row['ctrls'].=task_icon(array_merge(array('type'=>$c,'allowed'=>($nonsys ? $logged : $admin)),$defaults,$ctrl[$c]));
+			$row['ctrls'].=task_icon(array_merge(array('type'=>$c),$defaults,$ctrl[$c]));
 
 		$row['id']=html_link($row['qaconf_id'],$base1.'v');
 		$row['desc']=html_link($row['desc'],$base1.'v');
 	}
+	# rename header fields
 	$data[0]['ctrls']='controls';
 	$data[0]=array('id'=>'id')+$data[0];
 	unset($data[0]['qaconf_id']);
+
+	# colorize
 	tbl_add_color_class($data,$id_active);
 
 	print "<h3>Configurations involved</h3>\n";
