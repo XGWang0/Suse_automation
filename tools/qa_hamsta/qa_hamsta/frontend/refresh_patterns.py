@@ -2,7 +2,7 @@
 
 # ****************************************************************************
 # Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
-# 
+#
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
 # RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
@@ -13,7 +13,7 @@
 # PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
 # AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
 # LIABILITY.
-# 
+#
 # SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
 # WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
@@ -23,7 +23,15 @@
 # WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
 # ****************************************************************************
 
-import update_repo_index, os, re, StringIO, gzip, string, urllib2, sys
+import update_repo_index
+import os
+import re
+import StringIO
+import gzip
+import string
+import urllib2
+import sys
+import logging
 
 def retrieve_patterns(repo):
 	if string.join(repo.split('/')[-3:], '/') == 'suse/setup/descr':
@@ -34,28 +42,16 @@ def retrieve_patterns(repo):
 		if (re.match('i.86$', arch)):
 			matcharch ='i.86'
 		elif (re.match('ppc', arch)):
-			matcharch = 'ppc(64)?'
+			matcharch = 'ppc(64(le)?)?'
 		else:
 			matcharch = arch
 		re_arch = re.compile('\.' + matcharch + '\.pat(\.gz)?$')
 		re_pat = re.compile('^=Pat: ')
 		re_vis = re.compile('^=Vis: ')
 		patterns = []
-		#pattern name search
-		re_patrpm = re.compile('patterns-sles-[^ ]+rpm\s')
-		re_sles12 = re.compile('[Ss][Ll][Ee][Ss]?-12')
 		try:
-			#work wrong that sles 12 does not have pattern file, get the file name
-			if re.search(re_sles12,product):
-				temprepo = repo.replace('setup/descr','')
-				rpmpage = urllib2.urlopen(temprepo + "/suse/"+arch).read()
-				rpmpat = re.findall('<img.*?href="patterns-sles-([^-]+)-',rpmpage)
-				patterns = rpmpat
-				return patterns
 			# patfiles contain list of .pat or .pat.gz files with pattern definitions
 			patfiles = filter(re_arch.search, urllib2.urlopen(repo + "/patterns").read().split("\n"))
-			if not patfiles:
-				print "Pattern descriptor (" + repo + "/patterns) is empty. No pattern info grepped."
 			for patfile in patfiles:
 				# Some patfile contain definition of multiple patterns, while some not
 				# Patterh name line looks like:
@@ -64,7 +60,7 @@ def retrieve_patterns(repo):
 				data = urllib2.urlopen(pattern).read()
 				if (patfile.endswith('.gz')):
 					data = gzip.GzipFile(fileobj = StringIO.StringIO(data)).read()
-				
+
 				pattern = None
 				for line in data.split("\n"):
 					if re.match(re_pat, line):
@@ -77,9 +73,33 @@ def retrieve_patterns(repo):
 
 				#for line in filter(re_pat.search, data.split("\n")):
 				#	patterns.append(line.split(' ')[2])
-
 		except:
 			pass
+
+		# If no patterns were found so far, it is possible that it is sle-12 (or new openSUSE)
+		# and does not use pattern file. Instead it uses patterns RPMs
+		# patterns-<PRODUCT>-<NAME_WITH_DASHES>-<PRODVER>-<VER>.<ARCH>.rpm
+		if not patterns:
+			# No patterns found so far. Trying new method...
+			try:
+				try:
+					# Hack for ppc64le arch - try to add le to arch if path
+					# does not exist. This scritp needs complete rewrite to
+					# support addons (not just sdk), so IMHO can be accepted
+					temprepo = repo.replace('setup/descr','')
+					rpmpage = urllib2.urlopen(temprepo + "/"+arch).read()
+				except:
+					# read failed, trying ppc64le path
+					rpmpage = urllib2.urlopen(temprepo + "/"+arch+"le").read()
+
+				rpmpat = re.findall('<img.*?href="patterns-\w+-([\w-]+)-[\d.]+-[\d.]+\.\w+\.rpm',rpmpage)
+				patterns = rpmpat
+			except:
+				pass
+
+		if not patterns:
+			logging.info("No patterns found for %s." % repo)
+
 		return patterns
 	else:
 		result = 0
@@ -91,6 +111,9 @@ def retrieve_patterns(repo):
 		return result
 
 if __name__ == '__main__':
+	# Set basic logging level and output format
+	logging.basicConfig(format="%(levelname)s: %(message)s", level="INFO")
+
 	if len(sys.argv) > 1:
 		for pattern in retrieve_patterns(sys.argv[1]):
 			print pattern

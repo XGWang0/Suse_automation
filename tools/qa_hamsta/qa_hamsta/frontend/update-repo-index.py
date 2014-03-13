@@ -2,7 +2,7 @@
 
 # ****************************************************************************
 # Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
-# 
+#
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
 # RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
@@ -13,7 +13,7 @@
 # PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
 # AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
 # LIABILITY.
-# 
+#
 # SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
 # WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
@@ -37,12 +37,21 @@ Usage
 	$ python update-repo-index.py -r "<repourl1> [repourl2] [...]" -s "<sdkurl1> [sdkurl2] [...]" -o <output_name>
 	repourl could be "http://dist.suse.de/install/SLP/"
 """
-import os,re,urllib2,optparse,json,sys,gzip,StringIO
-supported_archs = ['i386', 'i586', 'x86_64', 'ia64', 'ppc', 'ppc64', 's390x']
+import os
+import re
+import urllib2
+import optparse
+import json
+import sys
+import gzip
+import StringIO
+import logging
+
+supported_archs = ['i386', 'i586', 'x86_64', 'ia64', 'ppc', 'ppc64', 'ppc64le', 's390x']
 basename = 'default'
 
 def list_dir(url):
-	"""Parsing the web page and get the directory list, os.listdir clone"""
+	"""Parse the web page and get the directory list, os.listdir clone"""
 	page = urllib2.urlopen(url).read()
 	return re.findall('<img.*?folder.(?:gif|png).*?href="(.*?)/">', page)
 
@@ -57,25 +66,17 @@ def append_result(repo, product, arch, am):
 	if (re.match('i.86$', arch)):
 		matcharch ='i.86'
 	elif (re.match('ppc', arch)):
-		matcharch = 'ppc(64)?'
+		matcharch = 'ppc(64(le)?)?'
 	else:
 		matcharch = arch
 	re_arch = re.compile('\.' + matcharch + '\.pat(\.gz)?$')
 	re_pat = re.compile('^=Pat: ')
 	re_vis = re.compile('^=Vis: ')
-	#pattern name search
-	re_patrpm = re.compile('patterns-sles-[^ ]+rpm\s')
-	re_sles12 = re.compile('[Ss][Ll][Ee][Ss]?-12')
 	try:
-		#work wrong that sles 12 does not have pattern file, get the file name
-		if re.match(re_sles12,product):
-			rpmpage = urllib2.urlopen(baserepo + "/suse/"+arch).read()
-			rpmpat = re.findall('<img.*?href="patterns-sles-([^-]+)-',rpmpage)
-			p['pattern'] = rpmpat
 		# patfiles contain list of .pat or .pat.gz files with pattern definitions
-		patfiles = filter(re_arch.search, urllib2.urlopen(baserepo + "/suse/setup/descr/patterns").read().split("\n"))
+		patfiles = filter(re_arch.search, urllib2.urlopen("%s/suse/setup/descr/patterns" % baserepo).read().split("\n"))
 		if not patfiles:
-			print "Pattern descriptor (" + baserepo + "/suse/setup/descr/patterns) is empty. No pattern info grepped."
+			logging.info("Pattern descriptor (%s/suse/setup/descr/patterns) is empty. No pattern info grepped." % baserepo)
 		for patfile in patfiles:
 			# Some patfile contain definition of multiple patterns, while some not
 			# Patterh name line looks like:
@@ -97,8 +98,31 @@ def append_result(repo, product, arch, am):
 			#for line in filter(re_pat.search, data.split("\n")):
 			#	p['pattern'].append(line.split(' ')[2])
 	except:
-		print "Can not read " + baserepo + "/suse/setup/descr/patterns (either non-exsit or broken)"
-	print 'Found', product, arch, " on  ", repo
+		logging.warning("Can not read %s/suse/setup/descr/patterns (either it does non-exist or it is broken)." % baserepo)
+
+	# If no patterns were found so far, it is possible that it is sle-12 (or new openSUSE)
+	# and does not use pattern file. Instead it uses patterns RPMs
+	# patterns-<PRODUCT>-<NAME_WITH_DASHES>-<PRODVER>-<VER>.<ARCH>.rpm
+	if not p['pattern']:
+		logging.info("No patterns found so far. Trying new method...")
+		try:
+			try:
+				# Hack for ppc64le arch - try to add le to arch if path
+				# does not exist. This scritp needs complete rewrite to
+				# support addons (not just sdk), so IMHO can be accepted
+				rpmpage = urllib2.urlopen(baserepo + "/suse/"+arch).read()
+			except:
+				logging.warning("Read failed, trying ppc64le path.")
+				rpmpage = urllib2.urlopen(baserepo + "/suse/"+arch+"le").read()
+				arch = arch+"le"
+				p['arch'] = arch
+
+			rpmpat = re.findall('<img.*?href="patterns-\w+-([\w-]+)-[\d.]+-[\d.]+\.\w+\.rpm', rpmpage)
+			p['pattern'] = rpmpat
+		except:
+			logging.info("No patterns found in %s." % baserepo)
+
+	logging.info('Found %s, %s on %s' % (product, arch, repo))
 	return p
 
 def generate_index(repo_url, theFilter):
@@ -149,15 +173,23 @@ def generate_index(repo_url, theFilter):
 
 # Main program entry
 if __name__ == '__main__':
-	parser = optparse.OptionParser()	
+	parser = optparse.OptionParser()
 	group = optparse.OptionGroup(parser, 'Example', './update-repo-index.py -r "http://147.2.207.242/iso_mnt/ http://147.2.207.208/dist/install/SLP/" -s "http://147.2.207.242/iso_mnt/ http://147.2.207.208/dist/install/" -o cn')
 	parser.add_option("-r", "--repo", dest="repourl", help = 'The base url(s) of your install repo, support multiple urls which sperated by space')
 	parser.add_option("-s", "--sdk", dest="sdkurl", help = 'The base url(s) of your sdk repo, support multiple urls which sperated by space')
 	parser.add_option("-o", "--output", dest="output", help = 'The output index file base name, default value is "default" if -o option is not given')
+	parser.add_option("-l", "--log", dest="loglevel", default="ERROR", help = 'The logging level. Use "INFO" or "DEBUG" as meaningful values.')
 	parser.add_option_group(group)
 	(options, args) = parser.parse_args()
+
+	# Set basic logging level and output format
+	numeric_level = getattr(logging, options.loglevel.upper(), None)
+	if not isinstance(numeric_level, int):
+		raise ValueError('Invalid log level: %s' % options.loglevel)
+	logging.basicConfig(format="%(levelname)s: %(message)s", level=numeric_level)
+
 	if not (options.repourl or options.sdkurl):
-		print 'Install repo url and SDK repo url are required, please try ./update-repo-index.py -h'
+		logging.error('Install repo url and SDK repo url are required, please try ./update-repo-index.py -h')
 		sys.exit()
 	else:
 		if options.output:
