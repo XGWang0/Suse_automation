@@ -38,7 +38,7 @@ Usage
 	repourl could be "http://dist.suse.de/install/SLP/"
 """
 import os,re,urllib2,optparse,json,sys,gzip,StringIO
-supported_archs = ['i386', 'i586', 'x86_64', 'ia64', 'ppc', 'ppc64', 's390x']
+supported_archs = ['i386', 'i586', 'x86_64', 'ia64', 'ppc', 'ppc64', 'ppc64le', 's390x']
 basename = 'default'
 
 def list_dir(url):
@@ -57,21 +57,13 @@ def append_result(repo, product, arch, am):
 	if (re.match('i.86$', arch)):
 		matcharch ='i.86'
 	elif (re.match('ppc', arch)):
-		matcharch = 'ppc(64)?'
+		matcharch = 'ppc(64(le)?)?'
 	else:
 		matcharch = arch
 	re_arch = re.compile('\.' + matcharch + '\.pat(\.gz)?$')
 	re_pat = re.compile('^=Pat: ')
 	re_vis = re.compile('^=Vis: ')
-	#pattern name search
-	re_patrpm = re.compile('patterns-sles-[^ ]+rpm\s')
-	re_sles12 = re.compile('[Ss][Ll][Ee][Ss]?-12')
 	try:
-		#work wrong that sles 12 does not have pattern file, get the file name
-		if re.match(re_sles12,product):
-			rpmpage = urllib2.urlopen(baserepo + "/suse/"+arch).read()
-			rpmpat = re.findall('<img.*?href="patterns-sles-([^-]+)-',rpmpage)
-			p['pattern'] = rpmpat
 		# patfiles contain list of .pat or .pat.gz files with pattern definitions
 		patfiles = filter(re_arch.search, urllib2.urlopen(baserepo + "/suse/setup/descr/patterns").read().split("\n"))
 		if not patfiles:
@@ -97,7 +89,31 @@ def append_result(repo, product, arch, am):
 			#for line in filter(re_pat.search, data.split("\n")):
 			#	p['pattern'].append(line.split(' ')[2])
 	except:
-		print "Can not read " + baserepo + "/suse/setup/descr/patterns (either non-exsit or broken)"
+		print "Can not read " + baserepo + "/suse/setup/descr/patterns (either non-exsit or broken)."
+	
+	# If no patterns were found so far, it is possible that it is sle-12 (or new openSUSE)
+	# and does not use pattern file. Instead it uses patterns RPMs
+	# patterns-<PRODUCT>-<NAME_WITH_DASHES>-<PRODVER>-<VER>.<ARCH>.rpm
+	if not p['pattern']:
+		print "No patterns found so far. Trying new method..."
+		try:
+			try:
+				# Hack for ppc64le arch - try to add le to arch if path
+				# does not exist. This scritp needs complete rewrite to
+				# support addons (not just sdk), so IMHO can be accepted
+				rpmpage = urllib2.urlopen(baserepo + "/suse/"+arch).read()
+			except:
+				print "read failed, trying ppc64le path"
+				rpmpage = urllib2.urlopen(baserepo + "/suse/"+arch+"le").read()
+				arch = arch+"le"
+				p['arch'] = arch
+
+			rpmpat = re.findall('<img.*?href="patterns-\w+-([\w-]+)-[\d.]+-[\d.]+\.\w+\.rpm',rpmpage)
+			p['pattern'] = rpmpat
+		except:
+			print "No patterns found in " + baserepo
+
+
 	print 'Found', product, arch, " on  ", repo
 	return p
 

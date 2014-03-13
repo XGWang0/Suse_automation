@@ -34,28 +34,16 @@ def retrieve_patterns(repo):
 		if (re.match('i.86$', arch)):
 			matcharch ='i.86'
 		elif (re.match('ppc', arch)):
-			matcharch = 'ppc(64)?'
+			matcharch = 'ppc(64(le)?)?'
 		else:
 			matcharch = arch
 		re_arch = re.compile('\.' + matcharch + '\.pat(\.gz)?$')
 		re_pat = re.compile('^=Pat: ')
 		re_vis = re.compile('^=Vis: ')
 		patterns = []
-		#pattern name search
-		re_patrpm = re.compile('patterns-sles-[^ ]+rpm\s')
-		re_sles12 = re.compile('[Ss][Ll][Ee][Ss]?-12')
 		try:
-			#work wrong that sles 12 does not have pattern file, get the file name
-			if re.search(re_sles12,product):
-				temprepo = repo.replace('setup/descr','')
-				rpmpage = urllib2.urlopen(temprepo + "/suse/"+arch).read()
-				rpmpat = re.findall('<img.*?href="patterns-sles-([^-]+)-',rpmpage)
-				patterns = rpmpat
-				return patterns
 			# patfiles contain list of .pat or .pat.gz files with pattern definitions
 			patfiles = filter(re_arch.search, urllib2.urlopen(repo + "/patterns").read().split("\n"))
-			if not patfiles:
-				print "Pattern descriptor (" + repo + "/patterns) is empty. No pattern info grepped."
 			for patfile in patfiles:
 				# Some patfile contain definition of multiple patterns, while some not
 				# Patterh name line looks like:
@@ -80,7 +68,33 @@ def retrieve_patterns(repo):
 
 		except:
 			pass
+
+		# If no patterns were found so far, it is possible that it is sle-12 (or new openSUSE)
+		# and does not use pattern file. Instead it uses patterns RPMs
+		# patterns-<PRODUCT>-<NAME_WITH_DASHES>-<PRODVER>-<VER>.<ARCH>.rpm
+		if not patterns:
+			# No patterns found so far. Trying new method...
+			try:
+				try:
+					# Hack for ppc64le arch - try to add le to arch if path
+					# does not exist. This scritp needs complete rewrite to
+					# support addons (not just sdk), so IMHO can be accepted
+					temprepo = repo.replace('setup/descr','')
+					rpmpage = urllib2.urlopen(temprepo + "/"+arch).read()
+				except:
+					# read failed, trying ppc64le path
+					rpmpage = urllib2.urlopen(temprepo + "/"+arch+"le").read()
+	
+				rpmpat = re.findall('<img.*?href="patterns-\w+-([\w-]+)-[\d.]+-[\d.]+\.\w+\.rpm',rpmpage)
+				patterns = rpmpat
+			except:
+				pass
+
+		if not patterns:
+			print "No patterns found for " + repo + "."
+
 		return patterns
+
 	else:
 		result = 0
 		dirs = update_repo_index.list_dir(repo)
