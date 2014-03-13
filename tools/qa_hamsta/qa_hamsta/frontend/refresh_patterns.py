@@ -2,7 +2,7 @@
 
 # ****************************************************************************
 # Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
-# 
+#
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
 # RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
@@ -13,7 +13,7 @@
 # PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
 # AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
 # LIABILITY.
-# 
+#
 # SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
 # WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
@@ -23,7 +23,15 @@
 # WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
 # ****************************************************************************
 
-import update_repo_index, os, re, StringIO, gzip, string, urllib2, sys
+import update_repo_index
+import os
+import re
+import StringIO
+import gzip
+import string
+import urllib2
+import sys
+import logging
 
 def retrieve_patterns(repo):
 	if string.join(repo.split('/')[-3:], '/') == 'suse/setup/descr':
@@ -52,7 +60,7 @@ def retrieve_patterns(repo):
 				data = urllib2.urlopen(pattern).read()
 				if (patfile.endswith('.gz')):
 					data = gzip.GzipFile(fileobj = StringIO.StringIO(data)).read()
-				
+
 				pattern = None
 				for line in data.split("\n"):
 					if re.match(re_pat, line):
@@ -65,7 +73,6 @@ def retrieve_patterns(repo):
 
 				#for line in filter(re_pat.search, data.split("\n")):
 				#	patterns.append(line.split(' ')[2])
-
 		except:
 			pass
 
@@ -84,17 +91,16 @@ def retrieve_patterns(repo):
 				except:
 					# read failed, trying ppc64le path
 					rpmpage = urllib2.urlopen(temprepo + "/"+arch+"le").read()
-	
+
 				rpmpat = re.findall('<img.*?href="patterns-\w+-([\w-]+)-[\d.]+-[\d.]+\.\w+\.rpm',rpmpage)
 				patterns = rpmpat
 			except:
 				pass
 
 		if not patterns:
-			print "No patterns found for " + repo + "."
+			logging.info("No patterns found for %s." % repo)
 
 		return patterns
-
 	else:
 		result = 0
 		dirs = update_repo_index.list_dir(repo)
@@ -105,6 +111,9 @@ def retrieve_patterns(repo):
 		return result
 
 if __name__ == '__main__':
+	# Set basic logging level and output format
+	logging.basicConfig(format="%(levelname)s: %(message)s", level="INFO")
+
 	if len(sys.argv) > 1:
 		for pattern in retrieve_patterns(sys.argv[1]):
 			print pattern
