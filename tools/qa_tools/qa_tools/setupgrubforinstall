@@ -195,7 +195,7 @@ sleep 30
 if [ "$rootpartition" = "$bootpartition" ];then
 	#boot partition and root partition are same	
 	#install the bootloader to mbr to make sure kernel can be loaded 
-
+	bootpartition=`echo $bootpartition|sed 's/.$//'`
 	$grubn-install $bootpartition
 fi
 
