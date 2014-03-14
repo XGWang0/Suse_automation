@@ -90,6 +90,11 @@ title=`echo $insturl | sed -e 's/\//\n/g' | grep -v '\..\+\.' | awk '{ print len
 title="$title-`date +%m%d%y%H%M%S`"
 
 #find out the boot filesystem
+rootpartition=`df /|awk '{a=$1}END{print a}'`
+
+
+
+#find out the boot filesystem
 bootpartition=`df /boot|awk '{a=$1}END{print a}'`
 echo "boot partition is $bootpartition"
 bootfs=`awk -v p=$bootpartition '$1==p{print $3}' /proc/mounts`
@@ -101,7 +106,7 @@ elif find $grubdir -type f -name "${bootfs}.mod"
 then
 	echo "find the filesystem module ${bootfs}.mod"
 else
-	echo "can veriy boot filesystem"
+	echo "can Not veriy boot filesystem"
 	exit 2
 fi
 
@@ -181,6 +186,18 @@ fi
 #update the grub.cfg
 
 $grubn-mkconfig -o $grubdir/grub.cfg
+
+#sleep a while
+sleep 30
+
+#check the boot partition and root partition
+
+if [ "$rootpartition" = "$bootpartition" ];then
+	#boot partition and root partition are same	
+	#install the bootloader to mbr to make sure kernel can be loaded 
+
+	$grubn-install $bootpartition
+fi
 
 #get index of autoinstall
 num=`awk '{if(/^menuentry|^submenu/){a++}}END{print a}' /boot/grub2/grub.cfg`
