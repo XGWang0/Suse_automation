@@ -125,12 +125,12 @@ require("timezone.php");
 
   <div id="more_patterns" class='row'>
 	<label for="patterns">Additional patterns</label>
-        <input type="text" name="patterns[]" id='patterns'/>
+        <input type="text" name="patterns[]" id='patterns' class='additionalpatterns'/>
   </div>
 
   <div class='row'>
 	<label for="additionalrpms">Additional packages</label>
-	<input type="text" name="additionalrpms" id='additionalrpms' value="<?php if(isset($_POST["additionalrpms"])){echo $_POST["additionalrpms"];} else echo ($config->lists->arlist);?>" />
+	<input type="text" name="additionalrpms" id='additionalrpms' class='additionalrpms' value="<?php if(isset($_POST["additionalrpms"])){echo $_POST["additionalrpms"];} else echo ($config->lists->arlist);?>" />
   </div>
 
   <div class='row'>
@@ -155,7 +155,7 @@ require("timezone.php");
 
   <div class='row'>
 	<label for="installoptions">Installation options </label>
-	<input type="text" name="installoptions" id='installoptions' value="<?php echo $installoptions; ?>" /> 
+	<input type="text" name="installoptions" id='installoptions' class='installopts' value="<?php echo $installoptions; ?>" /> 
         <?php 
 		if ($installoptions_warning != "") 
 			{echo ("</br> <font color=\"red\" >$installoptions_warning</font>");} 
