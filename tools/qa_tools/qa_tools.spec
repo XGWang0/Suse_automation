@@ -118,26 +118,27 @@ cp --target-directory=$RPM_BUILD_ROOT%{confdir} 00-qa_tools-default 00-qa_tools-
 cp -r profiles/* $RPM_BUILD_ROOT%{profiledir}
 cd $RPM_BUILD_ROOT%{bindir}
 
-
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %post
 mkdir -p %{homedir}
 cp --target-directory=%{homedir} %{fhsdir}/.vimrc
-if [ -x /etc/init.d/SuSEfirewall2_init ]
+
+# Shut down the firewall
+if [ $(which systemctl) && $(systemctl --no-pager --no-legend list-units SuSEfirewall2*) ]
+then
+    systemctl stop SuSEfirewall2
+    systemclt stop SuSEfirewall2_init
+    systemctl disable SuSEfirewall2
+    systemclt disable SuSEfirewall2_init
+elif [ -x /etc/init.d/SuSEfirewall2_init ]
 then
     /etc/init.d/SuSEfirewall2_init stop || true
     /etc/init.d/SuSEfirewall2_setup stop || true
     chkconfig -d SuSEfirewall2_setup || true
     chkconfig -d SuSEfirewall2_init || true
 fi
-if [ -e /etc/systemd/system/SuSEfirewall2_setup.service ]
-then
-    systemctl start SuSEfirewall2.service
-    systemctl disable SuSEfirewall2.service
-fi
-echo "Your system has been hacked successfuly."
 
 %preun
 
