@@ -49,20 +49,26 @@ Requires:       perl
 Requires:       perl-XML-Simple
 Requires:       qa-config
 Requires:       qa_libperl
+Requires:       coreutils
 %if 0%{?sles_version} == 9
 Requires:       qa_keys
 %else
 Recommends:     qa_keys
 %endif
-Requires:       coreutils
 BuildArch:      noarch
-
+# These are needed to configure the SUSE firewall
+Requires(post):   yast2
+Requires(preun):  yast2
+Requires(post):   yast2-firewall
+Requires(preun):  yast2-firewall
+Requires(post):   yast2-ncurses
+Requires(preun):  yast2-ncurses
 
 %description
 QA internal package. This package contains QA automation scripts:
 reinstall.pl - reinstalls the system (GRUB systems only)
 cmllist.pl - grep in systems on cml.suse.cz
-product.pl - guesses the SuSE product
+product.pl - guesses the SUSE product
 and others
 
 %define destdir /usr/share/qa
@@ -71,8 +77,8 @@ and others
 %define homedir /root
 %define fhsdir %{destdir}/keys
 %define profiledir %{destdir}/profiles
-%define mandir	/usr/share/man
-%define confdir /etc/qa
+%define confdir %{_sysconfdir}/qa
+%define fwconfdir %{_sysconfdir}/sysconfig/SuSEfirewall2.d/services
 
 %prep
 %setup -n %{name}
@@ -94,23 +100,25 @@ install -m 755 -d %{buildroot}%{bindir}
 install -m 755 -d %{buildroot}%{libdir}
 install -m 755 -d %{buildroot}%{fhsdir}
 install -m 755 -d %{buildroot}%{profiledir}
-install -m 755 -d %{buildroot}%{mandir}/man1
-install -m 755 -d %{buildroot}%{mandir}/man8
+install -m 755 -d %{buildroot}%{_mandir}/man1
+install -m 755 -d %{buildroot}%{_mandir}/man8
 install -m 755 -d %{buildroot}%{confdir}
 install -m 755 -d %{buildroot}%{_sysconfdir}/init.d
 install -m 755 -d %{buildroot}%{_sbindir}
+install -d %{buildroot}%{fwconfdir}
 cp --target-directory=%{buildroot}%{bindir} setupIA64liloforinstall
 cp --target-directory=%{buildroot}%{bindir} setupPPCliloforinstall
 cp --target-directory=%{buildroot}%{bindir} setupgrubforinstall
 cp --target-directory=%{buildroot}%{bindir} setupUIAutomationtest
 cp -d --target-directory=%{buildroot}%{bindir} *.pl
+cp --target-directory=%{buildroot}%{fwconfdir} hamsta
 echo ${version} > %{buildroot}%{libdir}/qa_tools.version
 cp --target-directory=%{buildroot}%{libdir} install_functions.pm
 cp vimrc %{buildroot}%{fhsdir}/.vimrc
-cp -d --target-directory=%{buildroot}%{mandir}/man1 *.1.gz
-cp -d --target-directory=%{buildroot}%{mandir}/man8 *.8.gz
-cp --target-directory=%{buildroot}%{mandir}/man8 %{SOURCE1}
-gzip -9 %{buildroot}%{mandir}/man8/%{name}.8
+cp -d --target-directory=%{buildroot}%{_mandir}/man1 *.1.gz
+cp -d --target-directory=%{buildroot}%{_mandir}/man8 *.8.gz
+cp --target-directory=%{buildroot}%{_mandir}/man8 %{SOURCE1}
+gzip -9 %{buildroot}%{_mandir}/man8/%{name}.8
 cp --target-directory=%{buildroot}%{confdir} 00-qa_tools-default 00-qa_tools-default.*
 cp -r profiles/* %{buildroot}%{profiledir}
 cd %{buildroot}%{bindir}
@@ -122,22 +130,27 @@ rm -rf %{buildroot}
 mkdir -p %{homedir}
 cp --target-directory=%{homedir} %{fhsdir}/.vimrc
 
-# Shut down the firewall
-if [ $(which systemctl) && $(systemctl --no-pager --no-legend list-units SuSEfirewall2*) ]
-then
-    systemctl stop SuSEfirewall2
-    systemclt stop SuSEfirewall2_init
-    systemctl disable SuSEfirewall2
-    systemclt disable SuSEfirewall2_init
-elif [ -x /etc/init.d/SuSEfirewall2_init ]
-then
-    /etc/init.d/SuSEfirewall2_init stop || true
-    /etc/init.d/SuSEfirewall2_setup stop || true
-    chkconfig -d SuSEfirewall2_setup || true
-    chkconfig -d SuSEfirewall2_init || true
-fi
+# Shut down the firewall -- keeping for reference
+# if [ $(which systemctl) && $(systemctl --no-pager --no-legend list-units SuSEfirewall2*) ]
+# then
+#     systemctl stop SuSEfirewall2
+#     systemclt stop SuSEfirewall2_init
+#     systemctl disable SuSEfirewall2
+#     systemclt disable SuSEfirewall2_init
+# elif [ -x /etc/init.d/SuSEfirewall2_init ]
+# then
+#     /etc/init.d/SuSEfirewall2_init stop || true
+#     /etc/init.d/SuSEfirewall2_setup stop || true
+#     chkconfig -d SuSEfirewall2_setup || true
+#     chkconfig -d SuSEfirewall2_init || true
+# fi
 
-%preun -p /sbin/ldconfig
+# Instead of disabling the firewall completely, enable the Hamsta
+# service for EXTernal zone
+/sbin/yast2 firewall services add zone=EXT service=service:hamsta || :
+
+%postun
+/sbin/yast2 firewall services remove zone=EXT service=service:hamsta || :
 
 %files
 %defattr(0644,root,root,0755)
@@ -146,13 +159,15 @@ fi
 %dir %{libdir}
 %dir %{bindir}
 %dir %{fhsdir}
-%{mandir}/man1/*
-%{mandir}/man8/*
+%dir %{fwconfdir}
+%{_mandir}/man1/*
+%{_mandir}/man8/*
 %attr(0755,root,root) %{bindir}/*
 %{libdir}/*
 %{fhsdir}/.vimrc
 %{profiledir}/*
 %{confdir}
+%{fwconfdir}/hamsta
 %doc COPYING
 
 %changelog
