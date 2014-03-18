@@ -91,7 +91,6 @@ if( isset($disabled_css) && $disabled_css ) print '<link href="css/disabled.css"
              User::printLogInOut();
            }
            ?>
-      <a href="index.php?go=install_client">Install Client</a>
     </div>
 
     <div id="header-links" class="text-medium bold">

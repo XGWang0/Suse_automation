@@ -88,7 +88,6 @@ $pages = array(
     "machines",
     "machine_edit",
     "machine_delete",
-    "install_client",
     "machine_details",
     "machine_purge",
     "action_history",
