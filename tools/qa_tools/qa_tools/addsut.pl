@@ -4,25 +4,6 @@ my $master_net = shift;
 my $pre_repo = shift;
 
 my $conn_type = 'multicast';
-my %repos = (
-		"SLE_10_SP1" => "SLE_10_SP1_Head",
-		"SLE_10_SP2" => "SLE_10_SP2_Head",
-		"SLE_10_SP3" => "SLE_10_SP3",
-		"SLE_10_SP4" => "SLE_10_SP4",
-		"SLE_10_SP4_Update" => "SLE_10_SP4_Update",
-		"SLE_11_SP1_Update" => "SLE_11_SP1_Update",
-		"SLE_Factory" => "SLE_Factory",
-		"Factory_Head" => "SUSE_Factory_Head",
-		"SLE_11_SP1" => "SUSE_SLE-11-SP1_GA",
-		"SLE_11_SP2" => "SUSE_SLE-11-SP2_GA",
-		"SLE_11_SP3" => "SUSE_SLE-11-SP3_GA",
-		"SLE_11" => "SUSE_SLE-11_GA",
-		"SLE_11_Update" => "SUSE_SLE-11_Update",
-		"openSUSE_11.4" => "openSUSE_11.4",
-		"openSUSE_12.1" => "openSUSE_12.1",
-		"openSUSE_12.2" => "openSUSE_12.2",
-		"openSUSE_12.3" => "openSUSE_12.3",
-		"openSUSE_Factory" => "openSUSE_Factory");
 
 my $mycmd = "grep -qi openSUSE /etc/issue";
 my $ret = system($mycmd);
@@ -30,7 +11,7 @@ my $repo;
 my $OSVer;
 my $PVer;
 if ($ret != 0) { #SLE
-	$repo = "SLE_";
+	$repo = "SLE-";
 	$mycmd = "grep -i VERSION /etc/SuSE-release | sed -e \'s/[A-Za-z =]//g\'";
 	$OSVer = `$mycmd`;
 	if ( $OSVer == "" ) {
@@ -42,12 +23,12 @@ if ($ret != 0) { #SLE
 	$PVer = `$mycmd`;
 	if ($? == 0) { # OS like: SLE_11_SP2 etc
 		chomp($PVer);
-		$repo .= $OSVer . "_SP" . $PVer;
+		$repo .= $OSVer . "-SP" . $PVer;
 	} else {
 		$repo .= $OSVer;
 	}
 } else {
-	$repo = "openSUSE_";
+	$repo = "openSUSE-";
 	$mycmd = "cat /etc/SuSE-release | grep -i VERSION | sed -e \'s/[A-Za-z =]//g\'";
 	$OSVer = readpipe($mycmd);
 	chomp($OSVer);
@@ -57,7 +38,7 @@ if ($ret != 0) { #SLE
         }
 	$repo .= $OSVer;
 }
-my $repo_url = $pre_repo . "/" . $repos{$repo} . "/";
+my $repo_url = $pre_repo . "/" . $repo . "/";
 $mycmd = "zypper lr -u|grep $repo_url|awk -F\\\| \'{print \$4}\'|grep \"Yes\" 1>/dev/null";
 $repoOK = system($mycmd);
 if ($repoOK != 0) {
