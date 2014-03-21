@@ -94,7 +94,7 @@
 		echo "<div id=\"log_filter\"></div>\n";
 		echo "<div id=\"logtextarea\" style=\"height:20em; overflow:auto;\">\n";
 		echo "<table id=\"job_log\" class=\"logs\">\n";
-		echo "<tr><th>Date/Time</th><th>Type</th><th>Process</th><th>Message</th></tr>\n";
+		echo "<thead><tr><th>Date/Time</th><th>Type</th><th>Process</th><th>Message</th></tr></thead>\n";
 		foreach( $log_table as $row )	{
 			$cls = sprintf("class=\"%s\"",$row->get_log_type());
 			printf("<tr $cls><td><nobr>%s</nobr></td><td>%s</td><td>%s</td><td>%s</td></tr>\n", $row->get_log_time_string(), $row->get_log_type(), $row->get_log_what(), $row->get_log_text());
@@ -164,3 +164,8 @@
 if(! isset($html_refresh_interval)){$html_refresh_interval = 0;};
 echo showRefresh("index.php?go=job_details&amp;id=" . $job->get_id() . "&amp;d_return=" . $d_return . "&amp;d_job=" . $d_job, $html_refresh_interval);
 ?>
+<script>
+var TSort_Data = new Array ('job_log','d');
+var TSort_Icons = new Array ('<span class="text-blue sorting-arrow">&uArr;</span>', '<span class="text-blue sorting-arrow">&dArr;</span>');
+tsRegister();
+</script>
