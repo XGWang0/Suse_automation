@@ -28,6 +28,11 @@
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
+%define with_firewall 0
+
+%if 0%{?suse_version} >= 1310 || 0%{?sles_version} >= 11
+%define with_firewall 1
+%endif
 
 BuildRequires:  coreutils
 BuildRequires:  perl
@@ -56,6 +61,7 @@ Requires:       qa_keys
 Recommends:     qa_keys
 %endif
 BuildArch:      noarch
+%if %{?with_firewall}
 # These are needed to configure the SUSE firewall
 Requires(post):   yast2
 Requires(preun):  yast2
@@ -63,6 +69,7 @@ Requires(post):   yast2-firewall
 Requires(preun):  yast2-firewall
 Requires(post):   yast2-ncurses
 Requires(preun):  yast2-ncurses
+%endif
 
 %description
 QA internal package. This package contains QA automation scripts:
@@ -78,7 +85,9 @@ and others
 %define fhsdir %{destdir}/keys
 %define profiledir %{destdir}/profiles
 %define confdir %{_sysconfdir}/qa
+%if %{?with_firewall}
 %define fwconfdir %{_sysconfdir}/sysconfig/SuSEfirewall2.d/services
+%endif
 
 %prep
 %setup -n %{name}
@@ -105,13 +114,17 @@ install -m 755 -d %{buildroot}%{_mandir}/man8
 install -m 755 -d %{buildroot}%{confdir}
 install -m 755 -d %{buildroot}%{_sysconfdir}/init.d
 install -m 755 -d %{buildroot}%{_sbindir}
+%if %{?with_firewall}
 install -d %{buildroot}%{fwconfdir}
+%endif
 cp --target-directory=%{buildroot}%{bindir} setupIA64liloforinstall
 cp --target-directory=%{buildroot}%{bindir} setupPPCliloforinstall
 cp --target-directory=%{buildroot}%{bindir} setupgrubforinstall
 cp --target-directory=%{buildroot}%{bindir} setupUIAutomationtest
 cp -d --target-directory=%{buildroot}%{bindir} *.pl
+%if %{?with_firewall}
 cp --target-directory=%{buildroot}%{fwconfdir} hamsta
+%endif
 echo ${version} > %{buildroot}%{libdir}/qa_tools.version
 cp --target-directory=%{buildroot}%{libdir} install_functions.pm
 cp vimrc %{buildroot}%{fhsdir}/.vimrc
@@ -145,12 +158,24 @@ cp --target-directory=%{homedir} %{fhsdir}/.vimrc
 #     chkconfig -d SuSEfirewall2_init || true
 # fi
 
+%if %{?with_firewall}
 # Instead of disabling the firewall completely, enable the Hamsta
 # service for EXTernal zone
 /sbin/yast2 firewall services add zone=EXT service=service:hamsta || :
+%else
+if [ -x /etc/init.d/SuSEfirewall2_init ]
+then
+	/etc/init.d/SuSEfirewall2_init stop || true
+	/etc/init.d/SuSEfirewall2_setup stop || true
+	chkconfig -d SuSEfirewall2_setup || true
+	chkconfig -d SuSEfirewall2_init || true
+fi
+%endif
 
 %postun
+%if %{?with_firewall}
 /sbin/yast2 firewall services remove zone=EXT service=service:hamsta || :
+%endif
 
 %files
 %defattr(0644,root,root,0755)
@@ -166,7 +191,9 @@ cp --target-directory=%{homedir} %{fhsdir}/.vimrc
 %{fhsdir}/.vimrc
 %{profiledir}/*
 %{confdir}
+%if %{?with_firewall}
 %{fwconfdir}/hamsta
+%endif
 %doc COPYING
 
 %changelog
