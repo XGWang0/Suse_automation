@@ -127,18 +127,24 @@ sub thread_auswertung () {
 sub parse_cmd() {
     my $cmd = shift @_;
     my $sock_handle = shift @_;
+    my $ips="";
     
     #verify the hostname & ip
-    if ($cmd =~ / ip ([^ ]+) /) {
+    if ($cmd =~ / ip ([^ ]+)/) {
         my $host = $1;
         my $mihash = &mih;
-	if (defined($mihash->{$host})) {
-	    my $ip = $mihash->{$host};
-	    $cmd =~ s/ ip [^ ]+ / ip $ip /;
-	} else {
-	    print $sock_handle "Hostname Not Available\n";
-	    goto SWSW;
+
+	foreach ( split(/,/,$host)) {
+		if (defined($mihash->{$_})) {
+			my $ip = $mihash->{$_};
+			$ips = "$ips,$ip";
+		} else {
+			print $sock_handle "$_ Not Available\n";
+			goto SWSW;
+		}
 	}
+		$ips =~ s/^,//;
+		$cmd =~ s/ ip [^ ]+/ ip $ips/;
     }
 
     switch ($cmd) {
@@ -702,10 +708,12 @@ sub send_multi_job_to_host () {
     my $ref = &parse_xml($sock_handle, $mul_xml);
     return if( not defined $ref );
     # set the default values
+    my $hosts;
+    $hosts = join(',', @hosts);
     for my $host (@hosts) {
-      my $job_sid = &transaction($ref,$host,$mul_xml);
-      &log(LOG_INFO,"MASTER::FUNCTIONS cmdline Multi_Machine Job $mul_name send to scheduler, at $host internal id: $job_sid");
-      print $sock_handle "MASTER::FUNCTIONS cmdline Multi_Machine Job $mul_name send to scheduler, at $host internal id: $job_sid\n";
+    my $job_sid = &transaction($ref,$hosts,$mul_xml);
+    &log(LOG_INFO,"MASTER::FUNCTIONS cmdline Multi_Machine Job $mul_name send to scheduler, at $host internal id: $job_sid");
+    print $sock_handle "MASTER::FUNCTIONS cmdline Multi_Machine Job $mul_name send to scheduler, at $host internal id: $job_sid\n";
     }
     return;
 }
@@ -942,12 +950,14 @@ sub send_qa_package_job_to_host () {
     $qpt_name =~ s/#/ /g;
     my $host = $cmd_line[3];
 
+
     if (! can_send_job_to_machine ($host)) {
 	notify_about_no_privileges ($sock_handle, $user_id, $host);
 	return;
     }
 
     print $sock_handle "qa package job:$qpt_name \n";
+    print $sock_handle "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx :$host internal id:\n";
 
     if( not &check_host($host)){
       &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
@@ -1024,7 +1034,10 @@ sub send_job_to_group() {
 }
 
 sub check_host() {
+    #duplicate with function &mih.
+    return 1;
     my $host = shift;
+    my $all_right;
     unless ($host eq "none") {
         my @tmp_hosts = &machine_search('fields'=>['ip'], 'return'=>'vector');
         &log(LOG_DETAIL, "MASTER:: IPs ARE ".join(',',@tmp_hosts));
