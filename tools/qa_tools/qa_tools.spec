@@ -172,7 +172,6 @@ cp --target-directory=%{homedir} %{fhsdir}/.vimrc
 %dir %{libdir}
 %dir %{bindir}
 %dir %{fhsdir}
-%dir %{fwconfdir}
 %{_mandir}/man1/*
 %{_mandir}/man8/*
 %attr(0755,root,root) %{bindir}/*
