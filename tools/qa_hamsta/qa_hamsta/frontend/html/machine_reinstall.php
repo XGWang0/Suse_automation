@@ -97,6 +97,11 @@ Machines:
 				<label class='pos' for="tab3">Advanced</label>
 			</div>
 			<?php require ("req_rein_all.php"); ?>
+			<div class="breadcrumb_bottom">
+				<label for="tab1"><input type="button" value="Prev" class="disabled"/></label>
+				<label for="tab2"><input type="button" value="Next"/></label>
+				<label for="summary"><input type="button" value="Finish"/></label>
+			</div>
 		</div>
 	</div>
 	<div id='tab-disk' class="tab">
@@ -113,6 +118,12 @@ Machines:
 				<label class='pos' for="tab3">Advanced</label>
 			</div>
 			<?php require ("req_rein.php"); ?>
+			<div class="breadcrumb_bottom">
+				<label for="tab1"><input type="button" value="Prev"/></label>
+				<label for="tab3"><input type="button" value="Next"/></label>
+				<label for="summary"><input type="button" value="Finish"/></label>
+			</div>
+
 		</div>
 	</div>
 	<div id='tab-advanced' class="tab">
@@ -129,9 +140,20 @@ Machines:
 				<label class='pos active' for="tab3">Advanced</label>
 			</div>
 			<?php require ("req_sut.php"); ?>
+			<div class="breadcrumb_bottom">
+				<label for="tab2"><input type="button" value="Prev"/></label>
+				<label for="tab3"><input type="button" value="Next" class="disabled"/></label>
+				<label for="summary"><input type="button" value="Finish"/></label>
+			</div>
+
 		</div>
 	</div>
 </div>
+<div id="finish">
+	<label for="summary"><input type="button" value="Edit"/></label>
+	<input type="submit" value="Submit" name='proceed'/>
+</div>
+
 <?php
 	foreach ($machines as $machine):
 		echo('<input type="hidden" name="a_machines[]" value="'.$machine->get_id().'">');

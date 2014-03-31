@@ -32,9 +32,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 }
 
 function filter($var) {
-	if($var == '')
-		return false;
-	return true;
+	return ! empty ($var);
 } 
 
 function map_regcode($e1, $e2)
@@ -151,11 +149,13 @@ if (request_str("proceed")) {
 	$gpattern = "";
 	foreach ($pattern_list as $p)
 		$gpattern .= " ".$p;
+
 	if ($setxen) {
 		$gpattern .= "xen_server";
-		if (preg_match('/[SsLlEe]{3}.-10/',$producturl))
+		if (preg_match('/SLE.-10/i',$producturl))
 			$additionalrpms .= " kernel-xen";
 	}
+
 	$additionalrpms = str_replace(' ', ',', trim($additionalrpms));
 	$additionalpatterns = str_replace(' ', ',', trim($gpattern));
 	$addonurl = join(",", $addonurls);
@@ -164,6 +164,7 @@ if (request_str("proceed")) {
 	if(($repartitiondisk || $ptargs) and ! $machines[0]->has_perm('partition')) $errors['partition']="Some Machine do not have partition perm";
 	# check boot prem
 	if(($defaultboot || $setxen) and ! $machines[0]->has_perm('boot')) $errors['boot']="Some Machine do not have boot perm";
+
 	# Processing the job
 	if (count($errors)==0) {
 		$producturl=preg_quote($producturl, '/');
