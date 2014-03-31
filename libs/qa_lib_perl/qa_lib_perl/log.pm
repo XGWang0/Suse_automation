@@ -366,7 +366,7 @@ sub __log_close # hash
 		my $p=$out->{'path'};
 		system( "gzip -f \"$p\"" ) and warn "Cannot gzip $p\n"	if $out->{'gzip'};
 		system( "bzip2 -f \"$p\"" ) and warn "Cannot bzip $p\n"	if $out->{'bzip2'};
-		unlink( $p ) or warn "Cannot unlink $p: $!\n"		if $out->{'unlink'};
+		unlink( $p ) or warn "Cannot unlink $p: $!\n"		if($out->{'unlink'} and -e $p);
 	}
 }
 
