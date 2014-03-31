@@ -87,8 +87,8 @@ require("timezone.php");
            print "/>\n" .
              "<span class='rcode'>\n" .
 		"<label for=rcode_a$addon_id >Reg.code</label>\n" .
-		"<input type='text' class='regprefix' name='regprefix[]' id='regprefix_$addon_id' value=''/>\n".
-		"<input type='text' class='regcode'   name='rcode[]' id='rcode_a$addon_id' value=''/>\n" .
+		"<input type='text' class='regprefix' title='Insert the identifier of your add-on product. Examples are sleshae, slert, ...' name='regprefix[]' id='regprefix_$addon_id' value=''/>\n".
+		"<input type='text' class='regcode' title='Fill in whole registration code' name='rcode[]' id='rcode_a$addon_id' value=''/>\n" .
              "</span>\n" .
              "<div class='addon_btns'>\n";
              if ( $addon_id == $ADDON_NUMS )
@@ -125,12 +125,12 @@ require("timezone.php");
 
   <div id="more_patterns" class='row'>
 	<label for="patterns">Additional patterns</label>
-        <input type="text" name="patterns[]" id='patterns' class='additionalpatterns'/>
+        <input type="text" name="patterns[]" id='patterns' title='Space or comma separated list of pattern names' class='additionalpatterns'/>
   </div>
 
   <div class='row'>
 	<label for="additionalrpms">Additional packages</label>
-	<input type="text" name="additionalrpms" id='additionalrpms' class='additionalrpms' value="<?php if(isset($_POST["additionalrpms"])){echo $_POST["additionalrpms"];} else echo ($config->lists->arlist);?>" />
+	<input type="text" name="additionalrpms" id='additionalrpms' title='Space or comma separated list of package names' class='additionalrpms' value="<?php if(isset($_POST["additionalrpms"])){echo $_POST["additionalrpms"];} else echo ($config->lists->arlist);?>" />
   </div>
 
   <div class='row'>
@@ -160,10 +160,10 @@ require("timezone.php");
 		if ($installoptions_warning != "") 
 			{echo ("</br> <font color=\"red\" >$installoptions_warning</font>");} 
 	?>
-	<span> (e.g. <em>vnc=1 vncpassword=12345678</em>) </span>
+	<span> (e.g. <em>ssh=1 sshpassword=12345678</em> or <em>vnc=1 vncpassword=12345678</em>) </span>
   </div>
  
   <div class='row note'>
-	<strong>Note:</strong> Don't put any sensitive passwords, since it is plain text. VNC passwords must be 8+ bytes long.
+	<strong>Note:</strong> Don't put any sensitive passwords here, since it is plain text. VNC passwords must be at least 8 characters long.
   </div>
 
