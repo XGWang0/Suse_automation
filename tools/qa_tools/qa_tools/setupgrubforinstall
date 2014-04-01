@@ -106,7 +106,7 @@ elif find $grubdir -type f -name "${bootfs}.mod"
 then
 	echo "find the filesystem module ${bootfs}.mod"
 else
-	echo "Can not veriy boot filesystem" >&2
+	echo "Can not verify boot filesystem" >&2
 	exit 2
 fi
 
