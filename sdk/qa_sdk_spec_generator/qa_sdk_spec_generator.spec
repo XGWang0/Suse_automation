@@ -35,6 +35,6 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root)
 %{_mandir}/man8/qa_sdk_spec_generator.8.gz
-%{_bindir}/qa_sdk_spec_generator
+%{_bindir}/spec_generator
 
 %changelog
