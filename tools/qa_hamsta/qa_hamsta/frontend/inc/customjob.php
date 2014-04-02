@@ -69,6 +69,6 @@
         	$_SESSION['message'] = implode("\n", $errors);
         	$_SESSION['mtype'] = "fail";
 	} else {
-		redirect("The job[s] has/have been successfully sent.",true);
+		redirect (array('succmsg' => "The job[s] has/have been successfully sent."));
 	}
 ?>
