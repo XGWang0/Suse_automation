@@ -97,7 +97,7 @@ machine_permission_or_disabled($machines,$perm_send_job);
 			}
 		}
 		if (empty($error)) {
-			redirect("The job[s] has/have been successfully sent.",true);
+			redirect (array ('succmsg' => "The job[s] has/have been successfully sent."));
 		}
 	}
     $html_title = "Send job";

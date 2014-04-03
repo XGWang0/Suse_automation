@@ -86,7 +86,7 @@
 		}
 	}
 	if (empty($error)) {
-		redirect("The job[s] has/have been successfully sent.",true);
+		redirect (array ('succmsg' => "The job[s] has/have been successfully sent."));
 	}
 	$html_title="Send qapackage job";
 ?>

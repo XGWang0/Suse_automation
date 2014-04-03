@@ -209,7 +209,7 @@ else if( request_str('submit') )
 			}
 		}
 		if (count($errors) == 0)
-			redirect("The job[s] has/have been successfully sent.",true);
+			redirect (array ('succmsg' => "The job[s] has/have been successfully sent."));
 	}
 }
 $html_title = "Multi-machine job details";
