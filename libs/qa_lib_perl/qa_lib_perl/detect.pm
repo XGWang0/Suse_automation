@@ -195,7 +195,7 @@ sub parse_base_product
         use XML::Simple;
         my $baseproduct = "/etc/products.d/baseproduct";
 	if( -e $baseproduct ) {
-		my $xmlres = XMLin($baseproduct) if ( -e $baseproduct );
+		my $xmlres = XMLin($baseproduct);
 		&log( LOG_DEBUG, "/etc/products.d/baseproduct reading: type $xmlres->{'name'}, version $xmlres->{'version'}, subversion $xmlres->{'patchlevel'}, arch $xmlres->{'arch'}" );
 	        return ( $xmlres->{'name'}, $xmlres->{'version'}, $xmlres->{'patchlevel'}, '', $xmlres->{'arch'} );
 	} 
