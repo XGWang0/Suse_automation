@@ -1,6 +1,6 @@
 CREATE TABLE hamsta_master (
   hamsta_master_id int not null auto_increment primary key,
-  hamsta_master varchar(255) not null,
+  hamsta_master_name varchar(255) not null,
   hamsta_master_ip varchar(16) not null,
   unique(hamsta_master_ip)
 ) ENGINE=InnoDB; 
