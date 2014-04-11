@@ -128,22 +128,24 @@ sub parse_cmd() {
     my $cmd = shift @_;
     my $sock_handle = shift @_;
     my $ips="";
+    my @ips;
     
     #verify the hostname & ip
     if ($cmd =~ / ip ([^ ]+)/) {
         my $host = $1;
-        my $mihash = &mih;
+        my $mihash = &mih();
 
-	foreach ( split(/,/,$host)) {
+	foreach ( split(/[,\s]+/,$host)) {
 		if (defined($mihash->{$_})) {
 			my $ip = $mihash->{$_};
-			$ips = "$ips,$ip";
+			push @ips, $ip;
+			
 		} else {
 			print $sock_handle "$_ Not Available\n";
-			goto SWSW;
+			return ;
 		}
 	}
-		$ips =~ s/^,//;
+		$ips = join ',', @ips;
 		$cmd =~ s/ ip [^ ]+/ ip $ips/;
     }
 
@@ -539,11 +541,6 @@ sub send_predefine_job_to_host() {
 
     print $sock_handle "Pre-define job:$file \n\n";
 
-    if( not &check_host($host)){
-      &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
-      print $sock_handle "$host is not active, maybe IP address misspelled\n";
-      return;
-    }
 
     my $ffile="/usr/share/hamsta/xml_files/".$file.".xml";
 
@@ -592,11 +589,6 @@ sub send_autotest_job_to_host() {
 
     print $sock_handle "Autotest job:$at_name \n";
 
-    if( not &check_host($host)){
-      &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
-      print $sock_handle "$host is not active, maybe IP address misspelled\n";
-      return;
-    }
 
     #modify the custom autotest file
     open(my $at_template,"/usr/share/hamsta/xml_files/templates/autotest-template.xml") or ( print $sock_handle "can open Autotest job template\n" and return);
@@ -655,11 +647,6 @@ sub send_multi_job_to_host () {
 	  return;
       }
 
-      if( not &check_host($host)){
-        &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
-        print $sock_handle "$host is not active, maybe IP address misspelled\n";
-        return;
-      }
     }
 
     print $sock_handle "Multi_machine job:$mul_name \n";
@@ -711,9 +698,9 @@ sub send_multi_job_to_host () {
     my $hosts;
     $hosts = join(',', @hosts);
     for my $host (@hosts) {
-    my $job_sid = &transaction($ref,$hosts,$mul_xml);
-    &log(LOG_INFO,"MASTER::FUNCTIONS cmdline Multi_Machine Job $mul_name send to scheduler, at $host internal id: $job_sid");
-    print $sock_handle "MASTER::FUNCTIONS cmdline Multi_Machine Job $mul_name send to scheduler, at $host internal id: $job_sid\n";
+      my $job_sid = &transaction($ref,$hosts,$mul_xml);
+      &log(LOG_INFO,"MASTER::FUNCTIONS cmdline Multi_Machine Job $mul_name send to scheduler, at $host internal id: $job_sid");
+      print $sock_handle "MASTER::FUNCTIONS cmdline Multi_Machine Job $mul_name send to scheduler, at $host internal id: $job_sid\n";
     }
     return;
 }
@@ -732,11 +719,6 @@ sub send_job_to_host () {
 	return;
     }
 
-    if( not &check_host($host)){
-      &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
-      print $sock_handle "$host is not active, maybe IP address misspelled\n";
-      return;
-    }
 
     if (not (-e $file)) {
         &log(LOG_ERR, "file $file does not exist");
@@ -771,12 +753,6 @@ sub send_re_job_to_host () {
     if (! can_send_job_to_machine ($host)) {
 	notify_about_no_privileges ($sock_handle, $user_id, $host);
 	return;
-    }
-
-    if( not &check_host($host)){
-      &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
-      print $sock_handle "$host is not active, maybe IP address misspelled\n";
-      return;
     }
 
     #modify the reinstall xml file
@@ -835,12 +811,6 @@ sub send_line_job_to_host () {
 	return;
     }
 
-    if( not &check_host($host)){
-      &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
-      print $sock_handle "$host is not active, maybe IP address misspelled\n";
-      return;
-    }
-
     #modify the custom xml file
     open(my $c_step1,"/usr/share/hamsta/xml_files/templates/customjob-template1.xml") or ( print $sock_handle "can open custom job step1 template\n" and return);
     open(my $c_step2,"/usr/share/hamsta/xml_files/templates/customjob-template2.xml") or ( print $sock_handle "can open custom job step2  template\n" and return);
@@ -896,11 +866,6 @@ sub send_xen_set_to_host () {
     my $xen_set_tag = $cmd_line[-1];
     my $host = $cmd_line[-2];
 
-    if( not &check_host($host)){
-      &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
-      print $sock_handle "$host is not active, maybe IP address misspelled\n";
-      return;
-    }
 
     #modify the custom xml file
     open(my $xen_set,"/usr/share/hamsta/xml_files/set_xen_default.xml") or ( print $sock_handle "can open set xen xml file\n" and return);
@@ -958,11 +923,6 @@ sub send_qa_package_job_to_host () {
 
     print $sock_handle "qa package job:$qpt_name \n";
 
-    if( not &check_host($host)){
-      &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
-      print $sock_handle "$host is not active, maybe IP address misspelled\n";
-      return;
-    }
 
     #modify the custom xml file
     open(my $qpt_template,"/usr/share/hamsta/xml_files/templates/qapackagejob-template.xml") or ( print $sock_handle "can open QA package job template\n" and return);
@@ -1029,28 +989,6 @@ sub send_job_to_group() {
             0,
             $group_id
         );
-    }
-}
-
-sub check_host() {
-    #duplicate with function &mih.
-    return 1;
-    my $host = shift;
-    unless ($host eq "none") {
-        my @tmp_hosts = &machine_search('fields'=>['ip'], 'return'=>'vector');
-        &log(LOG_DETAIL, "MASTER:: IPs ARE ".join(',',@tmp_hosts));
-        my %legal_ip = map {$_=>$_} @tmp_hosts;
-
-        # convert hostname => IP address
-	unless( $host =~ /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/ )
-        {
-            my @hostinfo = gethostbyname($host);
-            $host = join( '.', unpack( "C4", $hostinfo[4] )) if( @hostinfo > 4 );
-        }
-
-        # checks
-        return 1 if(exists($legal_ip{"$host"}));
-        return 0;
     }
 }
 
