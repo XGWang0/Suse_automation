@@ -266,6 +266,21 @@ function get_patterns (product_field_id, new_element_id, prod_type) {
      * some library. There is plugin for jQuery but it knows only the
      * first format and we need the other as well. Maybe it could be
      * overriden, though. */
+    $("#btrfs").remove();
+    $("#ext4").remove();
+
+   if(/factory/i.test(prod_url)) {
+	$("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option> <option id="ext4" value="ext4">ext4</option>');
+    }
+
+    if(/openSUSE-(\d+)\./i.test(prod_url) && RegExp.$1 >= 12) {
+	$("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option> <option id="ext4" value="ext4">ext4</option>');
+    }
+
+    if(/sle.?-(\d+)/i.test(prod_url) && RegExp.$1 >= 12) {
+	$("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option> <option id="ext4" value="ext4">ext4</option>');
+    }
+
     if (prod_url.length == 0) {
     $("#" + new_element_id).empty();
     } else if (/^(https?|s?ftp):\/\/[\w-]+\.[\w\.-]+/i.test(prod_url)) {
