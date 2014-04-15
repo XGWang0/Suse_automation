@@ -30,7 +30,7 @@
 
 %define with_firewall 0
 
-%if 0%{?suse_version} >= 1310 || 0%{?sles_version} >= 11
+%if 0%{?suse_version} >= 1110
 %define with_firewall 1
 %endif
 
