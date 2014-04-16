@@ -28,7 +28,7 @@
 
 %define with_systemd 0
 
-%if 0%{?suse_version} >= 1310 || 0%{?sles_version} >= 12
+%if 0%{?suse_version} >= 1315
 %define with_systemd 1
 %define _unitdir /usr/lib/systemd/system
 %endif
@@ -59,7 +59,7 @@ Requires:       perl-XML-Simple
 Requires:       qa_libperl
 Requires:       qa_tools
 Requires:       screen
-%if 0%{?sles_version} == 9
+%if 0%{?suse_version} == 910
 Requires:       hamsta-cmdline
 %else
 Recommends:     hamsta-cmdline
@@ -102,7 +102,7 @@ Requires:       hamsta-common
 Recommends:     hamsta-cmdline
 # Since openSUSE 13.1 and SLES 12 the switch statement is provided by
 # following package
-%if 0%{?suse_version} >= 1310 || 0%{?sles_version} >= 12
+%if 0%{?suse_version} >= 1310
 Requires:	perl-Switch
 %endif
 Provides:	hamsta-master
@@ -144,7 +144,7 @@ Requires:       php-snmp
 Requires:       sshpass
 Requires:       tblib
 
-%if 0%{?sles_version} > 9
+%if 0%{?suse_version} > 910
 Recommends:     mysql
 %endif
 Provides:       hamsta-frontend
