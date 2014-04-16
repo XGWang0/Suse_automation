@@ -32,6 +32,7 @@ use IO::Socket::INET;
 use IO::Select;
 use MIME::Lite;
 use MIME::Base64;
+use Proc::Fork;
 use sql;
 use functions;
 use POSIX 'strftime';
@@ -90,14 +91,12 @@ sub process_job($) {
 		&log(LOG_ERR, "PROCESS_JOB: no such job with ID $job_id");
 		return;
 	}
-	my $job_ownerb;
 	#map all the job information
 	for (@$data) {
 		my ($job_on_machine_id,$machine_id) = @{$_};
 		my ($job_file, $job_owner, $job_name) = &job_get_details($job_id);
 		my ($ip, $hostname) = &machine_get_ip_hostname($machine_id);
 
-		$job_ownerb = $job_owner;
 
 		#build the machine reference
 		$machine_job->{$ip}->{'job_file'} = $job_file;
@@ -115,11 +114,11 @@ sub process_job($) {
 	}
 	return if not &connect_all($job_id);
 
-	#create the xml for each machine!!
+	#create xml for each machine , going to use xml2part here.
 
 	#deploy job xml to slaves and process the job
 
-	&process_job_on_machine($machine_job) if &deploy_xml($machine_job);
+	&deploy($machine_job);
 
 
 	# send e-mail that the job has finished
@@ -127,10 +126,12 @@ sub process_job($) {
 	my $return_codes;
 	my $submission_link;
 	my $response_xml ;
+	my $job_owner;
 			
-	if( $job_ownerb =~ /@/ )
+	#let mail be the last part
+	if( $job_owner =~ /@/ )
 	{
-		&log(LOG_DETAIL, "Sending mail to '%s'", $job_ownerb);
+		&log(LOG_DETAIL, "Sending mail to '%s'", $job_owner);
 		my $response = &read_xml($response_xml);
 		my $data = "";
 		my $mailtype = "";
@@ -167,7 +168,7 @@ sub process_job($) {
 		}
 		my $msg = MIME::Lite->new(
 				From => ($qaconf{hamsta_master_mail_from} || 'hamsta-master@suse.de'),
-				To => $job_ownerb,
+				To => $job_owner,
 				Subject => $message,
 				Type => $mailtype,
 				Data => $data
@@ -202,16 +203,15 @@ sub process_job($) {
 	&log(LOG_DETAIL, "job done");
 }
 
-# send_job(ip, job_file)
+# send_job(ip)
 #
 # Sends a XML job description to the client and returns both the opened socket
 # on which the slave respone can be read and the debuglevel for the job.
 #
 # $ip			   IP of the host to which the job is to be sent
-# $job_file		 Local filename of the XML job description to send
 #
-# Return:		   ($sock, $loglevel)
-#				   $sock is the opened socket for the slave response.
+# Return:		   ($tf, $loglevel)
+#				   $tf is true or false;
 #				   $loglevel is the debuglevel for the job specified in the
 #				   XML job description.
 sub send_job($) {
@@ -315,214 +315,151 @@ sub modify_job_xml_config($$$) {
 
 sub process_job_on_machine ($)
 {
-	local $SIG{'CHLD'} = sub { $sub_procs--; };
-#		$machine_job->{$ip}->{'job_file'} = $job_file;
-#		$machine_job->{$ip}->{'job_owner'} = $job_owner;
-#		$machine_job->{$ip}->{'job_name'} = $job_name;
-#		$machine_job->{$ip}->{'machine_id'} = $machine_id;
-#		$machine_job->{$ip}->{'job_on_machine_id'} = $job_on_machine_id;
-#		$machine_job->{$ip}->{'hostname'} = $hostname;
 	$machine_job = shift;
-
-	#save the pid of subprocess
-
-	my @sub_pid;
-	#mark the max machine
-	for (keys %$machine_job)
-	{
-		$sub_procs++;
-	};
-	$dbc->{'dbh'}->disconnect();
-	undef $dbc;
-	for (keys %$machine_job)
-	{
-
-		my $fork_re = fork();
-
-		if($fork_re==0) {
-
-			&sql_get_connection();
-
-			my $job_file = $machine_job->{$_}->{'job_file'};
-			my $job_name = $machine_job->{$_}->{'job_name'};
-			my $hostname = $machine_job->{$_}->{'hostname'};
-			my $machine_id = $machine_job->{$_}->{'machine_id'};
-			my $job_on_machine_id = $machine_job->{$_}->{'job_on_machine_id'};
-			my $job_id = $machine_job->{$_}->{'job_id'};
-
-			# Mark the job as started
-			&TRANSACTION( 'job_on_machine' );
-			&job_on_machine_start($job_on_machine_id);
-			&TRANSACTION_END;
-		
-			# Open the XML result file for writing
-			# Create the directory for the host, if it does not exist
-			my $response_xml = $qaconf{'hamsta_master_root'}."/$hostname/Job_return_".$job_id;
-			&change_working_dir($qaconf{'hamsta_master_root'}."/$hostname");
-		
-			&log(LOG_INFO,"SEND_JOB_TO: Saving results in $response_xml");
-			open FH,'>', $response_xml or &log(LOG_WARNING, "SEND_JOB_TO: Could not open XML result file for job. $!");
-		
-			# Read all the stuff sent by the slave
-			#
-			# $return_codes	 contains the return codes of all commands of the job 
-			#				   (each on one line)
-			#				   
-			# @message_queue	contains the last few lines of output of the job (for 
-			#				   Last Output in the Frontend)
-			#				   
-			# $is_xml		   true if the XML result has started (The slave outputs 
-			#				   raw ASCII output first when the commands are running.
-			#				   Afterwards the XML result is sent.)
-			my $return_codes;
-			my $submission_link;
-			my @message_queue = ();
-			my @summary = ();
-			my %parsed;
-			my $is_xml = 0;
-		
-			$| = 1;
-			$dbc->commit();
-			my $sock = $machine_sock{$_};
-			while (<$sock>) {
-				my $line = $_;
-				$line =~ s/\n//g;
-				next if $line =~ /^\s*$/;
-				&log(LOG_DETAIL, "$hostname: $line");
-				$is_xml=1 if $line =~ /<job/;
-				# This switch will keep on in the whole sock once meet <job, until next call of process_job. So the entire of job xml will go into FH.
-				last if ($line =~ /^Job ist fertig$/);
-				if ($is_xml) {
-					print FH $line."\n";
-				} else {
-					if ($line =~ /submission_id=/) {
-						$submission_link .= (split(/ /, $line))[-1]."\n";
-						&log(LOG_NOTICE, "QADB submission link is: $submission_link");
-					}
-					%parsed = &parse_log($line);
-					unless( %parsed and defined($parsed{'level'}) and defined($parsed{'text'}) )
-					{
-						%parsed=();
-						$parsed{'time'} = strftime "%Y-%m-%d %H:%M:%S", localtime;
-						$parsed{'level'} = 'STDOUT';
-						$parsed{'info'} = 'hamsta';
-						$parsed{'text'} = $line;
-					}
-					&TRANSACTION( 'log' );
-					&log_insert(
-						$machine_id,
-						$job_on_machine_id,
-						$parsed{'time'},
-						$parsed{'level'},
-						'', # username - we can fix later
-						defined($parsed{'info'}) ? $parsed{'info'}:'',
-						$parsed{'text'}
-					);
-					&TRANSACTION_END;
-		
-					if ($parsed{'text'} =~ /kexecboot/ and $parsed{'level'} eq 'RETURN') {
-						&log(LOG_NOTICE, "$hostname: Job ($job_file) exits with ".$parsed{'text'}); 
-						$return_codes .= $parsed{'text'}."\n";
-						last;
-					}
-		
-					if ($parsed{'level'} eq 'RETURN')	{
-						&log(LOG_NOTICE, "$hostname: Job ($job_file) exits with ".$parsed{'text'}); 
-						$return_codes .= $parsed{'text'}."\n";
-					}	
-		
-					if ($parsed{'text'} =~ /Please logon SUT check the job manually/)	{
-						&log(LOG_NOTICE, "$hostname: TIMTOUT Job ($job_file)" ); 
-						$return_codes .= "6\n";
-					}	
-		
-		
-					push @summary,$1 if $parsed{'text'} =~ /^\| (.*)$/;
-				}
-			}
-		
-			close($sock);
-			close FH;
-			
-			&log(LOG_DETAIL, "job done, updating status info");
-		
-			&TRANSACTION( 'job_on_machine' );
-			&job_on_machine_set_return($job_on_machine_id,$return_codes,$response_xml);
-			&TRANSACTION_END;
-		
-			my $message = "$job_name completed on $hostname";
-			my $status=JS_FAILED;
-		
-			#get the final return value
-			foreach my $ret ( split /\n/, $return_codes )
-			{	$status=JS_PASSED if $ret=~/^(\d+)/ and $1==0;	}
-		
-			my $reboot = &dump_job_xml_config($job_file,'reboot');
-			my $update_sut = &dump_job_xml_config($job_file,'update');
-			if( $reboot ) {
-				if($status == JS_PASSED){
-					sleep 300;
-		                        $message = "reinstall\/reboot $hostname completed";
-					&machine_status_timeout(120,$machine_id,$hostname,$status,$message); #Timeout for 2 Hours
-				}
-		
-			} elsif($update_sut) {
-		
-				if($status == JS_PASSED){
-					sleep 120;
-					&machine_status_timeout(10,$machine_id,$hostname,$status,$message); #Timeout for 10 Mins;
-				}
-		
-			} else {
-				1 == 1;
-			}
-			$dbc->commit();
-				
-			# Mark the job as finished
-			&TRANSACTION( 'job_on_machine', 'job' );
-			my $job_old_stauts = &job_get_status($job_id);
-			&job_on_machine_stop($job_on_machine_id);
-			&job_set_status($job_id,$status) if $job_old_stauts == 2;
-			&TRANSACTION_END;
-			&log(LOG_NOTICE, "going to exit "); 
-			$dbc->commit();
-			$dbc->{'dbh'}->disconnect();
-
-			exit 0;
-
-		}
-		push(@sub_pid,$fork_re);
-	
-	}
 	&sql_get_connection();
-	&log(LOG_NOTICE, "going to check timeout"); 
-	#get time of job 
-	my $timeout = 1000; #should read from database;
-	my $init =0;
 
-	while($init <= $timeout)
-	{
-		sleep 3;
-		if($sub_procs == 0)
-		{
-			#connect database
-			#all sub process exit;
-			#call waitpid to clean the process table
-			for(@sub_pid)
-			{
-				waitpid($_,0);
+	my $job_file = $machine_job->{$_}->{'job_file'};
+	my $job_name = $machine_job->{$_}->{'job_name'};
+	my $hostname = $machine_job->{$_}->{'hostname'};
+	my $machine_id = $machine_job->{$_}->{'machine_id'};
+	my $job_on_machine_id = $machine_job->{$_}->{'job_on_machine_id'};
+	my $job_id = $machine_job->{$_}->{'job_id'};
+
+	# Mark the job as started
+	&TRANSACTION( 'job_on_machine' );
+	&job_on_machine_start($job_on_machine_id);
+	&TRANSACTION_END;
+
+	# Open the XML result file for writing
+	# Create the directory for the host, if it does not exist
+	my $response_xml = $qaconf{'hamsta_master_root'}."/$hostname/Job_return_".$job_id;
+	&change_working_dir($qaconf{'hamsta_master_root'}."/$hostname");
+
+	&log(LOG_INFO,"SEND_JOB_TO: Saving results in $response_xml");
+	open FH,'>', $response_xml or &log(LOG_WARNING, "SEND_JOB_TO: Could not open XML result file for job. $!");
+
+	# Read all the stuff sent by the slave
+	#
+	# $return_codes	 contains the return codes of all commands of the job 
+	#				   (each on one line)
+	#				   
+	# @message_queue	contains the last few lines of output of the job (for 
+	#				   Last Output in the Frontend)
+	#				   
+	# $is_xml		   true if the XML result has started (The slave outputs 
+	#				   raw ASCII output first when the commands are running.
+	#				   Afterwards the XML result is sent.)
+	my $return_codes;
+	my $submission_link;
+	my @message_queue = ();
+	my @summary = ();
+	my %parsed;
+	my $is_xml = 0;
+
+	$| = 1;
+	$dbc->commit();
+	my $sock = $machine_sock{$_};
+	while (<$sock>) {
+		my $line = $_;
+		$line =~ s/\n//g;
+		next if $line =~ /^\s*$/;
+		&log(LOG_DETAIL, "$hostname: $line");
+		$is_xml=1 if $line =~ /<job/;
+		# This switch will keep on in the whole sock once meet <job, until next call of process_job. So the entire of job xml will go into FH.
+		last if ($line =~ /^Job ist fertig$/);
+		if ($is_xml) {
+			print FH $line."\n";
+		} else {
+			if ($line =~ /submission_id=/) {
+				$submission_link .= (split(/ /, $line))[-1]."\n";
+				&log(LOG_NOTICE, "QADB submission link is: $submission_link");
 			}
-			return 1;
+			%parsed = &parse_log($line);
+			unless( %parsed and defined($parsed{'level'}) and defined($parsed{'text'}) )
+			{
+				%parsed=();
+				$parsed{'time'} = strftime "%Y-%m-%d %H:%M:%S", localtime;
+				$parsed{'level'} = 'STDOUT';
+				$parsed{'info'} = 'hamsta';
+				$parsed{'text'} = $line;
+			}
+			&TRANSACTION( 'log' );
+			&log_insert(
+				$machine_id,
+				$job_on_machine_id,
+				$parsed{'time'},
+				$parsed{'level'},
+				'', # username - we can fix later
+				defined($parsed{'info'}) ? $parsed{'info'}:'',
+				$parsed{'text'}
+			);
+			&TRANSACTION_END;
+
+			if ($parsed{'text'} =~ /kexecboot/ and $parsed{'level'} eq 'RETURN') {
+				&log(LOG_NOTICE, "$hostname: Job ($job_file) exits with ".$parsed{'text'}); 
+				$return_codes .= $parsed{'text'}."\n";
+				last;
+			}
+
+			if ($parsed{'level'} eq 'RETURN')	{
+				&log(LOG_NOTICE, "$hostname: Job ($job_file) exits with ".$parsed{'text'}); 
+				$return_codes .= $parsed{'text'}."\n";
+			}	
+
+			if ($parsed{'text'} =~ /Please logon SUT check the job manually/)	{
+				&log(LOG_NOTICE, "$hostname: TIMTOUT Job ($job_file)" ); 
+				$return_codes .= "6\n";
+			}	
+
+
+			push @summary,$1 if $parsed{'text'} =~ /^\| (.*)$/;
+		}
+	}
+
+	close($sock);
+	close FH;
+	
+	&log(LOG_DETAIL, "job done, updating status info");
+
+	&TRANSACTION( 'job_on_machine' );
+	&job_on_machine_set_return($job_on_machine_id,$return_codes,$response_xml);
+	&TRANSACTION_END;
+
+	my $message = "$job_name completed on $hostname";
+	my $status=JS_FAILED;
+
+	#get the final return value
+	foreach my $ret ( split /\n/, $return_codes )
+	{	$status=JS_PASSED if $ret=~/^(\d+)/ and $1==0;	}
+
+	my $reboot = &dump_job_xml_config($job_file,'reboot');
+	my $update_sut = &dump_job_xml_config($job_file,'update');
+	if( $reboot ) {
+		if($status == JS_PASSED){
+			sleep 300;
+                        $message = "reinstall\/reboot $hostname completed";
+			&machine_status_timeout(120,$machine_id,$hostname,$status,$message); #Timeout for 2 Hours
 		}
 
+	} elsif($update_sut) {
+
+		if($status == JS_PASSED){
+			sleep 120;
+			&machine_status_timeout(10,$machine_id,$hostname,$status,$message); #Timeout for 10 Mins;
+		}
+
+	} else {
+		1 == 1;
 	}
-# timeout , send error message.
+	$dbc->commit();
+		
+	# Mark the job as finished
+	&TRANSACTION( 'job_on_machine', 'job' );
+	my $job_old_stauts = &job_get_status($job_id);
+	&job_on_machine_stop($job_on_machine_id);
+	&job_set_status($job_id,$status) if $job_old_stauts == 2;
+	&TRANSACTION_END;
 	
-	&log(LOG_ERROR, "Timeout the Job ");
-	
-
-
-
 }
 
 sub connect_all ($)
@@ -531,7 +468,18 @@ sub connect_all ($)
 	my $job_id = shift;
 	my $aimeds = &job_get_aimed_host($job_id);
 	my @m_ips = split(/,/,$aimeds);
-	map { $machine_sock{$_} = &creat_connection($_);$sock_canread->add($machine_sock{$_});} @m_ips;
+	foreach my $ipaddr (@m_ips)
+	{
+		$machine_sock{$ipaddr} = &creat_connection($ipaddr);
+		if(defined $machine_sock{$ipaddr})
+		{
+			$sock_canread->add($machine_sock{$_}) ;
+			
+		}else{
+			return 0;
+		}
+		
+	}
 	#set a sync timeout 
 	my $timeout = 100;
 	for my $temp_ca (1 .. $timeout)
@@ -561,22 +509,79 @@ sub creat_connection {
 	if($@)
 	{
 		&log(LOG_ERROR, "Can not connect to ip :$@ ");
+		return undef;
 	}
 
-	return undef unless $sock;
 	return $sock;
 }
 
-sub deploy_xml {
-	# Send the job to the slave
+sub deploy {
+
+	local $SIG{'CHLD'} = sub { $sub_procs--; };
+#		$machine_job->{$ip}->{'job_file'} = $job_file;
+#		$machine_job->{$ip}->{'job_owner'} = $job_owner;
+#		$machine_job->{$ip}->{'job_name'} = $job_name;
+#		$machine_job->{$ip}->{'machine_id'} = $machine_id;
+#		$machine_job->{$ip}->{'job_on_machine_id'} = $job_on_machine_id;
+#		$machine_job->{$ip}->{'hostname'} = $hostname;
+	# Send the job xml to the slave
 	my $_machine_job = shift;
-	my($all_sock,$success_sock) = (0,0);
-	my $null;
+	my $result;
 	foreach (keys %$_machine_job){
 		my $ip = $_;
-		($null, $log::loglevel) = &send_job($ip);
+		($result, $log::loglevel) = &send_job($ip);
 	}
-	return 1;
+
+	my @sub_pid;
+	#mark the max machine
+	$sub_procs =  scalar keys %$_machine_job;
+	$dbc->{'dbh'}->disconnect();
+	undef $dbc;
+
+	#start use fork 
+	foreach(keys %$_machine_job){
+
+		child {
+
+			&process_job_on_machine($_);
+
+		}
+
+		parent {
+
+			push(@sub_pid,shift);
+	
+		}
+
+		;
+	}
+
+	&sql_get_connection();
+	&log(LOG_NOTICE, "going to check timeout"); 
+
+	#get time of job 
+	my $timeout = 1000; #should read from database;
+	my $init =0;
+
+	while($init <= $timeout)
+	{
+		sleep 3;
+		$init++;
+		if($sub_procs == 0)
+		{
+			#connect database
+			#all sub process exit;
+			#call waitpid to clean the process table
+			for(@sub_pid)
+			{
+				waitpid($_,0);
+			}
+		}
+
+	}
+	# timeout , send error message.
+	&log(LOG_ERROR, "Timeout the Job ");
+		
 }
 
 unless(defined($ARGV[0]) and $ARGV[0] =~ /^(\d+)$/)
