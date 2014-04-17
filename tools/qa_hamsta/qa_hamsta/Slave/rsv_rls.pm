@@ -31,79 +31,60 @@ use warnings;
 
 BEGIN { push @INC, '.', '/usr/share/hamsta', '/usr/share/qa/lib'; }
 use log;
+use File::Basename;
+
+#Declare the reservation file as constant value
+use constant RESV_FILE => "/var/run/hamsta/reservation";
+
+
+#Declare a gloval var to store the current reserved master IP of the SUT.
+our $reserved_hamsta_master_ip = "";
 
 # Only allow socket connection from reserved hamsta or if machine is idle.
 # Reservation file format: IP on the first line of file.
+# Since before SUT process reserve or release command via &reserve/&release, &allow_connection must have been just run for checking, no need to check reservation file again in &reserve/&release.
 sub allow_connection(){
-        my $ip_addr = shift;
-        open my $fh, "</var/run/hamsta/reservation" or return 1;
-        my $rsv_ip = <$fh>;
-        close $fh;
-        chomp $rsv_ip;
-        return 1 if ( !defined $rsv_ip or $rsv_ip eq $ip_addr or $rsv_ip eq ""); #reserved master
-        return 0;
+	my $ip_addr = shift;
+	open my $fh, "<".RESV_FILE or return 1;
+	my $rsv_ip = <$fh>;
+	close $fh;
+	chomp $rsv_ip if ($rsv_ip);
+	$reserved_hamsta_master_ip = $rsv_ip unless ( !defined $rsv_ip );
+	return 1 if ( !defined $rsv_ip or $rsv_ip =~ /^\s*$ip_addr\s*$/ or $rsv_ip =~ /^\s*$/ ); #reserved master
+	return 0;
 }
-
 
 sub reserve() {
 	my $rsv_ip = shift;
-	my $rsv_file = '/var/run/hamsta/reservation';
-	if ( ! -e $rsv_file ) {
-		mkdir("/var/run/hamsta",0777);
-		open my $fh, ">$rsv_file";
-		print $fh "$rsv_ip\n";
-		close $fh;
-		&log(LOG_NOTICE,"Reservation succeeded.");
-		return "Reservation succeeded.\n";
-	} else {
-		open my $fh, "<$rsv_file";
-		my $ip_in_rsv_file = <$fh>;
-		chomp $ip_in_rsv_file;
-
-		if ( ! defined $ip_in_rsv_file or $ip_in_rsv_file eq "" ) {
-			close $fh;
-			open my $fh, ">$rsv_file";
-                	print $fh "$rsv_ip\n";
-              		close $fh;
-			&log(LOG_NOTICE,"Reservation succeeded.");
-                	return "Reservation succeeded.\n";
-		} elsif ( $ip_in_rsv_file eq $rsv_ip ) {
-                        close $fh;
-                        &log(LOG_NOTICE,"Reservation succeeded.");
-                        return "Reservation succeeded.\n";
-
-		} else {
-			close $fh;
-			&log(LOG_NOTICE,"Reservation failed.");
-			return "Reservation failed.\n";
-		}	
-	
+	my $rsv_dir = dirname(RESV_FILE);
+	unless( -d $rsv_dir or mkdir($rsv_dir,0777) ) {
+		&log(LOG_ERROR, "Cannot create reservation directory $rsv_dir!");
+		&log(LOG_NOTICE,"Reservation failed.");
+		return "Reservation failed.\n";
 	}
+	my $fh;
+	unless( open $fh, ">".RESV_FILE ) {
+		&log(LOG_ERROR, "Cannot write to reservation file".RESV_FILE."!");
+		&log(LOG_NOTICE,"Reservation failed.");
+		return "Reservation failed.\n";
+	}
+	print $fh "$rsv_ip\n";
+	close $fh;
+	$reserved_hamsta_master_ip = $rsv_ip;
+	&log(LOG_NOTICE,"Reservation succeeded.");
+	return "Reservation succeeded.\n";
 }
 
-sub release () {
-	my $rels_ip = shift;
-	my $rsv_file = '/var/run/hamsta/reservation';
-        if ( ! -e $rsv_file ) {
-		&log(LOG_NOTICE,"Release succeeded.");
-                return "Release succeeded.\n";
-	} else {
-                open my $fh, "<$rsv_file";
-                my $ip_in_rsv_file = <$fh>;
-                chomp $ip_in_rsv_file; 
-                close $fh;
-		#print "IP In reserve file is :";
-		#print $ip_in_rsv_file;
-		if ( ! defined $ip_in_rsv_file or $ip_in_rsv_file eq $rels_ip or $ip_in_rsv_file eq "" ){
-			unlink $rsv_file;
-                        &log(LOG_NOTICE,"Release succeeded.");
-                        return "Release succeeded.\n";
-		} else {
-			&log(LOG_NOTICE,"Release failed.");
-                        return "Release failed.\n";
 
-		}
+sub release() {
+	if ( -e RESV_FILE and !unlink RESV_FILE ) {
+		&log(LOG_ERROR, "Cannot unlink ".RESV_FILE."!");
+		&log(LOG_NOTICE, "Release failed.");
+		return "Release failed.\n";
 	}
+	$reserved_hamsta_master_ip = "";
+	&log(LOG_NOTICE,"Release succeeded.");
+	return "Release succeeded.\n";
 }
 
 1;

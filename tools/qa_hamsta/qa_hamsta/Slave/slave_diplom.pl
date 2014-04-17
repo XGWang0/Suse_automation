@@ -47,8 +47,7 @@ $log::loginfo='slave_diplom';
 
 use Slave::hwinfo_xml;
 use Slave::stats_xml;
-use Slave::rsv_rls qw(allow_connection reserve release);
-
+use Slave::rsv_rls('&allow_connection','&reserve','&release');
 use Slave::Multicast::mcast;
 use Slave::functions;
 
@@ -217,7 +216,7 @@ sub run_slave_server() {
 		    process_request($connection, $ip_addr);
             }else{
 		    &log(LOG_NOTICE,"Refuse connection from non-reserved master $ip_addr.");
-		    print $connection "The SUT is reserved by other hamsta already!\n";
+		    print $connection "Connection failed!\n The SUT was reserved by other hamsta master already, and the reserved master ip was $Slave::reserved_hamsta_master_ip!\n";
             }
         };  
         if ($@) {
@@ -320,7 +319,9 @@ sub process_request {
                 print $sock "pong\n" ;	
 		last;
             } elsif ($incoming =~ /^reserve$/) {
-		print $sock &reserve($ip_addr);
+		my $response = &reserve($ip_addr);
+		$response .= "The SUT was reserved by other hamsta master already, and the reserved master ip was $Slave::reserved_hamsta_master_ip!\n" if ( $response =~ /failed/ );
+		print $sock $response;
 		last;	    
             } elsif ($incoming =~ /^release$/) {
 		print $sock &release($ip_addr);   
