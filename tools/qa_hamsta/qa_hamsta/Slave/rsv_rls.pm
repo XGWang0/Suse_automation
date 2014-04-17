@@ -44,48 +44,47 @@ our $reserved_hamsta_master_ip = "";
 # Reservation file format: IP on the first line of file.
 # Since before SUT process reserve or release command via &reserve/&release, &allow_connection must have been just run for checking, no need to check reservation file again in &reserve/&release.
 sub allow_connection(){
-        my $ip_addr = shift;
-        open my $fh, "<".RESV_FILE or return 1;
-        my $rsv_ip = <$fh>;
-        close $fh;
-        chomp $rsv_ip if ($rsv_ip);
-        $reserved_hamsta_master_ip = $rsv_ip unless ( !defined $rsv_ip );
-        return 1 if ( !defined $rsv_ip or $rsv_ip =~ /^\s*$ip_addr\s*$/ or $rsv_ip =~ /^\s*$/ ); #reserved master
-        return 0;
+	my $ip_addr = shift;
+	open my $fh, "<".RESV_FILE or return 1;
+	my $rsv_ip = <$fh>;
+	close $fh;
+	chomp $rsv_ip if ($rsv_ip);
+	$reserved_hamsta_master_ip = $rsv_ip unless ( !defined $rsv_ip );
+	return 1 if ( !defined $rsv_ip or $rsv_ip =~ /^\s*$ip_addr\s*$/ or $rsv_ip =~ /^\s*$/ ); #reserved master
+	return 0;
 }
 
 sub reserve() {
-        my $rsv_ip = shift;
-        my $rsv_dir = dirname(RESV_FILE);
-        unless( -d $rsv_dir or mkdir($rsv_dir,0777) ) {
-                &log(LOG_ERROR, "Cannot create reservation directory $rsv_dir!");
-                &log(LOG_NOTICE,"Reservation failed.");
-                return "Reservation failed.\n";
-        }
-        my $fh;
-        unless( open $fh, ">".RESV_FILE ) {
-                &log(LOG_ERROR, "Cannot write to reservation file".RESV_FILE."!");
-                &log(LOG_NOTICE,"Reservation failed.");
-                return "Reservation failed.\n";
-        }
-        print $fh "$rsv_ip\n";
-        close $fh;
-        $reserved_hamsta_master_ip = $rsv_ip;
-        &log(LOG_NOTICE,"Reservation succeeded.");
-        return "Reservation succeeded.\n";
+	my $rsv_ip = shift;
+	my $rsv_dir = dirname(RESV_FILE);
+	unless( -d $rsv_dir or mkdir($rsv_dir,0777) ) {
+		&log(LOG_ERROR, "Cannot create reservation directory $rsv_dir!");
+		&log(LOG_NOTICE,"Reservation failed.");
+		return "Reservation failed.\n";
+	}
+	my $fh;
+	unless( open $fh, ">".RESV_FILE ) {
+		&log(LOG_ERROR, "Cannot write to reservation file".RESV_FILE."!");
+		&log(LOG_NOTICE,"Reservation failed.");
+		return "Reservation failed.\n";
+	}
+	print $fh "$rsv_ip\n";
+	close $fh;
+	$reserved_hamsta_master_ip = $rsv_ip;
+	&log(LOG_NOTICE,"Reservation succeeded.");
+	return "Reservation succeeded.\n";
 }
 
 
 sub release() {
-        if ( -e RESV_FILE and !unlink RESV_FILE ) {
-                &log(LOG_ERROR, "Cannot unlink ".RESV_FILE."!");
-                &log(LOG_NOTICE, "Release failed.");
-                return "Release failed.\n";
-        }
-        $reserved_hamsta_master_ip = "";
-        &log(LOG_NOTICE,"Release succeeded.");
-        return "Release succeeded.\n";
+	if ( -e RESV_FILE and !unlink RESV_FILE ) {
+		&log(LOG_ERROR, "Cannot unlink ".RESV_FILE."!");
+		&log(LOG_NOTICE, "Release failed.");
+		return "Release failed.\n";
+	}
+	$reserved_hamsta_master_ip = "";
+	&log(LOG_NOTICE,"Release succeeded.");
+	return "Release succeeded.\n";
 }
-
 
 1;
