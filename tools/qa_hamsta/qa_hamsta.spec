@@ -28,6 +28,7 @@
 
 %define with_systemd 0
 
+# http://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
 %if 0%{?suse_version} >= 1315
 %define with_systemd 1
 %define _unitdir /usr/lib/systemd/system
@@ -101,7 +102,8 @@ Requires:       screen
 Requires:       hamsta-common
 Recommends:     hamsta-cmdline
 # Since openSUSE 13.1 and SLES 12 the switch statement is provided by
-# following package
+# this package
+# http://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
 %if 0%{?suse_version} >= 1310
 Requires:	perl-Switch
 %endif
