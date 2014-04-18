@@ -29,7 +29,7 @@
 %define with_systemd 0
 
 # http://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
-%if 0%{?suse_version} >= 1315
+%if 0%{?suse_version} >= 1310
 %define with_systemd 1
 %define _unitdir /usr/lib/systemd/system
 %endif
