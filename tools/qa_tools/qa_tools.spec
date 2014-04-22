@@ -57,7 +57,7 @@ Requires:       perl-XML-Simple
 Requires:       qa-config
 Requires:       qa_libperl
 Requires:       coreutils
-%if 0%{?sles_version} == 9
+%if 0%{?suse_version} == 910
 Requires:       qa_keys
 %else
 Recommends:     qa_keys

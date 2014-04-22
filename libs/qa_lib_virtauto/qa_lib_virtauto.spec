@@ -40,7 +40,7 @@ Requires:       virtautolib-data
 Requires:       nbd
 Provides:       virtautolib
 Obsoletes:      virtautolib
-%if 0%{?sles_version} == 10
+%if 0%{?suse_version} == 1010
 Requires:       xen-tools
 %else
 Requires:       vm-install
