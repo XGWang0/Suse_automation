@@ -41,6 +41,7 @@ BEGIN {
 		&install_rpms
 		&read_xml
 		&get_slave_ip
+                &get_reserved_hamsta_ip
 	);
 	%EXPORT_TAGS	= ();
 	@EXPORT_OK	= qw(
@@ -160,6 +161,20 @@ sub get_slave_ip() {
    }
    close(CMDFH);
    return $ret;
+}
+
+#Return ip address in the reservation file as a string, return '' if no reservation.
+sub get_reserved_hamsta_ip()
+{
+   my $resv_file = '/var/run/hamsta/reservation';
+   my $ret_ip = '';
+   open my $fh , "<$resv_file" || return $ret_ip;
+   my $file_content = <$fh>;
+   if (defined $file_content and $file_content  =~ /^\s*(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*$/){
+      $ret_ip = $1;
+   }
+   close $fh;
+   return $ret_ip;
 }
 
 sub ip_to_number()

@@ -48,9 +48,11 @@ sub allow_connection(){
 	open my $fh, "<".RESV_FILE or return 1;
 	my $rsv_ip = <$fh>;
 	close $fh;
+        $reserved_hamsta_master_ip = '';
 	chomp $rsv_ip if ($rsv_ip);
-	$reserved_hamsta_master_ip = $rsv_ip unless ( !defined $rsv_ip );
-	return 1 if ( !defined $rsv_ip or $rsv_ip =~ /^\s*$ip_addr\s*$/ or $rsv_ip =~ /^\s*$/ ); #reserved master
+        $reserved_hamsta_master_ip = $1 if (defined $rsv_ip and $rsv_ip =~ /^\s*(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*$/);
+        #&log(LOG_INFO,"The global reserved_hamsta_master_ip is $reserved_hamsta_master_ip");
+        return 1 if ( !defined $rsv_ip or $rsv_ip =~ /^\s*$ip_addr\s*$/ or $rsv_ip !~ /^\s*(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*$/); #reserved master
 	return 0;
 }
 
