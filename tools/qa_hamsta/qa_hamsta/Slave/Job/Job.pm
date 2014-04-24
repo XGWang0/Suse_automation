@@ -32,11 +32,14 @@ use MIME::Base64;
 
 use Slave::Job::UserLogging;
 
-use Slave::Job::Command;
+use Slave::Job::Command('@killBuff');
 use Slave::Job::Worker;
 use Slave::Job::Monitor;
 use Slave::Job::Logger;
 use Slave::Job::Notification;
+use Slave::Job::Finish;
+use Slave::Job::Abort;
+use Slave::Job::Kill;
 use Slave::functions qw(:DEFAULT @file_array);
 
 BEGIN { push @INC, '.', '/usr/share/hamsta', '/usr/share/qa/lib'; }
@@ -157,6 +160,9 @@ sub clear_motd
 sub run {
     my $self = shift;
     my @workers = ();
+    my $buffer;
+    my $finishSection = "/var/lib/hamsta/finish";
+    my $abortSection = "/var/lib/hamsta/abort";
 
     $self->clear_motd();
     # Add lines to /etc/motd if requested
@@ -230,6 +236,18 @@ sub run {
                 push @{$self->{'command_objects'}}, $command;
                 $command->run();
                 
+            } elsif ($type eq 'finish') {
+                
+                push @{$buffer->{$finishSection}}, $commandstring;
+
+            } elsif ($type eq 'abort') {
+                
+                push @{$buffer->{$abortSection}}, $commandstring;
+
+            } elsif ($type eq 'kill') {
+                
+                push @killBuff, $commandstring;
+
             } else {
                 die "Unknown command type: $type";
             }
@@ -238,9 +256,29 @@ sub run {
         
     }
 
+    # Before job start: remove sections from disk, write finish and abort sections to disk, keep kill section in memory.
+    foreach ( ($finishSection,$abortSection) ) {
+        unlink $_ or warn "Can not clean $_ from disk!" if ( -e $_ );
+        open SECFILE, ">$_" or die "Can not create file $_";
+
+	foreach my $cmd (@{$buffer->{$_}}) {
+	    my $xmlOut = XMLout($cmd);
+	    print SECFILE $xmlOut."\n";
+	}
+	close SECFILE;
+    }
+		 
     foreach my $worker (@workers) {
         unshift @{$self->{'command_objects'}}, $worker;
         $worker->run();
+    }
+
+    # On job finish: perform finish section, remove sections from disk
+    if( -e $finishSection ) {
+	my $ref = read_xml($finishSection,1);
+        my $command = Slave::Job::Finish->new('finish', $ref, $self);
+        unshift @{$self->{'command_objects'}}, $command;
+        $command->run();
     }
 }
 
