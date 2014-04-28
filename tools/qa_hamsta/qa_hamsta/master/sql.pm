@@ -193,6 +193,29 @@ sub busy_machines_without_jobs()	{
 	return $dbc->vector_query("SELECT machine_id FROM machine WHERE busy=1 AND NOT EXISTS(SELECT * FROM job_on_machine WHERE machine.machine_id=job_on_machine.machine_id AND (job_status_id=2 OR job_status_id=6))");
 }
 
+### hamsta master reservation related functions
+
+sub machine_get_master_ip_by_machine_id() #machine_id
+{
+	return $dbc->scalar_query('SELECT hamsta_master_ip  FROM machine INNER JOIN  hamsta_master on (machine.hamsta_master_id = hamsta_master.hamsta_master_id) WHERE machine.machine_id=?',$_[0]);
+}
+
+sub hamsta_master_get_id_by_ip() #hamsta_master_ip
+{
+	return $dbc->scalar_query('SELECT hamsta_master_id FROM hamsta_master WHERE hamsta_master_ip=?',$_[0]);
+}
+
+sub hamsta_master_insert() # hamta_master,hamsta_master_ip
+{
+	#remember to change hamsta_master_name to hamsta_master before git commit
+	return $dbc->insert_query('INSERT INTO hamsta_master(hamsta_master_ip,hamsta_master) VALUES(?,?)',$_[1],$_[0]);
+}
+
+sub machine_update_master($$) # machine_id, hamsta_master_id
+{
+	return $dbc->update_query('UPDATE machine SET hamsta_master_id=? WHERE machine_id=?',$_[1],$_[0]);
+}
+
 ### virtual machines functions
 
 sub machine_update_vhids($$@) # machine_id_of_VH, type, unique_id_list

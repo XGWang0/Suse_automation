@@ -467,7 +467,7 @@ sub process_request {
 		my $response = &reserve($ip_addr);
 		$response .= "The SUT was reserved by other hamsta master already, and the reserved master ip was $Slave::reserved_hamsta_master_ip!\n" if ( $response =~ /failed/ );
 		print $sock $response;
-		last;	    
+		#last;	#hamsta master send job xml files following the reserve command  
             } elsif ($incoming =~ /^release$/) {
 		print $sock &release($ip_addr);   
 		last;

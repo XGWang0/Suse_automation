@@ -266,7 +266,7 @@ sub decode_mcast_message {
 	my $hash;
 
 	# data : Unique-id, hostspezifics(++), IP; seperator is \n 
-	if ((my $host_id, my $host_description, my $host_ip, my $konfiguration, my $notify,my $update) = split (/\n/,$data)) {
+	if ((my $host_id, my $host_description, my $host_ip, my $konfiguration, my $notify,my $update,my $host_status,my $host_master_ip) = split (/\n/,$data)) {
 		my $mac = (split(/\./, $host_id))[-1];
 		$hash->{'id'} = $mac;
 		$host_ip =~ s/ //g; 
@@ -275,6 +275,9 @@ sub decode_mcast_message {
 		$hash->{'description'} = $host_description;
 		$hash->{'notify'} = $notify;
 		$hash->{'update'} = $update;
+		#when the sut has no reserved master, $host_master_ip is undefined,use empty string.
+		$hash->{'host_master_ip'} = '';
+		$hash->{'host_master_ip'} = $host_master_ip if (defined $host_master_ip);
 
 		if (defined($hash->{'description'})) {
 			($hash->{'hostname'}, $hash->{'kernel'}, my $arch, my $stats_version, my @rest) = split / /, $hash->{'description'}; 
@@ -322,6 +325,7 @@ sub process_mcast() {
 	my $stats_changed = 0;
 	my $unique_id = $host->{'id'};
 	my $hostname = $host->{'hostname'};
+	my $host_master_ip = $host->{'host_master_ip'};
 	my $new_machine = 0;
 
 	# FIXME TRANSACTION?
@@ -368,11 +372,22 @@ sub process_mcast() {
 
 	$thread_shared->{$unique_id}->{'now'} = time;
 	
-	&TRANSACTION( 'machine' );
+	&TRANSACTION( 'machine','hamsta_master' );
 	&machine_set_status( $machine_id, MS_UP );
 	$host->{'update'}=0 if(! defined $host->{'update'});
 	&machine_set_update_status($machine_id,$host->{'update'}) if($host->{'update'} ne 'skip');
-	
+
+	if ($machine_id){
+		my $host_master_ip_db = &machine_get_master_ip_by_machine_id($machine_id);
+		if ($host_master_ip and (! $host_master_ip_db or ($host_master_ip_db and $host_master_ip ne $host_master_ip_db))){
+			my $hamsta_master_id = &hamsta_master_get_id_by_ip($host_master_ip);
+			$hamsta_master_id = &hamsta_master_insert('ANONYMITY',$host_master_ip) if ( ! $hamsta_master_id );
+			&machine_update_master($machine_id,$hamsta_master_id);
+		}elsif($host_master_ip_db and ! $host_master_ip){
+			&machine_update_master($machine_id,undef);
+		}
+	}
+
 	if (defined $host->{'stats_version'}) {
 
 		# host has been upgraded to 2.2.0 (from version that did not use stats)

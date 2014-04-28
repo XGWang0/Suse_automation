@@ -351,6 +351,17 @@ sub send_job($$$) {
 	
 	$loglevel = &dump_job_xml_config($job_file,'debuglevel');
 
+	# MM job reservation support: send reserve command before sending job xml file.
+	eval{
+		&log(LOG_DETAIL, "Sent XML: reserve");
+		$machine_sock{$ip}->send("reserve\n");
+	};
+	if ($@) {
+		&log(LOG_ERR, "PROCESS_JOB: send_reserve: $@");
+		return (undef, $loglevel);
+	}
+
+
 	# Pass the XML job description to the slave
 
 	open (FH,'<',"$job_file");
