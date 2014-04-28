@@ -198,14 +198,14 @@ Mon Aug  2 11:46:51 CEST 2010 - llipavsky@suse.cz
   test doesn't start
 
 -------------------------------------------------------------------
-Tue Jun 29 00:00:00 CEST 2010 - vmarsik@suse.cz
-
-- fixed permissions for /usr/lib/ctcs2/tools/report.py
-
--------------------------------------------------------------------
 Thu Jul 22 15:51:36 CEST 2010 - llipavsky@suse.cz
 
 - Default logdirectory is /var/log/qa/ctcs2 now
+
+-------------------------------------------------------------------
+Tue Jun 29 00:00:00 CEST 2010 - vmarsik@suse.cz
+
+- fixed permissions for /usr/lib/ctcs2/tools/report.py
 
 -------------------------------------------------------------------
 Thu Jun 10 09:10:17 CEST 2010 - llipavsky@suse.cz
