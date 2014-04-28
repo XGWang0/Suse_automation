@@ -1,4 +1,8 @@
 -------------------------------------------------------------------
+Tue Apr 15 14:37:39 CEST 2014 - chrubis@suse.com
+- Added ctcs2_check.py script
+
+-------------------------------------------------------------------
 Fri Aug 16 15:28:43 CEST 2013 - pkacer@suse.com
 
 - New 2.6 release from QA Automation team
