@@ -200,6 +200,7 @@ BEGIN {
 			LOG_STDOUT
 			LOG_STDERR
 			LOG_RETURN
+			&synclog
 			&log
 			&log_set_output
 			&log_add_output
@@ -368,6 +369,17 @@ sub __log_close # hash
 		system( "bzip2 -f \"$p\"" ) and warn "Cannot bzip $p\n"	if $out->{'bzip2'};
 		unlink( $p ) or warn "Cannot unlink $p: $!\n"		if $out->{'unlink'};
 	}
+}
+#sync the log,call this function before reboot;
+
+sub synclog
+{
+        foreach my $out ( @outs )
+        {
+		select $out->{'handle'} ;
+		$| = 1;
+        }
+
 }
 
 # close all open logs on exit
