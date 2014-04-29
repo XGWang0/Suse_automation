@@ -184,15 +184,6 @@ eof
 	#sleep a while
 	sleep 30
 
-	#check the boot partition and root partition
-	if [ "$rootpartition" = "$bootpartition" ]
-	then
-		#boot partition and root partition are same
-		#install the bootloader to mbr to make sure kernel can be loaded
-		bootpartition=`echo $bootpartition|sed 's/.$//'`
-		$grubn-install $bootpartition
-	fi
-
 	#get index of autoinstall
 	num=`awk '{if(/^menuentry|^submenu/){a++}}END{print a}' /boot/grub2/grub.cfg`
 	num=$((--num))
@@ -200,6 +191,7 @@ eof
 	#change bootloader default boot
 	echo "$grubn-set-default $num"
 	$grubn-set-default $num
+	exit $?
 }
 
 setupkexec()

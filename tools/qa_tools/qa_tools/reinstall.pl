@@ -262,6 +262,16 @@ EOF
 
 our ($ay_xml,$aytool);
 
+
+#check the whether we have a separate root partition
+my $bootpartition = `df /boot|awk '{a=\$1}END{print a}'`;
+my $rootpartition = `df /|awk '{a=\$1}END{print a}'`;
+
+$args->{'defaultboot'} = "MBR" if("$rootpartition" eq "$bootpartition") ;
+
+
+
+
 unless ($args->{'winvm'}) {
 	if ( $args->{'userprofile'} ) {
 		$ay_xml = $args->{'userprofile'};
