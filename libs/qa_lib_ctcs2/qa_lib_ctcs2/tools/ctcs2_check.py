@@ -93,7 +93,7 @@ class Result(object):
 
             if int(res[ResIndexes.count]) == 0:
                 print("Test %s hasn't finished after %s seconds (timeout?)."\
-                          % (name, res[ResIndexes.timeout]))
+                          % (name, res[ResIndexes.time]))
 
             if int(res[ResIndexes.interr]) != 0:
                 print("Test %s had internal error %s times."\
