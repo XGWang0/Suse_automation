@@ -32,7 +32,7 @@ Requires:       libvirt
 Requires:       perl-XML-XPath
 Requires:       qa_keys
 Requires:       qa_libperl
-Requires:       ssh
+Requires:       openssh
 # sshpass version 1.04 has bug for ssh commands which sometimes hang
 # forever. Is fixed in 1.05.
 Requires:       sshpass >= 1.05
