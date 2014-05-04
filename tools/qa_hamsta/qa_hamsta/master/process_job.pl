@@ -39,7 +39,7 @@ use POSIX 'strftime';
 use hwinfo_xml_sql;
 use XML::Simple;
 
-use qaconfig('%qaconf','&get_qa_config');
+use qaconfig;
 %qaconf = ( %qaconf, &get_qa_config('hamsta_master') );
 
 use sql;
@@ -56,30 +56,20 @@ our $sub_procs;
 $log::loglevel = $qaconf{hamsta_master_loglevel_job} if $qaconf{hamsta_master_loglevel_job};
 $log::loginfo = 'process_job';
 
-$SIG{'HUP'} = 'IGNORE';
-$SIG{'INT'} = 'IGNORE';
+#$SIG{'HUP'} = 'IGNORE';
+#$SIG{'INT'} = 'IGNORE';
 
 # process_job(job_id)
 #
 # Sends a job to one (TODO: or more) slaves, gathers the slave output and 
 # writes it to the database.
 #
-# The processing of a job is designed to be run as a seperate process because
-# jobs are potentially long-running. It is even likely that there will be
-# periods when the master is processing jobs all the time.
-#
-# It might be necessary, though, to restart the master, e.g. in case of a
-# bug fix update. As the processing of jobs runs in independent processes,
-# the master can be shut down and restarted while the jobs still are processed 
-# and their data is correctly written to the database.
-# 
 # $job_id		   ID of the job (TODO This should be the ID of job_on_machine)
 sub process_job($) {
 
 	my $job_id = shift @_;
 
-	#&log_add_output(path=>$qaconf{'hamsta_master_root'}."job.$job_id.log", unlink=>1, bzip2=>0);
-	&log_add_output(path=>$qaconf{'hamsta_master_root'}."xxxxxxxxxxxx", unlink=>1, bzip2=>0);
+	&log_add_output(path=>$qaconf{'hamsta_master_root'}."job.$job_id.log", unlink=>1, bzip2=>0);
 	#need change
 	$log::loginfo = "proc_job_$job_id";
 
@@ -120,14 +110,13 @@ sub process_job($) {
 
 	&deploy($machine_job);
 
-
+	return;
 	# send e-mail that the job has finished
 	# see http://lena.franken.de/perl_hier/sendingmail.html for example on sending attachments
 	my $return_codes;
 	my $submission_link;
 	my $response_xml ;
 	my $job_owner;
-			
 	#let mail be the last part
 	if( $job_owner =~ /@/ )
 	{
@@ -315,7 +304,6 @@ sub modify_job_xml_config($$$) {
 
 sub process_job_on_machine ($)
 {
-	$machine_job = shift;
 	&sql_get_connection();
 
 	my $job_file = $machine_job->{$_}->{'job_file'};
@@ -324,6 +312,7 @@ sub process_job_on_machine ($)
 	my $machine_id = $machine_job->{$_}->{'machine_id'};
 	my $job_on_machine_id = $machine_job->{$_}->{'job_on_machine_id'};
 	my $job_id = $machine_job->{$_}->{'job_id'};
+	&log(LOG_DETAIL, "start to process job on machine $_,job_file:$job_file ,job_name:$job_name,hostname:$hostname,machine_id:$machine_id,job_on_machine_id:$job_on_machine_id,job_id:$job_id"); 
 
 	# Mark the job as started
 	&TRANSACTION( 'job_on_machine' );
@@ -415,7 +404,6 @@ sub process_job_on_machine ($)
 			push @summary,$1 if $parsed{'text'} =~ /^\| (.*)$/;
 		}
 	}
-
 	close($sock);
 	close FH;
 	
@@ -473,20 +461,44 @@ sub connect_all ($)
 		$machine_sock{$ipaddr} = &creat_connection($ipaddr);
 		if(defined $machine_sock{$ipaddr})
 		{
-			$sock_canread->add($machine_sock{$_}) ;
+			$sock_canread->add($machine_sock{$ipaddr}) ;
 			
 		}else{
 			return 0;
 		}
 		
 	}
+	# send ping to sut ,and check the return value
+
+	foreach (keys %machine_sock)
+	{
+		#send ping to SUT 
+		my $tmpsock = $machine_sock{$_};
+		print $tmpsock "ping\n";
+	}
+
 	#set a sync timeout 
 	my $timeout = 100;
 	for my $temp_ca (1 .. $timeout)
 	{
 		#check available connection
 		my @available_machines = $sock_canread->can_read();
-		return 1 if @available_machines == @m_ips;
+		if(@available_machines == @m_ips)
+		{
+			foreach (keys %machine_sock)
+			{
+				my $tmpsock = $machine_sock{$_};
+				my $ping_ack = <$tmpsock>;
+				chomp($ping_ack);
+				if($ping_ack ne "pong")
+				{
+					&log(LOG_ERROR, "Can not get ping ACK from  $_"); 
+					return 0 ;
+				}
+			}
+			return 1;
+
+		}
 		sleep 3; 
 	}
 	&log(LOG_ERROR, "Timeout to sync all machines :$@");
@@ -518,32 +530,29 @@ sub creat_connection {
 sub deploy {
 
 	local $SIG{'CHLD'} = sub { $sub_procs--; };
-#		$machine_job->{$ip}->{'job_file'} = $job_file;
-#		$machine_job->{$ip}->{'job_owner'} = $job_owner;
-#		$machine_job->{$ip}->{'job_name'} = $job_name;
-#		$machine_job->{$ip}->{'machine_id'} = $machine_id;
-#		$machine_job->{$ip}->{'job_on_machine_id'} = $job_on_machine_id;
-#		$machine_job->{$ip}->{'hostname'} = $hostname;
+
 	# Send the job xml to the slave
-	my $_machine_job = shift;
 	my $result;
-	foreach (keys %$_machine_job){
+	foreach (keys %$machine_job){
 		my $ip = $_;
 		($result, $log::loglevel) = &send_job($ip);
+		&log(LOG_NOTICE, "send job to $ip, return value is $result"); 
+		
 	}
 
 	my @sub_pid;
 	#mark the max machine
-	$sub_procs =  scalar keys %$_machine_job;
+	$sub_procs =  scalar keys %$machine_job;
 	$dbc->{'dbh'}->disconnect();
 	undef $dbc;
 
 	#start use fork 
-	foreach(keys %$_machine_job){
+	foreach(keys %$machine_job){
 
 		child {
-
+			&log(LOG_NOTICE, "start to process_job_on_machine $_"); 
 			&process_job_on_machine($_);
+			exit 0;
 
 		}
 
@@ -555,7 +564,7 @@ sub deploy {
 
 		;
 	}
-
+	print "@sub_pid is sub_pid list";
 	&sql_get_connection();
 	&log(LOG_NOTICE, "going to check timeout"); 
 
@@ -576,6 +585,7 @@ sub deploy {
 			{
 				waitpid($_,0);
 			}
+			return;
 		}
 
 	}
