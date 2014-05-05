@@ -26,6 +26,7 @@ use strict;
 use POSIX;
 use Clone qw(clone);
 use Getopt::Std;
+use File::Path;
 use XML::Simple;
 use XML::Bare;
 
@@ -61,24 +62,18 @@ EOF
 
 sub _check_dir
 {
-    my $output_dir = shift;
-    &_create_dir($output_dir);
-    return $output_dir
-}
-
-sub _create_dir
-{
     my $dir_name = shift;
     
     unless ( -e $dir_name )
     {
-        mkdir $dir_name or die "Can't create directory $dir_name";
+        mkpath $dir_name or die "Can't create directory $dir_name";
     }
 
     unless ( -d $dir_name )
     {
         die "$dir_name is not directory\n";
     }
+    return $dir_name;
 }
 
 sub _create_role_xml_file
