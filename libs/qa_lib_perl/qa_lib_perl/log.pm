@@ -283,7 +283,7 @@ sub log # severity, message, ...
 			{
 				unless( &parse_log( $d ) )
 				{
-					print strftime("%Y-%m-%d %H:%M:%S\t", localtime) if $v{time};
+					print strftime("%Y-%m-%d %H:%M:%S %z\t", localtime) if $v{time};
 					print $levels[$msglevel]."\t" if $v{'names'} and $msglevel>=0 and $msglevel<@levels;
 					print $v{'info'}."\t" if $v{'info'};
 					print((&caller_info(1) || '(root)')."\t") if $v{'caller'};
@@ -300,11 +300,12 @@ sub log # severity, message, ...
 # try to parse a line as log output
 sub parse_log
 {
-	return () unless $_[0] =~ /(?:(\d+\-\d+\-\d+ \d+:\d+:\d+)\t)?(?:($levels_regexp)\t)(.*)$/;
+	return () unless $_[0] =~ /(?:(\d+\-\d+\-\d+ \d+:\d+:\d+(?: ([+-]\d{4}))?)\t)?(?:($levels_regexp)\t)(.*)$/;
 	my %ret=();
 	$ret{'time'}=$1 if defined $1;
-	$ret{'level'}=$2 if defined $2;
-	my $rest = $3;
+	$ret{'zone'}=$2 if defined $2;
+	$ret{'level'}=$3 if defined $3;
+	my $rest = $4;
 	my @rest = split /\t/, $rest, 2; # 3;
 	$ret{'text'} = pop @rest;
 	$ret{'info'}   = shift @rest if @rest;
