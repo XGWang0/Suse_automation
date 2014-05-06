@@ -393,6 +393,19 @@ sub role_get_privileges($) # role_id
 	return $dbc->vector_query ('SELECT privilege FROM `privilege` p JOIN `role_privilege` rp ON (p.privilege_id = rp.privilege_id) WHERE rp.role_id = ? AND (rp.valid_until IS NULL OR rp.valid_until > NOW())', $_[0]);
 }    
 
+### user reservation functions
+
+sub create_user_reservation ($$$$)
+{
+    return $dbc->update_query ('INSERT INTO user_machine (machine_id, user_id, user_note, expires)'
+			       . ' VALUES (?,?,?,?)', @_);
+}
+
+sub remove_user_reservation ($$)
+{
+    return $dbc->update_query ('DELETE FROM user_machine WHERE machine_id = ? AND user_id = ?', @_);
+}
+
 ### log functions
 
 sub log_insert($$$$$$$) # machine_id, job_on_machine_id, log_time, log_type, log_user, log_what, log_text

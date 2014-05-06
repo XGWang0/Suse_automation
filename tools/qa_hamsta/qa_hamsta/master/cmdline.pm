@@ -169,6 +169,7 @@ sub parse_cmd() {
 	case /^(print|list) privileges/ { print_privileges ($sock_handle, $cmd); }
 	case /^can i/			{ print_can_user ($sock_handle, $cmd); }
 	case /^can send/		{ print_user_can_send_jobs ($sock_handle, $cmd); }
+	case /^(reserve|release) /	{ reserve_release ($sock_handle, $cmd); }
         case /^help/			{ cmd_help($sock_handle); }
         else {
             if ($cmd eq '') {
@@ -215,6 +216,8 @@ sub cmd_help() {
     print "\t 'send one line cmd ip <IP> <cmd> <Email> <Tag>' : submits the one line job to the IP (replace space with # in cmd)  \n";
     print "\t 'send job anywhere <file>' : submits the job to one of the available machines \n";
     print "\t 'print jobtype <number>' : lists available jobs of the given type (1 - pre-defined jobs, 2 - qa-package jobs, 3 - autotest jobs, 4 - multi-machine jobs) \n";
+    print "\t 'reserve <host> for user <login>' : Reserve machine (IP or name) for user identified by <login>";
+    print "\t 'release <host> for user <login>' : Release (unreserve) machine (IP or name) for user identified by <login>";
     print "\n end of help \n";
 }
 
@@ -1267,5 +1270,104 @@ sub cmd_print_all_machines ($) # socket
 	printf $sock_handle "%15s : %15s : %s\n", ${$_}[0], ${$_}[1], ${$_}[2];
     }
 }	
+
+# Parameters
+# 0 - string reserve or release
+# 1 - machine id
+# 2 - user login
+# 3 - machine identification (hostname or IP address) for printing
+#
+# Returns:
+# 0 - for error (aka false)
+# 1 - for successfull reservation
+# 2 - for successfull release
+sub process_user_reservation ($$$$)
+{
+    my @data = @_;
+    my $res = 0;
+
+    # Translate from login to user id
+    my $user_id = user_get_id ($data[2]);
+    if ($user_id) {
+	switch ($data[0]) {
+	    case 'reserve' {
+		log(LOG_INFO, "User $data[2] requests reservation for machine $data[3]");
+		# TODO Add support for user notes and expire time
+		TRANSACTION('user_machine');
+		if (create_user_reservation ($data[1], $user_id, '', undef)) {
+		    $res = 1;
+		}
+		TRANSACTION_END();
+	    }
+	    case 'release' {
+		log(LOG_INFO, "User $data[2] requests release of machine $data[3]");
+		TRANSACTION('user_machine');
+		if (remove_user_reservation ($data[1], $user_id)) {
+		    $res = 2;
+		}
+		TRANSACTION_END();
+	    }
+	}
+    }
+    return $res;
+}
+
+# Params: socket, command
+sub reserve_release ($$)
+{
+    my $sock_handle = shift;
+    my $cmd = shift;
+    my $output = '';
+
+    # 0 - reserve|release
+    # 1 - hostname or IP address
+    # 2 - user|master
+    # 3 - user login or master IP address
+    my @data = ($1, $2, $3, $4)
+	if $cmd =~ /(reserve|release) ([\w\d.-]+) for (user|master) ([\w\d.-]+)/;
+
+    if (@data and @data == 4) {
+	my $machines = mih ();
+	# Translate from hostname or IP address to machine ID. mih()
+	# returns only machines that are UP.
+	my $machine_ip = $machines->{$data[1]} ?
+	    $machines->{$data[1]} : $data[1];
+	my $machine_id = machine_get_by_ip ($machine_ip);
+
+	if ($machine_id) {
+	    switch ($data[2]) {
+		case 'user' {
+		    my $res = process_user_reservation ($data[0], $machine_id, $data[3], $data[1]);
+		    switch ($res) {
+			case 1 {
+			    $output = "Reserved machine $data[1] for user $data[3].";
+			    log (LOG_INFO, $output);
+			}
+			case 2 {
+			    $output = "Released machine $data[1] for user $data[3].";
+			    log (LOG_INFO, $output);
+			}
+			else {
+			    $output = "Could not reserve or unreserve machine $data[1] for user $data[3]";
+			    log (LOG_INFO, $output);
+			}
+		    }
+		}
+		case 'master' {
+		    # TODO code to reserve master goes here
+		    $output = 'Reserving for master is not implemented.';
+		}
+		else {
+		    $output = 'Reservation target can be only "user" or "master".'
+		}
+	    }
+	} else {
+	    $output = "Could not find the machine $data[1]";
+	}
+    } else {
+	$output = 'Bad command syntax. Please fix your command and send it again.';
+    }
+    print $sock_handle "$output\n";
+}
 
 1;
