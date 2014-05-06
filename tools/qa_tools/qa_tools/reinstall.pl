@@ -368,6 +368,7 @@ if( $args->{'newvm'} )	{
 	if ( $command_ret == 0 ) {
 		if ( "$boottype" eq "bootloader" ) {
 			&log(LOG_RETURN, "$command_ret (".$cmdline.')');
+			&synclog;
 			&command( "(sleep 10;reboot)&" );
 			exit 0;
 		} else {
