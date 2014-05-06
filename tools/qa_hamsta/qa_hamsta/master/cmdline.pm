@@ -127,7 +127,7 @@ sub thread_auswertung () {
 sub parse_cmd() {
     my $cmd = shift @_;
     my $sock_handle = shift @_;
-    
+
     #verify the hostname & ip
     if ($cmd =~ / ip ([^ ]+) /) {
         my $host = $1;
@@ -1269,7 +1269,7 @@ sub cmd_print_all_machines ($) # socket
     foreach (@{$machinesref}) {
 	printf $sock_handle "%15s : %15s : %s\n", ${$_}[0], ${$_}[1], ${$_}[2];
     }
-}	
+}
 
 # Parameters
 # 0 - string reserve or release
