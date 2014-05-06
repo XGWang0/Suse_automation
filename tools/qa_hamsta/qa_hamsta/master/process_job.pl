@@ -37,6 +37,7 @@ use functions;
 use POSIX 'strftime';
 use hwinfo_xml_sql;
 use XML::Simple;
+use cmdline;
 
 use qaconfig('%qaconf','&get_qa_config');
 %qaconf = ( %qaconf, &get_qa_config('hamsta_master') );
@@ -86,6 +87,9 @@ sub process_job($) {
 	my ($job_file, $job_owner, $job_name) = &job_get_details($job_id);
 	my ($ip, $hostname) = &machine_get_ip_hostname($machine_id);
 	&log(LOG_NOTICE,"PROCESS_JOB: process_job: $hostname using XML job description in $job_file");
+
+	# MM job reservation support: send reserve command before sending job xml file
+	return if not &reserve_or_release_all($job_id,"reserve");
 
 	# Send the job to the slave
 	my $sock;
@@ -329,7 +333,9 @@ sub send_job($$$) {
 	my $job_file = shift;
 	my $job_id = shift;
 
-# Open a socket to the slave
+	log(LOG_INFO,"Master::Process job send_job");
+
+	# Open a socket to the slave
 	my $sock = IO::Socket::INET->new(
 			PeerAddr => "$ip",
 			PeerPort => $qaconf{hamsta_client_port},
@@ -350,17 +356,6 @@ sub send_job($$$) {
 	#get log level from job xml file
 	
 	$loglevel = &dump_job_xml_config($job_file,'debuglevel');
-
-	# MM job reservation support: send reserve command before sending job xml file.
-	eval{
-		&log(LOG_DETAIL, "Sent XML: reserve");
-		$machine_sock{$ip}->send("reserve\n");
-	};
-	if ($@) {
-		&log(LOG_ERR, "PROCESS_JOB: send_reserve: $@");
-		return (undef, $loglevel);
-	}
-
 
 	# Pass the XML job description to the slave
 
@@ -448,6 +443,29 @@ sub modify_job_xml_config($$$) {
 	print $xmlfd $out;
 	close $xmlfd;
 }
+
+# 1. job_id 2. 'reserve' | 'release'
+sub reserve_or_release_all ($$)
+{
+	my $job_id = shift;
+	my $action = shift;
+	my $aimeds = &job_get_aimed_host($job_id);
+	my @m_ips = split(/,/,$aimeds);
+	foreach my $ip (@m_ips){
+		my $ret = &Master::reserve_or_release_for_master(undef,"$action $ip for master");
+		if (! $ret){
+			if ($action =~ /reserve/){
+				&log(LOG_ERR, "PROCESS_JOB: Reserve all SUT before sending job xml failed!");
+			}elsif($action =~ /release/){
+				&log(LOG_ERR, "PROCESS_JOB: Release all SUT failed!");
+			}
+			return 0;
+		}
+	}
+	&log(LOG_INFO,"PROCESS_JOB: $action all SUT succeeded!");
+	return 1;
+}
+					
 
 unless(defined($ARGV[0]) and $ARGV[0] =~ /^(\d+)$/)
 {
