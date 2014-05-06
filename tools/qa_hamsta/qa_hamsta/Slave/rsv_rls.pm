@@ -51,7 +51,6 @@ sub allow_connection(){
         $reserved_hamsta_master_ip = '';
 	chomp $rsv_ip if ($rsv_ip);
         $reserved_hamsta_master_ip = $1 if (defined $rsv_ip and $rsv_ip =~ /^\s*(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*$/);
-        #&log(LOG_INFO,"The global reserved_hamsta_master_ip is $reserved_hamsta_master_ip");
         return 1 if ( !defined $rsv_ip or $rsv_ip =~ /^\s*$ip_addr\s*$/ or $rsv_ip !~ /^\s*(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*$/); #reserved master
 	return 0;
 }

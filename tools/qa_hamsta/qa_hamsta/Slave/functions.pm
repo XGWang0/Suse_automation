@@ -168,6 +168,7 @@ sub get_reserved_hamsta_ip()
 {
    my $resv_file = '/var/run/hamsta/reservation';
    my $ret_ip = '';
+   return $ret_ip if (! -e $resv_file);
    open my $fh , "<$resv_file" || return $ret_ip;
    my $file_content = <$fh>;
    if (defined $file_content and $file_content  =~ /^\s*(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*$/){
