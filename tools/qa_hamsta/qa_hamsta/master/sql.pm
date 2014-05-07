@@ -395,12 +395,21 @@ sub role_get_privileges($) # role_id
 
 ### user reservation functions
 
+## machine_id, user_id, user_note, expires (date)
 sub create_user_reservation ($$$$)
 {
     return $dbc->update_query ('INSERT INTO user_machine (machine_id, user_id, user_note, expires)'
 			       . ' VALUES (?,?,?,?)', @_);
 }
 
+## machine_id, user_id
+sub user_has_reservation ($$)
+{
+    return $dbc->vector_query ('SELECT machine_id, user_id from user_machine'
+			       . ' WHERE machine_id = ? AND user_id = ?', @_);
+}
+
+## machine_id, user_id
 sub remove_user_reservation ($$)
 {
     return $dbc->update_query ('DELETE FROM user_machine WHERE machine_id = ? AND user_id = ?', @_);
