@@ -157,25 +157,32 @@ sub distribute_jobs() {
     foreach my $job_id (@jobs_idle)
     {
 	    my $host_orig=&job_get_aimed_host($job_id);
-	    my $host_aimed=$host_orig;
-	    my $machine_id;
-	    if( not $host_aimed )
-	    {	
-		    next unless @machines_free; # skip job if no free machine
-		    $machine_id = shift @machines_free;
-		    $host_aimed = &machine_get_ip($machine_id);
+
+	    #how many machines does the job require
+	    my @host_aimed =  split(/,/,$host_orig);
+	    my $host_aimed;
+	    my @machine_id;
+	    if( not @host_aimed )
+	    {
+		next unless @machines_free ; # skip job if not enough free machine.
+		@machine_id = ( shift @machines_free ) ;
+		$host_aimed = &machine_get_ip(shift @machine_id);
 	    }
 	    else
 	    {
-		    $machine_id = &machine_get_by_ip($host_aimed);
-		    next unless $machine_id;	# skip if the machine does not exist
+		next if @machines_free < @host_aimed; # skip job if not enough free machine.
+		@machine_id = map {&machine_get_by_ip($_)} @host_aimed;
+		next if @machine_id < @host_aimed;   # skip if the some machine does not exist.
+    	    }
+	    my $id_config_ref;
+	    map{ my $config_id = &config_get_last($_);$id_config_ref->{$_}=$config_id } @machine_id;
+	    foreach (keys %$id_config_ref) {
+		&TRANSACTION( 'machine', 'job', 'job_on_machine' );
+		&job_set_aimed_host($job_id,$host_aimed) unless $host_orig;
+		&job_on_machine_insert( $job_id, $_, $id_config_ref->{$_}, JS_QUEUED );
+		&TRANSACTION_END;
 	    }
-	    
-	    my $config_id = &config_get_last($machine_id);
-
-	    &TRANSACTION( 'machine', 'job', 'job_on_machine' );
-	    &job_set_aimed_host($job_id,$host_aimed) unless $host_orig;
-	    &job_on_machine_insert( $job_id, $machine_id, $config_id, JS_QUEUED );
+	    &TRANSACTION( 'job', 'job_on_machine' );
 	    &job_set_status( $job_id, JS_QUEUED );
 	    &TRANSACTION_END;
     }
