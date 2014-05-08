@@ -35,6 +35,7 @@ use log;
 
 use IO::Socket::Multicast;
 use Slave::Multicast::hwinfo_unique;
+use Slave::rsv_rls
 
 require 'Slave/config_slave.pm';
 
@@ -111,7 +112,7 @@ sub run() {
 			&get_update_status($self_inc)."\n".
 
                         #Reservation status, 'r' means reserved, 'i' means idle
-                        (($reserved_hamsta_ip = &get_reserved_hamsta_ip()) ? 'r' : 'i')."\n".
+                        (($reserved_hamsta_ip = &Slave::get_reserved_hamsta_ip()) ? 'r' : 'i')."\n".
 
                         #Reserved hamsta IP, use '' if not reserved
                         $reserved_hamsta_ip;

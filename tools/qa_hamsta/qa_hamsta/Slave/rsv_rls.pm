@@ -41,17 +41,12 @@ use constant RESV_FILE => "/var/run/hamsta/reservation";
 our $reserved_hamsta_master_ip = "";
 
 # Only allow socket connection from reserved hamsta or if machine is idle.
-# Reservation file format: IP on the first line of file.
+# Reservation file format: IP on the first line of file, support both IPV4/IPV6.
 # Since before SUT process reserve or release command via &reserve/&release, &allow_connection must have been just run for checking, no need to check reservation file again in &reserve/&release.
 sub allow_connection(){
 	my $ip_addr = shift;
-	open my $fh, "<".RESV_FILE or return 1;
-	my $rsv_ip = <$fh>;
-	close $fh;
-        $reserved_hamsta_master_ip = '';
-	chomp $rsv_ip if ($rsv_ip);
-        $reserved_hamsta_master_ip = $1 if (defined $rsv_ip and $rsv_ip =~ /^\s*(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*$/);
-        return 1 if ( !defined $rsv_ip or $rsv_ip =~ /^\s*$ip_addr\s*$/ or $rsv_ip !~ /^\s*(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*$/); #reserved master
+	$reserved_hamsta_master_ip = &get_reserved_hamsta_ip();
+        return 1 if (!$reserved_hamsta_master_ip or $reserved_hamsta_master_ip eq $ip_addr );
 	return 0;
 }
 
@@ -86,6 +81,20 @@ sub release() {
 	$reserved_hamsta_master_ip = "";
 	&log(LOG_NOTICE,"Release succeeded.");
 	return "Release succeeded.\n";
+}
+
+#Return ip address in the reservation file as a string, return '' if no reservation.
+sub get_reserved_hamsta_ip()
+{
+   my $ret_ip = '';
+   return $ret_ip if (! -e RESV_FILE);
+   open my $fh , "<".RESV_FILE || return $ret_ip;
+   my $file_content = <$fh>;
+   if (defined $file_content and $file_content  =~ /^\s*(\d{1,3}(\.\d{1,3}){3}((\.\d{1,3}){4})*)\s*$/){
+      $ret_ip = $1;
+   }
+   close $fh;
+   return $ret_ip;
 }
 
 1;
