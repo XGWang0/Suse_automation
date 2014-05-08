@@ -379,7 +379,7 @@ sub process_mcast() {
 
 	if ($machine_id){
 		my $host_master_ip_db = &machine_get_master_ip_by_machine_id($machine_id);
-		if ($host_master_ip and (! $host_master_ip_db or ($host_master_ip_db and $host_master_ip ne $host_master_ip_db))){
+		if ($host_master_ip and (! $host_master_ip_db or ($host_master_ip ne $host_master_ip_db))){
 			my $hamsta_master_id = &hamsta_master_get_id_by_ip($host_master_ip);
 			$hamsta_master_id = &hamsta_master_insert('ANONYMITY',$host_master_ip) if ( ! $hamsta_master_id );
 			&machine_update_master($machine_id,$hamsta_master_id);

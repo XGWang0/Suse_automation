@@ -451,16 +451,32 @@ sub reserve_or_release_all ($$)
 	my $action = shift;
 	my $aimeds = &job_get_aimed_host($job_id);
 	my @m_ips = split(/,/,$aimeds);
+	my @success_ips;
 	foreach my $ip (@m_ips){
 		my $ret = &Master::reserve_or_release_for_master(undef,"$action $ip for master");
 		if (! $ret){
 			if ($action =~ /reserve/){
-				&log(LOG_ERR, "PROCESS_JOB: Reserve all SUT before sending job xml failed!");
+				&log(LOG_ERR, "PROCESS_JOB: Reserve all SUT before sending job xml failed when reserving $ip!");
 			}elsif($action =~ /release/){
-				&log(LOG_ERR, "PROCESS_JOB: Release all SUT failed!");
+				&log(LOG_ERR, "PROCESS_JOB: Release all SUT failed when releasing $ip!");
+			}
+			#Revert the action, only do once in case cycle revert.
+			my $revert_result = 1;
+			my $revert_action = (($action =~ /reserve/)?'release':'reserve');
+			my @revert_failed_ips;
+			foreach my $revert_ip (@success_ips){
+				my $ret = &Master::reserve_or_release_for_master(undef,"$revert_action $revert_ip for master");
+				push @revert_failed_ips, $revert_ip if not $ret;
+				$revert_result &= $ret;
+			}
+			if ($revert_result){
+				&log(LOG_NOTICE, "PROCESS_JOB: Revert action \"$action all SUT\" for this job succeeded!");
+			}else{
+				&log(LOG_ERR, "PROCESS_JOB: Revert action \"$action all SUT\" for this job failed on ".join(',',@revert_failed_ips)."!");
 			}
 			return 0;
 		}
+		push @success_ips,$ip;
 	}
 	&log(LOG_INFO,"PROCESS_JOB: $action all SUT succeeded!");
 	return 1;

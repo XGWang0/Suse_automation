@@ -197,7 +197,7 @@ sub busy_machines_without_jobs()	{
 
 sub machine_get_master_ip_by_machine_id() #machine_id
 {
-	return $dbc->scalar_query('SELECT hamsta_master_ip  FROM machine INNER JOIN  hamsta_master on (machine.hamsta_master_id = hamsta_master.hamsta_master_id) WHERE machine.machine_id=?',$_[0]);
+	return $dbc->scalar_query('SELECT hamsta_master_ip  FROM machine JOIN  hamsta_master USING(hamsta_master_id) WHERE machine.machine_id=?',$_[0]);
 }
 
 sub hamsta_master_get_id_by_ip() #hamsta_master_ip
