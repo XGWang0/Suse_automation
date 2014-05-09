@@ -68,7 +68,7 @@
         <initrd>/boot/initrd</initrd>
         <kernel>/boot/vmlinuz</kernel>
         <lines_cache_id>1</lines_cache_id>
-        <name>Failsafe -- SUSE Linux Enterprise Server 10 SP3</name>
+        <name>Failsafe -- SUSE Linux Enterprise Server 10 SP4</name>
         <original_name>failsafe</original_name>
         <root>/dev/hda2</root>
         <type>image</type>
