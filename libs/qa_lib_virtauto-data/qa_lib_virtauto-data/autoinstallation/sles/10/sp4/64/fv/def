@@ -14,7 +14,7 @@
     <global>
       <activate>true</activate>
       <boot_root>true</boot_root>
-      <default>SUSE Linux Enterprise Server 10 SP3</default>
+      <default>SUSE Linux Enterprise Server 10 SP4</default>
       <generic_mbr>true</generic_mbr>
       <gfxmenu>/boot/message</gfxmenu>
       <lines_cache_id>2</lines_cache_id>
@@ -49,13 +49,13 @@
     <loader_type>grub</loader_type>
     <sections config:type="list">
       <section>
-        <append>resume=/dev/hda1 splash=silent showopts hda=noprobe</append>
+        <append>resume=/dev/hda1 splash=silent showopts</append>
         <image>/boot/vmlinuz</image>
         <initial>1</initial>
         <initrd>/boot/initrd</initrd>
         <kernel>/boot/vmlinuz</kernel>
         <lines_cache_id>0</lines_cache_id>
-        <name>SUSE Linux Enterprise Server 10 SP3</name>
+        <name>SUSE Linux Enterprise Server 10 SP4</name>
         <original_name>linux</original_name>
         <root>/dev/hda2</root>
         <type>image</type>
@@ -63,7 +63,7 @@
         <vgamode>0x314</vgamode>
       </section>
       <section>
-        <append>showopts ide=nodma apm=off acpi=off noresume edd=off 3 hda=noprobe</append>
+        <append>showopts ide=nodma apm=off acpi=off noresume edd=off 3</append>
         <image>/boot/vmlinuz</image>
         <initrd>/boot/initrd</initrd>
         <kernel>/boot/vmlinuz</kernel>
