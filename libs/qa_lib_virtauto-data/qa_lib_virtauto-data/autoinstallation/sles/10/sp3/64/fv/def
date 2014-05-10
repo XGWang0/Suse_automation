@@ -49,7 +49,7 @@
     <loader_type>grub</loader_type>
     <sections config:type="list">
       <section>
-        <append>resume=/dev/hda1 splash=silent showopts hda=noprobe</append>
+        <append>resume=/dev/hda1 splash=silent showopts</append>
         <image>/boot/vmlinuz</image>
         <initial>1</initial>
         <initrd>/boot/initrd</initrd>
@@ -63,7 +63,7 @@
         <vgamode>0x314</vgamode>
       </section>
       <section>
-        <append>showopts ide=nodma apm=off acpi=off noresume edd=off 3 hda=noprobe</append>
+        <append>showopts ide=nodma apm=off acpi=off noresume edd=off 3</append>
         <image>/boot/vmlinuz</image>
         <initrd>/boot/initrd</initrd>
         <kernel>/boot/vmlinuz</kernel>
