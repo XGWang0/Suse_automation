@@ -1221,13 +1221,13 @@ sub is_allowed ($@) # user_id, privilege[s]
 }
 
 sub user_is_allowed ($@) {
-    my $user_id = shift;
+    my $local_user_id = shift;
     my @privilege_names = shift;
 
     return 1 unless use_master_authentication();
 
     if (get_logged_status()) {
-	return is_allowed ($user_id, @privilege_names);
+	return is_allowed ($local_user_id, @privilege_names);
     }
 
     return 0;
@@ -1315,32 +1315,39 @@ sub process_user_reservation ($$$$$)
     my $res = 0;
 
     # Translate from login to user id
-    my $user_id = user_get_id ($data[2]);
-    unless ($user_id) {
+    my $local_user_id = user_get_id ($data[2]);
+    unless ($local_user_id) {
 	print $sock_handle "User $data[2] does not exist.\n";
 	return $res;
     }
 
-    if ($user_id) {
-	my $has_reservation = user_has_reservation ($data[1], $user_id);
+    if ($local_user_id) {
+	my $logged_user_has_reservation = user_has_reservation ($data[1], $user_id);
+	my $user_has_reservation = user_has_reservation ($data[1], $local_user_id);
+
 	switch ($data[0]) {
 	    case 'reserve' {
 		log(LOG_INFO, "User $data[2] requests reservation for machine $data[3]");
-		unless (user_is_allowed ($user_id, 'machine_edit')) {
-		    print $sock_handle "You do not have privileges to reserve machines.\n";
+		# Allow reserving if the machine has no reservations
+		# or user is allowed to reserve already reserved
+		# machines
+		unless ((user_is_allowed ($user_id, 'machine_edit')
+			 and ($logged_user_has_reservation or not machine_reservations ($data[1])))
+			or user_is_allowed ($user_id, 'machine_edit_reserved')) {
+		    print $sock_handle "You do not have privilege to reserve this machine.\n";
 		    return $res;
 		}
 
-		# TODO Add support for user notes and expire time
-		if ($has_reservation) {
-		    my $str = "User $data[2] has machine $data[3] reserved already.";
-		    print $sock_handle $str . "\n";
-		    log(LOG_INFO, $str);
+		if ($user_has_reservation) {
+		    my $output = "User $data[2] has machine $data[3] reserved already.";
+		    log(LOG_INFO, $output);
+		    print $sock_handle "$output\n";
 		    return $res;
 		}
 
 		TRANSACTION('user_machine');
-		if (create_user_reservation ($data[1], $user_id, '', undef)) {
+		# TODO Add support for user notes and expire time
+		if (create_user_reservation ($data[1], $local_user_id, '', undef)) {
 		    $res = 1;
 		    my $output = "Reserved machine $data[3] for user $data[2].";
 		    log (LOG_INFO, $output);
@@ -1351,20 +1358,22 @@ sub process_user_reservation ($$$$$)
 
 	    case 'release' {
 		log(LOG_INFO, "User $data[2] requests release of machine $data[3]");
-		unless (user_is_allowed ($user_id, 'machine_free')) {
-		    print $sock_handle "You do not have privileges to release (free) machines.\n";
+		unless ((user_is_allowed ($user_id, 'machine_free')
+			 and ($logged_user_has_reservation)) 
+			or user_is_allowed ($user_id, 'machine_free_reserved')) {
+		    print $sock_handle "You do not have privileges to release (free) this machine.\n";
 		    return $res;
 		}
 
-		unless ($has_reservation) {
-		    my $str = "User $data[2] has no reservation on machine $data[3].";
-		    print $sock_handle $str . "\n";
-		    log(LOG_INFO, $str);
+		unless ($user_has_reservation) {
+		    my $output = "User $data[2] has no reservation on machine $data[3].";
+		    log(LOG_INFO, $output);
+		    print $sock_handle "$output\n";
 		    return $res;
 		}
 
 		TRANSACTION('user_machine');
-		if (remove_user_reservation ($data[1], $user_id)) {
+		if (remove_user_reservation ($data[1], $local_user_id)) {
 		    $res = 2;
 		    my $output = "Released machine $data[3] for user $data[2].";
 		    log (LOG_INFO, $output);

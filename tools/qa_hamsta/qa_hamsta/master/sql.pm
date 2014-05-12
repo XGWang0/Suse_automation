@@ -204,6 +204,14 @@ sub machine_update_vhids($$@) # machine_id_of_VH, type, unique_id_list
 	return $result
 }
 
+# Return reservations of this machine
+sub machine_reservations($)
+{
+    return $dbc->matrix_query('SELECT machine_id, user_id, user_note, '
+			      . 'reserved, expires FROM user_machine '
+			      . 'WHERE machine_id = ?', $_[0]);
+}
+
 ### job functions
 
 sub job_set_status($$) # job_id, job_status_id
@@ -405,7 +413,7 @@ sub create_user_reservation ($$$$)
 ## machine_id, user_id
 sub user_has_reservation ($$)
 {
-    return $dbc->vector_query ('SELECT machine_id, user_id from user_machine'
+    return $dbc->scalar_query ('SELECT COUNT(machine_id) from user_machine'
 			       . ' WHERE machine_id = ? AND user_id = ?', @_);
 }
 
