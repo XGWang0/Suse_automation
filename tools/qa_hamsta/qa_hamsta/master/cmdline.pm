@@ -1356,7 +1356,6 @@ sub process_user_reservation ($$$$$)
 		    return $res;
 		}
 
-		TRANSACTION('user_machine');
 		unless ($has_reservation) {
 		    my $str = "User $data[2] has no reservation on machine $data[3].";
 		    print $sock_handle $str . "\n";
@@ -1364,6 +1363,7 @@ sub process_user_reservation ($$$$$)
 		    return $res;
 		}
 
+		TRANSACTION('user_machine');
 		if (remove_user_reservation ($data[1], $user_id)) {
 		    $res = 2;
 		    my $output = "Released machine $data[3] for user $data[2].";
