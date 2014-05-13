@@ -90,7 +90,7 @@ sub get_reserved_hamsta_ip()
    return $ret_ip if (! -e RESV_FILE);
    open my $fh , "<".RESV_FILE || return $ret_ip;
    my $file_content = <$fh>;
-   if (defined $file_content and $file_content  =~ /^\s*(\d{1,3}(\.\d{1,3}){3}((\.\d{1,3}){4})*)\s*$/){
+   if (defined $file_content and $file_content  =~ /^\s*(\d{1,3}(\.\d{1,3}){3})\s*$/){
       $ret_ip = $1;
    }
    close $fh;
