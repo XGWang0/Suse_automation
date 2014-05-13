@@ -69,7 +69,7 @@ sub command_line_server() {
         # each client needs its own thread
         while(my $new_sock = $Socket->accept)
         {
-            my $thread = threads->new(\&thread_auswertung, $new_sock);
+            my $thread = threads->new(\&thread_evaluate, $new_sock);
 	    &log(LOG_NOTICE,"COMMAND_LINE_SERVER: Started new connection with thread id ".$thread->tid());
             $thread->detach();
 		    undef $thread;
@@ -87,14 +87,11 @@ sub command_line_server() {
 
 }
 
-# Master->thread_auswertung()
-#
-# this function is the first after a client connect (user connection)
-# so it checks (asks for) user/password and after holds the connection and loops
-# in the interaction between master und client
+# This function is executed when a client connects (user connection)
+# It holds the connection and loops in the interaction between master
+# and client.
 # TODO more debug information needed eg who is connected from where
-
-sub thread_auswertung () {
+sub thread_evaluate () {
     my $sock_handle = shift @_;
 
     local $SIG{'PIPE'} = 'IGNORE';
