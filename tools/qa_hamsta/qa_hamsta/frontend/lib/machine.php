@@ -329,6 +329,15 @@ class Machine {
 		$ishwvirt = $this->get_hwelement("ishwvirt","IsHWVirt");
 		return $ishwvirt;
 	}
+	function get_reserved_master() {
+		if( !isset($this->fields['hamsta_master_id']) )
+			return NULL;
+		if( !($stmt = get_pdo()->prepare('SELECT hamsta_master_ip FROM hamsta_master WHERE hamsta_master_id=:id')) )
+			return NULL;
+		$stmt->bindParam(':id',$this->fields['hamsta_master_id']);
+		$stmt->execute();
+		return 'http://'.$stmt->fetchColumn().'/hamsta/index.php';
+	}
 
 	/**
 	 * get_devel_tools()

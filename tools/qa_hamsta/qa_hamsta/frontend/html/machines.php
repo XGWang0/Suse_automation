@@ -379,8 +379,15 @@ foreach ($fields_list as $key=>$value)
 	if (method_exists ($machine, $fname)) {
 		$res = $machine->$fname();
 	}
-	if (isset ($display_fields) && in_array($key, $display_fields))
-		echo ("\t<td>$res</td>\n");
+        if (isset ($display_fields) && in_array($key, $display_fields)) {
+                echo ("\t<td>");
+                if ($key == 'reserved_master' ){
+                        echo ("<a href=$res>$res</a>");
+                }else{
+                        echo ("$res");
+                }
+                echo("</td>\n");
+        }
 }
 ?>
 		<td align="center">
