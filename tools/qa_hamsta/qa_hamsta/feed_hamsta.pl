@@ -37,6 +37,12 @@ use Encode;
 
 use IO::Socket::INET;
 
+# Required to include custom Hamsta modules
+BEGIN {
+    push @INC, '/usr/share/hamsta';
+}
+
+use Hamsta;
 
 $0 =~ m/([^\/]*)$/;
 my $progname = $1;
@@ -47,8 +53,9 @@ binmode(STDOUT, ":utf8");
 my $debug = 0;
 
 #correspond with version of hamsta.
-my $version = "HAMSTA_VERSION";
-
+# my $version = "HAMSTA_VERSION";
+my $version = "1.2.3";
+my $protocol_version = '1.0.0';
 
 #my $tmpfile = "/tmp/$progname.$$";
 #END { unlink($tmpfile); }
@@ -153,6 +160,32 @@ unless (GetOptions(
 	exit 1;
 }
 
+# Compare versions (requires format a.b.c) of the Hamsta master
+# instance and this client instance. It compares only the major (a)
+# and minor (b) version.
+sub compare_versions () {
+    my $master_version = send_command("protocol version\n");
+    my (@master_version, @client_version);
+
+    if ($master_version =~ s/[^\d]+([\d.]+)/$1/) {
+	@master_version = Hamsta::version_to_array ($master_version);
+	@client_version = Hamsta::version_to_array ($protocol_version);
+    } else {
+	print STDERR "Could not retrieve master version. You probably connect to "
+	    . "an older master version.\n\n";
+    }
+
+    # Compare the versions. So far only the major and minor values
+    # are checked.
+    if (@client_version == 3 and @master_version == 3
+	and ($client_version[0] != $master_version[0]
+	     or $client_version[1] != $master_version[1])) {
+	printf STDERR "WARNING: The Hamsta master protocol version (%s) does not match"
+	    . " your Hamsta client protocol version (%s). You can expect issues.\n",
+	    (join('.', @master_version), join('.', @client_version));
+    }
+}
+
 if ($opt_version) {
 	print "$progname version $version\n";
 	exit 0;
@@ -199,6 +232,8 @@ if ($@ || !$sock) {
 
 # Ignore the welcome message and wait for the prompt
 &send_command('');
+
+compare_versions();
 
 my $job_id="";
 
@@ -362,12 +397,11 @@ if ($opt_job) {
 	}
 }
 
-
 sub send_command {
 	my $cmd = shift;
 	my $result = "";
 	my $line = "";
-	
+
 	eval {
 		if ($cmd) {
 		    $sock->send($cmd);
@@ -375,7 +409,7 @@ sub send_command {
 		}
 	};
 	if ($@) {
-		print "Message could not be send: $@\n";
+		print "Message could not be sent: $@\n";
 		exit 2;
 	}
 
@@ -403,4 +437,3 @@ sub send_command {
 
 	return $result;
 }
-
