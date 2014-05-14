@@ -36,6 +36,7 @@ use threads;
 use Config::IniFiles;
 use Digest::SHA1 qw(sha1_hex);
 use qaconfig;
+use functions;
 require sql;
 
 # Usual location of the Hamsta front-end configuration file
@@ -96,7 +97,9 @@ sub thread_evaluate () {
 
     local $SIG{'PIPE'} = 'IGNORE';
 
-    print $sock_handle "Welcome to HAMSTA (hardware maintenance and shared testautomation), console. \n";
+    my $version = join ('.', get_master_version ());
+    print $sock_handle "Welcome to HAMSTA (version $version) "
+	. "(Hardware Maintenance, Setup and Test Automation) console. \n";
     &sql_get_connection();
 
     while (1) {
@@ -111,10 +114,10 @@ sub thread_evaluate () {
 
         $_ = <$sock_handle>;
         s/\r?\n$//;
-        &parse_cmd($_, $sock_handle);
+	&parse_cmd($_, $sock_handle);
     }
 
-    close $sock_handle;
+    $sock_handle->close;
 }
 
 # Master->parse_cmd()
@@ -124,7 +127,7 @@ sub thread_evaluate () {
 sub parse_cmd() {
     my $cmd = shift @_;
     my $sock_handle = shift @_;
-    
+
     #verify the hostname & ip
     if ($cmd =~ / ip ([^ ]+) /) {
         my $host = $1;
@@ -139,6 +142,7 @@ sub parse_cmd() {
     }
 
     switch ($cmd) {
+	case /^version/			{ cmd_version ($sock_handle); }
 	case /^(print|list) all/	{ cmd_print_all_machines ($sock_handle); }
         case /^(print|list) active/     { cmd_print_active($sock_handle); }
 #        case /^which job where/    	{ which_job_where(); }
@@ -188,6 +192,7 @@ sub cmd_help() {
 
     print "Following commands are available. 'list' can be used instead of 'print'.\n";
     print "syntax = 'command' : explanation \n";
+    print "\t 'version' : print this master's version\n";
     print "\t 'print status' : prints users status, reserved machines and possibly other information \n";
     print "\t 'log in <username> <password>' : authenticate the user (for this CLI session only) \n";
     print "\t 'log out' : log out from the Hamsta \n";
@@ -213,6 +218,18 @@ sub cmd_help() {
     print "\t 'send job anywhere <file>' : submits the job to one of the available machines \n";
     print "\t 'print jobtype <number>' : lists available jobs of the given type (1 - pre-defined jobs, 2 - qa-package jobs, 3 - autotest jobs, 4 - multi-machine jobs) \n";
     print "\n end of help \n";
+}
+
+sub cmd_version ($) {
+    my $socket = shift;
+    my @version = get_master_version ();
+    if (@version) {
+	print $socket "HAMSTA Master version " . join ('.', @version);
+    } else {
+	log(LOG_ERROR, "Could not retrieve master version from file '"
+	    . Hamsta::HAMSTA_DIR . "/.version'");
+	print $socket "ERROR: Could not retrieve master version.\n";
+    }
 }
 
 # Master->cmd_print_active
