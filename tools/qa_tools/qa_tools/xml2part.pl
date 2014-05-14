@@ -60,7 +60,7 @@ EOF
 }
 
 
-sub _check_dir
+sub _create_dir
 {
     my $dir_name = shift;
     
@@ -80,32 +80,43 @@ sub _create_role_xml_file
 {
     my ($roleid, $outdir, $xml) = @_;
 
+    $roleid = "default" if ( !defined($roleid) );
     my $file_path = $outdir ."/$JOB_NAME" . "-" . $roleid . ".xml";
     my $ob = new XML::Bare( file => $file_path, text => $xml );
     $ob->parse();
     $ob->save();
 }
-
 sub _extract_part_job
+{
+    my ($cmdroot, $part_id) = @_;
+    my $cmds = $cmdroot->{commands};
+
+    for ( my $i=0; $i<=$#$cmds; $i++ )
+    {
+        my $c = $cmds->[$i];
+        delete $cmds->[$i] if ($c->{part_id}->{value} != $part_id);
+    }
+}
+sub _extract_role_job
+{
+    my ($roles, $role_id) = @_;
+
+    for (my $i=0; $i<=$#$roles; $i++)
+    {
+        my $r = $roles->[$i];
+        delete $roles->[$i] if ($r->{id}->{value} != $role_id);
+    }
+}
+sub _extract_role_part_job
 {
     my ($root, $role_id, $part_id) = @_;
     my $roles = $root->{job}->{roles}->{role};
 
-
-    for (my $j=0; $j<=$#$roles; $j++)
-    {
-        my $r = $roles->[$j];
-        delete $roles->[$j] if ($r->{id}->{value} != $role_id)
-    }
+    &_extract_role_job($roles,$role_id);
 
     foreach (@$roles)
     {
-        my $cmds = $_->{commands};
-        for (my $i=0; $i<=$#$cmds; $i++)
-        {
-            my $c = $cmds->[$i];
-            delete $cmds->[$i] if ($c->{part_id}->{value} != $part_id)
-        }
+        &_extract_part_job($_,$part_id);
     }
 }
 
@@ -117,46 +128,68 @@ sub parse_xml_file
 
     my $parts = $root->{job}->{parts}->{part};
     my $roles = $root->{job}->{roles}->{role};
-
-    if (!$parts || !$roles)
-    {
-        print "\nBad xml file feeded. Please give the correct one! \n\n";
-        exit 1;
-    }
     
     my %parse_parts;
     my @parse_roles;
-    foreach (@$parts)
+ 
+    if ($parts)
     {
-        my $name = $_->{name}->{value};
-        my $id   = $_->{id}->{value};
-        $parse_parts{$id} = $name;
+        foreach (@$parts)
+        {
+            my $name = $_->{name}->{value};
+            my $id   = $_->{id}->{value};
+            $parse_parts{$id} = $name;
+        }
+        $parse_ret->{parts} = \%parse_parts;
     }
-    $parse_ret->{parts} = \%parse_parts;
     delete $root->{job}->{parts};
     $ob->save();
 
-    foreach (@$roles)
+    if ($roles)
     {
-        my %r;
-        my $name = $_->{name}->{value};
-        my $role_id = $_->{id}->{value};
-        $r{'id'} = $role_id;
-        $r{'name'} = $name;
-        push @parse_roles, \%r;
-
-        my @parse_cmds;
-        my $commands = $_->{commands};
-        foreach (@$commands)
+        foreach (@$roles)
         {
-            my $c = $_;
-            my $part_id = $c->{part_id}->{value};
-            push @parse_cmds, $part_id;
+            my %r;
+            my $name = $_->{name}->{value};
+            my $role_id = $_->{id}->{value};
+            $r{'id'} = $role_id;
+            $r{'name'} = $name;
+            push @parse_roles, \%r;
+    
+            my @parse_cmds;
+            my $commands = $_->{commands};
+            if($parts)
+            {
+                foreach (@$commands)
+                {
+                    my $c = $_;
+                    my $part_id = $c->{part_id}->{value};
+                    push @parse_cmds, $part_id;
+                }
+                $r{'cmds'} = \@parse_cmds;
+            }
         }
-        $r{'cmds'} = \@parse_cmds
+        $parse_ret->{roles} = \@parse_roles;
     }
-    $parse_ret->{roles} = \@parse_roles;
-
+    else
+    {
+        delete $root->{job}->{roles};
+        $ob->save();
+        my @parse_cmds;
+        my $commands = $root->{job}->{commands};
+        if ($parts)
+        {
+            foreach (@$commands)
+            {
+                push @parse_cmds, $_->{part_id}->{value};
+            }
+            $parse_ret->{part_ids} = \@parse_cmds;
+        }
+	else
+        {
+            $parse_ret->{commands} = $commands;
+        }
+    }
     return $parse_ret;
 }
 
@@ -168,35 +201,71 @@ sub process_xml
     my $root = $ob->parse();
     my $name = tmpnam();
     $ob->{file} = $name;
-    
     # first round parse 
     my $parsed_ret = &parse_xml_file($ob);
     
     # create dirs for individual part
     my $parts = $parsed_ret->{parts};
-    foreach ( keys $parts)
+    if($parts)
     {
-        my $dir = $DEST . "/" . $_;
-        &_check_dir($dir);
-    }
-
-    my $roles = $parsed_ret->{roles};
-    foreach my $role (@$roles)
-    {
-        my $role_id   = $role->{id};
-        my $role_name = $role->{name};
-        my $cmds = $role->{cmds};
-
-        foreach my $part_id (@$cmds)
+        foreach ( keys $parts)
         {
-            my $r = clone($root);
-            my $t =  &_extract_part_job($r, $role_id, $part_id);
-            my $txt = $ob->xml($r);
-            my $output_dir = "$DEST/$part_id";
-            &_create_role_xml_file($role_id, $output_dir, $txt);
+            my $dir = $DEST . "/" . $_;
+            &_create_dir($dir);
         }
     }
 
+    my $roles = $parsed_ret->{roles};
+    if($roles)
+    {
+        foreach my $role (@$roles)
+        {
+            my $role_id   = $role->{id};
+            my $role_name = $role->{name};
+            my $cmds = $role->{cmds};
+
+            if($cmds)
+            { 
+                foreach my $part_id (@$cmds)
+                {
+                    my $r = clone($root);
+                    my $t =  &_extract_role_part_job($r, $role_id, $part_id);
+                    my $txt = $ob->xml($r);
+                    my $output_dir = "$DEST/$part_id";
+                    &_create_role_xml_file($role_id, $output_dir, $txt);
+                }
+            }
+            else
+            {
+                my $r = clone($root);
+                my $t = &_extract_role_job($r->{job}->{roles}->{role}, $role_id);
+                my $txt = $ob->xml($r);
+                &_create_role_xml_file($role_id, $DEST, $txt);
+            }
+        }
+    }
+    else  # without roles, have/not have parts.
+    {
+        if($parts)
+        {
+            my $ids = $parsed_ret->{part_ids};
+            foreach my $part_id (@$ids)
+            {
+               my $r = clone($root);
+               my $t = &_extract_part_job($r->{job},$part_id);
+               my $txt = $ob->xml($r);
+               my $output_dir = "$DEST/$part_id";
+               &_create_role_xml_file(undef, $output_dir, $txt); 
+            }
+        }
+        else # without roles and parts. 
+        {
+            my $r = clone($root);
+            my $txt = $ob->xml($r);
+            &_create_role_xml_file(undef, $DEST, $txt);
+        }
+    }            
+        
     #clean temporary file
     if ( -e $name )
     {
@@ -225,7 +294,7 @@ if ($opt_h)
 
 if ($opt_o)
 {
-    $DEST = &_check_dir($opt_o);
+    $DEST = &_create_dir($opt_o);
     print "DEST= $DEST \n";
 }
 
