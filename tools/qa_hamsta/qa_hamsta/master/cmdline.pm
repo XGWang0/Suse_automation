@@ -51,6 +51,11 @@ my $config_file_path = "/srv/www/htdocs/hamsta/config.ini";
 # authenticated.
 my $user_id;
 
+# This variable is used to mark changes in the command line
+# protocol. The version should be changed if the command line protocol
+# changes.
+my @protocol_version = (1,0,0);
+
 # Master->command_line_server()
 #
 # Listens on the command line server port for incoming connections. For each
@@ -143,6 +148,7 @@ sub parse_cmd() {
 
     switch ($cmd) {
 	case /^version/			{ cmd_version ($sock_handle); }
+	case /^protocol version/	{ cmd_protocol_version ($sock_handle); }
 	case /^(print|list) all/	{ cmd_print_all_machines ($sock_handle); }
         case /^(print|list) active/     { cmd_print_active($sock_handle); }
 #        case /^which job where/    	{ which_job_where(); }
@@ -228,8 +234,13 @@ sub cmd_version ($) {
     } else {
 	log(LOG_ERROR, "Could not retrieve master version from file '"
 	    . Hamsta::HAMSTA_DIR . "/.version'");
-	print $socket "ERROR: Could not retrieve master version.\n";
+	print $socket "ERROR: Could not retrieve master version.";
     }
+}
+
+sub cmd_protocol_version ($) {
+    my $socket = shift;
+    print $socket 'HAMSTA Master protocol version ' . join ('.', @protocol_version);
 }
 
 # Master->cmd_print_active
