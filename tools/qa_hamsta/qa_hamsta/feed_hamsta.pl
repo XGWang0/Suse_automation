@@ -163,8 +163,9 @@ sub compare_versions () {
     } elsif ($check_result eq 'NOK') {
 	return 0;
     } else {
-	print STDERR "Could not retrieve master version. You probably connect to "
-	    . "an older master version.\n\n";
+	print STDERR "Master does not support version checking. You probably connect to "
+	    . "an older master.\n\n";
+	return 1;
     }
 }
 
