@@ -264,8 +264,8 @@ our ($ay_xml,$aytool);
 
 
 #check the whether we have a separate root partition
-my $bootpartition = `df /boot|awk '{a=\$1}END{print a}'`;
-my $rootpartition = `df /|awk '{a=\$1}END{print a}'`;
+my $bootpartition = `df /boot | awk 'NR == 2 { print \$1 }'`;
+my $rootpartition = `df / | awk 'NR == 2 { print \$1 }'`;
 
 $args->{'defaultboot'} = "MBR" if("$rootpartition" eq "$bootpartition") ;
 
