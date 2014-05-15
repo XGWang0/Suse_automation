@@ -53,8 +53,7 @@ binmode(STDOUT, ":utf8");
 my $debug = 0;
 
 #correspond with version of hamsta.
-# my $version = "HAMSTA_VERSION";
-my $version = "1.2.3";
+my $version = "HAMSTA_VERSION";
 my $protocol_version = '1.0.0';
 
 #my $tmpfile = "/tmp/$progname.$$";
