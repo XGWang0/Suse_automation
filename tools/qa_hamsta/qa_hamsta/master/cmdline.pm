@@ -54,7 +54,7 @@ my $user_id;
 # This variable is used to mark changes in the command line
 # protocol. The version should be changed if the command line protocol
 # changes.
-my @protocol_version = (1,0,0);
+my $protocol_version = 1;
 
 # Master->command_line_server()
 #
@@ -149,6 +149,7 @@ sub parse_cmd() {
     switch ($cmd) {
 	case /^version/			{ cmd_version ($sock_handle); }
 	case /^protocol version/	{ cmd_protocol_version ($sock_handle); }
+	case /^check version/		{ cmd_check_protocol_version ($sock_handle, $cmd); }
 	case /^(print|list) all/	{ cmd_print_all_machines ($sock_handle); }
         case /^(print|list) active/     { cmd_print_active($sock_handle); }
 #        case /^which job where/    	{ which_job_where(); }
@@ -198,7 +199,9 @@ sub cmd_help() {
 
     print "Following commands are available. 'list' can be used instead of 'print'.\n";
     print "syntax = 'command' : explanation \n";
-    print "\t 'version' : print this master's version\n";
+    print "\t 'version' : print master's version\n";
+    print "\t 'protocol version' : print master's protocol version\n";
+    print "\t 'check version <version>' : check if the master supports this protocol version\n";
     print "\t 'print status' : prints users status, reserved machines and possibly other information \n";
     print "\t 'log in <username> <password>' : authenticate the user (for this CLI session only) \n";
     print "\t 'log out' : log out from the Hamsta \n";
@@ -240,7 +243,7 @@ sub cmd_version ($) {
 
 sub cmd_protocol_version ($) {
     my $socket = shift;
-    print $socket 'HAMSTA Master protocol version ' . join ('.', @protocol_version);
+    print $socket "HAMSTA Master protocol version $protocol_version";
 }
 
 # Master->cmd_print_active
@@ -254,6 +257,17 @@ sub cmd_print_active()  {
     printf $sock_handle "%15s : %15s : %s\n", "MACHINE", "IP ADDRESS", "DESCRIPTION";
     foreach my $machine (@$machines) {
         printf $sock_handle "%15s : %15s : %s\n", $machine->[1], $machine->[0], $machine->[2];
+    }
+}
+
+sub cmd_check_protocol_version ($) {
+    my $sock_handle = shift;
+    my @cmd = split ' ', shift (@_);
+
+    if (@cmd == 3 and int($cmd[2]) <= $protocol_version) {
+	print $sock_handle "OK";
+    } else {
+	print $sock_handle "NOK";
     }
 }
 
