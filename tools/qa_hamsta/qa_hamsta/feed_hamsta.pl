@@ -47,7 +47,7 @@ my $debug = 0;
 
 #correspond with version of hamsta.
 my $version = "HAMSTA_VERSION";
-my $protocol_version = 4;
+my $protocol_version = 1;
 
 #my $tmpfile = "/tmp/$progname.$$";
 #END { unlink($tmpfile); }
