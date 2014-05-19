@@ -402,3 +402,7 @@ form.float {
 {
         content: url("../images/27/icon-reserve.png");
 }
+.release_machine_for_master:before
+{
+        content: url("../images/27/icon-free.png");
+}

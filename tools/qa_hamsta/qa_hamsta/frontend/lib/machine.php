@@ -1488,6 +1488,58 @@ class Machine {
 
 
 	/**
+	 * send_master_release 
+	 *
+	 * Send release command to a machine by the HAMSTA master commandline interface
+	 * 
+	 * @param NULL
+	 *
+	 * @access public
+	 * @return bool true if the machine is successfully relesed from hamsta master; false on error
+	 */
+	function send_master_release() {
+		if (!($sock = Machine::get_master_socket())) {
+			$this->errmsg = (empty(Machine::$readerr)?"cannot connect to master!":Machine::$readerr);
+			return false;
+		}
+
+		global $config;
+		if ($config->authentication->use) {
+			$user = User::getById (User::getIdent (), $config);
+			fputs ($sock, "log in " . $user->getLogin() . " "
+			       . $user->getPassword() . "\n");
+			$response = "";
+			while (($s = fgets($sock, 4096)) != "$>") {
+				$response .= $s;
+			}
+
+			if (!stristr ($response, "you were authenticated")) {
+				$this->errmsg = $response;
+				if (stristr ($response, 'not enough parameters')) {
+					$this->errmsg = 'Could not authenticate to backend.'
+						. ' Check you have your Hamsta master password set.';
+				}
+				return false;
+			}
+		}
+
+		fputs($sock, "release ".$this->get_ip_address()." for master\n");
+
+		$response = "";
+		while (($s = fgets($sock, 4096)) != "$>") {
+			$response .= $s;
+		}
+
+		if (!stristr($response, "succeeded")) {
+			$this->errmsg = $response;
+			return false;
+		}
+			
+		return true;
+	}
+
+
+	/**
 	 * get_architectures 
 	 *
 	 * Note: This gets the *current* architectures of the machines (i.e. what they are currently installed to).

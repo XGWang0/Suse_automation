@@ -558,6 +558,9 @@ $("label#action button[name='action']").click(function(){
 <td><button name="action" value="vhreinstall" class="button vhreinstall">Reinstall as Virt. Host</button></td>
 <td><button name="action" value="addsut" class="button addsut">Add SUT</button></td>
 </tr>
+<tr>
+<td><button name="action" value="release_machine_for_master" class="button release_machine_for_master">Release for master</button></td>
+</tr>
 </table>
 </label>
 </label>
