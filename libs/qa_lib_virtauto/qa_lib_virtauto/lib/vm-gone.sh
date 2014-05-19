@@ -113,7 +113,8 @@ then
 		if [ "$vmOs" == "sles" ] || [ "$vmOs" == "oes" ] || [ "$vmOs" == "rhel" ] || [ "$vmOs" == "sled" ] || [ "$vmOs" == "os" ]
 		then
 			echo "        We are running Linux, we can SSH to shut the box down..."
-			export SSHPASS=$vmPass; $sshNoPass $vmUser@$vmIp "halt &" 2> /dev/null &
+			# Under systemd, shutdown -h is more reliable than halt (despite the fact they are both symlinks to systemctl)
+			export SSHPASS=$vmPass; $sshNoPass $vmUser@$vmIp "shutdown -h now &" 2> /dev/null &
 		#elif [ "$vmOs" == "win" ]
 		#then
 		#	echo "        We are running Windows, we can use SHUTDOWN from our windows guy to shut the box down..."
