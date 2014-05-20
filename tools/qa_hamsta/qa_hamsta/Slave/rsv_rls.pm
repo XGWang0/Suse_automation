@@ -41,7 +41,7 @@ use constant RESV_FILE => "/var/run/hamsta/reservation";
 our $reserved_hamsta_master_ip = "";
 
 # Only allow socket connection from reserved hamsta or if machine is idle.
-# Reservation file format: IP on the first line of file, support both IPV4/IPV6.
+# Reservation file format: IP on the first line of file, support only IPV4 now.
 # Since before SUT process reserve or release command via &reserve/&release, &allow_connection must have been just run for checking, no need to check reservation file again in &reserve/&release.
 sub allow_connection(){
 	my $ip_addr = shift;
