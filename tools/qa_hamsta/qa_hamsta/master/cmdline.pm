@@ -1342,7 +1342,7 @@ sub process_user_reservation ($$$$$)
 
 		TRANSACTION('user_machine');
 		# TODO Add support for user notes and expire time
-		if (create_user_reservation ($machine_id, $local_user_id, '', undef)) {
+		if (user_machine_insert ($machine_id, $local_user_id, '', undef)) {
 		    $res = 1;
 		    my $output = "Reserved machine $identifier for user $login.";
 		    log (LOG_INFO, $output);
@@ -1368,7 +1368,7 @@ sub process_user_reservation ($$$$$)
 		}
 
 		TRANSACTION('user_machine');
-		if (remove_user_reservation ($machine_id, $local_user_id)) {
+		if (user_machine_delete ($machine_id, $local_user_id)) {
 		    $res = 2;
 		    my $output = "Released machine $login for user $login.";
 		    log (LOG_INFO, $output);

@@ -404,7 +404,7 @@ sub role_get_privileges($) # role_id
 ### user reservation functions
 
 ## machine_id, user_id, user_note, expires (date)
-sub create_user_reservation ($$$$)
+sub user_machine_insert ($$$$)
 {
     return $dbc->update_query ('INSERT INTO user_machine (machine_id, user_id, user_note, expires)'
 			       . ' VALUES (?,?,?,?)', @_);
@@ -418,7 +418,7 @@ sub user_has_reservation ($$)
 }
 
 ## machine_id, user_id
-sub remove_user_reservation ($$)
+sub user_machine_delete ($$)
 {
     return $dbc->update_query ('DELETE FROM user_machine WHERE machine_id = ? AND user_id = ?', @_);
 }
