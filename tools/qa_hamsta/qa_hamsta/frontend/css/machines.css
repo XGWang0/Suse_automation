@@ -404,5 +404,5 @@ form.float {
 }
 .release_machine_for_master:before
 {
-        content: url("../images/27/icon-free.png");
+        content: url("../images/27/icon-release-for-master.png");
 }
