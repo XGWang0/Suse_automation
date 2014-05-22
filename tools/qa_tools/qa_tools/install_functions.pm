@@ -795,10 +795,24 @@ sub _print_profile_partitions
 			$drives->{$abuildid}->{$abuildnum}='/abuild' if defined $abuildid;
 			$drives->{$bootid}->{$bootnum}='/boot/efi' if defined $bootid and $args->{'to_arch'} eq 'ia64';
 			$drives->{$bootid}->{$bootnum}='NULL' if defined $bootid and ($args->{'to_arch'} eq 'ppc64' or $args->{'to_arch'} eq 'ppc');
-			my $sizeunit = `fdisk -l |grep "\$drive" |grep Disk |awk {'print \$4'} | cut -f1 -d','`;
-			my $disksize = `fdisk -l |grep "\$drive" |grep Disk |awk {'print \$3'} | cut -f1 -d'\n'`;
-			chomp($sizeunit);
-			chomp($disksize);
+
+			my @fdisk = `fdisk -l`;
+			my ($sizeunit, $disksize);
+
+			foreach my $line (@fdisk) {
+				# Want to capture the used disk size
+				# and units. Only the first matching
+				# line is used. Beware that there is
+				# also the 'Disk identifier' line.
+				# Expected line example:
+				# Disk /dev/sda: 500.1 GB, 500107862016 bytes
+				if ($line =~ /^Disk \/[\w\/]+: ([\d.]+) (\w+)/) {
+					chomp ($sizeunit = $1);
+					chomp ($disksize = $2);
+					last;
+				}
+			}
+
 			if ( substr($sizeunit, 0, 2) =~ /GB/ ) {
 				$disksize = int($disksize*1024);
 			}
