@@ -256,7 +256,7 @@ sub mih {
 
 sub cmd_print_groups() {
     my $sock_handle = shift @_;
-    my @groups = $dbc->enum_list_vals ('group');
+    my @groups = $dbc->enum_list_val ('group');
     local $" = "', '"; # Use this to interpolate list values
     print $sock_handle "There are following groups: '@groups'.\nEmpty groups are not listed below.\n\n";
     foreach my $group (@groups) {
@@ -428,7 +428,7 @@ sub create_group() {
 	else
 	{
 		&TRANSACTION( 'group' );
-		$dbc->enum_insert_id('group',$group);
+		$dbc->enum_insert('group',$group);
 		&TRANSACTION_END;
 
 		print $sock_handle "ADDED $group \n";
