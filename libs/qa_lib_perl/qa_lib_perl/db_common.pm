@@ -348,7 +348,7 @@ sub insert_query
 	my $self=shift;
 	return 1 if $nodb;
 	my $rows=$self->exec_statement(@_);
-	return $rows ? $self->get_new_id() : undef;
+	return $rows ? $self->get_new_id() : $rows;
 }
 
 sub update_query

@@ -204,6 +204,14 @@ sub machine_update_vhids($$@) # machine_id_of_VH, type, unique_id_list
 	return $result
 }
 
+# Return reservations of this machine
+sub machine_reservations($)
+{
+    return $dbc->matrix_query('SELECT machine_id, user_id, user_note, '
+			      . 'reserved, expires FROM user_machine '
+			      . 'WHERE machine_id = ?', $_[0]);
+}
+
 ### job functions
 
 sub job_set_status($$) # job_id, job_status_id
@@ -392,6 +400,28 @@ sub role_get_privileges($) # role_id
 {
 	return $dbc->vector_query ('SELECT privilege FROM `privilege` p JOIN `role_privilege` rp ON (p.privilege_id = rp.privilege_id) WHERE rp.role_id = ? AND (rp.valid_until IS NULL OR rp.valid_until > NOW())', $_[0]);
 }    
+
+### user reservation functions
+
+## machine_id, user_id, user_note, expires (date)
+sub user_machine_insert ($$$$)
+{
+    return $dbc->update_query ('INSERT INTO user_machine (machine_id, user_id, user_note, expires)'
+			       . ' VALUES (?,?,?,?)', @_);
+}
+
+## machine_id, user_id
+sub user_has_reservation ($$)
+{
+    return $dbc->scalar_query ('SELECT COUNT(machine_id) from user_machine'
+			       . ' WHERE machine_id = ? AND user_id = ?', @_);
+}
+
+## machine_id, user_id
+sub user_machine_delete ($$)
+{
+    return $dbc->update_query ('DELETE FROM user_machine WHERE machine_id = ? AND user_id = ?', @_);
+}
 
 ### log functions
 
