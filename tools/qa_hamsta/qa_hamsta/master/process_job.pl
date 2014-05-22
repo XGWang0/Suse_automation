@@ -453,7 +453,7 @@ sub reserve_or_release_all ($$)
 	my @m_ips = split(/,/,$aimeds);
 	my @success_ips;
 	foreach my $ip (@m_ips){
-		my $ret = &Master::reserve_or_release_for_master(undef,"$action $ip for master");
+		my $ret = &Master::process_hamsta_reservation(undef,$action, $ip);
 		if (! $ret){
 			if ($action =~ /reserve/){
 				&log(LOG_ERR, "PROCESS_JOB: Reserve all SUT before sending job xml failed when reserving $ip!");
@@ -465,7 +465,7 @@ sub reserve_or_release_all ($$)
 			my $revert_action = (($action =~ /reserve/)?'release':'reserve');
 			my @revert_failed_ips;
 			foreach my $revert_ip (@success_ips){
-				my $ret = &Master::reserve_or_release_for_master(undef,"$revert_action $revert_ip for master");
+				my $ret = &Master::process_hamsta_reservation(undef,$revert_action, $revert_ip);
 				push @revert_failed_ips, $revert_ip if not $ret;
 				$revert_result &= $ret;
 			}
