@@ -219,6 +219,21 @@ source.ftp.rhel-5-u7-64=ftp://xen100.virt.lab.novell.com/install/rhel5u7/x86_64
 source.iso.rhel-5-u7-64=/mnt/iso/redhat/rhel5u7/rhel-server-5.7-x86_64-dvd.iso
 source.iso.rhel-5-u7-32=/mnt/iso/redhat/rhel5u7/rhel-server-5.7-i386-dvd.iso
 
+#source.ftp.rhel-5-u8-32=ftp://xen100.virt.lab.novell.com/install/rhel5u8/i386
+source.ftp.rhel-5-u8-64=ftp://xen100.virt.lab.novell.com/install/rhel5u8/x86_64
+source.iso.rhel-5-u8-64=/mnt/iso/redhat/rhel5u8/rhel-server-5.8-x86_64-dvd.iso
+#source.iso.rhel-5-u8-32=/mnt/iso/redhat/rhel5u8/rhel-server-5.8-i386-dvd.iso
+
+#source.ftp.rhel-5-u9-32=ftp://xen100.virt.lab.novell.com/install/rhel5u9/i386
+source.ftp.rhel-5-u9-64=ftp://xen100.virt.lab.novell.com/install/rhel5u9/x86_64
+source.iso.rhel-5-u9-64=/mnt/iso/redhat/rhel5u9/rhel-server-5.9-x86_64-dvd.iso
+#source.iso.rhel-5-u9-32=/mnt/iso/redhat/rhel5u9/rhel-server-5.9-i386-dvd.iso
+
+#source.ftp.rhel-5-u10-32=ftp://xen100.virt.lab.novell.com/install/rhel5u10/i386
+source.ftp.rhel-5-u10-64=ftp://xen100.virt.lab.novell.com/install/rhel5u10/x86_64
+source.iso.rhel-5-u10-64=/mnt/iso/redhat/rhel5u10/rhel-server-5.10-x86_64-dvd.iso
+#source.iso.rhel-5-u10-32=/mnt/iso/redhat/rhel5u10/rhel-server-5.10-i386-dvd.iso
+
 source.ftp.rhel-6-fcs-32=ftp://xen100.virt.lab.novell.com/install/rhel6/i386
 source.ftp.rhel-6-fcs-64=ftp://xen100.virt.lab.novell.com/install/rhel6/x86_64
 source.iso.rhel-6-fcs-64=/mnt/iso/redhat/rhel6/rhel-server-6.0-x86_64-dvd.iso
@@ -229,20 +244,28 @@ source.ftp.rhel-6-u1-64=ftp://xen100.virt.lab.novell.com/install/rhel6u1/x86_64
 source.iso.rhel-6-u1-64=/mnt/iso/redhat/rhel6u1/rhel-server-6.1-x86_64-dvd.iso
 source.iso.rhel-6-u1-32=/mnt/iso/redhat/rhel6u1/rhel-server-6.1-i386-dvd.iso
 
-#source.ftp.rhel-6-u2-32=ftp://xen100.virt.lab.novell.com/install/rhel6u2/i386
-#source.ftp.rhel-6-u2-64=ftp://xen100.virt.lab.novell.com/install/rhel6u2/x86_64
-#source.iso.rhel-6-u2-64=/mnt/iso/redhat/rhel6u2/rhel-server-6.2-x86_64-dvd.iso
-#source.iso.rhel-6-u2-32=/mnt/iso/redhat/rhel6u2/rhel-server-6.2-i386-dvd.iso
+source.ftp.rhel-6-u2-32=ftp://xen100.virt.lab.novell.com/install/rhel6u2/i386
+source.ftp.rhel-6-u2-64=ftp://xen100.virt.lab.novell.com/install/rhel6u2/x86_64
+source.iso.rhel-6-u2-64=/mnt/iso/redhat/rhel6u2/rhel-server-6.2-x86_64-dvd.iso
+source.iso.rhel-6-u2-32=/mnt/iso/redhat/rhel6u2/rhel-server-6.2-i386-dvd.iso
 
-#source.ftp.rhel-6-u3-32=ftp://xen100.virt.lab.novell.com/install/rhel6u3/i386
-#source.ftp.rhel-6-u3-64=ftp://xen100.virt.lab.novell.com/install/rhel6u3/x86_64
-#source.iso.rhel-6-u3-64=/mnt/iso/redhat/rhel6u3/rhel-server-6.3-x86_64-dvd.iso
-#source.iso.rhel-6-u3-32=/mnt/iso/redhat/rhel6u3/rhel-server-6.3-i386-dvd.iso
+source.ftp.rhel-6-u3-32=ftp://xen100.virt.lab.novell.com/install/rhel6u3/i386
+source.ftp.rhel-6-u3-64=ftp://xen100.virt.lab.novell.com/install/rhel6u3/x86_64
+source.iso.rhel-6-u3-64=/mnt/iso/redhat/rhel6u3/rhel-server-6.3-x86_64-dvd.iso
+source.iso.rhel-6-u3-32=/mnt/iso/redhat/rhel6u3/rhel-server-6.3-i386-dvd.iso
 
 source.ftp.rhel-6-u4-32=ftp://xen100.virt.lab.novell.com/install/rhel6u4/i386
 source.ftp.rhel-6-u4-64=ftp://xen100.virt.lab.novell.com/install/rhel6u4/x86_64
 source.iso.rhel-6-u4-64=/mnt/iso/redhat/rhel6u4/rhel-server-6.4-x86_64-dvd.iso
 source.iso.rhel-6-u4-32=/mnt/iso/redhat/rhel6u4/rhel-server-6.4-i386-dvd.iso
+
+source.ftp.rhel-6-u5-32=ftp://xen100.virt.lab.novell.com/install/rhel6u5/i386
+source.ftp.rhel-6-u5-64=ftp://xen100.virt.lab.novell.com/install/rhel6u5/x86_64
+source.iso.rhel-6-u5-64=/mnt/iso/redhat/rhel6u5/rhel-server-6.5-x86_64-dvd.iso
+source.iso.rhel-6-u5-32=/mnt/iso/redhat/rhel6u5/rhel-server-6.5-i386-dvd.iso
+
+source.ftp.rhel-7-fcs-64=ftp://xen100.virt.lab.novell.com/install/rhel7rc/x86_64
+source.iso.rhel-7-fcs-64=/mnt/iso/redhat/rhel7rc/rhel-server-7.0-x86_64-dvd.iso
 
 # SLED
 
@@ -287,7 +310,7 @@ source.iso.sled-11-sp3-64=/mnt/iso/sled11sp3/SLED-11-SP3-DVD-x86_64-GM-Media1.is
 source.iso.sled-11-sp3-32=/mnt/iso/sled11sp3/SLED-11-SP3-DVD-i586-GM-Media1.iso
 
 source.ftp.sled-12-fcs-64=ftp://xen100.virt.lab.novell.com/install/sled12/x86_64
-source.iso.sled-12-fcs-64=/mnt/iso/sled12/SLED-12-DVD-x86_64-GM-Media1.iso
+source.iso.sled-12-fcs-64=/mnt/iso/sled12/SLE-12-Desktop-DVD-x86_64-Beta5-DVD1.iso
 
 # Windows
 
