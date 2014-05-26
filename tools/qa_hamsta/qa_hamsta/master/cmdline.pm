@@ -98,31 +98,29 @@ sub command_line_server() {
 # and client.
 # TODO more debug information needed eg who is connected from where
 sub thread_evaluate () {
-    my $sock_handle = shift @_;
+	my $sock_handle = shift @_;
 
-    local $SIG{'PIPE'} = 'IGNORE';
+	local $SIG{'PIPE'} = 'IGNORE';
 
-    my $version = join ('.', get_master_version ());
-    print $sock_handle "Welcome to HAMSTA (version $version) "
-	. "(Hardware Maintenance, Setup and Test Automation) console. \n";
-    &sql_get_connection();
+	my $version = join ('.', get_master_version ());
+	print $sock_handle "Welcome to HAMSTA (version $version) "
+	    . "(Hardware Maintenance, Setup and Test Automation) console. \n";
+	&sql_get_connection();
 
-    while (1) {
-        print $sock_handle "\n\$>";
+	while (1) {
+		print $sock_handle "\n\$>";
 
-        if (eof($sock_handle)) {
+		if (eof($sock_handle)) {
+		    &log(LOG_DETAIL, "EOF received.");
+		    last;
+		}
 
-            &log(LOG_DETAIL, "EOF received.");
-            last;
+		$_ = <$sock_handle>;
+		s/\r?\n$//;
+		&parse_cmd($_, $sock_handle);
+	}
 
-        }
-
-        $_ = <$sock_handle>;
-        s/\r?\n$//;
-	&parse_cmd($_, $sock_handle);
-    }
-
-    $sock_handle->close;
+	$sock_handle->close;
 }
 
 # Master->parse_cmd()
