@@ -89,6 +89,7 @@ Options:
 	-h|--host <ip-or-hostname>
 				set the target SUT for the test
 	-g|--group <name>	set the target host group for test
+	--force-version-ignore  do not check protocol version and execute requested action
 	-v|--version	        print program version
 	-d|--debug <level>	set debugging level (defaults to $debug)
 	   --help	        print this help message
@@ -104,6 +105,7 @@ my $opt_print_active	= 0;
 my $opt_job		= "";
 my $opt_host		= "";
 my $opt_group		= "";
+my $opt_version_ignore	= 0;
 
 #Job Type : 1)pre-define; 2)qa_package; 3)autotest; 4)mult_machine; 5)reinstall
 my $opt_jobtype		= 0;
@@ -147,6 +149,7 @@ unless (GetOptions(
 		   'mail|m=s'		=> \$opt_mail,
 		   'user|U=s'		=> \$opt_user,
 		   'password|P=s'	=> \$opt_password,
+		   'force-version-ignore' => \$opt_version_ignore,
 		  )) {
 	&usage ();
 	exit 1;
@@ -155,6 +158,8 @@ unless (GetOptions(
 # Compare versions (requires format a.b.c) of the Hamsta master
 # instance and this client instance. It compares only the major (a)
 # and minor (b) version.
+#
+# Returns 1 if the version is OK and 0 if version is Not OK.
 sub compare_versions () {
     chomp (my $check_result = send_command("check version $protocol_version\n"));
 
@@ -165,8 +170,8 @@ sub compare_versions () {
     } else {
 	print STDERR "Master does not support version checking. You probably connect to "
 	    . "an older master.\n\n";
-	return 1;
     }
+    return 0;
 }
 
 if ($opt_version) {
@@ -199,7 +204,7 @@ my $opt_master_port;
 $opt_master_port = 18431 unless $opt_master_port;
 
 print "Connecting to master $opt_master on $opt_master_port\n\n";
-	
+
 my $sock;
 eval {
 	$sock = IO::Socket::INET->new(
@@ -216,7 +221,7 @@ if ($@ || !$sock) {
 # Ignore the welcome message and wait for the prompt
 &send_command('');
 
-if (not compare_versions()) {
+if (not $opt_version_ignore and not compare_versions()) {
     print STDERR "ERROR: Hamsta protocol mismatch. You might want to update your client.\n";
     exit 1;
 }
