@@ -68,10 +68,10 @@ Options:
 				5 Reinstall
 	-n|--testname <testname>
 				set test name for the job work with -t option 
-		                (only for pre-define, qa_package, autotest, mult_machine)
-		                seperate by ',' for qa_package&autotest job
+		                (only for Single machine, QA package, Autotest, Multi machine).
+		                Seperate by ',' for qa_package and autotest job.
 	-l|--listcases		print the support test case names for jobtypes 1 to 4
-	-r|--roles		for mult-machine jobs, set roles number and host
+	-r|--roles		for Multi machine jobs, set roles number and host
 		         	Assign SUT to roles , format like:
 					-r 'r0:host1,host2;r1:host3,host4'
 
