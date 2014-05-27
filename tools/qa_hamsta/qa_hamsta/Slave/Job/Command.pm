@@ -186,7 +186,7 @@ sub run {
                                  push @{$self->{'command_objects'}}, $command;
                                  $command->run();        
                         }
-                        foreach my $sec ( ("/var/lib/hamsta/abort", "/var/lib/hamsta/finish") ) {
+                        foreach my $sec ( ($Slave::abortSection, $Slave::finishSection) ) {
                             if( -e $sec ) {
                                 my $type = $1 if( $sec =~ /(finish|abort)/ );
                                 my $cmd = read_xml($sec,1);

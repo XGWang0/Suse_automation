@@ -50,6 +50,7 @@ use Slave::stats_xml;
 use Slave::rsv_rls('&allow_connection','&reserve','&release');
 use Slave::Multicast::mcast;
 use Slave::functions;
+use Slave::Job::Command;
 
 require 'Slave/config_slave.pm';
 
@@ -130,7 +131,7 @@ parent {
 $log::loginfo = 'hamsta';
 
 # On Hamsta startup: perform abort section, finish (i.e. perform finish section + remove sections from disk)
-foreach my $sec ( ("/var/lib/hamsta/abort", "/var/lib/hamsta/finish") ) {
+foreach my $sec ( ($Slave::abortSection, $Slave::finishSection) ) {
     if( -e $sec ) {
         my $type = $1 if( $sec =~ /(finish|abort)/ );
         my $cmd = read_xml($sec,1);

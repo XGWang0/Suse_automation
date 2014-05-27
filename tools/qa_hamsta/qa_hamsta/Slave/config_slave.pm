@@ -31,6 +31,8 @@ BEGIN { push @INC, '.', '/usr/share/hamsta/master', '/usr/share/qa/lib'; }
 use qaconfig;
 
 $Slave::directory = "/usr/share/hamsta";
+$Slave::finishSection = "/var/lib/hamsta/finish";
+$Slave::abortSection = "/var/lib/hamsta/abort";
 
 # Slave configuration
 

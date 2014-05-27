@@ -161,8 +161,6 @@ sub run {
     my $self = shift;
     my @workers = ();
     my $buffer;
-    my $finishSection = "/var/lib/hamsta/finish";
-    my $abortSection = "/var/lib/hamsta/abort";
 
     $self->clear_motd();
     # Add lines to /etc/motd if requested
@@ -238,11 +236,11 @@ sub run {
                 
             } elsif ($type eq 'finish') {
                 
-                push @{$buffer->{$finishSection}}, $commandstring;
+                push @{$buffer->{$Slave::finishSection}}, $commandstring;
 
             } elsif ($type eq 'abort') {
                 
-                push @{$buffer->{$abortSection}}, $commandstring;
+                push @{$buffer->{$Slave::abortSection}}, $commandstring;
 
             } elsif ($type eq 'kill') {
                 
@@ -257,7 +255,7 @@ sub run {
     }
 
     # Before job start: remove sections from disk, write finish and abort sections to disk, keep kill section in memory.
-    foreach ( ($finishSection,$abortSection) ) {
+    foreach ( ($Slave::finishSection,$Slave::abortSection) ) {
         unlink $_ or warn "Can not clean $_ from disk!" if ( -e $_ );
         open SECFILE, ">$_" or die "Can not create file $_";
 
@@ -274,11 +272,13 @@ sub run {
     }
 
     # On job finish: perform finish section, remove sections from disk
-    if( -e $finishSection ) {
-	my $ref = read_xml($finishSection,1);
+    if( -e $Slave::finishSection ) {
+	my $ref = read_xml($Slave::finishSection,1);
         my $command = Slave::Job::Finish->new('finish', $ref, $self);
         unshift @{$self->{'command_objects'}}, $command;
         $command->run();
+        unlink $Slave::finishSection;
+        unlink $Slave::abortSection;
     }
 }
 
