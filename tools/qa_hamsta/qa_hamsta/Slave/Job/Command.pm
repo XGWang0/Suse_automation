@@ -179,6 +179,9 @@ sub run {
         $self->{'thread'} = $thread;
     }
     # On job kill: perform kill section, perform abort section, finish
+    # it is just testing code here, only registered $SIG{TERM}
+    # If one day , we defined how to trigger this kill action
+    # we may modify this interface, considering END{}, $SIG{KILL}, $SIG{__DIE__}.
     if( $self->{'type'} eq 'worker' ) {
         $SIG{TERM} = sub {
                         foreach my $commandstring (@killBuff) {
