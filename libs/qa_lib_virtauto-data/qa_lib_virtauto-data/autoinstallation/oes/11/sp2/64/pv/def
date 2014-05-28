@@ -1364,7 +1364,6 @@
       <package>apache2-mod_python</package>
       <package>java-1_6_0-sun</package>
       <package>java-1_7_0-ibm</package>
-      <package>kernel-xen-base</package>
       <package>libldb1</package>
       <package>libqt4-sql-sqlite</package>
       <package>libsmbclient0</package>
