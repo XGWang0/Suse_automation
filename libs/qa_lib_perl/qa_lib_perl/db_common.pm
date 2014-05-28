@@ -229,60 +229,91 @@ sub stdin_echo_off {
 
 our %enums;
 
+# ID columnt of the table
 sub eid # tbl
 {
 	die("No such table : ".$_[0]) unless $enums{$_[0]};
 	return '`'.$enums{$_[0]}->[0].'`';
 }
 
+# value columnt of that table
 sub ename #tbl
 {
 	die("No such table : ".$_[0]) unless $enums{$_[0]};
 	return '`'.$enums{$_[0]}->[1].'`';
 }
 
+# get value for an ID
 sub enum_get_val # tbl, id
 {
 	my ($self,$tbl,$id)=@_;
 	return $self->scalar_query('SELECT '.&ename($tbl)." FROM `$tbl` WHERE ".&eid($tbl).'=? LIMIT 1',$id);
 }
 
+# get ID for a value
 sub enum_get_id # tbl, val
 {
 	my ($self,$tbl,$val)=@_;
 	return $self->scalar_query('SELECT '.&eid($tbl)." FROM `$tbl` WHERE ".&ename($tbl).'=? LIMIT 1',$val);
 }
 
-
-sub enum_insert_id # tbl, val
+# insert value, return ID
+sub enum_insert # tbl, val
 {
 	my ($self,$tbl,$val)=@_;
 	$self->update_query("INSERT INTO `$tbl`(".&ename($tbl).') VALUES (?)',$val);
 	return $self->get_new_id();
 }
 
+#TEMPORARY ALIAS 5/2014, DELME AFTER SOME TIME
+sub enum_insert_id # tbl, val
+{	return enum_insert(@_);		}
+
+# either enum_get_id or enum_get_id_or_insert, according to $insert
 sub enum_get_id_cond # tbl, val, insert
 {
 	my ($self,$tbl,$val,$insert)=@_;
 	my $id=$self->enum_get_id($tbl,$val);
 	return $id if defined $id or !$insert;
-	$id=$self->enum_insert_id($tbl,$val);
+	$id=$self->enum_insert($tbl,$val);
 	push @{$self->{'inserted_enums'}},[$tbl,$id];
 	return $id;
 }
 
+# gets ID if value exists, creates a new record otherwise (and returns its ID)
 sub enum_get_id_or_insert # tbl, val
 {	return $_[0]->enum_get_id_cond($_[1],$_[2],1);	}
 
+# deletes by ID
 sub enum_delete_id # tbl, id
-{	
+{
 	my ($self,$tbl,$id)=@_;
 	$self->update_query("DELETE FROM `$tbl` WHERE ".&eid($tbl).'=? LIMIT 1',$id);
 }
 
-sub enum_list_vals # tbl
+# deletes by value
+sub enum_delete_val # tbl, val
+{
+	my ($self,$tbl,$val)=@_;
+	$self->update_query("DELETE FROM `$tbl` WHERE ".&ename($tbl).'=? LIMIT 1',$val);
+}
+
+# counts unique IDs
+sub enum_count # tbl
+{
+	my ($self,$tbl)=@_;
+	$self->scalar_query("SELECT COUNT(DISTINCT ".&eid($tbl).") FROM `$tbl`");
+}
+
+# lists unique values
+sub enum_list_val # tbl
 {	return $_[0]->vector_query('SELECT DISTINCT '.&ename($_[1]).' FROM `'.$_[1].'`');	}
 
+#TEMPORARY ALIAS 5/2014, DELME AFTER SOME TIME
+sub enum_list_vals # tbl
+{	return enum_list_val(@_);	}
+
+# tries to revert all cached inserts
 sub enum_undo_all_inserts
 {
 	my $self=shift;

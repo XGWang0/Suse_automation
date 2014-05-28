@@ -303,15 +303,15 @@ function enum_get_id_or_insert($tbl,$val)
 	return enum_insert($tbl,$val);
 }
 
-/**  removes all rows with a given ID */
-function enum_remove_id($tbl, $id)
+/**  deletes all rows with a given ID */
+function enum_delete_id($tbl, $id)
 {	
 	unset($enum_cache[$tbl]);
 	return update_query("DELETE FROM `$tbl` WHERE ".eid($tbl)."=?",'i',$id);	
 }
 
-/** removes all rows with a given value */
-function enum_remove_val($tbl, $val)
+/** deletes all rows with a given value */
+function enum_delete_val($tbl, $val)
 {	
 	unset($enum_cache[$tbl]);
 	return update_query("DELETE FROM `$tbl` WHERE ".ename($tbl)."=?",'s',$val);	
