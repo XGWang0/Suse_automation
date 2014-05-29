@@ -162,16 +162,6 @@ sub get_slave_ip() {
    return $ret;
 }
 
-sub ip_to_number()
-{
-    my $text=$_[0];
-    return undef unless defined $text and $text =~ /(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/;
-    return ($1<<24) | ($2<<16) | ($3<<8) | $4;
-}
-
-#
-
-
 # TODO: duplicite with Master
 sub read_xml($$) # filename, map_roles
 {

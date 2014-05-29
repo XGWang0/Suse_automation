@@ -47,7 +47,7 @@ $log::loginfo='slave_diplom';
 
 use Slave::hwinfo_xml;
 use Slave::stats_xml;
-
+use Slave::rsv_rls('&allow_connection','&reserve','&release');
 use Slave::Multicast::mcast;
 use Slave::functions;
 
@@ -210,7 +210,13 @@ sub run_slave_server() {
             &log(LOG_NOTICE,"Connection established from $ip_addr");
             
             $SIG{'PIPE'} = 'IGNORE';
-            process_request($connection, $ip_addr);
+
+            if ( &allow_connection($ip_addr) ){
+		    process_request($connection, $ip_addr);
+            }else{
+		    &log(LOG_NOTICE,"Refuse connection from non-reserved master $ip_addr.");
+		    print $connection "Connection failed!\n The SUT was reserved by other hamsta master already, and the reserved master ip was $Slave::reserved_hamsta_master_ip!\n";
+            }
         };  
         if ($@) {
             &log(LOG_ERROR, "$@ Will retry."); 
@@ -306,7 +312,15 @@ sub process_request {
             } elsif ($incoming =~ /^ping$/) {
                 print $sock "pong\n" ;	
 		last;
-            } else {
+            } elsif ($incoming =~ /^reserve$/) {
+		my $response = &reserve($ip_addr);
+		$response .= "The SUT was reserved by other hamsta master already, and the reserved master ip was $Slave::reserved_hamsta_master_ip!\n" if ( $response =~ /failed/ );
+		print $sock $response;
+		last;	    
+            } elsif ($incoming =~ /^release$/) {
+		print $sock &release($ip_addr);   
+		last;
+	    } else {
                 my $job = $incoming."\n";
 		&log(LOG_NOTICE, "[$ip_addr] Start of XML job");
                 while ($incoming = <$sock>) {
