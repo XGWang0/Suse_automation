@@ -186,7 +186,6 @@ sub chk_run() {
   return 0 ;
 }
 
-
 # runs slave server, binds to port, responds to connections
 sub run_slave_server() {
     my $socket = new IO::Socket::INET(
@@ -263,11 +262,6 @@ sub run_slave_server() {
 #
 # * ping
 #	Returns the String "pong"
-# * reserve
-#	Return the string whether reservation is successful,"Reservation succeeded/failed.".
-#
-# * release
-#	Return the string whether release is successful, "Release succeeded/failed."
 #
 # * Anything else is treated as XML serialized job description
 #	TODO Better add a header line or something to get rid of this
