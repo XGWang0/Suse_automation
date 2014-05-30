@@ -162,63 +162,56 @@ if(is_dir($dir)) {
     <?php
 
     /* See 'hamsta.ini' file for description. */
-    $dir=$config->xml->dir->custom;
-    if(is_dir($dir))
-    {
-        if($handle = opendir($dir))
-        {
-	    # $sortcount = 0;  # at first, I wanna use the XML file name, but failed, I have to sort the XML and use the sort number.
-            while(($file = readdir($handle)) !== false)
-            {
-                if($file != "." && $file != ".." && substr($file,-4)=='.xml')
-		{
-			$filebasename = substr($file, 0, -4);
+$dir=$config->xml->dir->custom;
+if(is_dir($dir)) {
+	if($handle = opendir($dir)) {
+		while(($file = readdir($handle)) !== false) {
+			if($file != "." && $file != ".." && substr($file,-4)=='.xml') {
+				$filebasename = substr($file, 0, -4);
 
-			$xml = simplexml_load_file( "$dir/$file" );
-			$jobname = $xml->config->name;
-			$jobdescription = $xml->config->description;
+				$xml = simplexml_load_file( "$dir/$file" );
+				$jobname = $xml->config->name;
+				$jobdescription = $xml->config->description;
 
-			$param_map = get_parameter_maps($xml);
-			$count = count($param_map);
-					
-                    echo "    <tr class=\"file_list\">\n";
-		    # echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"single-machine job:$file\" onclick=\"showParamConts('$filebasename')\">\n";
-		    echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"Single-machine custom job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
-                    echo "        <td title=\"$jobdescription\">$file</td>\n";
-                    echo "        <td class=\"viewXml\" align=\"center\">\n";
-                    echo "            <a href=\"".$config->xml->dir->web->custom."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/27/xml_green.png\" class=\"icon-small\" alt=\"view\" title=\"view the job XML $file\" /></a>\n";
-                    echo "            <a href=\"index.php?go=edit_jobs&amp;file=custom/$file&amp;opt=edit&amp;machine_list=$machines_ids\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" class=\"icon-small\" alt=\"edit\" title=\"Edit the job XML $file\" /></a>\n";
-                    echo "            <a href=\"index.php?go=machine_send_job&amp;file=custom/$file&amp;opt=delete&amp;machine_list=$machines_ids\" onclick=\"if(confirm('WARNING: You will delete the custom job XML file, are you sure?')) return true; else return false;\" title=\"delete $file\"><img src=\"images/27/icon-delete.png\" class=\"icon-small\" alt=\"delete\" title=\"Delete the job XML $file\" /></a>\n";
-                    echo "    </tr class=\"file_list\">\n";
-                    echo "    <tr>\n";
-		    echo "        <td colspan=\"3\">\n";
-		    if( $count > 0 )
-		    {
+				$param_map = get_parameter_maps($xml);
+				$count = count($param_map);
 
-		    	echo "        <div style=\"margin-left: 40px; margin-top: 2px; padding: 2px 2px 10px 2px; border: 1px solid #cdcdcd\" id=\"div_$sortcount\">\n";
-			echo "            <div class=\"text-main\" style=\"padding: 5px 5px 5px 5px\"><b>Edit parameters in the form below.</b></div>\n";
+				echo "    <tr class=\"file_list\">\n";
+# echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"single-machine job:$file\" onclick=\"showParamConts('$filebasename')\">\n";
+				echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"Single-machine custom job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
+				echo "        <td title=\"$jobdescription\">$file</td>\n";
+				echo "        <td class=\"viewXml\" align=\"center\">\n";
+				echo "            <a href=\"".$config->xml->dir->web->custom."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/27/xml_green.png\" class=\"icon-small\" alt=\"view\" title=\"view the job XML $file\" /></a>\n";
+				echo "            <a href=\"index.php?go=edit_jobs&amp;file=custom/$file&amp;opt=edit&amp;machine_list=$machines_ids\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" class=\"icon-small\" alt=\"edit\" title=\"Edit the job XML $file\" /></a>\n";
+				echo "            <a href=\"index.php?go=machine_send_job&amp;file=custom/$file&amp;opt=delete&amp;machine_list=$machines_ids\" onclick=\"if(confirm('WARNING: You will delete the custom job XML file, are you sure?')) return true; else return false;\" title=\"delete $file\"><img src=\"images/27/icon-delete.png\" class=\"icon-small\" alt=\"delete\" title=\"Delete the job XML $file\" /></a>\n";
+				echo "    </tr class=\"file_list\">\n";
+				echo "    <tr>\n";
+				echo "        <td colspan=\"3\">\n";
+				if ($count > 0) {
+					echo "        <div style=\"margin-left: 40px; margin-top: 2px; padding: 2px 2px 10px 2px; border: 1px solid #cdcdcd\" id=\"div_$sortcount\">\n";
+					echo "            <div class=\"text-main\" style=\"padding: 5px 5px 5px 5px\"><b>Edit parameters in the form below.</b></div>\n";
 			
-			# get the parameter table
+# get the parameter table
 			
-			# define the parameter prefix name
-                        # $filebasename is used to distinguish the same parameter name in different jobs
-                        # "_custom_" is used to ditinguish the same XML file name in default directory and custom directory
-			$prefix_name = $filebasename . "_custom_";
-			$parameter_table = get_parameter_table($param_map, $prefix_name);
+# define the parameter prefix name
+					# $filebasename is used to distinguish the same parameter name in different jobs
+					# "_custom_" is used to ditinguish the same XML file name in default directory and custom directory
+					$prefix_name = $filebasename . "_custom_";
+					$parameter_table = get_parameter_table($param_map, $prefix_name);
 
-			echo $parameter_table;
-			echo "        </div>\n";
-		    }
+					echo $parameter_table;
+					echo "        </div>\n";
+				}
 
-		    echo "        </td>\n";
-		    echo "    </tr>\n";
+				echo "        </td>\n";
+				echo "    </tr>\n";
 
-		    $sortcount++;
-                }
-            }
-            closedir($handle);
-        }
-    }
+				$sortcount++;
+			}
+		}
+		closedir($handle);
+	}
+}
 
     ?>
 </table>
@@ -268,29 +261,25 @@ print_machines_list ($machines_list);
     </thead>
     <?php
 
-    /* See 'hamsta.ini' for description. */
-    $dir=$config->xml->dir->multimachine->default;
-    if(is_dir($dir))
-    {
-        if($handle = opendir($dir))
-        {
-            while(($file = readdir($handle)) !== false)
-            {
-                if($file != "." && $file != ".." && substr($file,-4)=='.xml')
-                {
-                    echo "    <tr class=\"file_list\">\n";
-		    echo "        <td><input type=\"radio\" name=\"filename\" value=\"$dir/$file\" title=\"Multi-machine job:$file\"></td>\n";
-                    echo "        <td>$file</td>\n";
-                    echo "        <td align=\"center\">";
-                    echo "            <a href=\"".$config->xml->dir->multimachine->web->default."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/27/xml_green.png\" class=\"icon-small\" alt=\"view\" title=\"view the job XML $file\" /></a>";
-                    echo "            <a href=\"index.php?go=edit_jobs&amp;file=multimachine/$file&amp;opt=edit&amp;machine_list=$machines_ids\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" class=\"icon-small\" alt=\"edit\" title=\"Edit the job XML $file\" /></a>";
-                    echo "        </td>\n";
-                    echo "    </tr>\n";
-                }
-            }
-            closedir($handle);
-        }
-    }
+/* See 'hamsta.ini' for description. */
+$dir=$config->xml->dir->multimachine->default;
+if(is_dir($dir)) {
+	if($handle = opendir($dir)) {
+		while(($file = readdir($handle)) !== false) {
+			if($file != "." && $file != ".." && substr($file,-4)=='.xml') {
+				echo "    <tr class=\"file_list\">\n";
+				echo "        <td><input type=\"radio\" name=\"filename\" value=\"$dir/$file\" title=\"Multi-machine job:$file\"></td>\n";
+				echo "        <td>$file</td>\n";
+				echo "        <td align=\"center\">";
+				echo "            <a href=\"".$config->xml->dir->multimachine->web->default."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/27/xml_green.png\" class=\"icon-small\" alt=\"view\" title=\"view the job XML $file\" /></a>";
+				echo "            <a href=\"index.php?go=edit_jobs&amp;file=multimachine/$file&amp;opt=edit&amp;machine_list=$machines_ids\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" class=\"icon-small\" alt=\"edit\" title=\"Edit the job XML $file\" /></a>";
+				echo "        </td>\n";
+				echo "    </tr>\n";
+			}
+		}
+		closedir($handle);
+	}
+}
     ?>
 </table>
 
