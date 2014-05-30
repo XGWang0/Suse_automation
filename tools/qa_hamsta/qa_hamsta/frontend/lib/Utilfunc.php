@@ -499,4 +499,17 @@ function confirm_alert ($msg = null) {
 	return $msg . PHP_EOL;
 }
 
+/* Returns the SimpleXMLElement object from the path in
+ * parmater. Checks if the path exists and is a file. Returns FALSE on
+ * error. */
+function get_xml_file ($path) {
+	if (is_file ($path)
+		&& pathinfo ($path, PATHINFO_EXTENSION) == 'xml') {
+		/* Avoid getting warnings and check the return status. */
+		return @simplexml_load_file ($path);
+		
+	}
+	return FALSE;
+}
+
 ?>
