@@ -234,6 +234,9 @@ Obsoletes:      hamsta-common
 This package contains Hamsta configuration files that are
 shared between Hamsta master, multicast-forwarder and slave.
 
+It also contains functions shared between master and command line
+client.
+
 %define destdir /usr/share/hamsta
 %define initfile %{_sysconfdir}/init.d/hamsta
 %define webdir /srv/www/htdocs/hamsta
@@ -275,7 +278,7 @@ install -d %{buildroot}%{webdir}
 cp -a -r --target-directory=%{buildroot}%{webdir} frontend/*
 ln -s %{destdir}/xml_files %{buildroot}%{xml_link}
 install -m 755 -d %{buildroot}%{destdir}
-cp -a -r --target-directory=%{buildroot}%{destdir} Slave command_frontend.pl feed_hamsta.pl master testscript xml_files db hamsta-multicast-forward.pl
+cp -a -r --target-directory=%{buildroot}%{destdir} Slave command_frontend.pl feed_hamsta.pl master testscript xml_files db hamsta-multicast-forward.pl hamsta.pm
 install -d %{buildroot}%{webdir}/profiles
 install -m 755 -d %{buildroot}%{confdir}
 cp --target-directory=%{buildroot}%{confdir} 00-hamsta-common-default 00-hamsta-default 00-hamsta-master-default 00-hamsta-multicast-forward-default
@@ -418,5 +421,6 @@ systemctl restart apache2
 %defattr(-, root, root)
 %dir %{confdir}
 %{confdir}/00-hamsta-common-default
+%{destdir}/hamsta.pm
 
 %changelog
