@@ -31,12 +31,31 @@
         return require("index.php");
     }
 		
-	$blockedMachines = array();
-	foreach ($machines as $machine) {
-		if( ! $machine->has_perm('job') ) {
-			$blockedMachines[] = $machine->get_hostname();
-		}
+$blockedMachines = array();
+/* Save a list of machine ids and hostnames to avoid repetitive
+ * querying from the database. */
+$machines_list = array();
+foreach ($machines as $machine) {
+	$machines_list[$machine->get_id()] = $machine->get_hostname();
+
+	if( ! $machine->has_perm('job') ) {
+		$blockedMachines[] = $machine->get_hostname();
 	}
+}
+
+/* Often used below as a value for the machines[] array. */
+$machines_ids = join (',', array_keys ($machines_list));
+/* A helper function to print a list of machines provided to this
+ * page.
+ *
+ * It also prints hidden <input> elements to sent by the form. */
+function print_machines_list ($machines_list) {
+	print (join (', ', $machines_list));
+	foreach (array_keys ($machines_list) as $id) {
+		print ("<input type='hidden' name='a_machines[]' value='$id'>" . PHP_EOL);
+	}
+}
+
 	if(count($blockedMachines) != 0) {
 		echo "<div class=\"text-medium\">" .
 			"The following machines are currently either marked as \"Not accepting jobs\" or \"Outdated (Blocked)\":<br /><br />" . 
@@ -58,21 +77,7 @@ Single-machine jobs are configuration tasks or test runs that have been stored o
 <p class="text-main">
 <b>Job(s) will run on the following machine(s): </b>
 <?php
-    $flag=0;
-    $machine_list = "";
-    foreach ($machines as $machine):
-	echo('<input type="hidden" name="a_machines[]" value="'.$machine->get_id().'">');
-	if( $flag ){
-		echo ', ';
-		echo($machine->get_hostname() );
-		$machine_list .= "," . $machine->get_id();
-	}
-	else{
-		echo($machine->get_hostname() );
-		$machine_list = $machine->get_id();
-	}
-	$flag=1;
-    endforeach;
+print_machines_list ($machines_list);
 ?>
 </p>
 <div id="predefined" class="text-main">
@@ -114,7 +119,7 @@ if(is_dir($dir)) {
 				echo "        <td title=\"$jobdescription\">$file</td>\n";
 				echo "        <td class=\"viewXml\" align=\"center\">\n";
 				echo "            <a href=\"".$config->xml->dir->web->default."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/27/xml_green.png\" class=\"icon-small\" alt=\"view\" title=\"view the job XML $file\" /></a>\n";
-				echo "            <a href=\"index.php?go=edit_jobs&amp;file=$file&amp;opt=edit&amp;machine_list=$machine_list\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" class=\"icon-small\"alt=\"edit\" title=\"Edit the job XML $file\" /></a>\n";
+				echo "            <a href=\"index.php?go=edit_jobs&amp;file=$file&amp;opt=edit&amp;machine_list=$machines_ids\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" class=\"icon-small\"alt=\"edit\" title=\"Edit the job XML $file\" /></a>\n";
 				echo "        </td>";
 				echo "     </tr>\n";
 				echo "     <tr class=\"file_list\">\n";
@@ -182,8 +187,8 @@ if(is_dir($dir)) {
                     echo "        <td title=\"$jobdescription\">$file</td>\n";
                     echo "        <td class=\"viewXml\" align=\"center\">\n";
                     echo "            <a href=\"".$config->xml->dir->web->custom."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/27/xml_green.png\" class=\"icon-small\" alt=\"view\" title=\"view the job XML $file\" /></a>\n";
-                    echo "            <a href=\"index.php?go=edit_jobs&amp;file=custom/$file&amp;opt=edit&amp;machine_list=$machine_list\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" class=\"icon-small\" alt=\"edit\" title=\"Edit the job XML $file\" /></a>\n";
-                    echo "            <a href=\"index.php?go=machine_send_job&amp;file=custom/$file&amp;opt=delete&amp;machine_list=$machine_list\" onclick=\"if(confirm('WARNING: You will delete the custom job XML file, are you sure?')) return true; else return false;\" title=\"delete $file\"><img src=\"images/27/icon-delete.png\" class=\"icon-small\" alt=\"delete\" title=\"Delete the job XML $file\" /></a>\n";
+                    echo "            <a href=\"index.php?go=edit_jobs&amp;file=custom/$file&amp;opt=edit&amp;machine_list=$machines_ids\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" class=\"icon-small\" alt=\"edit\" title=\"Edit the job XML $file\" /></a>\n";
+                    echo "            <a href=\"index.php?go=machine_send_job&amp;file=custom/$file&amp;opt=delete&amp;machine_list=$machines_ids\" onclick=\"if(confirm('WARNING: You will delete the custom job XML file, are you sure?')) return true; else return false;\" title=\"delete $file\"><img src=\"images/27/icon-delete.png\" class=\"icon-small\" alt=\"delete\" title=\"Delete the job XML $file\" /></a>\n";
                     echo "    </tr class=\"file_list\">\n";
                     echo "    <tr>\n";
 		    echo "        <td colspan=\"3\">\n";
@@ -249,23 +254,8 @@ Jobs in this category have different roles for different machines, you will be a
 <p class="text-main">
 <b>Job(s) will run on the following machine(s): </b>
 <?php
-    $flag=0;
-    $machine_list = "";
-    foreach ($machines as $machine):
-	echo('<input type="hidden" name="a_machines[]" value="'.$machine->get_id().'">');
-	if( $flag ){
-		echo ', ';
-		echo($machine->get_hostname() );
-		$machine_list .= "," . $machine->get_id();
-	}
-	else{
-		echo($machine->get_hostname() );
-		$machine_list = $machine->get_id();
-	}
-	$flag=1;
-    endforeach;
+print_machines_list ($machines_list);
 ?>
-
 
 </p>
 <table id="mmjobs" class="text-main" width="600px">
@@ -293,7 +283,7 @@ Jobs in this category have different roles for different machines, you will be a
                     echo "        <td>$file</td>\n";
                     echo "        <td align=\"center\">";
                     echo "            <a href=\"".$config->xml->dir->multimachine->web->default."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/27/xml_green.png\" class=\"icon-small\" alt=\"view\" title=\"view the job XML $file\" /></a>";
-                    echo "            <a href=\"index.php?go=edit_jobs&amp;file=multimachine/$file&amp;opt=edit&amp;machine_list=$machine_list\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" class=\"icon-small\" alt=\"edit\" title=\"Edit the job XML $file\" /></a>";
+                    echo "            <a href=\"index.php?go=edit_jobs&amp;file=multimachine/$file&amp;opt=edit&amp;machine_list=$machines_ids\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" class=\"icon-small\" alt=\"edit\" title=\"Edit the job XML $file\" /></a>";
                     echo "        </td>\n";
                     echo "    </tr>\n";
                 }
@@ -320,8 +310,6 @@ if(is_dir($dir))
     </thead>
     <?php
 
-    #print "$dir <br />";
-    //print "<br /> 2 ----------------------------- <br />machine_targets = $machine_targets <br />";
     if(is_dir($dir))
     {
         if($handle = opendir($dir))
@@ -335,8 +323,8 @@ if(is_dir($dir))
                     echo "        <td>$file</td>\n";
                     echo "        <td align=\"center\">";
                     echo "            <a href=\"".$config->xml->dir->multimachine->web->custom."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/27/xml_green.png\" alt=\"vire\" title=\"View the job XML $file\" class=\"icon-small\" /></a>";
-                    echo "            <a href=\"index.php?go=edit_jobs&amp;file=multimachine/custom/$file&amp;opt=edit&amp;machine_list=$machine_list\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" alt=\"edit\" title=\"Edit the job XML $file\" class=\"icon-small\" /></a>";
-                    echo "            <a href=\"index.php?go=machine_send_job&amp;file=multimachine/custom/$file&amp;opt=delete&amp;machine_list=$machine_list\" onclick=\"if(confirm('WARNING: You will delete the custom job XML file, are you sure?')) return true; else return false;\" title=\"delete $file\"><img src=\"images/27/icon-delete.png\" alt=\"delete\" title=\"Delete the job XML $file\" class=\"icon-small\" /></a>";
+                    echo "            <a href=\"index.php?go=edit_jobs&amp;file=multimachine/custom/$file&amp;opt=edit&amp;machine_list=$machines_ids\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" alt=\"edit\" title=\"Edit the job XML $file\" class=\"icon-small\" /></a>";
+                    echo "            <a href=\"index.php?go=machine_send_job&amp;file=multimachine/custom/$file&amp;opt=delete&amp;machine_list=$machines_ids\" onclick=\"if(confirm('WARNING: You will delete the custom job XML file, are you sure?')) return true; else return false;\" title=\"delete $file\"><img src=\"images/27/icon-delete.png\" alt=\"delete\" title=\"Delete the job XML $file\" class=\"icon-small\" /></a>";
                     echo "        </td>\n";
                     echo "    </tr>\n";
                 }
@@ -375,14 +363,8 @@ QA-packages Jobs are used to launch various test suites on your System Under Tes
 <table class="text-main">
     <tr><td><b>Selected job(s) will run on the following machine(s): </b></td><td>
     <?php
-        $flag=0;
-        foreach ($machines as $machine):
-            echo('<input type="hidden" name="a_machines[]" value="'.$machine->get_id().'">');
-            if( $flag ) echo ', ';
-            echo($machine->get_hostname() );
-            $flag=1;
-        endforeach;
-        echo "</td></tr></table><table class=\"text-main\">";
+print_machines_list ($machines_list);
+echo "</td></tr></table><table class=\"text-main\">";
 
 	$tslist=$config->lists->tslist;
 	$test_suites="";
@@ -444,14 +426,8 @@ Autotest jobs.
 <table class="text-main">
     <tr><td><b>Selected job(s) will run on the following machine(s): </b></td><td>
     <?php
-        $flag=0;
-        foreach ($machines as $machine):
-            echo('<input type="hidden" name="a_machines[]" value="'.$machine->get_id().'">');
-            if( $flag ) echo ', ';
-            echo($machine->get_hostname() );
-            $flag=1;
-        endforeach;
-        echo "</td></tr></table><table class=\"text-main\">";
+print_machines_list ($machines_list);
+echo "</td></tr></table><table class=\"text-main\">";
 
     $atlist=$config->lists->atlist;
     $test_suites="";
@@ -490,25 +466,12 @@ You can create two type of job: Single-machine job and Multi-machine job, for Si
     <tr>
     <td><b>Job will run on the following machine(s): </b></td>
     <td>
-    <?php
-    $machine_list="";
-    $flag=0;
-    foreach ($machines as $machine):
-        echo('<input type="hidden" name="a_machines[]" value="'.$machine->get_id().'">');
-        if( $flag ){
-                echo ', ';
-                echo($machine->get_hostname() );
-                $machine_list .= "," . $machine->get_id();
-        }
-        else{
-                echo($machine->get_hostname() );
-                $machine_list = $machine->get_id();
-        }
-        $flag=1;
-    endforeach;
-        echo "</td></tr></table><table class=\"text-main\" width=\"900px\"";
-	echo "<input type=\"hidden\" name=\"machine_list\" value=\"$machine_list\">";
-    ?>
+
+<?php
+print_machines_list ($machines_list);
+echo "</td></tr></table><table class=\"text-main\" width=\"900px\">";
+echo "<input type=\"hidden\" name=\"machine_list\" value=\"$machines_ids\">";
+?>
 
     <?php require("edit_job.php"); ?>
 
