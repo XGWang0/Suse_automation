@@ -87,15 +87,21 @@ Single-machine jobs are configuration tasks or test runs that have been stored o
     <?php
 
 /* See 'hamsta.ini' file for description. */
-$dir=$config->xml->dir->default;
+$dir = $config->xml->dir->default;
 if(is_dir($dir)) {
 	if($handle = opendir($dir)) {
 		$sortcount = 0;  # at first, I wanna use the XML file name, but failed, I have to sort the XML and use the sort number.
 		while(($file = readdir($handle)) !== false) {
-			if($file != "." && $file != ".." && substr($file,-4)=='.xml') {
-				$filebasename = substr($file, 0, -4);
-
-				$xml = simplexml_load_file( "$dir/$file" );
+			$fullpath = join ("/", array ($dir, $file));
+			if(is_file ($fullpath)
+			   && pathinfo ($file, PATHINFO_EXTENSION) == 'xml') {
+				$filebasename = basename ($file, '.xml');
+				/* Avoid getting warnings and check the return
+				 * status. */
+				$xml = @simplexml_load_file( "$dir/$file" );
+				if ($xml === FALSE) {
+					continue;
+				}
 				$jobname = $xml->config->name;
 				$jobdescription = $xml->config->description;
 
