@@ -86,62 +86,58 @@ Single-machine jobs are configuration tasks or test runs that have been stored o
         </thead>
     <?php
 
-    /* See 'hamsta.ini' file for description. */
-    $dir=$config->xml->dir->default;
-    if(is_dir($dir))
-    {
-        if($handle = opendir($dir))
-        {
-	    $sortcount = 0;  # at first, I wanna use the XML file name, but failed, I have to sort the XML and use the sort number.
-            while(($file = readdir($handle)) !== false)
-            {
-                if($file != "." && $file != ".." && substr($file,-4)=='.xml')
-		{
-			$filebasename = substr($file, 0, -4);
+/* See 'hamsta.ini' file for description. */
+$dir=$config->xml->dir->default;
+if(is_dir($dir)) {
+	if($handle = opendir($dir)) {
+		$sortcount = 0;  # at first, I wanna use the XML file name, but failed, I have to sort the XML and use the sort number.
+		while(($file = readdir($handle)) !== false) {
+			if($file != "." && $file != ".." && substr($file,-4)=='.xml') {
+				$filebasename = substr($file, 0, -4);
 
-			$xml = simplexml_load_file( "$dir/$file" );
-			$jobname = $xml->config->name;
-			$jobdescription = $xml->config->description;
+				$xml = simplexml_load_file( "$dir/$file" );
+				$jobname = $xml->config->name;
+				$jobdescription = $xml->config->description;
 
-			$param_map = get_parameter_maps($xml);
-			$count = count($param_map);
+				$param_map = get_parameter_maps($xml);
+				$count = count($param_map);
 					
-                    echo "    <tr class=\"file_list\">\n";
-		    # echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"single-machine job:$file\" onclick=\"showParamConts('$filebasename')\">\n";
-		    echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"Single-machine job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
-                    echo "        <td title=\"$jobdescription\">$file</td>\n";
-                    echo "        <td class=\"viewXml\" align=\"center\">\n";
-                    echo "            <a href=\"".$config->xml->dir->web->default."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/27/xml_green.png\" class=\"icon-small\" alt=\"view\" title=\"view the job XML $file\" /></a>\n";
-                    echo "            <a href=\"index.php?go=edit_jobs&amp;file=$file&amp;opt=edit&amp;machine_list=$machine_list\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" class=\"icon-small\"alt=\"edit\" title=\"Edit the job XML $file\" /></a>\n";
-                    echo "        </td>";
-		    echo "     </tr>\n";
-                    echo "     <tr class=\"file_list\">\n";
-		    echo "        <td colspan=\"3\">\n";
-		    if( $count > 0 )
-		    {
+				echo "    <tr class=\"file_list\">\n";
+# echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"single-machine job:$file\" onclick=\"showParamConts('$filebasename')\">\n";
+				echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"Single-machine job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
+				echo "        <td title=\"$jobdescription\">$file</td>\n";
+				echo "        <td class=\"viewXml\" align=\"center\">\n";
+				echo "            <a href=\"".$config->xml->dir->web->default."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/27/xml_green.png\" class=\"icon-small\" alt=\"view\" title=\"view the job XML $file\" /></a>\n";
+				echo "            <a href=\"index.php?go=edit_jobs&amp;file=$file&amp;opt=edit&amp;machine_list=$machine_list\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" class=\"icon-small\"alt=\"edit\" title=\"Edit the job XML $file\" /></a>\n";
+				echo "        </td>";
+				echo "     </tr>\n";
+				echo "     <tr class=\"file_list\">\n";
+				echo "        <td colspan=\"3\">\n";
+				if( $count > 0 )
+				{
 
-		    	echo "        <div style=\"margin-left: 40px; margin-top: 2px; padding: 2px 2px 10px 2px; border: 1px solid #cdcdcd\" id=\"div_$sortcount\">\n";
-			echo "            <div class=\"text-main\" style=\"padding: 5px 5px 5px 5px\"><b>Edit parameters in the form below.</b></div>\n";
+					echo "        <div style=\"margin-left: 40px; margin-top: 2px; padding: 2px 2px 10px 2px; border: 1px solid #cdcdcd\" id=\"div_$sortcount\">\n";
+					echo "            <div class=\"text-main\" style=\"padding: 5px 5px 5px 5px\"><b>Edit parameters in the form below.</b></div>\n";
 			
-			# get the parameter table, avoid the same parameter name in different jobs
-			$prefix_name = $filebasename . "_";
-			$parameter_table = get_parameter_table($param_map, $prefix_name);
+# get the parameter table, avoid the same parameter name in different jobs
+					$prefix_name = $filebasename . "_";
+					$parameter_table = get_parameter_table($param_map, $prefix_name);
 
-			echo $parameter_table;
-			echo "        </div>\n";
-		    }
+					echo $parameter_table;
+					echo "        </div>\n";
+				}
 
-		    echo "        </td>\n";
-		    echo "    </tr>\n";
+				echo "        </td>\n";
+				echo "    </tr>\n";
 
-		    $sortcount++;
-                }
-            }
-            closedir($handle);
-        }
-    }
+				$sortcount++;
+			}
+		}
+		closedir($handle);
+	}
+}
 
-    ?>
+?>
 </table>
 
 <table id="jobs_custom" class="text-main" width="600px">
