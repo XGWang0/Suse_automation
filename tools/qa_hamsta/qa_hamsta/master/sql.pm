@@ -50,6 +50,14 @@ use base 'db_common';
 
 our @ISA = ('db_common');
 
+# non-table functions
+
+sub convert_timezone($$)
+{
+	my ($ts,$zone)=@_;
+	$zone="$1:$2" if $zone =~ /([+-]\d\d)(\d\d)/;
+	return $dbc->scalar_query("SELECT CONVERT_TZ(?,?,'SYSTEM')",$ts,$zone);
+}
 
 ### machine functions
 
