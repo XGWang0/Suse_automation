@@ -100,10 +100,13 @@ if (is_dir ($dir) && $handle = opendir ($dir)) {
 	while (($file = readdir ($handle)) !== false) {
 		$fullpath = join ("/", array ($dir, $file));
 		if (($xml = get_xml_file ($fullpath)) !== FALSE) {
+			$web_dir = $config->xml->dir->web->default;
 			$filebasename = basename ($file, '.xml');
+			/* Path browseable from the web UI. */
+			$web_path = $web_dir . '/' . $file;
+
 			$jobname = $xml->config->name;
 			$jobdescription = $xml->config->description;
-
 			$param_map = get_parameter_maps($xml);
 			$count = count($param_map);
 					
@@ -112,8 +115,7 @@ if (is_dir ($dir) && $handle = opendir ($dir)) {
 			echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"Single-machine job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
 			echo "        <td title=\"$jobdescription\">$file</td>\n";
 			echo "        <td class=\"viewXml\" align=\"center\">\n";
-			echo "            <a href=\"".$config->xml->dir->web->default."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/27/xml_green.png\" class=\"icon-small\" alt=\"view\" title=\"view the job XML $file\" /></a>\n";
-			echo "            <a href=\"index.php?go=edit_jobs&amp;file=$file&amp;opt=edit&amp;machine_list=$machines_ids\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" class=\"icon-small\"alt=\"edit\" title=\"Edit the job XML $file\" /></a>\n";
+			print (job_icons ($web_path, $machines_list));
 			echo "        </td>";
 			echo "     </tr>\n";
 			echo "     <tr class=\"file_list\">\n";
@@ -156,10 +158,14 @@ if (is_dir ($dir) && $handle = opendir ($dir)) {
 $dir = $config->xml->dir->custom;
 if (is_dir ($dir) && $handle = opendir ($dir)) {
 	while (($file = readdir ($handle)) !== false) {
-		$fullpath = join ("/", array ($dir, $file));
+		$fullpath = join ('/', array ($dir, $file));
 
 		if (($xml = get_xml_file ($fullpath)) !== FALSE) {
 			$filebasename = basename ($file, '.xml');
+			$web_dir = $config->xml->dir->web->custom;
+			/* Path browseable from the web UI. */
+			$web_path = join ('/', array ($web_dir, $file));
+
 			$jobname = $xml->config->name;
 			$jobdescription = $xml->config->description;
 			$param_map = get_parameter_maps($xml);
@@ -170,9 +176,7 @@ if (is_dir ($dir) && $handle = opendir ($dir)) {
 			echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"Single-machine custom job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
 			echo "        <td title=\"$jobdescription\">$file</td>\n";
 			echo "        <td class=\"viewXml\" align=\"center\">\n";
-			echo "            <a href=\"".$config->xml->dir->web->custom."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/27/xml_green.png\" class=\"icon-small\" alt=\"view\" title=\"view the job XML $file\" /></a>\n";
-			echo "            <a href=\"index.php?go=edit_jobs&amp;file=custom/$file&amp;opt=edit&amp;machine_list=$machines_ids\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" class=\"icon-small\" alt=\"edit\" title=\"Edit the job XML $file\" /></a>\n";
-			echo "            <a href=\"index.php?go=machine_send_job&amp;file=custom/$file&amp;opt=delete&amp;machine_list=$machines_ids\" onclick=\"if(confirm('WARNING: You will delete the custom job XML file, are you sure?')) return true; else return false;\" title=\"delete $file\"><img src=\"images/27/icon-delete.png\" class=\"icon-small\" alt=\"delete\" title=\"Delete the job XML $file\" /></a>\n";
+			print (job_icons ($web_path, $machines_list, true));
 			echo "    </tr class=\"file_list\">\n";
 			echo "    <tr>\n";
 			echo "        <td colspan=\"3\">\n";
@@ -216,12 +220,12 @@ if (is_dir ($dir) && $handle = opendir ($dir)) {
 <input type="submit" name="submit" value="Send Single-machine job(s)">
 </form>
 <script type="text/javascript">
-<!--
+// <!--
 //var TSort_Data = new Array ('jobs', '','s','' );
 //tsRegister();
 //var TSort_Data = new Array ('jobs_custom', '','s','' );
 //tsRegister();
--->
+// -->
 </script>
 
 
@@ -256,12 +260,15 @@ if (is_dir ($dir) && $handle = opendir ($dir)) {
 		$fullpath = join ("/", array ($dir, $file));
 		if (($xml = get_xml_file ($fullpath)) !== FALSE) {
 			$filebasename = basename ($file, '.xml');
+			$web_dir = $config->xml->dir->multimachine->web->default;
+			/* Path browseable from the web UI. */
+			$web_path = join ('/', array ($web_dir, $file));
+
 			echo "    <tr class=\"file_list\">\n";
 			echo "        <td><input type=\"radio\" name=\"filename\" value=\"$filebasename\" title=\"Multi-machine job:$file\"></td>\n";
 			echo "        <td>$file</td>\n";
 			echo "        <td align=\"center\">";
-			echo "            <a href=\"".$config->xml->dir->multimachine->web->default."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/27/xml_green.png\" class=\"icon-small\" alt=\"view\" title=\"view the job XML $file\" /></a>";
-			echo "            <a href=\"index.php?go=edit_jobs&amp;file=multimachine/$file&amp;opt=edit&amp;machine_list=$machines_ids\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" class=\"icon-small\" alt=\"edit\" title=\"Edit the job XML $file\" /></a>";
+			print (job_icons ($web_path, $machines_list));
 			echo "        </td>\n";
 			echo "    </tr>\n";
 		}
@@ -290,13 +297,15 @@ if(is_dir($dir) && $handle = opendir($dir)) {
 	while(($file = readdir($handle)) !== false) {
 		$fullpath = join ("/", array ($dir, $file));
 		if ($xml = get_xml_file ($fullpath)) {
+			$web_dir = $config->xml->dir->multimachine->web->custom;
+			/* Path browseable from the web UI. */
+			$web_path = join ('/', array ($web_dir, $file));
+
 			echo "    <tr class=\"file_list\">\n";
 			echo "        <td><input type=\"radio\" name=\"filename\" value=\"$dir/$file\" title=\"Multi-machine custom job:$file\"></td>\n";
 			echo "        <td>$file</td>\n";
 			echo "        <td align=\"center\">";
-			echo "            <a href=\"".$config->xml->dir->multimachine->web->custom."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/27/xml_green.png\" alt=\"vire\" title=\"View the job XML $file\" class=\"icon-small\" /></a>";
-			echo "            <a href=\"index.php?go=edit_jobs&amp;file=multimachine/custom/$file&amp;opt=edit&amp;machine_list=$machines_ids\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" alt=\"edit\" title=\"Edit the job XML $file\" class=\"icon-small\" /></a>";
-			echo "            <a href=\"index.php?go=machine_send_job&amp;file=multimachine/custom/$file&amp;opt=delete&amp;machine_list=$machines_ids\" onclick=\"if(confirm('WARNING: You will delete the custom job XML file, are you sure?')) return true; else return false;\" title=\"delete $file\"><img src=\"images/27/icon-delete.png\" alt=\"delete\" title=\"Delete the job XML $file\" class=\"icon-small\" /></a>";
+			print (job_icons ($web_path, $machines_list, true));
 			echo "        </td>\n";
 			echo "    </tr>\n";
 		}

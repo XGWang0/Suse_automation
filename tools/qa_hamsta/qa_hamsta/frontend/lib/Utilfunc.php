@@ -432,6 +432,47 @@ function virtual_machine_icons ($machine, $user)
 	return $ret;
 }
 
+function job_icons ($xml_web_path, $machines_list, $custom = false) {
+	$ret = '';
+	$config = ConfigFactory::build ();
+	/* Strip the root web XML directory. The edit and delete buttons
+	 * only refer to the relative path under this directory. */
+	$xml_web_root = $config->xml->dir->web->default;
+	$relative_xml_path = str_replace ($xml_web_root . '/', '', $xml_web_path);
+
+	$basename = basename ($xml_web_path);
+	$jobname = basename ($xml_web_path, '.xml');
+	$machines_ids = join (',', array_keys ($machines_list));
+
+	$icons = array (
+		'view-xml' => array (
+				'url'			=> $xml_web_path,
+				'type'			=> 'xml',
+				'fullname'		=> "View the XML job definition"),
+		'edit' => array (
+				'url'			=> "index.php?go=edit_jobs&file=$relative_xml_path&opt=edit&machine_list=$machines_ids",
+				'type'			=> 'edit',
+				'fullname'		=> 'Edit the job definition.')
+		);
+
+	if ($custom) {
+		$icons['delete'] = array (
+				'url'			=> "index.php?go=machine_send_job&file=$relative_xml_path&opt=delete&machine_list=$machines_ids",
+				'type'			=> 'delete',
+				'fullname'		=> 'Delete the custom job definition.'
+				);
+	}
+
+	foreach (array_keys ($icons) as $icon) {
+		$icon_setup = array_merge (
+				array ('link' => true),
+				$icons[$icon]);
+		$ret .= task_icon ($icon_setup);
+	}
+
+	return $ret;
+}
+
 function redirect ($args = array())
 {
 	$errmsg=hash_get($args,'errmsg','You need to be logged in and/or have permissions ');
