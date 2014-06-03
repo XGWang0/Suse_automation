@@ -41,6 +41,8 @@ use Data::Dumper;
 use Socket;
 use POSIX ':sys_wait_h';
 
+use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
+
 BEGIN { push @INC, '.', '/usr/share/hamsta', '/usr/share/qa/lib'; }
 use log;
 $log::loginfo='slave_diplom';
@@ -107,6 +109,26 @@ child {
     open(STDOUT_ORG, ">&STDOUT");
     STDOUT_ORG->autoflush(1);
     &log_set_output(handle=>*STDOUT_ORG,close=>1);
+    our $job_log_file = '/var/log/hamsta-job.log';
+    our $job_sock_stat = 'normal';#normal or abnormal
+    our $sock_broken_job_proc = '';
+    #create socket pair for communication between job child and parent process
+    while(1){
+        unless(socketpair(JOB_CHILD, JOB_PARENT, AF_UNIX, SOCK_STREAM, PF_UNSPEC)){
+	    log(LOG_ERR,"Socketpair creation for JOB_CHILD and JOB_PARENT processes failed!");
+            next;
+	}
+	#Set to non-blocking
+	my $flags = fcntl(JOB_CHILD, F_GETFL, 0);
+	fcntl(JOB_CHILD, F_SETFL, $flags | O_NONBLOCK);
+	undef $flags;
+	$flags = fcntl(JOB_PARENT, F_GETFL, 0);
+	fcntl(JOB_PARENT, F_SETFL, $flags | O_NONBLOCK);
+
+	JOB_CHILD->autoflush(1);
+	JOB_PARENT->autoflush(1);
+	last;
+    }
     run_slave_server();
 }
 parent {
@@ -149,6 +171,26 @@ while(1){
               open(STDOUT_ORG, ">&STDOUT");
 	      STDOUT_ORG->autoflush(1);
 	      &log_set_output(handle=>*STDOUT_ORG,close=>1);
+              our $job_log_file = '/var/log/hamsta-job.log';
+              our $job_sock_stat = 'normal';#normal or abnormal
+              our $sock_broken_job_proc = '';
+              while(1){
+                  unless(socketpair(JOB_CHILD, JOB_PARENT, AF_UNIX, SOCK_STREAM, PF_UNSPEC)){
+                      log(LOG_ERR,"Socketpair creation for JOB_CHILD and JOB_PARENT processes failed!");
+                      next;
+		  }
+		  
+                  #Set to non-blocking
+                  my $flags = fcntl(JOB_CHILD, F_GETFL, 0);
+                  fcntl(JOB_CHILD, F_SETFL, $flags | O_NONBLOCK);
+                  undef $flags;
+                  $flags = fcntl(JOB_PARENT, F_GETFL, 0);
+                  fcntl(JOB_PARENT, F_SETFL, $flags | O_NONBLOCK);
+
+		  JOB_CHILD->autoflush(1);
+                  JOB_PARENT->autoflush(1);
+          	  last;
+              }
 	      run_slave_server();
 	}
 	parent {
@@ -213,7 +255,16 @@ sub run_slave_server() {
             $SIG{'PIPE'} = 'IGNORE';
 
             if ( &allow_connection($ip_addr) ){
-		    process_request($connection, $ip_addr);
+		    our $job_sock_stat;
+		    if($job_sock_stat eq 'abnormal'){
+			    #For new mm_sync, all masters reserve SUT before doing anything,
+			    #So for reconnecting, only the master reserving the machine can come here, no need to check ip again
+			    #recovered connection send nothing here, just get back job log.
+
+			    &handle_connection_recovery($connection);
+		    }else{
+		            process_request($connection, $ip_addr);
+		    }
             }else{
 		    &log(LOG_NOTICE,"Refuse connection from non-reserved master $ip_addr.");
 		    print $connection "Connection failed!\n The SUT was reserved by other hamsta master already, and the reserved master ip was $Slave::reserved_hamsta_master_ip!\n";
@@ -239,6 +290,76 @@ sub run_slave_server() {
         }
     }
 }
+
+# handle_connection_recovery()
+#
+# Handles connection recovery after job socket previously  broken  with master: 
+# Do what: send back local stored job log; slave_state setting; notify job child process to recover normal logginga; recover real-time logging
+sub handle_connection_recovery(){
+	my $sock = shift;
+
+	my $local_log_fh;
+
+	our $job_log_file;
+	our $job_sock_stat;
+	our $sock_broken_job_proc;
+
+	log(LOG_NOTICE,"Connection recovered after job socket previously  broken!");
+	my $msg_from_job_child;
+	my $has_in_time_log = 'no';
+	#Notify the job proc if it is still running 
+	unless(waitpid($sock_broken_job_proc, WNOHANG)){
+		$has_in_time_log = 'yes';
+
+		print JOB_PARENT "Recovered job sock: $sock";
+		log(LOG_NOTICE, "Notification to the job child process about recovered job connection was sent!");
+
+		#wait for child finish dealing with the norification
+	  	while ( not read(JOB_PARENT,$msg_from_job_child,1024) or $msg_from_job_child !~ /Job child proc connection recovery handling is done!/){
+			sleep 1;
+		}
+	        # get msg from job child process
+	        chomp $msg_from_job_child;
+	        log(LOG_NOTICE, "Job parent process received from job child proc: $msg_from_job_child");
+	}
+
+	unless(-e $job_log_file and open $local_log_fh, "<$job_log_file"){
+		log(LOG_ERROR,"The local job log file can not be opened: $job_log_file");
+	}
+	if (defined $local_log_fh and $local_log_fh){
+		#send local stored log back
+		while (<$local_log_fh>){
+			chomp $_;
+			log(LOG_DETAIL, "Slave-server:: sent back to master log from local file: $_");
+			print $sock $_."\n";
+		}
+		log(LOG_NOTICE, "All stored local job log was sent back!");
+		
+		close $local_log_fh;
+		unlink $job_log_file;
+	}
+
+	if($has_in_time_log eq 'yes'){
+		#Transfer in-time log
+		while(1){
+			if(read(JOB_PARENT,$msg_from_job_child,1024)){
+				chomp $msg_from_job_child;
+				log(LOG_DETAIL, "Slave-server:: sent back to master in-time log: $msg_from_job_child");
+				print $sock $msg_from_job_child."\n";
+				last if ($msg_from_job_child =~ /Job ist fertig/);
+			}else{
+				sleep 1;
+			}
+		}
+
+		log(LOG_NOTICE, "All in-time job log was sent back!");
+	}
+	#Set the status of job sock to normal
+	$job_sock_stat = 'normal';
+	log(LOG_NOTICE,"Slave-server:: job_sock_stat is set to normal!");
+
+}
+
 
 # process_request()
 #
@@ -386,32 +507,102 @@ sub start_job() {
     &log(LOG_DETAIL, "Written XML to file $filename");
 
     # Start the execution and collect the output
-    
+    our $job_sock_stat;
+    our $job_log_file;
+    our $sock_broken_job_proc;
+
     #time out monitor start.
     my $sut_timeout=0;
     #find out time out value.
     my $fork_re = fork ();
     if($fork_re==0) {
 	#in child, start to work;
+
+	$SIG{'PIPE'} = \&deal_with_broken_job_sock;
+
 	#close share socket in child
+	#keep JOB_CHILD to communicate with parent proc
+	close JOB_PARENT;
+
 	&command("/usr/share/qa/tools/sync_qa_config $ip_addr");
         my $pid_main = open (FILE, "/usr/bin/perl Slave/run_job.pl $filename 2>&1|");
         my $count = 0;
-        while (<FILE>) {
-	    chomp;
+	my $msg_from_parent;
+	#my $job_log_fh;
+	our $job_log_fh;
+	my $log_line;
+        while ($log_line = <FILE>) {
+	    chomp $log_line;
 	    #bug 615911
-	    next if ($_ =~ /A thread exited while \d+ threads were running/);
-            &log(LOG_DETAIL, '%s', $_);
-            print $sock $_."\n";
+	    next if ($log_line =~ /A thread exited while \d+ threads were running/);
+            &log(LOG_DETAIL, '%s', $log_line);
+
+	    #check msg from parent whether job sock connection restored
+	    if(read(JOB_CHILD,$msg_from_parent,1024)){
+		chomp $msg_from_parent;
+	        log(LOG_NOTICE,"Job child process received message from parent proc: $msg_from_parent");
+		if($msg_from_parent =~ /Recovered job sock: *([^ ]+) *$/){
+		    log(LOG_NOTICE,"Job child process will continue to send log to sock directly!");
+		    $job_sock_stat = 'recovered';
+		    close $job_log_fh;
+		    undef $job_log_fh;
+		    #Notify parent proc about finish dealing with the recovery notification
+		    print JOB_CHILD "Job child proc connection recovery handling is done!\n";
+		    log(LOG_NOTICE,"Job child process send to parent: Job child proc connection recovery handling is done!");
+		}
+	    }
+	    #store log
+	    if ($job_sock_stat eq 'abnormal'){
+                #write job log to log file
+		print $job_log_fh $log_line."\n";
+		log(LOG_DETAIL,"Job child process store job log to local file : $log_line");
+	    }elsif($job_sock_stat eq 'recovered'){
+		#send job log to parent proc to transfer to the recovered sock
+		print JOB_CHILD $log_line."\n";
+		log(LOG_DETAIL,"Job child process send in-time log to parent : $log_line");
+	    }else{
+#		    #send log to sock when sock is normal, otherwise error handling
+		    eval{
+		    	    print $sock $log_line."\n" || log(LOG_ERROR,"Can not write to job sock!");
+		    };
+		    #deal with errors, SIGPIPE can not be handled here
+		    if ($@){
+			        log(LOG_ERR, "Job child process: $@");
+			   	log(LOG_NOTICE,"Job child process socket is abnormal, it will store log to local file:$job_log_file");
+			    	log(LOG_NOTICE,"Job child process set job socket status to: abnormal!");
+			    	$job_sock_stat = 'abnormal';
+			    	print JOB_CHILD "Job sock is abnormal in child proc: $$\n";
+			   	open($job_log_fh,">$job_log_file") || log(LOG_ERROR,"Can not open $job_log_file for logging!");
+			   	print $job_log_fh $log_line."\n" if (defined $job_log_fh and $job_log_fh);
+		    }else{
+			    log(LOG_DETAIL,"Job socket is normal, send to sock log: $log_line");
+		    }	    
+	    }
+
             $count++ if ($_ =~/\<job\>$/ );
             last if ($count == 2);
         }
 	close FILE;
-	unlink $filename;
 	&log(LOG_NOTICE, "Job finished.");
-	print $sock "Job ist fertig\n";
+	&log(LOG_INFO, "job sock stat is : $job_sock_stat");
+	if ($job_sock_stat eq 'recovered'){
+		print JOB_CHILD "Job ist fertig\n";
+	}elsif($job_sock_stat eq 'abnormal'){
+		print $job_log_fh "Job ist fertig\n" || log(LOG_ERROR, "Print to log file failed: Job ist fertig");
+		close $job_log_fh;
+	}else{
+		print $sock "Job ist fertig\n";
+	}
+	&log(LOG_INFO, "Job ist ferting is logged!");
+
+	$| = 1;
+	JOB_CHILD->autoflush(1);
+
+	unlink $filename;
+	close JOB_CHILD;
 	exit;
     }elsif($fork_re){
+	log(LOG_INFO,"The job child process id is : $fork_re !");
 	#in parent we start to check child is finish or not;
         my $qa_package_jobs = `grep '\./customtest ' $filename`;
         chomp $qa_package_jobs;
@@ -439,10 +630,24 @@ sub start_job() {
         &log(LOG_NOTICE, "The Job Time out is $sut_timeout (s)");
 
 	my $current_time=0;
+	my $msg_from_job_child;
 	while ($current_time < $sut_timeout) {
 	    goto OUT if(waitpid($fork_re, WNOHANG));
-	    sleep 60;
-	    $current_time += 60;
+
+	    if (read(JOB_PARENT,$msg_from_job_child,1024)){
+		    # get msg from job child process
+		    chomp $msg_from_job_child;
+	            log(LOG_NOTICE, "Job parent process received msg from job child process: $msg_from_job_child");
+		    if ($msg_from_job_child =~ /Job sock is abnormal in child proc: *([^ ]+) *$/){
+			    #job child process socket is abnormal
+			    $job_sock_stat = 'abnormal';
+			    $sock_broken_job_proc = $1;
+			    goto OUT;
+		    }
+	    }
+	    #Set round timer shotter to detect sock error ASAP
+	    sleep 1;
+	    $current_time += 1;
 
 	}
         #timeout
@@ -460,9 +665,20 @@ sub start_job() {
     }
 }
 
+sub deal_with_broken_job_sock() {
+    our $job_sock_stat;
+    our $job_log_file;
+    our $job_log_fh;
+    log(LOG_NOTICE,"IN SIGPIPE SIGNAL HANDLING FUNC : Job child process socket is abnormal, it will store log to local file:$job_log_file");
+    log(LOG_NOTICE,"IN SIGPIPE SIGNAL HANDLING FUNC :Job child process set job socket status to: abnormal!");
+    $job_sock_stat = 'abnormal';
+    print JOB_CHILD "Job sock is abnormal in child proc: $$\n";
+    open($job_log_fh,">$job_log_file") || log(LOG_ERROR,"Can not open $job_log_file for logging!");
+}
 # deconstruct()
 # Does some cleanup (TODO well, at least it should do so...)
 sub deconstruct() {
+
  exit 0;
 }
 
