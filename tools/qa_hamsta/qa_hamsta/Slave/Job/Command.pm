@@ -51,15 +51,6 @@ use Slave::functions qw(:DEFAULT @file_array);
 BEGIN { push @INC, '.', '/usr/share/hamsta', '/usr/share/qa/lib'; }
 use log;
 
-BEGIN {
-        use Exporter();
-        our (@ISA, @EXPORT);
-        @ISA    = qw(Exporter);
-        @EXPORT = qw(
-                @killBuff 
-        );
-}
-our @killBuff = ();
 # Command->new($job)
 #
 # Creates a new Command object. $job is a reference to a hash with the
@@ -182,15 +173,15 @@ sub run {
     # it is just testing code here, only registered $SIG{TERM}
     # If one day , we defined how to trigger this kill action
     # we may modify this interface, considering END{}, $SIG{KILL}, $SIG{__DIE__}.
-    if( $self->{'type'} eq 'worker' ) {
+    if ($self->{'type'} eq 'worker') {
         $SIG{TERM} = sub {
-                        foreach my $commandstring (@killBuff) {
-                                 my $command = Slave::Job::Kill->new('kill', $commandstring, $self);
+                        foreach my $cmd_string (@Slave::kill_buff) {
+                                 my $command = Slave::Job::Kill->new('kill', $cmd_string, $self);
                                  push @{$self->{'command_objects'}}, $command;
                                  $command->run();        
                         }
-                        foreach my $sec ( ($Slave::abortSection, $Slave::finishSection) ) {
-                            if( -e $sec ) {
+                        foreach my $sec (($Slave::abort_section, $Slave::finish_section)) {
+                            if (-e $sec) {
                                 my $type = $1 if( $sec =~ /(finish|abort)/ );
                                 my $cmd = read_xml($sec,1);
                                 my $command = Slave::Job::Command->new($type, $cmd);
