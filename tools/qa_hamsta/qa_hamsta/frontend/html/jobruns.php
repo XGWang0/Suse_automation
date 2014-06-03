@@ -41,11 +41,15 @@
         <th>Started</th>
         <th>Stopped</th>
         <th>Actions</th>
+        <th colspan="3">last</th>
     </tr>
 <?php 
+$i=1000;
+$ii=0;
 foreach ($jobs as $job):
 	$job_link='index.php?go=job_details&amp;id='.$job->get_id();
-?>        <tr>
+	$i++;
+?>        <tr data-tt-id="<?php echo $i; ?>" >
 	    <td><a href="<?php echo $job_link; ?>"><?php echo($job->get_id()); ?></a></td>
 		<td><span class="<?php echo($job->get_status_string()); ?>">
             	    <?php echo($job->get_status_string()); ?></span>
@@ -79,10 +83,45 @@ else
 
 ?>
             </td>
+	    <td colspan="2">last</td>
         </tr>
-    <?php endforeach; ?>
+
+
+<?php
+    $sub_machines = $job->get_machines(); 
+    foreach($sub_machines as $sub_machine):
+    $ii++;
+?>
+    <tr data-tt-id="<?php echo $ii; ?>"   data-tt-parent-id="<?php echo $i; ?>" >
+    <td><a href="#"> <?php echo "sub_job_id"; ?></a> </td>
+    <td><span class="<?php echo($job->get_status_string()); ?>">
+       <?php echo($job->get_status_string()); ?></span>
+    </td>
+<?php
+    $submachine=Machine::get_by_id($sub_machine['machine_id']);
+    $subhostname = '<a href="index.php?go=machine_details&amp;id='.$sub_machine['machine_id'].'">'
+    . $submachine->get_hostname() . '</a>';
+    print "<td>$subhostname</td>";
+?>
+    <td> <?php echo $sub_machine['short_name'] ?> </td>
+    <td> <?php echo $sub_machine['start'] ?> </td>
+    <td> <?php echo $sub_machine['stop'] ?> </td>
+    <td> <?php echo "not reserve for some" ?> </td>
+    <td> <?php echo "machine id is".$sub_machine['machine_id'] ?> </td>
+    </tr>
+<?php endforeach; ?>
+<?php endforeach; ?>
 </table>
+<div id="aaaa" class="float">ex_all</div>
+<div id="bbbb" class="float">col_all</div>
 <br>
+
+<script>
+$("#machinealljobs").treetable( { expandable: true } );
+document.getElementById("aaaa").onclick = function() {  $("#machinealljobs").treetable("expandAll"); };
+document.getElementById("bbbb").onclick = function() {  $("#machinealljobs").treetable("collapseAll"); };
+</script>
+
 <?php
 if(! isset($html_refresh_interval)){$html_refresh_interval = 0;};
 echo showRefresh("index.php?go=jobruns" .$refresh_page.$refresh_machine  , $html_refresh_interval);
