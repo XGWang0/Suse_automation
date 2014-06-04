@@ -519,6 +519,7 @@ sub start_job() {
 	#in child, start to work;
 
 	$SIG{'PIPE'} = \&deal_with_broken_job_sock;
+	our $sock_just_broke_sign = 'no';
 
 	#close share socket in child
 	#keep JOB_CHILD to communicate with parent proc
@@ -561,22 +562,22 @@ sub start_job() {
 		print JOB_CHILD $log_line."\n";
 		log(LOG_DETAIL,"Job child process send in-time log to parent : $log_line");
 	    }else{
-#		    #send log to sock when sock is normal, otherwise error handling
+		    #send log to sock when sock is normal, otherwise error handling
 		    eval{
 		    	    print $sock $log_line."\n" || log(LOG_ERROR,"Can not write to job sock!");
 		    };
 		    #deal with errors, SIGPIPE can not be handled here
 		    if ($@){
 			        log(LOG_ERR, "Job child process: $@");
-			   	log(LOG_NOTICE,"Job child process socket is abnormal, it will store log to local file:$job_log_file");
-			    	log(LOG_NOTICE,"Job child process set job socket status to: abnormal!");
-			    	$job_sock_stat = 'abnormal';
-			    	print JOB_CHILD "Job sock is abnormal in child proc: $$\n";
-			   	open($job_log_fh,">$job_log_file") || log(LOG_ERROR,"Can not open $job_log_file for logging!");
-			   	print $job_log_fh $log_line."\n" if (defined $job_log_fh and $job_log_fh);
+				&deal_with_broken_job_sock;
 		    }else{
 			    log(LOG_DETAIL,"Job socket is normal, send to sock log: $log_line");
 		    }	    
+
+		    if($sock_just_broke_sign eq 'yes'){
+			    print $job_log_fh $log_line."\n" if (defined $job_log_fh and $job_log_fh);
+			    $sock_just_broke_sign = 'no';
+		    }
 	    }
 
             $count++ if ($_ =~/\<job\>$/ );
@@ -669,8 +670,10 @@ sub deal_with_broken_job_sock() {
     our $job_sock_stat;
     our $job_log_file;
     our $job_log_fh;
+    our $sock_just_broke_sign;
     log(LOG_NOTICE,"IN SIGPIPE SIGNAL HANDLING FUNC : Job child process socket is abnormal, it will store log to local file:$job_log_file");
     log(LOG_NOTICE,"IN SIGPIPE SIGNAL HANDLING FUNC :Job child process set job socket status to: abnormal!");
+    $sock_just_broke_sign = 'yes';
     $job_sock_stat = 'abnormal';
     print JOB_CHILD "Job sock is abnormal in child proc: $$\n";
     open($job_log_fh,">$job_log_file") || log(LOG_ERROR,"Can not open $job_log_file for logging!");
