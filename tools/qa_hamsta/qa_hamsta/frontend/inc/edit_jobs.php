@@ -52,9 +52,9 @@ if($file != "") {
 	$file_dir = dirname($real_file);
 
 	if(substr($file_dir, -6) != "custom")
-			$new_file_dir = $file_dir . "/custom";
+		$new_file_dir = $file_dir . "/custom";
 	else
-			$new_file_dir = $file_dir;
+		$new_file_dir = $file_dir;
 
 	$file_name = substr(basename($real_file), 0, -4);
 	$rand = rand();
