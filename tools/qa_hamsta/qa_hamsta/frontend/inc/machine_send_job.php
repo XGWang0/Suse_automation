@@ -36,14 +36,6 @@ $option = request_str ("opt");
 $machine_list = request_str ("machine_list");
 $custom_file = request_str ("file");
 
-/* Only custom defined file can be deleted. */
-if ($option == "delete") {
-	$custom_file = $config->xml->dir->default . "/" . $custom_file;
-
-	if (file_exists($custom_file))
-		unlink ($custom_file);
-}
-
 $search = new MachineSearch ();
 if ($machine_list != "")
 	$machines_id_array = explode (",", $machine_list);
@@ -53,13 +45,24 @@ else
 $search->filter_in_array ($machines_id_array);
 $machines = $search->query ();
 
-$user_allowed = machine_permission_or_disabled ($machines,$perm_send_job);
+/* Only custom defined file can be deleted. */
+if ($option == "delete") {
+	/* Check for permissions or redirect from the page. */
+	machine_permission_or_redirect ($machines, $perm_send_job);
+
+	$custom_file = $config->xml->dir->default . "/" . $custom_file;
+
+	if (file_exists($custom_file))
+		unlink ($custom_file);
+}
+
+$user_allowed = machine_permission_or_disabled ($machines, $perm_send_job);
 
 $resend_job = request_str ("xml_file_name");
 $filenames = request_array ("filename");
 
 if (request_str ("submit")) {
-	machine_permission_or_redirect ($machines,$perm_send_job);
+	machine_permission_or_redirect ($machines, $perm_send_job);
 
 	$email = request_str ("mailto");
 	$jobfilenames = array ();
