@@ -115,7 +115,7 @@ if (is_dir ($dir) && $handle = opendir ($dir)) {
 			echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"Single-machine job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
 			echo "        <td title=\"$jobdescription\">$file</td>\n";
 			echo "        <td class=\"viewXml\" align=\"center\">\n";
-			print (job_icons ($web_path, $machines_list));
+			print (job_icons ($web_path, $machines_list, false, $user_allowed));
 			echo "        </td>";
 			echo "     </tr>\n";
 			echo "     <tr class=\"file_list\">\n";
@@ -176,7 +176,7 @@ if (is_dir ($dir) && $handle = opendir ($dir)) {
 			echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"Single-machine custom job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
 			echo "        <td title=\"$jobdescription\">$file</td>\n";
 			echo "        <td class=\"viewXml\" align=\"center\">\n";
-			print (job_icons ($web_path, $machines_list, true));
+			print (job_icons ($web_path, $machines_list, true, $user_allowed));
 			echo "    </tr class=\"file_list\">\n";
 			echo "    <tr>\n";
 			echo "        <td colspan=\"3\">\n";
@@ -268,7 +268,7 @@ if (is_dir ($dir) && $handle = opendir ($dir)) {
 			echo "        <td><input type=\"radio\" name=\"filename\" value=\"$filebasename\" title=\"Multi-machine job:$file\"></td>\n";
 			echo "        <td>$file</td>\n";
 			echo "        <td align=\"center\">";
-			print (job_icons ($web_path, $machines_list));
+			print (job_icons ($web_path, $machines_list, false, $user_allowed));
 			echo "        </td>\n";
 			echo "    </tr>\n";
 		}
@@ -305,7 +305,7 @@ if(is_dir($dir) && $handle = opendir($dir)) {
 			echo "        <td><input type=\"radio\" name=\"filename\" value=\"$dir/$file\" title=\"Multi-machine custom job:$file\"></td>\n";
 			echo "        <td>$file</td>\n";
 			echo "        <td align=\"center\">";
-			print (job_icons ($web_path, $machines_list, true));
+			print (job_icons ($web_path, $machines_list, true, $user_allowed));
 			echo "        </td>\n";
 			echo "    </tr>\n";
 		}

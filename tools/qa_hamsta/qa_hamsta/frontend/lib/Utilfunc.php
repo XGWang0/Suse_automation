@@ -295,7 +295,11 @@ function task_icon($a,$ref=0)
 	$icon['name'] = $a['name'];
 
 	if (! $ref) {
-		$icon = html_tag('a', icon ($icon), array('href'=>$a['url']));
+		if (empty ($a['url'])) {
+			$icon = icon ($icon);
+		} else {
+			$icon = html_tag('a', icon ($icon), array('href'=>$a['url']));
+		}
 	} else {
 		$icon['href']=$a['url'];
 	}
@@ -432,7 +436,8 @@ function virtual_machine_icons ($machine, $user)
 	return $ret;
 }
 
-function job_icons ($xml_web_path, $machines_list, $custom = false) {
+function job_icons ($xml_web_path, $machines_list, $custom = false,
+					$allowed = true) {
 	$ret = '';
 	$config = ConfigFactory::build ();
 	/* Strip the root web XML directory. The edit and delete buttons
@@ -450,24 +455,32 @@ function job_icons ($xml_web_path, $machines_list, $custom = false) {
 				'type'			=> 'xml',
 				'fullname'		=> "View the XML job definition"),
 		'edit' => array (
-				'url'			=> "index.php?go=edit_jobs&file=$relative_xml_path&opt=edit&machine_list=$machines_ids",
+				'url'			=> "index.php?go=edit_jobs"
+								. "&file=$relative_xml_path&"
+								. "opt=edit&machine_list=$machines_ids",
 				'type'			=> 'edit',
-				'fullname'		=> 'Edit the job definition.')
+				'fullname'		=> 'Edit the job definition.',
+				'err_noperm'	=> 'You are not allowed to edit'
+										. ' the job definition.',
+				'allowed'		=> $allowed)
 		);
 
 	if ($custom) {
 		$icons['delete'] = array (
-				'url'			=> "index.php?go=machine_send_job&file=$relative_xml_path&opt=delete&machine_list=$machines_ids",
 				'type'			=> 'delete',
-				'fullname'		=> 'Delete the custom job definition.'
-				);
+				'fullname'		=> 'Delete the custom job definition.',
+				'err_noperm'	=> 'You are not allowed to delete'
+										. ' the job definition.',
+				'allowed'		=> $allowed);
+		if ($allowed) {
+			$icons['delete']['url'] = "index.php?go=machine_send_job&"
+					. "file=$relative_xml_path&opt=delete&"
+					. "machine_list=$machines_ids";
+		}
 	}
 
-	foreach (array_keys ($icons) as $icon) {
-		$icon_setup = array_merge (
-				array ('link' => true),
-				$icons[$icon]);
-		$ret .= task_icon ($icon_setup);
+	foreach ($icons as $icon) {
+		$ret .= task_icon ($icon);
 	}
 
 	return $ret;

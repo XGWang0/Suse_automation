@@ -53,7 +53,7 @@ else
 $search->filter_in_array($machines_id_array);
 $machines = $search->query();
 
-machine_permission_or_disabled($machines,$perm_send_job);
+$user_allowed = machine_permission_or_disabled ($machines,$perm_send_job);
 
         $resend_job=request_str("xml_file_name");
         $filenames =request_array("filename");

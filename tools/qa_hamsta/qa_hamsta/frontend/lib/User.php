@@ -1052,11 +1052,13 @@ function machine_permission_or_redirect($machines,$args=array())
   * - url : redirect URL, default 'index.php'
   * Returns if permissions are sufficient.
   **/
-
 function machine_permission_or_disabled($machines,$args)
 {
-	if( !machine_permission( $machines, $args ) )
-		disable($args);
+	$ret = machine_permission ($machines, $args);
+	if (! $ret) {
+		disable ($args);
+	}
+	return $ret;
 }
 
 $perm_send_job=array('owner'=>'machine_send_job','other'=>'machine_send_job_reserved');
