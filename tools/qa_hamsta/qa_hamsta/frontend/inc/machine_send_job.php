@@ -56,7 +56,8 @@ if ($option == "delete") {
 		unlink ($custom_file);
 }
 
-$user_allowed = machine_permission_or_disabled ($machines, $perm_send_job);
+$job_editing_allowed = capable ('job_edit');
+machine_permission_or_disabled ($machines, $perm_send_job);
 
 $resend_job = request_str ("xml_file_name");
 $filenames = request_array ("filename");
