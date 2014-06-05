@@ -101,6 +101,9 @@ our $last_ip = &get_slave_ip($Slave::multicast_address);
 our $slave_pid;
 our $multicast_pid;
 
+# The tmp local log file to store job log if job socket meet issues.
+use constant JOB_LOG_FILE => "/var/log/hamsta-job.log";
+
 child {
     $log::loginfo='hamsta-server';
     $0 .= ' server';
@@ -109,7 +112,6 @@ child {
     open(STDOUT_ORG, ">&STDOUT");
     STDOUT_ORG->autoflush(1);
     &log_set_output(handle=>*STDOUT_ORG,close=>1);
-    our $job_log_file = '/var/log/hamsta-job.log';
     our $job_sock_stat = 'normal';#normal or abnormal
     our $sock_broken_job_proc = '';
     #create socket pair for communication between job child and parent process
@@ -171,7 +173,6 @@ while(1){
               open(STDOUT_ORG, ">&STDOUT");
 	      STDOUT_ORG->autoflush(1);
 	      &log_set_output(handle=>*STDOUT_ORG,close=>1);
-              our $job_log_file = '/var/log/hamsta-job.log';
               our $job_sock_stat = 'normal';#normal or abnormal
               our $sock_broken_job_proc = '';
               while(1){
@@ -300,7 +301,6 @@ sub handle_connection_recovery(){
 
 	my $local_log_fh;
 
-	our $job_log_file;
 	our $job_sock_stat;
 	our $sock_broken_job_proc;
 
@@ -323,10 +323,10 @@ sub handle_connection_recovery(){
 	        log(LOG_NOTICE, "Job parent process received from job child proc: $msg_from_job_child");
 	}
 
-	unless(-e $job_log_file and open $local_log_fh, "<$job_log_file"){
-		log(LOG_ERROR,"The local job log file can not be opened: $job_log_file");
+	unless(-e JOB_LOG_FILE and open $local_log_fh, "<".JOB_LOG_FILE){
+		log(LOG_ERROR,"The local job log file can not be opened: ".JOB_LOG_FILE);
 	}
-	if (defined $local_log_fh and $local_log_fh){
+	if ($local_log_fh){
 		#send local stored log back
 		while (<$local_log_fh>){
 			chomp $_;
@@ -336,7 +336,7 @@ sub handle_connection_recovery(){
 		log(LOG_NOTICE, "All stored local job log was sent back!");
 		
 		close $local_log_fh;
-		unlink $job_log_file;
+		unlink JOB_LOG_FILE;
 	}
 
 	if($has_in_time_log eq 'yes'){
@@ -508,7 +508,6 @@ sub start_job() {
 
     # Start the execution and collect the output
     our $job_sock_stat;
-    our $job_log_file;
     our $sock_broken_job_proc;
 
     #time out monitor start.
@@ -575,7 +574,7 @@ sub start_job() {
 		    }	    
 
 		    if($sock_just_broke_sign eq 'yes'){
-			    print $job_log_fh $log_line."\n" if (defined $job_log_fh and $job_log_fh);
+			    print $job_log_fh $log_line."\n" if ($job_log_fh);
 			    $sock_just_broke_sign = 'no';
 		    }
 	    }
@@ -668,15 +667,14 @@ sub start_job() {
 
 sub deal_with_broken_job_sock() {
     our $job_sock_stat;
-    our $job_log_file;
     our $job_log_fh;
     our $sock_just_broke_sign;
-    log(LOG_NOTICE,"IN SIGPIPE SIGNAL HANDLING FUNC : Job child process socket is abnormal, it will store log to local file:$job_log_file");
+    log(LOG_NOTICE,"IN SIGPIPE SIGNAL HANDLING FUNC : Job child process socket is abnormal, it will store log to local file:".JOB_LOG_FILE);
     log(LOG_NOTICE,"IN SIGPIPE SIGNAL HANDLING FUNC :Job child process set job socket status to: abnormal!");
     $sock_just_broke_sign = 'yes';
     $job_sock_stat = 'abnormal';
     print JOB_CHILD "Job sock is abnormal in child proc: $$\n";
-    open($job_log_fh,">$job_log_file") || log(LOG_ERROR,"Can not open $job_log_file for logging!");
+    open($job_log_fh,">".JOB_LOG_FILE) || log(LOG_ERROR,"Can not open ".JOB_LOG_FILE." for logging!");
 }
 # deconstruct()
 # Does some cleanup (TODO well, at least it should do so...)
