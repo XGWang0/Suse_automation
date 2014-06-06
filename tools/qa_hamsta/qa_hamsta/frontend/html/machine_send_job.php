@@ -265,7 +265,7 @@ if (is_dir ($dir) && $handle = opendir ($dir)) {
 			$web_path = join ('/', array ($web_dir, $file));
 
 			echo "    <tr class=\"file_list\">\n";
-			echo "        <td><input type=\"radio\" name=\"filename\" value=\"$filebasename\" title=\"Multi-machine job:$file\"></td>\n";
+			echo "        <td><input type=\"radio\" name=\"filename\" value=\"$dir/$file\" title=\"Multi-machine job:$file\"></td>\n";
 			echo "        <td>$file</td>\n";
 			echo "        <td align=\"center\">";
 			print (job_icons ($web_path, $machines_list, false, $job_editing_allowed));
