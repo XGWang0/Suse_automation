@@ -245,7 +245,7 @@ if (request_str("proceed")) {
 
 		foreach ($machines as $machine) {
 			if ($machine->send_job($autoyastfile)) {
-				Log::create($machine->get_id(), $user->getLogin (), 'REINSTALL', "has reinstalled this machine using $producturl_raw (Addon: " . ($addonurl ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
+				Log::create($machine->get_id(), get_user_login ($user), 'REINSTALL', "has reinstalled this machine using $producturl_raw (Addon: " . ($addonurl ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
 			} else {
 				$errors['autoyastjob']=$machine->get_hostname().": ".$machine->errmsg;
 			}

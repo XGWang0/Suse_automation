@@ -49,25 +49,26 @@ foreach($machines as $m) {
 	$m->get_children();
 }
 
-/* Check if user is logged in, registered and have sufficient privileges. */
-if ($config->authentication->use && ! isset ($user)) {
-    Notificator::setErrorMessage ('You have to be logged in to upgrade a machine.');
-    header('Location: index.php');
-    exit ();
-}
-
-foreach($machines as $m) {
-	$rh = new ReservationsHelper ();
-	$users_machine = $rh->getForMachineUser ($m, $user);
-	if (! (isset ($user)
-	       && (($users_machine && $user->isAllowed ('machine_reinstall'))
-		   || ($user->isAllowed ('machine_reinstall_reserved'))))) {
-		Notificator::setErrorMessage ('You do not have privileges to upgrade a machine.');
-		header ('Location: index.php');
-		exit ();
+/* Check if user is logged in, registered and have sufficient
+ * privileges. */
+if ($config->authentication->use) {
+	if (isset ($user)) {
+		$rh = new ReservationsHelper ();
+		foreach($machines as $m) {
+			$users_machine = $rh->getForMachineUser ($m, $user);
+			if (! ($users_machine && $user->isAllowed ('machine_reinstall'))
+				|| ! $user->isAllowed ('machine_reinstall_reserved')) {
+					redirect (
+						'errmsg' =>
+						'You do not have privileges to upgrade a machine.');
+			}
+		}
+	} else {
+		redirect (array (
+					'errmsg' =>
+					'You have to be logged in to upgrade a machine.'));
 	}
 }
-
 
 # If install options are set in the DB, they will show up in upgrade page, else use what user set in upgrade page even it's empty.
 $installoptions_warning="";
@@ -162,7 +163,7 @@ if (request_str("proceed")) {
 		system("sed -i 's/REPOURL/$producturl/g' $autoyastfile");
 		foreach ($machines as $machine) {
 			if ($machine->send_job($autoyastfile)) {
-				Log::create($machine->get_id(), $user->getLogin (), 'REINSTALL', "has reinstalled this machine using $producturl_raw (Addon: " . ($addonurl ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
+				Log::create($machine->get_id(), get_user_login ($user), 'REINSTALL', "has reinstalled this machine using $producturl_raw (Addon: " . ($addonurl ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
 			} else {
 				$errors['autoyastjob']=$machine->get_hostname().": ".$machine->errmsg;
 			}
