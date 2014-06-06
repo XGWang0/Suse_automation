@@ -131,16 +131,7 @@ parent {
 $log::loginfo = 'hamsta';
 
 # On Hamsta startup: perform abort section, finish (i.e. perform finish section + remove sections from disk)
-foreach my $sec ( ($Slave::abort_section, $Slave::finish_section) ) {
-	if (-e $sec) {
-        my $type = $1 if( $sec =~ /(finish|abort)/ );
-        my $cmd = read_xml($sec,1);
-        my $command = Slave::Job::Command->new($type, $cmd);
-        unshift @{$command->{'command_objects'}}, $command;
-        $command->run();
-        unlink $sec;
-    }
-}
+section_run($Slave::abort_section, $Slave::finish_section);
 
 while(1){
     my $sleep_s=300;

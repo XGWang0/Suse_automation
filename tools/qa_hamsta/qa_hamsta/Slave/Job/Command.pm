@@ -178,18 +178,10 @@ sub run {
                         foreach my $cmd_string (@Slave::kill_buff) {
                                  my $command = Slave::Job::Kill->new('kill', $cmd_string, $self);
                                  push @{$self->{'command_objects'}}, $command;
+                                 &log(LOG_INFO, "Run kill section: $cmd_string->{'command'}->{'content'}");
                                  $command->run();        
                         }
-                        foreach my $sec (($Slave::abort_section, $Slave::finish_section)) {
-                            if (-e $sec) {
-                                my $type = $1 if( $sec =~ /(finish|abort)/ );
-                                my $cmd = read_xml($sec,1);
-                                my $command = Slave::Job::Command->new($type, $cmd);
-                                unshift @{$command->{'command_objects'}}, $command;
-                                $command->run();
-                                unlink $sec;
-                            }
-                        }
+                        section_run($Slave::abort_section, $Slave::finish_section);
         };
     }
 }
@@ -305,6 +297,11 @@ sub do_execution {
     if ($self->{'type'} eq 'worker') {
 	my $return_value = $? ;
         &log(LOG_RETURN, $return_value?"$return_value (".$self->{'data'}->{'name'}->{'content'}.')':"$return_value");
+
+        # After worker finished, run finish section.
+    	&log(LOG_INFO,"worker finished");
+    	section_run($Slave::finish_section);
+        unlink $Slave::abort_section; 
     }
 
     # Clean up temporary script file

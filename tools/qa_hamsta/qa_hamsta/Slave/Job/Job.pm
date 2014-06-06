@@ -272,15 +272,6 @@ sub run {
         $worker->run();
     }
 
-    # On job finish: perform finish section, remove sections from disk
-    if (-e $Slave::finish_section) {
-	my $ref = read_xml($Slave::finish_section,1);
-        my $command = Slave::Job::Finish->new('finish', $ref, $self);
-        unshift @{$self->{'command_objects'}}, $command;
-        $command->run();
-        unlink $Slave::finish_section;
-        unlink $Slave::abort_section;
-    }
 }
 
 # Job->start_user_logging()
