@@ -184,7 +184,7 @@ sub do_execution {
     my $script_name;
     
     # First of all, change to the right directory
-    if ( defined( $self->{'data'}->{'directory'}->{'content'} ) ) {
+    if ( $self->{'data'}->{'directory'}->{'content'} ) {
 	$self->change_working_dir($self->{'data'}->{'directory'}->{'content'});
     }
 
