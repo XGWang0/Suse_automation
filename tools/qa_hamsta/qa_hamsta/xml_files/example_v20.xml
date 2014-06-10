@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<job>
+    <config>
+        <name>ping tidb.suse.de</name>
+        <debuglevel>10</debuglevel>
+        <mail notify="0">vmarsik@suse.cz</mail>
+        <description>Test job - pinging tidb.suse.de 100 times.</description>
+        <motd>Hamsta testjob - pinging tidb.suse.de</motd>
+    </config>
+    <parts>
+        <part id="1" name="init"/>
+        <part id="2" name="work"/>
+        <part id="3" name="cleanup"/>
+    </parts>
+    <roles>
+        <role name="server" num_min="1" num_max="1">
+            <config>
+                <rpm>apache2</rpm>
+            </config>
+            <commands part_id="1">
+                <worker>
+                    <command>#!/bin/sh
+                    echo Starting webserver
+                    rcapache2 start
+                    </command>
+                </worker>
+            </commands>
+            <commands part_id="3">
+                <worker>
+                    <command>#!/bin/sh
+                    echo Shutting down webserver
+                    rcapache2 stop
+                    </command>
+                </worker>
+            </commands>
+        </role>
+        <role name="client" num_min="1">
+            <config>
+                <rpm>wget</rpm>
+            </config>
+            <commands part_id="1">
+                <worker>
+                    <command>#!/bin/sh
+                    echo Preparing test directory
+                    mkdir -p /tmp/testdir
+                    </command>
+                </worker>
+            </commands>
+            <commands part_id="2">
+                <worker>
+                    <command>#!/bin/sh
+                    cd /tmp/testdir
+                    for A in `seq 1 10`
+                    do
+                        time wget http://$ROLE_1_IP/ 2>>progress
+                    done
+                    </command>
+                </worker>
+            </commands>
+            <commands part_id="3">
+                <worker>
+                    <command>#!/bin/sh
+                    echo Finished - results are:
+                    cat /tmp/testdir/progress
+                    </command>
+                </worker>
+                <finish>
+                    <command>rm -rf /tmp/testdir</command>
+                </finish>
+            </commands>
+        </role>
+    </roles>
+</job>
