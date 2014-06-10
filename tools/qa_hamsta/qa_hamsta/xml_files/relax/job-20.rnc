@@ -1,0 +1,182 @@
+# job-20 -- Relax NG compact schema definition for Hamsta job XML
+# See file http://qadb.suse.de/xml_files/relax/job-20.rnc for compact definition.
+# See file http://qadb.suse.de/xml_files/relax/job-20.rng for XML definition.
+
+# Import the XML datatypes schema so we have them available
+namespace xsd = "http://www.w3.org/2001/XMLSchema-datatypes"
+
+start = job
+
+# top level job description
+job = element job {
+  config&
+  roles&
+  parts&
+  parameters?
+}
+
+# job roles & commands
+roles = element roles {
+  element role {
+    # removed attribute id { xsd:integer },
+    # text name of the role
+    attribute name { text },
+    # minimal number of machines in that role
+    attribute num_min { xsd:integer }?,
+    # maximal number of machines in that role
+    attribute num_max { xsd:integer }?,
+    (
+      # machines assigned to that role
+      element machine {
+        # hostname of the machine
+        attribute name { text },
+        # IP address of the machine
+        attribute ip { text },
+        empty
+      }*&
+      roleconfig?&
+      commands+
+    )
+  }+
+}
+
+# job parts
+parts = element parts {
+  element part {
+    # numeric ID of the part, referenced by part_id elsewhere
+    attribute id { xsd:integer },
+    # text name of the part
+    attribute name { text }
+  }+
+}
+
+# top-level config
+config = element config {
+  # short name of the job
+  element name { text }&
+  # long description of the job
+  element description { text }?&
+#  removed element job_id { text }?&
+  element mail {
+    # nonzero for mail notification by Hamsta
+    attribute notify { text }?,
+    # e-mail address itself
+    text
+  }?&
+#  removed element useinfo { text }?&
+#  removed element reboot { xsd:integer }?&
+#  removed element update { xsd:integer }?&
+  config_common
+}
+
+# subconfig for roles
+roleconfig = element config {
+  config_common  
+}
+
+# config options for top level & role level
+config_common = (
+  # process verbosity level
+  element debuglevel { xsd:integer }?&
+  # RPMs to install/upgrade
+  element rpm {
+    # nonzero to upgrade if installed
+    ( attribute upgrade { xsd:integer } | attribute update { xsd:integer } )?,
+    # basename of the RPM
+    text
+  }*&
+  # contents of /etc/motd
+  element motd { text }?
+)
+
+# job user parameters
+parameters = element parameters {
+  element parameter {
+    # data type
+    attribute type { "string" | "textarea" | "enum" },
+    # parameter short name
+    attribute name { text },
+    # default value
+    attribute default { text }?,
+    # optional label, if different from name
+    attribute label { text }?,
+    # selector options for enums
+    (element option {
+      attribute value { text },
+      text
+    }* | text)
+  }+
+}
+
+commands = element commands {
+  attribute part_id { xsd:integer },
+  (
+    worker+&
+    logger*&
+    monitor*&
+    # section performed at the end. For regular FS cleanup.
+    element finish {
+      work_desc
+    }?&
+    # section performed on kills and reboots, before finish section. For cleaning up work files.
+    element abort {
+      work_desc
+    }?&
+    # section performed on kills, before abort section. For cleaning up subprocesses / daemons.
+    element kill {
+      work_desc
+    }?
+  )
+}
+
+worker = element worker {
+  workcode
+}
+
+logger = element logger {
+  workcode
+}
+
+monitor = element monitor {
+  # seconds between repeating
+  attribute cycle_sec { xsd:integer }?,
+  # number of total runs
+  attribute cycle_count { xsd:integer }?,
+  workcode
+}
+
+workcode = (
+  work_desc&
+  # notification mailed to user when job output matches regexp
+  element notify {
+    # pattern to match
+    attribute pattern { text },
+    # maximal number of 
+    attribute limit { xsd:integer }?,
+#   removed attribute mail { text },
+    empty
+  }?
+)
+
+work_desc = (
+  # main code execution element
+  element command {
+    # execution method
+    attribute execution { "threaded" | "forked" }?,
+    # nonzero if this reboots, for proper handling on master
+    attribute reboot { xsd:integer }?,
+    # the command code itself
+    text
+  }+&
+  # directory to start in
+  element directory { text }?&
+  # timeout in seconds
+  element timeout { xsd:integer }?&
+  # here goes job output from stdout
+  element stdout { text }?&
+  # here goes job output from stderr
+  element stderr { text }?&
+  # here goes job return value
+  element exitcode { xsd:integer }?
+)
+

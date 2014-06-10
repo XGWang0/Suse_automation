@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  job-20 - - Relax NG compact schema definition for Hamsta job XML
+  See file http://qadb.suse.de/xml_files/relax/job-20.rnc for compact definition.
+  See file http://qadb.suse.de/xml_files/relax/job-20.rng for XML definition.
+-->
+<!-- Import the XML datatypes schema so we have them available -->
+<grammar xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+  <start>
+    <ref name="job"/>
+  </start>
+  <!-- top level job description -->
+  <define name="job">
+    <element name="job">
+      <interleave>
+        <ref name="config"/>
+        <ref name="roles"/>
+        <ref name="parts"/>
+        <optional>
+          <ref name="parameters"/>
+        </optional>
+      </interleave>
+    </element>
+  </define>
+  <!-- job roles & commands -->
+  <define name="roles">
+    <element name="roles">
+      <oneOrMore>
+        <element name="role">
+          <!--
+            removed attribute id { xsd:integer },
+            text name of the role
+          -->
+          <attribute name="name"/>
+          <optional>
+            <!-- minimal number of machines in that role -->
+            <attribute name="num_min">
+              <data type="integer"/>
+            </attribute>
+          </optional>
+          <optional>
+            <!-- maximal number of machines in that role -->
+            <attribute name="num_max">
+              <data type="integer"/>
+            </attribute>
+          </optional>
+          <interleave>
+            <zeroOrMore>
+              <!-- machines assigned to that role -->
+              <element name="machine">
+                <!-- hostname of the machine -->
+                <attribute name="name"/>
+                <!-- IP address of the machine -->
+                <attribute name="ip"/>
+                <empty/>
+              </element>
+            </zeroOrMore>
+            <optional>
+              <ref name="roleconfig"/>
+            </optional>
+            <oneOrMore>
+              <ref name="commands"/>
+            </oneOrMore>
+          </interleave>
+        </element>
+      </oneOrMore>
+    </element>
+  </define>
+  <!-- job parts -->
+  <define name="parts">
+    <element name="parts">
+      <oneOrMore>
+        <element name="part">
+          <!-- numeric ID of the part, referenced by part_id elsewhere -->
+          <attribute name="id">
+            <data type="integer"/>
+          </attribute>
+          <!-- text name of the part -->
+          <attribute name="name"/>
+        </element>
+      </oneOrMore>
+    </element>
+  </define>
+  <!-- top-level config -->
+  <define name="config">
+    <element name="config">
+      <interleave>
+        <!-- short name of the job -->
+        <element name="name">
+          <text/>
+        </element>
+        <optional>
+          <!-- long description of the job -->
+          <element name="description">
+            <text/>
+          </element>
+        </optional>
+        <optional>
+          <!--  removed element job_id { text }?& -->
+          <element name="mail">
+            <optional>
+              <!-- nonzero for mail notification by Hamsta -->
+              <attribute name="notify"/>
+            </optional>
+            <!-- e-mail address itself -->
+            <text/>
+          </element>
+        </optional>
+        <!--
+           removed element useinfo { text }?&
+           removed element reboot { xsd:integer }?&
+           removed element update { xsd:integer }?&
+        -->
+        <ref name="config_common"/>
+      </interleave>
+    </element>
+  </define>
+  <!-- subconfig for roles -->
+  <define name="roleconfig">
+    <element name="config">
+      <ref name="config_common"/>
+    </element>
+  </define>
+  <!-- config options for top level & role level -->
+  <define name="config_common">
+    <interleave>
+      <optional>
+        <!-- process verbosity level -->
+        <element name="debuglevel">
+          <data type="integer"/>
+        </element>
+      </optional>
+      <zeroOrMore>
+        <!-- RPMs to install/upgrade -->
+        <element name="rpm">
+          <optional>
+            <!-- nonzero to upgrade if installed -->
+            <choice>
+              <attribute name="upgrade">
+                <data type="integer"/>
+              </attribute>
+              <attribute name="update">
+                <data type="integer"/>
+              </attribute>
+            </choice>
+          </optional>
+          <!-- basename of the RPM -->
+          <text/>
+        </element>
+      </zeroOrMore>
+      <optional>
+        <!-- contents of /etc/motd -->
+        <element name="motd">
+          <text/>
+        </element>
+      </optional>
+    </interleave>
+  </define>
+  <!-- job user parameters -->
+  <define name="parameters">
+    <element name="parameters">
+      <oneOrMore>
+        <element name="parameter">
+          <!-- data type -->
+          <attribute name="type">
+            <choice>
+              <value>string</value>
+              <value>textarea</value>
+              <value>enum</value>
+            </choice>
+          </attribute>
+          <!-- parameter short name -->
+          <attribute name="name"/>
+          <optional>
+            <!-- default value -->
+            <attribute name="default"/>
+          </optional>
+          <optional>
+            <!-- optional label, if different from name -->
+            <attribute name="label"/>
+          </optional>
+          <!-- selector options for enums -->
+          <choice>
+            <zeroOrMore>
+              <element name="option">
+                <attribute name="value"/>
+                <text/>
+              </element>
+            </zeroOrMore>
+            <text/>
+          </choice>
+        </element>
+      </oneOrMore>
+    </element>
+  </define>
+  <define name="commands">
+    <element name="commands">
+      <attribute name="part_id">
+        <data type="integer"/>
+      </attribute>
+      <interleave>
+        <oneOrMore>
+          <ref name="worker"/>
+        </oneOrMore>
+        <zeroOrMore>
+          <ref name="logger"/>
+        </zeroOrMore>
+        <zeroOrMore>
+          <ref name="monitor"/>
+        </zeroOrMore>
+        <optional>
+          <!-- section performed at the end. For regular FS cleanup. -->
+          <element name="finish">
+            <ref name="work_desc"/>
+          </element>
+        </optional>
+        <optional>
+          <!-- section performed on kills and reboots, before finish section. For cleaning up work files. -->
+          <element name="abort">
+            <ref name="work_desc"/>
+          </element>
+        </optional>
+        <optional>
+          <!-- section performed on kills, before abort section. For cleaning up subprocesses / daemons. -->
+          <element name="kill">
+            <ref name="work_desc"/>
+          </element>
+        </optional>
+      </interleave>
+    </element>
+  </define>
+  <define name="worker">
+    <element name="worker">
+      <ref name="workcode"/>
+    </element>
+  </define>
+  <define name="logger">
+    <element name="logger">
+      <ref name="workcode"/>
+    </element>
+  </define>
+  <define name="monitor">
+    <element name="monitor">
+      <optional>
+        <!-- seconds between repeating -->
+        <attribute name="cycle_sec">
+          <data type="integer"/>
+        </attribute>
+      </optional>
+      <optional>
+        <!-- number of total runs -->
+        <attribute name="cycle_count">
+          <data type="integer"/>
+        </attribute>
+      </optional>
+      <ref name="workcode"/>
+    </element>
+  </define>
+  <define name="workcode">
+    <interleave>
+      <ref name="work_desc"/>
+      <optional>
+        <!-- notification mailed to user when job output matches regexp -->
+        <element name="notify">
+          <!-- pattern to match -->
+          <attribute name="pattern"/>
+          <optional>
+            <!-- maximal number of -->
+            <attribute name="limit">
+              <data type="integer"/>
+            </attribute>
+          </optional>
+          <!--   removed attribute mail { text }, -->
+          <empty/>
+        </element>
+      </optional>
+    </interleave>
+  </define>
+  <define name="work_desc">
+    <interleave>
+      <oneOrMore>
+        <!-- main code execution element -->
+        <element name="command">
+          <optional>
+            <!-- execution method -->
+            <attribute name="execution">
+              <choice>
+                <value>threaded</value>
+                <value>forked</value>
+              </choice>
+            </attribute>
+          </optional>
+          <optional>
+            <!-- nonzero if this reboots, for proper handling on master -->
+            <attribute name="reboot">
+              <data type="integer"/>
+            </attribute>
+          </optional>
+          <!-- the command code itself -->
+          <text/>
+        </element>
+      </oneOrMore>
+      <optional>
+        <!-- directory to start in -->
+        <element name="directory">
+          <text/>
+        </element>
+      </optional>
+      <optional>
+        <!-- timeout in seconds -->
+        <element name="timeout">
+          <data type="integer"/>
+        </element>
+      </optional>
+      <optional>
+        <!-- here goes job output from stdout -->
+        <element name="stdout">
+          <text/>
+        </element>
+      </optional>
+      <optional>
+        <!-- here goes job output from stderr -->
+        <element name="stderr">
+          <text/>
+        </element>
+      </optional>
+      <optional>
+        <!-- here goes job return value -->
+        <element name="exitcode">
+          <data type="integer"/>
+        </element>
+      </optional>
+    </interleave>
+  </define>
+</grammar>
