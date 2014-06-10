@@ -112,8 +112,8 @@ if (is_dir ($dir) && $handle = opendir ($dir)) {
 					
 			echo "    <tr class=\"file_list\">\n";
 # echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"single-machine job:$file\" onclick=\"showParamConts('$filebasename')\">\n";
-			echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"Single-machine job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
-			echo "        <td title=\"$jobdescription\">$file</td>\n";
+			echo "        <td><input id=\"$filebasename\" type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"Single-machine job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
+			echo "        <td title=\"$jobdescription\"><label for=\"$filebasename\">$file</label></td>\n";
 			echo "        <td class=\"viewXml\" align=\"center\">\n";
 			print (job_icons ($web_path, $machines_list, false, $job_editing_allowed));
 			echo "        </td>";
@@ -173,8 +173,8 @@ if (is_dir ($dir) && $handle = opendir ($dir)) {
 
 			echo "    <tr class=\"file_list\">\n";
 # echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"single-machine job:$file\" onclick=\"showParamConts('$filebasename')\">\n";
-			echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"Single-machine custom job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
-			echo "        <td title=\"$jobdescription\">$file</td>\n";
+			echo "        <td><input id=\"$filebasename\" type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"Single-machine custom job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
+			echo "        <td title=\"$jobdescription\"><label for=\"$filebasename\">$file</label></td>\n";
 			echo "        <td class=\"viewXml\" align=\"center\">\n";
 			print (job_icons ($web_path, $machines_list, true, $job_editing_allowed));
 			echo "    </tr class=\"file_list\">\n";
@@ -265,8 +265,8 @@ if (is_dir ($dir) && $handle = opendir ($dir)) {
 			$web_path = join ('/', array ($web_dir, $file));
 
 			echo "    <tr class=\"file_list\">\n";
-			echo "        <td><input type=\"radio\" name=\"filename\" value=\"$filebasename\" title=\"Multi-machine job:$file\"></td>\n";
-			echo "        <td>$file</td>\n";
+			echo "        <td><input id=\"$filebasename\" type=\"radio\" name=\"filename\" value=\"$dir/$file\" title=\"Multi-machine job:$file\"></td>\n";
+			echo "        <td><label for=\"$filebasename\">$file</label></td>\n";
 			echo "        <td align=\"center\">";
 			print (job_icons ($web_path, $machines_list, false, $job_editing_allowed));
 			echo "        </td>\n";
@@ -297,13 +297,14 @@ if(is_dir($dir) && $handle = opendir($dir)) {
 	while(($file = readdir($handle)) !== false) {
 		$fullpath = join ("/", array ($dir, $file));
 		if ($xml = get_xml_file ($fullpath)) {
+			$filebasename = basename ($file, '.xml');
 			$web_dir = $config->xml->dir->multimachine->web->custom;
 			/* Path browseable from the web UI. */
 			$web_path = join ('/', array ($web_dir, $file));
 
 			echo "    <tr class=\"file_list\">\n";
-			echo "        <td><input type=\"radio\" name=\"filename\" value=\"$dir/$file\" title=\"Multi-machine custom job:$file\"></td>\n";
-			echo "        <td>$file</td>\n";
+			echo "        <td><input id=\"$filebasename\" type=\"radio\" name=\"filename\" value=\"$dir/$file\" title=\"Multi-machine custom job:$file\"></td>\n";
+			echo "        <td><label for=\"$filebasename\">$file</label></td>\n";
 			echo "        <td align=\"center\">";
 			print (job_icons ($web_path, $machines_list, true, $job_editing_allowed));
 			echo "        </td>\n";
@@ -354,9 +355,9 @@ echo "</td></tr></table><table class=\"text-main\">";
         { 
           if ($i%6==0) {echo "<tr>";} 
           echo "<td style=\"padding: 5px;\">" .
-              "<input name=testsuite[] type=checkbox value=$value title=\"check one at least\"/>" .
-              "$value " .
-              "<a href=\"http://qa.suse.de/automation/qa-packages?package=" . urlencode($value) . "#" . urlencode($value) . "\" target=\"_blank\">" .
+              "<input id=\"$value\" name=testsuite[] type=checkbox value=$value title=\"check one at least\"/>" .
+              " <label for=\"$value\">$value</label>" .
+              " <a href=\"http://qa.suse.de/automation/qa-packages?package=" . urlencode($value) . "#" . urlencode($value) . "\" target=\"_blank\">" .
                   "<img src=\"images/15/icon-info.png\" alt=\"Click for information\" title=\"Click for information\" class=\"icon-miniinfo\" />" .
               "</a>" .
           "</td>";
@@ -375,8 +376,9 @@ echo "</td></tr></table><table class=\"text-main\">";
 		foreach ($arr as $value) {
 			if ($i%6==0) {echo "<tr>\n";}
 			echo "<td stype=\"padding: 5px;\">";
-			echo "<lable><input name=testsuite[] type=\"checkbox\" value=\"$value\" title=\"check one at least\"/>$value</label>";
-			echo "<a href=\"http://qa.suse.de/automation/qa-packages?package=" . urlencode($value) . "#" . urlencode($value) . "\" target=\"_blank\">".
+			echo "<input id=\"$value\" name=testsuite[] type=\"checkbox\" value=\"$value\" title=\"check one at least\"/>" .
+				 " <label for=\"$value\">$value</label>";
+			echo " <a href=\"http://qa.suse.de/automation/qa-packages?package=" . urlencode($value) . "#" . urlencode($value) . "\" target=\"_blank\">".
 				"<img src=\"images/15/icon-info.png\" alt=\"Click for information\" title=\"Click for information\" class=\"icon-miniinfo\" /></a>";
 			echo "</td>";
 			if ($i%6==5) {echo "</tr>\n";}
@@ -385,7 +387,7 @@ echo "</td></tr></table><table class=\"text-main\">";
 	?>
 <tr></tr>
 
-<tr><td><input type="checkbox" value="checkall" onclick='chkall("qapackagejob",this)' name=chk>Select all</td></tr>
+<tr><td><input id="select-all-qa-packages" type="checkbox" value="checkall" onclick='chkall("qapackagejob",this)' name=chk> <label for="select-all-qa-packages">Select all</label></td></tr>
 </table>
 <br/>
 <span class="text-main"><b>Email address: </b></span>
@@ -416,14 +418,19 @@ echo "</td></tr></table><table class=\"text-main\">";
         foreach ($arr as $value)
         {
           if ($i%6==0) {echo "<tr>";}
-          echo "<td style=\"padding: 5px;\"><input name=testsuite[] type=checkbox value=$value title=\"check one at least\"/>$value</td>";
+          echo "<td style=\"padding: 5px;\"><input id=\"$value\" name=testsuite[] type=checkbox value=$value title=\"check one at least\"/> <label for=\"$value\">$value</label></td>";
           if ($i%6==5) {echo "</tr>";}
       if ($i==count($arr)) {echo "end</tr>";}
           $i++;
         }
     ?>
 <tr><td></td></tr>
-<tr><td><input type="checkbox" value="checkall" onclick='chkall("autotest",this)' name=chk>Select all</td></tr>
+  <tr>
+    <td>
+      <input id="select-all-autotest-jobs" type="checkbox" value="checkall" onclick='chkall("autotest",this)' name=chk>
+      <label for="select-all-autotest-jobs">Select all</label>
+    </td>
+  </tr>
 </table>
 <br/>
 <span class="text-main"><b>Email address: </b></span>
@@ -454,7 +461,12 @@ echo "<input type=\"hidden\" name=\"machine_list\" value=\"$machines_ids\">";
 
     <?php require("edit_job.php"); ?>
 
-    <tr><td colspan="2"><input type="checkbox" value="addtoCustomJob" name="addtoCustomJob">Add this job to the custom job list</td></tr>
+    <tr>
+      <td colspan="2">
+        <input id="add-to-custom-jobs" type="checkbox" value="addtoCustomJob" name="addtoCustomJob"/>
+        <label for="add-to-custom-jobs">Add this job to the custom job list</label>
+      </td>
+    </tr>
     <tr><td><input type="submit" name="submit" value="Send custom job"></td></tr>
     <input type="hidden" name="customflag" value="1">
 </table>
