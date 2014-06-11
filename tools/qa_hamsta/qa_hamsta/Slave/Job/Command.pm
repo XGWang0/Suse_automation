@@ -184,7 +184,9 @@ sub do_execution {
     my $script_name;
     
     # First of all, change to the right directory
-    $self->change_working_dir($self->{'data'}->{'directory'}->{'content'});
+    if ( $self->{'data'}->{'directory'}->{'content'} ) {
+	$self->change_working_dir($self->{'data'}->{'directory'}->{'content'});
+    }
 
     # Check if the command is a script or a single line
     # Scripts are written to a temporary file before execution
