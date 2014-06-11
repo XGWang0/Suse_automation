@@ -79,7 +79,7 @@ config_common = (
   # process verbosity level
   element debuglevel { xsd:integer }?&
   # repositories to add
-  element repository { text }+&
+  element repository { text }*&
   # RPMs to install/upgrade
   element rpm {
     # nonzero to upgrade if installed
