@@ -49,7 +49,7 @@
 			{
 				foreach ($machines as $machine){
 					if ($machine->send_job($filename)) {
-						Log::create($machine->get_id(), $user->getLogin (), 'JOB_START', "has sent a \"custom\" job to this machine (Job name: \"" . htmlspecialchars($_POST['jobname']) . "\")");
+						Log::create($machine->get_id(), get_user_login ($user), 'JOB_START', "has sent a \"custom\" job to this machine (Job name: \"" . htmlspecialchars($_POST['jobname']) . "\")");
 					} else {
 						$errors[] = $machine->get_hostname().": ".$machine->errmsg;
 					}

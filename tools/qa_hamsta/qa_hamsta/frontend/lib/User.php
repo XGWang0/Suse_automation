@@ -959,6 +959,15 @@ function user_get()
 	return User::getCurrent ();
 }
 
+function get_user_login ($user)
+{
+	$login = 'anonymous';
+	if ($user) {
+		$login = $user->getLogin ();
+	}
+	return $login;
+}
+
 function capable ()
 {
         global $config,$user;

@@ -169,7 +169,7 @@ if (request_str("proceed")) {
                    if (!$machine->send_job($autoyastfile)) {
                        $error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
                    } else {
-			Log::create($machine->get_id(), $user->getLogin (), 'REINSTALL', "has reinstalled this machine as virtualization host using \"$producturl_raw\", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
+			Log::create($machine->get_id(), get_user_login ($user), 'REINSTALL', "has reinstalled this machine as virtualization host using \"$producturl_raw\", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
                    }
                    if ($virtualization_method == "xen") {
                        if(!$machine->send_job("/usr/share/hamsta/xml_files/set_xen_default.xml"))

@@ -93,10 +93,7 @@ if (request_str ("submit")) {
 	foreach ($machines as $machine) {
 		foreach ($jobfilenames as $filename) {
 			if ($machine->send_job ($filename)) {
-				Log::create($machine->get_id (), $user->getLogin (),
-							'JOB_START', "has sent a \"pre-defined\" job"
-							. " to this machine (Job name: \""
-							. htmlspecialchars (basename ($filename)) . "\")");
+				Log::create($machine->get_id (), get_user_login($user), 'JOB_START', "has sent a \"pre-defined\" job to this machine (Job name: \"" . htmlspecialchars (basename ($filename)) . "\")");
 			} else {
 				$error = (empty ($error) ? "" : $error)
 						. "<p>".$machine->get_hostname ()
