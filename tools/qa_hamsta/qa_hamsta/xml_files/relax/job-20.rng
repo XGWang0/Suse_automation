@@ -130,12 +130,12 @@
           <data type="integer"/>
         </element>
       </optional>
-      <optional>
+      <oneOrMore>
         <!-- repositories to add -->
         <element name="repository">
           <text/>
         </element>
-      </optional>
+      </oneOrMore>
       <zeroOrMore>
         <!-- RPMs to install/upgrade -->
         <element name="rpm">
