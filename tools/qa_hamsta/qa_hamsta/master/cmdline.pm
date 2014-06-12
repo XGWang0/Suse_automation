@@ -227,8 +227,8 @@ sub cmd_help() {
     print "\t 'print jobtype <number>' : lists available jobs of the given type (1 - pre-defined jobs, 2 - qa-package jobs, 3 - autotest jobs, 4 - multi-machine jobs) \n";
     print "\t 'reserve <host> for user <login>' : Reserve machine (IP or name) for user identified by <login> \n";
     print "\t 'release <host> for user <login>' : Release (unreserve) machine (IP or name) for user identified by <login> \n";
-    print "\t 'reserve <host> for hamsta' : Reserve machine (IP or name) for this hamsta master \n";
-    print "\t 'release <host> for hamsta' : Release (unreserve) machine (IP or name) for this hamsta master \n";
+    print "\t 'reserve <host> for master' : Reserve machine (IP or name) for this hamsta master \n";
+    print "\t 'release <host> for master' : Release (unreserve) machine (IP or name) for this hamsta master \n";
     print "\n end of help \n";
 }
 
@@ -1362,23 +1362,16 @@ sub process_hamsta_reservation () {
     # For reserve or release from CLI, sock_handle is the socket between CLI and frontend
     # Or it is from job, sock_handle is undef
     my $sock_handle = shift @_;
-    #my $cmd = shift @_ ;
     my $action = shift;
     my $host = shift;
 
     $| =1;
     $sock_handle->autoflush(1) if (defined $sock_handle);
 
-    #&log(LOG_DETAIL, "cmd = $cmd");
     &log(LOG_DETAIL, "Input is: action => $action, host => $host");
-    #$cmd =~ /^(reserve|release) ([0-9\.]+) for master/;
-    #my $action = $1;
-    #my $host = $2;
 
-    if (! defined $action or ! defined $host){
-	#&log(LOG_ERR, "MASTER::CMDLINE Invalid command received: $cmd");
+    if (! $action or ! $host){
 	&log(LOG_ERR, "MASTER::CMDLINE Invalid input received: action => $action, host => $host .");
-	#print $sock_handle "MASTER::CMDLINE Invalid command received: $cmd" if (defined $sock_handle);
 	print $sock_handle "MASTER::CMDLINE Invalid input received: action => $action, host => $host" if (defined $sock_handle);
 	return 0;
     }
@@ -1432,8 +1425,7 @@ sub process_hamsta_reservation () {
 
     print $sock_handle "MASTER::CMDLINE $response\n" if (defined $sock_handle);
     log(LOG_DETAIL,"MASTER::CMDLINE get complete response:$response");
-    return 1 if ($response =~ /succeeded/);
-    return 0;
+    return ($response =~ /succeeded/);
 }
 
 # Parameters
