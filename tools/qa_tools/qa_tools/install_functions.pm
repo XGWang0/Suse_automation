@@ -807,13 +807,13 @@ sub _print_profile_partitions
 				# Expected line example:
 				# Disk /dev/sda: 500.1 GB, 500107862016 bytes
 				if ($line =~ /^Disk \/[\w\/]+: ([\d.]+) (\w+)/) {
-					chomp ($sizeunit = $1);
-					chomp ($disksize = $2);
+					chomp($sizeunit = $2);
+					chomp ($disksize = $1);
 					last;
 				}
 			}
 
-			if ( substr($sizeunit, 0, 2) =~ /GB/ ) {
+			if ( $sizeunit =~ /Gi?B/ ) {
 				$disksize = int($disksize*1024);
 			}
 			$abuildsize = 0 if !$abuildid;
