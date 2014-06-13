@@ -256,12 +256,14 @@ sub run {
 
 	# Before job start: remove sections from disk,
 	# write finish and abort sections to disk, keep kill section in memory.
-	foreach my $sec ( ($Slave::finish_section,$Slave::abort_section) ) {
-		unlink $sec or warn "Can not clean $sec from disk!" if ( -e $sec );
-		foreach (@{$buffer->{$sec}}) {
-			open SEC_FILE, ">$sec" or die "Can not create file $sec";
-			my $xml_out = XMLout($_);
-			print SEC_FILE $xml_out."\n";
+	foreach ( ($Slave::finish_section,$Slave::abort_section) ) {
+		unlink $_ or warn "Can not clean $_ from disk!" if ( -e $_ );
+		if ($buffer->{$_}) {
+			open SEC_FILE, ">$_" or die "Can not create file $_";
+			foreach my $cmd (@{$buffer->{$_}}) {
+				my $xml_out = XMLout($cmd);
+				print SEC_FILE $xml_out."\n";
+			}
 			close SEC_FILE;
 		}
     }
