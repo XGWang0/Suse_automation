@@ -182,15 +182,11 @@ eof
 	$grubn-mkconfig -o $grubdir/grub.cfg
 
 	#sleep a while
-	sleep 30
-
-	#get index of autoinstall
-	num=`awk '{if(/^menuentry|^submenu/){a++}}END{print a}' /boot/grub2/grub.cfg`
-	num=$((--num))
+	sleep 5
 
 	#change bootloader default boot
-	echo "$grubn-set-default $num"
-	$grubn-set-default $num
+	echo "$grubn-set-default $title"
+	$grubn-set-default $title
 	exit $?
 }
 
