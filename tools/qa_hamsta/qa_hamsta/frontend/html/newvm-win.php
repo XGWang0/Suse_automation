@@ -104,12 +104,10 @@ This page will allow you to install a Windows for the virtual machine(s) you hav
 	foreach ($machines as $machine):
 		echo('<input type="hidden" name="a_machines[]" value="'.$machine->get_id().'">');
 	endforeach;
+
+	print_install_post_data ();
+
 ?>
 </form>
 
-<script>
-<?php
-}
-require ('js/install_product.js');
-?>
-</script>
+<script src="js/install_product.js"></script>
