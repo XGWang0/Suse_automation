@@ -86,6 +86,16 @@ setupgrub1()
 
 setupgrub2()
 {
+	#grub bin name
+	if which grub2-mkconfig
+	then
+		grubn=grub2
+		grubdir=/boot/grub2
+	else
+		grubn=grub
+		grubdir=/boot/grub
+	fi
+
 	#set the menuentry name
 	title=`echo $insturl | sed -e 's/\//\n/g' | grep -v '\..\+\.' | awk '{ print length, $0 }' | sort -gr | cut -d\  -f2 | head -n1`
 	title="$title-`date +%m%d%y%H%M%S`"
@@ -96,7 +106,7 @@ setupgrub2()
 	#find out the boot filesystem
 	bootpartition=`df /boot|awk '{a=$1}END{print a}'`
 	echo "boot partition is $bootpartition"
-	bootfs=`awk -v p=$bootpartition '$1==p{print $3}' /proc/mounts`
+	bootfs=`awk -v p=$bootpartition '$1==p{print $3;exit}' /proc/mounts`
 	echo "boot filesystem is $bootfs"
 	if [ "$bootfs" = "ext3" ] || [ "$bootfs" = "ext4" ]
 	then
@@ -152,7 +162,7 @@ setupgrub2()
 	#find out the rootsubvol
 	. /usr/share/grub2/grub-mkconfig_lib
 
-	rootsubvol=`make_system_path_relative_to_its_root /`
+	rootsubvol=`make_system_path_relative_to_its_root / | sed -e "s,@$,,"`
 
 	#build the config file
 	cat<<eof >/etc/grub.d/$customname
@@ -167,30 +177,16 @@ echo "menuentry $title  {
 eof
 
 	chmod a+x /etc/grub.d/$customname
-	#grub bin name
-
-	if which grub2-mkconfig
-	then
-		grubn=grub2
-		grubdir=/boot/grub2
-	else
-		grubn=grub
-		grubdir=/boot/grub
-	fi
 
 	#update the grub.cfg
 	$grubn-mkconfig -o $grubdir/grub.cfg
 
 	#sleep a while
-	sleep 30
-
-	#get index of autoinstall
-	num=`awk '{if(/^menuentry|^submenu/){a++}}END{print a}' /boot/grub2/grub.cfg`
-	num=$((--num))
+	sleep 5
 
 	#change bootloader default boot
-	echo "$grubn-set-default $num"
-	$grubn-set-default $num
+	echo "$grubn-set-default $title"
+	$grubn-set-default $title
 	exit $?
 }
 
