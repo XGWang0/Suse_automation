@@ -59,8 +59,8 @@ if ($config->authentication->use) {
 			if (! ($users_machine && $user->isAllowed ('machine_reinstall'))
 				|| ! $user->isAllowed ('machine_reinstall_reserved')) {
 					redirect (
-						'errmsg' =>
-						'You do not have privileges to upgrade a machine.');
+						array ('errmsg' =>
+							   'You do not have privileges to upgrade a machine.'));
 			}
 		}
 	} else {
