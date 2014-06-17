@@ -25,7 +25,6 @@
 # to adapt new multi-machine job .
 
 use strict;
-use Getopt::Std;
 use Clone qw(clone);
 use XML::Simple;
 use Data::Dumper;
@@ -54,19 +53,8 @@ sub add_roles($) {
 		foreach my $role (keys(%$roles)) {
 			my $role_id = $roles->{$role}->{'id'};
 			my $worker = clone($root->{'commands'}->[0]->{'worker'});
-			my $command = $worker->[0]->{'command'};
-			for (my $i=0; $i<=$#$command; $i++) {
-				if ($command->[$i]->{'role_id'} ne $role_id) {
-					if($i != $#$command) {
-						my $temp = $command->[$i];
-						$command->[$i] = $command->[$#$command];
-						$command->[$#$command] = $temp;
-					}
-					pop @$command;
-				} else {
-					delete $command->[$i]->{'role_id'};
-				}
-			}
+			my @command = grep { $_->{'role_id'} eq $role_id } @{$worker->[0]->{'command'}};
+			$worker->[0]->{'command'} = \@command;
 			$roles->{$role}->{'commands'} = {
 									'part_id' => '1',
 									'worker' => $worker
@@ -77,8 +65,6 @@ sub add_roles($) {
 		$root->{'roles'} = [{
 							'role' => {
 									'name' =>'default',
-									'num_min' => '1',
-									'num_max' => '1',
 									'id' => '1',
 									'commands' => {
 											'part_id' => '1',
@@ -90,13 +76,45 @@ sub add_roles($) {
 	delete $root->{'commands'};
 }
 
-# Move rpm tag from per job to per role.
-sub move_rpms($) {
+# Move tags
+# Tasks:
+# 	move <job_id> and <useinfo> into <motd>
+#	move <reboot> as attribute of <part>
+sub mv_tags($) {
 	my $root = shift;
-	if ($root->{'config'}->[0]->{'rpm'}) {
-		$root->{'roles'}->[0]->{'role'}->{'rpm'} = $root->{'config'}->[0]->{'rpm'};
-		delete $root->{'config'}->[0]->{'rpm'};
+	my $conf = $root->{'config'}->[0];
+
+	#modify motd
+	if ($conf->{'job_id'} || $conf->{'useinfo'}) {
+		$conf->{'motd'}->[0] = $conf->{'job_id'}->[0].":".
+								$conf->{'useinfo'}->[0]." ".
+								$conf->{'motd'}->[0];
 	}
+	#move <reboot> into <part> as an attribute.
+	$root->{'parts'}->[0]->{'part'}->{'reboot'} = $conf->{'reboot'}->[0];
+
+	#fix <mail> tag issue, when content is blank.
+	$conf->{'mail'}->[0]->{'content'} = '' if !$conf->{'mail'}->[0]->{'content'};
+
+}
+
+# Remove useless tags which are under <config/>
+# such as:
+# <distributable/>, <parallel/>, <logdir/>, <update/>
+# <job_id/>, <useinfo/>, <reboot/>
+sub rm_tags($) {
+	my $root = shift;
+	my @list = (
+				'distributable',
+				'parallel',
+				'logdir',
+				'update',
+				'job_id',
+				'useinfo',
+				'reboot'
+	);
+
+	map { delete $root->{'config'}->[0]->{$_} } @list;
 }
 
 # Convert MM(Multi-Machine) job to new format.
@@ -104,7 +122,8 @@ sub convert_xml($) {
 	my $root = shift;
 	add_parts($root);
 	add_roles($root);
-	move_rpms($root);
+	mv_tags($root);
+	rm_tags($root);
 }
 
 # Check if old xml is for multi-machine job.
@@ -132,14 +151,13 @@ sub save_xml($$) {
 	my $out_file = shift;
 	my $root = shift;
 
-	my $xml = XMLout(
+	XMLout(
 			$root,
 			XmlDecl => '<?xml version="1.0"?>',
 			RootName => 'job',
 			GroupTags => {parts => 'part', roles => 'role', 'config' => 'mail'},
 			OutputFile => $out_file
 	);
-	print(Dumper($xml));
 }
 
 sub usage {
@@ -157,7 +175,6 @@ sub main {
 	my $new_xml = $ARGV[1];
 
 	my $root = parse_xml($old_xml);
-	print(Dumper($root));
 	convert_xml($root);
 	save_xml($new_xml,$root);
 }

@@ -47,6 +47,8 @@ Requires:       curl
 Requires:       openslp
 Requires:       perl
 Requires:       perl-XML-Simple
+Requires:       perl-Clone
+Requires:       perl-XML-Bare
 Requires:       qa-config
 Requires:       qa_libperl
 Requires:       coreutils
