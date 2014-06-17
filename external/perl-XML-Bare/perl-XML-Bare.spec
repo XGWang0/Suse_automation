@@ -62,9 +62,9 @@ find . -type f -print0 | xargs -0 chmod 644
 %{__make} test
 
 %install
-install -m 755 -d $RPM_BUILD_ROOT/usr/share/man/man8
-install -m 644 %{S:1} $RPM_BUILD_ROOT/usr/share/man/man8
-gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
+install -m 755 -d ${RPM_BUILD_ROOT}%{_mandir}/man8
+install -m 644 %{S:1} ${RPM_BUILD_ROOT}%{_mandir}/man8
+gzip ${RPM_BUILD_ROOT}%{_mandir}/man8/%{name}.8
 %perl_make_install
 %perl_process_packlist
 %perl_gen_filelist
