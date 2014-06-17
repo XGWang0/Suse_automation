@@ -185,6 +185,7 @@ If you need to change parameters of the installation in this form, select the cu
 	endforeach;
 
 	print_install_post_data ();
+}
 ?>
 </form>
 

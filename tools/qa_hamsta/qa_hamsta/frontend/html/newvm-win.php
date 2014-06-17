@@ -106,7 +106,7 @@ This page will allow you to install a Windows for the virtual machine(s) you hav
 	endforeach;
 
 	print_install_post_data ();
-
+}
 ?>
 </form>
 

@@ -112,6 +112,7 @@ This page will allow you to customize the AutoYaST product installation for the 
         endforeach;
 
 		print_install_post_data ();
+	}
 ?>
 </form>
 
