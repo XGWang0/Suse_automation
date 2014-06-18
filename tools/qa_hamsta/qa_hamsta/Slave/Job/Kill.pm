@@ -21,29 +21,12 @@
 # WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
 # ****************************************************************************
 
-# this is the Slave configuration PREPROCESSOR - for configuration, please use /etc/qa!!!
-package Slave;
+package Slave::Job::Kill;
 
-use warnings;
 use strict;
+use warnings;
 
-BEGIN { push @INC, '.', '/usr/share/hamsta/master', '/usr/share/qa/lib'; }
-use qaconfig;
-
-$Slave::directory = "/usr/share/hamsta";
-$Slave::finish_section = "/var/lib/hamsta/finish";
-$Slave::abort_section = "/var/lib/hamsta/abort";
-@Slave::kill_buff = ();
-
-# Slave configuration
-
-$Slave::debug = $qaconf{hamsta_slave_verbosity};
-$Slave::multicast_address = $qaconf{hamsta_multicast_address};
-$Slave::multicast_port = $qaconf{hamsta_multicast_port};
-$Slave::slave_port = $qaconf{hamsta_client_port};
-
-
- # standard groups are located in file "groups" in the directory "master_root"
+use vars '@ISA';
+@ISA = ('Slave::Job::Command');
 
 1;
-
