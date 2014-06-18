@@ -566,4 +566,78 @@ function get_xml_file ($path) {
 	return FALSE;
 }
 
+/**
+ * Prints the result of machine comparison in case some machines are
+ * not fit for reinstall or upgrade.
+ *
+ * The input is a name of the page, e.g. 'reinstall' or 'upgrade' that
+ * is used in in the resulting strings and
+ */
+function print_reinstall_unable_machines ($page_name, $machines) {
+	foreach (array_keys ($machines) as $type) {
+		if ($machines[$type]) {
+			print '<div class="text-medium">';
+			switch ($type) {
+			case 'without_perms':
+				print '<p>The following machines do not have Send job '
+						. 'or Reinstall permission. To enable these '
+						. 'go to Machine Edit page and change the permissions.</p>';
+				break;
+			case 'vg':
+				print '<p>Hamsta does not support virtual guests '
+						. $page_name
+						. '. You can delete them at the QA Cloud page '
+						. 'and than create new ones.</p>';
+				break;
+			case 'vh_with_children':
+				print '<p>Hamsta does not support ' . $page_name
+						. ' of virtual hosts with virtual machines. '
+						. 'You can delete the guests at the QA Cloud page.</p>';
+				break;
+			default:
+			}
+			print '<strong>' . implode (', ', $machines[$type]) . '</strong>';
+			print '</div>';
+		}
+	}
+}
+
+/**
+ * This function is used at least at the machine_reinstall and upgrade
+ * pages to check for machines that can not be reinstalled. In case of
+ * issues it prints the error messages to the page and exits.
+ *
+ * This function is result of code refactoring of the
+ * html/machine_reinstall.php and html/upgrade.php files because they
+ * contained copy-pasted code.
+ */
+function check_machines_before_reinstall ($machines, $page_name) {
+	$problematic_machines = array (
+			'without_perms' => array (),
+			'vg' => array (),
+			'vh_with_children' => array (),
+			);
+
+	foreach ($machines as $machine) {
+		if (! $machine->has_permissions (array('job', 'install'))) {
+			$problematic_machines['without_perms'][] = $machine->get_hostname();
+		}
+
+		if ($machine->is_virtual_guest ()) {
+			$problematic_machines['vg'][] = $machine->get_hostname();
+		}
+
+		if ($machine->get_children ()) {
+			$problematic_machines['vh_with_children'][] = $machine->get_hostname();
+		}
+	}
+
+	if ($problematic_machines['without_perms'] or $problematic_machines['vg']
+		or $problematic_machines['vh_with_children']) {
+			print_reinstall_unable_machines ($page_name, $problematic_machines);
+			return false;
+	}
+	return true;
+}
+
 ?>
