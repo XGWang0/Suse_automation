@@ -7,7 +7,7 @@
 USER=$1
 PASSWORD=$2
 
-if grep -E "SUSE Linux Enterprise (Server|Desktop) 12" /etc/issue;then
+if which chpasswd >/dev/null;then
         echo "$USER:$PASSWORD" | chpasswd > /dev/null
 else
         echo "$PASSWORD" | passwd --stdin $USER > /dev/null
