@@ -7,7 +7,7 @@
 USER=$1
 PASSWORD=$2
 
-if which chpasswd >/dev/null;then
+if which chpasswd >/dev/null 2>&1;then
         echo "$USER:$PASSWORD" | chpasswd > /dev/null
 else
         echo "$PASSWORD" | passwd --stdin $USER > /dev/null
