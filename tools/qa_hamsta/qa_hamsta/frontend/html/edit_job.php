@@ -35,17 +35,16 @@
             $existFileName = $real_file;
 
         # define the default data of job XML file
-        $jobInfo = array( 'name'=>'yourjobname',
+        $jobInfo = array( 'name'=>'',
                           'level'=>'3',
-                          'description'=>"your job descption",
-                          'motd'=>'your job motd message',
+                          'description'=>"Enter job description",
+                          'motd'=>'Enter your job MOTD message',
                           'mailto'=>(isset($user) ? $user->getEmail() : 'hamsta@suse.com'),
 			  'reboot'=>0,
                           'rpmlist'=>'');
 
         $roleCount = 0;
         $paramCount = 0;
-        $commandCount = 0;
 
         # if defined "existFileName", it means that it is come from a existing XML file, parse it
         if(isset($existFileName) && ($existFileName != "") && (file_exists($existFileName)))
@@ -82,22 +81,32 @@
                     array_multisort($roleSortKey, SORT_NUMERIC, $jobRoleMap);
                     $roleCount = count($jobRoleMap);
                 }
-
-                # get command map
-                $i = 0;
-                foreach($xml->commands->worker->command as $command)
-                {
-                    $jobCommandMap[$i++] = array('action'=>$command['execution'], 'role_id'=>$command['role_id'],
-                                                 'commands'=>$command);
-                }
-
+	foreach($xml->roles->role as $role) {
+		$role_id = (string)$role['id'];
+		foreach( array('worker','finish','abort','kill') as $sec ) {
+		    if(isset($role->commands->$sec)) {
+			# get command map
+	                $i = 0;
+	                foreach($role->commands->$sec->command as $command)
+	                {
+	                    $jobCommandMap[$role_id][$sec][$i++] = array('action'=>$command['execution'],
+	                                                 'commands'=>$command);
+	                }
+                	$commandCount[$role_id][$sec] = count($jobCommandMap);
+		    }
+		}
+	}
+//	print_r($jobCommandMap);
+//	exit;
+/*
                 # sort command by key "role_id"
                 if($roleCount > 0) {
                     foreach ($jobCommandMap as $key=>$value)
                         $commandSortKey[$key] = $value['role_id'];
                     array_multisort($commandSortKey, SORT_NUMERIC, $jobCommandMap);
                 }
-                $commandCount = count($jobCommandMap);
+*/
+//                $commandCount = count($jobCommandMap);
 
                 print "<input type=\"hidden\" name=\"existfilename\" value=\"$existFileName\">";
             }
@@ -106,7 +115,7 @@
     ?>
 
     <tr><td width="40%">Job name: </td>
-    <td><input type="text" size="20" name="jobname" title="required: job name, must be composed by number, letter, underscore or dash" value="<?php echo $jobInfo['name']; ?>"><span class="required">*</span>
+    <td><input type="text" size="20" name="jobname" title="required: job name, must be composed by number, letter, underscore or dash" required placeholder="Enter name for the job" value="<?php if (! empty ($jobInfo['name'])) echo $jobInfo['name']; ?>">
     </td></tr>
     <tr><td>Debug level:</td>
     <td>
@@ -124,19 +133,20 @@
     </select> <?php echo "default \"level-$default_level\""; ?>
     </td></tr >
     <tr><td>Description:</td>
-    <td><input type="text" size="20" name="description" title="optional: job descption" value="<?php echo $jobInfo['description']; ?>"></td></tr>
+    <td><input type="text" size="20" name="description" placeholder="Enter description for the job" title="optional: job description" value="<?php echo $jobInfo['description']; ?>"></td></tr>
     <tr><td>Motd message:</td>
-    <td><input type="text" size="20" name="motdmsg" title="optional: /etc/motd message in SUT" value="<?php echo $jobInfo['motd']; ?>"></td></tr>
+    <td><input type="text" size="20" name="motdmsg" placeholder="Enter MOTD for the SUT" title="optional: /etc/motd message in SUT" value="<?php echo $jobInfo['motd']; ?>"></td></tr>
     <tr><td>Email address:</td>
-    <td><input type="text" size="20" name="mailto" title="optional: send mail if address is given" value="<?php echo $jobInfo['mailto']; ?>">
+    <td><input type="email" size="20" name="mailto" placeholder="user@domain.com" title="optional: send mail if address is given" value="<?php echo $jobInfo['mailto']; ?>">
     </td></tr>
     <tr><td>Needed rpms:</td>
-    <td><input type="text" size="20" name="rpmlist" title="optional: divided by space, e.g: qa_tools qa_bind" value="<?php echo $jobInfo['rpmlist']; ?>"></td></tr>
-    
-    <tr><td>Reboot:</td>
-    <td><input type="checkbox" size="20" name="reboot" title="optional: set it if job reboot the machine" value=1 "<?php if($jobInfo['reboot']==1) echo ' checked=\"checked\"'; ?>"></td></tr>
+    <td><input type="text" size="20" name="rpmlist" placeholder="rpm1 rpm2 rpm3" title="optional: divided by space, e.g: qa_tools qa_bind" value="<?php echo $jobInfo['rpmlist']; ?>"></td></tr>
+
+    <tr><td><label for="reboot-option">Reboot</label>:</td>
+    <td><input id="reboot-option" type="checkbox" size="20" name="reboot" title="optional: set it if job reboot the machine" value=1 "<?php if($jobInfo['reboot']==1) echo ' checked=\"checked\"'; ?>"></td></tr>
     <!-- Additional parameters -->
-    <tr><td><input type="checkbox" name="param_flag" value="paramFlag" title="Edit additional Parameters" onclick="editParameters()">Edit addtional parameters</td>
+    <tr><td><input id="edit-parameters" type="checkbox" name="param_flag" value="paramFlag" title="Edit additional Parameters" onclick="editParameters()">
+			  <label for="edit-parameters">Edit addtional parameters</label></td>
     <td><div id="param_edit"><select id="param_type" name="param_type" title="required: please chose one parameter type">
                 <option value="string">string</option>
                 <option value="enum">enum</option>
@@ -211,11 +221,12 @@
     <span id="additional_param"></span></td></tr>
     </div>
 
+<!--
     <tr><td>Job type:</td>
     <td>
-
     <select name="jobType" title="required: Job type, Single-machine job or Multi-machine job" onChange="getJobType(jobType);">
     <?php
+/*
         if($roleCount == 0) {
             echo "<option value=\"1\" selected=\"selected\">Single-machine job</option>";
             echo "<option value=\"2\">Multi-machine job</option>";
@@ -224,25 +235,32 @@
             echo "<option value=\"1\">Single-machine job</option>";
             echo "<option value=\"2\" selected=\"selected\">Multi-machine job</option>";
         }
+*/
     ?>
-    <input type="hidden" id="role_count" value="<?php echo $roleCount?>">
+    <input type="hidden" id="role_count" value="<?php //echo $roleCount?>">
     </select>
     </td></tr>
+-->
 
     <tr><td colspan="2">
+<!--
     <div id="singlemachine_form">
     <table class="text-main" width="900px">
     <tr><td width="40%">Commands (one per line):</td>
+-->
     <?php
+/*
     if($commandCount > 0)
         $commands = trim($jobCommandMap[0]['commands']);
     else
         $commands = "#!/bin/sh\necho custom job";
     echo "<td><textarea cols=\"50\" rows=\"10\" id=\"commands\" name=\"commands_content_single\" title=\"required: write your script here, one command per line.\">$commands</textarea><span class=\"required\">*</span>";
+*/
     ?>
-
+<!--
     </td></tr>
     </table></div>
+-->
     </td></tr>
     
     <tr><td colspan="2">
@@ -264,35 +282,16 @@
     </td></tr>
     <?php
 
-    for($i=0; $i<5; $i++)
+    for($i=0; $i<$roleCount; $i++)
     {
-	if($i < $commandCount)
-	{
-            # When changing single-machie job to multiple-machine job, because it hasn't rols map information,
-            # set it's name to role0, and min and max number to 1 and 2
-	    if($i < $roleCount) {
-            	$name = ($jobRoleMap[$i]['name'] == "")?"role0":$jobRoleMap[$i]['name'];
-            	$min = ($jobRoleMap[$i]['min'] == "")?1:$jobRoleMap[$i]['min'];
-            	$max = ($jobRoleMap[$i]['max'] == "")?2:$jobRoleMap[$i]['max'];
-	    }
-	    else
-	    {
-		$name = "role" . $i;
-                $min = 1;
-                $max = 2;
-            }
+	$name = ($jobRoleMap[$i]['name'] == "")?"role0":$jobRoleMap[$i]['name'];
+	$min = ($jobRoleMap[$i]['min'] == "")?1:$jobRoleMap[$i]['min'];
+	$max = ($jobRoleMap[$i]['max'] == "")?2:$jobRoleMap[$i]['max'];
 
-            $commands = $jobCommandMap[$i]['commands'];
-        }
-        else
-        {
-            $name = "role" . $i;
-            $min = 1;
-            $max = 2;
-            $commands = "#!/bin/bash\necho Custom job role" . $i;
-        }
+	$commands = $jobCommandMap[$i]['worker'][0]['commands'];
 
-        echo "<tr><td colspan=\"2\">";
+	draw_role_command($i,$jobCommandMap[$i]);
+
         echo "<div id=\"commands_$i\">\n";
         echo "<table class=\"text-main\">\n";
         echo "<tr><td colspan=\"2\"><hr style=\"border:1px dashed\"></td><tr>\n";
@@ -321,7 +320,7 @@
         }
 	echo "</select></td></tr>\n";
 	echo "<tr><td>Commands (one per line):</td>\n";
-        echo "<td colspan=\"2\"><textarea cols=\"60\" rows=\"10\" name=\"commands_content_multiple[]\" title=\"required: write your script here, one command per line.\">$commands</textarea><span class=\"required\">*</span><td>\n";
+        echo "<td colspan=\"2\"><textarea cols=\"60\" rows=\"10\" name=\"commands_content_multiple[]\" title=\"required: write your script here, one command per line.\" required>$commands</textarea><span class=\"required\">*</span><td>\n";
         echo "</tr>\n";
         echo "<tr><td colspan=\"2\"><hr style=\"border:1px dashed\"></td></tr>\n";
 	echo "</table></div>\n";
