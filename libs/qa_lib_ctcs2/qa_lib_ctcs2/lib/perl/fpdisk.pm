@@ -245,13 +245,13 @@ sub get_disk_info_fdisk {
 
 	open FDISK, "LANG=C fdisk $diskopt -l " . $disk . " 2>&1 |";
 	while (<FDISK>) {
-		if (/^\s*(\d+) heads, (\d+) sectors[^\,]*, (\d+) cylinders/) {
+		if (/(\d+) heads, (\d+) sectors[^\,]*, (\d+) cylinders/) {
 			($heads, $sectors, $cylinders) = ($1, $2, $3);
 		}
-		if (/^Units = sectors of (\d+) \* (\d+)/) {
+		if (/ sectors of (\d+) \* (\d+)/) {
 			$cylsize = $1 * $heads * $sectors;
 			$blocksize = $2;
-		} elsif (/^Units = cylinders of (\d+) \* (\d+)/) {
+		} elsif (/ cylinders of (\d+) \* (\d+)/) {
 			($cylsize, $blocksize) = ($1, $2)
 		}
 		if (/^\/dev\//) {

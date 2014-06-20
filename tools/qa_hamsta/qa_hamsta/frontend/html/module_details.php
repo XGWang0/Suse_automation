@@ -50,7 +50,7 @@
             >
                 <td><?php echo($name); ?></td>
                 <td><?php echo(str_replace(',', ',<wbr/>', nl2br(htmlentities($value)))); ?></td>
-                <td><a href="index.php?go=machines&amp;s_module=<?php echo($module->get_name()); ?>&amp;s_module_element=<?php echo(urlencode($name)); ?>&amp;s_module_element_value=<?php echo(urlencode($value)); ?>">Search</a></td>
+                <td><a href="index.php?go=machines&set=Search&show_advanced=on&amp;s_module=<?php echo($module->get_name()); ?>&amp;s_module_element=<?php echo(urlencode($name)); ?>&amp;s_module_element_value=<?php echo(urlencode($value)); ?>">Search</a></td>
             </tr>
         <?php endforeach; ?>
     <?php endforeach; ?>

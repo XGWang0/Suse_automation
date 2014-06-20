@@ -262,6 +262,16 @@ EOF
 
 our ($ay_xml,$aytool);
 
+
+#check the whether we have a separate root partition
+my $bootpartition = `df /boot|awk '{a=\$1}END{print a}'`;
+my $rootpartition = `df /|awk '{a=\$1}END{print a}'`;
+
+$args->{'defaultboot'} = "MBR" if("$rootpartition" eq "$bootpartition") ;
+
+
+
+
 unless ($args->{'winvm'}) {
 	if ( $args->{'userprofile'} ) {
 		$ay_xml = $args->{'userprofile'};
@@ -358,6 +368,7 @@ if( $args->{'newvm'} )	{
 	if ( $command_ret == 0 ) {
 		if ( "$boottype" eq "bootloader" ) {
 			&log(LOG_RETURN, "$command_ret (".$cmdline.')');
+			&synclog;
 			&command( "(sleep 10;reboot)&" );
 			exit 0;
 		} else {

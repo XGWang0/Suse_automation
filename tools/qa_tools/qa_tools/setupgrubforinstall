@@ -47,8 +47,8 @@ get_bootloader()
 		#"can NOT verify the grub version"
 		exit 2
 	fi
-
 }
+
 setupgrub1()
 {
 	bootloaderconf=/boot/grub/menu.lst
@@ -57,6 +57,7 @@ setupgrub1()
 	then
 		grubpartition=`perl -ne 'print "$1\n" if $_=~/setup.+(\(hd\d+,\d+\))/' /etc/grub.conf | head -n 1`
 	fi
+
 	# extract the product part from the URL, ugly but seems to work
 	title=`echo $insturl | sed -e 's/\//\n/g' | grep -v '\..\+\.' | awk '{ print length, $0 }' | sort -gr | cut -d\  -f2 | head -n1`
 	count=`grep "title Installation" $bootloaderconf | grep -c "$title"`
@@ -82,117 +83,113 @@ setupgrub1()
 	echo "done."
 
 }
+
 setupgrub2()
 {
+	#grub bin name
+	if which grub2-mkconfig
+	then
+		grubn=grub2
+		grubdir=/boot/grub2
+	else
+		grubn=grub
+		grubdir=/boot/grub
+	fi
 
-#set the menuentry name
-title=`echo $insturl | sed -e 's/\//\n/g' | grep -v '\..\+\.' | awk '{ print length, $0 }' | sort -gr | cut -d\  -f2 | head -n1`
-title="$title-`date +%m%d%y%H%M%S`"
+	#set the menuentry name
+	title=`echo $insturl | sed -e 's/\//\n/g' | grep -v '\..\+\.' | awk '{ print length, $0 }' | sort -gr | cut -d\  -f2 | head -n1`
+	title="$title-`date +%m%d%y%H%M%S`"
 
-#find out the boot filesystem
-bootpartition=`df /boot|awk '{a=$1}END{print a}'`
-echo "boot partition is $bootpartition"
-bootfs=`awk -v p=$bootpartition '$1==p{print $3}' /proc/mounts`
-echo "boot filesystem is $bootfs"
-if [ "$bootfs" = "ext3" ] || [ "$bootfs" = "ext4" ]
-then
-	bootfs=ext2
-elif find $grubdir -type f -name "${bootfs}.mod"
-then
-	echo "find the filesystem module ${bootfs}.mod"
-else
-	echo "can veriy boot filesystem"
-	exit 2
-fi
+	#find out the boot filesystem
+	rootpartition=`df /|awk '{a=$1}END{print a}'`
 
-#compare the root/boot partition
+	#find out the boot filesystem
+	bootpartition=`df /boot|awk '{a=$1}END{print a}'`
+	echo "boot partition is $bootpartition"
+	bootfs=`awk -v p=$bootpartition '$1==p{print $3;exit}' /proc/mounts`
+	echo "boot filesystem is $bootfs"
+	if [ "$bootfs" = "ext3" ] || [ "$bootfs" = "ext4" ]
+	then
+		bootfs=ext2
+		elif find $grubdir -type f -name "${bootfs}.mod"
+		then
+		echo "find the filesystem module ${bootfs}.mod"
+	else
+		echo "Can not verify boot filesystem" >&2
+		exit 2
+	fi
 
-rootpartition=`df /|awk '{a=$1}END{print a}'`
+	#compare the root/boot partition
+	rootpartition=`df /|awk '{a=$1}END{print a}'`
+	if [ "$rootpartition" != "$bootpartition" ]
+	then
+		imagedir=${imagedir#/boot}
+	fi
 
-if [ "$rootpartition" != "$bootpartition" ]
-then
-	imagedir=${imagedir#/boot}
-fi
+	#find out the UUID of boot partition
+	#partition name
+	pname=${bootpartition##*/}
 
-#find out the UUID of boot partition
-#partition name
-pname=${bootpartition##*/}
-
-uuid=`ls -l /dev/disk/by-uuid/ |awk -v p=$pname '{gsub(/.*\//,"",$NF);a[$NF]=$9}END{print a[p]}'`
-
-
-#findout the coustom config of autoinstall #/etc/grub.d/
-#get largest index of grub config
-index=`ls /etc/grub.d|awk -F_ '/_/{a=($1>a)?$1:a}END{print a}'`
-
-#get largest index of autoinstall grub config
-aindex=`ls /etc/grub.d|grep autoinstall|awk -F_ '{a=($1>a)?$1:a}END{print a}'`
-
-if [ "$index" = "$aindex" ]
-then
-	#already have a custom autoinstall config
-	#creat a newone
-	customname=$((index + 1))
-elif [ "$aindex" = "" ]
-then
-	#no autoinstall config
-	customname=$((index + 1))
-elif [ "$index" -gt "$aindex" ]
-then
-	#make sure the entry is the last one
-	customname=$((index + 1))
-fi
-
-customname="${customname}_autoinstall"
-echo "create config file $customname"
+	uuid=`ls -l /dev/disk/by-uuid/ |awk -v p=$pname '{gsub(/.*\//,"",$NF);a[$NF]=$9}END{print a[p]}'`
 
 
-#find out the rootsubvol
+	#findout the coustom config of autoinstall #/etc/grub.d/
+	#get largest index of grub config
+	index=`ls /etc/grub.d|awk -F_ '/_/{a=($1>a)?$1:a}END{print a}'`
 
-. /usr/share/grub2/grub-mkconfig_lib
+	#get largest index of autoinstall grub config
+	aindex=`ls /etc/grub.d|grep autoinstall|awk -F_ '{a=($1>a)?$1:a}END{print a}'`
 
-rootsubvol=`make_system_path_relative_to_its_root /`
-	
-#build the config file
+	if [ "$index" = "$aindex" ]
+	then
+		#already have a custom autoinstall config
+		#creat a newone
+		customname=$((index + 1))
+	elif [ "$aindex" = "" ]
+	then
+		#no autoinstall config
+		customname=$((index + 1))
+	elif [ "$index" -gt "$aindex" ]
+	then
+		#make sure the entry is the last one
+		customname=$((index + 1))
+	fi
 
-cat<<eof >/etc/grub.d/$customname
+	customname="${customname}_autoinstall"
+	echo "create config file $customname"
+
+
+	#find out the rootsubvol
+	. /usr/share/grub2/grub-mkconfig_lib
+
+	rootsubvol=`make_system_path_relative_to_its_root / | sed -e "s,@$,,"`
+
+	#build the config file
+	cat<<eof >/etc/grub.d/$customname
 echo "menuentry $title  {
-insmod gzio
-insmod part_msdos
-insmod $bootfs
-search --no-floppy --fs-uuid --set=root $uuid
-linux ${rootsubvol}$imagedir/linux $params
-initrd ${rootsubvol}$imagedir/initrd
+	insmod gzio
+	insmod part_msdos
+	insmod $bootfs
+	search --no-floppy --fs-uuid --set=root $uuid
+	linux ${rootsubvol}$imagedir/linux $params
+	initrd ${rootsubvol}$imagedir/initrd
 }"
 eof
 
-chmod a+x /etc/grub.d/$customname
-#grub bin name
+	chmod a+x /etc/grub.d/$customname
 
-if which grub2-mkconfig
-then
-	grubn=grub2
-	grubdir=/boot/grub2
-else
-	grubn=grub
-	grubdir=/boot/grub
-fi
+	#update the grub.cfg
+	$grubn-mkconfig -o $grubdir/grub.cfg
 
-#update the grub.cfg
+	#sleep a while
+	sleep 5
 
-$grubn-mkconfig -o $grubdir/grub.cfg
-
-#get index of autoinstall
-num=`awk '{if(/^menuentry|^submenu/){a++}}END{print a}' /boot/grub2/grub.cfg`
-num=$((--num))
-
-#change bootloader default boot
-
-echo "$grubn-set-default $num"
-$grubn-set-default $num
-
-
+	#change bootloader default boot
+	echo "$grubn-set-default $title"
+	$grubn-set-default $title
+	exit $?
 }
+
 setupkexec()
 {
 
@@ -208,6 +205,7 @@ setupkexec()
 	sh -c "$comments"
 	echo "Start Kexec booting!"
 }
+
 download_installkernel()
 {
 	insturl=$1
@@ -257,6 +255,7 @@ download_installkernel()
 	fi
 
 }
+
 printhelp()
 {
 	cmd=`basename $0`
@@ -269,6 +268,7 @@ printhelp()
 	echo
 	exit 1
 }
+
 cleanup()
 {
 	[ -f $TMPFILE ] && rm $TMPFILE

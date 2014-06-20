@@ -470,16 +470,77 @@
 			unset ($filter);
 			unset ($op);
 		}
-	
-	}
-	else if (isset ($ns_machine_filter->fields)
-		 && isset ($ns_machine_filter->fields['s_anything'])
-		 && isset ($ns_machine_filter->fields['s_anything_operator']))
-	  {
-	    $filter = $ns_machine_filter->fields['s_anything'];
-	    $op = $ns_machine_filter->fields['s_anything_operator'];
-	  }
+		
+		$modules_names = request_is_array("s_module") ? request_array("s_module") : request_str("s_module") ? (array) request_str("s_module") : array();
 
+		$modules_descriptions = request_is_array("s_module_description") ? request_array("s_module_description") : request_str("s_module_description") ? (array) request_str("s_module_description") : array();
+
+		$modules_drivers = request_is_array("s_module_driver") ? request_array("s_module_driver") : request_str("s_module_driver") ? (array) request_str("s_module_driver") : array();
+
+		$modules_elements = request_is_array("s_module_element") ? request_array("s_module_element") : request_str("s_module_element") ? (array) request_str("s_module_element") : array();
+
+		$modules_element_values = request_is_array("s_module_element_value") ? request_array("s_module_element_value") : request_str("s_module_element_value") ? (array) request_str("s_module_element_value") : array();
+	
+		if (count($modules_names)>0)
+		{
+			if (isset ($ns_machine_filter))
+			{
+				$ns_machine_filter->fields['s_module'] = $modules_names;
+				if (isset($modules_descriptions) && count ($modules_descriptions)>0 )
+					$ns_machine_filter->fields['s_module_description'] = $modules_descriptions;
+				if (isset($modules_drivers) && count ($modules_drivers)>0 )
+					$ns_machine_filter->fields['s_module_driver'] = $modules_drivers;
+				if (isset($modules_elements) && count ($modules_elements)>0 )
+					$ns_machine_filter->fields['s_module_element'] = $modules_elements;
+				if (isset($modules_element_values) && count ($modules_element_values)>0 )
+					$ns_machine_filter->fields['s_module_element_value'] = $modules_element_values;
+				else{}
+			}
+		}
+		else 
+		{
+			// clean up session variables
+			if (isset ($ns_machine_filter))
+			{
+				unset ($ns_machine_filter->fields['s_module']);
+				unset ($ns_machine_filter->fields['s_module_description']);
+				unset ($ns_machine_filter->fields['s_module_driver']);
+				unset ($ns_machine_filter->fields['s_module_element']);
+				unset ($ns_machine_filter->fields['s_module_element_value']);
+			}
+			unset ($modules_names);
+			unset ($modules_descriptions);
+			unset ($modules_drivers);
+			unset ($modules_elements);
+			unset ($modules_element_values);
+		}
+
+	}
+	else if (isset ($ns_machine_filter->fields))
+	{
+		if(isset ($ns_machine_filter->fields['s_anything']) 
+			&& isset ($ns_machine_filter->fields['s_anything_operator']))
+		{
+			$filter = $ns_machine_filter->fields['s_anything'];
+			$op = $ns_machine_filter->fields['s_anything_operator'];
+		}
+		else if (isset ($ns_machine_filter->fields['s_module'])
+			&&(isset ($ns_machine_filter->fields['s_module_descritpion'])
+			|| isset ($ns_machine_filter->fields['s_module_driver'])
+			|| isset ($ns_machine_filter->fields['s_module_element'])
+			|| isset ($ns_machine_filter->fields['s_module_element_value'])))
+		{
+			$modules_names = $ns_machine_filter->fields['s_module'];
+			$modules_descriptions	= (isset ($ns_machine_filter->fields['s_module_descritpion'])) ?
+				$ns_machine_filter->fields['s_module_description'] : array();
+			$modules_drivers	= (isset ($ns_machine_filter->fields['s_module_driver'])) ?
+				$ns_machine_filter->fields['s_module_driver'] : array();
+			$modules_elements	= (isset ($ns_machine_filter->fields['s_module_element'])) ?
+				$ns_machine_filter->fields['s_module_element'] : array();
+			$modules_element_values	= (isset ($ns_machine_filter->fields['s_module_element_value'])) ?
+				$ns_machine_filter->fields['s_module_element_value'] : array();
+		}
+	}
 	/* If the filter and operators are set, do the filtering. */
 	if (isset ($filter) && isset ($op)
 	    && ! empty ($filter) && ! empty ($op))
@@ -487,21 +548,18 @@
 	    $search->filter_anything ($filter, $op);
 	  }
 
-	$modules_names = request_is_array("s_module") ? request_array("s_module") : (array) request_str("s_module");
-	$modules_descriptions = request_is_array("s_module_description") ? request_array("s_module_description") : (array) request_str("s_module_description");
-	$modules_drivers = request_is_array("s_module_driver") ? request_array("s_module_driver") : (array) request_str("s_module_driver");
-	$modules_elements = request_is_array("s_module_element") ? request_array("s_module_element") : (array) request_str("s_module_element");
-	$modules_element_values = request_is_array("s_module_element_value") ? request_array("s_module_element_value") : (array) request_str("s_module_element_value");
-	
-	foreach ($modules_names as $i => $module_name) {
-		if ($filter = $modules_descriptions[$i]) {
-			$search->filter_module_description($module_name, $filter);
-		}
-		if ($filter = $modules_drivers[$i]) {
-			$search->filter_module_driver($module_name, $filter);
-		}
-		if ($filter = $modules_elements[$i]) {
-			$search->filter_module_element($module_name, $filter, $modules_element_values[$i]);
+	if (isset ($modules_names) && is_array($modules_names))
+	{
+		foreach ($modules_names as $i => $module_name) {
+			if ((count($modules_descriptions)>0) && ($filter = $modules_descriptions[$i])) {
+				$search->filter_module_description($module_name, $filter);
+			}
+			if ((count($modules_drivers)>0) && ($filter = $modules_drivers[$i])) {
+				$search->filter_module_driver($module_name, $filter);
+			}
+			if ((count($modules_elements)>0) && ($filter = $modules_elements[$i])) {
+				$search->filter_module_element($module_name, $filter, $modules_element_values[$i]);
+			}
 		}
 	}
 

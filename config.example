@@ -5,13 +5,15 @@
 # do your changes and it will be used instead of this file
 # (The file $REPO/config is in gitignore, so it will not be commited)
 
-# Space-separated list of values example: "openSUSE_12.2 openSUSE_12.3"
+# Space-separated list of values example: "openSUSE-12.2 openSUSE-12.3"
 # You can use following script to get possible values:
 # tmpfile=`mktemp` 
 # iosc meta prj QA:Head:Devel > $tmpfile 
 # xmllint -xpath '/project/repository/@name' $tmpfile
 # rm $tmpfile
-PRODUCTS="SUSE_SLE-11-SP3_GA"
+# general format is NAME-VERSION[-SPx][-Update]
+# example SLE-12 SLE-11-SP2 openSUSE-13.1 openSUSE-Factory
+PRODUCTS="SLE-11-SP3"
 
 # Space separated list of architectures
 ARCHS="`arch`"

@@ -9,85 +9,71 @@
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
-# norootforbuild
-
 Name:           qa_lib_internalapi
-BuildRequires:  doxygen libpng swig autoconf automake libtool
-License:        SUSE Proprietary, GPL v2 or later
-Group:          SuSE internal
-Autoreqprov:    on
 Version:        @@VERSION@@
 Release:        0
+License:        SUSE-NonFree, GPL-2.0+
 Summary:        RD-QA internal library for easier testcase creation
-URL:            http://w3d.suse.de/Dev/QA/QAInternalAPI
+Url:            http://w3d.suse.de/Dev/QA/QAInternalAPI
+Group:          SuSE internal
 Source0:        %{name}-%{version}.tar.bz2
 Source1:        %{name}perl-%{version}.tar.bz2
 Source2:        %{name}shell-%{version}.tar.bz2
-Source3:	%name.8
+Source3:        %{name}.8
+BuildRequires:  autoconf
+BuildRequires:  automake
+BuildRequires:  doxygen
+BuildRequires:  libpng
+BuildRequires:  libtool
+BuildRequires:  swig
+Provides:       libqainternal
+Obsoletes:      libqainternal
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
-Provides:	libqainternal
-Obsoletes:	libqainternal
-%if 0%{?sles_version} == 9
+%if 0%{?suse_version} == 910
 Requires:       expect
 %endif
-#BuildArchitectures: noarch
-#ExclusiveArch: %ix86
 
 %description
-very simple shared c-library for some defined api-functions for easier
+Very simple shared c library for some defined api-functions for easier
 or at least common test-programming inside rd-qa.
 
 Shell implementation of the API is avilable as well within this
 package.
 
-
-
-Authors:
---------
-    Frank Seidel <fseidel@suse.de>
-    Martin Mrazik <mmrazik@suse.de>
-
 %package perlbinding
 Summary:        RD-QA internal library for easier testcase creation
-Group:          SuSE internal
-#Requires:       %{name}
+Group:          SUSE internal
 Requires:       perl-base
-Provides:	libqainternal-perlbinding
-Obsoletes:	libqainternal-perlbinding
+Provides:       libqainternal-perlbinding
+Obsoletes:      libqainternal-perlbinding
 
 %description perlbinding
-very simple shared c-library for some defined api-functions for easier
-or at least common test-programming inside rd-qa
-
-
-
-Authors:
---------
-    Frank Seidel <fseidel@suse.de>
+Very simple shared c library for some defined api-functions for easier
+or at least common test-programming inside rd-qa.
 
 %prep
 %setup -a1 -a2 -n %{name}
 cp src/libqainternal.h %{name}perl/
 
 %build
-autoreconf -fi 
+autoreconf -fi
 %configure
-%{__make}
+make
 cd %{name}perl
 export LD_LIBRARY_PATH="../src/.libs"
-%{__make} -f Makefile.swig clean
-%{__make} -f Makefile.swig PINCLUDES=%{perl_archlib} CFLAGS="$RPM_OPT_FLAGS" CXXFLAGS="$RPM_OPT_FLAGS" 
+make -f Makefile.swig clean
+make -f Makefile.swig PINCLUDES=%{perl_archlib} CFLAGS="%{optflags}" CXXFLAGS="%{optflags}"
 perl Makefile.PL
-%{__make} CFLAGS="$RPM_OPT_FLAGS" CXXFLAGS="$RPM_OPT_FLAGS"
+make CFLAGS="%{optflags}" CXXFLAGS="%{optflags}"
 cd ..
 
 %install
-install -m 755 -d $RPM_BUILD_ROOT/usr/share/man/man8
-install -m 644 %{S:3} $RPM_BUILD_ROOT/usr/share/man/man8
-gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
-%{__make} DESTDIR=$RPM_BUILD_ROOT install
+install -m 755 -d %{buildroot}%{_mandir}/man8
+install -m 644 %{SOURCE3} %{buildroot}%{_mandir}/man8
+gzip %{buildroot}%{_mandir}/man8/%{name}.8
+make DESTDIR=%{buildroot} install
 cd %{name}perl
-%{__make} -f Makefile.swig DESTDIR=$RPM_BUILD_ROOT LIBD=%{_libdir} install 
+make -f Makefile.swig DESTDIR=%{buildroot} LIBD=%{_libdir} install
 %perl_make_install
 ### since 11.4 perl_process_packlist
 ### removes .packlist, perllocal.pod files
@@ -96,27 +82,27 @@ cd %{name}perl
 %else
 # do not perl_process_packlist
 # remove .packlist file
-find $RPM_BUILD_ROOT%perl_vendorarch/auto -name .packlist -print0 |
+find %{buildroot}%perl_vendorarch/auto -name .packlist -print0 |
 xargs -0 -r rm ;
 # remove perllocal.pod file
-%{__rm} -f $RPM_BUILD_ROOT%perl_archlib/perllocal.pod
+rm -f %{buildroot}%perl_archlib/perllocal.pod
 %endif
 
 cd ..
 # install the shell implementation
-install -d -m 0755 $RPM_BUILD_ROOT/usr/share/qa/qa_internalapi/sh
-cp -rv %{name}shell/* $RPM_BUILD_ROOT/usr/share/qa/qa_internalapi/sh
-ln -s /usr/share/qa/qa_internalapi/sh/libqainternal.lib.sh $RPM_BUILD_ROOT/usr/bin/libqainternal.lib.sh
-%if 0%{?sles_version} == 9
-ln -s change_password.exp $RPM_BUILD_ROOT/usr/share/qa/qa_internalapi/sh/change_password
-rm $RPM_BUILD_ROOT/usr/share/qa/qa_internalapi/sh/change_password.sh
+install -d -m 0755 %{buildroot}%{_datadir}/qa/qa_internalapi/sh
+cp -rv %{name}shell/* %{buildroot}%{_datadir}/qa/qa_internalapi/sh
+ln -s /usr/share/qa/qa_internalapi/sh/libqainternal.lib.sh %{buildroot}%{_bindir}/libqainternal.lib.sh
+%if 0%{?suse_version} == 910
+ln -s change_password.exp %{buildroot}%{_datadir}/qa/qa_internalapi/sh/change_password
+rm %{buildroot}%{_datadir}/qa/qa_internalapi/sh/change_password.sh
 %else
-ln -s change_password.sh $RPM_BUILD_ROOT/usr/share/qa/qa_internalapi/sh/change_password
-rm $RPM_BUILD_ROOT/usr/share/qa/qa_internalapi/sh/change_password.exp
+ln -s change_password.sh %{buildroot}%{_datadir}/qa/qa_internalapi/sh/change_password
+rm %{buildroot}%{_datadir}/qa/qa_internalapi/sh/change_password.exp
 %endif
 
 %clean
-%{__rm} -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
 %post perlbinding
 ldconfig
@@ -125,19 +111,19 @@ ldconfig
 ldconfig
 
 %files
-%defattr(-,root,root)   
+%defattr(-,root,root)
 %{_libdir}/libqainternal.so*
 %{_libdir}/libqainternal.la
-%{_prefix}/include/libqainternal.h
-%{_prefix}/share/qa
-%{_prefix}/bin/demo_use
-%{_prefix}/share/man/man3/*
-%{_prefix}/share/man/man8/*
-/usr/bin/libqainternal.lib.sh
-%if 0%{?sles_version} == 9
-%attr(0755,root,root) /usr/share/qa/qa_internalapi/sh/change_password.exp
+%{_includedir}/libqainternal.h
+%{_datadir}/qa
+%{_bindir}/demo_use
+%{_mandir}/man3/*
+%{_mandir}/man8/*
+%{_bindir}/libqainternal.lib.sh
+%if 0%{?suse_version} == 910
+%attr(0755,root,root) %{_datadir}/qa/qa_internalapi/sh/change_password.exp
 %else
-%attr(0755,root,root) /usr/share/qa/qa_internalapi/sh/change_password.sh
+%attr(0755,root,root) %{_datadir}/qa/qa_internalapi/sh/change_password.sh
 %endif
 %doc COPYING
 
@@ -146,8 +132,7 @@ ldconfig
 %{_libdir}/libqainternalperl.so*
 %{perl_vendorarch}/auto/libqainternalperl
 %{perl_vendorarch}/libqainternalperl.pm
-%{_prefix}/bin/demo_use_perl.pl
-#/var/adm/perl-modules/libqainternal
+%{_bindir}/demo_use_perl.pl
 
 %changelog -n libqainternal
 * Mon Dec 11 2006 - mmrazik@suse.cz

@@ -93,8 +93,9 @@
   </p>
 
   <input type="submit" name="submit" value="submit" id="submit" />
+<?php
+print_install_post_data ();
+?>
 </form>
 
-<script>
-<?php require ('js/install_product.js'); ?>
-</script>
+<script src="js/install_product.js"></script>

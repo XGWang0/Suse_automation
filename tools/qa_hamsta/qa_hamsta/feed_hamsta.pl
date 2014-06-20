@@ -37,7 +37,6 @@ use Encode;
 
 use IO::Socket::INET;
 
-
 $0 =~ m/([^\/]*)$/;
 my $progname = $1;
 
@@ -47,8 +46,8 @@ binmode(STDOUT, ":utf8");
 my $debug = 0;
 
 #correspond with version of hamsta.
-my $version = "2.7";
-
+my $version = "HAMSTA_VERSION";
+my $protocol_version = 1;
 
 #my $tmpfile = "/tmp/$progname.$$";
 #END { unlink($tmpfile); }
@@ -61,19 +60,18 @@ $progname version $version
 $progname [OPTIONS] <master>[:<port>]
 
 Options:
-	-t|--jobtype <jobtype>  set the job type(number):
-				1 pre-define 
-				2 qa_package
-				3 autotest
-				4 mult_machine
-				5 reinstall
+	-t|--jobtype <jobtype>  set the job type (number)
+				1 Single machine
+				2 QA package
+				3 Autotest
+				4 Multi machine
+				5 Reinstall
 	-n|--testname <testname>
 				set test name for the job work with -t option 
-		                (only for pre-define, qa_package, autotest, mult_machine)
-		                seperate by ',' for qa_package&autotest job
-	-l|--listcases		print the support test case name for each jobtype
-				work with -t option
-	-r|--roles		for mult-machine jobs, set roles number and host
+		                (only for Single machine, QA package, Autotest, Multi machine).
+		                Seperate by ',' for qa_package and autotest job.
+	-l|--listcases		print the support test case names for jobtypes 1 to 4
+	-r|--roles		for Multi machine jobs, set roles number and host
 		         	Assign SUT to roles , format like:
 					-r 'r0:host1,host2;r1:host3,host4'
 
@@ -91,6 +89,7 @@ Options:
 	-h|--host <ip-or-hostname>
 				set the target SUT for the test
 	-g|--group <name>	set the target host group for test
+	--force-version-ignore  do not check protocol version and execute requested action
 	-v|--version	        print program version
 	-d|--debug <level>	set debugging level (defaults to $debug)
 	   --help	        print this help message
@@ -106,6 +105,7 @@ my $opt_print_active	= 0;
 my $opt_job		= "";
 my $opt_host		= "";
 my $opt_group		= "";
+my $opt_version_ignore	= 0;
 
 #Job Type : 1)pre-define; 2)qa_package; 3)autotest; 4)mult_machine; 5)reinstall
 my $opt_jobtype		= 0;
@@ -149,9 +149,29 @@ unless (GetOptions(
 		   'mail|m=s'		=> \$opt_mail,
 		   'user|U=s'		=> \$opt_user,
 		   'password|P=s'	=> \$opt_password,
+		   'force-version-ignore' => \$opt_version_ignore,
 		  )) {
 	&usage ();
 	exit 1;
+}
+
+# Compare versions (requires format a.b.c) of the Hamsta master
+# instance and this client instance. It compares only the major (a)
+# and minor (b) version.
+#
+# Returns 1 if the version is OK and 0 if version is Not OK.
+sub compare_versions () {
+    chomp (my $check_result = send_command("check version $protocol_version\n"));
+
+    if ($check_result eq 'OK') {
+	return 1;
+    } elsif ($check_result eq 'NOK') {
+	return 0;
+    } else {
+	print STDERR "Master does not support version checking. You probably connect to "
+	    . "an older master.\n\n";
+    }
+    return 0;
 }
 
 if ($opt_version) {
@@ -184,7 +204,7 @@ my $opt_master_port;
 $opt_master_port = 18431 unless $opt_master_port;
 
 print "Connecting to master $opt_master on $opt_master_port\n\n";
-	
+
 my $sock;
 eval {
 	$sock = IO::Socket::INET->new(
@@ -200,6 +220,11 @@ if ($@ || !$sock) {
 
 # Ignore the welcome message and wait for the prompt
 &send_command('');
+
+if (not $opt_version_ignore and not compare_versions()) {
+    print STDERR "ERROR: Hamsta protocol mismatch. You might want to update your client.\n";
+    exit 1;
+}
 
 my $job_id="";
 
@@ -363,12 +388,11 @@ if ($opt_job) {
 	}
 }
 
-
 sub send_command {
 	my $cmd = shift;
 	my $result = "";
 	my $line = "";
-	
+
 	eval {
 		if ($cmd) {
 		    $sock->send($cmd);
@@ -376,7 +400,7 @@ sub send_command {
 		}
 	};
 	if ($@) {
-		print "Message could not be send: $@\n";
+		print "Message could not be sent: $@\n";
 		exit 2;
 	}
 
@@ -404,4 +428,3 @@ sub send_command {
 
 	return $result;
 }
-

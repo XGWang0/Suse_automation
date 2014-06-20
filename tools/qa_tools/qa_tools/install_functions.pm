@@ -68,7 +68,7 @@ sub parse_source_url
 		$type = 'slepos' if $name =~ /-slepos-/i;
 		$sub = 0 unless $sub;
 	}
-	if ($name =~ /(i\d86|ppc(64)?|s390x?|ia64|x86[_-]64)/i) {
+	if ($name =~ /(i\d86|ppc(64(le)?)?|s390x?|ia64|x86[_-]64)/i) {
 		$arch = lc $1;
 		$arch =~ s/-/_/g;
 	}
@@ -224,28 +224,11 @@ sub get_profile
 
 sub _get_buildservice_repo
 {
-# TODO
-# SLES_9, SLE_10_SP1_Head, SLE_10_SP2_Head, SLE_Factory, openSUSE_11.0, openSUSE_Factory
 	my ($type,$version,$subversion) = @_;
 	if( $type eq 'opensuse' ) {
-		return "openSUSE_11.4" if $version==11 and $subversion==4;
-		return "openSUSE_12.1" if $version==12 and $subversion==1;
-		return "openSUSE_12.2" if $version==12 and $subversion==2;
-		return "openSUSE_12.3" if $version==12 and $subversion==3;
-		return "openSUSE_13.1" if $version==13 and $subversion==1;
-		return 'openSUSE_Factory';
+		return $version != 99 ? "openSUSE-$version.$subversion" : 'openSUSE-Factory';
 	} else {
-		return 'SLES_9' if $version==9;
-		return 'SLE_10_SP1_Head' if $version==10 and $subversion<=1;
-		return 'SLE_10_SP2_Head' if $version==10 and $subversion==2;
-		return 'SLE_10_SP3' if $version==10 and $subversion==3;
-		return 'SLE_10_SP4' if $version==10;
-		return 'SUSE_SLE-11_GA' if $version==11 and $subversion==0;
-		return 'SUSE_SLE-11-SP1_GA' if $version==11 and $subversion==1;
-		return 'SUSE_SLE-11-SP2_GA' if $version==11 and $subversion==2;
-		return 'SUSE_SLE-11-SP3_GA' if $version==11 and $subversion==3;
-		return 'SUSE_SLE-12_GA' if $version==12 and $subversion==0;
-		return 'SLE_Factory' if $version > 12;
+		return "SLE-$version" . ($subversion ? "-SP$subversion" : '');
 	}
 	return undef;
 }
@@ -812,11 +795,25 @@ sub _print_profile_partitions
 			$drives->{$abuildid}->{$abuildnum}='/abuild' if defined $abuildid;
 			$drives->{$bootid}->{$bootnum}='/boot/efi' if defined $bootid and $args->{'to_arch'} eq 'ia64';
 			$drives->{$bootid}->{$bootnum}='NULL' if defined $bootid and ($args->{'to_arch'} eq 'ppc64' or $args->{'to_arch'} eq 'ppc');
-			my $sizeunit = `fdisk -l |grep "\$drive" |grep Disk |awk {'print \$4'} | cut -f1 -d','`;
-			my $disksize = `fdisk -l |grep "\$drive" |grep Disk |awk {'print \$3'} | cut -f1 -d'\n'`;
-			chomp($sizeunit);
-			chomp($disksize);
-			if ( substr($sizeunit, 0, 2) =~ /GB/ ) {
+
+			my @fdisk = `fdisk -l`;
+			my ($sizeunit, $disksize);
+
+			foreach my $line (@fdisk) {
+				# Want to capture the used disk size
+				# and units. Only the first matching
+				# line is used. Beware that there is
+				# also the 'Disk identifier' line.
+				# Expected line example:
+				# Disk /dev/sda: 500.1 GB, 500107862016 bytes
+				if ($line =~ /^Disk \/[\w\/]+: ([\d.]+) (\w+)/) {
+					chomp($sizeunit = $2);
+					chomp ($disksize = $1);
+					last;
+				}
+			}
+
+			if ( $sizeunit =~ /Gi?B/ ) {
 				$disksize = int($disksize*1024);
 			}
 			$abuildsize = 0 if !$abuildid;

@@ -58,5 +58,107 @@ function tableAlign(){
         $("#blindwall").addClass("hidden").removeClass("show otherHeight ChromeHeight");
     }
 }
+function extToggle(chkbox) {
+        $("table#extlist").fadeToggle("fast");
+        if( chkbox.checked == false )
+                $("label#lblmore").html('&nbsp&nbsp&nbsp&dArr; '+(sutCnt-2).toString()+' more &uArr;');
+        else
+                $("label#lblmore").html("&nbsp&nbsp&nbsp&dArr; Hide more &uArr;");
+}
+function catSpace(Num) {
+	var mystr = "";
+	for(var i = 0; i < Num; i++ ) 
+		mystr += "&nbsp";
+	return mystr;
+}
+function appendToList(id) { 
+        sutList['"'+id+'"'] = '<input type="checkbox" checked="checked" onChange=\'attachToTab(this,"'+id+'")\'>';
+			sutList['"'+id+'"'] += '<label title='+machines[id]+'>';
+			sutList['"'+id+'"'] += machines[id].substr(0,13);
+			if( machines[id].length < 13 )
+				sutList['"'+id+'"'] += catSpace(13-machines[id].length);
+			sutList['"'+id+'"'] +='</label>';
+}
+function renderHtml(visual) {
+        var outHtml = "&nbsp";
+	if(sutCnt <= 0) {
+                $("div#chkedsut").text("");
+        } else {
+                $("div#chkedsut").text(sutCnt);
+                if(sutCnt <= 3) {
+                        for(var ind in sutList) {
+                                if( sutList[ind] != null ) {
+                                        outHtml += sutList[ind];
+                                }
+                        }
+                } else {
+                        var attached = 0;
+                        for(var ind in sutList) {
+                                if( sutList[ind] != null ) {
+                                        if(attached < 2) {
+                                                outHtml += sutList[ind];
+                                                attached ++;
+                                        }
+                                        if(attached == 2) {
+                                                if( visual == "table" )
+                                                        lbTxt = "Hide";
+                                                else
+                                                        lbTxt = (sutCnt-attached).toString();
+                                                outHtml += '<input type="checkbox" id="showmore" onChange=\'extToggle(this)\' ';
+                                                if( visual == "table" )
+                                                        outHtml += 'checked="checked" ';
+                                                outHtml += '><label for="showmore" id="lblmore">&nbsp&nbsp&nbsp&dArr; '+lbTxt+' more &uArr;</label>';
+                                                outHtml += '<table id="extlist" style="display:'+visual+'">';
+                                                attached ++;
+                                                continue;
+                                        }
+                                        if(attached > 2) {
+                                                attached ++;
+                                                if( attached % 3 == 1)
+                                                        outHtml += '<tr>';
+                                                outHtml += '<td>'+sutList[ind]+'</td>';
+                                                if( attached % 3 == 0 || attached == sutCnt + 1)
+                                                        outHtml += '</tr>';
+                                        }
+                                        if(attached == sutCnt + 1)
+                                                outHtml += '</table>';
+                                }
+                        }
+
+                }
+        }
+	return outHtml;
+}
+function attachToTab(chkbox,host_id) {
+        var outHtml = "&nbsp";
+        var extAttr = "none";
+        if( chkbox.id == "checkall" ) {
+                if( chkbox.checked == true )
+                        sutCnt = 0;
+                for( var id in machines ) {
+                    if(chkbox.checked == true) {
+                        sutCnt ++;
+			appendToList(id);
+                    } else {
+                        sutCnt --;
+                        sutList['"'+id+'"'] = null;
+                    }
+                }
+        } else {
+                if(chkbox.checked == true) {
+                        sutCnt ++;
+			appendToList(host_id);
+                } else {
+                        sutCnt --;
+                        sutList['"'+host_id+'"'] = null;
+                        $("input[value='"+host_id+"']").attr("checked",false);
+                        if(sutCnt == 0)
+                                $("input#checkall").attr("checked",false);
+                }
+                if( $("table#extlist").css("display") == "table" )
+                        extAttr = $("table#extlist").css("display");
+        }
+        $("div#chkedlist").html(renderHtml(extAttr));
+}
 
 

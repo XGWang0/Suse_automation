@@ -5,4 +5,4 @@
 
 # version (currently only value used in this file)
 # this value replaces every occurence of @@VERSION@@ in specfile during build
-VERSION="2.7.1"
+VERSION="2.7.2"

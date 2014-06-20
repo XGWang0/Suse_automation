@@ -1,24 +1,35 @@
-<?php
-/* pkacer@suse.com: This file has to be included a php file because it
- * contains some PHP code: require ('<this-file-path>');.
- * That should be fixed in near future.
- */
-?>
 //<!--
 var sled_text = ["desktop-base"];
-var sled_gnome = ["<?php echo (str_replace (" ", "\", \"", $config->lists->gnome->default));?>"];
-var sled_kde = ["<?php echo (str_replace (" ", "\", \"", $config->lists->kde->default));?>"];
-var old_repo_product = "<?php if(isset($_POST["repo_products"])){echo $_POST["repo_products"];}?>";
-var old_repo_arch = "<?php if(isset($_POST["repo_archs"])){echo $_POST["repo_archs"];}?>";
-var old_addon_product = "<?php if(isset($_POST["addon_products"])){echo $_POST["addon_products"];}?>";
-var old_addon_arch = "<?php if(isset($_POST["addon_archs"])){echo $_POST["addon_archs"];}?>";
+var sled_gnome = [];	// set in function get_config_data
+var sled_kde = [];		// set in function get_config_data
+/* These are initialized when document is ready for reading. */
+var old_repo_product =	'';
+var old_repo_arch =		'';
+var old_addon_product =	'';
+var old_addon_arch =	'';
 
 // addonid & addoncodeid
-var addonid = 1
+var addonid = 1;
 var addoncodeid = 1;
 var product_patterns = [];
 var all_patterns = [];
 var product_type = 'others';
+/* Used to mark elements for virtual disk in anotherdisk()
+ * "function" */
+var virtdiskno = 1;
+
+function get_config_data () {
+	$.getJSON ('html/install_product_ajax.php',
+			   { getval: 'gnome-default-patterns' },
+			   function (data) {
+				   sled_gnome = data;
+			   });
+	$.getJSON ('html/install_product_ajax.php',
+			   { getval: 'kde-default-patterns' },
+			   function (data) {
+				   sled_kde = data
+			   });
+}
 
 // Iterate $data and insert all options to select box $id
 function insert_options (id, data, old_selected) {
@@ -82,22 +93,22 @@ function change_patterns () {
 
     switch (preset_type) {
     case "text":
-    plist = sled_text;
-    break;
+		plist = sled_text;
+		break;
     case "gnome":
         plist = sled_gnome;
-    break;
+		break;
     case "kde":
         plist = sled_kde;
-    break;
+		break;
     case "full-distro":
-    plist = product_patterns;
-    break;
+		plist = product_patterns;
+		break;
     case "full":
-    plist = product_patterns;
-    break;
+		plist = product_patterns;
+		break;
     default:
-    // Keep the list unmodified.
+		// Keep the list unmodified.
     }
 
     if (product_type != "sled") {
@@ -123,7 +134,6 @@ function get_archs (product_type) {
     /* Get architecture of the machine. */
     var para = {
         product: $("#" + product_type + "_products").val(),
-        capable: "<?php echo ((isset ($machine) ? $machine->get_architecture_capable() : '')); ?>"
     };
 
     switch (product_type) {
@@ -266,6 +276,21 @@ function get_patterns (product_field_id, new_element_id, prod_type) {
      * some library. There is plugin for jQuery but it knows only the
      * first format and we need the other as well. Maybe it could be
      * overriden, though. */
+    $("#btrfs").remove();
+    $("#ext4").remove();
+
+   if(/factory/i.test(prod_url)) {
+	$("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option> <option id="ext4" value="ext4">ext4</option>');
+    }
+
+    if(/openSUSE-(\d+)\./i.test(prod_url) && RegExp.$1 >= 12) {
+	$("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option> <option id="ext4" value="ext4">ext4</option>');
+    }
+
+    if(/sle.?-(\d+)/i.test(prod_url) && RegExp.$1 >= 12) {
+	$("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option> <option id="ext4" value="ext4">ext4</option>');
+    }
+
     if (prod_url.length == 0) {
     $("#" + new_element_id).empty();
     } else if (/^(https?|s?ftp):\/\/[\w-]+\.[\w\.-]+/i.test(prod_url)) {
@@ -309,15 +334,24 @@ var anotherrcode = function (){
                   + addoncodeid +')" value="+" /><br />');
 }
 
-var anotherdisk = function (){
-    $('#additional_disk').after('<div class="row"> <label> </label> <span>'
-                 + 'Virtual Disk type: <select id="virtdisktypes" name="virtdisktypes[]">'
-                 + '<?php foreach ($virtdisktypes as $type) { echo "<option value=\"$type\">$type</option>"; } ?>'
-                 + '</select>&nbsp;&nbsp;&nbsp;Virtual Disk size (GB): <input type="text"'
-                 + ' id="virtdisksizes" name="virtdisksizes[]" size="4">&nbsp;'
-                 + '(put a dot "." for default size)&nbsp;&nbsp;<input type="button"'
-                 + ' size="5" onclick="anotherdisk()" value="+">'
-                 + ' </span></div>');
+var anotherdisk = function () {
+	virtdiskno++;
+	$.getJSON ('html/install_product_ajax.php', { getval: 'virt-disk-types' },
+		function (data) {
+			$('#additional_disk').after('<div class="row"> <label> </label> <span>'
+				+ 'Virtual disk type <select id="virtdisktypes'+virtdiskno+'" name="virtdisktypes[]">'
+				+ '</select>, disk size <input type="text"'
+				+ ' id="virtdisksizes'+virtdiskno+'" name="virtdisksizes[]" size="4"> GB'
+				+ '</span></div>');
+
+			$.each(data, function (i, value) {
+				$('#virtdisktypes' + virtdiskno).append (
+					'<option value="' + value + '">' + value + '</option>'
+				);
+			});
+
+		}
+	);
 }
 
 var showvirtdisk = function () {
@@ -367,6 +401,14 @@ $(document).ready(function() {
     }).ajaxStop(function() {
         $('#message').empty();
     });
+
+	old_repo_product = $('#old_repo_product').val();
+	old_repo_arch = $('#old_repo_arch').val();
+	old_addon_product = $('#old_addon_product').val();
+	old_addon_arch = $('#old_addon_arch').val();
+
+	/* Populates some variables above with proper data. */
+	get_config_data ();
 
     // Reinstall with updates options
     $('#startupdate')
@@ -519,6 +561,10 @@ $(document).ready(function() {
                 break;
         }
     });
+
+	/* Check the default disk setup and hide underlaying the menu at
+	 * the virtual machine setup page. */
+	$('#virtdiskdef').click();
 
 });
 //-->

@@ -25,38 +25,41 @@
 
 
 	$fields_list = array(
-		'hostname'=>'Hostname',
-		'status_string'=>'Status',
-		'used_by'=>'Reservations',
-		'usage'=>'Usage',
-		'job_overview'=>'Job Overview',
-		'group'=>'Group',
-		'product'=>'Product',
-		'architecture'=>'Installed Arch',
-		'architecture_capable'=>'CPU Arch',
-		'kernel'=>'Kernel',
-		'cpu_numbers'=>'CPUs',
-		'memory_size'=>'Memory',
-		'disk_size'=>'Disks',
-		'cpu_vendor'=>'CPU vendor',
-		'affiliation'=>'Affiliation',
-		'ip_address'=>'IP Address',
-		'maintainer_string'=>'Maintainer',
-		'notes'=>'Notes',
-		'unique_id'=>'Unique ID',
-		'serialconsole'=>'Serial Console',
-		'consolesetdefault'=>'Console Enabled',
-		'consolespeed'=>'Console Speed',
-		'consoledevice'=>'Console Device',
-		'powerswitch'=>'Power Switch',
-		'powertype'=>'Power Switch Type',
-		'powerslot'=>'Power Switch Slot',
-		'def_inst_opt'=>'Default Install Options',
-		'perm'=>'Machine Permissions',
-		'role'=>'Role',
-		'type'=>'Type',
-		'vh'=>'Virtual Host'
+                'hostname'     =>  array('name'=>'Hostname', 'type'=>'h'),
+		'status_string'=>  array('name'=>'Status', 'type'=>'h'),
+		'used_by'      =>  array('name'=>'Reservations', 'type'=>'h'),
+		'usage'        =>  array('name'=>'Usage', 'type'=>'h'),
+		'job_overview' =>  array('name'=>'Job Overview', 'type'=>'h'),
+		'group'        =>  array('name'=>'Group', 'type'=>'h'),
+		'product'      =>  array('name'=>'Product', 'type'=>'h'),
+		'architecture' =>  array('name'=>'Installed Arch', 'type'=>'h'),
+		'architecture_capable'=>array('name'=>'CPU Arch', 'type'=>'h'),
+		'kernel'       =>  array('name'=>'Kernel', 'type'=>'h'),
+		'cpu_numbers'  =>  array('name'=>'CPUs', 'type'=>'i'),
+		'memory_size'  =>  array('name'=>'Memory', 'type'=>'f'),
+		'disk_size'    =>  array('name'=>'Disks', 'type'=>'i'),
+		'cpu_vendor'   =>  array('name'=>'CPU vendor', 'type'=>'h'),
+		'affiliation'  =>  array('name'=>'Affiliation', 'type'=>'h'),
+		'ip_address'   =>  array('name'=>'IP Address', 'type'=>'h'),
+		'maintainer_string'=>array('name'=>'Maintainer', 'type'=>'h'),
+		'notes'        =>  array('name'=>'Notes', 'type'=>'h'),
+		'unique_id'    =>  array('name'=>'Unique ID', 'type'=>'h'),
+		'serialconsole'=>  array('name'=>'Serial Console', 'type'=>'h'),
+		'consolesetdefault'=>array('name'=>'Console Enabled', 'type'=>'h'),
+		'consolespeed' =>  array('name'=>'Console Speed', 'type'=>'h'),
+		'consoledevice'=>  array('name'=>'Console Device', 'type'=>'h'),
+		'powerswitch'  =>  array('name'=>'Power Switch', 'type'=>'h'),
+		'powertype'    =>  array('name'=>'Power Switch Type', 'type'=>'h'),
+		'powerslot'    =>  array('name'=>'Power Switch Slot', 'type'=>'h'),
+		'def_inst_opt' =>  array('name'=>'Default Install Options', 'type'=>'h'),
+		'perm'         =>  array('name'=>'Machine Permissions', 'type'=>'h'),
+		'role'         =>  array('name'=>'Role', 'type'=>'h'),
+		'type'         =>  array('name'=>'Type', 'type'=>'h'),
+		'vh'           =>  array('name'=>'Virtual Host', 'type'=>'h')
+
+
 	);
+
 
 /* These fields are displayed by default. That means the user
  * cannot hide them nor display again. */
@@ -81,7 +84,7 @@ $qadb_web = exec('/usr/share/qa/tools/get_qa_config qadb_wwwroot');
 
 $virtdisktypes = array("def", "file", "tap:aio", "tap:qcow", "tap:qcow2");
 
-$hamstaVersion = htmlspecialchars(`rpm -q qa_hamsta-frontend`);
+$hamstaVersion = htmlspecialchars ("HAMSTA_VERSION");
 
 /* Set configuration group. Should be stored somewhere (e.g. session)
  * so the command is run only once later.
@@ -94,7 +97,8 @@ $hamstaVersion = htmlspecialchars(`rpm -q qa_hamsta-frontend`);
 $configuration_group = exec ("/usr/share/qa/tools/location.pl");
 
 /* If the location is not detected by the script, use the default one. */
-if (! isset ($configuration_group) || strcmp($configuration_group, "(unknown)") == 0)
+if (empty ($configuration_group)
+    || strcmp ($configuration_group, "(unknown)") == 0)
 {
 	$configuration_group = 'production';
 }

@@ -172,7 +172,7 @@ if (request_str("proceed")) {
 			if (!$machine->send_job($autoyastfile)) {
 				$error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
 			} else {
-				Log::create($machine->get_id(), $user->getLogin (), 'VMNEW', "has installed new virtual machine using \"$producturl_raw\" (SDK: " . ($addon_url ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
+				Log::create($machine->get_id(), get_user_login ($user), 'VMNEW', "has installed new virtual machine using \"$producturl_raw\" (SDK: " . ($addon_url ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
 			}
 		}
 		# Check if a validation test is needed
