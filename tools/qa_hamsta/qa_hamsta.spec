@@ -421,6 +421,6 @@ systemctl restart apache2
 %defattr(-, root, root)
 %dir %{confdir}
 %{confdir}/00-hamsta-common-default
-%{destdir}/hamsta.pm
+%{destdir}/Hamsta.pm
 
 %changelog
