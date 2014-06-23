@@ -1,5 +1,5 @@
 #!/usr/bin/python3
 
-from virttest.utils import create_systemwide_configuration
+import virttest
 
-create_systemwide_configuration()
+virttest.create_systemwide_configuration()
