@@ -229,6 +229,11 @@ sub cmd_help() {
     print "\n end of help \n";
 }
 
+sub use_master_authentication ()
+{
+    return $qaconf{'hamsta_master_authentication'};
+}
+
 sub cmd_version ($) {
     my $socket = shift;
     my @version = get_master_version ();
@@ -1123,35 +1128,35 @@ sub nitoi(){
 # Checks the user exists in Hamsta and provides correct password.
 sub log_in ($$) # socket handle, command line
 {
-    my $sock_handle = shift;
-    # log in <login> <passwd>
-    my @cmd = split ' ', shift (@_);
-    unless (@cmd > 3) {
-	print $sock_handle "Not enough parameters. Try `help'.\n";
-	return 0;
-    }
-    my $login = $cmd[2];
-    my $passwd = $cmd[3];
-    my $local_user_id = user_get_id ($login);
-
-    if ( defined ($local_user_id) ) {
-	my $db_passwd = user_get_password ($login);
-	# Sometimes we get the password sent already hashed (like from
-	# the Hamsta web)
-	if ( defined ($db_passwd)
-		 && (sha1_hex ($passwd) eq $db_passwd
-			 || $passwd eq $db_passwd) ) {
-	    $user_id = $local_user_id;
-	    print $sock_handle "You were authenticated as '${login}'."
-		. " Send your commands.\n";
-	    return 1;
-	} else {
-	    print $sock_handle "Wrong password. Try again.\n";
+	my $sock_handle = shift;
+	# log in <login> <passwd>
+	my @cmd = split ' ', shift (@_);
+	unless (@cmd > 3) {
+		print $sock_handle "Not enough parameters. Try `help'.\n";
+		return 0;
 	}
-    } else {
-	print $sock_handle "Unknown Hamsta user '${login}'. Try again.\n";
-    }
-    return 0;
+	my $login = $cmd[2];
+	my $passwd = $cmd[3];
+	my $local_user_id = user_get_id ($login);
+
+	if ( defined ($local_user_id) ) {
+		my $db_passwd = user_get_password ($login);
+		# Sometimes we get the password sent already hashed (like from
+		# the Hamsta web)
+		if ( defined ($db_passwd)
+			 && (sha1_hex ($passwd) eq $db_passwd
+				 || $passwd eq $db_passwd) ) {
+			$user_id = $local_user_id;
+			print $sock_handle "You were authenticated as '${login}'."
+				. " Send your commands.\n";
+			return 1;
+		} else {
+			print $sock_handle "Wrong password. Try again.\n";
+		}
+	} else {
+		print $sock_handle "Unknown Hamsta user '${login}'. Try again.\n";
+	}
+	return 0;
 }
 
 # Print status of current user, reserved machines and possibly other
@@ -1280,11 +1285,6 @@ sub notify_about_no_privileges ($$$) # socket, user_id, host
     &log (LOG_NOTICE, "User '${login}' does not have privileges to send a job to '${host}'");
     print $socket_handle "You do not have privileges to send a job to '${host}'.\n"
 	. "Please provide your Hamsta password. You can set it at the Hamsta frontend (user page).\n";
-}
-
-sub use_master_authentication ()
-{
-    return $qaconf{'hamsta_master_authentication'};
 }
 
 sub print_user_can_send_jobs ($)
