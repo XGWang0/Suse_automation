@@ -5,28 +5,24 @@ import ipaddress
 import datetime
 import os
 import shutil
+import pickle
 
-_config = None
+import configparser
 
+config = configparser.ConfigParser()
+# Set option names case sensitive. 
+# See https://docs.python.org/dev/library/configparser.html#configparser-objects
+config.optionxform = str
+config.read('config.ini')
 
-
-def __init__(configfile = 'config.ini'):
-    """ Loads configuration from file
-    """
-    import configparser
-
-    _config = configparser.ConfigParser()
-    # Set option names case sensitive. 
-    # See https://docs.python.org/dev/library/configparser.html#configparser-objects
-    _config.optionxform = str
-
-    _config.read(configfile)
- 
 
 class TestBox:
     """
     
     """
+    
+    class Host:
+        pass
     
     def __init__(self, network_id, repositories = {}):
         """
@@ -34,11 +30,48 @@ class TestBox:
         """
     
         self.network_id = network_id;
+        self.workdir = os.path.join(config['global']['workdir'], 'network_{}'.format(network_id))
+        
+        # create workdir if it does not exist
+        os.makedirs(self.workdir, exist_ok = True)
+        
+        # Check that there is no existing configuration for this network. That would mean that
+        # Previous test was not completed correctly, is still running or some error happened
+        if os.path.exists(os.path.join(self.workdir, 'TestBox.state')):
+            raise("There exist a running state for network {}. This probably means that there is a test running on the network.".format(network_id))
+        
         self.__templdata = _prepare_template_data(network = self.network_id, custom_product_repositories = repositories)
+        
+        # runtime data about built images in the test 
+        self.images = {}
+        self.images_path = os.path.join(self.workdir, 'images')
+        shutil.rmtree(self.images_path, ignore_errors=True)
+        os.makedirs(self.images_path, exist_ok = True)
+        
+        # runtime data about hosts in the test
+        self.hosts = {}
+        self.hosts_path = os.path.join(self.workdir, 'hosts')
+        shutil.rmtree(self.hosts_path, ignore_errors=True)
+        os.makedirs(self.hosts_path, exist_ok = True)
         
         # If we got this far with no exception, all is ready
         self.__closed = False
+        self.save()
     
+    
+    @staticmethod
+    def load(network_id):
+        """Loads TestBox instance from disk and returns it"""
+        with open(os.path.join(config['global']['workdir'], 'network_{}'.format(network_id), 'TestBox.state'), 'rb') as f:
+            tb = pickle.load(f)
+        return tb
+    
+        
+    def save(self):
+        """Saves the current state of TestBox to the disk"""
+        with open(os.path.join(self.workdir, 'TestBox.state'), 'wb') as f:
+            pickle.dump(self, f)
+        
     
     def close(self):
         """
@@ -46,6 +79,10 @@ class TestBox:
         It is no longer possible to work with this box after the close() has been called.
         """
         self.__closed = True
+        
+        # TODO unregister and stop hosts
+        
+        shutil.rmtree(self.workdir, ignore_errors=True)
         pass
     
     def __check_closed(self):
@@ -55,25 +92,7 @@ class TestBox:
             raise ValueError('Operation on closed TestBox')
     
     
-    def __enter__(self):
-        """ Make it possible to work with TestBox in 'with' statement
         
-        Entering 'with' statement
-        """
-        
-        self.__check_closed()
-        
-        return self
-    
-    
-    def __exit__(self, *args):
-        """ Make it possible to work with TestBox in 'with' statement
-        
-        Leaving 'with' statement - close the TestBox
-        """
-        self.close()
-
-
 def create_systemwide_configuration(config_path = None):
     ''' Create system-wide configuration replacing the existing files with the files
     automatically generated from templates. The configuration is placed in
@@ -83,8 +102,8 @@ def create_systemwide_configuration(config_path = None):
     data = _prepare_template_data()
     
     if(config_path is None):
-        config_path = os.path.join(data['global']['workdir'], 'system_config')
-        shutil.rmtree(config_path)
+        config_path = os.path.join(config['global']['workdir'], 'system_config')
+        shutil.rmtree(config_path, ignore_errors = True)
 
     os.makedirs(config_path, exist_ok = True)
     _process_template_directory('templates/controller', data, config_path)
@@ -193,13 +212,13 @@ def _prepare_template_data(network=None, sut_count=64, custom_product_repositori
     data['dns'] = {}
     data['dns']['serial'] = datetime.date.today().strftime('%Y%m%d00')
     
-    data['proxy']['port'] = _config['global']['http_port']
+    data['proxy']['port'] = config['global']['http_port']
     
     # map of repository server url to proxy url
     urlmap = {}
     
-    for r in _config['repositories']:
-        url = urlsplit(_config['repositories'][r])
+    for r in config['repositories']:
+        url = urlsplit(config['repositories'][r])
         repodata = {}
         repodata['type'] = r 
         repodata['port'] = url.port if url.port else 80
@@ -213,8 +232,8 @@ def _prepare_template_data(network=None, sut_count=64, custom_product_repositori
     
     data['proxy']['services'] = services
 
-    for product in _config['products']:
-        (repo, urlpart) = _config['products'][product].split(':')
+    for product in config['products']:
+        (repo, urlpart) = config['products'][product].split(':')
         try:
             data['repositories'][product] = urljoin(urlmap[repo]+ '/this_will_be_removed_by_urljoin', urlpart) # FIXME: urljoin sucks!
         except KeyError:
@@ -229,8 +248,8 @@ def _prepare_template_data(network=None, sut_count=64, custom_product_repositori
             print("Repository for {} - bad format or repository '{}' is not defined in repositories".format(product, repo))
             raise
                 
-    for n in range(1, int(_config['global']['networks']) + 1):
-        c_net = _config['network_{}'.format(n)]
+    for n in range(1, int(config['global']['networks']) + 1):
+        c_net = config['network_{}'.format(n)]
         net = {}
         
         net['domain'] = c_net['domain']
@@ -276,7 +295,7 @@ def _prepare_template_data(network=None, sut_count=64, custom_product_repositori
         data['networks'].append(net)
         
     if network is not None:
-        if network <= 0 or network > int(_config['global']['networks']):
+        if network <= 0 or network > int(config['global']['networks']):
             raise IndexError('Network index ({}) out of bounds'.format(network))
         
         data['network'] = data['networks'][network - 1]
