@@ -13,16 +13,14 @@ my $PVer;
 if ($ret != 0) { #SLE
 	$repo = "SLE-";
 	$mycmd = "grep -i VERSION /etc/SuSE-release | sed -e \'s/[A-Za-z =]//g\'";
-	$OSVer = `$mycmd`;
-	if ( $OSVer == "" ) {
+	chomp($OSVer = `$mycmd`);
+	if (! $OSVer) {
 		print "Can not get $repo OS version!";
 		exit 1;
 	}
-	chomp($OSVer);
 	$mycmd = "grep PATCHLEVEL /etc/SuSE-release | sed -e \'s/[A-Za-z= ]//g\'";	
-	$PVer = `$mycmd`;
-	if ($? == 0) { # OS like: SLE_11_SP2 etc
-		chomp($PVer);
+	chomp($PVer = `$mycmd`);
+	if ($PVer != 0) { # OS like: SLE_11_SP2 etc
 		$repo .= $OSVer . "-SP" . $PVer;
 	} else {
 		$repo .= $OSVer;
