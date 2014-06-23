@@ -10,15 +10,19 @@ import os
 import shutil
 
 
-def create_systemwide_configuration():
+def create_systemwide_configuration(config_path = None):
     ''' Create system-wide configuration replacing the existing files with the files
     automatically generated from templates. The configuration is placed in
-    <workdir>/system_config where workdir is specified in config.ini 
+    <workdir>/system_config where workdir is specified in config.ini unless specified 
+    by config_path argument
     '''
     data = _prepare_template_data()
-    config_path = os.path.join(data['global']['workdir'], 'system_config')
-    shutil.rmtree(config_path)
-    os.makedirs(config_path)
+    
+    if(config_path is None):
+        config_path = os.path.join(data['global']['workdir'], 'system_config')
+        shutil.rmtree(config_path)
+
+    os.makedirs(config_path, exist_ok = True)
     _process_template_directory('templates/controller', data, config_path)
 
 
