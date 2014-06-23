@@ -201,9 +201,16 @@
   </define>
   <define name="commands">
     <element name="commands">
+      <!-- This links to the parts section and defines when the commands will be started -->
       <attribute name="part_id">
         <data type="integer"/>
       </attribute>
+      <optional>
+        <!-- allowing job part to span over multiple job parts in other roles, analogy for <td rowspan="xxx"> in HTML tables -->
+        <attribute name="timeslots">
+          <data type="integer"/>
+        </attribute>
+      </optional>
       <interleave>
         <oneOrMore>
           <ref name="worker"/>

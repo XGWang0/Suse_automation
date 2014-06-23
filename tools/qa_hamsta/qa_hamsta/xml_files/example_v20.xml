@@ -16,7 +16,7 @@
 
         <!-- Following elements are also available in per-role configs -->
 
-        <!-- Log level: 0 (critical only) to 6 (debug) -->
+        <!-- Log level: 0 (critical only), 1 (+errors), 2 (+warnings), 3 (+notices), 4 (+info), 5 (+details), or 6 (+debug) -->
         <debuglevel>5</debuglevel>
 
         <!-- Text into /etc/motd -->
@@ -46,16 +46,20 @@
             <!-- only some elements allowed here -->
             <config>
 
-                <!-- RPM to install / upgrade; you could specify more repositories here as well -->
+                <!-- RPM to install / upgrade -->
                 <rpm>apache2</rpm>
 
-                <!-- Log level: 0 (critical only) to 6 (debug) -->
+                <!-- Add a repo to your system -->
+                <!-- <repository>http://fallback.suse.cz/install/SLP/SLE-11-SP3-SDK-LATEST/<repository> -->
+
+                <!-- Log level: 0 (critical only), 1 (+errors), 2 (+warnings), 3 (+notices), 4 (+info), 5 (+details), or 6 (+debug) -->
                 <debuglevel>4</debuglevel>
 
             </config>
 
             <!-- Commands: first part for first role -->
-            <commands part_id="1">
+            <!-- If we specify 2 timeslots here, the part would run over clients' both init and work sections, but we don't need it here -->
+            <commands part_id="1" timeslots="1">
 
                 <!-- Worker is the main part, does the work itself -->
                 <worker>
@@ -73,7 +77,7 @@
                 <!-- Optional monitor thread, runs periodically -->
                 <monitor cycle_sec="60" cycle_count="10">
                     <command>#!/bin/sh
-                    grep MemFree /proc/meminfo | awk '{print $2,$3}'
+                    awk '/MemFree/ {print $2,$3;}' /proc/meminfo
                     </command>
                 </monitor>
             </commands>

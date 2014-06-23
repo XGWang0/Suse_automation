@@ -111,7 +111,10 @@ parameters = element parameters {
 }
 
 commands = element commands {
+  # This links to the parts section and defines when the commands will be started
   attribute part_id { xsd:integer },
+  # allowing job part to span over multiple job parts in other roles, analogy for <td rowspan="xxx"> in HTML tables
+  attribute timeslots { xsd:integer }?,
   (
     worker+&
     logger*&
