@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  job-10 - - Relax NG compact schema definition for Hamsta job XML
+  job-10 - - Relax NG schema definition for Hamsta job XML
   See file http://qadb.suse.de/xml_files/relax/job-10.rnc for compact definition.
   See file http://qadb.suse.de/xml_files/relax/job-10.rng for XML definition.
 -->
