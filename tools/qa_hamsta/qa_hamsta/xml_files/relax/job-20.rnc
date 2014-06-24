@@ -1,4 +1,4 @@
-# job-20 -- Relax NG schema definition for Hamsta job XML
+# job-20 -- Relax NG compact schema definition for Hamsta job XML
 # See file http://qadb.suse.de/xml_files/relax/job-20.rnc for compact definition.
 # See file http://qadb.suse.de/xml_files/relax/job-20.rng for XML definition.
 
