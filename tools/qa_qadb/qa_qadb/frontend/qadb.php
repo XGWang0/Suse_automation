@@ -1181,17 +1181,20 @@ function &print_submission_details( $submission_id, $print=true )
 	$transl=array();
 	$where=array('submission_id'=>$submission_id);
 	$res=search_submission_result(1,$where,$transl);
-	if( count($res)<2 )
+	if( count($res)<2 )	{
+		if ($print)
 		print "No such submission_id: $submission_id<br/>\n";
+	}
 	else
 	{
 		if($res[1]['type']=='maint')
 			$res=search_submission_result(2,$where,$transl);
 		else if($res[1]['type']=='kotd')
 			$res=search_submission_result(3,$where,$transl);
-		$res2=$res; # need to return original values
+		$res2=$res; # need to return original values, unless $print is off
 		table_translate($res2, $transl );
-		if( $print )
+		if( !$print )
+			return $res2;
 			print html_table( $res2 );
 	}
 	return $res;
