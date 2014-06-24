@@ -1183,7 +1183,7 @@ function &print_submission_details( $submission_id, $print=true )
 	$res=search_submission_result(1,$where,$transl);
 	if( count($res)<2 )	{
 		if ($print)
-		print "No such submission_id: $submission_id<br/>\n";
+			print "No such submission_id: $submission_id<br/>\n";
 	}
 	else
 	{
@@ -1195,7 +1195,7 @@ function &print_submission_details( $submission_id, $print=true )
 		table_translate($res2, $transl );
 		if( !$print )
 			return $res2;
-			print html_table( $res2 );
+		print html_table( $res2 );
 	}
 	return $res;
 }
