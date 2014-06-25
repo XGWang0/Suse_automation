@@ -1121,11 +1121,11 @@ class Machine {
 	/**
 	 * Check if this machine is a virtual guest.
 	 *
-	 * @return mixed Returns a virtual host id if this is virtual guest or NULL.
+	 * @return boolean True if this machine is virtual host. False otherwise.
 	 * @see Machine::get_vh_id()
 	 */
 	public function is_virtual_guest() {
-		return $this->get_vh_id();
+		return $this->get_vh_id() ? true : false;
 	}
 
 	/**
