@@ -90,6 +90,7 @@ if(!$submission_id)
 	$release_got		=http('release');
 	$arch_got		=http('arch');
 	$testsuite_got		=http('testsuite');
+	$testsuite_ex_got	=http('testsuite_ex');
 	$host_got		=http('host');
 	$date_from_got		=http('date_from');
 	$date_to_got		=http('date_to');
@@ -122,10 +123,8 @@ if(!$submission_id)
 		array('product',$product,$product_got,MULTI_SELECT),
 		array('release',$release,$release_got,MULTI_SELECT),
 		array('arch',$arch,$arch_got,MULTI_SELECT),
-#		array('testsuite',$testsuite,$testsuite_got,MULTI_SELECT),
 		array('host',$host,$host_got,MULTI_SELECT),
 		array('tester',$tester,$tester_got,MULTI_SELECT),
-		array('testsuite',enum_list_id_val('testsuite'),$testsuite_got,MULTI_SELECT),
 		array('date_from','',$date_from_got,TEXT_ROW),
 		array('date_to','',$date_to_got,TEXT_ROW),
 		array('comment','',$comment_got,TEXT_ROW,'comment [%]'),
@@ -143,12 +142,14 @@ if(!$submission_id)
 
 	# card-dependent form fields
 	if( $step=='tcf' )
-		array_splice($what,6,0,array(
+		array_splice($what,5,0,array(
 			array('testcase','',$testcase_got,TEXT_ROW,'testcase(s) (slow) [%]'),
 		));
 	else if( $step=='bench' )
 	{
-		$what[5]=array('testsuite',bench_list_testsuite(),$testsuite_got,MULTI_SELECT);
+		array_splice($what,5,0,array(
+			array('testsuite',bench_list_testsuite(),$testsuite_got,MULTI_SELECT)
+			));
 		$pager = null; # cannot use pager as the whole table is a form
 	}
 	else if( $step=='reg' )
@@ -196,7 +197,15 @@ if(!$submission_id)
 	}
 	else	{
 		$what[]=array('submission_type',$modes,$mode_got,SINGLE_SELECT,'submission type');
-		array_splice($what,5,1); # TODO: fix testsuites in this tab too
+		array_splice($what,5,0,array(
+			array('testsuite_ex',enum_list_id_val('testsuite'),$testsuite_ex_got,MULTI_SELECT,'testsuite')
+			));
+	}
+	if( $step=='tcf' || $step=='reg' )	{
+		array_splice($what,5,0,array(
+			array('testsuite',enum_list_id_val('testsuite'),$testsuite_got,MULTI_SELECT)
+			));
+
 	}
 }
 
@@ -239,6 +248,7 @@ if(!$submission_id)
 			'date_from'		=>$date_from_got,
 			'date_to'		=>$date_to_got,
 			'testsuite_id'		=>$testsuite_got,
+			'testsuite_eid'		=>$testsuite_ex_got,
 			'testcase'		=>$testcase,
 			'tester_id'		=>$tester_got,
 			'comment'		=>$comment_got,

@@ -222,6 +222,8 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	# base SQL for result difference
 	$rd1='NOT EXISTS( SELECT * FROM result r2 JOIN tcf_group g2 USING(tcf_id) WHERE';
 	$rd2='AND r.testcase_id=r2.testcase_id)';
+	# base SQL for testsuite existence searches
+	$te1='EXISTS( SELECT * FROM tcf_group g WHERE g.testsuite_id=? AND g.submission_id=s.submission_id)';
 	# base fields for summaries
 	$sum=array('SUM(times_run) AS runs','SUM(succeeded) AS succ', 'SUM(failed) AS fail', 'SUM(internal_error) AS interr', 'SUM(skipped) AS skip', 'SUM(test_time) AS time', "CASE WHEN SUM(failed)>0 THEN 'failed' WHEN SUM(internal_error)>0 THEN 'interr' WHEN SUM(skipped)>0 THEN 'skipped' WHEN SUM(succeeded)>0 THEN 'success' ELSE NULL END AS status");
 #	$status="CASE WHEN failed THEN 'failed' WHEN internal_error THEN 'interr' WHEN skipped THEN 'skipped' WHEN succeeded THEN 'success' ELSE NULL END AS status";
@@ -235,6 +237,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 		'product_id'	=> array('s.product_id=?',		'i'),
 		'release_id'	=> array('s.release_id=?',		'i'),
 		'testsuite_id'	=> array('g.testsuite_id=?',		'i'),
+		'testsuite_eid'	=> array( $te1,				'i'),
 		'testcase_id'	=> array('r.testcase_id=?',		'i'),
 		'testcase'	=> array('c.testcase like ?',		's'),
 		'tcf_id'	=> array('r.tcf_id=?',			'i'),
