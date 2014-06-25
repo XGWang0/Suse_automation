@@ -35,8 +35,14 @@
 <form id="autopxe" name="autopxe" method="post" action="index.php?go=autopxe" onsubmit="return checkcontents(this)">
   <p>
     This page allows you to install a machine with AutoPXE. It can be
-    used in cases of a broken installation or install a raw server or
-    machine without the "hamsta-client".
+    used in cases of a broken installation or to install a raw server
+    or machine without the "hamsta-client".
+  </p>
+
+  <p class="text-red">
+    The AutoPXE functionality works only for machines in the properly
+    configured local QA subnet. Usually, assigned hostname of these
+    machines ends with <span class="monospace">qa.suse.{cz,de}</span>.
   </p>
 
   <h3>Installation repository</h3>
