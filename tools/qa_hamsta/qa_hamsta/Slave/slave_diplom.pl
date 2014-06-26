@@ -99,41 +99,16 @@ our $last_ip = &get_slave_ip($Slave::multicast_address);
 our $slave_pid;
 our $multicast_pid;
 
-child {
-    $log::loginfo='hamsta-server';
-    $0 .= ' server';
-    &log(LOG_INFO, "Starting server");
+#monitor for IP change.
+my $sleep_s=300;
 
-    open(STDOUT_ORG, ">&STDOUT");
-    STDOUT_ORG->autoflush(1);
-    &log_set_output(handle=>*STDOUT_ORG,close=>1);
-    run_slave_server();
-}
-parent {
-    $slave_pid=shift;
-}
-;
-
-
-# Start the multicast announcement as a new thread
-# my $mcast_thread =threads->new(sub {system("/usr/bin/perl mcast.pm");});
-child {
-        $log::loginfo = 'hamsta-multicast';
-        $0 .= ' multicast';
-&log(LOG_INFO,"Starting multicast thread");
-&Slave::Multicast::run();
-}
-parent {
-    $multicast_pid=shift;
-};
 
 $log::loginfo = 'hamsta';
 
 while(1){
-    my $sleep_s=300;
     my $current_ip=&get_slave_ip($Slave::multicast_address);
-    if($last_ip ne $current_ip ){
-      if(! &chk_run ) { 
+    if($last_ip ne $current_ip or !$slave_pid){
+      if(($last_ip ne $current_ip) and !&chk_jobrun ) { 
 	kill 9,$slave_pid,$multicast_pid;
 	sleep(1);
 	waitpid $slave_pid, 0;
@@ -142,33 +117,34 @@ while(1){
 	&log(LOG_ERR,"slave server died");
 	$last_ip=$current_ip;
 	sleep 5;
-	child {
-              $log::loginfo='hamsta-server';
-              $0 .= ' server';
-	      &log(LOG_INFO, "Starting server");
-              open(STDOUT_ORG, ">&STDOUT");
-	      STDOUT_ORG->autoflush(1);
-	      &log_set_output(handle=>*STDOUT_ORG,close=>1);
-	      run_slave_server();
-	}
-	parent {
-		    $slave_pid=shift;
-	}
-	;
-	child {
-                $log::loginfo = 'hamsta-multicast';
-                $0 .= ' multicast';
-		&log(LOG_INFO,"Starting multicast thread");
-		&Slave::Multicast::run();
-	}
-	parent {
-		    $multicast_pid=shift;
-	};
-
       }
-      $sleep_s=600;
+      child {
+        $log::loginfo='hamsta-server';
+        $0 .= ' server';
+	&log(LOG_INFO, "Starting server");
+        open(STDOUT_ORG, ">&STDOUT");
+	STDOUT_ORG->autoflush(1);
+	&log_set_output(handle=>*STDOUT_ORG,close=>1);
+	run_slave_server();
+      }
+      parent {
+        $slave_pid=shift;
+      }
+      ;
+      child {
+        $log::loginfo = 'hamsta-multicast';
+        $0 .= ' multicast';
+	&log(LOG_INFO,"Starting multicast thread");
+	&Slave::Multicast::run();
+      }
+      parent {
+        $multicast_pid=shift;
+      };
+
+    
+    $sleep_s=600;
     }
-      sleep($sleep_s);
+    sleep($sleep_s);
 }
 
 # Should be never reached
@@ -178,11 +154,12 @@ while(1){
 # Listens for incoming connections on the slave_port and forwards
 # requests to process_request.
 # 
-sub chk_run() {
-  open my $sub_p,"pstree $slave_pid |" or return 0;
-  my @pstreeo = <$sub_p>;
-  close $sub_p;
-  return 1 if(grep { /\-/ } @pstreeo);
+
+#make sure No job is running when need to restart the process.
+
+sub chk_jobrun() {
+  my $job_ps = `ps -ef|grep run_job.pl`;
+  return 1 if grep ( /run_job/, $job_ps );
   return 0 ;
 }
 
