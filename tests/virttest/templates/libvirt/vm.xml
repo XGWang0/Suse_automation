@@ -1,5 +1,5 @@
 <domain type='kvm'>
-  <name>{{ network.server.name }}</name>
+  <name>{{ fqdn }}</name>
   <memory unit='MB'>1024</memory>
   <vcpu placement='static'>1</vcpu>
   <os>
@@ -19,13 +19,13 @@
     <emulator>/usr/bin/qemu-kvm</emulator>
     <disk type='file' device='disk'>
       <driver name='qemu' type='raw'/>
-      <source file='/home/lukas/tmp/kiwi/serverbuild/server.x86_64-0.0.1.raw'/>
+      <source file='{{ diskpath }}'/>
       <target dev='vda' bus='virtio'/>
       <alias name='virtio-disk0'/>
     </disk>
     <interface type='bridge'>
-      <mac address='{{ network.server.mac }}'/>
-      <source bridge='{{ network.bridge }}'/>
+      <mac address='{{ mac }}'/>
+      <source bridge='{{ bridge }}'/>
       <target dev='vnet0'/>
       <model type='virtio'/>
       <alias name='net0'/>

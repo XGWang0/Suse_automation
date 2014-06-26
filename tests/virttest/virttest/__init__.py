@@ -6,6 +6,8 @@ import datetime
 import os
 import shutil
 import pickle
+import subprocess
+import glob
 
 import configparser
 
@@ -21,8 +23,91 @@ class TestBox:
     
     """
     
-    class Host:
-        pass
+    class Host:  
+        def __init__(self, name, ip, mac, domain, bridge, diskpath, domxmltemplpath):
+            self._ip = ip
+            self._name = name
+            self._mac = mac
+            self._domain = domain
+            self._bridge = bridge
+            self._diskpath = diskpath
+            
+            # Create VM definition for libvirt
+            templdata = {
+                         'fqdn': self.fqdn(),
+                         'mac': mac,
+                         'bridge' : bridge,
+                         'diskpath': diskpath
+                         }
+            
+            self._domxmlfile = os.path.join(os.path.dirname(diskpath), 'definition.xml')
+            _process_template(domxmltemplpath, templdata, self._domxmlfile)
+            
+            # defineVM in libvirt
+            subprocess.check_output(['sudo', 'virsh', 'define', self._domxmlfile])
+            
+              
+        def running(self):
+            self.__check_defined()
+            pass
+            
+        
+        def defined(self):
+            return True
+            pass
+        
+        def start(self):
+            self.__check_defined()
+            subprocess.check_output(['sudo', 'virsh', 'start', self.fqdn()])
+
+        
+        def stop(self, force = False):
+            self.__check_defined()
+            if force:
+                cmd = 'destroy'
+            else:
+                cmd = 'shutdown'
+            subprocess.check_output(['sudo', 'virsh', cmd, self.fqdn()])
+        
+        def restart(self, force = False):
+            self.__check_defined()
+            if force:
+                cmd = 'reset'
+            else:
+                cmd = 'reboot'
+            subprocess.check_output(['sudo', 'virsh', cmd, self.fqdn()])
+        
+        def name(self):
+            return self._name
+        
+        def domain(self):
+            return self._domain
+        
+        def fqdn(self):
+            return '{}.{}'.format(self.name(), self.domain())
+        
+        def mac(self):
+            self.__check_defined()
+            return self._mac
+        
+        def ip(self):
+            self.__check_defined()
+            return self._ip
+        
+        def undefine(self, delete_disk = True):
+            if self.defined():
+                self.stop(force = True)
+                subprocess.check_output(['sudo', 'virsh', 'undefine', self.fqdn()])
+            if delete_disk and os.path.exists(self.diskpath()):
+                os.remove(self.diskpath())
+        
+        def diskpath(self):
+            return self._diskpath
+       
+        def __check_defined(self):
+            if not self.defined():
+                raise "Operation on not <defined> host {}".format(self.name())
+            
     
     def __init__(self, network_id, repositories = {}):
         """
@@ -45,19 +130,21 @@ class TestBox:
         # runtime data about built images in the test 
         self.images = {}
         self.images_path = os.path.join(self.workdir, 'images')
-        shutil.rmtree(self.images_path, ignore_errors=True)
-        os.makedirs(self.images_path, exist_ok = True)
+        self.__delete_images()
         
         # runtime data about hosts in the test
         self.hosts = {}
         self.hosts_path = os.path.join(self.workdir, 'hosts')
-        shutil.rmtree(self.hosts_path, ignore_errors=True)
-        os.makedirs(self.hosts_path, exist_ok = True)
+        self.__delete_images()
+        
+        self.__init_infrastructure()
         
         # If we got this far with no exception, all is ready
         self.__closed = False
         self.save()
-    
+        
+        
+        
     
     @staticmethod
     def load(network_id):
@@ -71,7 +158,28 @@ class TestBox:
         """Saves the current state of TestBox to the disk"""
         with open(os.path.join(self.workdir, 'TestBox.state'), 'wb') as f:
             pickle.dump(self, f)
-        
+       
+    def __delete_hosts(self):
+        for host in self.hosts:
+            host.undefine(delete_disk = True)
+        self.hosts.clear()
+        shutil.rmtree(self.hosts_path, ignore_errors=True)
+        os.makedirs(self.hosts_path, exist_ok = True)
+    
+
+    def __delete_images(self):
+        shutil.rmtree(self.images_path, ignore_errors=True)
+        os.makedirs(self.images_path, exist_ok = True)
+
+    def __init_infrastructure(self):
+        self.__add_host('sles-11-sp3', 'server')
+
+    def restart(self):
+        """Removes all host from the network - will make the network completely clean for next tests. But it will not remove built images to speed up tests
+        """
+        self.__check_closed()
+        self.__delete_hosts()
+        self.__init_infrastructure()
     
     def close(self):
         """
@@ -80,7 +188,9 @@ class TestBox:
         """
         self.__closed = True
         
-        # TODO unregister and stop hosts
+        # unregister and stop hosts
+        self.__delete_hosts()
+        self.__delete_images()
         
         shutil.rmtree(self.workdir, ignore_errors=True)
         pass
@@ -91,6 +201,77 @@ class TestBox:
         if self.__closed:
             raise ValueError('Operation on closed TestBox')
     
+    def __add_host(self, os_ver, variant):
+        """ os_ver = sles-11-sp3
+        variant = sut
+        """
+        if variant not in ('pure', 'sut', 'hamsta', 'qadb', 'qadbreport', 'server'):
+            raise ValueError("Invalid host variant {}.".format(variant))
+        
+        image = self.__build_image(os_ver, variant) 
+        
+        if variant in ('hamsta', 'qadb', 'qadbreport', 'server'):
+            # There can be only one
+            if variant in self.hosts:
+                raise ValueError("There can be only one special host {} in the TestBox".format(variant))
+            host_data = self.__templdata['network'][variant]
+        else:
+            # Is this optimal?
+            host_data = [x for x in self.__templdata['network']['suts'] if x['name'] not in self.hosts][0]
+        
+        data = {}
+        data['ip'] = host_data['ip']
+        data['mac'] = host_data['mac']
+        data['name'] = host_data['name']
+        data['domain'] = self.__templdata['network']['domain']
+        data['bridge'] = self.__templdata['network']['bridge']
+        data['diskpath'] = os.path.join(self.hosts_path, host_data['name'], 'disk.raw')
+        os.makedirs(os.path.dirname(data['diskpath']))
+        
+        subprocess.check_output(['cp', '--reflink=auto', image, data['diskpath']])
+        print("data {}".format(data))
+        
+        host = TestBox.Host(host_data['name'],
+                            host_data['ip'], 
+                            host_data['mac'], 
+                            self.__templdata['network']['domain'],                           
+                            self.__templdata['network']['bridge'],
+                            os.path.join(self.hosts_path, host_data['name'], 'disk.raw'),
+                            'templates/libvirt/vm.xml')
+        
+    def __build_image(self, os_ver, variant):
+        code = "{}-{}".format(os_ver, variant)
+        if code not in self.images:
+            if not os.path.exists('templates/kiwi/{}/config.xml'.format(code)):
+                raise "Image description for selected OS-variant {} does not exist".format(code)
+        
+            img = {}
+            img['kiwi'] = os.path.join(self.images_path, code, 'kiwi')
+            os.makedirs(img['kiwi'], exist_ok = True)
+            
+            # process template to get kiwi description
+            _process_template_directory(os.path.join('templates/kiwi', code), self.__templdata, img['kiwi'])
+            
+            
+            # build the description
+            img['root'] = os.path.join(self.images_path, code, 'root')
+            shutil.rmtree(img['root'], ignore_errors=True) # Root must not exist, otherwise kiwi will not build
+            print("running kiwi --prepare for {}".format(code))
+            subprocess.check_output(['sudo', '/usr/sbin/kiwi', '--yes', '--prepare', img['kiwi'], '--root', img['root'], '--logfile={}'.format(os.path.join(self.images_path, code, 'kiwi-prepare.log'))])
+            
+            # create the image
+            img['images'] = os.path.join(self.images_path, code, 'images')
+            shutil.rmtree(img['images'], ignore_errors=True)
+            print("running kiwi --create for {}".format(code))
+            subprocess.check_output(['sudo', '/usr/sbin/kiwi', '--yes', '--create', img['root'], '-d', img['images'], '--logfile={}'.format(os.path.join(self.images_path, code, 'kiwi-create.log'))])
+            
+            # path to raw image
+            img['raw'] = glob.glob(os.path.join(img['images'], '*.raw'))[0]
+            
+            self.images[code] = img
+            
+        
+        return self.images[code]['raw']
     
         
 def create_systemwide_configuration(config_path = None):
@@ -155,6 +336,15 @@ def _reverse_network_address(netaddr):
             break
         
     return rev_addr    
+
+def _process_template(template_file, template_data, target_file):
+    """
+    """
+    jinjaEnv = Environment(loader=FileSystemLoader(os.path.dirname(template_file)))
+    template = jinjaEnv.get_template(os.path.basename(template_file))
+    
+    with open(target_file, 'w') as f:
+            f.write(template.render(template_data))
 
 def _process_template_directory(template_dir, template_data, target_dir):
     """ Reads complete directory structure of template_dir, process all files 
