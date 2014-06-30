@@ -118,6 +118,7 @@ child {
     while(1){
         unless(socketpair(JOB_CHILD, JOB_PARENT, AF_UNIX, SOCK_STREAM, PF_UNSPEC)){
 	    log(LOG_ERR,"Socketpair creation for JOB_CHILD and JOB_PARENT processes failed!");
+	    sleep 1;
             next;
 	}
 	#Set to non-blocking
@@ -178,6 +179,7 @@ while(1){
               while(1){
                   unless(socketpair(JOB_CHILD, JOB_PARENT, AF_UNIX, SOCK_STREAM, PF_UNSPEC)){
                       log(LOG_ERR,"Socketpair creation for JOB_CHILD and JOB_PARENT processes failed!");
+		      sleep 1;
                       next;
 		  }
 		  
@@ -246,6 +248,7 @@ sub run_slave_server() {
 	    sleep 2;
 	    my ($port,$iaddr,$paddr);
             &log(LOG_DETAIL,"Accepting connections");
+
             ($connection,$paddr) = $socket->accept();
             $| = 1;
 	    $connection->autoflush(1);
@@ -299,11 +302,18 @@ sub run_slave_server() {
 sub handle_connection_recovery(){
 	my $sock = shift;
 
-	my $local_log_fh;
+	local $SIG{'PIPE'} = \&deal_with_broken_job_sock_parent;
+
+	our $local_log_fh;
 
 	our $job_sock_stat;
 	our $sock_broken_job_proc;
+	#how many lines of local stored job log have been transferred back to recovered job sock
+	our $transfered_local_job_log_line = 0;
+	#sign for whether local job log file has been all transmitted back to recovered job sock
+	our $finish_local_job_log_trans = 'no';
 
+	$job_sock_stat = 'recovered';
 	log(LOG_NOTICE,"Connection recovered after job socket previously  broken!");
 	my $msg_from_job_child;
 	my $has_in_time_log = 'no';
@@ -315,7 +325,8 @@ sub handle_connection_recovery(){
 		log(LOG_NOTICE, "Notification to the job child process about recovered job connection was sent!");
 
 		#wait for child finish dealing with the norification
-	  	while ( not read(JOB_PARENT,$msg_from_job_child,1024) or $msg_from_job_child !~ /Job child proc connection recovery handling is done!/){
+	  	while ( not read(JOB_PARENT,$msg_from_job_child,1024)  
+			or $msg_from_job_child !~ /Job child proc connection recovery handling is done!/){
 			sleep 1;
 		}
 	        # get msg from job child process
@@ -325,23 +336,30 @@ sub handle_connection_recovery(){
 
 	unless(-e JOB_LOG_FILE and open $local_log_fh, "<".JOB_LOG_FILE){
 		log(LOG_ERROR,"The local job log file can not be opened: ".JOB_LOG_FILE);
+		$finish_local_job_log_trans = 'yes';
 	}
 	if ($local_log_fh){
 		#send local stored log back
 		while (<$local_log_fh>){
+			log(LOG_DEBUG, "Slave-server:: in while loop of send local log to master!");
+			return 1 if ($job_sock_stat eq 'abnormal');
 			chomp $_;
 			log(LOG_DETAIL, "Slave-server:: sent back to master log from local file: $_");
 			print $sock $_."\n";
+			$transfered_local_job_log_line++;
 		}
 		log(LOG_NOTICE, "All stored local job log was sent back!");
 		
 		close $local_log_fh;
 		unlink JOB_LOG_FILE;
+		$finish_local_job_log_trans = 'yes';
 	}
 
 	if($has_in_time_log eq 'yes'){
 		#Transfer in-time log
 		while(1){
+			log(LOG_DEBUG, "Slave-server:: in while loop of send in-time pipe log to master!");
+			return 1 if ($job_sock_stat eq 'abnormal');
 			if(read(JOB_PARENT,$msg_from_job_child,1024)){
 				chomp $msg_from_job_child;
 				log(LOG_DETAIL, "Slave-server:: sent back to master in-time log: $msg_from_job_child");
@@ -517,7 +535,7 @@ sub start_job() {
     if($fork_re==0) {
 	#in child, start to work;
 
-	$SIG{'PIPE'} = \&deal_with_broken_job_sock;
+	$SIG{'PIPE'} = \&deal_with_broken_job_sock_child;
 	our $sock_just_broke_sign = 'no';
 
 	#close share socket in child
@@ -528,7 +546,6 @@ sub start_job() {
         my $pid_main = open (FILE, "/usr/bin/perl Slave/run_job.pl $filename 2>&1|");
         my $count = 0;
 	my $msg_from_parent;
-	#my $job_log_fh;
 	our $job_log_fh;
 	my $log_line;
         while ($log_line = <FILE>) {
@@ -549,7 +566,12 @@ sub start_job() {
 		    #Notify parent proc about finish dealing with the recovery notification
 		    print JOB_CHILD "Job child proc connection recovery handling is done!\n";
 		    log(LOG_NOTICE,"Job child process send to parent: Job child proc connection recovery handling is done!");
+		}elsif($msg_from_parent =~ /The recovered job socket met error again!/){
+		    log(LOG_NOTICE, "Job child process will start to store job log to local file!");
+		    &deal_with_broken_job_sock_child;
+
 		}
+
 	    }
 	    #store log
 	    if ($job_sock_stat eq 'abnormal'){
@@ -568,7 +590,7 @@ sub start_job() {
 		    #deal with errors, SIGPIPE can not be handled here
 		    if ($@){
 			        log(LOG_ERR, "Job child process: $@");
-				&deal_with_broken_job_sock;
+				&deal_with_broken_job_sock_child;
 		    }else{
 			    log(LOG_DETAIL,"Job socket is normal, send to sock log: $log_line");
 		    }	    
@@ -599,6 +621,7 @@ sub start_job() {
 	JOB_CHILD->autoflush(1);
 
 	unlink $filename;
+	$SIG{'PIPE'} = 'IGNORE';
 	close JOB_CHILD;
 	exit;
     }elsif($fork_re){
@@ -642,6 +665,8 @@ sub start_job() {
 			    #job child process socket is abnormal
 			    $job_sock_stat = 'abnormal';
 			    $sock_broken_job_proc = $1;
+			    print JOB_PARENT "Finish dealing with socket error on job socket by slave-server!\n";
+			    log(LOG_NOTICE,"Job parent process sent to job child process: Finish dealing with socket error on job socket by slave-server!");
 			    goto OUT;
 		    }
 	    }
@@ -665,22 +690,87 @@ sub start_job() {
     }
 }
 
-sub deal_with_broken_job_sock() {
+sub deal_with_broken_job_sock_child() {
     our $job_sock_stat;
     our $job_log_fh;
     our $sock_just_broke_sign;
-    log(LOG_NOTICE,"IN SIGPIPE SIGNAL HANDLING FUNC : Job child process socket is abnormal, it will store log to local file:".JOB_LOG_FILE);
-    log(LOG_NOTICE,"IN SIGPIPE SIGNAL HANDLING FUNC :Job child process set job socket status to: abnormal!");
+    log(LOG_NOTICE,"IN SIGPIPE SIGNAL HANDLING FUNC OF JOB CHILD PROCESS!");
+    log(LOG_NOTICE,"Job child process socket is abnormal, it will store log to local file:".JOB_LOG_FILE);
+    log(LOG_NOTICE,"Job child process set job socket status to: abnormal!");
     $sock_just_broke_sign = 'yes';
     $job_sock_stat = 'abnormal';
     print JOB_CHILD "Job sock is abnormal in child proc: $$\n";
-    open($job_log_fh,">".JOB_LOG_FILE) || log(LOG_ERROR,"Can not open ".JOB_LOG_FILE." for logging!");
+    log(LOG_NOTICE,"Job child process sent to parent: Job sock is abnormal in child proc:");
+    #wait for slave-server process finish dealing with the socket error
+    my $msg_from_parent;
+    while(not read(JOB_CHILD,$msg_from_parent,1024)  
+	  or $msg_from_parent !~ /Finish dealing with socket error on (recovered )*job socket by slave-server!/){
+        sleep 1;
+    }
+    log(LOG_NOTICE,"Job child proc received notification from parent that it finished dealing with socket error!");
+    close $job_log_fh && undef $job_log_fh if $job_log_fh;
+    open($job_log_fh,">>".JOB_LOG_FILE) || log(LOG_ERROR,"Can not open ".JOB_LOG_FILE." for logging!");
 }
+
+#ensure the local log file keeps all lines of logs that are not transmitted back to recovered job socket
+sub deal_with_broken_job_sock_parent() {
+    our $transfered_local_job_log_line;
+    our $finish_local_job_log_trans;
+    our $job_sock_stat;
+    my $local_log_file = JOB_LOG_FILE;
+    log(LOG_NOTICE,"IN SIGPIPE SIGNAL HANDLING FUNC OF PARENT: SLAVE-SERVER PROCESS!");
+    $job_sock_stat = 'abnormal';
+    #Notify the job child proc about the socket error on the recovered job sock
+    print JOB_PARENT "The recovered job socket met error again!\n";
+    log(LOG_NOTICE,"Job parent process sent to child: The recovered job socket met error again!");
+
+    our $local_log_fh;
+    #only have one file handler open to the local log file
+    close $local_log_fh;
+
+    #deal with not transferred back to master local stored job log 
+    if($finish_local_job_log_trans eq 'no'){
+        #remove lines that are already transmitted back from local job log file
+	system("sed -i \"1,$transfered_local_job_log_line d\" $local_log_file");
+	log(LOG_NOTICE, "Slave-server:: finish deleting $transfered_local_job_log_line transferred log lines from local job log!");
+	$transfered_local_job_log_line = 0;
+    }
+
+    #deal with not transferred back to master in-time log
+    my $msg_from_job_child;
+    open($local_log_fh, ">>".JOB_LOG_FILE) || log(LOG_ERROR,"Can not open ".JOB_LOG_FILE." for logging!");
+    while(1){
+	log(LOG_DEBUG, "Slave-server:: IN deal_with_broken_job_sock_parent loop for child reply abnormal happened");
+	if( not read(JOB_PARENT,$msg_from_job_child,1024)){
+	    sleep 1;
+	    next;
+	};
+    	chomp $msg_from_job_child;
+    	#The last message from child job proc in the JOB_PARENT after socket meets error
+    	if ($msg_from_job_child =~ /Job sock is abnormal in child proc: *([^ ]+) *$/) {
+	    log(LOG_NOTICE, "Slave-server:: finish storing not transferred back real-time log!");
+	    close $local_log_fh;
+	    last;
+    	}else{
+    	    print $local_log_fh $msg_from_job_child."\n";
+    	    log(LOG_DETAIL, "Slave-server:: store to local job log file in-time log: $msg_from_job_child");
+        }
+    }
+    print JOB_PARENT "Finish dealing with socket error on recovered job socket by slave-server!\n";
+    log(LOG_NOTICE,"Slave-server:: Finish dealing with socket error on recovered job socket by slave-server!\n");
+    #Recover the file handler to local log file
+    open $local_log_fh, "<".JOB_LOG_FILE;
+    #Give enough time for socketpair communicate messages, without this, child proc sometimes can not get msg: 
+    #"The recovered job socket met error again!"
+    sleep 3;
+}
+
+
+
 # deconstruct()
 # Does some cleanup (TODO well, at least it should do so...)
 sub deconstruct() {
-
- exit 0;
+    exit 0;
 }
 
 
