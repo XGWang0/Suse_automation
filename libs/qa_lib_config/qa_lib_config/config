@@ -59,7 +59,6 @@ for file in /etc/qa/*
 do
 	# skip the file end up with '~'
 	[[ $file =~ ~$ ]] || continue
-	
 
 	# skip (invalid/all) location files
 	if [ -z "$location_qa_config" ] && echo $file | grep -q '\.' ; then
