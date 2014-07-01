@@ -45,6 +45,7 @@ $ENV{'LC_ALL'}='en_US';
 
 # default values
 our $args={
+	rootfstype => 'default',
 	defaultboot=>'',
 	setupfordesktoptest=>'',
         kexecboot=>'',

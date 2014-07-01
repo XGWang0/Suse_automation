@@ -842,7 +842,7 @@ sub _print_profile_partitions
 					# The filesystem type is optional, it will not be
 					# set unless specified.
 					# https://bugzilla.novell.com/show_bug.cgi?id=867147
-					if ($fs{$mnt}) {
+					if ($fs{$mnt} ne 'default') {
 						print $f "	  <filesystem config:type=\"symbol\">".$fs{$mnt}."</filesystem>\n";
 					} else {
 						# Well, the filesystem is optional only unless
