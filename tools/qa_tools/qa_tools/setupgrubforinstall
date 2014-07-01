@@ -160,9 +160,10 @@ setupgrub2()
 
 
 	#find out the rootsubvol
+	. /etc/default/grub
 	. /usr/share/grub2/grub-mkconfig_lib
 
-	rootsubvol=`make_system_path_relative_to_its_root / | sed -e "s,@$,,"`
+	rootsubvol=`make_system_path_relative_to_its_root /`
 
 	#build the config file
 	cat<<eof >/etc/grub.d/$customname
