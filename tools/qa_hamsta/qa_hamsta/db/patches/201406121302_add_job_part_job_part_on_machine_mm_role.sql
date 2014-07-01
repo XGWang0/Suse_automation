@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS `mm_role` (
     `mm_role` varchar(255) not null
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
     
-    -- Alter related table
+-- Alter related table
 ALTER TABLE `job_on_machine` 
     ADD COLUMN `mm_role_id` INT NOT NULL,
     ADD CONSTRAINT `fk_job_on_machine_mm_role` FOREIGN KEY (`mm_role_id`) REFERENCES `mm_role` (`mm_role_id`) ON DELETE RESTRICT,
