@@ -52,7 +52,7 @@
 	  <source path='{{ repositories['SLE-12-SDK'] }}'/>
   </repository>
 
-  <repository type='yast2' imageinclude='true' alias='qaauto'>
+  <repository type='rpm-md' imageinclude='true' alias='qaauto'>
   	  <source path='{{ repositories['QA-SLE-12'] }}' />
   </repository>
 </image>

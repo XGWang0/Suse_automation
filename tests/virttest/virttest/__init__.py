@@ -18,96 +18,107 @@ config.optionxform = str
 config.read('config.ini')
 
 
+class Host:  
+    def __init__(self, name, ip, mac, domain, bridge, path, disk_image_template, domxmltemplpath):
+        self._ip = ip
+        self._name = name
+        self._mac = mac
+        self._domain = domain
+        self._bridge = bridge
+        self._path = path            
+        
+        os.makedirs(path)
+         
+        # Copy disk image - use COW is possible
+        diskpath = os.path.join(path, 'disk0.raw')
+        subprocess.check_output(['cp', '--reflink=auto', disk_image_template, diskpath])
+         
+         
+        # Create VM definition for libvirt
+        templdata = {
+                     'fqdn': self.fqdn(),
+                     'mac': mac,
+                     'bridge' : bridge,
+                     'diskpath': diskpath
+                     }
+         
+        self._domxmlfile = os.path.join(self._path, 'definition.xml')
+        _process_template(domxmltemplpath, templdata, self._domxmlfile)
+        
+        # defineVM in libvirt
+        subprocess.check_output(['sudo', 'virsh', 'define', self._domxmlfile])
+         
+           
+    def running(self):
+        self.__check_defined()
+        return subprocess.call(['sudo', 'virsh', 'dominfo', self.fqdn(), '|', 'grep', '-q', 'State:\s*running'], shell=True) == 0
+         
+     
+    def defined(self):
+        return subprocess.call(['sudo', 'virsh', 'dominfo', self.fqdn()]) == 0
+     
+    def start(self):
+        self.__check_defined()
+        subprocess.check_output(['sudo', 'virsh', 'start', self.fqdn()])
+
+     
+    def stop(self, force = False):
+        self.__check_defined()
+        if force:
+            cmd = 'destroy'
+        else:
+            cmd = 'shutdown'
+        subprocess.call(['sudo', 'virsh', cmd, self.fqdn()])
+     
+    def restart(self, force = False):
+        self.__check_defined()
+        if force:
+            cmd = 'reset'
+        else:
+            cmd = 'reboot'
+        subprocess.check_output(['sudo', 'virsh', cmd, self.fqdn()])
+     
+    def name(self):
+        return self._name
+     
+    def domain(self):
+        return self._domain
+     
+    def fqdn(self):
+        return '{}.{}'.format(self.name(), self.domain())
+     
+    def mac(self):
+        self.__check_defined()
+        return self._mac
+     
+    def ip(self):
+        self.__check_defined()
+        return self._ip
+     
+    def undefine(self):
+        if self.defined():
+            self.stop(force = True)
+            subprocess.check_output(['sudo', 'virsh', 'undefine', self.fqdn()])
+        shutil.rmtree(self.path(), ignore_errors=True)
+     
+    def path(self):
+        return self._path
+     
+    
+    def __check_defined(self):
+        if not self.defined():
+            raise "Operation on not <defined> host {}".format(self.name())
+
+
+class AlreadyRunningException(Exception):
+    pass
+
 class TestBox:
     """
     
     """
     
-    class Host:  
-        def __init__(self, name, ip, mac, domain, bridge, diskpath, domxmltemplpath):
-            self._ip = ip
-            self._name = name
-            self._mac = mac
-            self._domain = domain
-            self._bridge = bridge
-            self._diskpath = diskpath
-            
-            # Create VM definition for libvirt
-            templdata = {
-                         'fqdn': self.fqdn(),
-                         'mac': mac,
-                         'bridge' : bridge,
-                         'diskpath': diskpath
-                         }
-            
-            self._domxmlfile = os.path.join(os.path.dirname(diskpath), 'definition.xml')
-            _process_template(domxmltemplpath, templdata, self._domxmlfile)
-            
-            # defineVM in libvirt
-            subprocess.check_output(['sudo', 'virsh', 'define', self._domxmlfile])
-            
-              
-        def running(self):
-            self.__check_defined()
-            pass
-            
-        
-        def defined(self):
-            return True
-            pass
-        
-        def start(self):
-            self.__check_defined()
-            subprocess.check_output(['sudo', 'virsh', 'start', self.fqdn()])
-
-        
-        def stop(self, force = False):
-            self.__check_defined()
-            if force:
-                cmd = 'destroy'
-            else:
-                cmd = 'shutdown'
-            subprocess.check_output(['sudo', 'virsh', cmd, self.fqdn()])
-        
-        def restart(self, force = False):
-            self.__check_defined()
-            if force:
-                cmd = 'reset'
-            else:
-                cmd = 'reboot'
-            subprocess.check_output(['sudo', 'virsh', cmd, self.fqdn()])
-        
-        def name(self):
-            return self._name
-        
-        def domain(self):
-            return self._domain
-        
-        def fqdn(self):
-            return '{}.{}'.format(self.name(), self.domain())
-        
-        def mac(self):
-            self.__check_defined()
-            return self._mac
-        
-        def ip(self):
-            self.__check_defined()
-            return self._ip
-        
-        def undefine(self, delete_disk = True):
-            if self.defined():
-                self.stop(force = True)
-                subprocess.check_output(['sudo', 'virsh', 'undefine', self.fqdn()])
-            if delete_disk and os.path.exists(self.diskpath()):
-                os.remove(self.diskpath())
-        
-        def diskpath(self):
-            return self._diskpath
-       
-        def __check_defined(self):
-            if not self.defined():
-                raise "Operation on not <defined> host {}".format(self.name())
-            
+             
     
     def __init__(self, network_id, repositories = {}):
         """
@@ -123,7 +134,7 @@ class TestBox:
         # Check that there is no existing configuration for this network. That would mean that
         # Previous test was not completed correctly, is still running or some error happened
         if os.path.exists(os.path.join(self.workdir, 'TestBox.state')):
-            raise("There exist a running state for network {}. This probably means that there is a test running on the network.".format(network_id))
+            raise AlreadyRunningException("There exist a running state for network {}. This probably means that there is a test running on the network.".format(network_id))
         
         self.__templdata = _prepare_template_data(network = self.network_id, custom_product_repositories = repositories)
         
@@ -143,8 +154,6 @@ class TestBox:
         self.__closed = False
         self.save()
         
-        
-        
     
     @staticmethod
     def load(network_id):
@@ -161,7 +170,7 @@ class TestBox:
        
     def __delete_hosts(self):
         for host in self.hosts:
-            host.undefine(delete_disk = True)
+            self.hosts[host].undefine()
         self.hosts.clear()
         shutil.rmtree(self.hosts_path, ignore_errors=True)
         os.makedirs(self.hosts_path, exist_ok = True)
@@ -172,7 +181,8 @@ class TestBox:
         os.makedirs(self.images_path, exist_ok = True)
 
     def __init_infrastructure(self):
-        self.__add_host('sles-11-sp3', 'server')
+        self.add_host('sles-11-sp3', 'server')
+        self.hosts['server'].start()
 
     def restart(self):
         """Removes all host from the network - will make the network completely clean for next tests. But it will not remove built images to speed up tests
@@ -180,6 +190,7 @@ class TestBox:
         self.__check_closed()
         self.__delete_hosts()
         self.__init_infrastructure()
+        self.save()
     
     def close(self):
         """
@@ -201,7 +212,7 @@ class TestBox:
         if self.__closed:
             raise ValueError('Operation on closed TestBox')
     
-    def __add_host(self, os_ver, variant):
+    def add_host(self, os_ver, variant):
         """ os_ver = sles-11-sp3
         variant = sut
         """
@@ -217,27 +228,19 @@ class TestBox:
             host_data = self.__templdata['network'][variant]
         else:
             # Is this optimal?
-            host_data = [x for x in self.__templdata['network']['suts'] if x['name'] not in self.hosts][0]
+            host_data = [x for x in self.__templdata['network']['suts'] if x['name'] not in self.hosts][0] 
         
-        data = {}
-        data['ip'] = host_data['ip']
-        data['mac'] = host_data['mac']
-        data['name'] = host_data['name']
-        data['domain'] = self.__templdata['network']['domain']
-        data['bridge'] = self.__templdata['network']['bridge']
-        data['diskpath'] = os.path.join(self.hosts_path, host_data['name'], 'disk.raw')
-        os.makedirs(os.path.dirname(data['diskpath']))
-        
-        subprocess.check_output(['cp', '--reflink=auto', image, data['diskpath']])
-        print("data {}".format(data))
-        
-        host = TestBox.Host(host_data['name'],
+        host = Host(host_data['name'],
                             host_data['ip'], 
                             host_data['mac'], 
                             self.__templdata['network']['domain'],                           
                             self.__templdata['network']['bridge'],
-                            os.path.join(self.hosts_path, host_data['name'], 'disk.raw'),
+                            os.path.join(self.hosts_path, host_data['name']),
+                            image,
                             'templates/libvirt/vm.xml')
+        
+        self.hosts[host.name()] = host
+        self.save()
         
     def __build_image(self, os_ver, variant):
         code = "{}-{}".format(os_ver, variant)
@@ -289,6 +292,31 @@ def create_systemwide_configuration(config_path = None):
     os.makedirs(config_path, exist_ok = True)
     _process_template_directory('templates/controller', data, config_path)
 
+def url_to_config_format(url):
+    """ transforms url to short form based on configurtaion.
+    e.g. http://fallback.suse.cz/install/SLP/openSUSE-13.1-GM/x86_64/DVD1  -> slp:openSUSE-13.1-GM/x86_64/DVD1
+    
+    Arguments:
+        url - url to transform
+    
+    Raises:
+        ValueError if it is not possible to transform URL
+    """
+    if not url.startswith('http'):
+        raise ValueError('Only http(s) urls supported: {}'.format(url))
+    
+    u=urlsplit(url)
+    port = u.port if u.port else 80
+    url=urljoin('{}://{}:{}'.format(u.scheme, u.hostname, port), u.path)
+    for r in config['repositories']:
+        u=urlsplit(config['repositories'][r])
+        port = u.port if u.port else 80
+        repourl = urljoin('{}://{}:{}'.format(u.scheme, u.hostname, port), u.path)
+        if url.startswith(repourl):
+            # Found match
+            return url.replace(repourl + '/', '{}:'.format(r))
+        
+    raise ValueError("Cannot transform {} to repo:path format".format(url))
 
 
 def _generate_mac_address(network, host):
@@ -423,21 +451,19 @@ def _prepare_template_data(network=None, sut_count=64, custom_product_repositori
     data['proxy']['services'] = services
 
     for product in config['products']:
-        (repo, urlpart) = config['products'][product].split(':')
+        (repo, urlpart) = config['products'][product].split(':', 1)
         try:
-            data['repositories'][product] = urljoin(urlmap[repo]+ '/this_will_be_removed_by_urljoin', urlpart) # FIXME: urljoin sucks!
+            data['repositories'][product] = urlmap[repo]+ '/' + urlpart
         except KeyError:
             print("Skipping repository for {} - bad format or repository '{}' is not defined in repositories".format(product, repo))
     
-    for (product, url) in custom_product_repositories:
-        (repo, urlpart) = url.split(':')
+    for product in custom_product_repositories:
+        (repo, urlpart) = custom_product_repositories[product].split(':', 1)
         try:
-            data['repositories'][product] = urljoin(urlmap[repo]+ '/this_will_be_removed_by_urljoin', urlpart) # FIXME: urljoin sucks!
+            data['repositories'][product] = urlmap[repo]+ '/'+ urlpart
         except KeyError:
-            # Raise again, since we must make sure our repo is accessible through pound reverse proxy
-            print("Repository for {} - bad format or repository '{}' is not defined in repositories".format(product, repo))
-            raise
-                
+            print("Skipping repository for {} - bad format or repository '{}' is not defined in repositories".format(product, repo))
+        
     for n in range(1, int(config['global']['networks']) + 1):
         c_net = config['network_{}'.format(n)]
         net = {}

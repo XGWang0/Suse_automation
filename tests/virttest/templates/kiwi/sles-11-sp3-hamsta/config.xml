@@ -37,6 +37,7 @@
     <package name='yast2-ncurses'/>
     <package name='zypper'/>
     <package name='grub'/>
+    <package name='mysql'/>
     <package name='qa_hamsta-master'/>
     <package name='qa_hamsta-frontend'/>
     <namedCollection name='lamp_server'/>
@@ -62,7 +63,7 @@
 	  <source path='{{ repositories['SLE-11-SP3-SDK-Updates'] }}'/>
   </repository>
   
-  <repository type='yast2' imageinclude='true' alias='qaauto'>
+  <repository type='rpm-md' imageinclude='true' alias='qaauto'>
   	  <source path='{{ repositories['QA-SLE-11-SP3-Update'] }}' />
   </repository>
 </image>
