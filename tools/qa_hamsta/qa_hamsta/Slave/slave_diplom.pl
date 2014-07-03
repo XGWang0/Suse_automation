@@ -160,6 +160,22 @@ sub chk_jobrun() {
   return 0 ;
 }
 
+#Reinstall job will reboot here
+
+sub reinst_grub() {
+  my $sock = shift;
+  print $sock "Job ist fertig\n";
+  close($sock)
+  &command("reboot");
+}
+
+sub reinst_kexec() {
+  my $sock = shift;
+  print $sock "Job ist fertig\n";
+  close($sock)
+  &command("/sbin/kexec -e");
+}
+
 # runs slave server, binds to port, responds to connections
 sub run_slave_server() {
     my $socket = new IO::Socket::INET(
@@ -349,19 +365,29 @@ sub start_job() {
     my $pid_main = open (FILE, "/usr/bin/perl Slave/run_job.pl $filename 2>&1|");
     my $count = 0;
     while (<FILE>) {
-	    chomp;
-	    #bug 615911
-	    next if ($_ =~ /A thread exited while \d+ threads were running/);
-        &log(LOG_DETAIL, '%s', $_);
+      chomp;
+      #bug 615911
+      next if ($_ =~ /A thread exited while \d+ threads were running/);
+      #reinstall job will reboot the machine
+      if( $_ =~ m@RETURN\s+(\d+)\s+\(/usr/share/qa/tools/setupgrubforinstall(.*)@ ) {
+        my $ret = $1;
+        my $cmdopt = $2;
         print $sock $_."\n";
-        $count++ if ($_ =~/\<job\>$/ );
-        last if ($count == 2);
+        if( $ret == 0 ) {
+          &reinst_kexec($sock) if( grep(/kexecboot/,$cmdopt) );
+          &reinst_grub($sock);
+        }
+      }
+      &log(LOG_DETAIL, '%s', $_);
+      print $sock $_."\n";
+      $count++ if ($_ =~/\<job\>$/ );
+      last if ($count == 2);
     }
-	close FILE;
-	unlink $filename;
-	&log(LOG_NOTICE, "Job finished.");
-	print $sock "Job ist fertig\n";
-	exit;
+      close FILE;
+      unlink $filename;
+      &log(LOG_NOTICE, "Job finished.");
+      print $sock "Job ist fertig\n";
+      exit;
     }elsif($fork_re){
 	    #in parent we start to check child is finish or not;
         my $qa_package_jobs = `grep '\./customtest ' $filename`;
