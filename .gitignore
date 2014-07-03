@@ -3,3 +3,4 @@ config
 tags
 *~
 tests/results
+*.pyc
