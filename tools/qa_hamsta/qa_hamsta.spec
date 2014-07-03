@@ -319,9 +319,13 @@ echo "=================== I M P O R T A N T ======================="
 %post frontend
 sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %if %{?with_systemd}
-systemctl --quiet is-active apache2 && systemctl restart apache2
+if systemclt --quiet is-active apache2 ; then
+	 systemctl restart apache2
+fi
 %else
-/etc/init.d/apache2 status > /dev/null 2>&1 && /etc/init.d/apache2 restart
+if /etc/init.d/apache2 status > /dev/null 2>&1 ; then
+	/etc/init.d/apache2 restart
+fi
 %endif
 
 
