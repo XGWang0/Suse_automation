@@ -449,6 +449,7 @@ def _prepare_template_data(network=None, sut_count=64, custom_product_repositori
         urlmap[r] = urljoin('http://repos:{}'.format(data['proxy']['port']), repodata['url'])
     
     data['proxy']['services'] = services
+    data['proxy']['urlmap'] = urlmap
 
     for product in config['products']:
         (repo, urlpart) = config['products'][product].split(':', 1)
@@ -489,6 +490,7 @@ def _prepare_template_data(network=None, sut_count=64, custom_product_repositori
             net[special]['reverse'] = _reverse_network_address(ipaddress.ip_network('{}/32'.format(hosts[host_num])))
             if special != 'controller':     # Controller has its own mac address!
                 net[special]['mac'] = _generate_mac_address(n, host_num)
+            net[special]['fqdn'] = special + '.' + net['domain']
             net[special]['name'] = special
             host_num += 1
         
@@ -502,6 +504,7 @@ def _prepare_template_data(network=None, sut_count=64, custom_product_repositori
             sut['reverse'] = _reverse_network_address(ipaddress.ip_network('{}/32'.format(hosts[host_num])))
             sut['mac'] = _generate_mac_address(n, host_num)
             sut['name'] = 'sut-{:02d}'.format(len(net['suts'])+1)
+            sut['fqdn'] = sut['name'] + '.' + net['domain']
             net['suts'].append(sut)
             host_num += 1
 

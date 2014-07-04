@@ -20,7 +20,7 @@ Where:
                        real URLs. The url must be within some repository defined in
                        config.ini
     
-""".format(sys.argv[0])
+""".format(sys.argv[0], sys.argv[0])
     sys.stderr.write(helpstr)
     sys.exit(1)
 
@@ -58,7 +58,8 @@ if reinitialize:
 else:
     repobase = virttest.url_to_config_format(args[0])
     repositories = {}
-
+    
+    repositories['QA'] = repobase
     for p in ['SLE-10-SP4', 'SLE-10-SP4-Update', 'SLE-11-SP3', 'SLE-11-SP3-Update', 'SLE-12', 'openSUSE-13.1', 'openSUSE-Factory']:
         repositories['QA-{}'.format(p)] = '{}/{}'.format(repobase, p)
 

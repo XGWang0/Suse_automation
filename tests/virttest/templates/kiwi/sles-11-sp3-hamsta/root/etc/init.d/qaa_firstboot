@@ -1,10 +1,15 @@
 #!/bin/bash
 
-/etc/init.d/mysql start
+PASS='susetesting'
 
 # set up root password to mysql to susetesting
-/usr/bin/mysqladmin -u root password 'susetesting'
+/usr/bin/mysqladmin -u root password "$PASS"
 
 # create hamsta database
 cd /usr/share/hamsta/db
-DBPASSISSET=yes DBPASS=susetesting sh ./create_db.sh
+DBPASSISSET=yes DBPASS="$PASS" sh ./create_db.sh
+
+# change global QA configuration for hamsta to point to correct file
+echo "update qaconf set sync_url='http://{{ network.hamsta.fqdn }}/global.conf' where qaconf_id=1;" | mysql -u root -p$PASS hamsta_db
+
+/etc/init.d/hamsta-master restart

@@ -64,6 +64,6 @@
   </repository>
   
   <repository type='rpm-md' imageinclude='true' alias='qaauto'>
-  	  <source path='{{ repositories['QA-SLE-11-SP3-Update'] }}' />
+  	  <source path='{{ repositories['QA'] }}/SLE-11-SP3-Update' />
   </repository>
 </image>
