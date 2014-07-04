@@ -839,7 +839,22 @@ sub _print_profile_partitions
 				foreach my $num ( keys %{$drives->{$drive}} ) {
 					my $mnt=$drives->{$drive}->{$num};
 					print $f "	 <partition>\n";
-					print $f "	  <filesystem config:type=\"symbol\">".$fs{$mnt}."</filesystem>\n";
+					# The filesystem type is optional, it will not be
+					# set unless specified.
+					# https://bugzilla.novell.com/show_bug.cgi?id=867147
+					if ($fs{$mnt} ne 'default') {
+						print $f "	  <filesystem config:type=\"symbol\">".$fs{$mnt}."</filesystem>\n";
+					} else {
+						# Well, the filesystem is optional only unless
+						# the installed system is below SLE 12 or
+						# openSUSE 13.1 and below.
+						if (($args->{'to_type'} =~ /sle[ds]/i and $args->{'to_version'} < 12)
+							or ($args->{'to_type'} =~ /openSUSE/i and $args->{'to_version'} <= 13)) {
+							# ext3 is the default filesystem for earlier distros
+							print $f "	  <filesystem config:type=\"symbol\">ext3</filesystem>\n";
+						}
+					}
+
 					if ( $args->{'repartitiondisk'} ) {
 						print $f "	  <create config:type=\"boolean\">true</create>\n";
 						print $f "	  <format config:type=\"boolean\">true</format>\n";
