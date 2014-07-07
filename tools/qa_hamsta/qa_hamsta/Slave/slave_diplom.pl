@@ -50,6 +50,10 @@ use Slave::stats_xml;
 use Slave::Multicast::mcast;
 use Slave::functions;
 
+use constant {
+    RFINISH => "Job ist fertig\n",
+};
+
 require 'Slave/config_slave.pm';
 
 @ISA = qw(Net::Server::PreFork);
@@ -164,14 +168,14 @@ sub chk_jobrun() {
 
 sub reinst_grub() {
   my $sock = shift;
-  print $sock "Job ist fertig\n";
+  print $sock RFINISH;
   close($sock)
   &command("reboot");
 }
 
 sub reinst_kexec() {
   my $sock = shift;
-  print $sock "Job ist fertig\n";
+  print $sock RFINISH;
   close($sock)
   &command("/sbin/kexec -e");
 }
@@ -386,7 +390,7 @@ sub start_job() {
       close FILE;
       unlink $filename;
       &log(LOG_NOTICE, "Job finished.");
-      print $sock "Job ist fertig\n";
+      print $sock RFINISH;
       exit;
     }elsif($fork_re){
 	    #in parent we start to check child is finish or not;
@@ -426,13 +430,13 @@ sub start_job() {
         &log(LOG_NOTICE, "Job TIMEOUT.");
 	    print $sock "TIMEOUT running $sut_timeout seconds ,time is up \n";
 	    print $sock "Please logon SUT check the job manually!\n";
-        print $sock "Job ist fertig\n";
+        print $sock RFINISH;
 	    OUT:
     }else{
 	    #fork error ;
         &log(LOG_ERROR, "Fork error,exit");
 	    &log(LOG_NOTICE, "Job finished.");
-	    print $sock "Job ist fertig\n";
+	    print $sock RFINISH;
     }
 }
 
