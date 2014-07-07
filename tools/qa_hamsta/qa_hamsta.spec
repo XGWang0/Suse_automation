@@ -138,6 +138,7 @@ Requires:       perl-Config-IniFiles
 Requires:       php-ZendFramework
 Requires:       php-curl
 Requires:       php-gmp
+Requires:       php-json
 Requires:       php-mysql
 Requires:       php-openid
 Requires:       php-openssl
