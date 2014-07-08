@@ -146,6 +146,7 @@ Requires:       php-pdo
 Requires:       php-snmp
 Requires:       sshpass
 Requires:       tblib
+Requires:       qa_tools
 
 %if 0%{?suse_version} > 910
 Recommends:     mysql
