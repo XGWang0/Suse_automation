@@ -368,12 +368,9 @@ if( $args->{'newvm'} )	{
 	if ( $command_ret == 0 ) {
 		if ( "$boottype" eq "bootloader" ) {
 			&log(LOG_RETURN, "$command_ret (".$cmdline.')');
-			&synclog;
-			&command( "(sleep 10;reboot)&" );
 			exit 0;
 		} else {
 			&log(LOG_RETURN, "$command_ret (".$cmdline.')');
-			&command("(sleep 20;/sbin/kexec -e >/dev/null)&");
 			exit 0;
 			}
 	}else {

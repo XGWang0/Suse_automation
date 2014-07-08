@@ -50,6 +50,10 @@ use Slave::stats_xml;
 use Slave::Multicast::mcast;
 use Slave::functions;
 
+use constant {
+    RFINISH => "Job ist fertig\n",
+};
+
 require 'Slave/config_slave.pm';
 
 @ISA = qw(Net::Server::PreFork);
@@ -158,6 +162,22 @@ sub chk_jobrun() {
   my $job_sub = `ps --ppid $slave_pid|wc -l`;
   return 1 if ( $job_sub > 1 );
   return 0 ;
+}
+
+#Reinstall job will reboot here
+
+sub reinst_grub() {
+  my $sock = shift;
+  print $sock RFINISH;
+  close($sock)
+  &command("reboot");
+}
+
+sub reinst_kexec() {
+  my $sock = shift;
+  print $sock RFINISH;
+  close($sock)
+  &command("/sbin/kexec -e");
 }
 
 # runs slave server, binds to port, responds to connections
@@ -349,19 +369,29 @@ sub start_job() {
     my $pid_main = open (FILE, "/usr/bin/perl Slave/run_job.pl $filename 2>&1|");
     my $count = 0;
     while (<FILE>) {
-	    chomp;
-	    #bug 615911
-	    next if ($_ =~ /A thread exited while \d+ threads were running/);
-        &log(LOG_DETAIL, '%s', $_);
+      chomp;
+      #bug 615911
+      next if ($_ =~ /A thread exited while \d+ threads were running/);
+      #reinstall job will reboot the machine
+      if( $_ =~ m@RETURN\s+(\d+)\s+\(/usr/share/qa/tools/setupgrubforinstall(.*)@ ) {
+        my $ret = $1;
+        my $cmdopt = $2;
         print $sock $_."\n";
-        $count++ if ($_ =~/\<job\>$/ );
-        last if ($count == 2);
+        if( $ret == 0 ) {
+          &reinst_kexec($sock) if( grep(/kexecboot/,$cmdopt) );
+          &reinst_grub($sock);
+        }
+      }
+      &log(LOG_DETAIL, '%s', $_);
+      print $sock $_."\n";
+      $count++ if ($_ =~/\<job\>$/ );
+      last if ($count == 2);
     }
-	close FILE;
-	unlink $filename;
-	&log(LOG_NOTICE, "Job finished.");
-	print $sock "Job ist fertig\n";
-	exit;
+      close FILE;
+      unlink $filename;
+      &log(LOG_NOTICE, "Job finished.");
+      print $sock RFINISH;
+      exit;
     }elsif($fork_re){
 	    #in parent we start to check child is finish or not;
         my $qa_package_jobs = `grep '\./customtest ' $filename`;
@@ -400,13 +430,13 @@ sub start_job() {
         &log(LOG_NOTICE, "Job TIMEOUT.");
 	    print $sock "TIMEOUT running $sut_timeout seconds ,time is up \n";
 	    print $sock "Please logon SUT check the job manually!\n";
-        print $sock "Job ist fertig\n";
+        print $sock RFINISH;
 	    OUT:
     }else{
 	    #fork error ;
         &log(LOG_ERROR, "Fork error,exit");
 	    &log(LOG_NOTICE, "Job finished.");
-	    print $sock "Job ist fertig\n";
+	    print $sock RFINISH;
     }
 }
 
