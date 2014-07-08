@@ -46,6 +46,7 @@ eof
 
 /etc/init.d/mysql stop
 
+mkdir -p /srv/www/htdocs/Results
 chmod 777 /srv/www/htdocs/Results
 
 

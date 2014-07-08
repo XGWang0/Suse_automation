@@ -39,6 +39,7 @@
     <package name='grub'/>
     <package name='nfs-client'/>
     <package name='qa_hamsta'/>
+    <package name='qa_lib_keys'/>
   </packages>
   <packages type='bootstrap'>
     <package name='filesystem'/>

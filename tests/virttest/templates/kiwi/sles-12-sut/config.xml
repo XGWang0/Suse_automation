@@ -38,6 +38,8 @@
     <package name='zypper'/>
     <package name='grub'/>
     <package name='nfs-client'/>
+    <package name='qa_lib_keys'/>
+    <package name='qa_hamsta'/>
   </packages>
   <packages type='bootstrap'>
     <package name='filesystem'/>
