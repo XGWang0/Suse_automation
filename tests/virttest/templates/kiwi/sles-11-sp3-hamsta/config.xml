@@ -38,6 +38,8 @@
     <package name='zypper'/>
     <package name='grub'/>
     <package name='mysql'/>
+    <package name='sudo'/>
+    <package name='nfs-client'/>
     <package name='qa_hamsta-master'/>
     <package name='qa_hamsta-frontend'/>
     <namedCollection name='lamp_server'/>

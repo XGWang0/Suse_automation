@@ -23,6 +23,7 @@ suseActivateDefaultServices
 suseInsertService apache2
 suseInsertService mysql
 suseInsertService hamsta-master
+suseInsertService nfsserver
 
 suseConfig
 
@@ -38,13 +39,34 @@ PASS='susetesting'
 cd /usr/share/hamsta/db
 DBPASSISSET=yes DBPASS="$PASS" sh ./create_db.sh
 
-# change global QA configuration for hamsta to point to correct file
-echo "update qaconf set sync_url='http://{{ network.hamsta.fqdn }}/global.conf' where qaconf_id=1;" | mysql -u root -p$PASS hamsta_db
+
+# enter QA config values into hamsta network configuration
+
+# read the qa custom config & remove comments and empty lines
+cat /etc/qa/80-virtenv | sed 's/#.*$//' | grep -v '^\W*$' | while read line # process by lines
+do
+	k=`echo $line | cut -d= -f1`                        # key
+	v=`echo $line | cut -d= -f2 | sed "s/^[\"']\(.*\)[\"']\s*\$/\1/"` # value without ' or "
+	echo "insert ignore into qaconf_key (qaconf_key) values ('$k');"
+	subselect="select qaconf_key_id from qaconf_key where qaconf_key='$k'"
+	echo "insert into qaconf_row (qaconf_id, qaconf_key_id, val) values (4, ($subselect), '$v');"
+done | mysql -u root -p$PASS hamsta_db
+
 
 /etc/init.d/mysql stop
 
+echo 'wwwrun ALL = (root) NOPASSWD: /usr/bin/ssh' >> /etc/sudoers
+
 echo -n "Starting repoindexing scripts"
-	python /srv/www/htdocs/hamsta/update-repo-index.py -r {{ proxy.urlmap['slp'] }} -s {{ proxy.urlmap['slp'] }} -o /srv/www/htdocs/hamsta/virtenv
+	python /srv/www/htdocs/hamsta/update-repo-index.py -r {{ proxy.urlmap['slp'] }} -s {{ proxy.urlmap['slp'] }} -o /srv/www/htdocs/virtenv
+
+# autoyast profile upload folder
+chmod 777 /srv/www/htdocs/autoinst
+
+
+
+
+baseSetupUserPermissions
 
 
 #======================================

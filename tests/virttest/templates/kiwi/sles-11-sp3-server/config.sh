@@ -25,6 +25,8 @@ suseInsertService named
 
 suseConfig
 
+baseSetupUserPermissions
+
 #======================================
 # Umount kernel filesystems
 #--------------------------------------

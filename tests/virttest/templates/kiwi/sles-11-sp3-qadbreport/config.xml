@@ -17,6 +17,7 @@
   </preferences>
   <users group='root'>
     <user name='root' password='$1$F2WqbkCG$55kehTQWWhf0m2tlsBAhV0' home='/root' shell='/bin/bash'/>
+    <user name='rd-qa' password='$1$F2WqbkCG$55kehTQWWhf0m2tlsBAhV0' home='/home/rd-qa' shell='/bin/bash'/>
   </users>
   <packages type='image' patternType='onlyRequired'>
     <namedCollection name='base'/>
@@ -37,6 +38,7 @@
     <package name='yast2-ncurses'/>
     <package name='zypper'/>
     <package name='grub'/>
+    <package name='nfs-client'/>
     <package name='qa_db_report'/>
   </packages>
   <packages type='bootstrap'>

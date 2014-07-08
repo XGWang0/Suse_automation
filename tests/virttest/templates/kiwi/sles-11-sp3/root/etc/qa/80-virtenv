@@ -32,3 +32,8 @@ remote_qa_db_report_user="rd-qa"
 
 # Which repository should be used for *next* installation 
 install_qa_repository="{{ repositories['QA'] }}"
+
+# where to store autoyast profiles
+install_profile_nfs_server="{{ network.hamsta.fqdn }}"
+install_profile_nfs_dir="/srv/www/htdocs/autoinst"
+install_profile_url_base="http://{{network.hamsta.fqdn }}/autoinst/"

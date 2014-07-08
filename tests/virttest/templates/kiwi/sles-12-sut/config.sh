@@ -24,6 +24,8 @@ suseInsertService hamsta
 
 suseConfig
 
+baseSetupUserPermissions
+
 #======================================
 # Umount kernel filesystems
 #--------------------------------------

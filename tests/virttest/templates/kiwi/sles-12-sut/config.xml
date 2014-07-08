@@ -37,6 +37,7 @@
     <package name='yast2-ncurses'/>
     <package name='zypper'/>
     <package name='grub'/>
+    <package name='nfs-client'/>
   </packages>
   <packages type='bootstrap'>
     <package name='filesystem'/>

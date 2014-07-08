@@ -13,6 +13,9 @@
 # before we're going to the first run level.
 #
 
-#chmod 755 /etc/init.d/start-local
-#chkconfig -a start-local
 
+# Execute the QA Automation first boot script, if it exists
+if [ -f /etc/init.d/qaa_firstboot ]; then
+  sh /etc/init.d/qaa_firstboot
+  rm /etc/init.d/qaa_firstboot
+fi

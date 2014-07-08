@@ -22,7 +22,7 @@ suseSetupProduct
 suseActivateDefaultServices
 
 suseConfig
-
+baseSetupUserPermissions
 #======================================
 # Umount kernel filesystems
 #--------------------------------------
