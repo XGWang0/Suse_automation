@@ -61,6 +61,9 @@ echo -n "Starting repoindexing scripts"
 	python /srv/www/htdocs/hamsta/update-repo-index.py -r {{ proxy.urlmap['slp'] }} -s {{ proxy.urlmap['slp'] }} -o /srv/www/htdocs/virtenv
 
 # autoyast profile upload folder
+
+mkdir -p /srv/www/htdocs/autoinst
+ln -s . /srv/www/htdocs/autoinst/autoinst
 chmod 777 /srv/www/htdocs/autoinst
 
 
