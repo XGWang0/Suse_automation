@@ -138,6 +138,7 @@ Requires:       perl-Config-IniFiles
 Requires:       php-ZendFramework
 Requires:       php-curl
 Requires:       php-gmp
+Requires:       php-json
 Requires:       php-mysql
 Requires:       php-openid
 Requires:       php-openssl
@@ -145,6 +146,7 @@ Requires:       php-pdo
 Requires:       php-snmp
 Requires:       sshpass
 Requires:       tblib
+Requires:       qa_tools
 
 %if 0%{?suse_version} > 910
 Recommends:     mysql
@@ -278,7 +280,7 @@ install -d %{buildroot}%{webdir}
 cp -a -r --target-directory=%{buildroot}%{webdir} frontend/*
 ln -s %{destdir}/xml_files %{buildroot}%{xml_link}
 install -m 755 -d %{buildroot}%{destdir}
-cp -a -r --target-directory=%{buildroot}%{destdir} Slave command_frontend.pl feed_hamsta.pl master testscript xml_files db hamsta-multicast-forward.pl hamsta.pm
+cp -a -r --target-directory=%{buildroot}%{destdir} Slave command_frontend.pl feed_hamsta.pl master testscript xml_files db hamsta-multicast-forward.pl Hamsta.pm
 install -d %{buildroot}%{webdir}/profiles
 install -m 755 -d %{buildroot}%{confdir}
 cp --target-directory=%{buildroot}%{confdir} 00-hamsta-common-default 00-hamsta-default 00-hamsta-master-default 00-hamsta-multicast-forward-default
@@ -319,9 +321,13 @@ echo "=================== I M P O R T A N T ======================="
 %post frontend
 sed -i "s/Options None/Options FollowSymLinks/" /etc/apache2/default-server.conf
 %if %{?with_systemd}
-systemclt is-active apache2 --quiet && systemctl restart apache2
+if systemctl --quiet is-active apache2 ; then
+	 systemctl restart apache2
+fi
 %else
-/etc/init.d/apache2 status > /dev/null 2>&1 && /etc/init.d/apache2 restart
+if /etc/init.d/apache2 status > /dev/null 2>&1 ; then
+	/etc/init.d/apache2 restart
+fi
 %endif
 
 
@@ -421,6 +427,6 @@ systemclt is-active apache2 --quiet && systemctl restart apache2
 %defattr(-, root, root)
 %dir %{confdir}
 %{confdir}/00-hamsta-common-default
-%{destdir}/hamsta.pm
+%{destdir}/Hamsta.pm
 
 %changelog

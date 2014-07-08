@@ -44,15 +44,25 @@
 	<input type="text" size="5" name="repartitiondisk" id="repartitiondisk" value=""/>% of free disk for root partition
   </div>
 
+<?php
+/* Check if we have a filesystem type sent from POST request. */
+$fstype = request_str ('rootfstype') ? request_str ('rootfstype') : 'default';
+$fstypes = array ('default', 'reiser', 'ext2', 'ext3', 'xfs', 'jfs');
+$selected = $fstypes[array_search ($fstype, $fstypes)];
+?>
   <div class='row'>
 	<label for="rootfstype">Filesystem</label>
-	  <select name="rootfstype" id="rootfstype">
-		<option <?php if(isset($_POST["rootfstype"]) and $_POST["rootfstype"] == "reiser"){echo "selected";} ?> value="reiser">reiser</option>
-		<option <?php if(isset($_POST["rootfstype"]) and $_POST["rootfstype"] == "ext2"){echo "selected";} ?> value="ext2">ext2</option>
-		<option <?php if(!isset($_POST["rootfstype"]) or $_POST["rootfstype"] == "ext3"){echo "selected";} ?> value="ext3">ext3</option>
-		<option <?php if(isset($_POST["rootfstype"]) and $_POST["rootfstype"] == "xfs"){echo "selected";} ?> value="xfs">xfs</option>
-		<option <?php if(isset($_POST["rootfstype"]) and $_POST["rootfstype"] == "jfs"){echo "selected";} ?> value="jfs">jfs</option>
+	  <select name="rootfstype" id="rootfstype" title="The filesystem type for products before SLE 12 and openSUSE 13.1 and below is ext3. Otherwise the installation lets the installator to decide filesystem type based on product version.">
+		<?php
+		foreach ($fstypes as $type) {
+			printf ('<option value="%s"%s>%s</option>' . PHP_EOL,
+					$type,
+					($selected == $type ? ' selected' : ''),
+					$type);
+		}
+		?>
 	  </select>
+	  Default option leaves the choice on installer. See option tooltip for more.
   </div>
 
   <div class='row'>

@@ -1,6 +1,7 @@
-/* ****************************************************************************
+<?php
+/*****************************************************************************
   Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
-  
+
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
   RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
@@ -11,7 +12,7 @@
   PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
   AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
   LIABILITY.
-  
+
   SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
   WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
@@ -19,77 +20,41 @@
   LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
   OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
   WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
-  ****************************************************************************
+ ****************************************************************************
  */
 
-.text-large
-{
-	font-family: arial, verdana, sans-serif;
-	font-size: 1.33em;
-}
-.text-medium
-{
-	font-family: arial, verdana, sans-serif;
-	font-size: 1.13em;
-}
-.text-main
-{
-	font-family: arial, verdana, sans-serif;
-	font-size: 1em;
-}
-div.text-main	{ padding: 0.2em; }
-.text-small
-{
-	font-family: arial, verdana, sans-serif;
-	font-size: 0.8em;
-}
-.text-smaller
-{
-	font-family: arial, verdana, sans-serif;
-	font-size: 0.67em;
-}
-.center
-{
-	text-align: center;
+/* Used by fronted AJAX (JavaScript) code. Returns JSON representation
+ * of different data to be fetched from the server.
+ */
+
+require ("../globals.php");
+require ("../lib/request.php");
+require ("../include/json.php");
+
+/* This is path to the variable to fetch from config in the same
+ * format as in frontend INI configuration file.
+ *
+ * Expected value is e.g. 'gnome-default-patterns' which returns value
+ * of the '$config->lists->gnome->default' variable. For expected
+ * values see the switch structure below.
+ */
+$getval = request_str ('getval');
+$return = null;
+
+switch ($getval) {
+case 'gnome-default-patterns':
+	$return = split (' ', $config->lists->gnome->default);
+	break;
+case 'kde-default-patterns':
+	$return = split (' ', $config->lists->kde->default);
+	break;
+case 'virt-disk-types':
+	$return = $virtdisktypes;
+	break;
+default:
+	// Do nothing.
 }
 
-.text-left {
-    text-align:left;
-}
+print (json_encode ($return));
 
-.bold
-{
-	font-weight: bold;
-}
-.normal
-{
-	font-weight: normal;
-}
-.em
-{
-	font-style: italic;
-}
-.logs
-{
-	font-size: 0.8em;
-	font-family: arial, verdana, sans-serif;
-}
-
-.text-small-bold {
-    font-size:small;
-    font-weight:bold;
-}
-
-.ellipsis-no-wrapped {
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-}
-
-.sorting-arrow {
-    size:3.5em;
-}
-
-.monospace {
-	font-family:monospace;
-}
+?>

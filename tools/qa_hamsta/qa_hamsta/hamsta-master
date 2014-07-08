@@ -24,8 +24,8 @@
 
 ### BEGIN INIT INFO
 # Provides:       hamsta-master
-# Required-Start: $network $remote_fs $mysql
-# Required-Stop:  $network $remote_fs $mysql
+# Required-Start: $network $remote_fs mysql
+# Required-Stop:  $network $remote_fs mysql
 # Default-Start:  2 3 4 5
 # Default-Stop:
 # Short-Description: Hamsta Master

@@ -45,7 +45,7 @@ $ENV{'LC_ALL'}='en_US';
 
 # default values
 our $args={
-	rootfstype=>'ext3',
+	rootfstype => 'default',
 	defaultboot=>'',
 	setupfordesktoptest=>'',
         kexecboot=>'',
@@ -60,7 +60,7 @@ chomp $name;
 our $options = [
 	### Common options
 	['p','source','URL','Primary installation repository URL, mandatory','This is the primary product repository to install on the machine. Currently, HTTP and FTP protocols are supported.'],
-	['f','rootfstype','fstype','Root filesystem type, e.g ext3, xfs, reiserfs..',"Use the format of \n.BR mkfs (8)\n"],
+	['f','rootfstype','fstype','Root filesystem type, e.g ext3, xfs, reiserfs',"Use the format of \n.BR mkfs (8)\.\nIf not specified, the AutoYaST will select the default filesystem based on distribution version.\n"],
 	['s','url_addon','URLs','Addon / SDK repo URL(s)','Comma separated list of additional install repository URLs. Use for SDK, addons etc.'],
 	['o','installoptions','options','Additional installer options', 'Can be used to fine-tune installation options, start a VNC/SSH install etc.'],
 	['u','userprofile','path','Path to own AutoYaST profile',"Here you can enter your own profile, e.g. the one from system clone. In that case, it will be passed directly to the installer, most of the autodetection will be skipped, and most of the other options ignored; only install repo (-p) and installer options (-o) will be used."],
@@ -264,8 +264,8 @@ our ($ay_xml,$aytool);
 
 
 #check the whether we have a separate root partition
-my $bootpartition = `df /boot|awk '{a=\$1}END{print a}'`;
-my $rootpartition = `df /|awk '{a=\$1}END{print a}'`;
+my $bootpartition = `df /boot | awk 'NR == 2 { print \$1 }'`;
+my $rootpartition = `df / | awk 'NR == 2 { print \$1 }'`;
 
 $args->{'defaultboot'} = "MBR" if("$rootpartition" eq "$bootpartition") ;
 
@@ -368,12 +368,9 @@ if( $args->{'newvm'} )	{
 	if ( $command_ret == 0 ) {
 		if ( "$boottype" eq "bootloader" ) {
 			&log(LOG_RETURN, "$command_ret (".$cmdline.')');
-			&synclog;
-			&command( "(sleep 10;reboot)&" );
 			exit 0;
 		} else {
 			&log(LOG_RETURN, "$command_ret (".$cmdline.')');
-			&command("(sleep 20;/sbin/kexec -e >/dev/null)&");
 			exit 0;
 			}
 	}else {

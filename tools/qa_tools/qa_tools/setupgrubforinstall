@@ -100,11 +100,11 @@ setupgrub2()
 	title=`echo $insturl | sed -e 's/\//\n/g' | grep -v '\..\+\.' | awk '{ print length, $0 }' | sort -gr | cut -d\  -f2 | head -n1`
 	title="$title-`date +%m%d%y%H%M%S`"
 
-	#find out the boot filesystem
-	rootpartition=`df /|awk '{a=$1}END{print a}'`
+	#find out the root partition filesystem
+	rootpartition=`df / | awk 'END { print $1; }'`
 
-	#find out the boot filesystem
-	bootpartition=`df /boot|awk '{a=$1}END{print a}'`
+	#find out the boot partition filesystem
+	bootpartition=`df /boot | awk 'END { print $1; }'`
 	echo "boot partition is $bootpartition"
 	bootfs=`awk -v p=$bootpartition '$1==p{print $3;exit}' /proc/mounts`
 	echo "boot filesystem is $bootfs"
@@ -120,7 +120,6 @@ setupgrub2()
 	fi
 
 	#compare the root/boot partition
-	rootpartition=`df /|awk '{a=$1}END{print a}'`
 	if [ "$rootpartition" != "$bootpartition" ]
 	then
 		imagedir=${imagedir#/boot}
@@ -133,17 +132,17 @@ setupgrub2()
 	uuid=`ls -l /dev/disk/by-uuid/ |awk -v p=$pname '{gsub(/.*\//,"",$NF);a[$NF]=$9}END{print a[p]}'`
 
 
-	#findout the coustom config of autoinstall #/etc/grub.d/
+	#find out the custom config of autoinstall #/etc/grub.d/
 	#get largest index of grub config
 	index=`ls /etc/grub.d|awk -F_ '/_/{a=($1>a)?$1:a}END{print a}'`
 
 	#get largest index of autoinstall grub config
-	aindex=`ls /etc/grub.d|grep autoinstall|awk -F_ '{a=($1>a)?$1:a}END{print a}'`
+	aindex=`ls /etc/grub.d | awk -F_ '/autoinstall/ {a=($1>a)?$1:a}END{print a}'`
 
 	if [ "$index" = "$aindex" ]
 	then
 		#already have a custom autoinstall config
-		#creat a newone
+		#create a new one
 		customname=$((index + 1))
 	elif [ "$aindex" = "" ]
 	then
@@ -160,9 +159,10 @@ setupgrub2()
 
 
 	#find out the rootsubvol
+	. /etc/default/grub
 	. /usr/share/grub2/grub-mkconfig_lib
 
-	rootsubvol=`make_system_path_relative_to_its_root / | sed -e "s,@$,,"`
+	rootsubvol=`make_system_path_relative_to_its_root /`
 
 	#build the config file
 	cat<<eof >/etc/grub.d/$customname
