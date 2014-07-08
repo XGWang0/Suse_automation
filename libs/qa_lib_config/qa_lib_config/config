@@ -81,7 +81,7 @@ unset file
 
 [ -r ~/.qarc ] && source ~/.qarc
 
-set > /tmp/$$.after # read all variables after we processed qa config
+set|sed '/BASH_REMATCH/d' > /tmp/$$.after # read all variables after we processed qa config
 
 full_qa_config=`diff /tmp/$$.before /tmp/$$.after | grep "^>" | sed 's/^> //' | grep -v "^_=\|PIPESTATUS"`
 
