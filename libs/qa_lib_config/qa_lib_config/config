@@ -54,7 +54,7 @@ if [ ! -z "$full_qa_config" ] ; then
 fi
 
 # read all configs in correct order
-set > /tmp/$$.before # read all variables before we process qa config
+set | sed '/BASH_REMATCH/d' > /tmp/$$.before # read all variables before we process qa config
 for file in /etc/qa/*
 do
 	# skip the file end up with '~'
@@ -81,7 +81,7 @@ unset file
 
 [ -r ~/.qarc ] && source ~/.qarc
 
-set|sed '/BASH_REMATCH/d' > /tmp/$$.after # read all variables after we processed qa config
+set | sed '/BASH_REMATCH/d' > /tmp/$$.after # read all variables after we processed qa config
 
 full_qa_config=`diff /tmp/$$.before /tmp/$$.after | grep "^>" | sed 's/^> //' | grep -v "^_=\|PIPESTATUS"`
 
