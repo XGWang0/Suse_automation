@@ -1212,8 +1212,12 @@ function submissions_compare_print( $data, $idnames=array() )
 		return;
 
 	# union of all column keys
-	$all_keys = array_keys(array_reduce($data, function($res,$item){return array_merge($res,$item[0]);}, array()));
-	foreach($all_keys as $key)	{
+	$merged=array();
+	foreach( $data as $item )	{
+		$merged=array_merge($merged,$item[0]);
+	}
+	foreach(array_keys($merged) as $key)	{
+
 		# create union of unique values for that column
 		$all_vals=array();
 		foreach( $data as $id=>$item )	{
