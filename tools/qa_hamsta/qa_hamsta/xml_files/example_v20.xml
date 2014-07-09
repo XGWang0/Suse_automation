@@ -25,7 +25,7 @@
         <!-- Add a repo to your system -->
         <!-- <repository>http://fallback.suse.cz/install/SLP/SLE-11-SP3-SDK-LATEST/<repository> -->
 
-        <!-- Require a few RPMs, but do not upgrade if they are already installed  -->
+        <!-- Require a few RPMs, but do not upgrade if they are already installed (default: upgrade)  -->
         <rpm upgrade="0">awk</rpm>
         <rpm upgrade="0">coreutils</rpm>
     </config>
