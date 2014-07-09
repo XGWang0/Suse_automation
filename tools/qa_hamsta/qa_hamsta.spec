@@ -146,7 +146,6 @@ Requires:       php-pdo
 Requires:       php-snmp
 Requires:       sshpass
 Requires:       tblib
-Requires:       qa_tools
 
 %if 0%{?suse_version} > 910
 Recommends:     mysql
@@ -280,6 +279,8 @@ install -d %{buildroot}%{webdir}
 cp -a -r --target-directory=%{buildroot}%{webdir} frontend/*
 ln -s %{destdir}/xml_files %{buildroot}%{xml_link}
 install -m 755 -d %{buildroot}%{destdir}
+install -m 755 -d %{buildroot}%{destdir}/frontend
+mv -t %{buildroot}%{destdir}/frontend/ %{buildroot}%{webdir}/utils
 cp -a -r --target-directory=%{buildroot}%{destdir} Slave command_frontend.pl feed_hamsta.pl master testscript xml_files db hamsta-multicast-forward.pl Hamsta.pm
 install -d %{buildroot}%{webdir}/profiles
 install -m 755 -d %{buildroot}%{confdir}
@@ -399,6 +400,7 @@ fi
 %attr(-,wwwrun,www) %{webdir}/profiles
 %config(noreplace) %{webdir}/config.ini
 %dir %{destdir}
+%attr(755, root, root) %{destdir}/frontend/utils/*.pl
 
 %files multicast-forward
 %defattr(-, root, root)
