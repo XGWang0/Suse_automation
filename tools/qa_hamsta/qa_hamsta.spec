@@ -32,6 +32,7 @@
 %if 0%{?suse_version} >= 1310
 %define with_systemd 1
 %define _unitdir /usr/lib/systemd/system
+%define _custom_unitdir /etc/systemd/system
 %endif
 
 Name:           qa_hamsta
@@ -281,6 +282,8 @@ ln -s %{destdir}/xml_files %{buildroot}%{xml_link}
 install -m 755 -d %{buildroot}%{destdir}
 install -m 755 -d %{buildroot}%{destdir}/frontend
 mv -t %{buildroot}%{destdir}/frontend/ %{buildroot}%{webdir}/utils
+install -m 755 -d %{buildroot}%{_custom_unitdir}/apache2.service.d
+cp %{buildroot}%{destdir}/frontend/utils/apache2-service.conf %{buildroot}%{_custom_unitdir}/apache2.service.d/
 cp -a -r --target-directory=%{buildroot}%{destdir} Slave command_frontend.pl feed_hamsta.pl master testscript xml_files db hamsta-multicast-forward.pl Hamsta.pm
 install -d %{buildroot}%{webdir}/profiles
 install -m 755 -d %{buildroot}%{confdir}
@@ -400,7 +403,9 @@ fi
 %attr(-,wwwrun,www) %{webdir}/profiles
 %config(noreplace) %{webdir}/config.ini
 %dir %{destdir}
+%{destdir}/frontend/utils/*
 %attr(755, root, root) %{destdir}/frontend/utils/*.pl
+%{_custom_unitdir}/apache2.service.d/apache2-service.conf
 
 %files multicast-forward
 %defattr(-, root, root)
