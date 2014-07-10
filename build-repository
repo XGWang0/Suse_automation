@@ -1,9 +1,18 @@
 #!/bin/bash
 
+#
+# Usage: $0 [individual_build_results_logfile]
+#
+
 export LANG=C
 
 this="`which "$0"`"
 cd "`dirname "$this"`"
+
+if [ ! -z $1 ] ; then
+       	CUSTOMLOG="$1"
+	rm -f $CUSTOMLOG
+fi
 
 source shared.sh
 
@@ -102,7 +111,7 @@ for product in $PRODUCTS ; do
 					echo "INFO: Building $pack for $arch..."
 					# using custom build root in order to keep it for each build
 					OSC_BUILD_ROOT="/var/tmp/build-root/$product-$arch" REPOSITORY=$product ARCH=$arch VERSION="${PROJECT_VERSION}_${timestamp}_$id" DESTDIR="$REPO/$product" ./build-osc "$path" #2>&1 | tee "$REPO/$product/LOGS/$pack.$arch"
-					[ $? -eq 0 ] || res=$(( $res+1 ));
+					[ $? -eq 0 ] || res=$(( $res+1 ))
 				done
 	
 				if [ $res -eq 0 ] 
@@ -110,14 +119,18 @@ for product in $PRODUCTS ; do
 					# write metadata (commit id) if build was sucessful
 					echo "$id" > "$REPO/$product/METADATA/$pack"
 					echo "PASS: $pack build successful"
+					buildres='ok'
 				else
 					# otherwise increase failed build counter
 					result=$(( $result+1 ))
 					echo "FAIL: $pack build failed"
+					buildres='fail'
 				fi
 			else
 				echo "INFO: $pack does not need to be rebuilt..."
+				buildres='skip'
 			fi
+			[ -z $CUSTOMLOG ] || echo "$product:$pack:$buildres" >> "$CUSTOMLOG"
 	        else
 	                echo "INFO: $path is not a package directory... SKIPED"
 	        fi

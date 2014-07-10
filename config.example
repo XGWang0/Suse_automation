@@ -13,7 +13,7 @@
 # rm $tmpfile
 # general format is NAME-VERSION[-SPx][-Update]
 # example SLE-12 SLE-11-SP2 openSUSE-13.1 openSUSE-Factory
-PRODUCTS="SLE-11-SP3"
+PRODUCTS="SLE-11-SP3 SLE-12 openSUSE-13.1 openSUSE-Factory"
 
 # Space separated list of architectures
 ARCHS="`arch`"
