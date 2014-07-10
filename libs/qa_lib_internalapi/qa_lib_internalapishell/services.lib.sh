@@ -25,14 +25,9 @@ serviceFunction()
         return $FAILED
     fi
 
-    if [ -f "/etc/init.d/$SERVICE" ]; then
-        if /etc/init.d/$SERVICE "$ACTION"; then
-            return $PASSED
-        else
-            return $FAILED
-        fi
+    if service $SERVICE $ACTION; then
+        return $PASSED
     else
-        echo "Service \"$SERVICE\" not found. Unable to $ACTION the service."
         return $FAILED
     fi
 }
