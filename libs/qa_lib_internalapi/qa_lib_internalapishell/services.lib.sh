@@ -6,16 +6,8 @@ serviceFunction()
     SERVICE=$1
     ACTION=$2
 
-    if [ -z "$SERVICE" ]; then
-        if [ "$ACTION" = "status" ]; then
-            echo "Usage: checkService <serviceName>"
-        else
-            echo "Usage: ${ACTION}Service <serviceName>"
-        fi
-        return $FAILED
-    fi
-
-    if [ -z "$ACTION" ]; then
+    if [ -z "$SERVICE" -o -z "$ACTION"]; then
+        echo "ERROR: serviceFunction: Expect 2 parameters." 1>&2;
         return $FAILED
     fi
 
