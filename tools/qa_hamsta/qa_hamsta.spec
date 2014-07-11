@@ -271,6 +271,8 @@ ln -s %{_sysconfdir}/init.d/hamsta-multicast-forward %{buildroot}%{_sbindir}/rch
 install -d %{buildroot}/%{_unitdir}
 install -m 644 hamsta.service %{buildroot}/%{_unitdir}/
 install -m 644 hamsta-master.service %{buildroot}/%{_unitdir}/
+install -m 755 -d %{buildroot}%{_custom_unitdir}/apache2.service.d
+install -m 644 apache2-service.conf %{buildroot}%{_custom_unitdir}/apache2.service.d/
 %endif
 install -d %{buildroot}%{_bindir}
 cp -a Slave/hamsta.sh %{buildroot}%{_bindir}/
@@ -282,8 +284,6 @@ ln -s %{destdir}/xml_files %{buildroot}%{xml_link}
 install -m 755 -d %{buildroot}%{destdir}
 install -m 755 -d %{buildroot}%{destdir}/frontend
 mv -t %{buildroot}%{destdir}/frontend/ %{buildroot}%{webdir}/utils
-install -m 755 -d %{buildroot}%{_custom_unitdir}/apache2.service.d
-cp %{buildroot}%{destdir}/frontend/utils/apache2-service.conf %{buildroot}%{_custom_unitdir}/apache2.service.d/
 cp -a -r --target-directory=%{buildroot}%{destdir} Slave command_frontend.pl feed_hamsta.pl master testscript xml_files db hamsta-multicast-forward.pl Hamsta.pm
 install -d %{buildroot}%{webdir}/profiles
 install -m 755 -d %{buildroot}%{confdir}
@@ -403,7 +403,6 @@ fi
 %attr(-,wwwrun,www) %{webdir}/profiles
 %config(noreplace) %{webdir}/config.ini
 %dir %{destdir}
-%{destdir}/frontend/utils/*
 %attr(755, root, root) %{destdir}/frontend/utils/*.pl
 %{_custom_unitdir}/apache2.service.d/apache2-service.conf
 
