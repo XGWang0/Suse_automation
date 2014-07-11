@@ -6,7 +6,7 @@ export TESTS_DIR=./testsuites/
 export PYBOT_BIN=pybot
 export SUITE_NAME="QA_Automation_Tools"
 export HAMSTA_TEST_HOST=localhost
-export CUSTOM_ROBOT_CONFIG=config.robot
+export CUSTOM_CONFIG=config.robot
 
 # Go to working directory. All paths used in the script are relative
 # to that directory.
@@ -34,7 +34,7 @@ function help () {
 # Execute the testsuite
 function run () {
     echo "Results will be saved to ${RESULTS_DIR}."
-    PYBOT_VARIABLES="--variable CONFIG_FILE:$CUSTOM_ROBOT_CONFIG"
+    PYBOT_VARIABLES="--variable CONFIG_FILE:$CUSTOM_CONFIG"
 
     if [ ! -d ${RESULTS_DIR} ]; then
         mkdir ${RESULTS_DIR};
