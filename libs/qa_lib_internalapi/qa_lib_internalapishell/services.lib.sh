@@ -6,14 +6,17 @@ serviceFunction()
     SERVICE=$1
     ACTION=$2
 
-    if [ -z "$SERVICE" -o -z "$ACTION" ]; then
+    if [ -z "$SERVICE" ]; then
+        if [ "$ACTION" = "status" ]; then
+            echo "Usage: checkService <serviceName>"
+        else
+            echo "Usage: ${ACTION}Service <serviceName>"
+        fi
         return $FAILED
     fi
 
-    if [ "$ACTION" = "status" ]; then
-        echo "Usage: checkService <serviceName>"
-    else
-        echo "Usage: ${ACTION}Service <serviceName>"
+    if [ -z "$ACTION" ]; then
+        return $FAILED
     fi
 
     SCRIPT_UID=`id -u`
