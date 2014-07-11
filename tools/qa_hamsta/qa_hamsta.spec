@@ -32,6 +32,7 @@
 %if 0%{?suse_version} >= 1310
 %define with_systemd 1
 %define _unitdir /usr/lib/systemd/system
+%define _custom_unitdir /etc/systemd/system
 %endif
 
 Name:           qa_hamsta
@@ -270,6 +271,8 @@ ln -s %{_sysconfdir}/init.d/hamsta-multicast-forward %{buildroot}%{_sbindir}/rch
 install -d %{buildroot}/%{_unitdir}
 install -m 644 hamsta.service %{buildroot}/%{_unitdir}/
 install -m 644 hamsta-master.service %{buildroot}/%{_unitdir}/
+install -m 755 -d %{buildroot}%{_custom_unitdir}/apache2.service.d
+install -m 644 apache2-service.conf %{buildroot}%{_custom_unitdir}/apache2.service.d/
 %endif
 install -d %{buildroot}%{_bindir}
 cp -a Slave/hamsta.sh %{buildroot}%{_bindir}/
@@ -401,6 +404,7 @@ fi
 %config(noreplace) %{webdir}/config.ini
 %dir %{destdir}
 %attr(755, root, root) %{destdir}/frontend/utils/*.pl
+%{_custom_unitdir}/apache2.service.d/apache2-service.conf
 
 %files multicast-forward
 %defattr(-, root, root)
