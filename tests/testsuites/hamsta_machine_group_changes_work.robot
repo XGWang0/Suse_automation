@@ -30,7 +30,7 @@ It Should be Possible to Delete Existing Group
     [Documentation]         Group Deletion
     Click Link              Groups
     Table Should Contain    css=table.list  ${GROUP_NAME}
-    Click Image             delete ${GROUP_NAME}    
+    Click Image             delete ${GROUP_NAME}
     Page Should Contain     Delete Group ${GROUP_NAME}
     Page Should Contain     ${GROUP_DESC}
     Click Link              Confirm delete
