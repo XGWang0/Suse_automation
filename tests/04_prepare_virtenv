@@ -1,0 +1,3 @@
+#!/bin/bash
+
+virttest/test_prepare.py -n $NETWORK http://localhost:$REPOPORT/$REPOPATH

@@ -21,6 +21,9 @@ ARCHS="`arch`"
 # where to build the repo
 REPO="/tmp/repo"
 
+# where to store build-repo log
+BUILDLOG="/tmp/repo/build.log"
+
 # on which port to start http server that will provide repositories for testing
 PORT=8888
 

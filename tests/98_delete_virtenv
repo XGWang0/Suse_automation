@@ -1,0 +1,3 @@
+#!/bin/bash
+
+virttest/test_cleanup.py -n $NETWORK 

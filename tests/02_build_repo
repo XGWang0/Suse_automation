@@ -1,0 +1,20 @@
+#!/bin/bash
+
+CONFIG="/tmp/autotest.conf.$NETWORK"
+
+# Create configuration for building
+cat > $CONFIG << EOF
+REPO="$REPOROOT/$REPOPATH"
+PRODUCTS="$PRODUCTS"
+ARCHS="`arch`"
+PORT=$REPOPORT
+BUILDLOG="/tmp/autotest.buildlog.$NETWORK"
+EOF
+
+MY_DIR=`dirname "$0"`
+
+cd "$MY_DIR"
+
+../build-repository $CONFIG
+
+
