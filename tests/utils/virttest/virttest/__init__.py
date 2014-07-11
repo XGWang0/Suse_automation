@@ -241,6 +241,26 @@ class TestBox:
         
         self.hosts[host.name()] = host
         self.save()
+    
+    def export_robot_configuration(self, file):
+        """
+        """
+        data = {}
+        data['vms'] = []
+        for h in self.hosts.values():
+            d = {}
+            d['name'] = h.name()
+            d['fqdn'] = h.fqdn()
+            d['ip'] = h.ip()
+            d['mac'] = h.mac()
+            
+            if h.name() in ('server', 'controller', 'hamsta', 'qadb', 'qadbreport'):
+                data[h.name()] = d
+            else:
+                data['vms'].append(d) 
+        data['testuser'] = self.__templdata['testuser']
+        
+        _process_template('templates/robot/testbox.robot', data, file)
         
     def __build_image(self, os_ver, variant):
         code = "{}-{}".format(os_ver, variant)
@@ -427,6 +447,12 @@ def _prepare_template_data(network=None, sut_count=64, custom_product_repositori
     data['proxy'] = {}
     data['repositories'] = {}
     data['networks'] = []
+    
+    data['testuser'] = {}
+    data['testuser']['login']    = config['testuser']['login'] 
+    data['testuser']['name']     = config['testuser']['name']
+    data['testuser']['password'] = config['testuser']['password']
+    
     data['dns'] = {}
     data['dns']['serial'] = datetime.date.today().strftime('%Y%m%d00')
     

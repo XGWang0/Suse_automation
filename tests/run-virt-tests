@@ -2,14 +2,9 @@
 
 # Usage: $0 [test_network_number]
 
-NETWORK=1
-
 [ -z $1 ] && NETWORK=$1
 
-REPOROOT=/tmp/repo
-REPOPATH=test/network_$NETWORK
-PRODUCTS="SLE-11-SP3 SLE-12"
-REPOPORT=8888
+# otherwise network is unset and will be set in config
 
 01_check_test_added
 

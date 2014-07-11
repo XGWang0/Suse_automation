@@ -27,11 +27,11 @@ Where:
 network_id = 1
 reinitialize = False   
 
-opts,args = getopt.gnu_getopt(sys.argv[1:], 'nrh', ['network', 'reinitialize', 'help'])
+opts,args = getopt.gnu_getopt(sys.argv[1:], 'n:rh', ['network', 'reinitialize', 'help'])
 
 for o,a in opts:
     if o == '-n':
-        network_id = a
+        network_id = int(a)
     elif o == '-r':
         reinitialize = True
     elif o == '-h':

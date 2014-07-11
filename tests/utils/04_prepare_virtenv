@@ -1,3 +1,11 @@
 #!/bin/bash
 
-virttest/test_prepare.py -n $NETWORK http://localhost:$REPOPORT/$REPOPATH
+MY_DIR="`dirname $0`"
+cd $MY_DIR
+
+source config
+
+cd virttest
+./test_prepare.py -n $NETWORK http://localhost:$REPOPORT/$REPOPATH 
+./prepare_robot_config.py -n $NETWORK "$MY_DIR/../testsuites/config-${NETWORK}.robot"
+

@@ -1,3 +1,5 @@
 #!/bin/bash
 
-virttest/test_cleanup.py -n $NETWORK 
+source "`dirname $0`/config"
+cd "`dirname $0`/virttest"
+./test_cleanup.py -n $NETWORK 

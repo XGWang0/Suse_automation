@@ -1,4 +1,5 @@
 #!/bin/bash
 
-#rm -fr $REPOROOT/$REPOPATH
+source "`dirname $0`/config"
+rm -fr $REPOROOT/$REPOPATH
 
