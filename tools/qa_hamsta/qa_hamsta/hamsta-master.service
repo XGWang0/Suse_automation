@@ -6,7 +6,7 @@ Requires=mysql.service
 
 [Service]
 Type=forking
-ExecStart=/usr/bin/screen -l -dmS hamsta-master /usr/share/hamsta/master/master.pl
+ExecStart=/usr/bin/screen -S hamsta-master -l -d -m /bin/bash -c 'cd /usr/share/hamsta/master; ./master.pl'
 ExecStop=/usr/bin/screen -S hamsta-master -X quit
 Restart=always
 RestartSec=30
