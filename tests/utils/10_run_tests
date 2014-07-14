@@ -3,4 +3,4 @@
 source "`dirname $0`/config"
 
 cd "`dirname $0`/.."
-./run-test -c config-${NETWORK}.robot run
+./run-tests -c config-${NETWORK}.robot run
