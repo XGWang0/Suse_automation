@@ -22,7 +22,7 @@ Where:
 
 network_id = 1
 
-opts,args = getopt.gnu_getopt(sys.argv[1:], 'nh', ['network', 'help'])
+opts,args = getopt.gnu_getopt(sys.argv[1:], 'n:h', ['network', 'help'])
 
 for o,a in opts:
     if o == '-n':

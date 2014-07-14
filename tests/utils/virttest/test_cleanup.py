@@ -17,18 +17,18 @@ Where:
 
 network_id = 1     
 
-opts,args = getopt.gnu_getopt(sys.argv[1:], 'nh', ['network', 'help'])
+opts,args = getopt.gnu_getopt(sys.argv[1:], 'n:h', ['network', 'help'])
 
 for o,a in opts:
     if o == '-n':
         network_id = a
-    if o == '-h':
+    elif o == '-h':
         help_func()
     else:
         raise("Unknown argument {}".format(o))
 
-if len(args) > 0:
-    sys.stderr.write("Too many arguments: {}\n".format(args.len))
+if len(args) > 1:
+    sys.stderr.write("Too many arguments: {}\n".format(len(args)))
     sys.exit(1)
 
 testbox = virttest.TestBox.load(network_id)
