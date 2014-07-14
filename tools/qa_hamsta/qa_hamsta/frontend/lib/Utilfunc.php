@@ -578,7 +578,7 @@ function print_reinstall_unable_machines ($page_name, $machines) {
 		if ($machines[$type]) {
 			print '<div class="text-medium">';
 			switch ($type) {
-			case 'without_perms':
+			case 'without_permissions':
 				print '<p>The following machines do not have Send job '
 						. 'or Reinstall permission. To enable these '
 						. 'go to Machine Edit page and change the permissions.</p>';
@@ -612,29 +612,29 @@ function print_reinstall_unable_machines ($page_name, $machines) {
  * contained copy-pasted code.
  */
 function check_machines_before_reinstall ($machines, $page_name) {
-	$problematic_machines = array (
-			'without_perms' => array (),
+	$restricted_machines = array (
+			'without_permissions' => array (),
 			'vg' => array (),
 			'vh_with_children' => array (),
 			);
 
 	foreach ($machines as $machine) {
 		if (! $machine->has_permissions (array('job', 'install'))) {
-			$problematic_machines['without_perms'][] = $machine->get_hostname();
+			$restricted_machines['without_permissions'][] = $machine->get_hostname();
 		}
 
 		if ($machine->is_virtual_guest ()) {
-			$problematic_machines['vg'][] = $machine->get_hostname();
+			$restricted_machines['vg'][] = $machine->get_hostname();
 		}
 
 		if ($machine->get_children ()) {
-			$problematic_machines['vh_with_children'][] = $machine->get_hostname();
+			$restricted_machines['vh_with_children'][] = $machine->get_hostname();
 		}
 	}
 
-	if ($problematic_machines['without_perms'] or $problematic_machines['vg']
-		or $problematic_machines['vh_with_children']) {
-			print_reinstall_unable_machines ($page_name, $problematic_machines);
+	if ($restricted_machines['without_permissions'] or $restricted_machines['vg']
+		or $restricted_machines['vh_with_children']) {
+			print_reinstall_unable_machines ($page_name, $restricted_machines);
 			return false;
 	}
 	return true;
