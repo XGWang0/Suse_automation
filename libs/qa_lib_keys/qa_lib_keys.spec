@@ -45,6 +45,12 @@ Provides:       qa_keys
 Obsoletes:      qa_keys
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
+Requires(post):   yast2
+Requires(preun):  yast2
+Requires(post):   yast2-firewall
+Requires(preun):  yast2-firewall
+Requires(post):   yast2-ncurses
+Requires(preun):  yast2-ncurses
 
 %description
 Access package - install on test systems only
