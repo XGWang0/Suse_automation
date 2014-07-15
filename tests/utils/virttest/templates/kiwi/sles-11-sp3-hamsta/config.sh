@@ -57,7 +57,7 @@ VALUES
 );
 
 INSERT INTO user_in_role (user_id, role_id) 
-  SELECT `user`.user_id, role_id FROM `user`, user_role 
+  SELECT \`user\`.user_id, role_id FROM \`user\`, user_role 
   WHERE login = '{{ testuser.login }}' AND role = 'user';
 EOF
 
