@@ -7,6 +7,6 @@ MY_DIR=`pwd`
 source config
 
 cd virttest
-./test_prepare.py -n $NETWORK http://localhost:$REPOPORT/$REPOPATH 
-./generate_robot_config.py -n $NETWORK "$MY_DIR/../testsuites/config-${NETWORK}.robot"
+sudo ./test_prepare.py -n $NETWORK http://localhost:$REPOPORT/$REPOPATH 
+sudo ./generate_robot_config.py -n $NETWORK "$MY_DIR/../testsuites/config-${NETWORK}.robot"
 

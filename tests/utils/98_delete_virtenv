@@ -2,7 +2,6 @@
 
 source "`dirname $0`/config"
 cd "`dirname $0`/virttest"
-./test_cleanup.py -n $NETWORK 
+sudo ./test_cleanup.py -n $NETWORK 
 
 
-# TODO delete images, etc.

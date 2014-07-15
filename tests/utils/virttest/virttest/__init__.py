@@ -47,20 +47,20 @@ class Host:
         _process_template(domxmltemplpath, templdata, self._domxmlfile)
         
         # defineVM in libvirt
-        subprocess.check_output(['sudo', 'virsh', 'define', self._domxmlfile])
+        subprocess.check_output(['virsh', 'define', self._domxmlfile])
          
            
     def running(self):
         self.__check_defined()
-        return subprocess.call(['sudo', 'virsh', 'dominfo', self.fqdn(), '|', 'grep', '-q', 'State:\s*running'], shell=True) == 0
+        return subprocess.call(['virsh', 'dominfo', self.fqdn(), '|', 'grep', '-q', 'State:\s*running'], shell=True) == 0
          
      
     def defined(self):
-        return subprocess.call(['sudo', 'virsh', 'dominfo', self.fqdn()]) == 0
+        return subprocess.call(['virsh', 'dominfo', self.fqdn()]) == 0
      
     def start(self):
         self.__check_defined()
-        subprocess.check_output(['sudo', 'virsh', 'start', self.fqdn()])
+        subprocess.check_output(['virsh', 'start', self.fqdn()])
 
      
     def stop(self, force = False):
@@ -69,7 +69,7 @@ class Host:
             cmd = 'destroy'
         else:
             cmd = 'shutdown'
-        subprocess.call(['sudo', 'virsh', cmd, self.fqdn()])
+        subprocess.call(['virsh', cmd, self.fqdn()])
      
     def restart(self, force = False):
         self.__check_defined()
@@ -77,7 +77,7 @@ class Host:
             cmd = 'reset'
         else:
             cmd = 'reboot'
-        subprocess.check_output(['sudo', 'virsh', cmd, self.fqdn()])
+        subprocess.check_output(['virsh', cmd, self.fqdn()])
      
     def name(self):
         return self._name
@@ -99,7 +99,7 @@ class Host:
     def undefine(self):
         if self.defined():
             self.stop(force = True)
-            subprocess.check_output(['sudo', 'virsh', 'undefine', self.fqdn()])
+            subprocess.check_output(['virsh', 'undefine', self.fqdn()])
         shutil.rmtree(self.path(), ignore_errors=True)
      
     def path(self):
@@ -287,13 +287,13 @@ class TestBox:
             img['root'] = os.path.join(self.images_path, code, 'root')
             shutil.rmtree(img['root'], ignore_errors=True) # Root must not exist, otherwise kiwi will not build
             print("running kiwi --prepare for {}".format(code))
-            subprocess.check_output(['sudo', '/usr/sbin/kiwi', '--yes', '--prepare', img['kiwi'], '--root', img['root'], '--logfile={}'.format(os.path.join(self.images_path, code, 'kiwi-prepare.log'))])
+            subprocess.check_output(['/usr/sbin/kiwi', '--yes', '--prepare', img['kiwi'], '--root', img['root'], '--logfile={}'.format(os.path.join(self.images_path, code, 'kiwi-prepare.log'))])
             
             # create the image
             img['images'] = os.path.join(self.images_path, code, 'images')
             shutil.rmtree(img['images'], ignore_errors=True)
             print("running kiwi --create for {}".format(code))
-            subprocess.check_output(['sudo', '/usr/sbin/kiwi', '--yes', '--create', img['root'], '-d', img['images'], '--logfile={}'.format(os.path.join(self.images_path, code, 'kiwi-create.log'))])
+            subprocess.check_output(['/usr/sbin/kiwi', '--yes', '--create', img['root'], '-d', img['images'], '--logfile={}'.format(os.path.join(self.images_path, code, 'kiwi-create.log'))])
             
             # path to raw image
             img['raw'] = glob.glob(os.path.join(img['images'], '*.raw'))[0]
