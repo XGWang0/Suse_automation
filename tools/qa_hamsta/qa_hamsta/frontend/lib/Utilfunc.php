@@ -566,4 +566,9 @@ function get_xml_file ($path) {
 	return FALSE;
 }
 
+/* This function is logical negation of the empty() function. */
+function filter ($var) {
+	return ! empty ($var);
+} 
+
 ?>

@@ -31,10 +31,6 @@ if (!defined('HAMSTA_FRONTEND')) {
 	return require("index.php");
 }
 
-function filter($var) {
-	return ! empty ($var);
-} 
-
 function map_regcode($e1, $e2)
 {
     return $e1.'+'.$e2;
