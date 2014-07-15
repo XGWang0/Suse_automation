@@ -56,9 +56,9 @@ VALUES
  SHA1('{{ testuser.password }}')
 );
 
-INSERT INTO user_in_role
-  SELECT user_id, role_id FROM `user`, user_role
-  WHERE login = 'testuser' and `role` = 'user';
+INSERT INTO user_in_role (user_id, role_id) 
+  SELECT `user`.user_id, role_id FROM `user`, user_role 
+  WHERE login = '{{ testuser.login }}' AND role = 'user';
 EOF
 
 # enter QA config values into hamsta network configuration
