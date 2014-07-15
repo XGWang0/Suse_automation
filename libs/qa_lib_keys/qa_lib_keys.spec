@@ -110,15 +110,13 @@ then
 else
 	echo "StrictHostKeyChecking no" >> $FILE
 fi
-# shut down firewall
-if [ -x /etc/init.d/SuSEfirewall2_init ]
-then
-    /etc/init.d/SuSEfirewall2_init stop || true
-    /etc/init.d/SuSEfirewall2_setup stop || true
-    chkconfig -d SuSEfirewall2_setup || true
-    chkconfig -d SuSEfirewall2_init || true
-fi
-echo "Your system has been hacked successfuly."
+# Add an exception for sshd to SUSE firewall. No service restart
+# needed.
+%if 0%{?suse_version} >= 1110
+yast2 firewall services add service=service:sshd zone=EXT
+%else
+yast2 firewall services add service=ssh zone=EXT
+%endif
 
 %preun -p /sbin/ldconfig
 

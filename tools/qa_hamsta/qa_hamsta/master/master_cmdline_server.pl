@@ -36,7 +36,12 @@ use File::Path;
 use XML::Dumper;
 use Proc::Fork;
 
-BEGIN { push @INC, '.', '/usr/share/hamsta/master', '/usr/share/qa/lib'; }
+use constant MASTER_DIR => '/usr/share/hamsta/master';
+BEGIN { 
+    chdir MASTER_DIR;
+    push @INC, '.', MASTER_DIR, '/usr/share/qa/lib';
+}
+
 use log;
 require sql;
 use functions; 	
