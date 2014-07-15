@@ -404,7 +404,9 @@ fi
 %config(noreplace) %{webdir}/config.ini
 %dir %{destdir}
 %attr(755, root, root) %{destdir}/frontend/utils/*.pl
+%if %{with_systemd}
 %{_custom_unitdir}/apache2.service.d/apache2-service.conf
+%endif
 
 %files multicast-forward
 %defattr(-, root, root)
