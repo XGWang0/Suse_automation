@@ -39,6 +39,27 @@ PASS='susetesting'
 cd /usr/share/hamsta/db
 DBPASSISSET=yes DBPASS="$PASS" sh ./create_db.sh
 
+# add testsuser
+mysql -uroot -p$PASS hamsta_db << EOF
+INSERT INTO user
+(extern_id,
+ login,
+ name,
+ email,
+ password
+)
+VALUES
+('https://www.suse.com/openid/user/testuser',
+ '{{ testuser.login }}',
+ '{{ testuser.name }}',
+ 'testuser@testpage.org',
+ SHA1('{{ testuser.password }}')
+);
+
+INSERT INTO user_in_role
+  SELECT user_id, role_id FROM `user`, user_role
+  WHERE login = 'testuser' and `role` = 'user';
+EOF
 
 # enter QA config values into hamsta network configuration
 
@@ -65,8 +86,6 @@ echo -n "Starting repoindexing scripts"
 mkdir -p /srv/www/htdocs/autoinst
 ln -s . /srv/www/htdocs/autoinst/autoinst
 chmod 777 /srv/www/htdocs/autoinst
-
-
 
 
 baseSetupUserPermissions
