@@ -8,6 +8,7 @@ import shutil
 import pickle
 import subprocess
 import glob
+from time import sleep
 
 import configparser
 
@@ -181,15 +182,18 @@ class TestBox:
         os.makedirs(self.images_path, exist_ok = True)
 
     def __init_infrastructure(self):
-        self.add_host('sles-11-sp3', 'server')
-        self.hosts['server'].start()
+        self.add_host('sles-11-sp3', 'server', start=True)
 
-    def restart(self):
+    def restart(self, wait_for_infrastructure_load_sec=30):
         """Removes all host from the network - will make the network completely clean for next tests. But it will not remove built images to speed up tests
         """
         self.__check_closed()
         self.__delete_hosts()
         self.__init_infrastructure()
+        
+        # Wait for infrastructure to start before we allow to start other machines
+        sleep(wait_for_infrastructure_load_sec)
+        
         self.save()
     
     def close(self):
@@ -212,7 +216,7 @@ class TestBox:
         if self.__closed:
             raise ValueError('Operation on closed TestBox')
     
-    def add_host(self, os_ver, variant):
+    def add_host(self, os_ver, variant, start=True):
         """ os_ver = sles-11-sp3
         variant = sut
         """
@@ -241,6 +245,9 @@ class TestBox:
         
         self.hosts[host.name()] = host
         self.save()
+        
+        if start:
+            host.start()
     
     def export_robot_configuration(self, file):
         """
