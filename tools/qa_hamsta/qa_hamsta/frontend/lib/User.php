@@ -1075,6 +1075,9 @@ $perm_send_job=array('owner'=>'machine_send_job','other'=>'machine_send_job_rese
 function permission_or_redirect($args=array())
 {
 	$perms=hash_get($args,'perm',array());
+	if (! is_array ($perms)) {
+		$perms = array ($perms);
+	}
 	if( !call_user_func_array('capable',$perms) )
 		redirect($args);
 }
