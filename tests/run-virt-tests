@@ -6,11 +6,11 @@
 
 # otherwise network is unset and will be set in config
 
-01_check_test_added
+./01_check_test_added
 
-02_build_repo
+./02_build_repo
 
-03_check_build
+./03_check_build
 
 if [ $? -ne 0 ]
 then
@@ -18,12 +18,19 @@ then
 	exit 1
 fi
 
+./04_prepare_virtenv
 
-04_prepare_virtenv
+./05_check_image_build
 
-10_run_tests
+if [ $? -ne 0 ]
+then
+	echo "ERROR: Build of kiwi images failed." >&1
+	exit 1
+fi
 
-98_delete_virtenv
+./10_run_tests
 
-99_delete_repo
+./98_delete_virtenv
+
+./99_delete_repo
 

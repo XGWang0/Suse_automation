@@ -1,0 +1,7 @@
+#!/bin/bash
+
+source "`dirname $0`/config"
+
+echo "Validating image build results...not implemented yet"
+
+# this includes applying of patches to databases!!! (qadb, hamsta)
