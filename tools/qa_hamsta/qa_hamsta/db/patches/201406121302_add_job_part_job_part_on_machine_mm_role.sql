@@ -12,12 +12,10 @@ CREATE TABLE IF NOT EXISTS `job_part_on_machine` (
     `xml_file` varchar(255) not null,
     `start` timestamp,
     `stop` timestamp,
-    `config_id` int  not null,
     `does_reboot` tinyint not null default 0,
     CONSTRAINT `fk_job_part_on_machine_job_part` FOREIGN KEY (`job_part_id`) REFERENCES `job_part` (`job_part_id`) ON DELETE CASCADE,
     CONSTRAINT `fk_job_part_on_machine_job_status` FOREIGN KEY (`job_status_id`) REFERENCES `job_status` (`job_status_id`) ON DELETE CASCADE,
     CONSTRAINT `fk_job_part_on_machine_job_on_machine` FOREIGN KEY (`job_on_machine_id`) REFERENCES `job_on_machine` (`job_on_machine_id`) ON DELETE CASCADE,
-    CONSTRAINT `fk_job_part_on_machine_config` FOREIGN KEY (`config_id`) REFERENCES `config` (`config_id`) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
     
 CREATE TABLE IF NOT EXISTS `mm_role` (
@@ -32,8 +30,6 @@ INSERT INTO `mm_role`(`mm_role`) VALUES ('default');
 ALTER TABLE `job_on_machine` 
     ADD COLUMN `mm_role_id` INT NOT NULL DEFAULT '1',
     ADD CONSTRAINT `fk_job_on_machine_mm_role` FOREIGN KEY (`mm_role_id`) REFERENCES `mm_role` (`mm_role_id`) ON DELETE CASCADE,
-    DROP FOREIGN KEY `fk_job_on_machine_config_id_config_config_id`,
-    DROP COLUMN `config_id`,
     DROP COLUMN `start`,
     DROP COLUMN `stop`,
     DROP COLUMN `last_log`,
