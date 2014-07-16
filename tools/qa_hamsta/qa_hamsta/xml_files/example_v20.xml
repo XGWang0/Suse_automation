@@ -25,9 +25,9 @@
         <!-- Add a repo to your system -->
         <!-- <repository>http://fallback.suse.cz/install/SLP/SLE-11-SP3-SDK-LATEST/<repository> -->
 
-        <!-- Require a few RPMs, but do not upgrade if they are already installed (default: upgrade)  -->
-        <rpm upgrade="0">awk</rpm>
-        <rpm upgrade="0">coreutils</rpm>
+        <!-- Require a few RPMs, but do not update if they are already installed (default: update)  -->
+        <rpm update="0">awk</rpm>
+        <rpm update="0">coreutils</rpm>
     </config>
 
     <!-- Defining job parts -->
@@ -46,7 +46,7 @@
             <!-- only some elements allowed here -->
             <config>
 
-                <!-- RPM to install / upgrade -->
+                <!-- RPM to install / update -->
                 <rpm>apache2</rpm>
 
                 <!-- Add a repo to your system -->

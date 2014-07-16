@@ -141,14 +141,9 @@
         <element name="rpm">
           <optional>
             <!-- nonzero to upgrade if installed -->
-            <choice>
-              <attribute name="upgrade">
-                <data type="integer"/>
-              </attribute>
-              <attribute name="update">
-                <data type="integer"/>
-              </attribute>
-            </choice>
+            <attribute name="update">
+              <data type="integer"/>
+            </attribute>
           </optional>
           <!-- basename of the RPM -->
           <text/>

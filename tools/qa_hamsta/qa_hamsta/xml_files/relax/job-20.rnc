@@ -83,7 +83,7 @@ config_common = (
   # RPMs to install/upgrade
   element rpm {
     # nonzero to upgrade if installed
-    ( attribute upgrade { xsd:integer } | attribute update { xsd:integer } )?,
+    attribute update { xsd:integer }?,
     # basename of the RPM
     text
   }*&
