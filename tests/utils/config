@@ -1,0 +1,10 @@
+#!/bin/bash
+
+[ -z $NETWORK ] && NETWORK=1
+
+
+REPOROOT=/autotest/repository
+REPOPATH=test/network_$NETWORK
+PRODUCTS="SLE-11-SP3-Update SLE-12 SLE-11-SP3"
+REPOPORT=8888
+
