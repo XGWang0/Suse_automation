@@ -10,7 +10,7 @@ REPO="$REPOROOT/$REPOPATH"
 PRODUCTS="$PRODUCTS"
 ARCHS="`arch`"
 PORT=$REPOPORT
-BUILDLOG="/tmp/autotest.buildlog.$NETWORK"
+BUILDLOG="/$REPOROOT/$REPOPATH/autotest.buildlog.$NETWORK"
 EOF
 
 MY_DIR=`dirname "$0"`
