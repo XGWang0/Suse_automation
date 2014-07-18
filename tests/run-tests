@@ -2,7 +2,6 @@
 
 # Initialize some default variables
 RESULTS_DIR=results
-TESTS_DIR=./testsuites/
 PYBOT_BIN=pybot
 SUITE_NAME="QA_Automation_Tools"
 CUSTOM_CONFIG=config.robot
@@ -24,24 +23,24 @@ function help () {
     echo -e "OPTIONS";
     echo -e "\t-c FILE\tCustom Robot Framework configuration, defaults to config.robot";
     echo -e "\t-m HOST\tHamsta master hostname, defaults to localhost";
-    echo -e "\t-r DIR\tdirectory to store results to (run action), defaults to '${PWD}/results'";
-    echo -e "\t-t DIR\tdirectory containing tests (run action), defaults to '${TESTS_DIR}'";
+    echo -e "\t-r DIR\tdirectory to store results to, defaults to '${PWD}/results'";
     echo -e "\t-a PARAMS\tparameters to pass directly to pybot, you have to quote it: -a '-e tag'";
     echo -e "\nContact us on <qa-automation@suse.de>.";
     exit $1;
 }
 
 # Process command line arguments
-while getopts "c:hm:r:t:a:" opt; do
+while getopts "c:hm:r:a:" opt; do
     case $opt in
         'c') export CUSTOM_CONFIG=${OPTARG};;
         'm') export HAMSTA_TEST_HOST=${OPTARG};;
         'r') export RESULTS_DIR=${OPTARG};;
-        't') export TESTS_DIR=${OPTARG};;
 		'a') export ROBOT_ARGS=${OPTARG};;
         'h') help 0;;
+		'\?') help 0;;
     esac
 done
+shift $((OPTIND-1))
 
 export ROBOT_OPTIONS="${ROBOT_OPTIONS} --name ${SUITE_NAME} --variable CONFIG_FILE:$CUSTOM_CONFIG --outputdir ${RESULTS_DIR} ${ROBOT_ARGS}"
 
@@ -55,6 +54,15 @@ if [ -n "${HAMSTA_TEST_HOST}" ]; then
     ROBOT_OPTIONS="${ROBOT_OPTIONS} --variable HAMSTA_HOST:$HAMSTA_TEST_HOST"
 fi
 
+# Check if there are some other parameters and use it as test
+# directories or file names
+if [ $# -gt 0 ]; then
+	export TESTS_DIR=$@
+else
+	export TESTS_DIR=./testsuites/
+fi
+
 ROBOT_CMD="$PYBOT_BIN ${TESTS_DIR}"
 echo "Robot options: $ROBOT_OPTIONS"
+echo "Running tests in ${TESTS_DIR}"
 $ROBOT_CMD
