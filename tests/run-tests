@@ -56,5 +56,5 @@ if [ -n "${HAMSTA_TEST_HOST}" ]; then
 fi
 
 ROBOT_CMD="$PYBOT_BIN ${TESTS_DIR}"
-echo $ROBOT_OPTIONS
+echo "Robot options: $ROBOT_OPTIONS"
 $ROBOT_CMD
