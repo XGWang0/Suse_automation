@@ -2,9 +2,14 @@
 
 [ -z $NETWORK ] && NETWORK=1
 
+# REPOROOT/REPOPATH is local path where to create repository
+# http://<hostname:REPOPORT/REPOPATH is url on which the repository is reachable.
+# Change to reflect real setup
 
 REPOROOT=/autotest/repository
 REPOPATH=test/network_$NETWORK
-PRODUCTS="SLE-11-SP3-Update SLE-12 SLE-11-SP3"
 REPOPORT=8888
+
+PRODUCTS="SLE-11-SP3-Update SLE-12 SLE-11-SP3"
+
 
