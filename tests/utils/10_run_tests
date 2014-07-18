@@ -3,4 +3,10 @@
 source /etc/qavirttest/utils.config
 
 cd "`dirname $0`/.."
-./run-tests -c config-${NETWORK}.robot
+
+WRAPPER=""
+if [ -z $DISPLAY ] 
+then
+	WRAPPER=xvfb-run
+fi
+$WRAPPER ./run-tests -c config-${NETWORK}.robot
