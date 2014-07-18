@@ -1,8 +1,8 @@
 *** Settings ***
 Documentation    Verify that Hamsta master service can be managed
 Resource         ssh-resources.robot
-Suite Setup      Open Connection And Login
-Suite Teardown   Close All Connections
+Suite Setup      Prepare Hamsta Master Service And Login
+Suite Teardown   Restore Environment After Test And Close Connection
 Force Tags	 hamsta  backend
 
 *** Variables ***
@@ -25,3 +25,10 @@ It Should be Possible to Stop Hamsta Master Service
 	Check Hamsta Master Is Not Active
 
 *** Keywords ***
+Prepare Hamsta Master Service And Login
+    Open Connection And Login
+    Stop Hamsta Master Service
+
+Restore Environment After Test And Close Connection
+    Start Hamsta Master Service
+    Close All Connections
