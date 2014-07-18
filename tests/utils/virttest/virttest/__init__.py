@@ -16,7 +16,7 @@ config = configparser.ConfigParser()
 # Set option names case sensitive. 
 # See https://docs.python.org/dev/library/configparser.html#configparser-objects
 config.optionxform = str
-config.read('config.ini')
+config.read(os.getenv('VIRTTEST_CONFIG', '/etc/qavirttest/virttest.ini'))
 
 
 class Host:  
