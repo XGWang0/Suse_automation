@@ -4,9 +4,4 @@ source /etc/qavirttest/utils.config
 
 cd "`dirname $0`/.."
 
-WRAPPER=""
-if [ -z $DISPLAY ] 
-then
-	WRAPPER=xvfb-run
-fi
-$WRAPPER ./run-tests -c config-${NETWORK}.robot
+./run-tests -c config-${NETWORK}.robot

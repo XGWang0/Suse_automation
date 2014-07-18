@@ -62,7 +62,19 @@ else
 	export TESTS_DIR=./testsuites/
 fi
 
-ROBOT_CMD="$PYBOT_BIN ${TESTS_DIR}"
+# If DISPLAY is not set, we are running without X
+# Try to run using xvfb-run if installed
+X_WRAPPER=''
+if [ -z $DISPLAY ] ; then
+	if which xvfb-run > /dev/null 2>&1 ; then
+		echo "DISPLAY not set. Using xvfb-run to run in virtual Xserver."
+		X_WRAPPER='xvfb-run '
+	else
+		echo "DISPLAY not set and xvfb-run is not installed. Tests that require Xserver will not work."
+	fi
+fi
+
+ROBOT_CMD="${X_WRAPPER}$PYBOT_BIN ${TESTS_DIR}"
 echo "Robot options: $ROBOT_OPTIONS"
 echo "Running tests in ${TESTS_DIR}"
 $ROBOT_CMD
