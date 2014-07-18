@@ -6,11 +6,11 @@
 
 # otherwise network is unset and will be set in config
 
-./01_check_test_added
+utils/01_check_test_added
 
-./02_build_repo
+utils/02_build_repo
 
-./03_check_build
+utils/03_check_build
 
 if [ $? -ne 0 ]
 then
@@ -18,9 +18,9 @@ then
 	exit 1
 fi
 
-./04_prepare_virtenv
+utils/04_prepare_virtenv
 
-./05_check_image_build
+utils/05_check_image_build
 
 if [ $? -ne 0 ]
 then
@@ -28,9 +28,9 @@ then
 	exit 1
 fi
 
-./10_run_tests
+utils/10_run_tests
 
-./98_delete_virtenv
+utils/98_delete_virtenv
 
-./99_delete_repo
+utils/99_delete_repo
 

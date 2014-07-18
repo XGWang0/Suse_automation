@@ -4,7 +4,7 @@ MY_DIR="`dirname $0`"
 cd $MY_DIR
 MY_DIR=`pwd`
 
-source config
+source /etc/qavirttest/utils.config
 
 cd virttest
 sudo ./test_prepare.py -n $NETWORK http://localhost:$REPOPORT/$REPOPATH 

@@ -1,5 +1,5 @@
 #!/bin/bash
 
-source "`dirname $0`/config"
+source /etc/qavirttest/utils.config
 
 echo "Validating build results...not implemented yet"
