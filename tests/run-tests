@@ -1,15 +1,16 @@
 #! /bin/bash
 
 # Initialize some default variables
-export RESULTS_DIR=results
-export TESTS_DIR=./testsuites/
-export PYBOT_BIN=pybot
-export SUITE_NAME="QA_Automation_Tools"
-export CUSTOM_CONFIG=config.robot
+RESULTS_DIR=results
+TESTS_DIR=./testsuites/
+PYBOT_BIN=pybot
+SUITE_NAME="QA_Automation_Tools"
+CUSTOM_CONFIG=config.robot
+ROBOT_ARGS=''
 
 # Go to working directory. All paths used in the script are relative
 # to that directory.
-export MY_NAME=`basename $0`
+MY_NAME=`basename $0`
 cd `dirname $0`
 
 # Call me like: help EXIT_CODE
@@ -18,55 +19,42 @@ function help () {
     echo -e "Usage: $MY_NAME [OPTIONS] COMMAND\n";
     echo -e "COMMANDS"
     echo -e "\trun\texecutes all tests in testsuite";
-    echo -e "\tclean\tdeletes the results directory";
     echo -e "\thelp\t(or no option) print this help";
     echo;
     echo -e "OPTIONS";
     echo -e "\t-c FILE\tCustom Robot Framework configuration, defaults to config.robot";
-    echo -e "\t-h HOST\tHamsta master hostname, defaults to localhost";
+    echo -e "\t-m HOST\tHamsta master hostname, defaults to localhost";
     echo -e "\t-r DIR\tdirectory to store results to (run action), defaults to '${PWD}/results'";
     echo -e "\t-t DIR\tdirectory containing tests (run action), defaults to '${TESTS_DIR}'";
+    echo -e "\t-a PARAMS\tparameters to pass directly to pybot, you have to quote it: -a '-e tag'";
     echo -e "\nContact us on <qa-automation@suse.de>.";
     exit $1;
 }
 
-# Execute the testsuite
-function run () {
-    echo "Results will be saved to ${RESULTS_DIR}."
-    PYBOT_VARIABLES="--variable CONFIG_FILE:$CUSTOM_CONFIG"
-
-    if [ ! -d ${RESULTS_DIR} ]; then
-        mkdir ${RESULTS_DIR};
-    fi
-
-    if [ -n "${HAMSTA_TEST_HOST}" ]; then
-        PYBOT_VARIABLES="${PYBOT_VARIABLES} --variable HAMSTA_HOST:$HAMSTA_TEST_HOST"
-    fi
-    PYBOT_CMD="$PYBOT_BIN --name ${SUITE_NAME} $PYBOT_VARIABLES --outputdir ${RESULTS_DIR} $TESTS_DIR"
-    $PYBOT_CMD
-}
-
-# Clean test logs
-function clean_logs () {
-    if [ -d ${RESULTS_DIR} ]; then
-        rm -rf ${RESULTS_DIR};
-    fi
-}
-
 # Process command line arguments
-while getopts "c:dh:ilr:tu" opt; do
+while getopts "c:hm:r:t:a:" opt; do
     case $opt in
         'c') export CUSTOM_CONFIG=${OPTARG};;
-        'h') export HAMSTA_TEST_HOST=${OPTARG};;
+        'm') export HAMSTA_TEST_HOST=${OPTARG};;
         'r') export RESULTS_DIR=${OPTARG};;
         't') export TESTS_DIR=${OPTARG};;
-        \?)  help 0;;
+		'a') export ROBOT_ARGS=${OPTARG};;
+        'h') help 0;;
     esac
 done
 
-# Process the main command option (last argument)
-case ${BASH_ARGV[0]} in
-    'run') run;;
-    'clean') clean_logs;;
-    *) help 0;;
-esac
+export ROBOT_OPTIONS="${ROBOT_OPTIONS} --name ${SUITE_NAME} --variable CONFIG_FILE:$CUSTOM_CONFIG --outputdir ${RESULTS_DIR} ${ROBOT_ARGS}"
+
+echo "Results will be saved to ${RESULTS_DIR}."
+
+if [ ! -d ${RESULTS_DIR} ]; then
+    mkdir ${RESULTS_DIR};
+fi
+
+if [ -n "${HAMSTA_TEST_HOST}" ]; then
+    ROBOT_OPTIONS="${ROBOT_OPTIONS} --variable HAMSTA_HOST:$HAMSTA_TEST_HOST"
+fi
+
+ROBOT_CMD="$PYBOT_BIN ${TESTS_DIR}"
+echo $ROBOT_OPTIONS
+$ROBOT_CMD
