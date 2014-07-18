@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source "`dirname $0`/config"
+source /etc/qavirttest/utils.config
 
 echo "Checking that there were changes in tests since the branch..."
 
