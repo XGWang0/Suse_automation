@@ -31,12 +31,6 @@ if (!defined('HAMSTA_FRONTEND')) {
 	return require("index.php");
 }
 
-function filter($var) {
-	if($var == '')
-		return false;
-	return true;
-} 
-
 function map_regcode($e1, $e2)
 {
     return $e1.'+'.$e2;
@@ -151,11 +145,13 @@ if (request_str("proceed")) {
 	$gpattern = "";
 	foreach ($pattern_list as $p)
 		$gpattern .= " ".$p;
+
 	if ($setxen) {
 		$gpattern .= "xen_server";
-		if (preg_match('/[SsLlEe]{3}.-10/',$producturl))
+		if (preg_match('/SLE.-10/i',$producturl))
 			$additionalrpms .= " kernel-xen";
 	}
+
 	$additionalrpms = str_replace(' ', ',', trim($additionalrpms));
 	$additionalpatterns = str_replace(' ', ',', trim($gpattern));
 	$addonurl = join(",", $addonurls);
@@ -164,6 +160,7 @@ if (request_str("proceed")) {
 	if(($repartitiondisk || $ptargs) and ! $machines[0]->has_perm('partition')) $errors['partition']="Some Machine do not have partition perm";
 	# check boot prem
 	if(($defaultboot || $setxen) and ! $machines[0]->has_perm('boot')) $errors['boot']="Some Machine do not have boot perm";
+
 	# Processing the job
 	if (count($errors)==0) {
 		$producturl=preg_quote($producturl, '/');
@@ -244,7 +241,7 @@ if (request_str("proceed")) {
 
 		foreach ($machines as $machine) {
 			if ($machine->send_job($autoyastfile)) {
-				Log::create($machine->get_id(), $user->getLogin (), 'REINSTALL', "has reinstalled this machine using $producturl_raw (Addon: " . ($addonurl ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
+				Log::create($machine->get_id(), get_user_login ($user), 'REINSTALL', "has reinstalled this machine using $producturl_raw (Addon: " . ($addonurl ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
 			} else {
 				$errors['autoyastjob']=$machine->get_hostname().": ".$machine->errmsg;
 			}

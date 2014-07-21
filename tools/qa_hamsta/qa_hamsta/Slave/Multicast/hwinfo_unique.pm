@@ -206,8 +206,8 @@ sub get_update_status {
 	chomp($current_v);
 	return 0 unless($current_v);
 	#get the hamsta version sum from repo
-	system('zypper -n --gpg-auto-import-keys ref &>/dev/null' );
-	my $repo_v=`zypper se -st package qa_ 2>/dev/null|grep 'qa_hamsta[^-]\\|qa_hamsta-cmdline\\|qa_hamsta-common\\|qa_tools\\|qa_lib_perl\\|qa_lib_config\\|qa_lib_keys'|awk -F\"|\" '!b[\$2]++{split(\$4,a,"");for(i in a){if(a[i]~/[0-9]/)s+=a[i]}}END{print s}'`;
+	system('zypper --non-interactive --gpg-auto-import-keys refresh &>/dev/null' );
+	my $repo_v=`zypper --non-interactive search --details --type package qa_ 2>/dev/null|grep 'qa_hamsta[^-]\\|qa_hamsta-cmdline\\|qa_hamsta-common\\|qa_tools\\|qa_lib_perl\\|qa_lib_config\\|qa_lib_keys'|awk -F\"|\" '!b[\$2]++{split(\$4,a,"");for(i in a){if(a[i]~/[0-9]/)s+=a[i]}}END{print s}'`;
 	chomp($repo_v);
 	return 0 unless($repo_v);
 	return 1 if($current_v!=$repo_v);

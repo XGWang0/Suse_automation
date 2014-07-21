@@ -189,6 +189,10 @@ source.http.rhel-5-u5-64=http://147.2.207.22/repo/rhel-server-5.5-x86_64-dvd/
 source.iso.rhel-5-u5-64=/VIRT-ISO/rhel-server-5.5-x86_64-dvd.iso
 source.iso.rhel-5-u5-32=/VIRT-ISO/rhel-server-5.5-i386-dvd.iso
 
+source.ftp.rhel-5-u10-32=ftp://151.155.144.100/install/rhel5u10/i386
+source.http.rhel-5-u10-64=http://147.2.207.240/repo/rhel5u10/x86_64
+source.iso.rhel-5-u10-64=/mnt/iso/redhat/rhel5u10/rhel-server-5.10-x86_64-dvd.iso
+
 #source.http.rhel-6-fcs-32=http://147.2.207.22/repo/rhel-server-6.0-i386-dvd/
 #source.http.rhel-6-fcs-64=http://147.2.207.22/repo/rhel-server-6.0-x86_64-dvd/
 source.http.rhel-6-fcs-32=http://xen100.virt.lab.novell.com/install/rhel6/i386/
@@ -198,6 +202,11 @@ source.iso.rhel-6-fcs-32=/VIRT-ISO/rhel-server-6.0-i386-dvd.iso
 
 #151.155.144.100 should be ip of xen100.virt.lab.novell.com, give direct ip for dns issue in bj
 source.http.rhel-6-u4-64=http://151.155.144.100/install/rhel6u4/x86_64/
+
+source.ftp.rhel-6-u5-32=ftp://151.155.144.100/install/rhel6u5/i386
+source.ftp.rhel-6-u5-64=ftp://151.155.144.100/install/rhel6u5/x86_64
+source.iso.rhel-6-u5-32=/mnt/iso/redhat/rhel6u5/rhel-server-6.5-i386-dvd.iso
+source.iso.rhel-6-u5-64=/mnt/iso/redhat/rhel6u5/rhel-server-6.5-x86_64-dvd.iso
 
 # SLED
 
