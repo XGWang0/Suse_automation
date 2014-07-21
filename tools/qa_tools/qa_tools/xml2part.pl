@@ -45,7 +45,7 @@ sub usage()
     $programe Version $version
 
     Description :
-        
+
         $programe is a utility to split multimachine job xml file into  a set of individual jobs
 
     which are sent out as normal sigle machine job.
@@ -63,7 +63,7 @@ EOF
 sub _create_dir
 {
     my $dir_name = shift;
-    
+
     unless ( -e $dir_name )
     {
         mkpath $dir_name or die "Can't create directory $dir_name";
@@ -78,10 +78,10 @@ sub _create_dir
 
 sub _create_role_xml_file
 {
-    my ($roleid, $outdir, $xml) = @_;
+    my ($role_name, $outdir, $xml) = @_;
 
-    $roleid = "default" if ( !defined($roleid) );
-    my $file_path = $outdir ."/$JOB_NAME" . "-" . $roleid . ".xml";
+    $role_name = "default" if ( !defined($role_name) );
+    my $file_path = $outdir ."/$JOB_NAME" . "-" . $role_name . ".xml";
     my $ob = new XML::Bare( file => $file_path, text => $xml );
     $ob->parse();
     $ob->save();
@@ -99,20 +99,20 @@ sub _extract_part_job
 }
 sub _extract_role_job
 {
-    my ($roles, $role_id) = @_;
+    my ($roles, $role_name) = @_;
 
     for (my $i=0; $i<=$#$roles; $i++)
     {
         my $r = $roles->[$i];
-        delete $roles->[$i] if ($r->{id}->{value} != $role_id);
+        delete $roles->[$i] if ($r->{name}->{value} ne $role_name);
     }
 }
 sub _extract_role_part_job
 {
-    my ($root, $role_id, $part_id) = @_;
+    my ($root, $role_name, $part_id) = @_;
     my $roles = $root->{job}->{roles}->{role};
 
-    &_extract_role_job($roles,$role_id);
+    &_extract_role_job($roles,$role_name);
 
     foreach (@$roles)
     {
@@ -151,8 +151,6 @@ sub parse_xml_file
         {
             my %r;
             my $name = $_->{name}->{value};
-            my $role_id = $_->{id}->{value};
-            $r{'id'} = $role_id;
             $r{'name'} = $name;
             push @parse_roles, \%r;
     
@@ -214,13 +212,11 @@ sub process_xml
             &_create_dir($dir);
         }
     }
-
     my $roles = $parsed_ret->{roles};
     if($roles)
     {
         foreach my $role (@$roles)
         {
-            my $role_id   = $role->{id};
             my $role_name = $role->{name};
             my $cmds = $role->{cmds};
 
@@ -229,18 +225,18 @@ sub process_xml
                 foreach my $part_id (@$cmds)
                 {
                     my $r = clone($root);
-                    my $t =  &_extract_role_part_job($r, $role_id, $part_id);
+                    my $t =  &_extract_role_part_job($r, $role_name, $part_id);
                     my $txt = $ob->xml($r);
                     my $output_dir = "$DEST/$part_id";
-                    &_create_role_xml_file($role_id, $output_dir, $txt);
+                    &_create_role_xml_file($role_name, $output_dir, $txt);
                 }
             }
             else
             {
                 my $r = clone($root);
-                my $t = &_extract_role_job($r->{job}->{roles}->{role}, $role_id);
+                my $t = &_extract_role_job($r->{job}->{roles}->{role}, $role_name);
                 my $txt = $ob->xml($r);
-                &_create_role_xml_file($role_id, $DEST, $txt);
+                &_create_role_xml_file($role_name, $DEST, $txt);
             }
         }
     }
