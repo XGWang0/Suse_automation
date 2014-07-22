@@ -19,4 +19,5 @@ cd "$MY_DIR"
 
 ../../build-repository $CONFIG
 
-
+# remove temp. config
+rm $CONFIG
