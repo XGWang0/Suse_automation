@@ -45,61 +45,57 @@ if($option == "delete") # only custom defined file can be deleted
 }
 
 $search = new MachineSearch();
+$job = new Job();
 if($machine_list != "")
     	$machines_id_array = explode(",", $machine_list);
 else
 	$machines_id_array = request_array("a_machines");
 
-$search->filter_in_array($machines_id_array);
-$machines = $search->query();
+foreach ($machines_id_array as $mid) {
+	$job->add_machine_id($mid);
+}
+machine_permission_or_disabled($machines_id_array,$perm_send_job);
 
-machine_permission_or_disabled($machines,$perm_send_job);
+$resend_job=request_str("xml_file_name");
+$filenames =request_array("filename");
 
-        $resend_job=request_str("xml_file_name");
-        $filenames =request_array("filename");
+if (request_str("submit")) {
+	machine_permission_or_redirect($machines_id_array,$perm_send_job);
 
-	if (request_str("submit")) {
-		machine_permission_or_redirect($machines,$perm_send_job);
+	$email = request_str("mailto");
+	$jobfilenames = array();
 
-		$email = request_str("mailto");
-		$jobfilenames = array();
+	foreach ($filenames as $jobfile) {
 
-		foreach ($filenames as $jobfile) {
+		$jobbasename = basename($jobfile);
+		system("cp $jobfile /tmp/");
+		system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' /tmp/$jobbasename");
+			
+		$filebasename = substr($jobbasename, 0, -4);
+		$xml = simplexml_load_file( "/tmp/$jobbasename" );
 
-			$jobbasename = basename($jobfile);
-			system("cp $jobfile /tmp/");
-			system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' /tmp/$jobbasename");
-				
-			$filebasename = substr($jobbasename, 0, -4);
-			$xml = simplexml_load_file( "/tmp/$jobbasename" );
+		if(substr(dirname($jobfile), -6) == "custom")
+			parameters_assign($xml, $filebasename . "_custom_" );
+		else
+			parameters_assign($xml, $filebasename . "_" );
 
-			if(substr(dirname($jobfile), -6) == "custom")
-				parameters_assign($xml, $filebasename . "_custom_" );
-			else
-				parameters_assign($xml, $filebasename . "_" );
+		$path = "/tmp/" . $filebasename . "_" . genRandomString(10) . ".xml";
+		$xml->asXML($path);
 
-			$path = "/tmp/" . $filebasename . "_" . genRandomString(10) . ".xml";
-			$xml->asXML($path);
+		if(file_exists("/tmp/$jobbasename"))
+			unlink("/tmp/$jobbasename");
 
-			if(file_exists("/tmp/$jobbasename"))
-				unlink("/tmp/$jobbasename");
-
-			array_push ($jobfilenames, $path);
-		}
-
-		foreach ($machines as $machine) {
-			foreach ($jobfilenames as $filename) {
-				if ($machine->send_job($filename)) {
-					Log::create($machine->get_id(), $user->getLogin(), 'JOB_START', "has sent a \"pre-defined\" job to this machine (Job name: \"" . htmlspecialchars(basename($filename)) . "\")");
-				} else {
-					$error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
-				}
-			}
-		}
-		if (empty($error)) {
-			redirect("The job[s] has/have been successfully sent.",true);
-		}
+		array_push ($jobfilenames, $path);
+		$job->addfile($path);
 	}
+
+	if (!$job->send_job()){
+		$error = $job->errmsg;
+	}
+	if (empty($error)) {
+		redirect("The job[s] has/have been successfully sent.",true);
+	}
+}
     $html_title = "Send job";
 
 ?>

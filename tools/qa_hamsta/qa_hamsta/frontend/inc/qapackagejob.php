@@ -33,11 +33,15 @@
 		return require("../index.php");
 	}
 
-	$search = new MachineSearch();
-	$search->filter_in_array(request_array("a_machines"));
-	$machines = $search->query();
+	$job = new Job();
+	$machines_id_array = request_array("a_machines");
 
-	machine_permission_or_redirect($machines,$perm_send_job);
+	foreach( $machines_id_array as $machine ) {
+		$job->add_machine_id($machine);
+	}
+
+
+	machine_permission_or_redirect($machines_id_array,$perm_send_job);
 
 	$tslist = $_POST['testsuite'];
 	$rand = rand();
@@ -73,17 +77,12 @@
 		}
 	}
 
+	$job->addfile($qapackagejobfile);
+
 	# Make sure each job gets sent correctly
 	if( request_str("submit") )
 	{
-		foreach( $machines as $machine )
-		{
-			if( $machine->send_job($qapackagejobfile) )	{
-				Log::create($machine->get_id(), $user->getLogin (), 'JOB_START', "has sent a \"qa-package\" job to this machine (Job name: \"" . htmlspecialchars($jobname) . "\")");
-			} else {
-				$error = (empty($error) ? "" : $error) . "<p>" . $machine->get_hostname() . ": " . $machine->errmsg . "</p>";
-			}
-		}
+		if ( !$job->send_job() ) $error = $job->errmsg;
 	}
 	if (empty($error)) {
 		redirect("The job[s] has/have been successfully sent.",true);

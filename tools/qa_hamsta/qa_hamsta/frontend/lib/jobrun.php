@@ -48,7 +48,7 @@ class JobRun {
 	 */
 	function __construct($fields) {
 		$this->fields = $fields;
-                $this->fields['id']=$this->fields['job_id'];
+		$this->fields['id']=$this->fields['job_id'];
 	}
 
 	/**
@@ -58,33 +58,10 @@ class JobRun {
 	 * @return void
 	 */
 	function update_from_db() {
-		$machines = array();
-		$result = array();
-		$count = 0;
-		$sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k USING(job_id) WHERE j.job_id = :id ORDER BY j.job_id DESC';
-		if (!($stmt = get_pdo()->prepare($sql))) {
-			return null;
-		}
-		$stmt->bindParam(':id', $id);
 
-		$stmt->execute();
-		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-			$count++;
-			$machines[] = $row;
-		}
-		if($row) {
-			$result['machines'] = $machines;
-			// copy the same job descript
-			$result['short_name'] = $machines[0]['short_name'];
-			$result['description'] = $machines[0]['description'];
-			$result['job_owner'] = $machines[0]['job_owner'];
-			$result['job_status_id'] = $machines[0]['job_status_id'];
-			$result['aimed_host'] = $machines[0]['aimed_host'];
-			$result['job_id'] = $machines[0]['job_id'];
-			//$result[''] = $machines[0][''];
+		$jobrun_update = JobRun::get_by_id($this->fields['id']);
+		$this->fields = $jobrun_update->fields;
 
-		}
-		$this->fields = $result;
 	}
 
 	/**
@@ -95,8 +72,9 @@ class JobRun {
 	 * @access public
 	 * @return array Array of JobRun objects or null on error.
 	 */
-	static function find_all($limit = 10, $start = 0) {
+	static function find_all($limit = 10, $start = 0 ,$status = 1000) {
 		$sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k USING(job_id) ORDER BY j.job_id DESC';
+		if ($status != 1000 ) $sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k USING(job_id) WHERE job_status_id = :status_id ORDER BY j.job_id DESC';
 		if ($limit) {
 			$sql .= ' LIMIT '.((int) $start).','.((int) $limit);
 		}
@@ -105,23 +83,26 @@ class JobRun {
 			return null;
 		}
 
+		if ($status != 1000 ) $stmt->bindParam(':status_id', $status);
+
 		$stmt->execute();
 		$result = array();
 		$build_hash = array();
 		$tmp = array();
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 			$sub_job = $row['job_id'];
-			$build_hash[$sub_job][] = $row;
+			$sub_machine_id = $row['machine_id'];
+			$build_hash[$sub_job][$sub_machine_id] = $row;
 		}
 		foreach( $build_hash as $job_id => $value) {
 			$tmp['machines'] = $value;
-			$tmp['short_name'] = $value[0]['short_name'];
-			$tmp['description'] = $value[0]['description'];
-			$tmp['job_owner'] = $value[0]['job_owner'];
-			$tmp['job_status_id'] = $value[0]['job_status_id'];
-			$tmp['aimed_host'] = $value[0]['aimed_host'];
-			$tmp['job_id'] = $value[0]['job_id'];
-			$tmp['machine_id'] = $value[0]['machine_id'];
+			$sub_m_id = key($value);
+			$tmp['short_name'] = $value[$sub_m_id]['short_name'];
+			$tmp['description'] = $value[$sub_m_id]['description'];
+			$tmp['job_owner'] = $value[$sub_m_id]['job_owner'];
+			$tmp['job_status_id'] = $value[$sub_m_id]['job_status_id'];
+			$tmp['aimed_host'] = $value[$sub_m_id]['aimed_host'];
+			$tmp['job_id'] = $value[$sub_m_id]['job_id'];
 			$result[] = new Jobrun($tmp);
 		}
 
@@ -155,23 +136,7 @@ class JobRun {
 	 * @return array Array of JobRun objects.
 	 */
 	static function find_by_status($status_id, $limit = 0) {
-		$sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k USING(job_id) WHERE job_status_id = :status_id ORDER BY j.job_id DESC';
-		if ($limit) {
-			$sql .= ' LIMIT '.((int) $limit);
-		}
-
-		if (!($stmt = get_pdo()->prepare($sql))) {
-			return null;
-		}
-		$stmt->bindParam(':status_id', $status_id);
-
-		$stmt->execute();
-		$result = array();
-		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-			$result[] = new JobRun($row);
-		}
-
-		return $result;
+		return JobRun::find_all($limit,0,$status_id);
 	}
 
 	/**
@@ -193,21 +158,19 @@ class JobRun {
 
 		$stmt->execute();
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-			$machines[] = $row;
+			$machine_id = $row['machine_id'];
+			$machines[$machine_id] = $row;
 		}
-		if($machines) {
-			$result['machines'] = $machines;
-			// copy the same job descript
-			$result['short_name'] = $machines[0]['short_name'];
-			$result['description'] = $machines[0]['description'];
-			$result['job_owner'] = $machines[0]['job_owner'];
-			$result['job_status_id'] = $machines[0]['job_status_id'];
-			$result['aimed_host'] = $machines[0]['aimed_host'];
-			$result['job_id'] = $machines[0]['job_id'];
 
-			//$result[''] = $machines[0][''];
-
+		$sql = 'SELECT * FROM job WHERE job_id = :id ORDER BY job_id DESC';
+		if (!($stmt = get_pdo()->prepare($sql))) {
+			return null;
 		}
+		$stmt->bindParam(':id', $id);
+		$stmt->execute();
+		$result = $stmt->fetch(PDO::FETCH_ASSOC);
+		$result['machines'] = $machines;
+
 		return $result ? new JobRun($result) : null;
 	}
 
@@ -257,9 +220,8 @@ class JobRun {
 	 * @access public
 	 * @return \Machine Machine the job is run on.
 	 */
-	function get_machine() {
-		##going to be change
-		return Machine::get_by_id($this->fields['machines'][0]["machine_id"]);
+	function get_machine($machine_id) {
+		return Machine::get_by_id($machine_id]);
 	}
 
 	function get_machines() {
@@ -273,9 +235,8 @@ class JobRun {
 	 * @return \Configuration Current configuration of the machine at the
 	 *	  start of the job.
 	 */
-	function get_configuration() {
-		##going to be change
-		return Configuration::get_by_id($this->fields['machines'][0]["config_id"]);
+	function get_configuration($machine_id) {
+		return Configuration::get_by_id($this->fields['machines'][$machine_id]["config_id"]);
 	}
 
 	/**
@@ -284,10 +245,8 @@ class JobRun {
 	 * @access public
 	 * @return string Last output lines of the job.
 	 */
-	function get_last_log() {
-		##going to be change
-		return $this->fields['machines'][0]["last_log"];
-		//return $this->fields["last_log"];
+	function get_last_log($machine_id) {
+		return $this->fields['machines'][$machine_id]["last_log"];
 	}
 
 	/**
@@ -296,10 +255,8 @@ class JobRun {
 	 * @access public
 	 * @return string File name of the XML job description.
 	 */
-	function get_xml_filename() {
-		##going to be change
-		//return $this->fields["xml_file"];
-		return $this->fields['machines'][0]["xml_file"];
+	function get_xml_filename($machine_id) {
+		return $this->fields['machines'][$machine_id]["xml_file"];
 	}
 
 	/**
@@ -308,10 +265,8 @@ class JobRun {
 	 * @access public
 	 * @return string XML job description.
 	 */
-	function get_xml_job() {
-		//going to be change
-		//return file_get_contents($this->fields["xml_file"]);
-		return file_get_contents($this->fields['machines'][0]["xml_file"]);
+	function get_xml_job($machine_id) {
+		return file_get_contents($this->fields['machines'][$machine_id]["xml_file"]);
 	}
 
 	/**
@@ -321,10 +276,8 @@ class JobRun {
 	 * @return string Return code information (may contain more than one
 	 * return code).
 	 */
-	function get_return_code() {
-		//going to be change
-		//return $this->fields["return_status"];
-		return $this->fields['machines'][0]["return_status"];
+	function get_return_code($machine_id) {
+		return $this->fields['machines'][$machine_id]["return_status"];
 	}
 
 	/**
@@ -333,10 +286,8 @@ class JobRun {
 	 * @access public
 	 * @return string Filename of the XML result file returned by the slave.
 	 */
-	function get_return_xml_filename() {
-		//going to be change
-		//return $this->fields["return_xml"];
-		return $this->fields['machines'][0]["return_xml"];
+	function get_return_xml_filename($machine_id) {
+		return $this->fields['machines'][$machine_id]["return_xml"];
 	}
 
 	/**
@@ -345,12 +296,9 @@ class JobRun {
 	 * @access public
 	 * @return string XML result file returned by the slave.
 	 */
-	function get_return_xml_content() {
-		//going to be change
-		//if( $this->fields["return_xml"] )
-		//	return file_get_contents($this->fields["return_xml"]);
-		if( $this->fields['machines'][0]["return_xml"] )
-			return file_get_contents($this->fields['machines'][0]["return_xml"]);
+	function get_return_xml_content($machine_id) {
+		if( $this->fields['machines'][$machine_id]["return_xml"] )
+			return file_get_contents($this->fields['machines'][$machine_id]["return_xml"]);
 		else
 			return null;
 	}
@@ -361,10 +309,8 @@ class JobRun {
 	 * @access public
 	 * @return string Date and time of the start of the job.
 	 */
-	function get_started() {
-		##going to be change
-		//return $this->fields["start"];
-		return $this->fields['machines'][0]["start"];
+	function get_started($machine_id) {
+		return $this->fields['machines'][$machine_id]["start"];
 	}
 
 	/**
@@ -373,10 +319,8 @@ class JobRun {
 	 * @access public
 	 * @return string Date and time when the job was stopped.
 	 */
-	function get_stopped() {
-		##going to be change
-		//return $this->fields["stop"];
-		return $this->fields['machines'][0]["stop"];
+	function get_stopped($machine_id) {
+		return $this->fields['machines'][$machine_id]["stop"];
 	}
 
         /**
@@ -419,7 +363,6 @@ class JobRun {
 	 * if an error occured (e.g. job is already running).
 	 */
 	function cancel() {
-		#going to be change
 		$stmt = get_pdo()->prepare('UPDATE job SET job_status_id = 5 WHERE job_id = :job_id AND job_status_id IN (0, 1)');
 		$stmt->bindParam(':job_id', $this->fields["id"]);
 		$stmt->execute();
@@ -504,7 +447,7 @@ class JobRun {
 	 * @access public
 	 * @return array Log array.
 	 */
-	function get_job_log_entries() {
+	function get_job_log_entries($machine_id) {
 
 		#going to be change
 		$result = array();
@@ -513,8 +456,8 @@ class JobRun {
 			return null;
 		}
 
-		$stmt->bindParam(':machine_id', $this->fields['machines'][0]["machine_id"]);
-		$stmt->bindParam(':job_on_machine_id', $this->fields['machines'][0]["job_on_machine_id"]);
+		$stmt->bindParam(':machine_id', $this->fields['machines'][$machine_id]["machine_id"]);
+		$stmt->bindParam(':job_on_machine_id', $this->fields['machines'][$machine_id]["job_on_machine_id"]);
 		$stmt->execute();
 
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -522,6 +465,11 @@ class JobRun {
 		}
 
 		return $result;
+	}
+
+
+	function pop_machine_id(){
+		return key($this->fields['machines']);
 	}
 
 

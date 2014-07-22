@@ -48,14 +48,16 @@ $i=1000;
 $ii=0;
 foreach ($jobs as $job):
 	$job_link='index.php?go=job_details&amp;id='.$job->get_id();
+	#just for the page can print correctly with old format view .
+	$m_id = $job->pop_machine_id();
 	$i++;
 ?>        <tr data-tt-id="<?php echo $i; ?>" >
 	    <td><a href="<?php echo $job_link; ?>"><?php echo($job->get_id()); ?></a></td>
-		<td><span class="<?php echo($job->get_status_string()); ?>">
-            	    <?php echo($job->get_status_string()); ?></span>
+		<td><span class="<?php echo($job->get_status_string($m_id)); ?>">
+            	    <?php echo($job->get_status_string($m_id)); ?></span>
 		</td>
 <?php
-$mach = $job->get_machine();
+$mach = $job->get_machine($m_id);
 $cls = '';
 $hostname = '';
 if (isset ($mach)) {
@@ -66,8 +68,8 @@ if (isset ($mach)) {
 print "            <td$cls>$hostname</td>";
 print "            <td><a href=\"$job_link\">".$job->get_name()."</a></td>\n";
 ?>
-            <td><?php echo($job->get_started()); ?></td>
-            <td><?php echo($job->get_stopped()); ?></td>
+            <td><?php echo($job->get_started($m_id)); ?></td>
+            <td><?php echo($job->get_stopped($m_id)); ?></td>
             <td align="center">
 <?php
 
@@ -112,14 +114,14 @@ else
 <?php endforeach; ?>
 <?php endforeach; ?>
 </table>
-<div id="aaaa" class="float">ex_all</div>
-<div id="bbbb" class="float">col_all</div>
+<div id="ex_all" class="float">ex_all</div>
+<div id="col_all" class="float">col_all</div>
 <br>
 
 <script>
 $("#machinealljobs").treetable( { expandable: true } );
-document.getElementById("aaaa").onclick = function() {  $("#machinealljobs").treetable("expandAll"); };
-document.getElementById("bbbb").onclick = function() {  $("#machinealljobs").treetable("collapseAll"); };
+$("#ex_all").click(function () { $("#machinealljobs").treetable("expandAll"); });
+$("#col_all").click(function () { $("#machinealljobs").treetable("collapseAll"); });
 </script>
 
 <?php

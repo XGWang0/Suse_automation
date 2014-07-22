@@ -30,30 +30,30 @@
 		$go = 'customjob';
 		return require("../index.php");
 	}
-	$search = new MachineSearch();
 	$a_machines = request_array("a_machines");
-	$search->filter_in_array(request_array("a_machines"));
-	$machines = $search->query();
 	
+	$job = new Job();
+
+	foreach( $a_machines as $machine ) {
+		$job->add_machine_id($machine);
+	}
+
 	$errors = array();
 
-	machine_permission_or_disabled($machines,$perm_send_job);
+	machine_permission_or_disabled($a_machines,$perm_send_job);
 	if (request_str("submit"))
 	{
-		machine_permission_or_redirect($machines,$perm_send_job);
+		machine_permission_or_redirect($a_machines,$perm_send_job);
 		require("inc/job_create.php");
 
 		if(count($errors) == 0)
 		{
 			if($roleNumber == 1)  # for Single-machine job, send it directly
 			{
-				foreach ($machines as $machine){
-					if ($machine->send_job($filename)) {
-						Log::create($machine->get_id(), $user->getLogin (), 'JOB_START', "has sent a \"custom\" job to this machine (Job name: \"" . htmlspecialchars($_POST['jobname']) . "\")");
-					} else {
-						$errors[] = $machine->get_hostname().": ".$machine->errmsg;
-					}
-				}
+				$job->addfile($filename);
+
+				#Log::create($machine->get_id(), $user->getLogin (), 'JOB_START', "has sent a \"custom\" job to this machine (Job name: \"" . htmlspecialchars($_POST['jobname']) . "\")");
+				if ( !$job->send_job() ) $error = $job->errmsg;
 			}
 			else    # for multi-machine job, redirect to "multi-machine job detail" page
 			{

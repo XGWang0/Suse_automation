@@ -39,10 +39,13 @@
 		exit ();
 	}
 
-	$search = new MachineSearch();
-	$search->filter_in_array(request_array("a_machines"));
-	$machines = $search->query();
-	machine_permission_or_redirect($machines,$perm_send_job);
+	$job = new Job();
+
+	foreach( $a_machines as $machine ) {
+		$job->add_machine_id($machine);
+	}
+
+	machine_permission_or_redirect($a_machines,$perm_send_job);
 
 	$atlist = $_POST['testsuite'];
 	$rand = rand();
@@ -63,17 +66,15 @@
 	# Change the long definition of AT_LIST (this must go *after* the 'sed' on AT_LIST_SHORT)
 	system("sed -i 's/AT_LIST/" . implode(" ", $atlist) . "/g' $autotestjobfile");
 
+  $job->addfile($autotestjobfile);
 	# Make sure each job gets sent correctly
 	$error='';
 	if( request_str("submit") )	{
-		foreach( $machines as $machine ) 
-			if($machine->send_job($autotestjobfile)) {
-				Log::create($machine->get_id(), $user->getLogin (), 'JOB_START', "has sent an \"autotest\" job to this machine (Job name: \"" . htmlspecialchars($jobname) . "\")");
-			} else {
-				$error .= "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
-			}
+		if ( !$job->send_job() ){
+			$error = $job->errmsg;
+		}
 	}
 	if (empty($error))
-		header("Location: index.php");
+	redirect("The job[s] has/have been successfully sent.",true);
 	$html_title="Send autotest job";
 ?>
