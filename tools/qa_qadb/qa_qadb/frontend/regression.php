@@ -118,10 +118,12 @@ if( $cand_tcf_id && !$cand_submission_id )
 # lookup submissions and print their details
 if( $ref_submission_id>0 && $cand_submission_id>0 )
 {
-	echo "<h3>ref  (old) subm $ref_submission_id</h3>\n";
-	$sub_r=&print_submission_details($ref_submission_id);
-	echo "<h3>cand (new) subm $cand_submission_id</h3>\n";
-	$sub_c=&print_submission_details($cand_submission_id);
+	$sub_r=&print_submission_details($ref_submission_id,false);
+	$sub_c=&print_submission_details($cand_submission_id,false);
+	submissions_compare_print(
+		array($ref_submission_id=>$sub_r,$cand_submission_id=>$sub_c),
+		array($ref_submission_id=>'ref (old)',$cand_submission_id=>'cand (new)')
+	);
 }
 
 # when all inputs present, do the comparison
