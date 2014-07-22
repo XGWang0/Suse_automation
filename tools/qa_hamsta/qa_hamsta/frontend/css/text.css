@@ -89,3 +89,7 @@ div.text-main	{ padding: 0.2em; }
 .sorting-arrow {
     size:3.5em;
 }
+
+.monospace {
+	font-family:monospace;
+}

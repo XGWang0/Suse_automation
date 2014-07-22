@@ -41,6 +41,7 @@ BEGIN {
 		&install_rpms
 		&read_xml
 		&get_slave_ip
+                &section_run
 	);
 	%EXPORT_TAGS	= ();
 	@EXPORT_OK	= qw(
@@ -287,5 +288,22 @@ sub process_xml($$$) # XML, role_id, root_element_name
 	}
 }
 
+# Function for mm job
+# Used to run one or multiple secions.
+# possible sections may be finish, abort, kill derived from job xml.
+sub section_run 
+{
+    foreach my $sec (@_) {
+        if (-e $sec) {
+            my $type = $1 if( $sec =~ /(finish|abort)/ );
+            my $cmd = read_xml($sec,1);
+            my $command = Slave::Job::Command->new($type, $cmd);
+            unshift @{$command->{'command_objects'}}, $command;
+            &log(LOG_INFO, "Run $type section: ".$cmd->{'command'}->{'content'});
+            $command->run();
+            unlink $sec;
+        }
+    }
+}
 
 1;

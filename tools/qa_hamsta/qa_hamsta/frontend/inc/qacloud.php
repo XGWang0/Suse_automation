@@ -111,6 +111,11 @@
 
     $search->filter_role('VH'); 
     $machines = $search->query();
+
+	if (! count ($machines)) {
+			Notificator::setErrorMessage ('No machines found.');
+	}
+
     foreach ($machines as $machine) {
         $machine->get_children();
     }

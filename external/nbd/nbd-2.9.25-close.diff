@@ -1,0 +1,10 @@
+--- nbd-2.9.25/nbd-client.c.orig	2012-01-05 15:40:31.962826124 -0500
++++ nbd-2.9.25/nbd-client.c	2012-01-05 15:40:53.627555277 -0500
+@@ -70,6 +70,7 @@
+ 	len=read(fd, buf, 256);
+ 	buf[len-1]='\0';
+ 	if(do_print) printf("%s\n", buf);
++	close(fd);
+ 	return 0;
+ }
+ 

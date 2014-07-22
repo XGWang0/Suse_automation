@@ -47,7 +47,7 @@ if (request_str("proceed")) {
 	$errors = array();
 
 	$sshpass_cmd = sprintf ('sshpass -p "%s"', $rootpwd);
-	$addsut_path = '/usr/share/qa/tools/addsut.pl';
+	$addsut_path = '/usr/share/hamsta/frontend/utils/addsut.pl';
 	$ssh_options = 'StrictHostKeyChecking=no';
 
 	# Copy the executable to the host machine
