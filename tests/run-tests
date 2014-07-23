@@ -35,7 +35,7 @@ while getopts "c:hm:r:a:" opt; do
         'c') export CUSTOM_CONFIG=${OPTARG};;
         'm') export HAMSTA_TEST_HOST=${OPTARG};;
         'r') export RESULTS_DIR=${OPTARG};;
-		'a') export ROBOT_ARGS=${OPTARG};;
+        'a') export ROBOT_ARGS=${OPTARG};;
         'h') help 0;;
 		'\?') help 0;;
     esac
