@@ -115,7 +115,7 @@ for product in $PRODUCTS ; do
 				for arch in $ARCHS ; do 
 					echo "INFO: Building $pack for $arch..."
 					# using custom build root in order to keep it for each build
-					OSC_BUILD_ROOT="/var/tmp/build-root/$product-$arch" REPOSITORY=$product ARCH=$arch VERSION="${PROJECT_VERSION}_${timestamp}_$id" DESTDIR="$REPO/$product" BUILDARGS="--clean" ./build-osc "$path" #2>&1 | tee "$REPO/$product/LOGS/$pack.$arch"
+					OSC_BUILD_ROOT="/var/tmp/build-root/$product-$arch" REPOSITORY=$product ARCH=$arch VERSION="${PROJECT_VERSION}_${timestamp}_$id" DESTDIR="$REPO/$product" ./build-osc "$path" #2>&1 | tee "$REPO/$product/LOGS/$pack.$arch"
 					[ $? -eq 0 ] || res=$(( $res+1 ))
 				done
 	
