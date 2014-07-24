@@ -135,7 +135,7 @@ for product in $PRODUCTS ; do
 				echo "INFO: $pack does not need to be rebuilt..."
 				buildres='skip'
 			fi
-			[ -z $BUILDLOG ] || echo "$product:$pack:$buildres" >> "$BUILDLOG"
+			[ -z $BUILDLOG ] || echo "$pack:$product:$buildres" >> "$BUILDLOG"
 	        else
 	                echo "INFO: $path is not a package directory... SKIPED"
 	        fi
