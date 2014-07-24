@@ -3,3 +3,8 @@
 source /etc/qavirttest/utils.config
 
 echo "Validating build results...not implemented yet"
+
+cd "`dirname $0`/.."
+
+./run-tests -c config-${NETWORK}.robot build -r results/build
+

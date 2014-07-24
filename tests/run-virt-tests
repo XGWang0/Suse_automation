@@ -6,6 +6,8 @@
 
 # otherwise network is unset and will be set in config
 
+utils/00_delete_previous_robot_results
+
 utils/01_check_test_added
 
 utils/02_build_repo
