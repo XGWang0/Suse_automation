@@ -104,6 +104,37 @@ our $multicast_pid;
 # The tmp local log file to store job log if job socket meet issues.
 use constant JOB_LOG_FILE => "/var/log/hamsta-job.log";
 
+# For new mm sync, we add algorithm to handle broken job socket, which
+# detects socket breaking, does job logging to local job log file, and also
+# detects socket recovery and transmits logs back from the breaking point in sequence,
+# and restart real-time log transmission.
+#
+# How: 
+# We use socket-pair for communication between the job process which runs the real job code,
+# i.e. the child process of slave-server process, and the slave-server process, which communicates
+# about the job socket error, recovery, and event handling progress. 
+#
+# When job socket is detected to be broken the very fist time in job child proc, 
+# it notifies the slave-server proc about it through the socket-pair, 
+# which is now waiting for the job child proc ends. 
+# Then the slave-server proc stops waiting and goes back to accept new connections. 
+# Since SUT reservation is used, only the reserved master can connect to the SUT. 
+# Once the new connection is accepted, it is regarded as a recovered job socket. 
+#
+# Then the slave-server proc starts to handle the job socket recovery:
+# notify the job child proc, if it is still running, to recover real-time logging by socket-pair, 
+# send the local job log back directly to recovered job sock from local job log file, and then 
+# transmit back the real-time logging, which is restarted in job child proc, from the socket-pair to the
+# recovered job sock(yes, the socket-pair is reused as a data pipe from a communication pipe now).
+# 
+# If during this process, job socket is broken again, all transmitted back logs will be removed,
+# and all that not transmitted back to the recovered job socket from the break point,
+# including what's left in local log file and not transmitted back real-time logs from socket-pair,
+# will be stored in the local job log file in-sequence order, and notification will be sent to 
+# the job child proc about the socket problem, which will start logging to local job log file again.
+# This process continues untils the job child proc finishes and all logs are transmitted back to the 
+# reserved master via socket connection.
+
 child {
     $log::loginfo='hamsta-server';
     $0 .= ' server';
@@ -298,7 +329,7 @@ sub run_slave_server() {
 # handle_connection_recovery()
 #
 # Handles connection recovery after job socket previously  broken  with master: 
-# Do what: send back local stored job log; slave_state setting; notify job child process to recover normal logginga; recover real-time logging
+# Do what: send back local stored job log; slave_state setting; notify job child process to recover normal logging; recover real-time logging
 sub handle_connection_recovery(){
 	my $sock = shift;
 
@@ -690,6 +721,8 @@ sub start_job() {
     }
 }
 
+#The function is to handle the scenario that job socket is detected to be broken
+#in the process(child) that running the real job code
 sub deal_with_broken_job_sock_child() {
     our $job_sock_stat;
     our $job_log_fh;
@@ -712,7 +745,9 @@ sub deal_with_broken_job_sock_child() {
     open($job_log_fh,">>".JOB_LOG_FILE) || log(LOG_ERROR,"Can not open ".JOB_LOG_FILE." for logging!");
 }
 
-#ensure the local log file keeps all lines of logs that are not transmitted back to recovered job socket
+#The function is to handle the scenario that the re-connected/recovered job socket is detected
+#to be broken in the slave-server process(parent).
+#It ensures the local log file keeps all lines of logs that are not transmitted back to recovered job socket
 sub deal_with_broken_job_sock_parent() {
     our $transfered_local_job_log_line;
     our $finish_local_job_log_trans;
