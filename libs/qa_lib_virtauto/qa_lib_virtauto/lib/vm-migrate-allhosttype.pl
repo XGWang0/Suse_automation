@@ -52,23 +52,31 @@ sub exitWithError{
 }
 
 # Get options
-my $domainName = "";
+my $domainMac = "";
 my $migrateeIP = "";
 my $livemigration = "";
 my $migratetimes = "";
 GetOptions(
-	'n=s'     => \$domainName,
+	'm=s'     => \$domainMac,
 	'p=s'     => \$migrateeIP,
 	'l!'      => \$livemigration,
 	't=i'     => \$migratetimes,
 );
 
 #error check
-if ( !$domainName || !$migrateeIP || !$migratetimes){
+if ( !$domainMac || !$migrateeIP || !$migratetimes){
     print "$0: Invalid null input parameters!!";
     &exitWithError;
 }
 
+#Translate domainMAC to domainName
+my $domainName = "";
+$domainName = `for domain in \$(virsh list --name --all); do if virsh dumpxml \$domain | grep -iq "$domainMac"; then echo \$domain; fi; done`;
+chomp($domainName);
+if ( !$domainName ){
+    print "$0: No domain found for given domain mac!!\n";
+    &exitWithError;
+}
 
 # Get local virtual host hyper type
 my $localHyperType;

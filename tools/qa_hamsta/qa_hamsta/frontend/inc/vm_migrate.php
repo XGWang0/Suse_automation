@@ -44,15 +44,15 @@ if (request_str("proceed")) {
 	$errors = array(); // Used for recording errors
 
 	# Request all variables 
-	$domain_name = request_str("domain_name");
+	$host_name = request_str("host_name");
 	$migrateeIP = request_str("migrateeIP");
 	$livemigration = request_str("livemigration");
 	$migratetimes = request_str("migratetimes");
         $email = request_str("mailto");
 
 	#Check input errors
-	if(!$domain_name) {
-		$errors['vm_domain_name'] = "Domain name of the virtual machine to migrate can not be null.";
+	if(!$host_name) {
+		$errors['vm_host_name'] = "Host name of the virtual machine to migrate can not be null.";
 	}
 	if(!$migrateeIP){
                 $errors['migrateeIP'] = "The remote host IP can not be null.";
@@ -73,8 +73,12 @@ if (request_str("proceed")) {
 		$migratejobfile = "/tmp/vm_migrate_$rand.xml";
 		system("cp /usr/share/hamsta/xml_files/templates/vm-migration-template.xml $migratejobfile");
 		$args = "";
-		if ($domain_name)
-			$args .= " -n $domain_name";
+		if ($host_name){
+			#Translate hostname to mac
+			$migrate_machine = Machine::get_by_hostname($host_name);
+			$migrate_mac = $migrate_machine->get_unique_id();
+			$args .= " -m $migrate_mac";
+		}
 		if ($migrateeIP)
 			$args .= " -p $migrateeIP";
 		if ($livemigration == "yes")
@@ -89,7 +93,7 @@ if (request_str("proceed")) {
 			if (!$machine->send_job($migratejobfile)) {
 				$error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
 			} else {
-				Log::create($machine->get_id(), get_user_login ($user), 'VM-MIGRATION', "of domain $domain_name to remote host with IP $migrateeIP and live migration option as " . ($livemigration ? "yes" : "no") . "has been processed.");
+				Log::create($machine->get_id(), get_user_login ($user), 'VM-MIGRATION', "of host $host_name to remote host with IP $migrateeIP and live migration option as " . ($livemigration ? "yes" : "no") . "has been processed.");
 			}
 		}
 
