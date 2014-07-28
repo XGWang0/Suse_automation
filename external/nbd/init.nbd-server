@@ -1,0 +1,149 @@
+#!/bin/sh
+# /etc/init.d/nbd-server
+#   and its symbolic link
+# /usr)sbin/rcnbd-server
+#
+# Template system startup script for some example service/daemon FOO
+#
+# LSB compatible service control script; see http://www.linuxbase.org/spec/
+# 
+### BEGIN INIT INFO
+# Provides:          nbd-server
+# Required-Start:    $syslog $remote_fs
+# Should-Start: $time ypbind sendmail
+# Required-Stop:     $syslog $remote_fs
+# Should-Stop: $time ypbind sendmail
+# Default-Start:     3 5
+# Default-Stop:      0 1 2 6
+# Short-Description: nbd server
+# Description:       Start nbd server
+### END INIT INFO
+# 
+
+# Check for missing binaries (stale symlinks should not happen)
+# Note: Special treatment of stop for LSB conformance
+NBD_BIN=/usr/bin/nbd-server
+test -x $NBD_BIN || { echo "$NBD_BIN not installed"; 
+	if [ "$1" = "stop" ]; then exit 0;
+	else exit 5; fi; }
+
+# Check for existence of needed config file and read it
+NBD_CONFIG=/etc/nbd-server.conf
+NBD29_CONFIG=/etc/nbd-server/config
+test -r $NBD_CONFIG && { 
+	echo "$NBD_CONFIG: Using old style config file unsupported";
+}
+test -r $NBD29_CONFIG || {
+	echo "No config file $NBD29_CONFIG existing";
+	if [ "$1" = "stop" ]; then 
+		exit 0;
+	else
+		exit 6; 
+	fi;
+}
+
+# Shell functions sourced from /etc/rc.status:
+. /etc/rc.status
+
+# Reset status of this service
+rc_reset
+
+case "$1" in
+    start)
+	echo -n "Starting nbd-server "
+	## Start daemon with startproc(8). If this fails
+	## the return value is set appropriately by startproc.
+	startproc $NBD_BIN
+	rc_status -v
+	;;
+    stop)
+	echo -n "Shutting down nbd-server "
+	## Stop daemon with killproc(8) and if this fails
+	## killproc sets the return value according to LSB.
+	#killall ${NBD_BIN##*/}
+	$0 status >/dev/null 2>&1
+	stat=$?
+	if test $stat = 3; then echo -n " (not running) "; 
+	elif test $stat != 0; then echo -n " (dead) "; fi
+	killproc $NBD_BIN
+	# TODO: Only kill nbd-server processes started by config file.
+
+	# Remember status and be verbose
+	rc_status -v
+	;;
+    try-restart|condrestart)
+	## Do a restart only if the service was active before.
+	## Note: try-restart is now part of LSB (as of 1.9).
+	## RH has a similar command named condrestart.
+	if test "$1" = "condrestart"; then
+		echo "${attn} Use try-restart ${done}(LSB)${attn} rather than condrestart ${warn}(RH)${norm}"
+	fi
+	$0 status >/dev/null 2>&1
+	if test $? = 0; then
+		$0 restart
+	else
+		rc_reset	# Not running is not a failure.
+	fi
+	# Remember status and be quiet
+	rc_status
+	;;
+    restart)
+	## Stop the service and regardless of whether it was
+	## running or not, start it again.
+	$0 stop
+	$0 start
+
+	# Remember status and be quiet
+	rc_status
+	;;
+    force-reload)
+	## Signal the daemon to reload its config. Most daemons
+	## do this on signal 1 (SIGHUP).
+	## If it does not support it, restart the service if it
+	## is running.
+
+	echo -n "Reload service nbd-server "
+	## if it supports it:
+	#/sbin/killproc -HUP $NBD_BIN
+	#touch /var/run/nbd-server.pid
+	#rc_status -v
+
+	## Otherwise:
+	$0 try-restart
+	rc_status
+	;;
+    reload)
+	## Like force-reload, but if daemon does not support
+	## signaling, do nothing (!)
+	#$0 force-reload
+	#rc_status
+	
+	## Otherwise if it does not support reload:
+	echo -n "Reload service nbd-server "
+	rc_failed 3
+	rc_status -v
+	;;
+    status)
+	echo -n "Checking for service nbd-server "
+	## Check status with checkproc(8), if process is running
+	## checkproc will return with exit status 0.
+	checkproc $NBD_BIN
+	
+	# NOTE: rc_status knows that we called this init script with
+	# "status" option and adapts its messages accordingly.
+	rc_status -v
+	;;
+    probe)
+	## Optional: Probe for the necessity of a reload, print out the
+	## argument to this init script which is required for a reload.
+	## Note: probe is not (yet) part of LSB (as of 1.9)
+
+	test $NBD29_CONFIG -nt /var/run/nbd-server.pid && echo restart
+	#rc_failed 3
+	;;
+    *)
+	echo "Usage: $0 {start|stop|status|try-restart|restart|force-reload|reload|probe}"
+	exit 1
+	;;
+esac
+rc_exit

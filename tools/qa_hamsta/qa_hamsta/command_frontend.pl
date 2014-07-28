@@ -98,8 +98,8 @@ sub com_netcat() {
                 $sock->send($cmd);
             };
             if ($@) {
-                print "Message could not be send: $@ \n (Guess: Try another Master than
-                $master) \nAborting ! \n";
+                print "Message could not be sent. Reason: $@\n"
+		    . "Aborting now.\n";
                 exit(-1);
             }
         }
@@ -115,11 +115,12 @@ sub com_netcat() {
                     goto OUT;
                 }
             }
+
             $_ = $line;
 
             if ($_ eq '') {
-                print "Master $master possibly terminated our session. \n Please
-                restart ! \n Aborting! \n";
+                print "Master $master probably terminated our session.\n"
+		    . "Aborting now.\n";
                 exit(-1);
             }
             push @{$arr_ref}, $_;

@@ -1,0 +1,143 @@
+<?xml version="1.0"?>
+<job>
+    <!-- Main configuration section, applies to all SUTs -->
+    <config>
+
+        <!-- Following elements are only available in the global config -->
+
+        <!-- Job short name -->
+        <name>ping tidb.suse.de</name>
+
+        <!-- sender's mail, plus if notify at job's end -->
+        <mail notify="0">vmarsik@suse.cz</mail>
+
+        <!-- Job long description -->
+        <description>Test job - pinging tidb.suse.de 100 times.</description>
+
+        <!-- Following elements are also available in per-role configs -->
+
+        <!-- Log level: 0 (critical only), 1 (+errors), 2 (+warnings), 3 (+notices), 4 (+info), 5 (+details), or 6 (+debug) -->
+        <debuglevel>5</debuglevel>
+
+        <!-- Text into /etc/motd -->
+        <motd>Hamsta testjob - pinging tidb.suse.de</motd>
+
+        <!-- Add a repo to your system -->
+        <!-- <repository>http://fallback.suse.cz/install/SLP/SLE-11-SP3-SDK-LATEST/<repository> -->
+
+        <!-- Require a few RPMs, but do not update if they are already installed (default: update)  -->
+        <rpm update="0">awk</rpm>
+        <rpm update="0">coreutils</rpm>
+    </config>
+
+    <!-- Defining job parts -->
+    <parts>
+        <part id="1" name="init"/>
+        <part id="2" name="work"/>
+        <part id="3" name="cleanup"/>
+    </parts>
+
+    <!-- Job roles, e.g. client, server ... -->
+    <roles>
+        <!-- This defines first role, a server part in our case -->
+        <role name="server" num_min="1" num_max="1">
+
+            <!-- Local configuration for SUTs in that role -->
+            <!-- only some elements allowed here -->
+            <config>
+
+                <!-- RPM to install / update -->
+                <rpm>apache2</rpm>
+
+                <!-- Add a repo to your system -->
+                <!-- <repository>http://fallback.suse.cz/install/SLP/SLE-11-SP3-SDK-LATEST/<repository> -->
+
+                <!-- Log level: 0 (critical only), 1 (+errors), 2 (+warnings), 3 (+notices), 4 (+info), 5 (+details), or 6 (+debug) -->
+                <debuglevel>4</debuglevel>
+
+            </config>
+
+            <!-- Commands: first part for first role -->
+            <!-- If we specify 2 timeslots here, the part would run over clients' both init and work sections, but we don't need it here -->
+            <commands part_id="1" timeslots="1">
+
+                <!-- Worker is the main part, does the work itself -->
+                <worker>
+                    <command>#!/bin/sh
+                    echo Starting webserver
+                    rcapache2 start
+                    </command>
+                </worker>
+
+                <!-- Optional logger thread, is automatically terminated on worker finish -->
+                <logger>
+                    <command>tail -f /var/log/messages</command>
+                </logger>
+
+                <!-- Optional monitor thread, runs periodically -->
+                <monitor cycle_sec="60" cycle_count="10">
+                    <command>#!/bin/sh
+                    awk '/MemFree/ {print $2,$3;}' /proc/meminfo
+                    </command>
+                </monitor>
+            </commands>
+
+            <!-- Commands: third part for first role - we do nothing in second part -->
+            <commands part_id="3">
+                <worker>
+                    <command>#!/bin/sh
+                    echo Shutting down webserver
+                    rcapache2 stop
+                    </command>
+                </worker>
+            </commands>
+        </role>
+
+        <!-- Defining second role, a client -->
+        <role name="client" num_min="1">
+
+            <!-- Local configuration -->
+            <config>
+                <rpm>wget</rpm>
+            </config>
+
+            <!-- Commands: first part for second role -->
+            <commands part_id="1">
+                <worker>
+                    <command>#!/bin/sh
+                    echo Preparing test directory
+                    mkdir -p /tmp/testdir
+                    </command>
+                </worker>
+            </commands>
+
+            <!-- Commands: second part for second role -->
+            <commands part_id="2">
+                <worker>
+                    <command>#!/bin/sh
+                    cd /tmp/testdir
+                    for A in `seq 1 10`
+                    do
+                        time wget http://$ROLE_1_IP/ 2>>progress
+                    done
+                    </command>
+                </worker>
+            </commands>
+
+            <!-- Commands: third part for second role -->
+            <commands part_id="3">
+                <worker>
+                    <command>#!/bin/sh
+                    echo Finished - results are:
+                    cat /tmp/testdir/progress
+                    </command>
+                </worker>
+
+                <!-- Finish section - performed after main work -->
+                <finish>
+                    <command>rm -rf /tmp/testdir</command>
+                </finish>
+            </commands>
+        </role>
+    </roles>
+</job>

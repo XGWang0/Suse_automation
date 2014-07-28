@@ -34,7 +34,12 @@ use Time::HiRes qw(gettimeofday);
 use XML::Simple;
 use POSIX 'strftime';
 #use Math::Round;
-BEGIN { push @INC, '.', '/usr/share/hamsta/master', '/usr/share/qa/lib'; }
+BEGIN {
+    push @INC, '.', '/usr/share/hamsta/master', '/usr/share/qa/lib',
+    '/usr/share/hamsta';
+}
+
+use Hamsta;
 use log;
 
 # Master->write_to_file
@@ -146,6 +151,17 @@ sub read_xml($) # filename
 	return $ret if $ret;
 	&log( LOG_ERR, "Parsing XML '$fname' : $@" );
 	return undef;
+}
+
+# Returns an array containing version of this master
+sub get_master_version ()
+{
+    local $/ = undef;
+    my $version = '';
+    open (VERSION_FILE, Hamsta::HAMSTA_DIR . '/.version') or return '';
+    chomp ($version = <VERSION_FILE>);
+    close (VERSION_FILE);
+    return Hamsta::version_to_array ($version);
 }
 
 1;

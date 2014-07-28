@@ -36,6 +36,7 @@ use threads;
 use Config::IniFiles;
 use Digest::SHA1 qw(sha1_hex);
 use qaconfig;
+use functions;
 require sql;
 
 # Usual location of the Hamsta front-end configuration file
@@ -49,6 +50,11 @@ my $config_file_path = "/srv/www/htdocs/hamsta/config.ini";
 # Here we store user id. Value should be set only if the user is
 # authenticated.
 my $user_id;
+
+# This variable is used to mark changes in the command line
+# protocol. The version should be changed if the command line protocol
+# changes.
+my $protocol_version = 1;
 
 # Master->command_line_server()
 #
@@ -69,7 +75,7 @@ sub command_line_server() {
         # each client needs its own thread
         while(my $new_sock = $Socket->accept)
         {
-            my $thread = threads->new(\&thread_auswertung, $new_sock);
+            my $thread = threads->new(\&thread_evaluate, $new_sock);
 	    &log(LOG_NOTICE,"COMMAND_LINE_SERVER: Started new connection with thread id ".$thread->tid());
             $thread->detach();
 		    undef $thread;
@@ -87,37 +93,34 @@ sub command_line_server() {
 
 }
 
-# Master->thread_auswertung()
-#
-# this function is the first after a client connect (user connection)
-# so it checks (asks for) user/password and after holds the connection and loops
-# in the interaction between master und client
+# This function is executed when a client connects (user connection)
+# It holds the connection and loops in the interaction between master
+# and client.
 # TODO more debug information needed eg who is connected from where
+sub thread_evaluate () {
+	my $sock_handle = shift @_;
 
-sub thread_auswertung () {
-    my $sock_handle = shift @_;
+	local $SIG{'PIPE'} = 'IGNORE';
 
-    local $SIG{'PIPE'} = 'IGNORE';
+	my $version = join ('.', get_master_version ());
+	print $sock_handle "Welcome to HAMSTA (version $version) "
+	    . "(Hardware Maintenance, Setup and Test Automation) console. \n";
+	&sql_get_connection();
 
-    print $sock_handle "Welcome to HAMSTA (hardware maintenance and shared testautomation), console. \n";
-    &sql_get_connection();
+	while (1) {
+		print $sock_handle "\n\$>";
 
-    while (1) {
-        print $sock_handle "\n\$>";
+		if (eof($sock_handle)) {
+		    &log(LOG_DETAIL, "EOF received.");
+		    last;
+		}
 
-        if (eof($sock_handle)) {
+		$_ = <$sock_handle>;
+		s/\r?\n$//;
+		&parse_cmd($_, $sock_handle);
+	}
 
-            &log(LOG_DETAIL, "EOF received.");
-            last;
-
-        }
-
-        $_ = <$sock_handle>;
-        s/\r?\n$//;
-        &parse_cmd($_, $sock_handle);
-    }
-
-    close $sock_handle;
+	$sock_handle->close;
 }
 
 # Master->parse_cmd()
@@ -127,27 +130,24 @@ sub thread_auswertung () {
 sub parse_cmd() {
     my $cmd = shift @_;
     my $sock_handle = shift @_;
-    my $ips="";
-    
-    #verify the hostname & ip
-    if ($cmd =~ / ip ([^ ]+)/) {
-        my $host = $1;
-        my $mihash = &mih;
 
-	foreach ( split(/,/,$host)) {
-		if (defined($mihash->{$_})) {
-			my $ip = $mihash->{$_};
-			$ips = "$ips,$ip";
-		} else {
-			print $sock_handle "$_ Not Available\n";
-			goto SWSW;
-		}
+    #verify the hostname & ip
+    if ($cmd =~ / ip ([^ ]+) /) {
+        my $host = $1;
+        my $mihash = mih (MS_UP);
+	if (defined($mihash->{$host})) {
+	    my $ip = $mihash->{$host};
+	    $cmd =~ s/ ip [^ ]+ / ip $ip /;
+	} else {
+	    print $sock_handle "Hostname Not Available\n";
+	    goto SWSW;
 	}
-		$ips =~ s/^,//;
-		$cmd =~ s/ ip [^ ]+/ ip $ips/;
     }
 
     switch ($cmd) {
+	case /^version/			{ cmd_version ($sock_handle); }
+	case /^protocol version/	{ cmd_protocol_version ($sock_handle); }
+	case /^check version/		{ cmd_check_protocol_version ($sock_handle, $cmd); }
 	case /^(print|list) all/	{ cmd_print_all_machines ($sock_handle); }
         case /^(print|list) active/     { cmd_print_active($sock_handle); }
 #        case /^which job where/    	{ which_job_where(); }
@@ -175,13 +175,13 @@ sub parse_cmd() {
 	case /^(print|list) privileges/ { print_privileges ($sock_handle, $cmd); }
 	case /^can i/			{ print_can_user ($sock_handle, $cmd); }
 	case /^can send/		{ print_user_can_send_jobs ($sock_handle, $cmd); }
+	case /^(reserve|release) /	{ reserve_release ($sock_handle, $cmd); }
         case /^help/			{ cmd_help($sock_handle); }
         else {
             if ($cmd eq '') {
                 print $sock_handle "no command entered, try >help< \n";
             } else {
                 print $sock_handle "command not found, try >help< \n";
-
             }
         }
     }
@@ -197,6 +197,9 @@ sub cmd_help() {
 
     print "Following commands are available. 'list' can be used instead of 'print'.\n";
     print "syntax = 'command' : explanation \n";
+    print "\t 'version' : print master's version\n";
+    print "\t 'protocol version' : print master's protocol version\n";
+    print "\t 'check version <version>' : check if the master supports this protocol version\n";
     print "\t 'print status' : prints users status, reserved machines and possibly other information \n";
     print "\t 'log in <username> <password>' : authenticate the user (for this CLI session only) \n";
     print "\t 'log out' : log out from the Hamsta \n";
@@ -221,7 +224,31 @@ sub cmd_help() {
     print "\t 'send one line cmd ip <IP> <cmd> <Email> <Tag>' : submits the one line job to the IP (replace space with # in cmd)  \n";
     print "\t 'send job anywhere <file>' : submits the job to one of the available machines \n";
     print "\t 'print jobtype <number>' : lists available jobs of the given type (1 - pre-defined jobs, 2 - qa-package jobs, 3 - autotest jobs, 4 - multi-machine jobs) \n";
+    print "\t 'reserve <host> for user <login>' : Reserve machine (IP or name) for user identified by <login>";
+    print "\t 'release <host> for user <login>' : Release (unreserve) machine (IP or name) for user identified by <login>";
     print "\n end of help \n";
+}
+
+sub use_master_authentication ()
+{
+    return $qaconf{'hamsta_master_authentication'};
+}
+
+sub cmd_version ($) {
+    my $socket = shift;
+    my @version = get_master_version ();
+    if (@version) {
+	print $socket "HAMSTA Master version " . join ('.', @version);
+    } else {
+	log(LOG_ERROR, "Could not retrieve master version from file '"
+	    . Hamsta::HAMSTA_DIR . "/.version'");
+	print $socket "ERROR: Could not retrieve master version.";
+    }
+}
+
+sub cmd_protocol_version ($) {
+    my $socket = shift;
+    print $socket "HAMSTA Master protocol version $protocol_version";
 }
 
 # Master->cmd_print_active
@@ -238,10 +265,30 @@ sub cmd_print_active()  {
     }
 }
 
+sub cmd_check_protocol_version ($) {
+    my $sock_handle = shift;
+    my @cmd = split ' ', shift (@_);
+
+    if (@cmd == 3 and int($cmd[2]) <= $protocol_version) {
+	print $sock_handle "OK";
+    } else {
+	print $sock_handle "NOK";
+    }
+}
+
 #build machine ip hash
-sub mih() {
+sub mih {
+  my $machine_status = shift;
   my $miref = {};
-  my $machines = &machine_search('fields'=>[qw(ip name)],'return'=>'matrix','machine_status_id'=>MS_UP);
+  my $machines = undef;
+
+  if ($machine_status) {
+      $machines = machine_search('fields'=>[qw(ip name)],'return'=>'matrix',
+				 'machine_status_id'=>$machine_status);
+  } else {
+      $machines = machine_search('fields'=>[qw(ip name)],'return'=>'matrix');
+  }
+
   foreach my $machine (@$machines) {
     $miref->{$machine->[1]} = $machine->[0];
     $miref->{$machine->[0]} = $machine->[0];
@@ -251,7 +298,7 @@ sub mih() {
 
 sub cmd_print_groups() {
     my $sock_handle = shift @_;
-    my @groups = $dbc->enum_list_vals ('group');
+    my @groups = $dbc->enum_list_val ('group');
     local $" = "', '"; # Use this to interpolate list values
     print $sock_handle "There are following groups: '@groups'.\nEmpty groups are not listed below.\n\n";
     foreach my $group (@groups) {
@@ -423,7 +470,7 @@ sub create_group() {
 	else
 	{
 		&TRANSACTION( 'group' );
-		$dbc->enum_insert_id('group',$group);
+		$dbc->enum_insert('group',$group);
 		&TRANSACTION_END;
 
 		print $sock_handle "ADDED $group \n";
@@ -708,12 +755,10 @@ sub send_multi_job_to_host () {
     my $ref = &parse_xml($sock_handle, $mul_xml);
     return if( not defined $ref );
     # set the default values
-    my $hosts;
-    $hosts = join(',', @hosts);
     for my $host (@hosts) {
-    my $job_sid = &transaction($ref,$hosts,$mul_xml);
-    &log(LOG_INFO,"MASTER::FUNCTIONS cmdline Multi_Machine Job $mul_name send to scheduler, at $host internal id: $job_sid");
-    print $sock_handle "MASTER::FUNCTIONS cmdline Multi_Machine Job $mul_name send to scheduler, at $host internal id: $job_sid\n";
+      my $job_sid = &transaction($ref,$host,$mul_xml);
+      &log(LOG_INFO,"MASTER::FUNCTIONS cmdline Multi_Machine Job $mul_name send to scheduler, at $host internal id: $job_sid");
+      print $sock_handle "MASTER::FUNCTIONS cmdline Multi_Machine Job $mul_name send to scheduler, at $host internal id: $job_sid\n";
     }
     return;
 }
@@ -950,7 +995,6 @@ sub send_qa_package_job_to_host () {
     $qpt_name =~ s/#/ /g;
     my $host = $cmd_line[3];
 
-
     if (! can_send_job_to_machine ($host)) {
 	notify_about_no_privileges ($sock_handle, $user_id, $host);
 	return;
@@ -1033,8 +1077,6 @@ sub send_job_to_group() {
 }
 
 sub check_host() {
-    #duplicate with function &mih.
-    return 1;
     my $host = shift;
     unless ($host eq "none") {
         my @tmp_hosts = &machine_search('fields'=>['ip'], 'return'=>'vector');
@@ -1086,35 +1128,56 @@ sub nitoi(){
 # Checks the user exists in Hamsta and provides correct password.
 sub log_in ($$) # socket handle, command line
 {
-    my $sock_handle = shift;
-    # log in <login> <passwd>
-    my @cmd = split ' ', shift (@_);
-    unless (@cmd > 3) {
-	print $sock_handle "Not enough parameters. Try `help'.\n";
-	return 0;
-    }
-    my $login = $cmd[2];
-    my $passwd = $cmd[3];
-    my $local_user_id = user_get_id ($login);
+	my $sock_handle = shift;
+	# log in <login> [<passwd>]
+	my @cmd = split ' ', shift (@_);
+	my $use_auth = use_master_authentication ();
 
-    if ( defined ($local_user_id) ) {
-	my $db_passwd = user_get_password ($login);
-	# Sometimes we get the password sent already hashed (like from
-	# the Hamsta web)
-	if ( defined ($db_passwd)
-		 && (sha1_hex ($passwd) eq $db_passwd
-			 || $passwd eq $db_passwd) ) {
-	    $user_id = $local_user_id;
-	    print $sock_handle "You were authenticated as '${login}'."
-		. " Send your commands.\n";
-	    return 1;
+	my $login;
+	my $passwd;
+
+	if ($use_auth) {
+		unless (@cmd > 3) {
+			print $sock_handle "Not enough parameters. Try `help'.\n";
+			return 0;
+		} else {
+			$passwd = $cmd[3];
+		}
 	} else {
-	    print $sock_handle "Wrong password. Try again.\n";
+		unless (@cmd > 2) {
+			print $sock_handle "Not enough parameters. Try `help'.\n";
+			return 0;
+		}
 	}
-    } else {
-	print $sock_handle "Unknown Hamsta user '${login}'. Try again.\n";
-    }
-    return 0;
+
+	$login = $cmd[2];
+
+	if (my $local_user_id = user_get_id ($login)) {
+		if ($use_auth) {
+			if ($passwd) {
+				my $db_passwd = user_get_password ($login);
+				# The password can be hashed (Hamsta web) or plain
+				# text
+				if ($db_passwd && (sha1_hex ($passwd) eq $db_passwd
+								   || $passwd eq $db_passwd)) {
+					$user_id = $local_user_id;
+				}
+			}
+		} else {
+			# Authentication is disabled and the user can log in
+			# without password
+			$user_id = $local_user_id;
+		}
+	}
+
+	if ($user_id) {
+		print $sock_handle "You were authenticated as '${login}'."
+			. " Send your commands.\n";
+		return 1;
+	}
+
+	print $sock_handle "Could not authenticate. Check your credentials.\n";
+	return 0;
 }
 
 # Print status of current user, reserved machines and possibly other
@@ -1220,6 +1283,19 @@ sub is_allowed ($@) # user_id, privilege[s]
     return $privileged == scalar @privilege_names;
 }
 
+sub user_is_allowed ($@) {
+    my $local_user_id = shift;
+    my @privilege_names = shift;
+
+    return 1 unless use_master_authentication();
+
+    if (get_logged_status()) {
+	return is_allowed ($local_user_id, @privilege_names);
+    }
+
+    return 0;
+}
+
 # Logs and prints information that user does not have privileges.
 sub notify_about_no_privileges ($$$) # socket, user_id, host
 {
@@ -1230,11 +1306,6 @@ sub notify_about_no_privileges ($$$) # socket, user_id, host
     &log (LOG_NOTICE, "User '${login}' does not have privileges to send a job to '${host}'");
     print $socket_handle "You do not have privileges to send a job to '${host}'.\n"
 	. "Please provide your Hamsta password. You can set it at the Hamsta frontend (user page).\n";
-}
-
-sub use_master_authentication ()
-{
-    return $qaconf{'hamsta_master_authentication'};
 }
 
 sub print_user_can_send_jobs ($)
@@ -1277,6 +1348,153 @@ sub cmd_print_all_machines ($) # socket
     foreach (@{$machinesref}) {
 	printf $sock_handle "%15s : %15s : %s\n", ${$_}[0], ${$_}[1], ${$_}[2];
     }
-}	
+}
+
+# Parameters
+# socket
+# string reserve or release
+# machine id
+# user login
+# machine identification (hostname or IP address) for printing
+#
+# Returns:
+# 0 - for error (aka false)
+# 1 - for successfull reservation
+# 2 - for successfull release
+sub process_user_reservation ($$$$$)
+{
+    my $sock_handle = shift;
+    my ($action, $machine_id, $login, $identifier) = @_;
+    my $res = 0;
+
+    # Translate from login to user id
+    my $local_user_id = user_get_id ($login);
+    unless ($local_user_id) {
+	print $sock_handle "User $login does not exist.\n";
+	return $res;
+    }
+
+    if ($local_user_id) {
+	my $logged_user_has_reservation = user_has_reservation ($machine_id, $user_id);
+	my $user_has_reservation = user_has_reservation ($machine_id, $local_user_id);
+
+	switch ($action) {
+	    case 'reserve' {
+		log(LOG_INFO, "User $login requests reservation for machine $identifier");
+		# Allow reserving if the machine has no reservations
+		# or user is allowed to reserve already reserved
+		# machines
+		unless ((user_is_allowed ($user_id, 'machine_edit')
+			 and ($logged_user_has_reservation or not machine_reservations ($machine_id)))
+			or user_is_allowed ($user_id, 'machine_edit_reserved')) {
+		    print $sock_handle "You do not have privilege to reserve this machine.\n";
+		    return $res;
+		}
+
+		if ($user_has_reservation) {
+		    my $output = "User $login has machine $identifier reserved already.";
+		    log(LOG_INFO, $output);
+		    print $sock_handle "$output\n";
+		    return $res;
+		}
+
+		TRANSACTION('user_machine');
+		# TODO Add support for user notes and expire time
+		if (user_machine_insert ($machine_id, $local_user_id, '', undef)) {
+		    $res = 1;
+		    my $output = "Reserved machine $identifier for user $login.";
+		    log (LOG_INFO, $output);
+		    print $sock_handle "$output\n";
+		}
+		TRANSACTION_END();
+	    }
+
+	    case 'release' {
+		log(LOG_INFO, "User $login requests release of machine $identifier");
+		unless ((user_is_allowed ($user_id, 'machine_free')
+			 and ($logged_user_has_reservation)) 
+			or user_is_allowed ($user_id, 'machine_free_reserved')) {
+		    print $sock_handle "You do not have privileges to release (free) this machine.\n";
+		    return $res;
+		}
+
+		unless ($user_has_reservation) {
+		    my $output = "User $login has no reservation on machine $identifier.";
+		    log(LOG_INFO, $output);
+		    print $sock_handle "$output\n";
+		    return $res;
+		}
+
+		TRANSACTION('user_machine');
+		if (user_machine_delete ($machine_id, $local_user_id)) {
+		    $res = 2;
+		    my $output = "Released machine $login for user $login.";
+		    log (LOG_INFO, $output);
+		    print $sock_handle "$output\n";
+		}
+		TRANSACTION_END();
+	    }
+	}
+    }
+    return $res;
+}
+
+# Params: socket, command
+#
+# Expected commmand syntax:
+# (reserve|release) ([\w\d.-]+) for (user|master) ([\w\d.-]+)
+#
+# The second capture group contains machine hostname or IP
+# The last capture group is only for the user reservation.
+#
+sub reserve_release
+{
+    # The $cmd should contain
+    # 0 - 'reserve|release'
+    # 1 - hostname or IP address
+    # 2 - string 'for'
+    # 3 - 'user|master'
+    # 4 - user login or empty
+    my $sock_handle = shift;
+    my @cmd = split ' ', shift (@_);
+    my $output = '';
+
+    # Check we have at least the values we need
+    if (not @cmd or (@cmd < 4)) {
+	print $sock_handle 'Bad command syntax. Please fix your command and send it again.\n';
+	return;
+    }
+
+    my $machines = mih ();
+    # Translate from hostname or IP address to machine ID.
+    my $machine_ip = $machines->{$cmd[1]} ?
+	$machines->{$cmd[1]} : $cmd[1];
+    my $machine_id = machine_get_by_ip ($machine_ip);
+
+    unless ($machine_id) {
+	print $sock_handle, "Could not find the machine $cmd[1]\n";
+	return;
+    }
+
+    switch ($cmd[3]) {
+	case 'user' {
+	    if ($cmd[4]) {
+		process_user_reservation ($sock_handle, $cmd[0],
+					  $machine_id, $cmd[4],
+					  $cmd[1]);
+	    } else {
+		$output = "You have to specify the user.";
+	    }
+	}
+	case 'master' {
+	    # TODO code to reserve master goes here
+	    $output = 'Reserving for master is not implemented.';
+	}
+	else {
+	    $output = 'Reservation target can be only "user" or "master".'
+	}
+    }
+    print $sock_handle "$output\n" if $output;
+}
 
 1;

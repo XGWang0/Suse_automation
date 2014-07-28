@@ -45,9 +45,11 @@ use Proc::Fork;
 use POSIX;
 
 use Slave::Job::Notification;
+use Slave::Job::Kill;
+use Slave::functions qw(:DEFAULT @file_array);
+
 BEGIN { push @INC, '.', '/usr/share/hamsta', '/usr/share/qa/lib'; }
 use log;
-
 
 # Command->new($job)
 #
@@ -167,6 +169,21 @@ sub run {
         my ($thread) = threads->new(sub { $self->do_execution(); });
         $self->{'thread'} = $thread;
     }
+    # On job kill: perform kill section, perform abort section, finish
+    # it is just testing code here, only registered $SIG{TERM}
+    # If one day , we defined how to trigger this kill action
+    # we may modify this interface, considering END{}, $SIG{KILL}, $SIG{__DIE__}.
+    if ($self->{'type'} eq 'worker') {
+        $SIG{TERM} = sub {
+                        foreach my $cmd_string (@Slave::kill_buff) {
+                                 my $command = Slave::Job::Kill->new('kill', $cmd_string, $self);
+                                 push @{$self->{'command_objects'}}, $command;
+                                 &log(LOG_INFO, "Run kill section: $cmd_string->{'command'}->{'content'}");
+                                 $command->run();        
+                        }
+                        section_run($Slave::abort_section, $Slave::finish_section);
+        };
+    }
 }
 
 # Command->do_execution()
@@ -184,7 +201,9 @@ sub do_execution {
     my $script_name;
     
     # First of all, change to the right directory
-    $self->change_working_dir($self->{'data'}->{'directory'}->{'content'});
+    if ( $self->{'data'}->{'directory'}->{'content'} ) {
+	$self->change_working_dir($self->{'data'}->{'directory'}->{'content'});
+    }
 
     # Check if the command is a script or a single line
     # Scripts are written to a temporary file before execution
@@ -280,6 +299,11 @@ sub do_execution {
     if ($self->{'type'} eq 'worker') {
 	my $return_value = $? ;
         &log(LOG_RETURN, $return_value?"$return_value (".$self->{'data'}->{'name'}->{'content'}.')':"$return_value");
+
+        # After worker finished, run finish section.
+    	&log(LOG_INFO,"worker finished");
+    	section_run($Slave::finish_section);
+        unlink $Slave::abort_section; 
     }
 
     # Clean up temporary script file

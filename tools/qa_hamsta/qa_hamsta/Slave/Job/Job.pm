@@ -1,6 +1,6 @@
 # ***************************************************************************
 # Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
-# 
+#
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
 # RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
@@ -11,7 +11,7 @@
 # PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
 # AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
 # LIABILITY.
-# 
+#
 # SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
 # WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
@@ -37,6 +37,9 @@ use Slave::Job::Worker;
 use Slave::Job::Monitor;
 use Slave::Job::Logger;
 use Slave::Job::Notification;
+use Slave::Job::Finish;
+use Slave::Job::Abort;
+use Slave::Job::Kill;
 use Slave::functions qw(:DEFAULT @file_array);
 
 BEGIN { push @INC, '.', '/usr/share/hamsta', '/usr/share/qa/lib'; }
@@ -61,11 +64,11 @@ use log;
 sub new {
     my $classname = shift @_;
 	my $xmlfile = shift @_;
-    
+
 	# Create the object
     my $self = {};
     bless($self, $classname);
-    
+
     # Read the XML file
     &log( LOG_INFO, "Reading XML file $xmlfile" );
     $self->{'data'} = &read_xml($xmlfile,1);
@@ -95,7 +98,7 @@ sub destroy {
         &log(LOG_DETAIL, "Stopping command ".$command->{'data'}->{'name'}->{'content'});
         $command->stop();
     }
-    
+
     &log(LOG_DETAIL, "Stopping UserLogging");
     Slave::Job::UserLogging::stop($self->{'user_logging'});
 
@@ -107,7 +110,7 @@ sub destroy {
     }
 
     # TODO Kill all subprocesses
-    
+
     # Clean up /etc/motd
     if (defined($self->{'motd_id'})) {
         $self->clear_motd();
@@ -116,7 +119,7 @@ sub destroy {
     foreach my $file (@file_array){
         unlink $file if -f $file;
     }
-    
+
     return $self->get_xml_log();
 }
 
@@ -157,6 +160,7 @@ sub clear_motd
 sub run {
     my $self = shift;
     my @workers = ();
+    my $buffer;
 
     $self->clear_motd();
     # Add lines to /etc/motd if requested
@@ -206,7 +210,7 @@ sub run {
         }
 
         foreach my $commandstring (@$commandstrings) {
-            
+
             # Loggers and monitors are started immediately,
             # workers are queued and started when all loggers and
             # monitors are running
@@ -214,38 +218,65 @@ sub run {
             my $command;
 
             if ($type eq 'worker') {
-                
+
                 $command = Slave::Job::Worker->new($type, $commandstring, $self);
                 push @workers, $command;
-                
+
             } elsif ($type eq 'logger') {
-                
+
                 $command = Slave::Job::Logger->new($type, $commandstring, $self);
                 push @{$self->{'command_objects'}}, $command;
                 $command->run();
-                
+
             } elsif ($type eq 'monitor') {
-                
+
                 $command = Slave::Job::Monitor->new($type, $commandstring, $self);
                 push @{$self->{'command_objects'}}, $command;
                 $command->run();
-                
+
+            } elsif ($type eq 'finish') {
+
+                push @{$buffer->{$Slave::finish_section}}, $commandstring;
+
+            } elsif ($type eq 'abort') {
+
+                push @{$buffer->{$Slave::abort_section}}, $commandstring;
+
+            } elsif ($type eq 'kill') {
+
+                push @Slave::kill_buff, $commandstring;
+
             } else {
                 die "Unknown command type: $type";
             }
 
         }
-        
+
+    }
+
+	# Before job start: remove sections from disk,
+	# write finish and abort sections to disk, keep kill section in memory.
+	foreach ( ($Slave::finish_section,$Slave::abort_section) ) {
+		unlink $_ or warn "Can not clean $_ from disk!" if ( -e $_ );
+		if ($buffer->{$_}) {
+			open SEC_FILE, ">$_" or die "Can not create file $_";
+			foreach my $cmd (@{$buffer->{$_}}) {
+				my $xml_out = XMLout($cmd);
+				print SEC_FILE $xml_out."\n";
+			}
+			close SEC_FILE;
+		}
     }
 
     foreach my $worker (@workers) {
         unshift @{$self->{'command_objects'}}, $worker;
         $worker->run();
     }
+
 }
 
 # Job->start_user_logging()
-# 
+#
 # Starts a thread to monitor the logged in users
 sub start_user_logging() {
     my $self = shift @_;
@@ -253,7 +284,7 @@ sub start_user_logging() {
 }
 
 # Job->get_xml_log()
-# 
+#
 # Returns a XML string describing the result of the job execution, i.e. the
 # whole $self->data tree converted to XML.
 sub get_xml_log() {

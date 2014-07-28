@@ -295,7 +295,11 @@ function task_icon($a,$ref=0)
 	$icon['name'] = $a['name'];
 
 	if (! $ref) {
-		$icon = html_tag('a', icon ($icon), array('href'=>$a['url']));
+		if (empty ($a['url'])) {
+			$icon = icon ($icon);
+		} else {
+			$icon = html_tag('a', icon ($icon), array('href'=>$a['url']));
+		}
 	} else {
 		$icon['href']=$a['url'];
 	}
@@ -432,17 +436,65 @@ function virtual_machine_icons ($machine, $user)
 	return $ret;
 }
 
-function redirect($errmsg=NULL,$success=false,$url=NULL)
+function job_icons ($xml_web_path, $machines_list, $custom = false,
+					$allowed = true) {
+	$ret = '';
+	$config = ConfigFactory::build ();
+	/* Strip the root web XML directory. The edit and delete buttons
+	 * only refer to the relative path under this directory. */
+	$xml_web_root = $config->xml->dir->web->default;
+	$relative_xml_path = str_replace ($xml_web_root . '/', '', $xml_web_path);
+
+	$basename = basename ($xml_web_path);
+	$jobname = basename ($xml_web_path, '.xml');
+	$machines_ids = join (',', array_keys ($machines_list));
+
+	$icons = array (
+		'view-xml' => array (
+				'url'			=> $xml_web_path,
+				'type'			=> 'xml',
+				'fullname'		=> "View the XML job definition"),
+		'edit' => array (
+				'url'			=> "index.php?go=edit_jobs"
+								. "&file=$relative_xml_path&"
+								. "opt=edit&machine_list=$machines_ids",
+				'type'			=> 'edit',
+				'fullname'		=> 'Edit the job definition.',
+				'err_noperm'	=> 'You are not allowed to edit'
+										. ' the job definition.',
+				'allowed'		=> $allowed)
+		);
+
+	if ($custom) {
+		$icons['delete'] = array (
+				'type'			=> 'delete',
+				'fullname'		=> 'Delete the custom job definition.',
+				'err_noperm'	=> 'You are not allowed to delete'
+										. ' the job definition.',
+				'allowed'		=> $allowed);
+		if ($allowed) {
+			$icons['delete']['url'] = "index.php?go=machine_send_job&"
+					. "file=$relative_xml_path&opt=delete&"
+					. "machine_list=$machines_ids";
+		}
+	}
+
+	foreach ($icons as $icon) {
+		$ret .= task_icon ($icon);
+	}
+
+	return $ret;
+}
+
+function redirect ($args = array())
 {
-	if(empty($errmsg))
-	    $errmsg='You need to be logged in and/or have permissions ';
-	if(empty($url))
-	    $url='index.php';
-	var_dump($errmsg);
-	if($success)
-	    success($errmsg);
-	else
-	    fail($errmsg);
+	$errmsg=hash_get($args,'errmsg','You need to be logged in and/or have permissions ');
+	$url=hash_get($args,'url','index.php');
+	if (! empty($args['succmsg'])) {
+		success ($args['succmsg']);
+	} else {
+		fail ($errmsg);
+	}
 	header("Location: $url");
 	exit();
 }
@@ -500,5 +552,23 @@ function confirm_alert ($msg = null) {
 	}
 	return $msg . PHP_EOL;
 }
+
+/* Returns the SimpleXMLElement object from the path in
+ * parmater. Checks if the path exists and is a file. Returns FALSE on
+ * error. */
+function get_xml_file ($path) {
+	if (is_file ($path)
+		&& pathinfo ($path, PATHINFO_EXTENSION) == 'xml') {
+		/* Avoid getting warnings and check the return status. */
+		return @simplexml_load_file ($path);
+		
+	}
+	return FALSE;
+}
+
+/* This function is logical negation of the empty() function. */
+function filter ($var) {
+	return ! empty ($var);
+} 
 
 ?>

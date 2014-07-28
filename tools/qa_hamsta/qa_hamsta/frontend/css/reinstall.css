@@ -53,6 +53,14 @@ input.x {
   font-weight: bold;
 }
 
+.breadcrumb_bottom {
+  position: absolute;
+  text-align: right;
+  margin: 1.5em 0 0 -1em;
+  white-space: nowrap;
+}
+
+
 /* tabs - credits to css-tricks.com */
 div.tabs{
   margin-top: 3em;
@@ -103,7 +111,7 @@ div.breadcrumb label, input[type="radio"]+label, label:first-child {
 }
 
 input[type="text"].url  {
-  width : 20em;
+  width : 35em;
   
 }
 input[type="text"].regprefix  {
@@ -111,6 +119,15 @@ input[type="text"].regprefix  {
 }
 input[type="text"].regcode  {
   width:6em;
+}
+input[type="text"].additionalpatterns  {
+  width:25em;
+}
+input[type="text"].additionalrpms  {
+  width:25em;
+}
+input[type="text"].installopts  {
+  width:25em;
 }
 input[required]   {
   box-shadow: 0px 0px 3px #f00;
@@ -134,13 +151,17 @@ input#repartitiondisk {
   min-width:2em !important;
 }
 
+/* Commented because it did not look nice with options and it is not
+ * really needed. */
 /* add ':' after relevant labels */
-div.content label:after,
-div.content>span.first:after,
-fieldset>span:after {
-  content:':';
-}
+/* div.content label:after, */
+/* div.content>span.first:after, */
+/* fieldset>span:after { */
+/*   content:':'; */
+/* } */
+
 div.breadcrumb label:after,
+div.breadcrumb_bottom label:after,
 input[type="radio"] + label:after,
 input[type="checkbox"] + label:after,
 div.addon_btns label:after {

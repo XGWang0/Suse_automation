@@ -1,7 +1,7 @@
-#!/usr/bin/perl -w 
+#!/usr/bin/perl -w
 # ****************************************************************************
 # Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
-# 
+#
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
 # RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
@@ -12,7 +12,7 @@
 # PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
 # AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
 # LIABILITY.
-# 
+#
 # SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
 # WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
@@ -23,10 +23,9 @@
 # ****************************************************************************
 
 # This is the Slave Network interface.
-# 
 package Slave;
 
-use warnings; 
+use warnings;
 use strict;
 use vars qw(@ISA);
 
@@ -52,6 +51,11 @@ use Slave::stats_xml;
 use Slave::rsv_rls('&allow_connection','&reserve','&release');
 use Slave::Multicast::mcast;
 use Slave::functions;
+use Slave::Job::Command;
+
+use constant {
+    RFINISH => "Job ist fertig\n",
+};
 
 require 'Slave/config_slave.pm';
 
@@ -71,7 +75,7 @@ if ($> != 0) {
 
 # If the running slave has already sent a hwinfo output, $sent_hwinfo contains
 # the timestamp when it was sent. When a request for hwinfo is received and
-# $sent_hwinfo != 0, send a "nothing changed" message instead of running 
+# $sent_hwinfo != 0, send a "nothing changed" message instead of running
 # hwinfo over and over again.
 my $sent_hwinfo = 0;
 
@@ -93,7 +97,7 @@ $log::loglevel=$Slave::debug;
 # both the PreFork-Server and the multicast module will hang, leaving
 # the process run by the backtick operator as a zombie.
 #
-# If you don't do the fork, it may work often and on some machines the 
+# If you don't do the fork, it may work often and on some machines the
 # problem won't occur ever. This does not mean the problem is gone. If
 # you remove the forking again, the code will probably be broken on some
 # machines.
@@ -135,116 +139,79 @@ use constant JOB_LOG_FILE => "/var/log/hamsta-job.log";
 # This process continues untils the job child proc finishes and all logs are transmitted back to the 
 # reserved master via socket connection.
 
-child {
-    $log::loginfo='hamsta-server';
-    $0 .= ' server';
-    &log(LOG_INFO, "Starting server");
+#monitor for IP change.
+my $sleep_s=300;
 
-    open(STDOUT_ORG, ">&STDOUT");
-    STDOUT_ORG->autoflush(1);
-    &log_set_output(handle=>*STDOUT_ORG,close=>1);
-    our $job_sock_stat = 'normal';#normal or abnormal
-    our $sock_broken_job_proc = '';
-    #create socket pair for communication between job child and parent process
-    while(1){
-        unless(socketpair(JOB_CHILD, JOB_PARENT, AF_UNIX, SOCK_STREAM, PF_UNSPEC)){
-	    log(LOG_ERR,"Socketpair creation for JOB_CHILD and JOB_PARENT processes failed!");
-	    sleep 1;
-            next;
-	}
-	#Set to non-blocking
-	my $flags = fcntl(JOB_CHILD, F_GETFL, 0);
-	fcntl(JOB_CHILD, F_SETFL, $flags | O_NONBLOCK);
-	undef $flags;
-	$flags = fcntl(JOB_PARENT, F_GETFL, 0);
-	fcntl(JOB_PARENT, F_SETFL, $flags | O_NONBLOCK);
-
-	JOB_CHILD->autoflush(1);
-	JOB_PARENT->autoflush(1);
-	last;
-    }
-    run_slave_server();
-}
-parent {
-    $slave_pid=shift;
-}
-;
-
-
-# Start the multicast announcement as a new thread
-# my $mcast_thread =threads->new(sub {system("/usr/bin/perl mcast.pm");});
-child {
-        $log::loginfo = 'hamsta-multicast';
-        $0 .= ' multicast';
-&log(LOG_INFO,"Starting multicast thread");
-&Slave::Multicast::run();
-}
-parent {
-    $multicast_pid=shift;
-};
 
 $log::loginfo = 'hamsta';
 
+# On Hamsta startup: perform abort section, finish (i.e. perform finish section + remove sections from disk)
+section_run($Slave::abort_section, $Slave::finish_section);
+
 while(1){
-    my $sleep_s=300;
     my $current_ip=&get_slave_ip($Slave::multicast_address);
-    if($last_ip ne $current_ip ){
-      if(! &chk_run ) { 
-	kill 9,$slave_pid,$multicast_pid;
-	sleep(1);
-	waitpid $slave_pid, 0;
-	waitpid $multicast_pid, 0;
-	&log(LOG_ERR,"Multicast died");
-	&log(LOG_ERR,"slave server died");
-	$last_ip=$current_ip;
-	sleep 5;
-	child {
-              $log::loginfo='hamsta-server';
-              $0 .= ' server';
-	      &log(LOG_INFO, "Starting server");
-              open(STDOUT_ORG, ">&STDOUT");
-	      STDOUT_ORG->autoflush(1);
-	      &log_set_output(handle=>*STDOUT_ORG,close=>1);
-              our $job_sock_stat = 'normal';#normal or abnormal
-              our $sock_broken_job_proc = '';
-              while(1){
-                  unless(socketpair(JOB_CHILD, JOB_PARENT, AF_UNIX, SOCK_STREAM, PF_UNSPEC)){
-                      log(LOG_ERR,"Socketpair creation for JOB_CHILD and JOB_PARENT processes failed!");
-		      sleep 1;
-                      next;
-		  }
-		  
-                  #Set to non-blocking
-                  my $flags = fcntl(JOB_CHILD, F_GETFL, 0);
-                  fcntl(JOB_CHILD, F_SETFL, $flags | O_NONBLOCK);
-                  undef $flags;
-                  $flags = fcntl(JOB_PARENT, F_GETFL, 0);
-                  fcntl(JOB_PARENT, F_SETFL, $flags | O_NONBLOCK);
-
-		  JOB_CHILD->autoflush(1);
-                  JOB_PARENT->autoflush(1);
-          	  last;
-              }
-	      run_slave_server();
-	}
-	parent {
-		    $slave_pid=shift;
-	}
-	;
-	child {
-                $log::loginfo = 'hamsta-multicast';
-                $0 .= ' multicast';
-		&log(LOG_INFO,"Starting multicast thread");
-		&Slave::Multicast::run();
-	}
-	parent {
-		    $multicast_pid=shift;
-	};
-
+    if( $last_ip ne $current_ip or !$slave_pid ) {
+      if( ($last_ip ne $current_ip) and !&chk_jobrun ) {
+	  kill 9,$slave_pid,$multicast_pid;
+	  sleep(1);
+	  waitpid $slave_pid, 0;
+	  waitpid $multicast_pid, 0;
+	  &log(LOG_ERR,"Multicast died");
+	  &log(LOG_ERR,"slave server died");
+	  $last_ip=$current_ip;
+	  sleep 5;
       }
-      $sleep_s=600;
+      child {
+        # setup logs
+        $log::loginfo='hamsta-server';
+        $0 .= ' server';
+        &log(LOG_INFO, "Starting server");
+        open(STDOUT_ORG, ">&STDOUT");
+        STDOUT_ORG->autoflush(1);
+        &log_set_output(handle=>*STDOUT_ORG,close=>1);
+
+        # init the connection resuming mechanism
+        our $job_sock_stat = 'normal';#normal or abnormal
+        our $sock_broken_job_proc = '';
+        while(1){
+            unless(socketpair(JOB_CHILD, JOB_PARENT, AF_UNIX, SOCK_STREAM, PF_UNSPEC)){
+                log(LOG_ERR,"Socketpair creation for JOB_CHILD and JOB_PARENT processes failed!");
+                sleep 1;
+                next;
+            }
+            
+            #Set to non-blocking
+            my $flags = fcntl(JOB_CHILD, F_GETFL, 0);
+            fcntl(JOB_CHILD, F_SETFL, $flags | O_NONBLOCK);
+            undef $flags;
+            $flags = fcntl(JOB_PARENT, F_GETFL, 0);
+            fcntl(JOB_PARENT, F_SETFL, $flags | O_NONBLOCK);
+
+            JOB_CHILD->autoflush(1);
+            JOB_PARENT->autoflush(1);
+            last;
+        }
+
+        # run communication server
+        run_slave_server();
+      }
+      parent {
+        $slave_pid=shift;
+      }
+      ;
+      child {
+        $log::loginfo = 'hamsta-multicast';
+        $0 .= ' multicast';
+        &log(LOG_INFO,"Starting multicast thread");
+        &Slave::Multicast::run();
+      }
+      parent {
+        $multicast_pid=shift;
+      };
+
+    $sleep_s=600;
     }
-      sleep($sleep_s);
+    sleep($sleep_s);
 }
 
 # Should be never reached
@@ -253,26 +220,41 @@ while(1){
 #
 # Listens for incoming connections on the slave_port and forwards
 # requests to process_request.
-# 
-sub chk_run() {
-  open my $sub_p,"pstree $slave_pid |" or return 0;
-  my @pstreeo = <$sub_p>;
-  close $sub_p;
-  return 1 if(grep { /\-/ } @pstreeo);
+
+#make sure No job is running when need to restart the process.
+
+sub chk_jobrun() {
+  my $job_sub = `ps --ppid $slave_pid|wc -l`;
+  return 1 if ( $job_sub > 1 );
   return 0 ;
 }
 
+#Reinstall job will reboot here
+
+sub reinst_grub() {
+  my $sock = shift;
+  print $sock RFINISH;
+  close($sock)
+  &command("reboot");
+}
+
+sub reinst_kexec() {
+  my $sock = shift;
+  print $sock RFINISH;
+  close($sock)
+  &command("/sbin/kexec -e");
+}
 
 # runs slave server, binds to port, responds to connections
 sub run_slave_server() {
     my $socket = new IO::Socket::INET(
         LocalPort => $Slave::slave_port,
-        Proto     => 'tcp', 
+        Proto     => 'tcp',
         Listen    => 1,
         Timeout   => undef,
         Reuse     => 1,
     );
-    
+
     my ($connection,$ip_addr);
     while(1) {
         eval {
@@ -286,7 +268,6 @@ sub run_slave_server() {
 	    ($port,$iaddr)=sockaddr_in($paddr);
 	    $ip_addr = inet_ntoa($iaddr);
             &log(LOG_NOTICE,"Connection established from $ip_addr");
-            
             $SIG{'PIPE'} = 'IGNORE';
 
             if ( &allow_connection($ip_addr) ){
@@ -306,12 +287,11 @@ sub run_slave_server() {
             }
         };  
         if ($@) {
-            &log(LOG_ERROR, "$@ Will retry."); 
+            &log(LOG_ERROR, "$@ Will retry.");
             sleep 5;
-            
             $socket = new IO::Socket::INET(
                 LocalPort => $Slave::slave_port,
-                Proto     => 'tcp', 
+                Proto     => 'tcp',
                 Listen    => 1,
                 Timeout   => undef,
                 Reuse     => 1,
@@ -319,7 +299,6 @@ sub run_slave_server() {
 
             next;
         }
-            
         if (defined($connection)) {
             close($connection);
         }
@@ -395,7 +374,8 @@ sub handle_connection_recovery(){
 				chomp $msg_from_job_child;
 				log(LOG_DETAIL, "Slave-server:: sent back to master in-time log: $msg_from_job_child");
 				print $sock $msg_from_job_child."\n";
-				last if ($msg_from_job_child =~ /Job ist fertig/);
+				$rfinish = RFINISH;
+				last if ($msg_from_job_child =~ /$rfinish/);
 			}else{
 				sleep 1;
 			}
@@ -416,7 +396,7 @@ sub handle_connection_recovery(){
 #
 # There are the following types of messages:
 #
-# * set_time: <time string> 
+# * set_time: <time string>
 #   Sets the slave's date. <time string> is passed to date -s.
 #
 # * get_hwinfo [fresh]
@@ -426,25 +406,20 @@ sub handle_connection_recovery(){
 #	changed since the last query.
 #
 # * get_stats
-#       Returns a hash containing the stats of (Virtualization) host, 
+#       Returns a hash containing the stats of (Virtualization) host,
 #       serialized in XML. If machine is not virtualization host,
 #       only limited information is returned. If machine is VH, also
 #       list of VMs is returned.
 #
 # * ping
 #	Returns the String "pong"
-# * reserve
-#	Return the string whether reservation is successful,"Reservation succeeded/failed.".
-#
-# * release
-#	Return the string whether release is successful, "Release succeeded/failed."
 #
 # * Anything else is treated as XML serialized job description
 #	TODO Better add a header line or something to get rid of this
-# 	error prone "anything else"
+#	error prone "anything else"
 #
 
-# This sub was designed to get the incoming data on STDIN by 
+# This sub was designed to get the incoming data on STDIN by
 # Net::Server::PreFork and sending outgoing data on STDOUT. Therefore
 # outdated things like STDOUT_ORG are used.
 
@@ -456,18 +431,18 @@ sub process_request {
 
         STDOUT->autoflush(1);
 
-        while( <$sock> ){
+        while( <$sock> ) {
             s/\r?\n$//;
             my $incoming = $_ ;
-	    &log(LOG_INFO, "[$ip_addr] IN: ".$incoming);
+	        &log(LOG_INFO, "[$ip_addr] IN: ".$incoming);
 
             if ($incoming =~ /^set_time:/ ) {
                 (my $a,my $time_utc) = split (/^set_time:/,$incoming);
                 eval {
-                    my $return_shell = `LANG= /bin/date --set="$time_utc"`; 
+                    my $return_shell = `LANG= /bin/date --set="$time_utc"`;
                 };
             } elsif ($incoming =~ /^get_hwinfo( fresh)?$/) {
-                eval { 
+                eval {
                     print $sock uri_escape(&get_hwinfo_xml());
                 };
                 if ($@) {
@@ -475,16 +450,16 @@ sub process_request {
                 }
                 &log(LOG_NOTICE, "[$ip_addr] Sent hwinfo.");
                 $sent_hwinfo = time;
-		last;
+		        last;
             } elsif ($incoming =~ /^get_stats$/) {
-                eval { 
+                eval {
                     print $sock uri_escape(&get_stats_xml());
                 };
                 if ($@) {
                     &log(LOG_ERROR, $@);
                 }
                 &log(LOG_NOTICE, "[$ip_addr] Sent machine stats.");
-		last;
+		        last;
             } elsif ($incoming =~ /^ping$/) {
                 print $sock "pong\n" ;	
 		last;
@@ -498,22 +473,22 @@ sub process_request {
 		last;
 	    } else {
                 my $job = $incoming."\n";
-		&log(LOG_NOTICE, "[$ip_addr] Start of XML job");
+		        &log(LOG_NOTICE, "[$ip_addr] Start of XML job");
                 while ($incoming = <$sock>) {
-		    chomp $incoming;
-		    &log(LOG_DETAIL, "XML:".$incoming);
-                    $job = $job . $incoming . "\n";
+		        chomp $incoming;
+		        &log(LOG_DETAIL, "XML:".$incoming);
+			$job = $job . $incoming . "\n";
 
-                    last if ($incoming =~ /<\/job>/);
-                    last if ($incoming =~ /%3C\/job%3E/);
+			last if ($incoming =~ /<\/job>/);
+			last if ($incoming =~ /%3C\/job%3E/);
                 }
                 &start_job($job, $sock, $ip_addr);
-		last;
+		        last;
             }
         }
     };
 
-    if( $@ ){
+    if( $@ ) {
         &log(LOG_ERROR, $@);
         return;
     }
@@ -525,11 +500,11 @@ sub process_request {
 # Starts the execution of the job described by $xml_job
 # The output of the job is forwarded to the master
 sub start_job() {
-    my ($xml_job, $sock, $ip_addr) = @_; 	
+    my ($xml_job, $sock, $ip_addr) = @_;
 
     # If the incoming data is uri_escaped (should be), unescape it
     if ($xml_job =~ /\%3Cjob$/) {
-        $xml_job = uri_unescape($xml_job); 
+        $xml_job = uri_unescape($xml_job);
     } else {
         &log(LOG_DETAIL, "start_job(): Received non-escaped data");
     }
@@ -541,7 +516,7 @@ sub start_job() {
             "(xml -> perl). Please have a look! Received message: ".
             ">>$xml_job<<");
         return 0;
-    } 
+    }
 
     &log(LOG_NOTICE, "Starting job.");
 
@@ -574,8 +549,8 @@ sub start_job() {
 	close JOB_PARENT;
 
 	&command("/usr/share/qa/tools/sync_qa_config $ip_addr");
-        my $pid_main = open (FILE, "/usr/bin/perl Slave/run_job.pl $filename 2>&1|");
-        my $count = 0;
+	my $pid_main = open (FILE, "/usr/bin/perl Slave/run_job.pl $filename 2>&1|");
+	my $count = 0;
 	my $msg_from_parent;
 	our $job_log_fh;
 	my $log_line;
@@ -583,7 +558,17 @@ sub start_job() {
 	    chomp $log_line;
 	    #bug 615911
 	    next if ($log_line =~ /A thread exited while \d+ threads were running/);
-            &log(LOG_DETAIL, '%s', $log_line);
+	    #reinstall job will reboot the machine
+	    if( $log_line =~ m@RETURN\s+(\d+)\s+\(/usr/share/qa/tools/setupgrubforinstall(.*)@ ) {
+		my $ret = $1;
+		my $cmdopt = $2;
+		print $sock $log_line."\n";
+		if( $ret == 0 ) {
+		    &reinst_kexec($sock) if( grep(/kexecboot/,$cmdopt) );
+		    &reinst_grub($sock);
+		}
+	    }
+	    &log(LOG_DETAIL, '%s', $log_line);
 
 	    #check msg from parent whether job sock connection restored
 	    if(read(JOB_CHILD,$msg_from_parent,1024)){
@@ -632,19 +617,19 @@ sub start_job() {
 		    }
 	    }
 
-            $count++ if ($_ =~/\<job\>$/ );
-            last if ($count == 2);
-        }
+	    $count++ if ($_ =~/\<job\>$/ );
+	    last if ($count == 2);
+	}
 	close FILE;
 	&log(LOG_NOTICE, "Job finished.");
 	&log(LOG_INFO, "job sock stat is : $job_sock_stat");
 	if ($job_sock_stat eq 'recovered'){
-		print JOB_CHILD "Job ist fertig\n";
+		print JOB_CHILD RFINISH."\n";
 	}elsif($job_sock_stat eq 'abnormal'){
-		print $job_log_fh "Job ist fertig\n" || log(LOG_ERROR, "Print to log file failed: Job ist fertig");
+		print $job_log_fh RFINISH."\n" || log(LOG_ERROR, "Print to log file failed: ".RFINISH);
 		close $job_log_fh;
 	}else{
-		print $sock "Job ist fertig\n";
+		print $sock RFINISH."\n";
 	}
 	&log(LOG_INFO, "Job ist ferting is logged!");
 
@@ -654,70 +639,70 @@ sub start_job() {
 	unlink $filename;
 	$SIG{'PIPE'} = 'IGNORE';
 	close JOB_CHILD;
+
 	exit;
     }elsif($fork_re){
-	log(LOG_INFO,"The job child process id is : $fork_re !");
-	#in parent we start to check child is finish or not;
-        my $qa_package_jobs = `grep '\./customtest ' $filename`;
-        chomp $qa_package_jobs;
-        if($qa_package_jobs){
-            $qa_package_jobs =~ s/.*customtest //;
-            my @qa_package_jobs = split /\s+/,$qa_package_jobs;
-            for my $j (@qa_package_jobs) {
-                $j =~ s/qa_//;$j =~ s/$/-run/;
-    	        my $time_o = `grep 'sut_timeout ' /usr/share/qa/tools/$j`;
-	        chomp $time_o;
-	        $time_o =~ s/#sut_timeout //;
-		$time_o =~ s/\D+//g;
-	        if ($time_o){
-			&log(LOG_NOTICE, "Found package $j timeout $time_o (s)");
-			$sut_timeout += $time_o ;
-		} else {
-        		&log(LOG_NOTICE, "Can not found package $j timeout ,use 86400 (s)");
-			$sut_timeout += 86400;  #24hours
-		}
-            }
-        }else {
-		# we do not limit the job which is not qa_package,set to a very large number.
-		$sut_timeout = 8640000;
-	}
-        &log(LOG_NOTICE, "The Job Time out is $sut_timeout (s)");
-
-	my $current_time=0;
-	my $msg_from_job_child;
-	while ($current_time < $sut_timeout) {
-	    goto OUT if(waitpid($fork_re, WNOHANG));
-
-	    if (read(JOB_PARENT,$msg_from_job_child,1024)){
-		    # get msg from job child process
-		    chomp $msg_from_job_child;
-	            log(LOG_NOTICE, "Job parent process received msg from job child process: $msg_from_job_child");
-		    if ($msg_from_job_child =~ /Job sock is abnormal in child proc: *([^ ]+) *$/){
-			    #job child process socket is abnormal
-			    $job_sock_stat = 'abnormal';
-			    $sock_broken_job_proc = $1;
-			    print JOB_PARENT "Finish dealing with socket error on job socket by slave-server!\n";
-			    log(LOG_NOTICE,"Job parent process sent to job child process: Finish dealing with socket error on job socket by slave-server!");
-			    goto OUT;
+		#in parent we start to check child is finish or not;
+	    my $qa_package_jobs = `grep '\./customtest ' $filename`;
+	    chomp $qa_package_jobs;
+	    if($qa_package_jobs){
+		    $qa_package_jobs =~ s/.*customtest //;
+		    my @qa_package_jobs = split /\s+/,$qa_package_jobs;
+		    for my $j (@qa_package_jobs) {
+			    $j =~ s/qa_//;$j =~ s/$/-run/;
+			    my $time_o = `grep 'sut_timeout ' /usr/share/qa/tools/$j`;
+			    chomp $time_o;
+			    $time_o =~ s/#sut_timeout //;
+			    $time_o =~ s/\D+//g;
+			    if ($time_o){
+				    &log(LOG_NOTICE, "Found package $j timeout $time_o (s)");
+				    $sut_timeout += $time_o ;
+			    } else {
+				    &log(LOG_NOTICE, "Can not found package $j timeout ,use 86400 (s)");
+				    $sut_timeout += 86400;  #24hours
+			    }
 		    }
+	    }else {
+# we do not limit the job which is not qa_package,set to a very large number.
+		    $sut_timeout = 8640000;
 	    }
-	    #Set round timer shotter to detect sock error ASAP
-	    sleep 1;
-	    $current_time += 1;
+	    &log(LOG_NOTICE, "The Job Time out is $sut_timeout (s)");
 
-	}
-        #timeout
-        &log(LOG_ERROR, "TIMEOUT,please logon SUT check the job manually!");
-        &log(LOG_NOTICE, "Job TIMEOUT.");
-	print $sock "TIMEOUT running $sut_timeout seconds ,time is up \n";
-	print $sock "Please logon SUT check the job manually!\n";
-        print $sock "Job ist fertig\n";
-	OUT: 
+	    my $current_time=0;
+	    my $msg_from_job_child;
+	    while ($current_time < $sut_timeout) {
+		    goto OUT if(waitpid($fork_re, WNOHANG));
+
+		    if (read(JOB_PARENT,$msg_from_job_child,1024)){
+			    # get msg from job child process
+			    chomp $msg_from_job_child;
+			    log(LOG_NOTICE, "Job parent process received msg from job child process: $msg_from_job_child");
+			    if ($msg_from_job_child =~ /Job sock is abnormal in child proc: *([^ ]+) *$/){
+				    #job child process socket is abnormal
+				    $job_sock_stat = 'abnormal';
+				    $sock_broken_job_proc = $1;
+				    print JOB_PARENT "Finish dealing with socket error on job socket by slave-server!\n";
+				    log(LOG_NOTICE,"Job parent process sent to job child process: Finish dealing with socket error on job socket by slave-server!");
+				    goto OUT;
+			    }
+		    }
+		    #Set round timer shotter to detect sock error ASAP
+		    sleep 1;
+		    $current_time += 1;
+
+	    }
+	    #timeout
+	    &log(LOG_ERROR, "TIMEOUT,please logon SUT check the job manually!");
+	    &log(LOG_NOTICE, "Job TIMEOUT.");
+	    print $sock "TIMEOUT running $sut_timeout seconds ,time is up \n";
+	    print $sock "Please logon SUT check the job manually!\n";
+	    print $sock RFINISH;
+OUT:
     }else{
-	#fork error ;
-        &log(LOG_ERROR, "Fork error,exit");
-	&log(LOG_NOTICE, "Job finished.");
-	print $sock "Job ist fertig\n";
+#fork error ;
+	    &log(LOG_ERROR, "Fork error,exit");
+	    &log(LOG_NOTICE, "Job finished.");
+	    print $sock RFINISH;
     }
 }
 

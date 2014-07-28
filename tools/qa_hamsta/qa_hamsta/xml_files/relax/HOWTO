@@ -1,0 +1,15 @@
+1. copy latest RNC to a new version (increase number in filename)
+2. edit & save
+3. convert to RNG
+4. validate the XMLs
+
+language description - http://relaxng.org/
+
+convert rnc to rng - trang (standard repositories)
+  trang job-<nn>.rnc job-<nn>.rng
+
+validate - xmllint from libxml2-tools (standard repositories)
+  xmllint --noout --relaxng job-<nn>.rng xmlfile.xml
+
+Docs in old wiki: https://wiki.innerweb.novell.com/index.php/RD-OPS_QA/Automation/Technical/JobsXML
+
