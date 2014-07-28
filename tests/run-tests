@@ -15,14 +15,11 @@ cd `dirname $0`
 # Call me like: help EXIT_CODE
 function help () {
     echo "$MY_NAME -- QA Automation dumb test executor";
-    echo -e "Usage: $MY_NAME [OPTIONS] COMMAND\n";
-    echo -e "COMMANDS"
-    echo -e "\trun\texecutes all tests in testsuite";
-    echo -e "\thelp\t(or no option) print this help";
+    echo -e "Usage: $MY_NAME [OPTIONS]\n";
     echo;
     echo -e "OPTIONS";
-    echo -e "\t-c FILE\tCustom Robot Framework configuration, defaults to config.robot";
-    echo -e "\t-m HOST\tHamsta master hostname, defaults to localhost";
+    echo -e "\t-c FILE\tCustom Robot Framework configuration, defaults to 'config.robot'";
+    echo -e "\t-m HOST\tHamsta master hostname, defaults to 'localhost'";
     echo -e "\t-r DIR\tdirectory to store results to, defaults to '${PWD}/results'";
     echo -e "\t-a PARAMS\tparameters to pass directly to pybot, you have to quote it: -a '-e tag'";
     echo -e "\nContact us on <qa-automation@suse.de>.";
