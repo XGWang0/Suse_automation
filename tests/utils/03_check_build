@@ -6,5 +6,8 @@ cd "`dirname $0`/.."
 
 BUILDLOG="/$REPOROOT/$REPOPATH/autotest.buildlog"
 
+echo "Starting build result check..."
+
 ./run-tests -r results/build -a "--variable BUILDLOG:$BUILDLOG" build
 
+echo "Finished build result check."

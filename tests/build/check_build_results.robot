@@ -1,7 +1,7 @@
 *** Settings ***
 Documentation     Verify that all packages has been built successfully
 Force Tags        build
-Library           build/BuildLogChecker.py    ${BUILDLOG}    build/broken.list
+Library           BuildLogChecker.py    ${BUILDLOG}    broken.list
 
 *** Variables ***
 
