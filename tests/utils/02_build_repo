@@ -3,6 +3,7 @@
 source /etc/qavirttest/utils.config
 
 CONFIG="/tmp/autotest.conf.$NETWORK"
+BUILDLOG="/$REPOROOT/$REPOPATH/autotest.buildlog"
 
 # Create configuration for building
 cat > $CONFIG << EOF
@@ -10,7 +11,7 @@ REPO="$REPOROOT/$REPOPATH"
 PRODUCTS="$PRODUCTS"
 ARCHS="`arch`"
 PORT=$REPOPORT
-BUILDLOG="/$REPOROOT/$REPOPATH/autotest.buildlog.$NETWORK"
+BUILDLOG="$BUILDLOG"
 EOF
 
 MY_DIR=`dirname "$0"`
@@ -18,6 +19,8 @@ MY_DIR=`dirname "$0"`
 cd "$MY_DIR"
 
 ../../build-repository $CONFIG
+
+
 
 # remove temp. config
 rm $CONFIG
