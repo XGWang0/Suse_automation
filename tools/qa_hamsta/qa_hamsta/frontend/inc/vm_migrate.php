@@ -53,6 +53,20 @@ if (request_str("proceed")) {
 	#Check input errors
 	if(!$host_name) {
 		$errors['vm_host_name'] = "Host name of the virtual machine to migrate can not be null.";
+	}else{
+		preg_match_all("/^\s*([^\s]+)\s*$/",$host_name,$useful_part);
+		$host_name = $useful_part[1][0];
+		if (!$host_name){
+			$errors['vm_host_name'] = "Host name of the virtual machine to migrate is not valid.";
+		}else{
+			#Translate hostname to mac
+			$migrate_machine = Machine::get_by_hostname($host_name);
+			if (!$migrate_machine){
+				$errors['vm_host_name'] = "There is no machine with the given hostname: $host_name.";
+			}else{
+				$migrate_mac = $migrate_machine->get_unique_id();
+			}
+		}
 	}
 	if(!$migrateeIP){
                 $errors['migrateeIP'] = "The remote host IP can not be null.";
@@ -73,10 +87,7 @@ if (request_str("proceed")) {
 		$migratejobfile = "/tmp/vm_migrate_$rand.xml";
 		system("cp /usr/share/hamsta/xml_files/templates/vm-migration-template.xml $migratejobfile");
 		$args = "";
-		if ($host_name){
-			#Translate hostname to mac
-			$migrate_machine = Machine::get_by_hostname($host_name);
-			$migrate_mac = $migrate_machine->get_unique_id();
+		if ($migrate_mac){
 			$args .= " -m $migrate_mac";
 		}
 		if ($migrateeIP)

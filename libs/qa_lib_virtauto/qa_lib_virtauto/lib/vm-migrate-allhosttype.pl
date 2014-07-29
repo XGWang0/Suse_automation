@@ -46,9 +46,20 @@ $ENV{'LC_ALL'}='en_US';
 my $myret;
 
 sub exitWithError{
+        &usage;
         $myret = 1;
         system ("rpm -q qa_hamsta > /dev/null 2>&1 && touch /var/lib/hamsta/stats_changed");
         exit $myret;
+}
+
+sub usage{
+print "\n
+Usage: $0 -m domainMac -p migrateeIP -t migrateTimes [-l].
+Description:  supports migration of xen2xen, kvm2kvm, xen2kvm.
+Params: domainMac: the mac address of the virtual machine to migrate,
+        migrateeIP: the IP address the virtual host to migrate to,
+        migrateTimes: how many times to migrate around, 
+	-l: indicates live migration, only supports xen2xen, kvm2kvm migration.\n";
 }
 
 # Get options
