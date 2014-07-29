@@ -54,18 +54,19 @@ sub add_roles($) {
 			my $role_id = $roles->{$role}->{'id'};
 			my $worker = clone($root->{'commands'}->[0]->{'worker'});
 			my @command = grep { $_->{'role_id'} eq $role_id } @{$worker->[0]->{'command'}};
+			map { delete $_->{'role_id'} } @command;
 			$worker->[0]->{'command'} = \@command;
 			$roles->{$role}->{'commands'} = {
 									'part_id' => '1',
 									'worker' => $worker
 			};
+			delete $roles->{$role}->{'id'}
 		}
 		$root->{'roles'} = [ $root->{'roles'}->[0]->{'role'} ];
 	} else {
 		$root->{'roles'} = [{
 							'role' => {
 									'name' =>'default',
-									'id' => '1',
 									'commands' => {
 											'part_id' => '1',
 											'worker' => $root->{'commands'}->[0]->{'worker'}
