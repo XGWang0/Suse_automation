@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  job-12.rnc - - Relax NG compact schema definition for Hamsta job XML
-  See file http://qadb.suse.de/xml_files/relax/job-10.rng for compact definition.
+  job-14 - - Relax NG schema definition for Hamsta job XML
+  See file http://qadb.suse.de/xml_files/relax/job-14.rnc for compact definition.
+  See file http://qadb.suse.de/xml_files/relax/job-14.rnc for XML definition.
 -->
 <!-- Import the XML datatypes schema so we have them available -->
 <grammar xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">

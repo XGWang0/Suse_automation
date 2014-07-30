@@ -640,4 +640,9 @@ function check_machines_before_reinstall ($machines, $page_name) {
 	return true;
 }
 
+/* This function is logical negation of the empty() function. */
+function filter ($var) {
+	return ! empty ($var);
+} 
+
 ?>
