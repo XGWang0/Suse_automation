@@ -6,5 +6,6 @@
 # package:product1 product2 product3
 
 qa_sdk_tcf_generator:SLE-11-SP3-Update SLE-11-SP3
-
+qa_lib_internalapi:*
+qa_lib_keys:SLE-12
 
