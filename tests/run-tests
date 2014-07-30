@@ -39,7 +39,7 @@ while getopts "c:hm:r:a:" opt; do
 done
 shift $((OPTIND-1))
 
-export ROBOT_OPTIONS="${ROBOT_OPTIONS} --name ${SUITE_NAME} --variable CONFIG_FILE:$CUSTOM_CONFIG --outputdir ${RESULTS_DIR} ${ROBOT_ARGS}"
+export ROBOT_ARGS="--name ${SUITE_NAME} --variable CONFIG_FILE:$CUSTOM_CONFIG --outputdir ${RESULTS_DIR} ${ROBOT_ARGS}"
 
 echo "Results will be saved to ${RESULTS_DIR}."
 
@@ -48,7 +48,7 @@ if [ ! -d ${RESULTS_DIR} ]; then
 fi
 
 if [ -n "${HAMSTA_TEST_HOST}" ]; then
-    ROBOT_OPTIONS="${ROBOT_OPTIONS} --variable HAMSTA_HOST:$HAMSTA_TEST_HOST"
+    ROBOT_ARGS="${ROBOT_ARGS} --variable HAMSTA_HOST:$HAMSTA_TEST_HOST"
 fi
 
 # Check if there are some other parameters and use it as test
@@ -71,7 +71,7 @@ if [ -z $DISPLAY ] ; then
 	fi
 fi
 
-ROBOT_CMD="${X_WRAPPER}$PYBOT_BIN ${TESTS_DIR}"
-echo "Robot options: $ROBOT_OPTIONS"
+ROBOT_CMD="${X_WRAPPER}$PYBOT_BIN $ROBOT_ARGS ${TESTS_DIR}"
+echo "Robot options: $ROBOT_ARGS"
 echo "Running tests in ${TESTS_DIR}"
 $ROBOT_CMD

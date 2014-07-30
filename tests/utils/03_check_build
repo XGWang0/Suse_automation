@@ -4,10 +4,10 @@ source /etc/qavirttest/utils.config
 
 cd "`dirname $0`/.."
 
-BUILDLOG="/$REPOROOT/$REPOPATH/autotest.buildlog"
+BUILDLOG="$REPOROOT/$REPOPATH/autotest.buildlog"
 
 echo "Starting build result check..."
 
-./run-tests -r results/build -a "--variable BUILDLOG:$BUILDLOG" build
+./run-tests -a "--variable BUILDLOG:$BUILDLOG" -r results/build build
 
 echo "Finished build result check."
