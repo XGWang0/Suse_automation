@@ -4,10 +4,9 @@ source /etc/qavirttest/utils.config
 
 cd "`dirname $0`/.."
 
-BUILDLOG="$REPOROOT/$REPOPATH/autotest.buildlog"
 
 echo "Starting build result check..."
 
-./run-tests -a "--variable BUILDLOG:$BUILDLOG" -r results/build build
+./run-tests -a "-i network_$NETWORK" -r results/build build
 
 echo "Finished build result check."

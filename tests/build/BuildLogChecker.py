@@ -6,19 +6,9 @@ class BuildLogChecker:
     way for robot framework.
     """
     
-    def __init__(self, buildlog, broken):
+    def __init__(self, broken):
         """ Read and parse buildlog and broken package list
         """
-        self._builds = {}
-	with open(buildlog, 'r') as log:
-            for line in log:
-                (pack, product, status) = line.strip().split(':')
-                if not pack in self._builds:
-                    self._builds[pack] = {}
-		if status == 'fail':
-                    self._builds[pack][product] = False
-                else:	
-                    self._builds[pack][product] = True
         self._broken = {}
         with open(broken, 'r') as br:
             for line in br:
@@ -27,23 +17,11 @@ class BuildLogChecker:
                     (pack, products) = line.split(':')
                     self._broken[pack] = products
 
-
-    def get_build_results(self):
-        return self._builds
-
-    def get_broken_list(self):
-        return self._broken()
-
-    def get_packages(self):
-        return self._builds.keys()
-
-    def get_products(self):
-        return self._builds.values()[0].keys()
-
-    def check_package_build_build_status(self, pack, product):
+    def check_package_build_status(self, pack, product, status):
         listed = pack in self._broken and (product in self._broken[pack] or '*' in self._broken[pack])
-        if self._builds[pack][product] and listed:
+        if status == 'fail' and not listed:
+           raise AssertionError("Package " + pack + " on " + product + " build failed with result " + status)
+        elif status != 'fail' and listed:
+           # status can be 'ok' or 'skip'
            raise AssertionError("Package " + pack + " on " + product + " build suceeded, but it was unexpected.")
-        elif not self._builds[pack][product] and not listed:
-           raise AssertionError("Package " + pack + " on " + product + " build failed.")
 
