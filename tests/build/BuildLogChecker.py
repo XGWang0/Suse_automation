@@ -15,7 +15,7 @@ class BuildLogChecker:
 		line = line.strip()
 		if len(line) > 0 and not line.startswith('#'):
                     (pack, products) = line.split(':')
-                    self._broken[pack] = products
+                    self._broken[pack] = products.split(' ')
 
     def check_package_build_status(self, pack, product, status):
         listed = pack in self._broken and (product in self._broken[pack] or '*' in self._broken[pack])

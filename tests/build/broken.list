@@ -1,0 +1,10 @@
+# List of packages that do not build
+
+# Format is:
+# package:* 
+# or
+# package:product1 product2 product3
+
+qa_sdk_tcf_generator:SLE-11-SP3-Update SLE-11-SP3
+
+
