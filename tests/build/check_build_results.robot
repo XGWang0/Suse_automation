@@ -1,7 +1,7 @@
 *** Settings ***
 Documentation     Verify that all packages has been built successfully
 Force Tags        build
-Library           BuildLogChecker.py    ${BUILDLOG}    broken.list
+Library           BuildLogChecker.py    ${BUILDLOG}    build/broken.list
 
 *** Variables ***
 
@@ -16,7 +16,7 @@ Verify All Packages
 *** Keywords ***
 Verify Build On All Products
     [Arguments]    ${package}
-    [Documentation]    The packages should not build successfully, if they are known not to build (are in @{BROKEN} list).
+    [Documentation]    The packages should build successfully, unless they are known not to build (are in @{BROKEN} list).
     ...
     ...    If they build sucessfully, it meanst that they should be removed from @{BROKEN} list
     @{products}    Get Products
