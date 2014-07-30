@@ -104,7 +104,7 @@ if (request_str("proceed")) {
 			if (!$machine->send_job($migratejobfile)) {
 				$error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
 			} else {
-				Log::create($machine->get_id(), get_user_login ($user), 'VM-MIGRATION', "of host $host_name to remote host with IP $migrateeIP and live migration option as " . ($livemigration ? "yes" : "no") . "has been processed.");
+				Log::create($machine->get_id(), get_user_login ($user), 'VM-MIGRATION', "of host $host_name to remote host with IP $migrateeIP and live migration option as " . ($livemigration ? "yes" : "no") . " has been processed.");
 			}
 		}
 
