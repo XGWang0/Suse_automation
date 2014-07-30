@@ -54,20 +54,23 @@ sub exitWithError{
 
 sub usage{
 print "\n
-Usage: $0 -m domainMac -p migrateeIP -t migrateTimes [-l].
+Usage: $0 (-n domainName | -m domainMac) -p migrateeIP -t migrateTimes [-l].
 Description:  supports migration of xen2xen, kvm2kvm, xen2kvm.
-Params: domainMac: the mac address of the virtual machine to migrate,
+Params: domainName: the domain name of the virtual machine to migrate,
+        domainMac: the mac address of the virtual machine to migrate,
         migrateeIP: the IP address the virtual host to migrate to,
         migrateTimes: how many times to migrate around, 
 	-l: indicates live migration, only supports xen2xen, kvm2kvm migration.\n";
 }
 
 # Get options
+my $domainName = "";
 my $domainMac = "";
 my $migrateeIP = "";
 my $livemigration = "";
 my $migratetimes = "";
 GetOptions(
+	'n=s'     => \$domainName,
 	'm=s'     => \$domainMac,
 	'p=s'     => \$migrateeIP,
 	'l!'      => \$livemigration,
@@ -75,18 +78,19 @@ GetOptions(
 );
 
 #error check
-if ( !$domainMac || !$migrateeIP || !$migratetimes){
+if ((!$domainMac && !$domainName) || !$migrateeIP || !$migratetimes){
     print "$0: Invalid null input parameters!!";
     &exitWithError;
 }
 
-#Translate domainMAC to domainName
-my $domainName = "";
-$domainName = `for domain in \$(virsh list --name --all); do if virsh dumpxml \$domain | grep -iq "$domainMac"; then echo \$domain; fi; done`;
-chomp($domainName);
-if ( !$domainName ){
-    print "$0: No domain found for given domain mac!!\n";
-    &exitWithError;
+if (!$domainName && $domainMac){
+    #Translate domainMAC to domainName
+    $domainName = `for domain in \$(virsh list --name --all); do if virsh dumpxml \$domain | grep -iq "$domainMac"; then echo \$domain; fi; done`;
+    chomp($domainName);
+    if (!$domainName){
+        print "$0: No domain found for given domain mac!!\n";
+        &exitWithError;
+    }
 }
 
 # Get local virtual host hyper type
