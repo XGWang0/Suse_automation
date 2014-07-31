@@ -19,7 +19,7 @@ MY_DIR=`dirname "$0"`
 
 cd "$MY_DIR"
 
-../../build-repository $CONFIG
+BUILDARGS="--clean" ../../build-repository $CONFIG
 
 
 
