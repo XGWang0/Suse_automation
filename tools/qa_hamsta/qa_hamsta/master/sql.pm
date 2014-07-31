@@ -200,6 +200,11 @@ sub machine_get_master_ip_by_machine_id() #machine_id
 	return $dbc->scalar_query('SELECT hamsta_master_ip  FROM machine JOIN  hamsta_master USING(hamsta_master_id) WHERE machine.machine_id=?',$_[0]);
 }
 
+sub machine_get_hamsta_master_id_by_ip() #machine_ip
+{
+    return $dbc->scalar_query('SELECT hamsta_master_id FROM machine WHERE ip=?',$_[0]);
+}
+
 sub hamsta_master_get_id_by_ip() #hamsta_master_ip
 {
 	return $dbc->scalar_query('SELECT hamsta_master_id FROM hamsta_master WHERE hamsta_master_ip=?',$_[0]);

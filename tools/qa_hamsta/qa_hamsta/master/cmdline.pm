@@ -582,10 +582,7 @@ sub send_predefine_job_to_host() {
     my $email = "";
     $email = $cmd_line[5] if(@cmd_line >= 6);
 
-    if (! can_send_job_to_machine ($host)) {
-	notify_about_no_privileges ($sock_handle, $user_id, $host);
-	return;
-    }
+    return if &handle_can_not_send_job_to_machine($host, $sock_handle, $user_id);
 
     print $sock_handle "Pre-define job:$file \n\n";
 
@@ -700,10 +697,7 @@ sub send_multi_job_to_host () {
 
     #check host live
     for my $host (@hosts) {
-      if (! can_send_job_to_machine ($host)) {
-	  notify_about_no_privileges ($sock_handle, $user_id, $host);
-	  return;
-      }
+      return if &handle_can_not_send_job_to_machine($host, $sock_handle, $user_id);
 
       if( not &check_host($host)){
         &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
@@ -775,10 +769,7 @@ sub send_job_to_host () {
     my $file = $cmd_line[-1];
     my $host = $cmd_line[-2];
 
-    if (! can_send_job_to_machine ($host)) {
-	notify_about_no_privileges ($sock_handle, $user_id, $host);
-	return;
-    }
+    return if &handle_can_not_send_job_to_machine($host, $sock_handle, $user_id);
 
     if( not &check_host($host)){
       &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
@@ -818,10 +809,7 @@ sub send_re_job_to_host () {
     $reinstall_opt =~ s/#/ /g;
     my $host = $cmd_line[3];
 
-    if (! can_send_job_to_machine ($host)) {
-	notify_about_no_privileges ($sock_handle, $user_id, $host);
-	return;
-    }
+    return if &handle_can_not_send_job_to_machine($host, $sock_handle, $user_id);
 
     if( not &check_host($host)){
       &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
@@ -880,10 +868,7 @@ sub send_line_job_to_host () {
     $one_line_cmd =~ s/#/ /g;
     my $host = $cmd_line[5];
 
-    if (! can_send_job_to_machine ($host)) {
-	notify_about_no_privileges ($sock_handle, $user_id, $host);
-	return;
-    }
+    return if &handle_can_not_send_job_to_machine($host, $sock_handle, $user_id);
 
     if( not &check_host($host)){
       &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
@@ -1000,10 +985,7 @@ sub send_qa_package_job_to_host () {
     $qpt_name =~ s/#/ /g;
     my $host = $cmd_line[3];
 
-    if (! can_send_job_to_machine ($host)) {
-	notify_about_no_privileges ($sock_handle, $user_id, $host);
-	return;
-    }
+    return if &handle_can_not_send_job_to_machine($host, $sock_handle, $user_id);
 
     print $sock_handle "qa package job:$qpt_name \n";
 
@@ -1343,6 +1325,19 @@ sub can_send_job_to_machine ($) # machine ip
     return 0;
 }
 
+sub handle_can_not_send_job_to_machine ()
+{
+    my $host = shift;
+    my $sock_handle = shift;
+    my $user_id = shift;
+
+    if (! &can_send_job_to_machine ($host)) {
+	    &notify_about_no_privileges ($sock_handle, $user_id, $host);
+	    return 1;
+    }
+    return 0;
+}
+
 sub cmd_print_all_machines ($) # socket
 {
     my $sock_handle = shift;
@@ -1354,6 +1349,16 @@ sub cmd_print_all_machines ($) # socket
 	printf $sock_handle "%15s : %15s : %s\n", ${$_}[0], ${$_}[1], ${$_}[2];
     }
 }
+
+#Log to log file and send to sock given message
+sub log_and_send_sock_msg(){
+    my $log_sevirity = shift;
+    my $sock = shift;
+    my $log_message = shift;
+    &log($log_sevirity, $log_message);
+    print $sock $log_message."\n" if (defined $sock);
+}
+
 
 #This function deals with reservation from master.
 #Supports both reserve and release SUT from both master CLI and jobs.
@@ -1371,19 +1376,14 @@ sub process_hamsta_reservation () {
     &log(LOG_DETAIL, "Input is: action => $action, host => $host");
 
     if (! $action or ! $host){
-	&log(LOG_ERR, "MASTER::CMDLINE Invalid input received: action => $action, host => $host .");
-	print $sock_handle "MASTER::CMDLINE Invalid input received: action => $action, host => $host" if (defined $sock_handle);
+	&log_and_send_sock_msg(LOG_ERR, $sock_handle, "MASTER::CMDLINE Invalid input received: action => $action, host => $host .");
 	return 0;
     }
 
-    if (! can_send_job_to_machine ($host)) {
-	notify_about_no_privileges ($sock_handle, $user_id, $host);
-	return 0;
-    }
+    return if &handle_can_not_send_job_to_machine($host, $sock_handle, $user_id);
 
     if (not &check_host($host)){
-	&log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
-	print $sock_handle "$host is not active, maybe IP address misspelled\n" if (defined $sock_handle);
+	&log_and_send_sock_msg(LOG_WARNING, $sock_handle, "$host is not active, maybe IP address misspelled");
 	return 0;
     }
 
@@ -1397,8 +1397,7 @@ sub process_hamsta_reservation () {
 	);
     };
     if($@) {
-	&log(LOG_ERR, "Can not connect to ip for $action:$@ ");
-	print $sock_handle "Can not connect to ip for $action:$@\n" if (defined $sock_handle);
+	&log_and_send_sock_msg(LOG_ERR, $sock_handle, "Can not connect to ip for $action:$@");
 	return 0;
     }
 
@@ -1408,8 +1407,7 @@ sub process_hamsta_reservation () {
 	$sock->send("$action\n");
     };
     if($@) {
-	&log(LOG_ERR, "Error happened when sending $action to SUT:$@ ");
-	print $sock_handle "Error happened when sending $action to SUT:$@\n" if (defined $sock_handle);
+	&log_and_send_sock_msg(LOG_ERR, $sock_handle, "Error happened when sending $action to SUT:$@");
 	return 0;
     }
 

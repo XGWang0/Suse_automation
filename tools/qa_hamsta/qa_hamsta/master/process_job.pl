@@ -452,7 +452,10 @@ sub reserve_or_release_all ($$)
 	my $aimeds = &job_get_aimed_host($job_id);
 	my @m_ips = split(/,/,$aimeds);
 	my @success_ips;
+	my $orig_reserve_stat = {};
 	foreach my $ip (@m_ips){
+		my $reserved_master_id = &machine_get_hamsta_master_id_by_ip($ip);
+		$orig_reserve_stat->{$ip} = ((defined $reserved_master_id)? 1: 0);
 		my $ret = &Master::process_hamsta_reservation(undef,$action, $ip);
 		if (! $ret){
 			if ($action =~ /reserve/){
@@ -465,6 +468,9 @@ sub reserve_or_release_all ($$)
 			my $revert_action = (($action =~ /reserve/)?'release':'reserve');
 			my @revert_failed_ips;
 			foreach my $revert_ip (@success_ips){
+				next if (($action =~ /reserve/ and $orig_reserve_stat->{$revert_ip}) or 
+				         ($action =~ /release/ and !$orig_reserve_stat->{$revert_ip}));
+				&log(LOG_DETAIL, "PROCESS_JOB: Reverting action \"$action\" on $revert_ip...");
 				my $ret = &Master::process_hamsta_reservation(undef,$revert_action, $revert_ip);
 				push @revert_failed_ips, $revert_ip if not $ret;
 				$revert_result &= $ret;
