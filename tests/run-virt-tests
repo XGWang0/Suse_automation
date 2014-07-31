@@ -34,5 +34,5 @@ utils/10_run_tests
 
 utils/98_delete_virtenv
 
-utils/99_delete_repo
+#utils/99_delete_repo
 
