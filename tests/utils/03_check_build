@@ -7,6 +7,6 @@ cd "`dirname $0`/.."
 
 echo "Starting build result check..."
 
-./run-tests -a "-i network_$NETWORK" -r results/build build
+./run-tests -a "-i build_network_$NETWORK" -r results/ 
 
 echo "Finished build result check."
