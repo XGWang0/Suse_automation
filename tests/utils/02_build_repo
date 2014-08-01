@@ -32,7 +32,7 @@ cat > "$ROBOT_CHECK" << EOF
 *** Settings ***
 Documentation     Verify that all packages has been built successfully
 Force Tags        build_network_$NETWORK
-Library           lib/BuildLogChecker.py    testsuites/broken.list
+Library           lib/BuildLogChecker.py    testsuites/broken-builds.list
 Test Template     Build of \${package} on \${product} with status \${status} is correct
 
 *** Variables ***
