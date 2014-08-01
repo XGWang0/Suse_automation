@@ -6,7 +6,7 @@ TBD
 
 set up jenkins
 
-should build now
+should build now, split into 2 jobs
 
 
 in osrcr
