@@ -81,6 +81,11 @@ if(!$submission_id)
 	$kernel_version	=enum_list_id_val('kernel_version');
 	$kernel_branch	=enum_list_id_val('kernel_branch');
 	$kernel_flavor	=enum_list_id_val('kernel_flavor');
+
+	# products and releases  get alphanumerically sorted
+	usort($product,'compare_alnum');
+	usort($release,'compare_alnum');
+
 	$nothing=array( null, '' );
 	array_unshift($status,$nothing);
 	array_unshift($kernel_version,$nothing);
@@ -421,6 +426,18 @@ function colorize_detail($tcf_id,$testsuite,$testcase,$succ,$fail,$interr,$skip,
 		return ' skipped';
 	if( $succ )
 		return ' i';
+}
+
+/**
+  * To be called by usort()
+  * @param $p1,$p2 : array( id, name )
+  * @return -1,0,1 for $p1 <,==,> $p2
+  **/
+function compare_alnum($p1,$p2)
+{
+	$n1=preg_replace('/-/','',$p1[1]);
+	$n2=preg_replace('/-/','',$p2[1]);
+	return strnatcmp($n1,$n2);
 }
 
 
