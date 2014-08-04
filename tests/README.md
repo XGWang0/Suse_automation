@@ -11,3 +11,6 @@ should build now, split into 2 jobs
 
 in osrcr
 trusted_prj=SUSE:SLE-11:GA SUSE:SLE-11-SP3:GA SUSE:SLE-11-SP1:GA SUSE:SLE-11-SP3:Update SUSE:SLE-11-SP1:Update SUSE:SLE-11:Update SUSE:SLE-11-SP2:GA SUSE:SLE-11-SP2:Update SUSE:SLE-12:GA
+
+
+Try merge to master before build
