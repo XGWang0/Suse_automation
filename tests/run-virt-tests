@@ -2,7 +2,9 @@
 
 # Usage: $0 [test_network_number]
 
-[ -z $1 ] && NETWORK=$1
+[ -z $1 ] || NETWORK=$1
+
+echo Running tests in network $NETWORK
 
 # otherwise network is unset and will be set in config
 
