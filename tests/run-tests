@@ -6,6 +6,7 @@ PYBOT_BIN=pybot
 SUITE_NAME="QA_Automation_Tools"
 CUSTOM_CONFIG=config.robot
 ROBOT_ARGS=''
+NONCRITICAL_TAGS='build_fixed' # tags separated by OR 'tag1ORtag2'
 
 # Go to working directory. All paths used in the script are relative
 # to that directory.
@@ -39,6 +40,7 @@ while getopts "c:hm:r:a:" opt; do
 done
 shift $((OPTIND-1))
 
+[ -z $NONCRITICAL_TAGS ] || ROBOT_ARGS="--noncritical $NONCRITICAL_TAGS ${ROBOT_ARGS}"
 export ROBOT_ARGS="--name ${SUITE_NAME} --variable CONFIG_FILE:$CUSTOM_CONFIG --outputdir ${RESULTS_DIR} ${ROBOT_ARGS}"
 
 echo "Results will be saved to ${RESULTS_DIR}."
