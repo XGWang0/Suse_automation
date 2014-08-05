@@ -137,8 +137,8 @@ sub _read_partitions
 {
 	my $args=shift;
 	my $libsata=&_has_libsata(map {$args->{$_}} qw(to_type to_version to_subversion to_arch));
-	my $swappart=`cat /proc/swaps | tail -n 1 | cut -f1 -d' '`;
-	my $swapsize = `cat /proc/swaps | tail -n 1 |awk {'print \$3'}`;
+	my $get_swap_cmd = q@awk '/^\/dev/{print $1" "$3}' /proc/swaps@;
+	my ($swappart,$swapsize) = `$get_swap_cmd` =~ /([^\s]+)\s([^\s]+)/;
 	my $rootpart=`df /|tail -n1 | cut -f1 -d' '`;
 	$rootpart=$args->{'root_pt'} if($args->{'root_pt'});
 	my $abuildpart=`df | grep "abuild" |tail -n1 | cut -f1 -d' '`;
@@ -819,7 +819,7 @@ sub _print_profile_partitions
 			$abuildsize = 0 if !$abuildid;
 			$bootsize = 0 if !$bootid;
 			my $sizepercent = $args->{'repartitiondisk'} ? $args->{'repartitiondisk'}*0.01 : 1;
-			$swapsize = int($swapsize)/1024;
+			$swapsize = $swapsize ? int($swapsize)/1024 : 0;
 			my $rootusesize = int(($disksize - $abuildsize - $bootsize - $swapsize)*$sizepercent);
 
 			my %fs = ( '/'=>$args->{'rootfstype'}, 'swap'=>'swap', '/boot/efi'=>'vfat', '/abuild'=>'ext3', 'NULL' => 'ext3');
