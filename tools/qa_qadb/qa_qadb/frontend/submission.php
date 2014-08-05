@@ -72,7 +72,7 @@ if( token_read(http('wtoken')) )
 
 if(!$submission_id)
 {	# main search form & results
-	$product	=enum_list_id_val('product'); 
+	$product	=enum_list_id_val('product');
 	$release	=enum_list_id_val('release');
 	$arch		=enum_list_id_val('arch'); 
 	$host		=enum_list_id_val('host');
@@ -437,7 +437,7 @@ function compare_alnum($p1,$p2)
 {
 	$n1=preg_replace('/-/','',$p1[1]);
 	$n2=preg_replace('/-/','',$p2[1]);
-	return strnatcmp($n1,$n2);
+	return -strnatcasecmp($n1,$n2);
 }
 
 
