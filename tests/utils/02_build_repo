@@ -4,7 +4,7 @@ source /etc/qavirttest/utils.config
 
 CONFIG="/tmp/autotest.conf.$NETWORK"
 BUILDLOG="/$REPOROOT/$REPOPATH/autotest.buildlog"
-ROBOT_CHECK="`pwd`/testsuites/check_build_results-${NETWORK}.robot"
+ROBOT_CHECK="`pwd`/testsuites/check_build_results.robot"
 
 # Create configuration for building
 cat > $CONFIG << EOF
@@ -31,7 +31,7 @@ rm $CONFIG
 cat > "$ROBOT_CHECK" << EOF
 *** Settings ***
 Documentation     Verify that all packages has been built successfully
-Force Tags        build_network_$NETWORK
+Force Tags        build
 Library           lib/BuildLogChecker.py    testsuites/broken-builds.list
 Test Template     Build of \${package} on \${product} with status \${status} is correct
 
