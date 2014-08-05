@@ -1,0 +1,23 @@
+$TTL 86400      ; 1 day
+@       IN SOA  ns.{{ network.domain }}. hostmaster.{{ network.domain }}. (
+                                	{{ dns.serial }} ; serial
+                                	10800      ; refresh (3 hours)
+                                	3600       ; retry (1 hour)
+                                	604800     ; expire (1 week)
+                                	86400      ; minimum (1 day)
+                                	)
+
+									NS server.{{ network.domain }}.
+
+; Infrastructure hosts
+{{ network.controller.reverse }}.	PTR		{{ network.controller.name }}.{{ network.domain }}.
+{{ network.server.reverse }}.		PTR		{{ network.server.name }}.{{ network.domain }}.
+{{ network.hamsta.reverse }}.		PTR		{{ network.hamsta.name }}.{{ network.domain }}.
+{{ network.qadb.reverse }}.			PTR		{{ network.qadb.name }}.{{ network.domain }}.
+{{ network.qadbreport.reverse }}.	PTR		{{ network.qadbreport.name }}.{{ network.domain }}.
+
+
+; SUTs
+{% for sut in network.suts %}
+{{ sut.reverse }}.					PTR		{{ sut.name }}.{{ network.domain }}.
+{% endfor %}
