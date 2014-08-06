@@ -1,116 +1,79 @@
 #! /bin/bash
 
 # Initialize some default variables
-export RESULTS_DIR=results
-export TESTS_DIR=./
-export PYBOT_BIN=pybot
-export SUITE_NAME="Hamsta_Tests"
-export HAMSTA_TEST_HOST=localhost
+RESULTS_DIR=results
+PYBOT_BIN=pybot
+SUITE_NAME="QA_Automation_Tools"
+CUSTOM_CONFIG=config.robot
+ROBOT_ARGS=''
+NONCRITICAL_TAGS='build_fixed' # tags separated by OR 'tag1ORtag2'
 
 # Go to working directory. All paths used in the script are relative
 # to that directory.
-export MY_NAME=`basename $0`
+MY_NAME=`basename $0`
 cd `dirname $0`
 
 # Call me like: help EXIT_CODE
 function help () {
     echo "$MY_NAME -- QA Automation dumb test executor";
-    echo -e "Usage: $MY_NAME [OPTIONS] COMMAND\n";
-    echo -e "COMMANDS"
-    echo -e "\tinit\tinitializes test environment"
-    echo -e "\trun\texecutes all tests in testsuite";
-    echo -e "\tclean\tdeletes the results directory";
-    echo -e "\thelp\t(or no option) print this help";
+    echo -e "Usage: $MY_NAME [OPTIONS]\n";
     echo;
     echo -e "OPTIONS";
-    echo -e "\t-d\tupdate hamsta database (init action) *NI*";
-    echo -e "\t-h HOST\tHamsta master hostname, defaults to localhost";
-    echo -e "\t-i\trun in interactive mode (init action)";
-    echo -e "\t-l\tinstall Hamsta master (init action) *NI*";
-    echo -e "\t-r DIR\tdirectory to store results to (run action), defaults to '${PWD}/results'";
-    echo -e "\t-t DIR\tdirectory containing tests (run action), defaults to '${PWD}'";
-    echo -e "\t-u\tcreate a test user (init action)";
-    echo -e "\nNote: Options marked NI are not implemented, yet.";
+    echo -e "\t-c FILE\tCustom Robot Framework configuration, defaults to 'config.robot'";
+    echo -e "\t-m HOST\tHamsta master hostname, defaults to 'localhost'";
+    echo -e "\t-r DIR\tdirectory to store results to, defaults to '${PWD}/results'";
+    echo -e "\t-a PARAMS\tparameters to pass directly to pybot, you have to quote it: -a '-e tag'";
     echo -e "\nContact us on <qa-automation@suse.de>.";
     exit $1;
 }
 
-# Installs Hamsta master to server specified in HAMSTA_TEST_HOST
-function install_hamsta_master () {
-    echo 'Not implemented. But it will install Hamsta master.';
-}
-
-# Updates Hamsta database on HAMSTA_TEST_HOST
-function update_hamsta_database () {
-    echo "Not implemented. But it will update Hamsta master database.";
-}
-
-# Adds the test user into Hamsta database on HAMSTA_TEST_HOST
-function add_test_user () {
-    echo "Creating testing user on ${HAMSTA_TEST_HOST}.";
-    ssh root@${HAMSTA_TEST_HOST} -o BatchMode=yes -o StrictHostKeyChecking=no mysql hamsta_db < insert-testuser.sql
-    if [ $? -ne 0 ]; then
-	echo -e 'There was an error when trying to create a test user. You need to have ssh keys\n'\
-'set up and database must be running on the host. Perhaps the user already exists.' 1>&2
-    else
-	echo 'User created.';
-    fi
-}
-
-# Initialize the test environment on HAMSTA_TEST_HOST
-function init () {
-    if [[ $INTERACTIVE ]]; then
-	read -e -p 'Do you want to install packages to Hamsta master? Star marks default. [y|n*]: ' INSTALL_HAMSTA
-	read -e -p 'Do you want to update Hamsta database? Star marks default. [y|n*]: ' UPDATE_HAMSTA_DATABASE
-	read -e -p 'Do you want to install a test user? Star marks default. [y|n*]: ' CREATE_USER
-    fi
-
-    echo -e "\nInitializing environment on ${HAMSTA_TEST_HOST}."
-
-    [[ $INSTALL_HAMSTA == 'y' ]] && install_hamsta_master;
-    [[ $UPDATE_HAMSTA_DATABASE == 'y' ]] && update_hamsta_database;
-    [[ $CREATE_USER == 'y' ]] && add_test_user;
-}
-
-# Execute the testsuite
-function run () {
-    echo "Results will be saved to ${RESULTS_DIR}."
-    if [ ! -d ${RESULTS_DIR} ]; then
-	mkdir ${RESULTS_DIR};
-    fi
-
-    if [ -n "${HAMSTA_TEST_HOST}" ]; then
-	PYBOT_VARIABLES="--variable HOST:$HAMSTA_TEST_HOST"
-    fi
-    PYBOT_CMD="$PYBOT_BIN --name ${SUITE_NAME} $PYBOT_VARIABLES --outputdir ${RESULTS_DIR} $TESTS_DIR"
-    $PYBOT_CMD
-}
-
-# Clean test logs
-function clean_logs () {
-    if [ -d ${RESULTS_DIR} ]; then
-	rm -rf ${RESULTS_DIR};
-    fi
-}
-
 # Process command line arguments
-while getopts "dh:ilr:tu" opt; do
+while getopts "c:hm:r:a:" opt; do
     case $opt in
-	'd') export UPDATE_HAMSTA_DATABASE='y';;
-	'h') export HAMSTA_TEST_HOST=${OPTARG};;
-	'i') export INTERACTIVE='y';;
-	'l') export INSTALL_HAMSTA='y';;
-	'r') export RESULTS_DIR=${OPTARG};;
-	't') export TESTS_DIR=${OPTARG};;
-	'u') export CREATE_USER='y';;
-	\?)  help 0;;
+        'c') export CUSTOM_CONFIG=${OPTARG};;
+        'm') export HAMSTA_TEST_HOST=${OPTARG};;
+        'r') export RESULTS_DIR=${OPTARG};;
+        'a') export ROBOT_ARGS=${OPTARG};;
+        'h') help 0;;
+		'\?') help 0;;
     esac
 done
+shift $((OPTIND-1))
 
-# Process the main command option (last argument)
-case ${BASH_ARGV[0]} in
-    'init') init;;
-    'run') run;;
-    'clean') clean_logs;;
-    *) help 0;;
-esac
+[ -z $NONCRITICAL_TAGS ] || ROBOT_ARGS="--noncritical $NONCRITICAL_TAGS ${ROBOT_ARGS}"
+export ROBOT_ARGS="--name ${SUITE_NAME} --variable CONFIG_FILE:$CUSTOM_CONFIG --outputdir ${RESULTS_DIR} ${ROBOT_ARGS}"
+
+echo "Results will be saved to ${RESULTS_DIR}."
+
+if [ ! -d ${RESULTS_DIR} ]; then
+    mkdir ${RESULTS_DIR};
+fi
+
+if [ -n "${HAMSTA_TEST_HOST}" ]; then
+    ROBOT_ARGS="${ROBOT_ARGS} --variable HAMSTA_HOST:$HAMSTA_TEST_HOST"
+fi
+
+# Check if there are some other parameters and use it as test
+# directories or file names
+if [ $# -gt 0 ]; then
+	export TESTS_DIR=$@
+else
+	export TESTS_DIR=./testsuites/
+fi
+
+# If DISPLAY is not set, we are running without X
+# Try to run using xvfb-run if installed
+X_WRAPPER=''
+if [ -z $DISPLAY ] ; then
+	if which xvfb-run > /dev/null 2>&1 ; then
+		echo "DISPLAY not set. Using xvfb-run to run in virtual Xserver."
+		X_WRAPPER='xvfb-run '
+	else
+		echo "DISPLAY not set and xvfb-run is not installed. Tests that require Xserver will not work."
+	fi
+fi
+
+ROBOT_CMD="${X_WRAPPER}$PYBOT_BIN $ROBOT_ARGS ${TESTS_DIR}"
+echo "Robot options: $ROBOT_ARGS"
+echo "Running tests in ${TESTS_DIR}"
+$ROBOT_CMD

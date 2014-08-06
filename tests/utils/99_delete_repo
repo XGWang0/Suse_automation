@@ -1,0 +1,6 @@
+#!/bin/bash
+
+source /etc/qavirttest/utils.config
+
+rm -fr $REPOROOT/$REPOPATH
+

@@ -1,5 +1,10 @@
 #!/bin/bash
 
+#
+# Usage: $0 [custom_config_file]
+#
+
+
 export LANG=C
 
 this="`which "$0"`"
@@ -7,13 +12,19 @@ cd "`dirname "$this"`"
 
 [ -r PROJECT/config ] && source PROJECT/config
 
-# Configuration - will be moved to some file later
-if [ -r config ] 
+# Configuration
+if [ -z $1 ] 
 then
-	source config
+	if [ -r config ]
+	then
+		source config
+	else
+		source config.example
+	fi
 else
-	source config.example
+	source "$1"
 fi
+												
 
 if ! which webfsd > /dev/null 2>&1 
 then

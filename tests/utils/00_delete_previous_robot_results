@@ -1,0 +1,7 @@
+#!/bin/bash
+
+source /etc/qavirttest/utils.config
+
+cd "`dirname $0`/.."
+
+rm -rf results/*
