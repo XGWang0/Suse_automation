@@ -232,7 +232,7 @@ class TestBox:
             host_data = self.__templdata['network'][variant]
         else:
             # Is this optimal?
-            host_data = [x for x in self.__templdata['network']['suts'] if x['name'] not in self.hosts][0] 
+            host_data = [x for x in self.__templdata['network']['hosts'] if x['name'] not in self.hosts][0] 
         
         host = Host(host_data['name'],
                             host_data['ip'], 
@@ -426,7 +426,7 @@ def _process_template_directory(template_dir, template_data, target_dir):
         
         
 
-def _prepare_template_data(network=None, sut_count=64, custom_product_repositories = {}):
+def _prepare_template_data(network=None, vm_count=64, custom_product_repositories = {}):
     ''' Read the configuration and prepares the dict that contains the values needed by
     templates. The values are used together with various jinja2 templates to configure
     the test network and set up testing hosts.
@@ -434,7 +434,7 @@ def _prepare_template_data(network=None, sut_count=64, custom_product_repositori
     Arguments:
     network -- id of the network to prepare configuration for. If set to None, no network specific
                configuration will be added. (used for generating configuration for the test controller host)
-    sut_count -- how many virtual SUT should be set up (in network configuration). This indicate the maximum 
+    vm_count -- how many virtual SUT should be set up (in network configuration). This indicate the maximum 
                  number.
     custom_product_repositories - additional "product" repos in same form as products in config.ini
                                   names should be those that are expected in templates. Normally used for qarepo that contains test packages
@@ -527,20 +527,22 @@ def _prepare_template_data(network=None, sut_count=64, custom_product_repositori
             net[special]['name'] = special
             host_num += 1
         
-        # TODO: add real hw SUTs here
         
         # add SUTs
-        net['suts'] = []
-        for ip in hosts[host_num:host_num+sut_count]:
-            sut = {}
-            sut['ip'] = ip
-            sut['reverse'] = _reverse_network_address(ipaddress.ip_network('{}/32'.format(hosts[host_num])))
-            sut['mac'] = _generate_mac_address(n, host_num)
-            sut['name'] = 'sut-{:02d}'.format(len(net['suts'])+1)
-            sut['fqdn'] = sut['name'] + '.' + net['domain']
-            net['suts'].append(sut)
+        net['hosts'] = []
+        for ip in hosts[host_num:host_num+vm_count]:
+            vm = {}
+            vm['ip'] = ip
+            vm['reverse'] = _reverse_network_address(ipaddress.ip_network('{}/32'.format(hosts[host_num])))
+            vm['mac'] = _generate_mac_address(n, host_num)
+            vm['name'] = 'vm-{:02d}'.format(len(net['hosts'])+1)
+            vm['fqdn'] = vm['name'] + '.' + net['domain']
+            net['hosts'].append(vm)
             host_num += 1
-
+        
+        # TODO: add real hw SUTs here
+        
+        
         net['dynamic_start'] = hosts[host_num]
         net['dynamic_end'] = hosts[-1]
 
@@ -551,6 +553,5 @@ def _prepare_template_data(network=None, sut_count=64, custom_product_repositori
             raise IndexError('Network index ({}) out of bounds'.format(network))
         
         data['network'] = data['networks'][network - 1]
-        
     return data
 
