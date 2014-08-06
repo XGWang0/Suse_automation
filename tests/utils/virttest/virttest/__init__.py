@@ -220,12 +220,12 @@ class TestBox:
         """ os_ver = sles-11-sp3
         variant = sut
         """
-        if variant not in ('pure', 'sut', 'hamsta', 'qadb', 'qadbreport', 'server'):
+        if variant not in ('pure', 'sut', 'hamsta', 'qadb', 'server'):
             raise ValueError("Invalid host variant {}.".format(variant))
         
         image = self.__build_image(os_ver, variant) 
         
-        if variant in ('hamsta', 'qadb', 'qadbreport', 'server'):
+        if variant in ('hamsta', 'qadb', 'server'):
             # There can be only one
             if variant in self.hosts:
                 raise ValueError("There can be only one special host {} in the TestBox".format(variant))
@@ -261,7 +261,7 @@ class TestBox:
             d['ip'] = h.ip()
             d['mac'] = h.mac()
             
-            if h.name() in ('server', 'controller', 'hamsta', 'qadb', 'qadbreport'):
+            if h.name() in ('server', 'controller', 'hamsta', 'qadb'):
                 data[h.name()] = d
             else:
                 data['vms'].append(d) 
@@ -517,7 +517,7 @@ def _prepare_template_data(network=None, vm_count=64, custom_product_repositorie
         hosts = list(ipnet.hosts())
 
         host_num = 0        
-        for special in ['controller', 'server', 'hamsta', 'qadb', 'qadbreport']:
+        for special in ['controller', 'server', 'hamsta', 'qadb']:
             net[special] = {}
             net[special]['ip'] = hosts[host_num]
             net[special]['reverse'] = _reverse_network_address(ipaddress.ip_network('{}/32'.format(hosts[host_num])))
