@@ -1155,7 +1155,8 @@ function common_header($args=null)
 		'session'=>true,
 		'connect'=>true,
 		'icon'=>'icons/qadb_ico.png',
-		'css_screen'=>'css/screen.css'
+		'css_screen'=>'css/screen.css',
+		'jquery'=>'true',
 	);
 	$args=args_defaults($args,$defaults);
 	if( $args['session'] )
@@ -1366,6 +1367,11 @@ function reference_host_insert($host_id,$arch_id,$product_id)	{
 function reference_host_delete($reference_host_id)	{
 	return update_query('DELETE FROM reference_host WHERE reference_host_id=?', 'i', $reference_host_id );
 }
+
+function table_replace_value($table,$column,$oldval,$newval)	{
+	return update_query("UPDATE `$table` SET `$column`=? WHERE `$column`=?",'ii',$newval,$oldval);
+}
+
 
 
 

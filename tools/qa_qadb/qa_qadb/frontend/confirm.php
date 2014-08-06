@@ -35,6 +35,14 @@ else if( $confirm=='pr' )	{
 	$build_promoted_got=http('build_promoted_id');
 	$msg.='to remove promotion with ID='.$build_promoted_got;
 }
+else if( $confirm=='en' )	{
+	$id=http('id');
+	$table=http('table');
+	if( array_key_exists($table,$enums) )	{
+		$val=enum_get_val($table,$id);
+		$msg.="to remove value $id / $val from table $table";
+	}
+}
 $msg.=' ?';
 
 # The script is controlled by the variable 'confirm', which is used as key for following fields.
@@ -42,7 +50,7 @@ $msg.=' ?';
 # For 'Yes', write token (variable 'wtoken') is created
 
 # For 'Yes', the script sets a variable 'submit' with following value :
-$submit=array( 'b'=>'delete_board', 'w'=>'delete_waiver', 'wd'=>'delete_detail', 's'=>'delete_submission', 'sd'=>'delete_tcf', 'rh'=>'delete_ref', 'pr'=>'delete_prom' );
+$submit=array( 'b'=>'delete_board', 'w'=>'delete_waiver', 'wd'=>'delete_detail', 's'=>'delete_submission', 'sd'=>'delete_tcf', 'rh'=>'delete_ref', 'pr'=>'delete_prom', 'en'=>'delete_enum' );
 
 # For 'Yes', all $_REQUEST[] variables are copied
 # For 'No', following are copied:
@@ -54,6 +62,7 @@ $cancel=array(
 	'sd'=>array('submission_id'),
 	'rh'=>array(),
 	'pr'=>array(),
+	'en'=>array('table','stat'),
 );
 
 # Page to go back (both 'Yes' and 'No')
@@ -65,6 +74,7 @@ $back=array(
 	'sd'=>'submission.php',
 	'rh'=>'reference.php',
 	'pr'=>'promote.php',
+	'en'=>'enums.php',
 );
 
 foreach( array_merge($_GET,$_POST) as $key=>$val )
