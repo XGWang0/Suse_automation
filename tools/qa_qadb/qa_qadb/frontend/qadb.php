@@ -1391,6 +1391,7 @@ function highlight_result()
 	return $row[count($row)-1];
 }
 
+# filter refence hosts
 function reference_host_search($attrs,&$transl=array(),&$pager=null)
 {
 	global $dir;
@@ -1419,14 +1420,18 @@ function reference_host_search($attrs,&$transl=array(),&$pager=null)
 	);
 }
 
+# inserts reference host
 function reference_host_insert($host_id,$arch_id,$product_id)	{
 	return insert_query('INSERT INTO reference_host(host_id,arch_id,product_id) VALUES(?,?,?)', 'iii', $host_id, $arch_id, $product_id );
 }
 
+# deletes reference host
 function reference_host_delete($reference_host_id)	{
 	return update_query('DELETE FROM reference_host WHERE reference_host_id=?', 'i', $reference_host_id );
 }
 
+# function primarily intended for renaming enum values.
+# NOTE: check if $table is a valid table before use!
 function table_replace_value($table,$column,$oldval,$newval)	{
 	return update_query("UPDATE `$table` SET `$column`=? WHERE `$column`=?",'ii',$newval,$oldval);
 }
