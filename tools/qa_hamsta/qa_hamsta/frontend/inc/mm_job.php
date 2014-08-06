@@ -203,13 +203,13 @@ else if( request_str('submit') )
 			}
 
 			if($machine->send_job($path)) {
-				Log::create($machine->get_id(), $user->getLogin (), 'JOB_START', "has sent a \"multi-machine\" job including this machine (Job name: \"" . htmlspecialchars(basename($filename)) . "\")");
+				Log::create($machine->get_id(), get_user_login ($user), 'JOB_START', "has sent a \"multi-machine\" job including this machine (Job name: \"" . htmlspecialchars(basename($filename)) . "\")");
 			} else {
 				$errors[] = $machine->get_hostname() . ': ' . $machine->errmsg;
 			}
 		}
 		if (count($errors) == 0)
-			redirect("The job[s] has/have been successfully sent.",true);
+			redirect (array ('succmsg' => "The job[s] has/have been successfully sent."));
 	}
 }
 $html_title = "Multi-machine job details";

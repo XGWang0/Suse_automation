@@ -1,0 +1,9 @@
+#!/bin/bash
+
+source /etc/qavirttest/utils.config
+
+echo "Checking that there were changes in tests since the branch..."
+
+echo -n "not implemented yet"
+
+exit 0

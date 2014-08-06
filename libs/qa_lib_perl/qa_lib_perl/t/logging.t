@@ -7,7 +7,7 @@ use warnings;
 use strict;
 
 # Always change this when adding or removing test cases
-use Test::More tests => 5;
+use Test::More tests => 6;
 
 # Add to check for library availability
 BEGIN {
@@ -16,7 +16,7 @@ BEGIN {
 
 use log ( qw( $logtime) );
 
-$log::logtime = 0;
+$log::logtime = 1;
 
 my $logpath = '/tmp/testing.log';
 my $output = '';
@@ -41,6 +41,8 @@ log (LOG_ERR, 'This is error message');
   }
 }
 
+note($output);
+
 my @lines = split (/\n/, $output);
 
 like ($lines[0], qr/INFO\s+This is info message/,
@@ -54,6 +56,8 @@ like ($lines[2], qr/CRITICAL\s+This is another critical message/,
 
 like ($lines[3], qr/ERROR\s+This is error message/,
       'Log error output is correct');
+
+like ($lines[0], qr/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} [+-]\d{4}/, 'Log time format and timezone info');
 
 unlink $logpath;
 

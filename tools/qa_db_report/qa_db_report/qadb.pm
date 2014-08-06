@@ -120,7 +120,7 @@ sub rpmlist_put # $rpmlist_path
 	my $md5sum=$self->md5sum($rpmlist_path);
 	my $rpm_config_id = $self->enum_get_id('rpm_config',$md5sum);
 	return $rpm_config_id if defined $rpm_config_id;
-	$rpm_config_id = $self->enum_insert_id('rpm_config',$md5sum);
+	$rpm_config_id = $self->enum_insert('rpm_config',$md5sum);
 	push @{$self->{'inserted_configs'}},$rpm_config_id;
 	open RPMLIST, $rpmlist_path or $self->die_cleanly("Cannot open $rpmlist_path: $!");
 	while( <RPMLIST> )
@@ -206,7 +206,7 @@ sub submission_set_kernel_values # submission_id, kernel_branch_id, kernel_flavo
 	my %sql=();
 	if( $kernel_branch )	{
 		# check if the kernel branch exists in QADB
-		my @kernel_branches = $self->enum_list_vals('kernel_branch');
+		my @kernel_branches = $self->enum_list_val('kernel_branch');
 		my $best_match='';
 		foreach my $b (@kernel_branches)	{
 			$best_match=$b if length($b)>length($best_match) and $kernel_branch =~ /^$b/;

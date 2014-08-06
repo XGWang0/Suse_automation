@@ -1,0 +1,106 @@
+# job-14 -- Relax NG schema definition for Hamsta job XML
+# See file http://qadb.suse.de/xml_files/relax/job-14.rnc for compact definition.
+# See file http://qadb.suse.de/xml_files/relax/job-14.rnc for XML definition.
+
+# Import the XML datatypes schema so we have them available
+namespace xsd = "http://www.w3.org/2001/XMLSchema-datatypes"
+
+start = job
+
+job = element job {
+  element roles { role }?&
+  config&
+  parameters&
+  commands
+}
+
+role = element role {
+  attribute id { xsd:integer },
+  attribute name { text },
+  attribute num_min { xsd:integer }?,
+  attribute num_max { xsd:integer }?,
+  machine
+}*
+
+machine = element machine {
+  attribute name { text },
+  attribute ip { text },
+  empty
+}*
+
+config = element config {
+  element name { text }&
+  element debuglevel { xsd:integer }?&
+  # distributable is not used and will be removed in next version
+  element distributable { xsd:integer }&
+  element job_id { text }?&
+  # parallel is not used and will be removed in next version
+  element parallel { xsd:integer }?&
+  element mail {
+    attribute notify { text }?,
+    text
+  }?&
+  element rpm {
+    attribute upgrade { xsd:integer }?,
+    text
+  }*&
+  # logdir is not used and will be removed in next version
+  element logdir { text }&
+  element description { text }?&
+  element motd { text }?&
+  element useinfo { text }?&
+  element reboot { xsd:integer }?&
+  element update { xsd:integer }?
+}
+
+parameters = element parameters {
+  element parameter {
+    attribute type { "string" | "textarea" | "enum" },
+    attribute name { text },
+    attribute default { text }?,
+    attribute label { text }?,
+    (element option {
+      attribute value { text },
+      text
+    }* | text)
+  }+
+}?
+
+commands = element commands {
+  worker+&
+  logger*&
+  monitor*
+}
+
+worker = element worker {
+  workcode
+}
+
+logger = element logger {
+  workcode
+}
+
+monitor = element monitor {
+ attribute cycle_sec { xsd:integer }?,
+ attribute cycle_count { xsd:integer }?,
+ workcode
+}
+
+workcode = (
+  element command {
+    attribute execution { "threaded" | "forked" }?,
+    attribute role_id { xsd:integer }?,
+    text
+  }+&
+  element directory { text }?&
+  element timeout { xsd:integer }?&
+  element notify {
+    attribute pattern { text },
+    attribute mail { text },
+    empty
+  }?&
+  element stdout { text }?&
+  element stderr { text }?&
+  element exitcode { xsd:integer }?
+)
+

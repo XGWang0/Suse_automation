@@ -1,0 +1,10 @@
+#!/bin/bash
+
+/etc/init.d/mysql start
+
+# set up root password to mysql to susetesting
+/usr/bin/mysqladmin -u root password 'susetesting'
+
+# create hamsta database
+cd /usr/share/hamsta/db
+DBPASSISSET=yes DBPASS=susetesting sh ./create_db.sh
