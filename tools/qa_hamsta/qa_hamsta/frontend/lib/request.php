@@ -122,4 +122,23 @@
             return null;
         }
     }
+
+function print_install_post_data () {
+	if (isset ($_POST["repo_products"])) {
+		print ('<input id="old_repo_product" type="hidden" value="' . $_POST["repo_products"] . '">');
+	}
+
+	if (isset ($_POST["repo_archs"])) {
+		print ('<input id="old_repo_arch" type="hidden" value="' . $_POST["repo_archs"] . '">');
+	}
+
+	if (isset ($_POST["addon_product"])) {
+		print ('<input id="old_addon_product" type="hidden" value="' . $_POST["addon_products"] . '">');
+	}
+
+	if (isset ($_POST["addon_archs"])) {
+		print ('<input id="old_addon_arch" type="hidden" value="' . $_POST["addon_archs"] . '">');
+	}
+}
+
 ?>

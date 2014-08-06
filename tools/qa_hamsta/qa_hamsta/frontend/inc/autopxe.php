@@ -48,21 +48,29 @@ if (request_str("submit")) {
 	$host_loop = request_str("loopback");
 	if(empty($host_loop)) $host_loop = 'off';
 	$cmd = 'sudo ssh -o StrictHostKeyChecking=no rd-qa@'.$config->pxeserver." \"autopxe.pl $repourl $type $address $is_hamsta $host_loop 1>/dev/null \"";
-	echo $cmd;
+
 	system($cmd, $ret);
 	$errors = array();
-	if ($ret == 0) {
-		$_SESSION['message'] = "AutoPXE configuration was a success! Please network boot the server with ".$type." '".$address."'"." within 5 minutes to initiate an automated installation.";
+
+	switch ($ret) {
+	case 0:
+		$_SESSION['message'] = "AutoPXE configuration succeeded. Please network boot the server with $type '$address'"
+				. " within 5 minutes to initiate an automated installation.";
 		$_SESSION['mtype'] = "success";
-	} else if ($ret == 255) {
-		$errors['autopxepl'] = "AutoPXE configuration failed! Reason: autopxe.pl usage was incorrect. Please contact the automation team (qa-automation@suse.de) with the text of this error message.";
-	} else if ($ret == 10) {
-		$errors['warning'] = "AutoPXE configuration warning! The AutoPXE configuration was a success (you do not need to run it again), however the 'atd' service was not loaded on your PXE server, which means that the automatic cleanup of the AutoPXE files will not happen. To fix this, please enable 'atd' on the PXE server (rcatd start; chkconfig atd on).";
-	} else if ($ret == 20) {
-		$errors['creation'] = "AutoPXE configuration failed! Reason: the PXE file could not be created. Please file a bug or contact the automation team (qa-automation@suse.de) with the text of this error message.";
-	} else {
-		$errors['unknown'] = "AutoPXE configuration failed! Reason: Unknown (exit code ".$ret."). Please contact the automation team (qa-automation@suse.de) with the text of this error message.";
+		break;
+	case 10:
+		$errors['warning'] = "AutoPXE configuration warning. The AutoPXE configuration was a success (you do not need to run it again), however the 'atd' service was not loaded on your PXE server, which means that the automatic cleanup of the AutoPXE files will not happen. To fix this, please enable 'atd' on the PXE server (rcatd start; chkconfig atd on).";
+		error_log ("autopxe.pl script reports 'atd' serviced not running (return code $ret)");
+		break;
+	case 20:
+		$errors['creation'] = "AutoPXE configuration failed. Reason: the PXE file could not be created. Please file a bug or contact the automation team (qa-automation@suse.de) with the text of this error message.";
+		error_log ("autopxe.pl reports it can not create PXE file (return code $ret). Command: $cmd");
+		break;
+	default:
+		$errors['unknown'] = "AutoPXE configuration failed. Reason unknown (exit code ".$ret."). Please contact the automation team (qa-automation@suse.de) with the text of this error message. Note that AutoPXE works only in local QA subnet.";
+		error_log ("autopxe.pl failed (return code $ret). Command: $cmd");
 	}
+
 	if (count($errors) != 0) {
 		$_SESSION['message'] = implode("\n", $errors);
 		$_SESSION['mtype'] = "fail";

@@ -183,9 +183,10 @@ div.machine_icons {
     width:120px;
 }
 
+/* Moved due to bug 849798 - Machine action icon cover the machine
+   name */
 div.machine_icons_machine_details {
     margin-left:20em;
-    margin-top:-2.5em;
 }
 
 div.margin_small {

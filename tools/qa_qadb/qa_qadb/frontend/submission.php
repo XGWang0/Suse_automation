@@ -72,7 +72,7 @@ if( token_read(http('wtoken')) )
 
 if(!$submission_id)
 {	# main search form & results
-	$product	=enum_list_id_val('product'); 
+	$product	=enum_list_id_val('product');
 	$release	=enum_list_id_val('release');
 	$arch		=enum_list_id_val('arch'); 
 	$host		=enum_list_id_val('host');
@@ -81,6 +81,11 @@ if(!$submission_id)
 	$kernel_version	=enum_list_id_val('kernel_version');
 	$kernel_branch	=enum_list_id_val('kernel_branch');
 	$kernel_flavor	=enum_list_id_val('kernel_flavor');
+
+	# products and releases  get alphanumerically sorted
+	usort($product,'compare_alnum');
+	usort($release,'compare_alnum');
+
 	$nothing=array( null, '' );
 	array_unshift($status,$nothing);
 	array_unshift($kernel_version,$nothing);
@@ -90,6 +95,7 @@ if(!$submission_id)
 	$release_got		=http('release');
 	$arch_got		=http('arch');
 	$testsuite_got		=http('testsuite');
+	$testsuite_ex_got	=http('testsuite_ex');
 	$host_got		=http('host');
 	$date_from_got		=http('date_from');
 	$date_to_got		=http('date_to');
@@ -122,10 +128,8 @@ if(!$submission_id)
 		array('product',$product,$product_got,MULTI_SELECT),
 		array('release',$release,$release_got,MULTI_SELECT),
 		array('arch',$arch,$arch_got,MULTI_SELECT),
-#		array('testsuite',$testsuite,$testsuite_got,MULTI_SELECT),
 		array('host',$host,$host_got,MULTI_SELECT),
 		array('tester',$tester,$tester_got,MULTI_SELECT),
-		array('testsuite',enum_list_id_val('testsuite'),$testsuite_got,MULTI_SELECT),
 		array('date_from','',$date_from_got,TEXT_ROW),
 		array('date_to','',$date_to_got,TEXT_ROW),
 		array('comment','',$comment_got,TEXT_ROW,'comment [%]'),
@@ -143,24 +147,33 @@ if(!$submission_id)
 
 	# card-dependent form fields
 	if( $step=='tcf' )
-		array_splice($what,6,0,array(
+		array_splice($what,5,0,array(
 			array('testcase','',$testcase_got,TEXT_ROW,'testcase(s) (slow) [%]'),
 		));
 	else if( $step=='bench' )
 	{
-		$what[5]=array('testsuite',bench_list_testsuite(),$testsuite_got,MULTI_SELECT);
+		array_splice($what,5,0,array(
+			array('testsuite',bench_list_testsuite(),$testsuite_got,MULTI_SELECT)
+			));
 		$pager = null; # cannot use pager as the whole table is a form
 	}
 	else if( $step=='reg' )
 	{
-		$group_by_got = http('group_by',2);
+		$group_by_y_got = http('group_by_y',2);
+		$group_by_x_got = http('group_by_x',1);
 		$reg_method_got = http('reg_method',1);
-		$cell_text_got = http('cell_text',1);
+		$cell_text_got	= http('cell_text',1);
 		$cell_color_got = http('cell_color',1);
+		$no_footer_got	= http('no_footer');
 
-		$group_by = array(
+		$group_by_y = array(
 			array(2,'testsuite'),
 			array(1,'testsuite + testcase'),
+			array(3,'submission'),
+		);
+		$group_by_x = array(
+			array(1,'product + release'),
+			array(2,'submission'),
 		);
 		$reg_method = array(
 			array(1,'different status'),
@@ -180,14 +193,24 @@ if(!$submission_id)
 			array(3,'grayscale'),
 			array(4,''),
 		);
-		$what[]=array('group_by',$group_by,$group_by_got,SINGLE_SELECT);
+		$what[]=array('group_by_y',$group_by_y,$group_by_y_got,SINGLE_SELECT,'rows');
+		$what[]=array('group_by_x',$group_by_x,$group_by_x_got,SINGLE_SELECT,'columns');
 		$what[]=array('reg_method',$reg_method,$reg_method_got,SINGLE_SELECT,'regression method');
 		$what[]=array('cell_text',$cell_text,$cell_text_got,SINGLE_SELECT);
 		$what[]=array('cell_color',$cell_color,$cell_color_got,SINGLE_SELECT);
+		$what[]=array('no_footer','',$no_footer_got,CHECKBOX);
 	}
 	else	{
 		$what[]=array('submission_type',$modes,$mode_got,SINGLE_SELECT,'submission type');
-		array_splice($what,5,1); # TODO: fix testsuites in this tab too
+		array_splice($what,5,0,array(
+			array('testsuite_ex',enum_list_id_val('testsuite'),$testsuite_ex_got,MULTI_SELECT,'testsuite')
+			));
+	}
+	if( $step=='tcf' || $step=='reg' )	{
+		array_splice($what,5,0,array(
+			array('testsuite',enum_list_id_val('testsuite'),$testsuite_got,MULTI_SELECT)
+			));
+
 	}
 }
 
@@ -230,6 +253,7 @@ if(!$submission_id)
 			'date_from'		=>$date_from_got,
 			'date_to'		=>$date_to_got,
 			'testsuite_id'		=>$testsuite_got,
+			'testsuite_eid'		=>$testsuite_ex_got,
 			'testcase'		=>$testcase,
 			'tester_id'		=>$tester_got,
 			'comment'		=>$comment_got,
@@ -252,10 +276,14 @@ if(!$submission_id)
 			unset($attrs['order_nr']);
 			$attrs['cell_color']=$cell_color_got;
 			$attrs['cell_text']=$cell_text_got;
-			$is_tc=($group_by_got!=2);
-			$data = extended_regression($is_tc,$reg_method_got,$attrs,$transl,$pager);
+			$is_tc=($group_by_y_got!=2);
+			$group_submissions=($group_by_x_got==2);
+			$footer=($no_footer_got ? null: array());
+			$data = extended_regression($is_tc,$group_submissions,$reg_method_got,$attrs,$footer,$transl,$pager);
 			$sort=str_repeat('s',($is_tc ? 2:1));
-			$sort.=str_repeat(($cell_text_got==2 ? 'i':'s'),count($data[0])-strlen($sort));
+			if( count($data) > 1 )	{
+				$sort.=str_repeat(($cell_text_got==2 ? 'i':'s'),count($data[0])-strlen($sort));
+			}
 		}
 		else	{
 			$data=search_submission_result($mode_got,$attrs,$transl,$pager);
@@ -274,6 +302,9 @@ if(!$submission_id)
 		table_translate($data,$transl); 
 		if( $mode_got==3 ) # KOTD external links, linked by value instead of ID, need translating here
 			table_translate($data,array('links'=>array('kernel_branch_id'=>'http://kerncvs.suse.de/kernel-overview/?b=')));
+
+		if( isset($footer) )
+			$data=array_merge($data,$footer);
 		print html_table($data,array('id'=>'submission','sort'=>$sort,'total'=>true,'class'=>$class,'pager'=>$pager));
 		if( $step=='bench' && count($data)>1 )
 		{
@@ -290,6 +321,16 @@ if(!$submission_id)
 			print "</form>\n";
 		}
 
+	}
+	if(1)	{
+		# help pages here
+		if( $step=='reg' )	{
+			print "This is an aggreagated overview over multiple data submissions.<br/>\n";
+			print "<b>Rows</b>: whole testsuites, or individual testcases<br/>\n";
+			print "<b>Columns</b>: product/release, or individual submissions<br/>\n";
+			print "<b>Regression method</b>: rows to show - with differences, with errors, or all<br/>\n";
+			print "<b>Cell text/color</b>: methods showing how many test runs succeeded/failed<br/>\n";
+		}
 	}
 	echo "</div>\n";
 }
@@ -385,6 +426,18 @@ function colorize_detail($tcf_id,$testsuite,$testcase,$succ,$fail,$interr,$skip,
 		return ' skipped';
 	if( $succ )
 		return ' i';
+}
+
+/**
+  * To be called by usort()
+  * @param $p1,$p2 : array( id, name )
+  * @return -1,0,1 for $p1 <,==,> $p2
+  **/
+function compare_alnum($p1,$p2)
+{
+	$n1=preg_replace('/-/','',$p1[1]);
+	$n2=preg_replace('/-/','',$p2[1]);
+	return -strnatcasecmp($n1,$n2);
 }
 
 

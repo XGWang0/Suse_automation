@@ -1036,6 +1036,22 @@ class Machine {
         }
 
 	/**
+	 * Check for multiple machine permissions and return result.
+	 *
+	 * @param array $permissions An array of permission strings to check for.
+	 *
+	 * @return boolean True if machine has permissions from the
+	 * $permissions parameter, false otherwise.
+	 */
+	public function has_permissions($permissions) {
+		$machine_perms = explode(',', $this->get_perm());
+		if (array_diff($permissions, $machine_perms)) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
 	 * Get a permission string from database set.
 	 *
 	 * @return string A string representing the permission set from database.
@@ -1110,6 +1126,17 @@ class Machine {
 		else
 			return NULL;
 	}
+
+	/**
+	 * Check if this machine is a virtual guest.
+	 *
+	 * @return boolean True if this machine is virtual host. False otherwise.
+	 * @see Machine::get_vh_id()
+	 */
+	public function is_virtual_guest() {
+		return $this->get_vh_id() ? true : false;
+	}
+
 	/**
 	 * get_used_by
 	 * This is a workaround function for searching reservator in machine list.

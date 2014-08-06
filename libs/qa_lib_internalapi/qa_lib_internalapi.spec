@@ -29,7 +29,7 @@ BuildRequires:  swig
 Provides:       libqainternal
 Obsoletes:      libqainternal
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
-%if 0%{?sles_version} == 9
+%if 0%{?suse_version} == 910
 Requires:       expect
 %endif
 
@@ -93,7 +93,7 @@ cd ..
 install -d -m 0755 %{buildroot}%{_datadir}/qa/qa_internalapi/sh
 cp -rv %{name}shell/* %{buildroot}%{_datadir}/qa/qa_internalapi/sh
 ln -s /usr/share/qa/qa_internalapi/sh/libqainternal.lib.sh %{buildroot}%{_bindir}/libqainternal.lib.sh
-%if 0%{?sles_version} == 9
+%if 0%{?suse_version} == 910
 ln -s change_password.exp %{buildroot}%{_datadir}/qa/qa_internalapi/sh/change_password
 rm %{buildroot}%{_datadir}/qa/qa_internalapi/sh/change_password.sh
 %else
@@ -120,7 +120,7 @@ ldconfig
 %{_mandir}/man3/*
 %{_mandir}/man8/*
 %{_bindir}/libqainternal.lib.sh
-%if 0%{?sles_version} == 9
+%if 0%{?suse_version} == 910
 %attr(0755,root,root) %{_datadir}/qa/qa_internalapi/sh/change_password.exp
 %else
 %attr(0755,root,root) %{_datadir}/qa/qa_internalapi/sh/change_password.sh

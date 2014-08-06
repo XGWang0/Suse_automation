@@ -1,0 +1,79 @@
+#! /bin/bash
+
+# Initialize some default variables
+RESULTS_DIR=results
+PYBOT_BIN=pybot
+SUITE_NAME="QA_Automation_Tools"
+CUSTOM_CONFIG=config.robot
+ROBOT_ARGS=''
+NONCRITICAL_TAGS='build_fixed' # tags separated by OR 'tag1ORtag2'
+
+# Go to working directory. All paths used in the script are relative
+# to that directory.
+MY_NAME=`basename $0`
+cd `dirname $0`
+
+# Call me like: help EXIT_CODE
+function help () {
+    echo "$MY_NAME -- QA Automation dumb test executor";
+    echo -e "Usage: $MY_NAME [OPTIONS]\n";
+    echo;
+    echo -e "OPTIONS";
+    echo -e "\t-c FILE\tCustom Robot Framework configuration, defaults to 'config.robot'";
+    echo -e "\t-m HOST\tHamsta master hostname, defaults to 'localhost'";
+    echo -e "\t-r DIR\tdirectory to store results to, defaults to '${PWD}/results'";
+    echo -e "\t-a PARAMS\tparameters to pass directly to pybot, you have to quote it: -a '-e tag'";
+    echo -e "\nContact us on <qa-automation@suse.de>.";
+    exit $1;
+}
+
+# Process command line arguments
+while getopts "c:hm:r:a:" opt; do
+    case $opt in
+        'c') export CUSTOM_CONFIG=${OPTARG};;
+        'm') export HAMSTA_TEST_HOST=${OPTARG};;
+        'r') export RESULTS_DIR=${OPTARG};;
+        'a') export ROBOT_ARGS=${OPTARG};;
+        'h') help 0;;
+		'\?') help 0;;
+    esac
+done
+shift $((OPTIND-1))
+
+[ -z $NONCRITICAL_TAGS ] || ROBOT_ARGS="--noncritical $NONCRITICAL_TAGS ${ROBOT_ARGS}"
+export ROBOT_ARGS="--name ${SUITE_NAME} --variable CONFIG_FILE:$CUSTOM_CONFIG --outputdir ${RESULTS_DIR} ${ROBOT_ARGS}"
+
+echo "Results will be saved to ${RESULTS_DIR}."
+
+if [ ! -d ${RESULTS_DIR} ]; then
+    mkdir ${RESULTS_DIR};
+fi
+
+if [ -n "${HAMSTA_TEST_HOST}" ]; then
+    ROBOT_ARGS="${ROBOT_ARGS} --variable HAMSTA_HOST:$HAMSTA_TEST_HOST"
+fi
+
+# Check if there are some other parameters and use it as test
+# directories or file names
+if [ $# -gt 0 ]; then
+	export TESTS_DIR=$@
+else
+	export TESTS_DIR=./testsuites/
+fi
+
+# If DISPLAY is not set, we are running without X
+# Try to run using xvfb-run if installed
+X_WRAPPER=''
+if [ -z $DISPLAY ] ; then
+	if which xvfb-run > /dev/null 2>&1 ; then
+		echo "DISPLAY not set. Using xvfb-run to run in virtual Xserver."
+		X_WRAPPER='xvfb-run '
+	else
+		echo "DISPLAY not set and xvfb-run is not installed. Tests that require Xserver will not work."
+	fi
+fi
+
+ROBOT_CMD="${X_WRAPPER}$PYBOT_BIN $ROBOT_ARGS ${TESTS_DIR}"
+echo "Robot options: $ROBOT_ARGS"
+echo "Running tests in ${TESTS_DIR}"
+$ROBOT_CMD
