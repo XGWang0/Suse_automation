@@ -36,7 +36,7 @@ ff02::3         ipv6-allhosts
 {% endfor %}
 
 # SUTs
-{% for sut in n.suts %}
-{{ sut.ip }}			{{ sut.name }}.{{ n.domain }}		
+{% for host in n.hosts %}
+{{ host.ip }}			{{ host.name }}.{{ n.domain }}		
 {% endfor %}
 {% endfor %}

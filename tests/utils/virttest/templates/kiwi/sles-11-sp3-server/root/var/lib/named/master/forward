@@ -28,6 +28,6 @@ pxe						CNAME	{{ network.server.name }}
 dhcp					CNAME	{{ network.server.name }}
 
 ; SUTs
-{% for sut in network.suts %}
-{{ sut.name }}			A		{{ sut.ip }}
+{% for host in network.hosts %}
+{{ host.name }}			A		{{ host.ip }}
 {% endfor %}

@@ -18,6 +18,6 @@ $TTL 86400      ; 1 day
 
 
 ; SUTs
-{% for sut in network.suts %}
-{{ sut.reverse }}.					PTR		{{ sut.name }}.{{ network.domain }}.
+{% for host in network.hosts %}
+{{ host.reverse }}.					PTR		{{ host.name }}.{{ network.domain }}.
 {% endfor %}
