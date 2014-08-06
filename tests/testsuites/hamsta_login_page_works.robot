@@ -1,9 +1,9 @@
 *** Settings ***
 Documentation    Verify that login page works properly
 Resource         web-resources.robot
-Suite Setup      Open Browser      ${BASE_URL}
+Suite Setup      Open Browser      ${HAMSTA_BASE_URL}
 Suite Teardown   Close Browser
-Force Tags	 hamsta web
+Force Tags	 hamsta  web
 
 *** Variables ***
 
