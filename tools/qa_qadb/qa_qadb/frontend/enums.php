@@ -1,17 +1,70 @@
 <?php
+# Admin module for enum tables.
+# Allows listing, viewing foreign keys, usage statistics, renaming, merging and deleting.
 
 require_once('qadb.php');
 common_header(array('title'=>'QADB enum types'));
 print "<h1>Enum tables</h1>\n";
 
+# read HTTP arguments
 $step=http('step','l');
+$table=http('table');
+$id=http('id');
+$val=null;
+$newval=http('newval');
+$submit=http('submit');
+$target_id=http('target_id');
+if( isset($table) && !array_key_exists($table,$enums) )
+	$table=null;
+if( isset($table) && isset($id) )	{
+	$val=enum_get_val($table,$id);
+}
 
+# form base
+$what=array(
+	array('table','',$table,HIDDEN),
+	array('id','',$id,HIDDEN),
+);
+
+# controller part 
+if( token_read(http('wtoken')) && isset($table) && isset($id))	{
+	if( $submit=='delete_enum' )  {
+		transaction();
+		update_result( enum_delete_id($table,$id), false, "Record $id/$val deleted." );
+		commit();
+	}
+	else if( $submit=='rename' && isset($newval) && ($val != $newval) )	{
+		transaction();
+		update_result( enum_rename_id($table,$id,$newval), false, "Record $id renamed from '$val' to '$newval'." );
+		commit();
+	}
+	else if( $submit=='merge' && isset($target_id) && ($id!=$target_id) )	{
+
+		# following line checks if $table is a known enum table, and aborts otherwise
+		$v=efields($table);
+
+		$data=mysql_referers(1,$table,$v[0]);
+		transaction();
+		for( $i=1; $i<count($data); $i++ )      {
+			$t=$data[$i]['table'];
+			update_result(
+				table_replace_value( $t, $data[$i]['column'], $id, $target_id ),
+				false, "Data in table '$t' marged."
+			);
+		}
+		update_result( enum_delete_id($table,$id), false, "Record $id/$val deleted." );
+		commit();
+	}
+	$step='stat';
+}
+
+# page card steps
 $steps=array('l'=>'List');
 $steps_alt=array('fk'=>'Foreign key','d'=>'Detail','stat'=>'Usage statistics','val'=>'Values');
-print steps('enums.php?step=',$steps,$step,$steps_alt);
+print steps('enums.php?'.($table ? "table=$table&":'').'step=',$steps,$step,$steps_alt);
 
 if( $step=='d' )	{
-	$table=http('table');
+	# foreign key detais - needs improving
 	$data=mysql_foreign_keys_list($table);
 	if(!$data)
 		print html_error("No such table: '$table'");
@@ -21,11 +74,41 @@ if( $step=='d' )	{
 	}
 }
 else if( $step=='stat' )	{
-	$table=http('table');
+	# table statistics & actions
 	$data=mysql_foreign_keys_list($table,1);
-	print html_table($data,array('total'=>1,'id'=>'stat','sort'=>'s'.str_repeat('i',count($data[0])-1)));
+
+	# add control buttons
+	$data[0]['ctrl']='Controls';
+	for($i=1;$i<count($data);$i++)	{
+		$vals=array_values($data[$i]);
+		$base="enums.php?table=$table&id=".$vals[0];
+		$data[$i]['ctrl']=html_text_button('rename',"$base&step=rename");
+		$num=$vals[count($vals)-1];
+		if( $num>0 )
+			$data[$i]['ctrl'].=html_text_button('merge',"$base&step=merge");
+		else
+			$data[$i]['ctrl'].=html_text_button('delete',"confirm.php?table=$table&id=".$vals[0]."&confirm=en&step=stat");
+	}
+
+	# print table
+	print html_table($data,array('total'=>1,'id'=>'stat','sort'=>'is'.str_repeat('i',count($data[0])-3),'callback'=>'colorize_stat'));
+}
+else if( $step=='rename' && isset($table) )	{
+	# renaming enum value form
+	$what[]=array('newval','',$val,TEXT_ROW,"$table ID $id value");
+	$what[]=array('submit','','rename',HIDDEN);
+	$what[]=array('wtoken','',token_generate(),HIDDEN);
+	print html_search_form('enums.php',$what,array('submit'=>'rename'));
+}
+else if( $step=='merge' && isset($table) )	{
+	# merge form
+	$what[]=array('target_id',enum_list_id_val($table),$id,SINGLE_SELECT,"merge $table ID $id ($val) into");
+	$what[]=array('submit','','merge',HIDDEN);
+	$what[]=array('wtoken','',token_generate(),HIDDEN);
+	print html_search_form('enums.php',$what,array('submit'=>'merge!'));
 }
 else	{
+	# lists tables and FKs
 	$data = mysql_foreign_keys_list_all();
 	for($i=1; $i<count($data); $i++)	{
 		if( !isset($data[$i]['reference']) )
@@ -34,7 +117,7 @@ else	{
 		print '<h3>'.$data[$i]['table']."</h3>\n";
 		print html_text_button('details',"$t&step=d");
 		print html_text_button('usage statistics',"$t&step=stat");
-		print html_text_button('values',"$t&step=val");
+#		print html_text_button('values',"$t&step=val");
 		print html_div('','References:');
 		print "<ul>\n";
 		$parts=preg_split('/ /',$data[$i]['reference']);
@@ -46,4 +129,12 @@ else	{
 
 print "</div>\n";
 print html_footer();
+
+# makes unused entries gray
+function colorize_stat()
+{
+	$args=func_get_args();
+	$total=$args[count($args)-2];
+	return ( ($total>0) ? '' : ' skipped');
+}
 ?>

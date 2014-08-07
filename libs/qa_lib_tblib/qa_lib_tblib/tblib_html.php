@@ -254,7 +254,7 @@ function html_table($data,$attrs=array())
 	$tbody = false;
 	foreach(array_keys($data) as $i)
 	{	
-		if( $i=='header' || ( $i==0 && $header ))	{
+		if( $i=='header' || ( is_numeric($i) && $i==0 && $header ))	{
 			# header
 			$r.="<thead><tr>";
 			foreach(array_values($data[$i]) as $col)
