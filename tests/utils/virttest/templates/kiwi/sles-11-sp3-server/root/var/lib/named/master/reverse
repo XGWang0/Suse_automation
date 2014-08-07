@@ -14,10 +14,9 @@ $TTL 86400      ; 1 day
 {{ network.server.reverse }}.		PTR		{{ network.server.name }}.{{ network.domain }}.
 {{ network.hamsta.reverse }}.		PTR		{{ network.hamsta.name }}.{{ network.domain }}.
 {{ network.qadb.reverse }}.			PTR		{{ network.qadb.name }}.{{ network.domain }}.
-{{ network.qadbreport.reverse }}.	PTR		{{ network.qadbreport.name }}.{{ network.domain }}.
 
 
 ; SUTs
-{% for sut in network.suts %}
-{{ sut.reverse }}.					PTR		{{ sut.name }}.{{ network.domain }}.
+{% for host in network.hosts %}
+{{ host.reverse }}.					PTR		{{ host.name }}.{{ network.domain }}.
 {% endfor %}
