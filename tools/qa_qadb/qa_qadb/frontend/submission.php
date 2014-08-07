@@ -104,7 +104,6 @@ if(!$submission_id)
 	$comment_got		=http('comment');
 	$rpm_config_id_got	=http('rpm_config_id');
 	$hwinfo_id_got		=http('hwinfo_id');
-	$submission_id_got	=http('submission_id');
 	$status_got		=http('status');
 	$md5sum_got		=http('md5sum');
 	$patch_id_got		=http('patch_id');
@@ -133,7 +132,7 @@ if(!$submission_id)
 		array('date_from','',$date_from_got,TEXT_ROW),
 		array('date_to','',$date_to_got,TEXT_ROW),
 		array('comment','',$comment_got,TEXT_ROW,'comment [%]'),
-		array('submission_id','',$submission_id_got,TEXT_ROW),
+		array('submission_id','',$submission_id,TEXT_ROW),
 		array('md5sum','',$md5sum_got,TEXT_ROW),
 		array('patch_id','',$patch_id_got,TEXT_ROW),
 		array('status',$status,$status_got,SINGLE_SELECT),
@@ -259,7 +258,7 @@ if(!$submission_id)
 			'comment'		=>$comment_got,
 			'rpm_config_id'		=>$rpm_config_id_got,
 			'hwinfo_id'		=>$hwinfo_id_got,
-			'submission_id'		=>$submission_id_got,
+			'submission_id'		=>$submission_id,
 			'status_id'		=>$status_got,
 			'md5sum'		=>$md5sum_got,
 			'patch_id'		=>$patch_id_got,
