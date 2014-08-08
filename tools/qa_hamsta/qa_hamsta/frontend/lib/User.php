@@ -959,20 +959,29 @@ function user_get()
 	return User::getCurrent ();
 }
 
+function get_user_login ($user)
+{
+	$login = 'anonymous';
+	if ($user) {
+		$login = $user->getLogin ();
+	}
+	return $login;
+}
+
 function capable ()
 {
-        global $config,$user;
-        $cap=func_get_args();
+	global $config,$user;
+	$cap=func_get_args();
 	# everything allowed when not using authentication
-        if( !$config->authentication->use )
-                return true;
+	if (! $config->authentication->use)
+		return true;
 
 	# nothing allowed unless logged in
-	if( !$user )
+	if (! $user)
 		return false;
 
 	# if no capabilities entered, we just check for being logged in
-	if( count($cap)==0 )
+	if (count ($cap) == 0)
 		return true;
 
 	# need to have at least one of the permissions
@@ -1052,11 +1061,13 @@ function machine_permission_or_redirect($machines,$args=array())
   * - url : redirect URL, default 'index.php'
   * Returns if permissions are sufficient.
   **/
-
 function machine_permission_or_disabled($machines,$args)
 {
-	if( !machine_permission( $machines, $args ) )
-		disable($args);
+	$ret = machine_permission ($machines, $args);
+	if (! $ret) {
+		disable ($args);
+	}
+	return $ret;
 }
 
 $perm_send_job=array('owner'=>'machine_send_job','other'=>'machine_send_job_reserved');
@@ -1064,6 +1075,9 @@ $perm_send_job=array('owner'=>'machine_send_job','other'=>'machine_send_job_rese
 function permission_or_redirect($args=array())
 {
 	$perms=hash_get($args,'perm',array());
+	if (! is_array ($perms)) {
+		$perms = array ($perms);
+	}
 	if( !call_user_func_array('capable',$perms) )
 		redirect($args);
 }

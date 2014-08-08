@@ -1,0 +1,33 @@
+$TTL 86400      ; 1 day
+@                       IN SOA  ns.{{ network.domain }}. hostmaster.{{ network.domain }}. (
+                                {{ dns.serial }} ; serial
+                                86400      ; refresh (1 day)
+                                7200       ; retry (2 hours)
+                                604800     ; expire (1 week)
+                                172800     ; minimum (2 days)
+                                )
+
+
+                        A       {{ network.server.ip }}
+						NS      {{ network.server.name }}
+
+; Infrastructure hosts
+{{ network.controller.name }}	A		{{ network.controller.ip }}
+{{ network.server.name }}		A       {{ network.server.ip }}
+{{ network.hamsta.name }}		A 		{{ network.hamsta.ip }}
+{{ network.qadb.name }}			A		{{ network.qadb.ip }}
+{{ network.qadbreport.name }}	A		{{ network.qadbreport.ip }}
+
+; repositories are hosted on the controller
+repos					CNAME	{{ network.controller.name }}
+
+; services are provided by server
+dns						CNAME	{{ network.server.name }}
+ns						CNAME	{{ network.server.name }}
+pxe						CNAME	{{ network.server.name }}
+dhcp					CNAME	{{ network.server.name }}
+
+; SUTs
+{% for sut in network.suts %}
+{{ sut.name }}			A		{{ sut.ip }}
+{% endfor %}

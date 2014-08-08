@@ -31,12 +31,6 @@ if (!defined('HAMSTA_FRONTEND')) {
 	return require("index.php");
 }
 
-function filter($var) {
-	if($var == '')
-		return false;
-	return true;
-}
-
 $search = new MachineSearch();
 $search->filter_in_array(request_array("a_machines"));
 $machines = $search->query();
@@ -49,25 +43,8 @@ foreach($machines as $m) {
 	$m->get_children();
 }
 
-/* Check if user is logged in, registered and have sufficient privileges. */
-if ($config->authentication->use && ! isset ($user)) {
-    Notificator::setErrorMessage ('You have to be logged in to upgrade a machine.');
-    header('Location: index.php');
-    exit ();
-}
-
-foreach($machines as $m) {
-	$rh = new ReservationsHelper ();
-	$users_machine = $rh->getForMachineUser ($m, $user);
-	if (! (isset ($user)
-	       && (($users_machine && $user->isAllowed ('machine_reinstall'))
-		   || ($user->isAllowed ('machine_reinstall_reserved'))))) {
-		Notificator::setErrorMessage ('You do not have privileges to upgrade a machine.');
-		header ('Location: index.php');
-		exit ();
-	}
-}
-
+$perm=array('owner'=>'machine_reinstall','other'=>'machine_reinstall_reserved','url'=>'index.php?go=upgrade');
+machine_permission_or_disabled($machines,$perm);
 
 # If install options are set in the DB, they will show up in upgrade page, else use what user set in upgrade page even it's empty.
 $installoptions_warning="";
@@ -162,7 +139,7 @@ if (request_str("proceed")) {
 		system("sed -i 's/REPOURL/$producturl/g' $autoyastfile");
 		foreach ($machines as $machine) {
 			if ($machine->send_job($autoyastfile)) {
-				Log::create($machine->get_id(), $user->getLogin (), 'REINSTALL', "has reinstalled this machine using $producturl_raw (Addon: " . ($addonurl ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
+				Log::create($machine->get_id(), get_user_login ($user), 'REINSTALL', "has reinstalled this machine using $producturl_raw (Addon: " . ($addonurl ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
 			} else {
 				$errors['autoyastjob']=$machine->get_hostname().": ".$machine->errmsg;
 			}

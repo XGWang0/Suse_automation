@@ -1,6 +1,6 @@
 # ****************************************************************************
 # Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
-#
+# 
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
 # RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
@@ -11,7 +11,7 @@
 # PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
 # AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
 # LIABILITY.
-#
+# 
 # SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
 # WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
@@ -38,40 +38,19 @@ BEGIN {
 	%EXPORT_TAGS	= ();
 	@EXPORT_OK	= qw(
 		&get_qa_config
+		&get_system_qa_config
 	);
 }
 
-our %qaconf = ();
-
-# Overwritten to allow disabling previously unavoidable
-# get_system_qa_config() call on module use. This is needed at least
-# for unit testing when a module requires the qaconfig but the
-# configuration is not actually needed (by the test).
-#
-# Usage:
-# use qaconfig qw(noglobal)
-sub import {
-    my $class = shift;
-    my $arg = shift;
-
-    # Return the class back into the argument list
-    unshift @_, $class;
-
-    # The main qa configuration (no module -> /etc/qa)
-    if (not ($arg and $arg eq 'noglobal')) {
-	%qaconf = get_system_qa_config();
-    }
-
-    # Call parent exporter
-    goto &Exporter::import;
-}
+# The main qa configuration (no module -> /etc/qa)
+our %qaconf = get_system_qa_config();
 
 #
 # Returns the hash of qa configuration for given module
 # e.g. for /etc/qa/blabla use get_qa_config("blabla")
 #
-# 1) &get_qa_config('') - returns all variables
-# 2) &get_qa_config('module') - returns variables prefixed by module_ (without the prefix)
+# 1) &get_qa_config('') - reads 
+# 2) &get_qa_config('module') - reads only variables prefixed by module_ (and strips the prefix)
 #
 sub get_qa_config
 {
@@ -99,5 +78,6 @@ sub get_system_qa_config
 	close CONF;
 	return %config;
 }
+
 
 1;

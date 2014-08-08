@@ -28,4 +28,3 @@ bootloader --location=mbr --driveorder=xvda --append="rhgb quiet"
 
 %packages
 @ base-x
-@ kde-desktop

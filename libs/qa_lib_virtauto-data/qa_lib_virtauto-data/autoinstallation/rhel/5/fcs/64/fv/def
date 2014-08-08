@@ -22,4 +22,3 @@ reboot
 
 %packages
 @ base-x
-@ kde-desktop

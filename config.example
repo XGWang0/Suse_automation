@@ -13,13 +13,16 @@
 # rm $tmpfile
 # general format is NAME-VERSION[-SPx][-Update]
 # example SLE-12 SLE-11-SP2 openSUSE-13.1 openSUSE-Factory
-PRODUCTS="SLE-11-SP3"
+PRODUCTS="SLE-11-SP3 SLE-12 openSUSE-13.1 openSUSE-Factory"
 
 # Space separated list of architectures
 ARCHS="`arch`"
 
 # where to build the repo
 REPO="/tmp/repo"
+
+# where to store build-repo log
+BUILDLOG="/tmp/repo/build.log"
 
 # on which port to start http server that will provide repositories for testing
 PORT=8888
