@@ -26,53 +26,51 @@
 if (!defined('HAMSTA_FRONTEND')) {
 	return require("index.php");
 }
+
 $config = ConfigFactory::build();
+$search = new MachineSearch ();
+$search->filter_in_array (request_array("a_machines"));
+$machines = $search->query ();
 
 /* If authentication is not used, it is not possible to get the
  * user. */
 if ($config->authentication->use) {
-
-	$search = new MachineSearch ();
-	$search->filter_in_array (request_array("a_machines"));
-	$machines = $search->query ();
 	$perm_release_master_reservation = array('owner'=>'release_machine_for_master','other'=>'release_machine_for_master_reserved');
 	if (! machine_permission($machines,$perm_release_master_reservation)){
 		Notificator::setErrorMessage ('You need to login or have enough permissions to release hamsta master reservation on machines.');
 		header ('Location: index.php');
 		exit ();
 	}
+}
 
-	$names = array ();
-	$err_names = array ();
-	foreach ($machines as $machine) {
-		if ($machine->send_master_release()) {
-			$names[] = $machine->get_hostname();
-		} else {
-			$err_names[] = $machine->get_hostname();
-			#$error = (empty($error) ? "" : $error) . "<p> ".$machine->get_hostname().": ".$machine->errmsg."</p>";
-			$error = (empty($error) ? "" : $error) . $machine->get_hostname().": ".$machine->errmsg;
-		}
+# Here is when no authentication is used or authentication is passed with enough perm.
+$names = array ();
+$err_names = array ();
+foreach ($machines as $machine) {
+	if ($machine->send_master_release()) {
+		$names[] = $machine->get_hostname();
+	} else {
+		$err_names[] = $machine->get_hostname();
+		#$error = (empty($error) ? "" : $error) . "<p> ".$machine->get_hostname().": ".$machine->errmsg."</p>";
+		$error = (empty($error) ? "" : $error) . $machine->get_hostname().": ".$machine->errmsg;
 	}
+}
 
-	$msg = '';
-	if (count ($names)) {
-		$msg = 'These machines were succesfully released from hamsta master: ' . join (', ', $names) . '. ';
-	}
-	if (count ($err_names)) {
-		if ($msg) {
-			$msg .= ' ';
-		}
-		$msg .= 'Could not release from hamsta master machines: ' . join (', ', $err_names) . '. ';
-	}
-	if ($error) {
-		$msg .= " $error";
-	}
+$msg = '';
+if (count ($names)) {
+	$msg = 'These machines were succesfully released from hamsta master: ' . join (', ', $names) . '. ';
+}
+if (count ($err_names)) {
 	if ($msg) {
-		Notificator::setSuccessMessage ($msg);
+		$msg .= ' ';
 	}
-} else {
-	Notificator::setErrorMessage ('You can use this type of release'
-				      . ' only with the user authentication.');
+	$msg .= 'Could not release from hamsta master machines: ' . join (', ', $err_names) . '. ';
+}
+if ($error) {
+	$msg .= " $error";
+}
+if ($msg) {
+	Notificator::setSuccessMessage ($msg);
 }
 
 header ('Location: index.php');
