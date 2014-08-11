@@ -28,74 +28,81 @@
      */
 ?>
 
-    <?php
-        # edit job from a parametrized job XML file
-        # $existFileName = "/usr/share/hamsta/xml_files/multimachine/qa_parameter.xml";
-        if(isset($real_file))
-            $existFileName = $real_file;
+<?php
+    # edit job from a parametrized job XML file
+    # $existFileName = "/usr/share/hamsta/xml_files/multimachine/qa_parameter.xml";
+    if(isset($real_file))
+        $existFileName = $real_file;
 
-        # define the default data of job XML file
-        $jobInfo = array( 'name'=>'',
-                          'level'=>'3',
-                          'description'=>"Enter job description",
-                          'motd'=>'Enter your job MOTD message',
-                          'mailto'=>(isset($user) ? $user->getEmail() : 'hamsta@suse.com'),
-			  'reboot'=>0,
-                          'rpmlist'=>'');
+    # define the default data of job XML file
+    $jobInfo = array( 'name'=>'',
+                      'level'=>'3',
+                      'description'=>"Enter job description",
+                      'motd'=>'Enter your job MOTD message',
+                      'mailto'=>(isset($user) ? $user->getEmail() : 'hamsta@suse.com'),
+      	              'reboot'=>0,
+                      'rpmlist'=>'');
 
-        $roleCount = 0;
-        $paramCount = 0;
+    $roleCount = 0;
+    $paramCount = 0;
 
-        # if defined "existFileName", it means that it is come from a existing XML file, parse it
-        if(isset($existFileName) && ($existFileName != "") && (file_exists($existFileName)))
+    # if defined "existFileName", it means that it is come from a existing XML file, parse it
+    if(isset($existFileName) && ($existFileName != "") && (file_exists($existFileName)))
+    {
+        if(($xml = simplexml_load_file($existFileName)) != false)
         {
-            if(($xml = simplexml_load_file($existFileName)) != false)
-            {
-                # get general information
-                $jobInfo['name']  = $xml->config->name;
-                $jobInfo['level'] = $xml->config->debuglevel;
-                $jobInfo['description'] = $xml->config->description;
-                $jobInfo['motd'] = $xml->config->motd;
-                $jobInfo['mailto'] = $xml->config->mail;
-                $jobInfo['rpmlist'] = $xml->config->rpm;
-                $jobInfo['reboot'] = $xml->config->reboot;
+            # get general information
+            $jobInfo['name']  = $xml->config->name;
+            $jobInfo['level'] = $xml->config->debuglevel;
+            $jobInfo['description'] = $xml->config->description;
+            $jobInfo['motd'] = $xml->config->motd;
+            $jobInfo['mailto'] = $xml->config->mail;
+            $jobInfo['rpmlist'] = $xml->config->rpm;
+            $jobInfo['reboot'] = $xml->config->reboot;
 
-                # get parameter map
-                $jobParamMap = get_parameter_maps($xml);
-                $paramCount = count($jobParamMap);
+            # get parameter map
+            $jobParamMap = get_parameter_maps($xml);
+            $paramCount = count($jobParamMap);
 
-                # get role map
-                $i = 0;
-
-                $roleCount = count($xml->roles->role);
-                if($roleCount > 0) {
-                    foreach($xml->roles->role as $role)
-                    {
-                        $jobRoleMap[$i++] = array('id'=>$role['id'],       'name'=>$role['name'],
-                                                  'min'=>$role['num_min'], 'max'=>$role['num_max']);
+            # get role map
+            $i = 0;
+            $roleCount = count($xml->roles->role);
+            if($roleCount > 0) {
+                foreach($xml->roles->role as $role)
+                {
+                    $jobRoleMap[$i] = array(
+                                              'name'=>$role['name'],
+                                              'min'=>$role['num_min'], 
+                                              'max'=>$role['num_max'],
+                                              'config'=>$role['config']
+                                        );
+                    $role_name = $role['name'];
+                    $c=0;
+                    foreach($role->commands as $command) {
+                        $jobRoleMap[$i]['part_id'][$c] = $command->attributes()->part_id; 
+                        foreach( array('worker','finish','abort','kill') as $sec ) {
+                            $j = 0;
+                            if(isset($command->$sec)) {
+                        	# get command map
+                                foreach($command->$sec->command as $cmd)
+                                {
+                                    $jobCommandMap[$i][$c][$sec][$j++] = array('action'=>$cmd['execution'],
+                                                                               'commands'=>$cmd);
+                                }
+                                //$commandCount[$i][$sec] = count($jobCommandMap);
+                            }
+                        }
+                        $c++;
                     }
-
-                    # sort parameter by key "id"
-                    foreach ($jobRoleMap as $key=>$value)
-                        $roleSortKey[$key] = $value['id'];
-                    array_multisort($roleSortKey, SORT_NUMERIC, $jobRoleMap);
-                    $roleCount = count($jobRoleMap);
+                    $i++;
                 }
-	foreach($xml->roles->role as $role) {
-		$role_id = (string)$role['id'];
-		foreach( array('worker','finish','abort','kill') as $sec ) {
-		    if(isset($role->commands->$sec)) {
-			# get command map
-	                $i = 0;
-	                foreach($role->commands->$sec->command as $command)
-	                {
-	                    $jobCommandMap[$role_id][$sec][$i++] = array('action'=>$command['execution'],
-	                                                 'commands'=>$command);
-	                }
-                	$commandCount[$role_id][$sec] = count($jobCommandMap);
-		    }
-		}
-	}
+                # sort parameter by key "id"
+                foreach ($jobRoleMap as $key=>$value) {
+         #           $roleSortKey[$key] = $value['id'];
+                }
+                #array_multisort($roleSortKey, SORT_NUMERIC, $jobRoleMap);
+                $roleCount = count($jobRoleMap);
+            }
 //	print_r($jobCommandMap);
 //	exit;
 /*
@@ -280,54 +287,92 @@
       ?>
     </select>
     </td></tr>
+    <tr><td colspan="2">
+    <div class="rt-container">
     <?php
-
     for($i=0; $i<$roleCount; $i++)
     {
+	#draw_role_command($i,$jobCommandMap[$i]);
 	$name = ($jobRoleMap[$i]['name'] == "")?"role0":$jobRoleMap[$i]['name'];
 	$min = ($jobRoleMap[$i]['min'] == "")?1:$jobRoleMap[$i]['min'];
 	$max = ($jobRoleMap[$i]['max'] == "")?2:$jobRoleMap[$i]['max'];
-
-	$commands = $jobCommandMap[$i]['worker'][0]['commands'];
-
-	draw_role_command($i,$jobCommandMap[$i]);
-
-        echo "<div id=\"commands_$i\">\n";
+        if($jobRoleMap[$i]['config']) $config = $jobRoleMap[$i]['config'];
+        $part_id = $jobRoleMap[$i]['part_id'];
+        echo "<span id=\"roletab_$i\" class=\"rolespan\"></span>";
+        echo "<div id=\"rolepanel\">\n";
+        echo "<a href=\"#roletab_$i\" title=\"Role_$name\">Role_$name</a>";
+        echo "<div class=\"roletab-content\">";
         echo "<table class=\"text-main\">\n";
         echo "<tr><td colspan=\"2\"><hr style=\"border:1px dashed\"></td><tr>\n";
         echo "<tr><td colspan=\"2\"><b>Edit SUT Role #$i:</b></td><tr>\n";
         echo "<tr><td>Role name: </td>";
         echo "<td><input type=\"text\" size=\"20\" name=\"rolename[]\" value=\"$name\" title=\"required: role name\"></td>\n";
         echo "</tr>\n";
-	echo "<tr><td>Minimum machines: </td>";
+        echo "<tr><td>Minimum machines: </td>";
         echo "<td><select name=\"minnumber[]\" title=\"required: Select the minimum number for role $i\">";
         for($j=1;$j<=10;$j++)
         {
-	    if($j==$min)
+            if($j==$min)
                 echo "<option value=\"$j\" selected=\"selected\">$j</option>";
             else
                 echo "<option value=\"$j\">$j</option>";
         }
-	echo "</select></td></tr>\n";
+        echo "</select></td></tr>\n";
         echo "<tr><td>Maximum machines: </td>";
         echo "<td><select name=\"maxnumber[]\" title=\"required: Select the maximum number for role $i\">";
         for($j=1;$j<=20;$j++)
         {
-	    if($j == $max)
+            if($j == $max)
                 echo "<option value=\"$j\" selected=\"selected\">$j</option>";
             else
                 echo "<option value=\"$j\">$j</option>";
         }
-	echo "</select></td></tr>\n";
-	echo "<tr><td>Commands (one per line):</td>\n";
-        echo "<td colspan=\"2\"><textarea cols=\"60\" rows=\"10\" name=\"commands_content_multiple[]\" title=\"required: write your script here, one command per line.\" required>$commands</textarea><span class=\"required\">*</span><td>\n";
-        echo "</tr>\n";
-        echo "<tr><td colspan=\"2\"><hr style=\"border:1px dashed\"></td></tr>\n";
-	echo "</table></div>\n";
-        echo "</td></tr>\n";
+        echo "</select></td></tr>\n";
+        //var_dump($jobCommandMap[$i]);
+        $part_num = count($part_id);
+        echo "<tr><td colspan=\"2\">";
+        echo "<article class=\"ptabs\">";
+        for($c=0;$c<$part_num;$c++) {
+            echo "<input id=\"Part_$i$part_id[$c]\" name=\"ptabs\" type=\"radio\">";
+            echo "<label for=\"Part_$i$part_id[$c]\">Part_$part_id[$c]</label>";
+        }
+        echo "<div class=\"ppanels\">";
+        for($c=0;$c<$part_num;$c++) {
+            echo "<div class=\"ppanel\">";
+            echo "<article class=\"stabs\">";
+            foreach( array('worker','finish','abort','kill') as $sec ) {
+                if( isset($jobCommandMap[$i][$c][$sec]) ) {
+      	            $commands = $jobCommandMap[$i][$c][$sec][0]['commands'];
+                    echo '<div class=\"spanel\"><textarea 
+                          cols="60" rows="10" 
+                          align="left" 
+                          name="commands_content_multiple[]" 
+                          title="required: write your script here, one command per line." required>';
+                    echo $commands;
+    		    echo "</textarea></div>\n";
+                }
+                else {
+                    continue;
+                }
+            }
+            foreach( array('worker','finish','abort','kill') as $sec ) {
+                if( isset($jobCommandMap[$i][$c][$sec]) ) {
+                    echo "<input id=\"${sec}_$i$part_id[$c]\" name=\"stabs\" type=\"radio\">";
+                    echo "<label for=\"${sec}_$i$part_id[$c]\">$sec</label>";
+                } 
+                else {
+                    continue;
+                }
+            }
+            echo "</article>";
+            echo "</div>\n";
+        }
+        echo "</div>";
+        echo "</article>";
+        echo "<tr><td colspan=\"2\"><hr style=\"border:1px dashed\"></td></tr>\n"; echo "</table></div></div>\n";
     }
 
     ?>
-    </td></tr>
+    </div></td></tr>
     </table></div>  <!-- End of mm_form area -->
 
