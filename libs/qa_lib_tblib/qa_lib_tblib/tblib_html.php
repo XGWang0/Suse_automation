@@ -731,7 +731,7 @@ define('EMAIL',9);
 
 /**
   * Returns HTML code for a common search form.
-  * Usage: print html_search_form( $action, array( array($name, $values, $values_got, $type, [$label] ),...))
+  * Usage: print html_search_form( $action, array( array($name, $values, $values_got, $type, [$label, [ $tooltip, [ $required, [ $pattern ]]]] ),...))
   *
   * $name the HTML name of the control
   *
@@ -747,7 +747,7 @@ define('EMAIL',9);
   *    CHECKBOX		checkbox
   *    HIDDEN		hidden
   *    HR		horizontal rule
-  *    TEXT		enclosed in div element
+  *    TEXT		text enclosed in div element
   *    PASSWORD		password field
   *    EMAIL		email field
   * $label is the text label to pring, $name by default
