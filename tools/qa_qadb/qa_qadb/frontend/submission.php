@@ -161,8 +161,8 @@ if(!$submission_id)
 	{
 		$group_by_y_got = http('group_by_y',2);
 		$group_by_x_got = http('group_by_x',1);
-		$reg_method_got = http('reg_method',1);
-		$cell_text_got	= http('cell_text',1);
+		$reg_method_got = http('reg_method',3);
+		$cell_text_got	= http('cell_text',2);
 		$cell_color_got = http('cell_color',1);
 		$no_footer_got	= http('no_footer');
 
