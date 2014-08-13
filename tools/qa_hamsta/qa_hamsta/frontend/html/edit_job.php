@@ -41,7 +41,8 @@
                       'motd'=>'Enter your job MOTD message',
                       'mailto'=>(isset($user) ? $user->getEmail() : 'hamsta@suse.com'),
       	              'reboot'=>0,
-                      'rpmlist'=>'');
+                      'rpmlist'=>''
+               );
 
     $roleCount = 0;
     $paramCount = 0;
@@ -139,28 +140,47 @@
       ?>
     </select> <?php echo "default \"level-$default_level\""; ?>
     </td></tr >
-    <tr><td>Description:</td>
-    <td><input type="text" size="20" name="description" placeholder="Enter description for the job" title="optional: job description" value="<?php echo $jobInfo['description']; ?>"></td></tr>
-    <tr><td>Motd message:</td>
-    <td><input type="text" size="20" name="motdmsg" placeholder="Enter MOTD for the SUT" title="optional: /etc/motd message in SUT" value="<?php echo $jobInfo['motd']; ?>"></td></tr>
-    <tr><td>Email address:</td>
-    <td><input type="email" size="20" name="mailto" placeholder="user@domain.com" title="optional: send mail if address is given" value="<?php echo $jobInfo['mailto']; ?>">
-    </td></tr>
-    <tr><td>Needed rpms:</td>
+    <tr>
+    <td>Description:</td>
+    <td><input type="text" size="20" name="description" placeholder="Enter description for the job" title="optional: job description" value="<?php echo $jobInfo['description']; ?>"></td>
+    </tr>
+    <tr>
+    <td>Motd message:</td>
+    <td><input type="text" size="20" name="motdmsg" placeholder="Enter MOTD for the SUT" title="optional: /etc/motd message in SUT" value="<?php echo $jobInfo['motd']; ?>"></td>
+    </tr>
+    <tr>
+    <td>Email address:</td>
+    <td><input type="email" size="20" name="mailto" placeholder="user@domain.com" title="optional: send mail if address is given" value="<?php echo $jobInfo['mailto']; ?>"></td>
+    </tr>
+    <tr>
+    <td>Needed rpms:</td>
     <td><input type="text" size="20" name="rpmlist" placeholder="rpm1 rpm2 rpm3" title="optional: divided by space, e.g: qa_tools qa_bind" value="<?php echo $jobInfo['rpmlist']; ?>"></td></tr>
 
-    <tr><td><label for="reboot-option">Reboot</label>:</td>
-    <td><input id="reboot-option" type="checkbox" size="20" name="reboot" title="optional: set it if job reboot the machine" value=1 "<?php if($jobInfo['reboot']==1) echo ' checked=\"checked\"'; ?>"></td></tr>
+    <tr>
+    <td><label for="reboot-option">Reboot</label>:</td>
+    <td><input id="reboot-option" type="checkbox" size="20" name="reboot" title="optional: set it if job reboot the machine" value=1 "<?php if($jobInfo['reboot']==1) echo ' checked=\"checked\"'; ?>"></td>
+    </tr>
     <!-- Additional parameters -->
-    <tr><td><input id="edit-parameters" type="checkbox" name="param_flag" value="paramFlag" title="Edit additional Parameters" onclick="editParameters()">
-			  <label for="edit-parameters">Edit addtional parameters</label></td>
-    <td><div id="param_edit"><select id="param_type" name="param_type" title="required: please chose one parameter type">
+    <tr>
+    <td>
+    <input id="edit-parameters" type="checkbox" name="param_flag" value="paramFlag" title="Edit additional Parameters" onclick="editParameters()">
+    <label for="edit-parameters">Edit addtional parameters</label>
+    </td>
+    <td>
+    <div id="param_edit">
+        <select id="param_type" name="param_type" title="required: please chose one parameter type">
                 <option value="string">string</option>
                 <option value="enum">enum</option>
                 <option value="textarea">textarea</option>
-        </select>&nbsp;<input type="button" value="x" style="color:#FF0000;" size="1px" title="Delete one of the parameters you selected" onclick="addDelOneParam(0, <?php echo $paramCount; ?>)"><input type="button" value="+" size="1px" title="Add one parameter" onclick="addDelOneParam(1, <?php echo $paramCount; ?>)">
-    </div></td></tr>
-    <tr><td colspan="2"><div id="param_div" style="width: 800px; margin: 5px 5px 5px 5px; padding: 8px 0px 8px 8px; border: 1px dashed #cdcdcd"><b>Edit your addtional parameter here:</b><br /><br />
+        </select>&nbsp;
+        <input type="button" value="x" style="color:red;" size="1px" title="Delete one selected parameter" onclick="addDelOneParam(0, <?php echo $paramCount; ?>)">
+        <input type="button" value="+" size="1px" title="Add one parameter" onclick="addDelOneParam(1, <?php echo $paramCount; ?>)">
+    </div>
+    </td>
+    </tr>
+    <tr>
+    <td colspan="2">
+    <div id="param_div"><b>Edit your addtional parameter here:</b><br /><br />
     <table class="text-main">
     <?php
     if($paramCount > 0) # if it is edit a parameter job XML file
@@ -215,7 +235,24 @@
             }
 
             if($type == "textarea")
-                echo "<tr id = param_" . $paramNo . "><td width=\"3px\"><input type=\"checkbox\" name=\"param_checked\" value=" . $paramNo . " title=\"select and delete it\"></td><td width=\"50px\"><input type=\"hidden\" name=\"param_type[]\" value=\"textarea\"><input type=\"hidden\" name=\"param_sort[]\" value=\"" . $paramNo . "\">name:</td><td width=\"50px\"><input type=\"text\" name=\"param_name[]\" title=\"required: Paramter name\" value=\"" . $name . "\" size=\"8px\"></td><td width=\"50px\">label:</td><td width=\"50px\"><input type=\"text\" name=\"param_label[]\" title=\"optional: Paramter label\" value=\"" . $label . "\" size=\"8\"></td><td width=\"50px\">value:</td><td colspan=\"5\"><textarea cols=\"30\" rows=\"5\" name=\"param_default[]\" title=\"required: default value of this parameter\">$content_default</textarea></td></tr>";
+                echo "<tr id = param_$paramNo>".
+                     '<td width="3px">'.
+                     '<input type="checkbox" name="param_checked" value=' . $paramNo . ' title="select and delete it">'.
+                     '</td>'.
+                     '<td width="50px">'.
+                     '<input type="hidden" name="param_type[]" value="textarea">'.
+                     '<input type="hidden" name="param_sort[]" value="' . $paramNo . '">name:'.
+                     '</td><td width="50px">'.
+                     '<input type="text" name="param_name[]" title="required: Paramter name" value="' . $name . '" size="8px">'.
+                     '</td>'.
+                     '<td width="50px">label:</td>'.
+                     '<td width="50px">'.
+                     '<input type="text" name="param_label[]" title="optional: Paramter label" value="' . $label . '" size="8">'.
+                     '</td>'.
+                     '<td width="50px">value:</td>'.
+                     '<td colspan="5">'.
+                     '<textarea cols="30" rows="5" name="param_default[]" title="required: default value of this parameter">'.
+                     $content_default. '</textarea></td></tr>';
             ;
 
             # Define any other type of parameter here
@@ -232,6 +269,7 @@
     <tr><td>Job type:</td>
     <td>
     <select name="jobType" title="required: Job type, Single-machine job or Multi-machine job" onChange="getJobType(jobType);">
+-->
     <?php
 /*
         if($roleCount == 0) {
@@ -244,6 +282,7 @@
         }
 */
     ?>
+<!--
     <input type="hidden" id="role_count" value="<?php //echo $roleCount?>">
     </select>
     </td></tr>
@@ -299,7 +338,7 @@
         if($jobRoleMap[$i]['config']) $config = $jobRoleMap[$i]['config'];
         $part_id = $jobRoleMap[$i]['part_id'];
         echo "<span id=\"roletab_$i\" class=\"rolespan\"></span>";
-        echo "<div id=\"rolepanel\">\n";
+        echo "<div id=\"rolepanel$i\">\n";
         echo "<a href=\"#roletab_$i\" title=\"Role_$name\">Role_$name</a>";
         echo "<div class=\"roletab-content\">";
         echo "<table class=\"text-main\">\n";
@@ -328,48 +367,40 @@
                 echo "<option value=\"$j\">$j</option>";
         }
         echo "</select></td></tr>\n";
-        //var_dump($jobCommandMap[$i]);
         $part_num = count($part_id);
-        echo "<tr><td colspan=\"2\">";
-        echo "<article class=\"ptabs\">";
+        echo '<tr><td colspan="2">';
+        echo '<article class="ptabs">';
         for($c=0;$c<$part_num;$c++) {
-            echo "<input id=\"Part_$i$part_id[$c]\" name=\"ptabs\" type=\"radio\">";
-            echo "<label for=\"Part_$i$part_id[$c]\">Part_$part_id[$c]</label>";
-        }
-        echo "<div class=\"ppanels\">";
-        for($c=0;$c<$part_num;$c++) {
-            echo "<div class=\"ppanel\">";
-            echo "<article class=\"stabs\">";
+            echo '<div class="ppanels">';
+            echo '<input id="Part_' . "$i$part_id[$c]" . '" name="ptabs" type="radio"';
+            if( $c==0 ) echo ' checked="checked"';
+            echo '><label for="Part_' . "$i$part_id[$c]" . '">Part_' . $part_id[$c] . '</label>';
+            echo '<div class="ppanel">';
+            // construct commands panel 
+            echo '<article class="stabs">';
             foreach( array('worker','finish','abort','kill') as $sec ) {
-                if( isset($jobCommandMap[$i][$c][$sec]) ) {
-      	            $commands = $jobCommandMap[$i][$c][$sec][0]['commands'];
-                    echo '<div class=\"spanel\"><textarea 
-                          cols="60" rows="10" 
-                          align="left" 
-                          name="commands_content_multiple[]" 
-                          title="required: write your script here, one command per line." required>';
-                    echo $commands;
-    		    echo "</textarea></div>\n";
-                }
-                else {
-                    continue;
-                }
-            }
-            foreach( array('worker','finish','abort','kill') as $sec ) {
-                if( isset($jobCommandMap[$i][$c][$sec]) ) {
-                    echo "<input id=\"${sec}_$i$part_id[$c]\" name=\"stabs\" type=\"radio\">";
-                    echo "<label for=\"${sec}_$i$part_id[$c]\">$sec</label>";
-                } 
-                else {
-                    continue;
-                }
+                echo '<div class="spanels">';
+                echo '<input id="' . "$sec$i$part_id[$c]" . '" name="sectabs" type="radio"';
+                if( $sec == "worker") echo ' checked="checked"';
+                echo '><label for="' . "$sec$i$part_id[$c]" . '">'.$sec.'</label>';
+      	        $commands = (isset($jobCommandMap[$i][$c][$sec][0]['commands'])?
+                                    $jobCommandMap[$i][$c][$sec][0]['commands']:"");
+                echo '<div class="spanel"><textarea 
+                      cols="60" rows="10" 
+                      align="left" 
+                      name="commands_content_multiple[]" 
+                      title="required: write your script here, one command per line." required>';
+                echo $commands;
+                echo '</textarea></div>';
+                echo "</div>";
             }
             echo "</article>";
             echo "</div>\n";
+            echo "</div>";
         }
-        echo "</div>";
-        echo "</article>";
-        echo "<tr><td colspan=\"2\"><hr style=\"border:1px dashed\"></td></tr>\n"; echo "</table></div></div>\n";
+        echo "</article></td></tr>";
+        echo '<tr><td colspan="2"><hr style="border:1px dashed"></td></tr>'; 
+        echo "</table></div></div>\n";
     }
 
     ?>
