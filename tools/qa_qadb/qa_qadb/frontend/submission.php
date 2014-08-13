@@ -169,7 +169,7 @@ if(!$submission_id)
 		$group_by_y = array(
 			array(2,'testsuite'),
 			array(1,'testsuite + testcase'),
-/* not implemented	array(3,'submission'),	*/
+			/* array(3,'submission'), - not implemented */
 		);
 		$group_by_x = array(
 			array(1,'product + release'),
