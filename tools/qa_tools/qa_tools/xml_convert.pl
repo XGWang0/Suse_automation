@@ -62,7 +62,7 @@ sub add_roles($) {
             };
             delete $roles->{$role}->{'id'};
             foreach (keys(%{$root->{'commands'}->[0]})) {
-                 $roles->{$role}->{'commands'}->{$_} = $root->{'commands'}->[0]->{$_} if $_ ne 'worker';
+                $roles->{$role}->{'commands'}->{$_} = $root->{'commands'}->[0]->{$_} if $_ ne 'worker';
             }
         }
         $root->{'roles'} = [ $root->{'roles'}->[0]->{'role'} ];
@@ -99,13 +99,13 @@ sub mv_tags($) {
                                 $conf->{'motd'}->[0];
     }
     #move <reboot> into <command> as an attribute.
-	if ($conf->{'reboot'}) {
-		my $roles = $root->{'roles'}->[0];
-		foreach (keys(%$roles)) {
+    if ($conf->{'reboot'}) {
+        my $roles = $root->{'roles'}->[0];
+        foreach (keys(%$roles)) {
             my $cmd = $roles->{$_}->{'commands'}->{'worker'}->[0]->{'command'};
             $cmd->[0]->{'reboot'} = $conf->{'reboot'}->[0] if $cmd;
-		}
-	}
+        }
+    }    
     #fix <mail> tag issue, when content is blank.
     $conf->{'mail'}->[0]->{'content'} = '' if !$conf->{'mail'}->[0]->{'content'};
 }
@@ -114,6 +114,7 @@ sub mv_tags($) {
 # such as:
 # <distributable/>, <parallel/>, <logdir/>, <update/>
 # <job_id/>, <useinfo/>, <reboot/>
+# Remove mail attribute from <worker><notify> tag.
 sub rm_tags($) {
     my $root = shift;
     my @list = (
@@ -127,6 +128,16 @@ sub rm_tags($) {
     );
 
     map { delete $root->{'config'}->[0]->{$_} } @list;
+    
+    # remove mail attribute from <worker><notify> tag.
+    my $roles = $root->{'roles'}->[0];
+    foreach (keys(%$roles)) {
+        my $wk = $roles->{$_}->{'commands'}->{'worker'}->[0];
+        if ($wk->{'notify'}->[0]) {
+            my $notify = $wk->{'notify'}->[0];
+            map { $_ eq 'mail' && delete $notify->{$_} } keys(%{$notify});
+        }
+    }
 }
 
 # Convert MM(Multi-Machine) job to new format.
@@ -164,15 +175,16 @@ sub save_xml($$) {
     my $root = shift;
 
     XMLout(
-            $root,
-            XmlDecl => '<?xml version="1.0"?>',
-            RootName => 'job',
-            GroupTags => {
-                          parts => 'part',
-                          roles => 'role',
-                          parameters => 'parameter'
-                         },
-            OutputFile => $out_file
+        $root,
+        XmlDecl => '<?xml version="1.0"?>',
+        RootName => 'job',
+        NoEscape => 1,
+        GroupTags => {
+                      parts => 'part',
+                      roles => 'role',
+                      parameters => 'parameter'
+                     },
+        OutputFile => $out_file
     );
 }
 
