@@ -60,19 +60,26 @@ sub add_roles($) {
                                     'part_id' => '1',
                                     'worker' => $worker
             };
-            delete $roles->{$role}->{'id'}
+            delete $roles->{$role}->{'id'};
+            foreach (keys(%{$root->{'commands'}->[0]})) {
+                 $roles->{$role}->{'commands'}->{$_} = $root->{'commands'}->[0]->{$_} if $_ ne 'worker';
+            }
         }
         $root->{'roles'} = [ $root->{'roles'}->[0]->{'role'} ];
+        # avoid attributes as elements
+        $root->{'parameters'} = [ $root->{'parameters'}->[0]->{'parameter'} ] if $root->{'parameters'};
     } else {
         $root->{'roles'} = [{
                             'role' => {
                                     'name' =>'default',
                                     'commands' => {
                                             'part_id' => '1',
-                                            'worker' => $root->{'commands'}->[0]->{'worker'}
                                     }
                             }
         }];
+        foreach (keys(%{$root->{'commands'}->[0]})) {
+            $root->{'roles'}->[0]->{'role'}->{'commands'}->{$_} = $root->{'commands'}->[0]->{$_};
+        }
     }
     delete $root->{'commands'};
 }
@@ -80,7 +87,7 @@ sub add_roles($) {
 # Move tags
 # Tasks:
 #     move <job_id> and <useinfo> into <motd>
-#    move <reboot> as attribute of <part>
+#     move <reboot> as attribute of <command>
 sub mv_tags($) {
     my $root = shift;
     my $conf = $root->{'config'}->[0];
@@ -91,12 +98,16 @@ sub mv_tags($) {
                                 $conf->{'useinfo'}->[0]." ".
                                 $conf->{'motd'}->[0];
     }
-    #move <reboot> into <part> as an attribute.
-    $root->{'parts'}->[0]->{'part'}->{'reboot'} = $conf->{'reboot'}->[0];
-
+    #move <reboot> into <command> as an attribute.
+	if ($conf->{'reboot'}) {
+		my $roles = $root->{'roles'}->[0];
+		foreach (keys(%$roles)) {
+            my $cmd = $roles->{$_}->{'commands'}->{'worker'}->[0]->{'command'};
+            $cmd->[0]->{'reboot'} = $conf->{'reboot'}->[0] if $cmd;
+		}
+	}
     #fix <mail> tag issue, when content is blank.
     $conf->{'mail'}->[0]->{'content'} = '' if !$conf->{'mail'}->[0]->{'content'};
-
 }
 
 # Remove useless tags which are under <config/>
@@ -156,7 +167,11 @@ sub save_xml($$) {
             $root,
             XmlDecl => '<?xml version="1.0"?>',
             RootName => 'job',
-            GroupTags => {parts => 'part', roles => 'role'},
+            GroupTags => {
+                          parts => 'part',
+                          roles => 'role',
+                          parameters => 'parameter'
+                         },
             OutputFile => $out_file
     );
 }
