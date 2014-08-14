@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 from robot.libraries.BuiltIn import BuiltIn
 
 class BuildLogChecker:

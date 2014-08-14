@@ -96,12 +96,6 @@ class Host:
         self.__check_defined()
         return self._ip
      
-    def undefine(self):
-        if self.defined():
-            self.stop(force = True)
-            subprocess.check_output(['virsh', 'undefine', self.fqdn()])
-        shutil.rmtree(self.path(), ignore_errors=True)
-     
     def path(self):
         return self._path
      
@@ -171,10 +165,7 @@ class TestBox:
        
     def __delete_hosts(self):
         for host in self.hosts:
-            self.hosts[host].undefine()
-        self.hosts.clear()
-        shutil.rmtree(self.hosts_path, ignore_errors=True)
-        os.makedirs(self.hosts_path, exist_ok = True)
+            self.delete_host(host)
     
 
     def __delete_images(self):
@@ -248,6 +239,23 @@ class TestBox:
         
         if start:
             host.start()
+            
+        return host
+    
+    def delete_host(self, hostname):
+        """
+        """
+        host = self.hosts[hostname]
+        host.stop(force = True)
+        subprocess.check_output(['virsh', 'undefine', host.fqdn()])
+        shutil.rmtree(host.path(), ignore_errors=True)
+        del self.hosts[hostname]
+
+    def get_host(self, hostname):
+        return self.hosts[hostname]
+    
+    def get_hostnames(self):
+        return self.hosts.keys()
     
     def export_robot_configuration(self, file):
         """
