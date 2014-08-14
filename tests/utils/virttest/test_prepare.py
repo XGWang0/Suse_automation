@@ -68,7 +68,6 @@ else:
     
 testbox.add_host('sles-11-sp3', 'hamsta')
 testbox.add_host('sles-11-sp3', 'qadb')
-testbox.add_host('sles-11-sp3', 'qadbreport')
 testbox.add_host('sles-11-sp3', 'sut')
 
 # Yay, we created the testbox!!!
