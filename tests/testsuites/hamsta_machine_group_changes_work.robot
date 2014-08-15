@@ -1,9 +1,10 @@
 *** Settings ***
 Documentation    Verify that user can create machine groups
 Resource         web-resources.robot
-Suite Setup      Open Browser      ${HAMSTA_BASE_URL}
-Suite Teardown   Close Browser
+Suite Setup      Create Hamsta Host
+Suite Teardown   Delete Hamsta Host
 Force Tags	 hamsta  web
+Library           lib/TestNetwork.py    ${NETWORK_ID}
 
 *** Variables ***
 
@@ -37,3 +38,16 @@ It Should be Possible to Delete Existing Group
     Page Should Not Contain  ${GROUP_NAME}
 
 *** Keywords ***
+Create Hamsta Host
+    ${HAMSTA}=    Add Host    sles-11-sp3    hamsta
+    ${HAMSTA_HOST}=    Get FQDN    ${HAMSTA}
+    Set Suite Variable  ${HAMSTA}
+    Set Suite Variable  ${HAMSTA_HOST}
+    Set Suite Variable  ${HAMSTA_BASE_URL}   http://${HAMSTA_HOST}/hamsta/
+    Sleep              60s         Wait for hosts to start
+    Open Browser      ${HAMSTA_BASE_URL}
+
+Delete Hamsta Host
+    Close Browser    
+    Delete Host    ${HAMSTA}
+

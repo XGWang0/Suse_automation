@@ -12,8 +12,8 @@ class TestNetwork:
         self._testbox = virttest.TestBox.load(network_id)
         self.reset_test_network()
     
-    def reset_test_network(self):
-        self._testbox.restart()
+    def reset_test_network(self, reinitialize_infrastructure = False):
+        self._testbox.restart(reinitialize_infrastructure)
     
     def add_host(self, os, host_type, start=True):
         host = self._testbox.add_host(os, host_type, start)
@@ -29,14 +29,14 @@ class TestNetwork:
         self._testbox.get_host(hostname).start(force=force)
     
     def get_mac_address(self, hostname):
-        self._testbox.get_host(hostname).mac()
+        return self._testbox.get_host(hostname).mac()
     
     def get_ip_address(self, hostname):
-        self._testbox.get_host(hostname).ip()
+        return self._testbox.get_host(hostname).ip()
     
     def get_fqdn(self, hostname):
-        self._testbox.get_host(hostname).fqdn()
+        return self._testbox.get_host(hostname).fqdn()
     
     def get_hosts(self):
-        self._testbox.get_hostnames()
+        return self._testbox.get_hostnames()
     

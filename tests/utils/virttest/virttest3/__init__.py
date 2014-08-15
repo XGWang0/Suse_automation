@@ -1,9 +1,9 @@
-#!/usr/bin/python3
 from jinja2 import Environment, FileSystemLoader
 from urllib.parse import urlsplit, urljoin
-import ipaddress
+import ipaddr
 import datetime
 import os
+import inspect
 import shutil
 import pickle
 import subprocess
@@ -18,6 +18,9 @@ config = configparser.ConfigParser()
 config.optionxform = str
 config.read(os.getenv('VIRTTEST_CONFIG', '/etc/qavirttest/virttest.ini'))
 
+# where templates directory is - this is .. from location og this file 
+root_dir = os.path.abspath(os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))))
+print("ROOT DIR: " +root_dir) 
 
 class Host:  
     def __init__(self, name, ip, mac, domain, bridge, path, disk_image_template, domxmltemplpath):
@@ -102,7 +105,7 @@ class Host:
     
     def __check_defined(self):
         if not self.defined():
-            raise "Operation on not <defined> host {}".format(self.name())
+            raise RuntimeError("Operation on not <defined> host {}".format(self.name()))
 
 
 class AlreadyRunningException(Exception):
@@ -121,10 +124,11 @@ class TestBox:
         """
     
         self.network_id = network_id;
-        self.workdir = os.path.join(config['global']['workdir'], 'network_{}'.format(network_id))
+        self.workdir = os.path.join(config.get('global', 'workdir'), 'network_{}'.format(network_id))
         
         # create workdir if it does not exist
-        os.makedirs(self.workdir, exist_ok = True)
+        if not os.path.isdir(self.workdir):
+            os.makedirs(self.workdir)
         
         # Check that there is no existing configuration for this network. That would mean that
         # Previous test was not completed correctly, is still running or some error happened
@@ -153,7 +157,7 @@ class TestBox:
     @staticmethod
     def load(network_id):
         """Loads TestBox instance from disk and returns it"""
-        with open(os.path.join(config['global']['workdir'], 'network_{}'.format(network_id), 'TestBox.state'), 'rb') as f:
+        with open(os.path.join(config.get('global', 'workdir'), 'network_{}'.format(network_id), 'TestBox.state'), 'rb') as f:
             tb = pickle.load(f)
         return tb
     
@@ -163,27 +167,30 @@ class TestBox:
         with open(os.path.join(self.workdir, 'TestBox.state'), 'wb') as f:
             pickle.dump(self, f)
        
-    def __delete_hosts(self):
-        for host in self.hosts:
-            self.delete_host(host)
+    def __delete_hosts(self, delete_infrastructure):
+        for host in list(self.hosts): # list() needed to avoid 'dictionary changed size during iteration' error
+            if (host != 'server' or delete_infrastructure == True):
+                self.delete_host(host)
     
 
     def __delete_images(self):
         shutil.rmtree(self.images_path, ignore_errors=True)
-        os.makedirs(self.images_path, exist_ok = True)
+        if not os.path.isdir(self.images_path):
+            os.makedirs(self.images_path)
 
     def __init_infrastructure(self):
         self.add_host('sles-11-sp3', 'server', start=True)
 
-    def restart(self, wait_for_infrastructure_load_sec=30):
+    def restart(self, reinitialize_infrastructure = False, wait_for_infrastructure_load_sec=30):
         """Removes all host from the network - will make the network completely clean for next tests. But it will not remove built images to speed up tests
         """
         self.__check_closed()
-        self.__delete_hosts()
-        self.__init_infrastructure()
-        
-        # Wait for infrastructure to start before we allow to start other machines
-        sleep(wait_for_infrastructure_load_sec)
+        self.__delete_hosts(reinitialize_infrastructure)
+        if reinitialize_infrastructure:
+            self.__init_infrastructure()
+            
+            # Wait for infrastructure to start before we allow to start other machines
+            sleep(wait_for_infrastructure_load_sec)
         
         self.save()
     
@@ -233,7 +240,6 @@ class TestBox:
                             os.path.join(self.hosts_path, host_data['name']),
                             image,
                             'templates/libvirt/vm.xml')
-        
         self.hosts[host.name()] = host
         self.save()
         
@@ -250,8 +256,10 @@ class TestBox:
         subprocess.check_output(['virsh', 'undefine', host.fqdn()])
         shutil.rmtree(host.path(), ignore_errors=True)
         del self.hosts[hostname]
+        self.save()
 
     def get_host(self, hostname):
+        print("Called get_host with hostname " + hostname + ' to get host with fqdn ' + self.hosts[hostname].fqdn() + '.')
         return self.hosts[hostname]
     
     def get_hostnames(self):
@@ -274,18 +282,20 @@ class TestBox:
             else:
                 data['vms'].append(d) 
         data['testuser'] = self.__templdata['testuser']
+	data['network_id'] = self.network_id
         
         _process_template('templates/robot/testbox.robot', data, file)
         
     def __build_image(self, os_ver, variant):
         code = "{}-{}".format(os_ver, variant)
         if code not in self.images:
-            if not os.path.exists('templates/kiwi/{}/config.xml'.format(code)):
-                raise "Image description for selected OS-variant {} does not exist".format(code)
+            if not os.path.exists(os.path.join(root_dir, 'templates/kiwi/{}/config.xml'.format(code))):
+                raise AttributeError("Image description for selected OS-variant {} does not exist".format(code))
         
             img = {}
             img['kiwi'] = os.path.join(self.images_path, code, 'kiwi')
-            os.makedirs(img['kiwi'], exist_ok = True)
+            if not os.path.isdir(img['kiwi']):
+                os.makedirs(img['kiwi'])
             
             # process template to get kiwi description
             _process_template_directory(os.path.join('templates/kiwi', code), self.__templdata, img['kiwi'])
@@ -321,10 +331,11 @@ def create_systemwide_configuration(config_path = None):
     data = _prepare_template_data()
     
     if(config_path is None):
-        config_path = os.path.join(config['global']['workdir'], 'system_config')
+        config_path = os.path.join(config.get('global', 'workdir'), 'system_config')
         shutil.rmtree(config_path, ignore_errors = True)
 
-    os.makedirs(config_path, exist_ok = True)
+    if not os.path.isdir(config_path):
+        os.makedirs(config_path)
     _process_template_directory('templates/controller', data, config_path)
 
 def url_to_config_format(url):
@@ -343,8 +354,8 @@ def url_to_config_format(url):
     u=urlsplit(url)
     port = u.port if u.port else 80
     url=urljoin('{}://{}:{}'.format(u.scheme, u.hostname, port), u.path)
-    for r in config['repositories']:
-        u=urlsplit(config['repositories'][r])
+    for r,val in config.items('repositories'):
+        u=urlsplit(val)
         port = u.port if u.port else 80
         repourl = urljoin('{}://{}:{}'.format(u.scheme, u.hostname, port), u.path)
         if url.startswith(repourl):
@@ -381,14 +392,14 @@ def _reverse_network_address(netaddr):
     192.168.1.0/24 -> 1.168.192.in-addr.arpa
     
     Arguments:
-    netaddr -- ipaddress network object
+    netaddr -- ipaddr network object
     
     Returns:
         string containing the reverse network address
     """
     
     rev_addr = 'in-addr.arpa'
-    addr = str(netaddr.network_address).split('.')
+    addr = str(netaddr.network).split('.')
     for part in str(netaddr.netmask).split('.'):
         m = int(part)
         if m > 0:
@@ -403,9 +414,13 @@ def _reverse_network_address(netaddr):
 def _process_template(template_file, template_data, target_file):
     """
     """
+    template_file = os.path.join(root_dir, template_file)
+    print("TEMPLATE FILE: " + template_file)
+
     jinjaEnv = Environment(loader=FileSystemLoader(os.path.dirname(template_file)))
     template = jinjaEnv.get_template(os.path.basename(template_file))
-    
+    #jinjaEnv = Environment(loader=FileSystemLoader('/'))
+    #template = jinjaEnv.get_template(template_file)
     with open(target_file, 'w') as f:
             f.write(template.render(template_data))
 
@@ -423,11 +438,14 @@ def _process_template_directory(template_dir, template_data, target_dir):
     """
     
     #os.mkdir(target_dir)
+    template_dir = os.path.join(root_dir, template_dir)
+    print("TEMPLATE DIR: " + template_dir)
     jinjaEnv = Environment(loader=FileSystemLoader(template_dir))
     
     for template_file in jinjaEnv.list_templates():
         target_file = os.path.join(target_dir, template_file)
-        os.makedirs(name=os.path.dirname(target_file), exist_ok=True)
+        if not os.path.isdir(os.path.dirname(target_file)):
+            os.makedirs(os.path.dirname(target_file))
         template = jinjaEnv.get_template(template_file)
         with open(target_file, 'w') as f:
             f.write(template.render(template_data))
@@ -464,20 +482,20 @@ def _prepare_template_data(network=None, vm_count=64, custom_product_repositorie
     data['networks'] = []
     
     data['testuser'] = {}
-    data['testuser']['login']    = config['testuser']['login'] 
-    data['testuser']['name']     = config['testuser']['name']
-    data['testuser']['password'] = config['testuser']['password']
+    data['testuser']['login']    = config.get('testuser', 'login') 
+    data['testuser']['name']     = config.get('testuser', 'name')
+    data['testuser']['password'] = config.get('testuser', 'password')
     
     data['dns'] = {}
     data['dns']['serial'] = datetime.date.today().strftime('%Y%m%d00')
     
-    data['proxy']['port'] = config['global']['http_port']
+    data['proxy']['port'] = config.get('global', 'http_port')
     
     # map of repository server url to proxy url
     urlmap = {}
     
-    for r in config['repositories']:
-        url = urlsplit(config['repositories'][r])
+    for r,val in config.items('repositories'):
+        url = urlsplit(val)
         repodata = {}
         repodata['type'] = r 
         repodata['port'] = url.port if url.port else 80
@@ -492,8 +510,8 @@ def _prepare_template_data(network=None, vm_count=64, custom_product_repositorie
     data['proxy']['services'] = services
     data['proxy']['urlmap'] = urlmap
 
-    for product in config['products']:
-        (repo, urlpart) = config['products'][product].split(':', 1)
+    for product,val in config.items('products'):
+        (repo, urlpart) = val.split(':', 1)
         try:
             data['repositories'][product] = urlmap[repo]+ '/' + urlpart
         except KeyError:
@@ -506,29 +524,29 @@ def _prepare_template_data(network=None, vm_count=64, custom_product_repositorie
         except KeyError:
             print("Skipping repository for {} - bad format or repository '{}' is not defined in repositories".format(product, repo))
         
-    for n in range(1, int(config['global']['networks']) + 1):
-        c_net = config['network_{}'.format(n)]
+    for n in range(1, config.getint('global', 'networks') + 1):
+        c_net = dict(config.items('network_{}'.format(n)))
         net = {}
         
         net['domain'] = c_net['domain']
         net['bridge'] = c_net['bridge']
         
-        ipnet = ipaddress.ip_network(c_net['network'])
-        net['broadcast_ip'] = ipnet.broadcast_address
-        net['address'] = ipnet.network_address
-        net['netmask'] = ipnet.netmask
+        ipnet = ipaddr.IPNetwork(c_net['network'])
+        net['broadcast_ip'] = str(ipnet.broadcast)
+        net['address'] = str(ipnet.network)
+        net['netmask'] = str(ipnet.netmask)
         net['reverse'] = _reverse_network_address(ipnet)
         
 
  
         # hosts() is generator, but I need index it -> create list.
-        hosts = list(ipnet.hosts())
+        hosts = list(map(str, ipnet.iterhosts()))
 
         host_num = 0        
         for special in ['controller', 'server', 'hamsta', 'qadb']:
             net[special] = {}
             net[special]['ip'] = hosts[host_num]
-            net[special]['reverse'] = _reverse_network_address(ipaddress.ip_network('{}/32'.format(hosts[host_num])))
+            net[special]['reverse'] = _reverse_network_address(ipaddr.IPNetwork('{}/32'.format(hosts[host_num])))
             if special != 'controller':     # Controller has its own mac address!
                 net[special]['mac'] = _generate_mac_address(n, host_num)
             net[special]['fqdn'] = special + '.' + net['domain']
@@ -541,7 +559,7 @@ def _prepare_template_data(network=None, vm_count=64, custom_product_repositorie
         for ip in hosts[host_num:host_num+vm_count]:
             vm = {}
             vm['ip'] = ip
-            vm['reverse'] = _reverse_network_address(ipaddress.ip_network('{}/32'.format(hosts[host_num])))
+            vm['reverse'] = _reverse_network_address(ipaddr.IPNetwork('{}/32'.format(hosts[host_num])))
             vm['mac'] = _generate_mac_address(n, host_num)
             vm['name'] = 'vm-{:02d}'.format(len(net['hosts'])+1)
             vm['fqdn'] = vm['name'] + '.' + net['domain']
@@ -557,7 +575,7 @@ def _prepare_template_data(network=None, vm_count=64, custom_product_repositorie
         data['networks'].append(net)
         
     if network is not None:
-        if network <= 0 or network > int(config['global']['networks']):
+        if network <= 0 or network > config.getint('global', 'networks'):
             raise IndexError('Network index ({}) out of bounds'.format(network))
         
         data['network'] = data['networks'][network - 1]

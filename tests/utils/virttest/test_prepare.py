@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 
 import getopt
 import sys 
@@ -66,9 +66,9 @@ else:
     testbox = virttest.TestBox(network_id, repositories)
     print("TestBox Created.")
     
-testbox.add_host('sles-11-sp3', 'hamsta')
-testbox.add_host('sles-11-sp3', 'qadb')
-testbox.add_host('sles-11-sp3', 'sut')
+#testbox.add_host('sles-11-sp3', 'hamsta')
+#testbox.add_host('sles-11-sp3', 'qadb')
+#testbox.add_host('sles-11-sp3', 'sut')
 
 # Yay, we created the testbox!!!
 print("Test Prepare completed.")

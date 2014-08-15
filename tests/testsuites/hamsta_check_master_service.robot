@@ -4,7 +4,7 @@ Suite Setup       Prepare Hamsta Master Service And Login
 Suite Teardown    Restore Environment After Test And Close Connection
 Force Tags        hamsta    backend
 Resource          ssh-resources.robot
-Library           lib/TestNetwork.py    %{NETWORK}
+Library           lib/TestNetwork.py    ${NETWORK_ID}
 
 *** Variables ***
 
@@ -27,12 +27,15 @@ It Should be Possible to Stop Hamsta Master Service
 
 *** Keywords ***
 Prepare Hamsta Master Service And Login
+    ${HAMSTA}=    Add Host    sles-11-sp3    hamsta
+    ${HAMSTA_HOST}=    Get FQDN    ${HAMSTA}
+    Set Suite Variable  ${HAMSTA}
+    Set Suite Variable  ${HAMSTA_HOST}
+    Sleep              60s         Wait for hosts to start
     Open Connection And Login
     Stop Hamsta Master Service
 
 Restore Environment After Test And Close Connection
     Start Hamsta Master Service
     Close All Connections
-
-Prepare Test Network
-    [Documentation]    Create Hamsta host
+    Delete Host    ${HAMSTA}
