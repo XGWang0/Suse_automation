@@ -27,13 +27,19 @@ input.x {
 .breadcrumb {
   position: absolute;
   text-align: right;
-  margin: -3em 0 0 -1em;
   white-space: nowrap;
+  margin: 0 0 0 -1em;
+}
+.breadcrumb_top {
+  margin-top: -3em;
+}
+.breadcrumb_bottom {
+  margin-top: 2em;
 }
 .breadcrumb label.pos.first {
   margin-left:4em;
 }
-.breadcrumb label.pos {
+.breadcrumb label.pos, .finish .pos {
   color:blue;
   background-color:#eee;
   padding:1px 1em;
@@ -44,7 +50,7 @@ input.x {
   min-width:5em;
   font-size:80%;
 }
-.breadcrumb label.pos.active {
+.breadcrumb label.pos.active, .finish .pos.active {
   display: inline-block;
   border: solid #89b;
   border-width: 3px 0;
@@ -52,12 +58,12 @@ input.x {
   background-color:#bce;
   font-weight: bold;
 }
-
-.breadcrumb_bottom {
-  position: absolute;
-  text-align: right;
-  margin: 1.5em 0 0 -1em;
-  white-space: nowrap;
+.disabled {
+  color: #aaa !important;
+}
+.breadcrumb label.pos:active, .finish .pos:active {
+  position: relative;
+  top:2px;
 }
 
 
@@ -107,7 +113,7 @@ div.row {
 }
 
 div.breadcrumb label, input[type="radio"]+label, label:first-child {
-  margin-left:0;
+  margin-left:2px;
 }
 
 input[type="text"].url  {
@@ -141,7 +147,7 @@ div.content>span.first  {
   max-width:15em;
 }
 div#tab-advanced label:first-child  {
-  min-width:14em;
+/*  min-width:14em;*/
 }
 select.url  {
   min-width:20em;
@@ -271,8 +277,8 @@ input#summary:checked ~ div.tabs input.regprefix {
 input#summary, form>label[for="summary"] {
   display: none;
 }
-div#finish  { display: none; }
-input#summary:checked ~ div#finish  {
+div.finish  { display: none; }
+input#summary:checked ~ div.finish  {
   display: block;
   margin:1.1em 0 0 0.55em;
 }
