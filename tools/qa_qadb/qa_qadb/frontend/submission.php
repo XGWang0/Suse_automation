@@ -104,7 +104,6 @@ if(!$submission_id)
 	$comment_got		=http('comment');
 	$rpm_config_id_got	=http('rpm_config_id');
 	$hwinfo_id_got		=http('hwinfo_id');
-	$submission_id_got	=http('submission_id');
 	$status_got		=http('status');
 	$md5sum_got		=http('md5sum');
 	$patch_id_got		=http('patch_id');
@@ -133,7 +132,7 @@ if(!$submission_id)
 		array('date_from','',$date_from_got,TEXT_ROW),
 		array('date_to','',$date_to_got,TEXT_ROW),
 		array('comment','',$comment_got,TEXT_ROW,'comment [%]','For comments begining XXX, use&#10;XXX%&#10;For comments containing XXX anywhere inside, use&#10;%XXX%'),
-		array('submission_id','',$submission_id_got,TEXT_ROW),
+		array('submission_id','',$submission_id,TEXT_ROW),
 		array('md5sum','',$md5sum_got,TEXT_ROW),
 		array('patch_id','',$patch_id_got,TEXT_ROW),
 		array('status',$status,$status_got,SINGLE_SELECT),
@@ -161,15 +160,15 @@ if(!$submission_id)
 	{
 		$group_by_y_got = http('group_by_y',2);
 		$group_by_x_got = http('group_by_x',1);
-		$reg_method_got = http('reg_method',1);
-		$cell_text_got	= http('cell_text',1);
+		$reg_method_got = http('reg_method',3);
+		$cell_text_got	= http('cell_text',2);
 		$cell_color_got = http('cell_color',1);
 		$no_footer_got	= http('no_footer');
 
 		$group_by_y = array(
 			array(2,'testsuite'),
 			array(1,'testsuite + testcase'),
-			array(3,'submission'),
+			/* array(3,'submission'), - not implemented */
 		);
 		$group_by_x = array(
 			array(1,'product + release'),
@@ -259,7 +258,7 @@ if(!$submission_id)
 			'comment'		=>$comment_got,
 			'rpm_config_id'		=>$rpm_config_id_got,
 			'hwinfo_id'		=>$hwinfo_id_got,
-			'submission_id'		=>$submission_id_got,
+			'submission_id'		=>$submission_id,
 			'status_id'		=>$status_got,
 			'md5sum'		=>$md5sum_got,
 			'patch_id'		=>$patch_id_got,
