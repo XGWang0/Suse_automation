@@ -37,6 +37,8 @@ use Config::IniFiles;
 use Digest::SHA1 qw(sha1_hex);
 use qaconfig;
 use active_hosts qw(update_machine_hamsta_master_reservation);
+BEGIN { push @INC, '.', '/usr/share/qa/lib'; }
+use detect;
 use functions;
 require sql;
 
@@ -1429,7 +1431,7 @@ sub process_hamsta_reservation () {
 
     my $machine_id = &machine_get_by_ip($host);
     my $new_reserved_hamsta_master_ip = '';
-    $new_reserved_hamsta_master_ip = `ifconfig eth0|awk -F: '/inet addr/{split(\$2,a," ");print a[1];exit}'` if ($action eq 'reserve');
+    $new_reserved_hamsta_master_ip = &get_my_ip_addr if ($action eq 'reserve');
     log(LOG_DETAIL, "MASTER::CMDLINE is updating the reserved hamsta master of the machine #$machine_id to $new_reserved_hamsta_master_ip...");
     &update_machine_hamsta_master_reservation($machine_id, $new_reserved_hamsta_master_ip);
     log(LOG_DETAIL, "MASTER::CMDLINE finishes updating the reserved hamsta master of the machine #$machine_id!");

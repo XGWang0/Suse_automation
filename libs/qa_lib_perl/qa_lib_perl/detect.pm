@@ -49,6 +49,7 @@ BEGIN {
 		&get_install_urls
 		&get_zypper_urls
 		&detect_product
+		&get_my_ip_addr
 	);
 	%EXPORT_TAGS	= ();
 	@EXPORT_OK	= ();
@@ -395,6 +396,38 @@ sub detect_product
 	&log( LOG_INFO, "Autodetection results: type='$type', version='$version', subversion='$subversion', release='$release', arch='$arch', QADB product = '$product',Build number = '$build_nr'" );
 	return ($type, $version, $subversion, $release, $arch, $product,$build_nr) if wantarray;
 	return { type=>$type, version=>$version, subversion=>$subversion, release=>$release, arch=>$arch, product=>$product ,build_nr=>$build_nr };
+}
+
+# get_my_ip_addr() : string
+# Returns the IP address of this host
+sub get_my_ip_addr() {
+   my $hint_ip=&ip_to_number($_[0]);
+   my $ip;
+   my $ret=undef;
+   my $hint_match=-1;
+
+   my $dev=(split /\s/, `route -n | grep "^0.0.0.0"`)[-1]; #get the main communication device
+   open(CMDFH, "ifconfig $dev |") || die "error: $?";
+   foreach (<CMDFH>) {
+      if ($_=~/inet (\w+):(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/) {
+         $ip = "$2.$3.$4.$5";
+         my $ip_num=($2<<24) | ($3<<16) | ($4<<8) | $5;
+         my $match=defined $hint_ip ? ($hint_ip & $ip_num) : 0;
+         if( $match>=$hint_match ) {
+             $ret=$ip;
+             $hint_match=$match;
+         }
+      }
+   }
+   close(CMDFH);
+   return $ret;
+}
+
+sub ip_to_number()
+{
+    my $text=$_[0];
+    return undef unless defined $text and $text =~ /(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/;
+    return ($1<<24) | ($2<<16) | ($3<<8) | $4;
 }
 
 1;
