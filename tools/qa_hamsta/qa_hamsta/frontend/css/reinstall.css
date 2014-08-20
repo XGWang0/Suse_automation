@@ -36,10 +36,10 @@ input.x {
 .breadcrumb_bottom {
   margin-top: 2em;
 }
-.breadcrumb label.pos.first {
+.breadcrumb label.btn.first {
   margin-left:4em;
 }
-.breadcrumb label.pos, .finish .pos {
+.btn {
   color:blue;
   background-color:#eee;
   padding:1px 1em;
@@ -49,21 +49,24 @@ input.x {
   text-align: center;
   min-width:5em;
   font-size:80%;
+  margin-left:2px;
 }
-.breadcrumb label.pos.active, .finish .pos.active {
-  display: inline-block;
+.btn.active {
   border: solid #89b;
   border-width: 3px 0;
   padding:0 1em;
   background-color:#bce;
   font-weight: bold;
 }
-.disabled {
-  color: #aaa !important;
+.btn.disabled {
+  color: #aaa;
 }
-.breadcrumb label.pos:active, .finish .pos:active {
+.btn:active {
   position: relative;
   top:2px;
+}
+.btn.disabled:active {
+  top:0;
 }
 
 
@@ -112,9 +115,9 @@ div.row {
   margin: 0.5em 0
 }
 
-div.breadcrumb label, input[type="radio"]+label, label:first-child {
+/*div.breadcrumb label, input[type="radio"]+label, label:first-child {
   margin-left:2px;
-}
+}*/
 
 input[type="text"].url  {
   width : 35em;
@@ -208,7 +211,8 @@ input#summary:checked ~ div.tabs>div.tab  {
 /* summary mode - form fields */
 input#summary:checked ~ div.tabs button,
 input#summary:checked ~ div.tabs input[type="button"],
-input#summary:checked ~ div.tabs input[type="submit"] {
+input#summary:checked ~ div.tabs input[type="submit"],
+input#summary:checked ~ div.tabs .btn {
   display:none;
 }
 input#summary:checked ~ div.tabs select,

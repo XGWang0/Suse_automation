@@ -44,28 +44,28 @@ Machines:
 <input id="summary" type="checkbox"/>
 <label for="summary" class="button">show summary</label>
 <div class="finish">
-	<label for="summary" class="pos first">Edit</label>
-	<input type="submit" value="Submit" name="proceed" class="pos"/>
+	<label for="summary" class="btn first">Edit</label>
+	<input type="submit" value="Submit" name="proceed" class="btn"/>
 </div>
 <div class="tabs">
 	<div id="tab-product" class="tab">
 		<input type="radio" id="tab1" name="tab-group-1" checked/>
 		<div class="content">
 			<div class="breadcrumb breadcrumb_top">
-				<label for="tab1" class="pos disabled">Prev</label>
-				<label for="tab2" class="pos">Next</label>
-				<label for="summary" class="pos">Finish</label>
-				<label for="tab1" class="pos active first">Product</label>
+				<label for="tab1" class="btn disabled">Prev</label>
+				<label for="tab2" class="btn">Next</label>
+				<label for="summary" class="btn">Finish</label>
+				<label for="tab1" class="btn active first">Product</label>
 				&raquo;
-				<label for="tab2" class="pos">Disk</label>
+				<label for="tab2" class="btn">Disk</label>
 				&raquo;
-				<label for="tab3" class="pos">Advanced</label>
+				<label for="tab3" class="btn">Advanced</label>
 			</div>
 			<?php require ("req_rein_all.php"); ?>
 			<div class="breadcrumb breadcrumb_bottom">
-				<label for="tab1" class="pos disabled">Prev</label>
-				<label for="tab2" class="pos">Next</label>
-				<label for="summary" class="pos">Finish</label>
+				<label for="tab1" class="btn disabled">Prev</label>
+				<label for="tab2" class="btn">Next</label>
+				<label for="summary" class="btn">Finish</label>
 			</div>
 		</div>
 	</div>
@@ -73,20 +73,20 @@ Machines:
 		<input type="radio" id="tab2" name="tab-group-1"/>
 		<div class="content">
 			<div class="breadcrumb breadcrumb_top">
-				<label for="tab1" class="pos">Prev</label>
-				<label for="tab3" class="pos">Next</label>
-				<label for="summary" class="pos">Finish</label>
-				<label for="tab1" class="pos first">Product</label>
+				<label for="tab1" class="btn">Prev</label>
+				<label for="tab3" class="btn">Next</label>
+				<label for="summary" class="btn">Finish</label>
+				<label for="tab1" class="btn first">Product</label>
 				&raquo;
-				<label for="tab2" class="pos active">Disk</label>
+				<label for="tab2" class="btn active">Disk</label>
 				&raquo;
-				<label for="tab3" class="pos">Advanced</label>
+				<label for="tab3" class="btn">Advanced</label>
 			</div>
 			<?php require ("req_rein.php"); ?>
 			<div class="breadcrumb breadcrumb_bottom">
-				<label for="tab1" class="pos">Prev</label>
-				<label for="tab3" class="pos">Next</label>
-				<label for="summary" class="pos">Finish</label>
+				<label for="tab1" class="btn">Prev</label>
+				<label for="tab3" class="btn">Next</label>
+				<label for="summary" class="btn">Finish</label>
 			</div>
 
 		</div>
@@ -95,28 +95,28 @@ Machines:
 		<input type="radio" id="tab3" name="tab-group-1"/>
 		<div class="content">
 			<div class="breadcrumb breadcrumb_top">
-				<label for="tab2" class="pos">Prev</label>
-				<label for="tab3" class="pos disabled">Next</label>
-				<label for="summary" class="pos">Finish</label>
-				<label for="tab1" class="pos first">Product</label>
+				<label for="tab2" class="btn">Prev</label>
+				<label for="tab3" class="btn disabled">Next</label>
+				<label for="summary" class="btn">Finish</label>
+				<label for="tab1" class="btn first">Product</label>
 				&raquo;
-				<label for="tab2" class="pos">Disk</label>
+				<label for="tab2" class="btn">Disk</label>
 				&raquo;
-				<label for="tab3" class="pos active">Advanced</label>
+				<label for="tab3" class="btn active">Advanced</label>
 			</div>
 			<?php require ("req_sut.php"); ?>
 			<div class="breadcrumb breadcrumb_bottom">
-				<label for="tab2" class="pos">Prev</label>
-				<label for="tab3" class="pos disabled">Next</label>
-				<label for="summary" class="pos">Finish</label>
+				<label for="tab2" class="btn">Prev</label>
+				<label for="tab3" class="btn disabled">Next</label>
+				<label for="summary" class="btn">Finish</label>
 			</div>
 
 		</div>
 	</div>
 </div>
 <div class="finish">
-	<label for="summary" class="pos first">Edit</label>
-	<input type="submit" value="Submit" class="pos" name="proceed"/>
+	<label for="summary" class="btn first">Edit</label>
+	<input type="submit" value="Submit" class="btn" name="proceed"/>
 </div>
 
 <?php
