@@ -44,6 +44,7 @@ use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
 
 BEGIN { push @INC, '.', '/usr/share/hamsta', '/usr/share/qa/lib'; }
 use log;
+use detect;
 $log::loginfo='slave_diplom';
 
 use Slave::hwinfo_xml;
@@ -101,7 +102,7 @@ $log::loglevel=$Slave::debug;
 # problem won't occur ever. This does not mean the problem is gone. If
 # you remove the forking again, the code will probably be broken on some
 # machines.
-our $last_ip = &get_slave_ip($Slave::multicast_address);
+our $last_ip = &get_my_ip_addr($Slave::multicast_address);
 our $slave_pid;
 our $multicast_pid;
 
@@ -149,7 +150,7 @@ $log::loginfo = 'hamsta';
 section_run($Slave::abort_section, $Slave::finish_section);
 
 while(1){
-    my $current_ip=&get_slave_ip($Slave::multicast_address);
+    my $current_ip=&get_my_ip_addr($Slave::multicast_address);
     if( $last_ip ne $current_ip or !$slave_pid ) {
       if( ($last_ip ne $current_ip) and !&chk_jobrun ) {
 	  kill 9,$slave_pid,$multicast_pid;
