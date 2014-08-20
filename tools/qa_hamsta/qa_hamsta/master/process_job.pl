@@ -85,8 +85,8 @@ sub process_job($) {
 	my ($job_on_machine_id,$machine_id) = @{$data->[0]};
 
         #Just a temporary solution before process_job.pl fully support job_part_on_machine scheduling
-	my $job_part_ids = &job_part_get_ids_by_job_id($job_id);
-	my $itered_job_part_id = $job_part_ids->[0];
+	my @job_part_ids = &job_part_get_ids_by_job_id($job_id);
+	my $itered_job_part_id = $job_part_ids[0];
 	my $job_part_on_machine_id = &job_part_on_machine_get_id_by_job_on_machine_and_job_part($job_on_machine_id,$itered_job_part_id);
 
 	my ($job_file, $user_id, $job_name) = &job_get_details($job_id);
@@ -247,7 +247,7 @@ sub process_job($) {
 	&TRANSACTION( 'job_on_machine', 'job', 'job_part_on_machine' );
 	my $job_old_stauts = &job_get_status($job_id);
 	&job_on_machine_stop($job_on_machine_id);
-	&job_part_on_machine_stop($job_part_on_machine_id);
+	&job_part_on_machine_stop($job_part_on_machine_id, $status);
 	&job_set_status($job_id,$status) if $job_old_stauts == 2;
 	&TRANSACTION_END;
 

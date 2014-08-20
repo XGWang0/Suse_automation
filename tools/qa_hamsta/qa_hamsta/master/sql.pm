@@ -285,9 +285,6 @@ sub job_on_machine_stop($) # job_on_machine_id
 sub job_on_machine_stop_all($) # machine_id
 {	return $dbc->update_query('UPDATE job_on_machine SET job_status_id=3 WHERE machine_id=?',$_[0]);	}
 
-sub job_on_machine_set_last_log($$) # job_on_machine_id, last_log
-{	return $dbc->update_query('UPDATE job_on_machine SET last_log=? WHERE job_on_machine_id=?',$_[1],$_[0]);	}
-
 sub job_on_machine_insert($$$$) # job_id, machine_id, config_id, job_status_id, mm_role_id
 {	return $dbc->insert_query('INSERT INTO job_on_machine(job_id,machine_id,config_id,job_status_id,mm_role_id) VALUES(?,?,?,?,?)',@_);	}
 
@@ -310,8 +307,8 @@ sub job_part_on_machine_insert($$$$) # job_part_id, job_status_id, job_on_machin
 sub job_part_on_machine_start($) # job_part_on_machine_id
 {	return $dbc->update_query('UPDATE job_part_on_machine SET start=NOW(), job_status_id=2 WHERE job_part_on_machine_id=?',$_[0]);	}
 
-sub job_part_on_machine_stop($) # job_part_on_machine_id
-{	return $dbc->update_query('UPDATE job_part_on_machine SET stop=NOW(), job_status_id=4 WHERE job_part_on_machine_id=?',$_[0]);	}
+sub job_part_on_machine_stop($$) # job_part_on_machine_id, job_status_id
+{	return $dbc->update_query('UPDATE job_part_on_machine SET stop=NOW(), job_status_id=? WHERE job_part_on_machine_id=?',$_[1],$_[0]);	}
 
 sub job_part_on_machine_get_id_by_job_on_machine_and_job_part($$) # job_on_machine_id, job_part_id
 {   return $dbc->scalar_query('SELECT job_part_on_machine_id FROM job_part_on_machine WHERE job_on_machine_id = ? AND job_part_id = ?', @_); }
@@ -319,7 +316,7 @@ sub job_part_on_machine_get_id_by_job_on_machine_and_job_part($$) # job_on_machi
 ### mm_role functions
 
 sub mm_role_get_default_id()
-{    return $dbc->scalar_query('SELECT mm_role_id FROM mm_role WHERE mm_role = 'default''); }
+{    return $dbc->scalar_query('SELECT mm_role_id FROM mm_role WHERE mm_role = "default"'); }
 
 ### group_machine functions
 
@@ -424,7 +421,7 @@ sub user_get_privileges($) # user_id
 
 sub user_get_default_id() 
 {
-    return $dbc->scalar_query ('SELECT user_id FROM user WHERE `extern_id` = 'DEFAULT_USER' AND `login` = 'default_user'');
+    return $dbc->scalar_query ('SELECT user_id FROM user WHERE `extern_id` = "DEFAULT_USER" AND `login` = "default_user"');
 }
 
 sub user_get_id_by_email($) # email

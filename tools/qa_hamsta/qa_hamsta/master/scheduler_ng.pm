@@ -175,13 +175,14 @@ sub distribute_jobs() {
 	    
 	    my $config_id = &config_get_last($machine_id);
 
-	    &TRANSACTION( 'machine', 'job', 'job_on_machine','job_part','job_part_on_machine' );
+	    &TRANSACTION( 'machine', 'job', 'job_on_machine','job_part','job_part_on_machine', 'mm_role' );
 	    &job_set_aimed_host($job_id,$host_aimed) unless $host_orig;
         # TODO: set mm_role_id according to new format job xml with roles when implement new mm sync
         my $mm_role_id = &mm_role_get_default_id;
 	    my $job_on_machine_id = &job_on_machine_insert( $job_id, $machine_id, $config_id, JS_QUEUED, $mm_role_id);
         my $job_part_id = &job_part_insert($job_id);
-        my $xml_file = &job_get_details($job_id)->[0];
+        my @job_details = &job_get_details($job_id);
+        my $xml_file = $job_details[0];
         &job_part_on_machine_insert($job_part_id,JS_QUEUED,$job_on_machine_id,$xml_file);
 	    &job_set_status( $job_id, JS_QUEUED );
 	    &TRANSACTION_END;

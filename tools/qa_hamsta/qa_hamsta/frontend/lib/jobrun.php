@@ -79,7 +79,7 @@ class JobRun {
 	 * @return array Array of JobRun objects or null on error.
 	 */
 	static function find_all($limit = 10, $start = 0) {
-		$sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k USING(job_id) ORDER BY j.job_id DESC';
+		$sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k USING(job_id) LEFT JOIN job_part_on_machine l USING(job_on_machine_id) ORDER BY j.job_id DESC';
 		if ($limit) {
 			$sql .= ' LIMIT '.((int) $start).','.((int) $limit);
 		}
@@ -153,7 +153,7 @@ class JobRun {
 	 * @return \JobRun JobRun with the given ID or null if no JobRun is found.
 	 */
 	static function get_by_id($id) {
-		$sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k USING(job_id) WHERE j.job_id = :id ORDER BY j.job_id DESC';
+		$sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k USING(job_id) LEFT JOIN job_part_on_machine l USING(job_on_machine_id) WHERE j.job_id = :id ORDER BY j.job_id DESC';
 		if (!($stmt = get_pdo()->prepare($sql))) {
 			return null;
 		}
@@ -237,16 +237,6 @@ class JobRun {
 	}
 
 	/**
-	 * Getter for the last few lines of the log of this job.
-	 * 
-	 * @access public
-	 * @return string Last output lines of the job.
-	 */
-	function get_last_log() {
-		return $this->fields["last_log"];
-	}
-
-	/**
 	 * Gets file name of the xml job description.
 	 * 
 	 * @access public
@@ -266,40 +256,6 @@ class JobRun {
 		return file_get_contents($this->fields["xml_file"]);
 	}
 	
-	/**
-	 * Gets return code[s]? of this job.
-	 * 
-	 * @access public
-	 * @return string Return code information (may contain more than one 
-	 * return code).
-	 */
-	function get_return_code() {
-		return $this->fields["return_status"];
-	}
-	
-	/**
-	 * Gets name of the xml file returned by slave.
-	 * 
-	 * @access public
-	 * @return string Filename of the XML result file returned by the slave.
-	 */
-	function get_return_xml_filename() {
-		return $this->fields["return_xml"];
-	}
-	
-	/**
-	 * Gets content of the result file returned by slave.
-	 * 
-	 * @access public
-	 * @return string XML result file returned by the slave.
-	 */
-	function get_return_xml_content() {
-		if( $this->fields["return_xml"] )
-			return file_get_contents($this->fields["return_xml"]);
-		else
-			return null;
-	}
-
 	/**
 	 * Gets start time of this job.
 	 * 
@@ -450,12 +406,12 @@ class JobRun {
 
 		$result = array();
 
-		if (!($stmt = get_pdo()->prepare('SELECT * FROM log WHERE machine_id = :machine_id AND job_on_machine_id = :job_on_machine_id ORDER BY log_time ASC'))) {
+		if (!($stmt = get_pdo()->prepare('SELECT * FROM log WHERE machine_id = :machine_id AND job_part_on_machine_id = :job_part_on_machine_id ORDER BY log_time ASC'))) {
 			return null;
 		}
 
 		$stmt->bindParam(':machine_id', $this->fields["machine_id"]);
-		$stmt->bindParam(':job_on_machine_id', $this->fields["job_on_machine_id"]);
+		$stmt->bindParam(':job_part_on_machine_id', $this->fields["job_part_on_machine_id"]);
 		$stmt->execute();
 
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {

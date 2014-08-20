@@ -1101,7 +1101,7 @@ sub transaction(){
     my $host=shift;
     my $xml=shift;
 
-    &TRANSACTION( 'job' );
+    &TRANSACTION( 'job', 'user' );
     my $email = $ref->{'config'}->{'description'}->{'content'};
     my $default_user_id = &user_get_default_id;
     my $user_id = (defined $email)? &user_get_id_by_email($email): $default_user_id;
