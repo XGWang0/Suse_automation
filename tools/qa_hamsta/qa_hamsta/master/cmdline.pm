@@ -1102,12 +1102,17 @@ sub transaction(){
     my $xml=shift;
 
     &TRANSACTION( 'job' );
+    my $email = $ref->{'config'}->{'description'}->{'content'};
+    my $default_user_id = &user_get_default_id;
+    my $user_id = (defined $email)? &user_get_id_by_email($email): $default_user_id;
+    $user_id = $default_user_id if not defined $user_id;
+        
     my $job_id = &job_insert(
         $ref->{'config'}->{'name'}->{'content'}, # short_name
         $xml, # xml_file
         $ref->{'config'}->{'description'}->{'content'} || '', # description
-        $ref->{'config'}->{'mail'}->{'content'} || $host, # job_owner
-        $ref->{'config'}->{'logdir'}->{'content'}, # slave directory
+        #$ref->{'config'}->{'mail'}->{'content'} || $host, # job_owner
+        $user_id, #user_id
         JS_NEW, # job_status_id
         $host ne "none" ? $host : undef # aimed_host
     );

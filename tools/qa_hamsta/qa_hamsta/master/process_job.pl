@@ -83,7 +83,14 @@ sub process_job($) {
 		return;
 	}
 	my ($job_on_machine_id,$machine_id) = @{$data->[0]};
-	my ($job_file, $job_owner, $job_name) = &job_get_details($job_id);
+
+        #Just a temporary solution before process_job.pl fully support job_part_on_machine scheduling
+	my $job_part_ids = &job_part_get_ids_by_job_id($job_id);
+	my $itered_job_part_id = $job_part_ids->[0];
+	my $job_part_on_machine_id = &job_part_on_machine_get_id_by_job_on_machine_and_job_part($job_on_machine_id,$itered_job_part_id);
+
+	my ($job_file, $user_id, $job_name) = &job_get_details($job_id);
+	my $job_owner = &user_get_email_by_id($user_id);
 	my ($ip, $hostname) = &machine_get_ip_hostname($machine_id);
 	&log(LOG_NOTICE,"PROCESS_JOB: process_job: $hostname using XML job description in $job_file");
 
@@ -102,8 +109,9 @@ sub process_job($) {
 
 
 	# Mark the job as started
-	&TRANSACTION( 'job_on_machine' );
+	&TRANSACTION( 'job_on_machine', 'job_part_on_machine' );
 	&job_on_machine_start($job_on_machine_id);
+        &job_part_on_machine_start($job_part_on_machine_id);
 	&TRANSACTION_END;
 
 	# Open the XML result file for writing
@@ -166,7 +174,8 @@ sub process_job($) {
 			&TRANSACTION( 'log' );
 			&log_insert(
 				$machine_id,
-				$job_on_machine_id,
+				#$job_on_machine_id,
+				$job_part_on_machine_id,
 				$parsed{'time'},
 				$parsed{'level'},
 				'', # username - we can fix later
@@ -201,9 +210,10 @@ sub process_job($) {
 	
 	&log(LOG_DETAIL, "job done, updating status info");
 
-	&TRANSACTION( 'job_on_machine' );
-	&job_on_machine_set_return($job_on_machine_id,$return_codes,$response_xml);
-	&TRANSACTION_END;
+        # REMOVE USELESS RETURN OF job_on_machine
+	# &TRANSACTION( 'job_on_machine' );
+	# &job_on_machine_set_return($job_on_machine_id,$return_codes,$response_xml);
+	# &TRANSACTION_END;
 
 	my $message = "$job_name completed on $hostname";
 	my $status=JS_FAILED;
@@ -234,9 +244,10 @@ sub process_job($) {
 		
 
 	# Mark the job as finished
-	&TRANSACTION( 'job_on_machine', 'job' );
+	&TRANSACTION( 'job_on_machine', 'job', 'job_part_on_machine' );
 	my $job_old_stauts = &job_get_status($job_id);
 	&job_on_machine_stop($job_on_machine_id);
+	&job_part_on_machine_stop($job_part_on_machine_id);
 	&job_set_status($job_id,$status) if $job_old_stauts == 2;
 	&TRANSACTION_END;
 

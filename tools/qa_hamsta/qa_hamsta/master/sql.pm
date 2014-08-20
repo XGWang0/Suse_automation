@@ -238,13 +238,13 @@ sub job_set_aimed_host($$) # job_id, aimed_host
 {	return $dbc->update_query('UPDATE job SET aimed_host=? WHERE job_id=?',$_[1],$_[0]);	}
 
 sub job_get_details($) # job_id
-{	return $dbc->row_query('SELECT xml_file,job_owner,short_name FROM job WHERE job_id=?',$_[0]);	}
+{	return $dbc->row_query('SELECT xml_file,user_id,short_name FROM job WHERE job_id=?',$_[0]);	}
 
 sub job_delete($) # job_id
 {	return $dbc->update_query('DELETE FROM job WHERE job_id=?',$_[0]);	}
 
-sub job_insert($$$$$$$) # short_name, xml_file, description, job_owner, slave_directory, job_status_id, aimed_host)
-{	return $dbc->insert_query('INSERT INTO job(short_name,xml_file,description,job_owner,slave_directory,job_status_id,aimed_host) VALUES(?,?,?,?,?,?,?)',@_);	}
+sub job_insert($$$$$$$) # short_name, xml_file, description, user_id, job_status_id, aimed_host)
+{	return $dbc->insert_query('INSERT INTO job(short_name,xml_file,description,user_id,job_status_id,aimed_host) VALUES(?,?,?,?,?,?)',@_);	}
 
 sub job_stop_all($) # machine_id
 {	return $dbc->update_query('UPDATE job SET job_status_id=3 WHERE aimed_host=?',$_[0]);	}
@@ -263,8 +263,8 @@ sub job_on_machine_set_status($$) # job_on_machine_id, job_status_id
 sub job_on_machine_delete_by_job_id($) # job_id
 {	return $dbc->update_query('DELETE FROM job_on_machine WHERE job_on_machine_id=?',$_[0]);	}
 
-sub job_on_machine_set_return($$$) # job_on_machine_id, return_status, return_xml
-{	return $dbc->update_query('UPDATE job_on_machine SET return_status=?,return_xml=? WHERE job_on_machine_id=?',$_[1],$_[2],$_[0]);	}
+#sub job_on_machine_set_return($$$) # job_on_machine_id, return_status, return_xml
+#{	return $dbc->update_query('UPDATE job_on_machine SET return_status=?,return_xml=? WHERE job_on_machine_id=?',$_[1],$_[2],$_[0]);	}
 
 sub job_on_machine_get_by_job_id($) # job_id
 {	return $dbc->matrix_query('SELECT job_on_machine_id,machine_id FROM job_on_machine WHERE job_id=?',$_[0]);	}
@@ -276,20 +276,50 @@ sub job_on_machine_get_by_machineid_status($$) # machine_id status_id
 {	return $dbc->vector_query('SELECT machine_id FROM job_on_machine WHERE machine_id=? AND job_status_id=?',$_[0],$_[1]);	}
 
 sub job_on_machine_start($) # job_on_machine_id
-{	return $dbc->update_query('UPDATE job_on_machine SET start=NOW(), job_status_id=2 WHERE job_on_machine_id=?',$_[0]);	}
+{	return $dbc->update_query('UPDATE job_on_machine SET job_status_id=2 WHERE job_on_machine_id=?',$_[0]);	}
+#{	return $dbc->update_query('UPDATE job_on_machine SET start=NOW(), job_status_id=2 WHERE job_on_machine_id=?',$_[0]);	}
 
 sub job_on_machine_stop($) # job_on_machine_id
-{	return $dbc->update_query('UPDATE job_on_machine SET stop=NOW(), job_status_id=4 WHERE job_on_machine_id=?',$_[0]);	}
+{	return $dbc->update_query('UPDATE job_on_machine SET job_status_id=4 WHERE job_on_machine_id=?',$_[0]);	}
 
 sub job_on_machine_stop_all($) # machine_id
-{	return $dbc->update_query('UPDATE job_on_machine SET stop=NOW(), job_status_id=3 WHERE machine_id=?',$_[0]);	}
+{	return $dbc->update_query('UPDATE job_on_machine SET job_status_id=3 WHERE machine_id=?',$_[0]);	}
 
 sub job_on_machine_set_last_log($$) # job_on_machine_id, last_log
 {	return $dbc->update_query('UPDATE job_on_machine SET last_log=? WHERE job_on_machine_id=?',$_[1],$_[0]);	}
 
-sub job_on_machine_insert($$$$) # job_id, machine_id, config_id, job_status_id
-{	return $dbc->insert_query('INSERT INTO job_on_machine(job_id,machine_id,config_id,timestamp,job_status_id) VALUES(?,?,?,NOW(),?)',@_);	}
+sub job_on_machine_insert($$$$) # job_id, machine_id, config_id, job_status_id, mm_role_id
+{	return $dbc->insert_query('INSERT INTO job_on_machine(job_id,machine_id,config_id,job_status_id,mm_role_id) VALUES(?,?,?,?,?)',@_);	}
 
+### job_part functions
+
+sub job_part_insert($) # job_id
+{   return $dbc->insert_query('INSERT INTO job_part(job_id) VALUES(?)', $_[0]); }
+
+sub job_part_delete_by_job_id($) # job_id
+{	return $dbc->update_query('DELETE FROM job_part WHERE job_id=?',$_[0]);	}
+
+sub job_part_get_ids_by_job_id($) # job_id
+{   return $dbc->vector_query('SELECT job_part_id FROM job_part WHERE job_id = ?',$_[0]); }
+
+### job_part_on_machine functions
+
+sub job_part_on_machine_insert($$$$) # job_part_id, job_status_id, job_on_machine_id, xml_file
+{    return $dbc->insert_query('INSERT INTO job_part_on_machine(job_part_id, job_status_id, job_on_machine_id, xml_file) VALUES(?,?,?,?)',@_); }
+
+sub job_part_on_machine_start($) # job_part_on_machine_id
+{	return $dbc->update_query('UPDATE job_part_on_machine SET start=NOW(), job_status_id=2 WHERE job_part_on_machine_id=?',$_[0]);	}
+
+sub job_part_on_machine_stop($) # job_part_on_machine_id
+{	return $dbc->update_query('UPDATE job_part_on_machine SET stop=NOW(), job_status_id=4 WHERE job_part_on_machine_id=?',$_[0]);	}
+
+sub job_part_on_machine_get_id_by_job_on_machine_and_job_part($$) # job_on_machine_id, job_part_id
+{   return $dbc->scalar_query('SELECT job_part_on_machine_id FROM job_part_on_machine WHERE job_on_machine_id = ? AND job_part_id = ?', @_); }
+
+### mm_role functions
+
+sub mm_role_get_default_id()
+{    return $dbc->scalar_query('SELECT mm_role_id FROM mm_role WHERE mm_role = 'default''); }
 
 ### group_machine functions
 
@@ -392,6 +422,21 @@ sub user_get_privileges($) # user_id
 	return $dbc->vector_query ('SELECT p.privilege FROM user_in_role uir INNER JOIN user_role ur on (uir.role_id = ur.role_id) INNER JOIN role_privilege rp ON (ur.role_id = rp.role_id) INNER JOIN privilege p ON (rp.privilege_id = p.privilege_id) WHERE uir.user_id = ?', $_[0]);
 }
 
+sub user_get_default_id() 
+{
+    return $dbc->scalar_query ('SELECT user_id FROM user WHERE `extern_id` = 'DEFAULT_USER' AND `login` = 'default_user'');
+}
+
+sub user_get_id_by_email($) # email
+{
+    return $dbc->scalar_query ('SELECT user_id FROM user WHERE email = ? limit 1', $_[0]);
+}
+
+sub user_get_email_by_id($) # id
+{
+    return $dbc->scalar_query ('SELECT email FROM user WHERE user_id = ?', $_[0]);
+}
+
 ### user role functions
 
 sub role_get_id($) # role name
@@ -433,8 +478,8 @@ sub user_machine_delete ($$)
 
 ### log functions
 
-sub log_insert($$$$$$$) # machine_id, job_on_machine_id, log_time, log_type, log_user, log_what, log_text
-{	return $dbc->insert_query('INSERT INTO `log`(machine_id,job_on_machine_id,log_time,log_type,log_user,log_what,log_text) VALUES(?,?,?,?,?,?,?)',@_);	}
+sub log_insert($$$$$$$) # machine_id, job_part_on_machine_id, log_time, log_type, log_user, log_what, log_text
+{	return $dbc->insert_query('INSERT INTO `log`(machine_id,job_part_on_machine_id,log_time,log_type,log_user,log_what,log_text) VALUES(?,?,?,?,?,?,?)',@_);	}
 
 ### transaction functions wrappers
 
