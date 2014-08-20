@@ -11,6 +11,13 @@ import glob
 from time import sleep
 
 import configparser
+from os.path import isdir
+
+try:
+    from subprocess import DEVNULL # py3k
+except ImportError:
+    DEVNULL = open(os.devnull, 'wb')
+
 
 config = configparser.ConfigParser()
 # Set option names case sensitive. 
@@ -20,7 +27,6 @@ config.read(os.getenv('VIRTTEST_CONFIG', '/etc/qavirttest/virttest.ini'))
 
 # where templates directory is - this is .. from location og this file 
 root_dir = os.path.abspath(os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))))
-print("ROOT DIR: " +root_dir) 
 
 class Host:  
     def __init__(self, name, ip, mac, domain, bridge, path, disk_image_template, domxmltemplpath):
@@ -35,7 +41,7 @@ class Host:
          
         # Copy disk image - use COW is possible
         diskpath = os.path.join(path, 'disk0.raw')
-        subprocess.check_output(['cp', '--reflink=auto', disk_image_template, diskpath])
+        subprocess.check_call(['cp', '--reflink=auto', disk_image_template, diskpath])
          
          
         # Create VM definition for libvirt
@@ -50,20 +56,20 @@ class Host:
         _process_template(domxmltemplpath, templdata, self._domxmlfile)
         
         # defineVM in libvirt
-        subprocess.check_output(['virsh', 'define', self._domxmlfile])
+        subprocess.check_call(['sudo', 'virsh', 'define', self._domxmlfile], stdout=DEVNULL)
          
            
     def running(self):
         self.__check_defined()
-        return subprocess.call(['virsh', 'dominfo', self.fqdn(), '|', 'grep', '-q', 'State:\s*running'], shell=True) == 0
+        return subprocess.call(['sudo', 'virsh', 'dominfo', self.fqdn(), '|', 'grep', '-q', 'State:\s*running'], shell=True, stdout=DEVNULL) == 0
          
      
     def defined(self):
-        return subprocess.call(['virsh', 'dominfo', self.fqdn()]) == 0
+        return subprocess.call(['sudo', 'virsh', 'dominfo', self.fqdn()], stdout=DEVNULL) == 0
      
     def start(self):
         self.__check_defined()
-        subprocess.check_output(['virsh', 'start', self.fqdn()])
+        subprocess.check_call(['sudo', 'virsh', 'start', self.fqdn()], stdout=DEVNULL)
 
      
     def stop(self, force = False):
@@ -72,7 +78,7 @@ class Host:
             cmd = 'destroy'
         else:
             cmd = 'shutdown'
-        subprocess.call(['virsh', cmd, self.fqdn()])
+        subprocess.call(['sudo', 'virsh', cmd, self.fqdn()], stdout=DEVNULL)
      
     def restart(self, force = False):
         self.__check_defined()
@@ -80,7 +86,7 @@ class Host:
             cmd = 'reset'
         else:
             cmd = 'reboot'
-        subprocess.check_output(['virsh', cmd, self.fqdn()])
+        subprocess.check_call(['sudo', 'virsh', cmd, self.fqdn()], stdout=DEVNULL)
      
     def name(self):
         return self._name
@@ -145,7 +151,7 @@ class TestBox:
         # runtime data about hosts in the test
         self.hosts = {}
         self.hosts_path = os.path.join(self.workdir, 'hosts')
-        self.__delete_images()
+        self.__delete_hosts(delete_infrastructure=True)
         
         self.__init_infrastructure()
         
@@ -174,7 +180,8 @@ class TestBox:
     
 
     def __delete_images(self):
-        shutil.rmtree(self.images_path, ignore_errors=True)
+        #shutil.rmtree(self.images_path, ignore_errors=True)
+        subprocess.call(['sudo', 'rm', '-fr', self.images_path])
         if not os.path.isdir(self.images_path):
             os.makedirs(self.images_path)
 
@@ -202,7 +209,7 @@ class TestBox:
         self.__closed = True
         
         # unregister and stop hosts
-        self.__delete_hosts()
+        self.__delete_hosts(delete_infrastructure=True)
         self.__delete_images()
         
         shutil.rmtree(self.workdir, ignore_errors=True)
@@ -253,13 +260,12 @@ class TestBox:
         """
         host = self.hosts[hostname]
         host.stop(force = True)
-        subprocess.check_output(['virsh', 'undefine', host.fqdn()])
+        subprocess.check_call(['sudo', 'virsh', 'undefine', host.fqdn()], stdout=DEVNULL)
         shutil.rmtree(host.path(), ignore_errors=True)
         del self.hosts[hostname]
         self.save()
 
     def get_host(self, hostname):
-        print("Called get_host with hostname " + hostname + ' to get host with fqdn ' + self.hosts[hostname].fqdn() + '.')
         return self.hosts[hostname]
     
     def get_hostnames(self):
@@ -282,7 +288,7 @@ class TestBox:
             else:
                 data['vms'].append(d) 
         data['testuser'] = self.__templdata['testuser']
-	data['network_id'] = self.network_id
+        data['network_id'] = self.network_id
         
         _process_template('templates/robot/testbox.robot', data, file)
         
@@ -303,15 +309,23 @@ class TestBox:
             
             # build the description
             img['root'] = os.path.join(self.images_path, code, 'root')
-            shutil.rmtree(img['root'], ignore_errors=True) # Root must not exist, otherwise kiwi will not build
+            
+            #shutil.rmtree(img['root'], ignore_errors=True) # Root must not exist, otherwise kiwi will not build
+            if isdir(img['root']):
+                print("Directory {} exists: deleting (this is strange!)".format(img['root']))
+                subprocess.call(['sudo', 'rm', '-fr', img['root']])
+            
             print("running kiwi --prepare for {}".format(code))
-            subprocess.check_output(['/usr/sbin/kiwi', '--yes', '--prepare', img['kiwi'], '--root', img['root'], '--logfile={}'.format(os.path.join(self.images_path, code, 'kiwi-prepare.log'))])
+            subprocess.check_call(['sudo', '/usr/sbin/kiwi', '--yes', '--prepare', img['kiwi'], '--root', img['root'], '--logfile={}'.format(os.path.join(self.images_path, code, 'kiwi-prepare.log'))])
             
             # create the image
             img['images'] = os.path.join(self.images_path, code, 'images')
-            shutil.rmtree(img['images'], ignore_errors=True)
+            #shutil.rmtree(img['images'], ignore_errors=True)
+            if isdir(img['images']):
+                print("Directory {} exists: deleting (this is strange!)".format(img['images']))
+                subprocess.call(['sudo', 'rm', '-fr', img['images']])
             print("running kiwi --create for {}".format(code))
-            subprocess.check_output(['/usr/sbin/kiwi', '--yes', '--create', img['root'], '-d', img['images'], '--logfile={}'.format(os.path.join(self.images_path, code, 'kiwi-create.log'))])
+            subprocess.check_call(['sudo', '/usr/sbin/kiwi', '--yes', '--create', img['root'], '-d', img['images'], '--logfile={}'.format(os.path.join(self.images_path, code, 'kiwi-create.log'))])
             
             # path to raw image
             img['raw'] = glob.glob(os.path.join(img['images'], '*.raw'))[0]
@@ -415,7 +429,6 @@ def _process_template(template_file, template_data, target_file):
     """
     """
     template_file = os.path.join(root_dir, template_file)
-    print("TEMPLATE FILE: " + template_file)
 
     jinjaEnv = Environment(loader=FileSystemLoader(os.path.dirname(template_file)))
     template = jinjaEnv.get_template(os.path.basename(template_file))
@@ -439,7 +452,6 @@ def _process_template_directory(template_dir, template_data, target_dir):
     
     #os.mkdir(target_dir)
     template_dir = os.path.join(root_dir, template_dir)
-    print("TEMPLATE DIR: " + template_dir)
     jinjaEnv = Environment(loader=FileSystemLoader(template_dir))
     
     for template_file in jinjaEnv.list_templates():
