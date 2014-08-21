@@ -8,4 +8,4 @@ config-7.robot
 config-8.robot
 config-9.robot
 config-10.robot
-check_build_results-*.robot
+check_build_results.robot

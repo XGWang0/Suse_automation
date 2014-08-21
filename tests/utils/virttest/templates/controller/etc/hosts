@@ -31,12 +31,12 @@ ff02::3         ipv6-allhosts
 
 {% for n in networks %}
 # Network {{ n.domain }}
-{% for special in [n.controller, n.server, n.hamsta, n.qadb, n.qadbreport ] %}
+{% for special in [n.controller, n.server, n.hamsta, n.qadb ] %}
 {{ special.ip }}			{{ special.name }}.{{ n.domain }}		
 {% endfor %}
 
 # SUTs
-{% for sut in n.suts %}
-{{ sut.ip }}			{{ sut.name }}.{{ n.domain }}		
+{% for host in n.hosts %}
+{{ host.ip }}			{{ host.name }}.{{ n.domain }}		
 {% endfor %}
 {% endfor %}

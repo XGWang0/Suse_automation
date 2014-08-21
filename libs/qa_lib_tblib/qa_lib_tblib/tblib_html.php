@@ -254,7 +254,7 @@ function html_table($data,$attrs=array())
 	$tbody = false;
 	foreach(array_keys($data) as $i)
 	{	
-		if( $i=='header' || ( $i==0 && $header ))	{
+		if( $i=='header' || ( is_numeric($i) && $i==0 && $header ))	{
 			# header
 			$r.="<thead><tr>";
 			foreach(array_values($data[$i]) as $col)
@@ -731,7 +731,7 @@ define('EMAIL',9);
 
 /**
   * Returns HTML code for a common search form.
-  * Usage: print html_search_form( $action, array( array($name, $values, $values_got, $type, [$label] ),...))
+  * Usage: print html_search_form( $action, array( array($name, $values, $values_got, $type, [$label, [ $tooltip, [ $required, [ $pattern ]]]] ),...))
   *
   * $name the HTML name of the control
   *
@@ -740,19 +740,19 @@ define('EMAIL',9);
   * $values_got is the data got from HTTP request
   *
   * $type: 
-  *    0 single select
-  *    1 multi select
-  *    2 text input (unused $values)
-  *    3 textarea
-  *    4 checkbox
-  *    5 hidden
-  *    6 horizontal rule
-  *    7 arbitrary text enclosed in div element
-  *    8 password field
-  *    9 email field
+  *    SINGLE_SELECT	single select
+  *    MULTI_SELECT	multi select
+  *    TEXT_ROW		text input (unused $values)
+  *    TEXT_AREA	textarea
+  *    CHECKBOX		checkbox
+  *    HIDDEN		hidden
+  *    HR		horizontal rule
+  *    TEXT		text enclosed in div element
+  *    PASSWORD		password field
+  *    EMAIL		email field
   * $label is the text label to pring, $name by default
   * @param string $action URL where the form submit to
-  * @param array $data array of array( $name, $values, $values_got, $type, [ $label ] ) :
+  * @param array $data array of array( $name, $values, $values_got, $type, [ $label, [ $tooltip, [ $required, [ $pattern ]]]] ) :
   **/
 function html_search_form( $url, $data, $attrs=array() )
 {

@@ -16,7 +16,6 @@ $TTL 86400      ; 1 day
 {{ network.server.name }}		A       {{ network.server.ip }}
 {{ network.hamsta.name }}		A 		{{ network.hamsta.ip }}
 {{ network.qadb.name }}			A		{{ network.qadb.ip }}
-{{ network.qadbreport.name }}	A		{{ network.qadbreport.ip }}
 
 ; repositories are hosted on the controller
 repos					CNAME	{{ network.controller.name }}
@@ -28,6 +27,6 @@ pxe						CNAME	{{ network.server.name }}
 dhcp					CNAME	{{ network.server.name }}
 
 ; SUTs
-{% for sut in network.suts %}
-{{ sut.name }}			A		{{ sut.ip }}
+{% for host in network.hosts %}
+{{ host.name }}			A		{{ host.ip }}
 {% endfor %}
