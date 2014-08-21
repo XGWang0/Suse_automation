@@ -226,7 +226,7 @@ sub process_job($) {
 	my $update_sut = &dump_job_xml_config($job_file,'update');
 	if( $reboot ) {
 		if($status == JS_PASSED){
-			sleep 300;
+			sleep 120;
                         $message = "reinstall\/reboot $hostname completed";
 			&machine_status_timeout(120,$machine_id,$hostname,$status,$message); #Timeout for 2 Hours
 		}

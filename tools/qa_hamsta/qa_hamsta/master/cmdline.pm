@@ -118,6 +118,7 @@ sub thread_evaluate () {
 		$_ = <$sock_handle>;
 		s/\r?\n$//;
 		&parse_cmd($_, $sock_handle);
+		$dbc->commit();
 	}
 
 	$sock_handle->close;

@@ -27,16 +27,12 @@
     <package name='mdadm'/>
     <package name='openssl-certs'/>
     <package name='perl-satsolver'/>
-    <package name='suse-sam'/>
-    <package name='suse-sam-data'/>
-    <package name='syslog-ng'/>
     <package name='tar'/>
     <package name='vim'/>
     <package name='yast2'/>
     <package name='yast2-firstboot'/>
-    <package name='yast2-ncurses'/>
     <package name='zypper'/>
-    <package name='grub'/>
+    <package name='grub2'/>
     <package name='nfs-client'/>
     <package name='qa_lib_keys'/>
     <package name='qa_hamsta'/>
