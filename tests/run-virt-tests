@@ -7,6 +7,7 @@
 echo Running tests in network $NETWORK
 
 # otherwise network is unset and will be set in config
+utils/00_convert_to_python2
 
 utils/00_delete_previous_robot_results
 
