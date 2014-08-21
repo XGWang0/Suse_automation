@@ -2,6 +2,6 @@
 
 source /etc/qavirttest/utils.config
 cd "`dirname $0`/virttest"
-sudo ./test_cleanup.py -n $NETWORK 
+./test_cleanup.py -n $NETWORK 
 
 
