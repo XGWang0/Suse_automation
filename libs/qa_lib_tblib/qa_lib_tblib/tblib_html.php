@@ -31,7 +31,7 @@ function html_header($args=null)
 		'default_css'=>true,		# if to include default CSS files
 		'doctype'=>'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">',
 		'gs_sortable'=>true,		# include script for table sorting
-		'jquery'=>true,			# include jquery
+		'jquery'=>false,		# include jquery
 		'icon'=>null,			# page icon
 		'icontype'=>'image/png',	# page icon MIME type
 		'id'=>null,			# page body tag ID
@@ -254,7 +254,7 @@ function html_table($data,$attrs=array())
 	$tbody = false;
 	foreach(array_keys($data) as $i)
 	{	
-		if( $i=='header' || ( $i==0 && $header ))	{
+		if( $i=='header' || ( is_numeric($i) && $i==0 && $header ))	{
 			# header
 			$r.="<thead><tr>";
 			foreach(array_values($data[$i]) as $col)

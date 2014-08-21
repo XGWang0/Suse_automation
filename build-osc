@@ -38,7 +38,7 @@ cd - > /dev/null
 cd $dir
 $iosc repairwc .
 echo -e '\n+-- RUNNING BUILD ----------------------------------------------------------------\n'
-$iosc build $BUILDARGS -k "$DESTDIR" --no-verify $REPOSITORY $ARCH
+$iosc build --no-verify $BUILDARGS -k "$DESTDIR" $REPOSITORY $ARCH
 res=$?
 echo -e '\n+-- BUILD FINISHED ---------------------------------------------------------------\n'
 rm -fr "$dir"

@@ -28,44 +28,9 @@
 		return require("index.php");
 	}
 
-	if (User::isLogged())
-	  $user = User::getById (User::getIdent (), $config);
+/* Check if the machines are suited for reinstall. */
+if (check_machines_before_reinstall ($machines, 'reinstall')) {
 
-	$blockedMachines = array();
-	$virtualMachines = array();
-	$hasChildren = array();
-	foreach ($machines as $machine) {
-		if( ! $machine->has_perm('job') || ! $machine->has_perm('install') ) {
-			$blockedMachines[] = $machine->get_hostname();
-		}
-		if(preg_match ('/^vm\//', $machine->get_type())) {
-			$virtualMachines[] = $machine->get_hostname();
-		}
-		if(count($machine->get_children()) > 0) {
-			$hasChildren[] = $machine->get_hostname();
-		}
-
-	}
-	if(count($blockedMachines) != 0) {
-		echo "<div class=\"text-medium\">" .
-			"The following machines are currently either marked as \"Not accepting jobs\", \"Reinstall Deny\" or \"Outdated (Blocked)\":<br /><br />" .
-			"<strong>" . implode(", ", $blockedMachines) . "</strong><br /><br />" .
-			"Please go back to free them up and then try your reinstall again." .
-			"</div>";
-	} elseif (count($virtualMachines) != 0) {
-		echo "<div class=\"text-medium\">" .
-			"The following machines are virtual machines:<br /><br />" .
-			"<strong>" . implode(", ", $virtualMachines) . "</strong><br /><br />" .
-			"It is not possible to reinstall virtual machines (you can delete them in QA Cloud and than create new ones)." .
-			"</div>";
-	} elseif (count($hasChildren) != 0) {
-		echo "<div class=\"text-medium\">" .
-			"The following machines currently contain virtual machines:<br /><br />" .
-			"<strong>" . implode(", ", $hasChildren) . "</strong><br /><br />" .
-			"It is not possible to reinstall virtual hosts with virtual machines (you can delete them in QA Cloud before reinstalling virtual host)." .
-			"</div>";
-
-	} else {
 ?>
 Machines:
 <?php foreach ($machines as $machine): ?>
@@ -97,6 +62,11 @@ Machines:
 				<label class='pos' for="tab3">Advanced</label>
 			</div>
 			<?php require ("req_rein_all.php"); ?>
+			<div class="breadcrumb_bottom">
+				<label for="tab1"><input type="button" value="Prev" class="disabled"/></label>
+				<label for="tab2"><input type="button" value="Next"/></label>
+				<label for="summary"><input type="button" value="Finish"/></label>
+			</div>
 		</div>
 	</div>
 	<div id='tab-disk' class="tab">
@@ -113,6 +83,12 @@ Machines:
 				<label class='pos' for="tab3">Advanced</label>
 			</div>
 			<?php require ("req_rein.php"); ?>
+			<div class="breadcrumb_bottom">
+				<label for="tab1"><input type="button" value="Prev"/></label>
+				<label for="tab3"><input type="button" value="Next"/></label>
+				<label for="summary"><input type="button" value="Finish"/></label>
+			</div>
+
 		</div>
 	</div>
 	<div id='tab-advanced' class="tab">
@@ -129,21 +105,31 @@ Machines:
 				<label class='pos active' for="tab3">Advanced</label>
 			</div>
 			<?php require ("req_sut.php"); ?>
+			<div class="breadcrumb_bottom">
+				<label for="tab2"><input type="button" value="Prev"/></label>
+				<label for="tab3"><input type="button" value="Next" class="disabled"/></label>
+				<label for="summary"><input type="button" value="Finish"/></label>
+			</div>
+
 		</div>
 	</div>
 </div>
+<div id="finish">
+	<label for="summary"><input type="button" value="Edit"/></label>
+	<input type="submit" value="Submit" name='proceed'/>
+</div>
+
 <?php
 	foreach ($machines as $machine):
 		echo('<input type="hidden" name="a_machines[]" value="'.$machine->get_id().'">');
 	endforeach;
+
+	print_install_post_data ();
 ?>
 
 </form>
-
 <?php
-} // else -- reinstallation happens
+}
 ?>
 
-<script>
-<?php require ('js/install_product.js'); ?>
-</script>
+<script src="js/install_product.js"></script>

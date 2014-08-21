@@ -157,6 +157,11 @@ sub process_job($) {
 				$parsed{'level'} = 'STDOUT';
 				$parsed{'info'} = 'hamsta';
 				$parsed{'text'} = $line;
+				$parsed{'zone'} = strftime "%z", localtime;
+			}
+			if( $parsed{'zone'} )	{
+				# no DB locking necessary
+				$parsed{'time'} = &convert_timezone($parsed{'time'},$parsed{'zone'});
 			}
 			&TRANSACTION( 'log' );
 			&log_insert(

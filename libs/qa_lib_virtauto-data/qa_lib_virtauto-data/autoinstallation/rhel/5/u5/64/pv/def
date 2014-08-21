@@ -11,10 +11,10 @@ firewall --enabled --port=22:tcp
 authconfig --enableshadow --enablemd5
 selinux --enforcing
 timezone --utc America/Denver
-bootloader --location=mbr --driveorder=hda --append="rhgb quiet"
-clearpart --all --initlabel --drives hda
-part /boot --fstype ext3 --size=100 --ondisk=hda
-part pv.2 --size=0 --grow --ondisk=hda
+bootloader --location=mbr --driveorder=xvda --append="rhgb quiet"
+clearpart --all --initlabel --drives xvda
+part /boot --fstype ext3 --size=100 --ondisk=xvda
+part pv.2 --size=0 --grow --ondisk=xvda
 volgroup VolGroup00 --pesize=32768 pv.2
 logvol swap --fstype swap --name=LogVol01 --vgname=VolGroup00 --size=528 --grow --maxsize=1056
 logvol / --fstype ext3 --name=LogVol00 --vgname=VolGroup00 --size=1024 --grow
@@ -22,4 +22,3 @@ reboot
 
 %packages
 @ X Window System
-@ KDE

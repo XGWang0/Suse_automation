@@ -35,10 +35,10 @@
             $existFileName = $real_file;
 
         # define the default data of job XML file
-        $jobInfo = array( 'name'=>'yourjobname',
+        $jobInfo = array( 'name'=>'',
                           'level'=>'3',
-                          'description'=>"your job descption",
-                          'motd'=>'your job motd message',
+                          'description'=>"Enter job description",
+                          'motd'=>'Enter your job MOTD message',
                           'mailto'=>(isset($user) ? $user->getEmail() : 'hamsta@suse.com'),
 			  'reboot'=>0,
                           'rpmlist'=>'');
@@ -106,7 +106,7 @@
     ?>
 
     <tr><td width="40%">Job name: </td>
-    <td><input type="text" size="20" name="jobname" title="required: job name, must be composed by number, letter, underscore or dash" value="<?php echo $jobInfo['name']; ?>"><span class="required">*</span>
+    <td><input type="text" size="20" name="jobname" title="required: job name, must be composed by number, letter, underscore or dash" required placeholder="Enter name for the job" value="<?php if (! empty ($jobInfo['name'])) echo $jobInfo['name']; ?>">
     </td></tr>
     <tr><td>Debug level:</td>
     <td>
@@ -124,19 +124,20 @@
     </select> <?php echo "default \"level-$default_level\""; ?>
     </td></tr >
     <tr><td>Description:</td>
-    <td><input type="text" size="20" name="description" title="optional: job descption" value="<?php echo $jobInfo['description']; ?>"></td></tr>
+    <td><input type="text" size="20" name="description" placeholder="Enter description for the job" title="optional: job description" value="<?php echo $jobInfo['description']; ?>"></td></tr>
     <tr><td>Motd message:</td>
-    <td><input type="text" size="20" name="motdmsg" title="optional: /etc/motd message in SUT" value="<?php echo $jobInfo['motd']; ?>"></td></tr>
+    <td><input type="text" size="20" name="motdmsg" placeholder="Enter MOTD for the SUT" title="optional: /etc/motd message in SUT" value="<?php echo $jobInfo['motd']; ?>"></td></tr>
     <tr><td>Email address:</td>
-    <td><input type="text" size="20" name="mailto" title="optional: send mail if address is given" value="<?php echo $jobInfo['mailto']; ?>">
+    <td><input type="email" size="20" name="mailto" placeholder="user@domain.com" title="optional: send mail if address is given" value="<?php echo $jobInfo['mailto']; ?>">
     </td></tr>
     <tr><td>Needed rpms:</td>
-    <td><input type="text" size="20" name="rpmlist" title="optional: divided by space, e.g: qa_tools qa_bind" value="<?php echo $jobInfo['rpmlist']; ?>"></td></tr>
-    
-    <tr><td>Reboot:</td>
-    <td><input type="checkbox" size="20" name="reboot" title="optional: set it if job reboot the machine" value=1 "<?php if($jobInfo['reboot']==1) echo ' checked=\"checked\"'; ?>"></td></tr>
+    <td><input type="text" size="20" name="rpmlist" placeholder="rpm1 rpm2 rpm3" title="optional: divided by space, e.g: qa_tools qa_bind" value="<?php echo $jobInfo['rpmlist']; ?>"></td></tr>
+
+    <tr><td><label for="reboot-option">Reboot</label>:</td>
+    <td><input id="reboot-option" type="checkbox" size="20" name="reboot" title="optional: set it if job reboot the machine" value=1 "<?php if($jobInfo['reboot']==1) echo ' checked=\"checked\"'; ?>"></td></tr>
     <!-- Additional parameters -->
-    <tr><td><input type="checkbox" name="param_flag" value="paramFlag" title="Edit additional Parameters" onclick="editParameters()">Edit addtional parameters</td>
+    <tr><td><input id="edit-parameters" type="checkbox" name="param_flag" value="paramFlag" title="Edit additional Parameters" onclick="editParameters()">
+			  <label for="edit-parameters">Edit addtional parameters</label></td>
     <td><div id="param_edit"><select id="param_type" name="param_type" title="required: please chose one parameter type">
                 <option value="string">string</option>
                 <option value="enum">enum</option>
@@ -321,7 +322,7 @@
         }
 	echo "</select></td></tr>\n";
 	echo "<tr><td>Commands (one per line):</td>\n";
-        echo "<td colspan=\"2\"><textarea cols=\"60\" rows=\"10\" name=\"commands_content_multiple[]\" title=\"required: write your script here, one command per line.\">$commands</textarea><span class=\"required\">*</span><td>\n";
+        echo "<td colspan=\"2\"><textarea cols=\"60\" rows=\"10\" name=\"commands_content_multiple[]\" title=\"required: write your script here, one command per line.\" required>$commands</textarea><span class=\"required\">*</span><td>\n";
         echo "</tr>\n";
         echo "<tr><td colspan=\"2\"><hr style=\"border:1px dashed\"></td></tr>\n";
 	echo "</table></div>\n";

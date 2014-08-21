@@ -35,15 +35,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 $option = request_str("opt");
 $machine_list = request_str("machine_list");
 $custom_file = request_str("file");
-    
-if($option == "delete") # only custom defined file can be deleted
-{
-    	$custom_file = $config->xml->dir->default . "/" . $custom_file;
-
-	if(file_exists($custom_file))
-            unlink($custom_file);
-}
-
+  
 $search = new MachineSearch();
 $job = new Job();
 if($machine_list != "")
@@ -54,7 +46,22 @@ else
 foreach ($machines_id_array as $mid) {
 	$job->add_machine_id($mid);
 }
-machine_permission_or_disabled($machines_id_array,$perm_send_job);
+$search->filter_in_array ($machines_id_array);
+$machines = $search->query ();
+
+/* Only custom defined file can be deleted. */
+if ($option == "delete") {
+	/* Check for permissions or redirect from the page. */
+	machine_permission_or_redirect ($machines, $perm_send_job);
+
+	$custom_file = $config->xml->dir->default . "/" . $custom_file;
+
+	if (file_exists($custom_file))
+		unlink ($custom_file);
+}
+ 
+$job_editing_allowed = capable ('job_edit');
+machine_permission_or_disabled ($machines, $perm_send_job);
 
 $resend_job=request_str("xml_file_name");
 $filenames =request_array("filename");
@@ -66,7 +73,6 @@ if (request_str("submit")) {
 	$jobfilenames = array();
 
 	foreach ($filenames as $jobfile) {
-
 		$jobbasename = basename($jobfile);
 		system("cp $jobfile /tmp/");
 		system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' /tmp/$jobbasename");
@@ -92,10 +98,14 @@ if (request_str("submit")) {
 	if (!$job->send_job()){
 		$error = $job->errmsg;
 	}
+
 	if (empty($error)) {
-		redirect("The job[s] has/have been successfully sent.",true);
+		redirect (array (
+				  'succmsg' => "The job[s] has/have been successfully sent.")
+				);
 	}
 }
+
     $html_title = "Send job";
 
 ?>

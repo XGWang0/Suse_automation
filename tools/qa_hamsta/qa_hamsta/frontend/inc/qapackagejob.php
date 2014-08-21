@@ -80,12 +80,11 @@
 	$job->addfile($qapackagejobfile);
 
 	# Make sure each job gets sent correctly
-	if( request_str("submit") )
-	{
+	if( request_str("submit") ) {
 		if ( !$job->send_job() ) $error = $job->errmsg;
 	}
 	if (empty($error)) {
-		redirect("The job[s] has/have been successfully sent.",true);
+		redirect (array ('succmsg' => "The job[s] has/have been successfully sent."));
 	}
 	$html_title="Send qapackage job";
 ?>

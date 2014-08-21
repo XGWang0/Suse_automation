@@ -81,8 +81,8 @@ This page will allow you to migrate virtual machines with given domain name on t
 
 <table class="text-medium">
   <tr>
-    <td>Virtual machine domain name(required): </td>
-    <td><input type="text" value="" size="50" name="domain_name"></td>
+    <td>Virtual machine hostname(required): </td>
+    <td><input type="text" value="" size="50" name="host_name"></td>
   </tr>
   <tr>
     <td>Remote virtual host IP(required): </td>

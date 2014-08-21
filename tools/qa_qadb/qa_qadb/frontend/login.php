@@ -126,8 +126,9 @@ else	{
 				}
 			}
 		}
+		header("Location: login.php");
 	}
-	header("Location: login.php");
+	header("Location: index.php");
 }
 print html_footer();
 ?>

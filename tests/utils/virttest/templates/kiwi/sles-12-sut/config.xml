@@ -1,0 +1,61 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<image name='SLES-12-SUT' displayname='SLES-12-SUT' schemaversion='5.8'>
+  <description type='system'>
+    <author>Lukas Lipavsky</author>
+    <contact>qa-auto@suse.de</contact>
+    <specification>SLES 12</specification>
+  </description>
+  <preferences>
+    <type checkprebuilt='true' boot='vmxboot/suse-SLES11' fsnocheck='true' filesystem='ext3' image='vmx'>
+      <size unit='M' additive='false'>16384</size>
+    </type>
+    <version>0.0.1</version>
+    <packagemanager>zypper</packagemanager>
+    <rpm-check-signatures>false</rpm-check-signatures>
+    <rpm-force>false</rpm-force>
+    <locale>en_US</locale>
+  </preferences>
+  <users group='root'>
+    <user name='root' password='$1$F2WqbkCG$55kehTQWWhf0m2tlsBAhV0' home='/root' shell='/bin/bash'/>
+  </users>
+  <packages type='image' patternType='onlyRequired'>
+    <namedCollection name='base'/>
+    <package name='SuSEfirewall2'/>
+    <package name='iputils'/>
+    <package name='kernel-default'/>
+    <package name='less'/>
+    <package name='mdadm'/>
+    <package name='openssl-certs'/>
+    <package name='perl-satsolver'/>
+    <package name='suse-sam'/>
+    <package name='suse-sam-data'/>
+    <package name='syslog-ng'/>
+    <package name='tar'/>
+    <package name='vim'/>
+    <package name='yast2'/>
+    <package name='yast2-firstboot'/>
+    <package name='yast2-ncurses'/>
+    <package name='zypper'/>
+    <package name='grub'/>
+    <package name='nfs-client'/>
+    <package name='qa_lib_keys'/>
+    <package name='qa_hamsta'/>
+  </packages>
+  <packages type='bootstrap'>
+    <package name='filesystem'/>
+    <package name='glibc-locale'/>
+    <package name='module-init-tools'/>
+  </packages>
+  <repository type='yast2' imageinclude='true' alias='sles-12'>
+	  <source path='{{ repositories['SLES-12'] }}'/>
+  </repository>
+  
+  <!-- we need sdk for kiwi tools. -->
+  <repository type='yast2' imageinclude='true' alias='sle-12-sdk'>
+	  <source path='{{ repositories['SLE-12-SDK'] }}'/>
+  </repository>
+
+  <repository type='rpm-md' imageinclude='true' alias='qaauto'>
+  	  <source path='{{ repositories['QA'] }}/SLE-12' />
+  </repository>
+</image>
