@@ -23,7 +23,7 @@ pushd $dir > /dev/null
 if ! osc_init "$project" "$package" ; then
 	echo "Package $package does not exist in the project $project. Building locally." >&2
 	BUILDARGS="$BUILDARGS --local-package --alternative-project=$project"
-        localpack='yes'
+	localpack='yes'
 fi
 popd > /dev/null
 
@@ -38,7 +38,7 @@ cd - > /dev/null
 cd $dir
 [ "$localpack" == "yes" ] || $iosc repairwc .
 echo -e '\n+-- RUNNING BUILD ----------------------------------------------------------------\n'
-$iosc build $BUILDARGS -k "$DESTDIR" --no-verify $REPOSITORY $ARCH
+$iosc build --no-verify $BUILDARGS -k "$DESTDIR" $REPOSITORY $ARCH
 res=$?
 echo -e '\n+-- BUILD FINISHED ---------------------------------------------------------------\n'
 rm -fr "$dir"
