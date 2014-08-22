@@ -104,7 +104,6 @@ if(!$submission_id)
 	$comment_got		=http('comment');
 	$rpm_config_id_got	=http('rpm_config_id');
 	$hwinfo_id_got		=http('hwinfo_id');
-	$submission_id_got	=http('submission_id');
 	$status_got		=http('status');
 	$md5sum_got		=http('md5sum');
 	$patch_id_got		=http('patch_id');
@@ -132,8 +131,8 @@ if(!$submission_id)
 		array('tester',$tester,$tester_got,MULTI_SELECT),
 		array('date_from','',$date_from_got,TEXT_ROW),
 		array('date_to','',$date_to_got,TEXT_ROW),
-		array('comment','',$comment_got,TEXT_ROW,'comment [%]'),
-		array('submission_id','',$submission_id_got,TEXT_ROW),
+		array('comment','',$comment_got,TEXT_ROW,'comment [%]','For comments begining XXX, use&#10;XXX%&#10;For comments containing XXX anywhere inside, use&#10;%XXX%'),
+		array('submission_id','',$submission_id,TEXT_ROW),
 		array('md5sum','',$md5sum_got,TEXT_ROW),
 		array('patch_id','',$patch_id_got,TEXT_ROW),
 		array('status',$status,$status_got,SINGLE_SELECT),
@@ -148,7 +147,7 @@ if(!$submission_id)
 	# card-dependent form fields
 	if( $step=='tcf' )
 		array_splice($what,5,0,array(
-			array('testcase','',$testcase_got,TEXT_ROW,'testcase(s) (slow) [%]'),
+			array('testcase','',$testcase_got,TEXT_ROW,'testcase(s) (slow) [%]','For testcases beginning XXX, use&#10;XXX%&#10;NOTE: using this filter causes much more data to be processed, and may make your system busy for some time.'),
 		));
 	else if( $step=='bench' )
 	{
@@ -259,7 +258,7 @@ if(!$submission_id)
 			'comment'		=>$comment_got,
 			'rpm_config_id'		=>$rpm_config_id_got,
 			'hwinfo_id'		=>$hwinfo_id_got,
-			'submission_id'		=>$submission_id_got,
+			'submission_id'		=>$submission_id,
 			'status_id'		=>$status_got,
 			'md5sum'		=>$md5sum_got,
 			'patch_id'		=>$patch_id_got,
