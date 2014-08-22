@@ -21,9 +21,9 @@ dir=`mktemp -d`
 pushd $dir > /dev/null
 
 if ! osc_init "$project" "$package" ; then
-	echo "Error: Package $package does not exist in the project $project." >&2
-	rm -fr $dir
-	exit 1
+	echo "Package $package does not exist in the project $project. Building locally." >&2
+	BUILDARGS="$BUILDARGS --local-package --alternative-project=$project"
+        localpack='yes'
 fi
 popd > /dev/null
 
@@ -36,9 +36,9 @@ cd - > /dev/null
 
 # build
 cd $dir
-$iosc repairwc .
+[ "$localpack" == "yes" ] || $iosc repairwc .
 echo -e '\n+-- RUNNING BUILD ----------------------------------------------------------------\n'
-$iosc build --no-verify $BUILDARGS -k "$DESTDIR" $REPOSITORY $ARCH
+$iosc build $BUILDARGS -k "$DESTDIR" --no-verify $REPOSITORY $ARCH
 res=$?
 echo -e '\n+-- BUILD FINISHED ---------------------------------------------------------------\n'
 rm -fr "$dir"
