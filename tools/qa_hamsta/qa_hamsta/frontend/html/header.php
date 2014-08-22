@@ -44,8 +44,9 @@ require_once("include/Util.php");
   <link href="css/color.css" rel="stylesheet" type="text/css">
   <link href="css/machine_actions.css" rel="stylesheet" type="text/css">
   <link href="css/reinstall.css" rel="stylesheet" type="text/css">
+<!--
   <link href="css/edit_job.css" rel="stylesheet" type="text/css">
-
+-->
  <?php
 if( isset($disabled_css) && $disabled_css ) print '<link href="css/disabled.css" rel="stylesheet" type="text/css">'."\n";
 ?>  <link rel="icon" type="image/png" href="/hamsta/icon.png">

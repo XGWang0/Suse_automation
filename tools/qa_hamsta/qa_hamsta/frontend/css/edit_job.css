@@ -21,7 +21,7 @@ span.rolespan:target + div > a {
   background: -moz-linear-gradient(#fff, #ccc);
 }
 .rt-container > div > a {
-  position: relative !important; /* Keeps the tabs in line with each other */
+  position: relative !important; 
   text-decoration: none;
   color: #000;
   display: inline-block;
@@ -30,7 +30,7 @@ span.rolespan:target + div > a {
   font-weight: bold;
   text-transform: uppercase;
   margin: -1px;
-  background: #e5e5e5; /* old browsers */
+  background: #e5e5e5; 
   border: 2px solid #d3d3d3;
   padding: 15px 20px;
   -moz-border-radius: 2px 0 0 2px;
@@ -48,8 +48,8 @@ span.rolespan:target + div > a {
   padding: 20px;
   border: solid 2px #d3d3d3;
   border-radius: 0 10px 10px 10px;
-  min-height: 250px; /* Change this value if you need more or less content space */
-  position: absolute; /* Fixes IE 7 & 8 */
+  min-height: 250px; 
+  position: absolute; 
   left: 140px;
   width: 600px;
   box-shadow: 0 4px 10px -5px #000000;
@@ -60,7 +60,7 @@ span.rolespan:target + div > div {
   z-index: 1;
 }  
 
-div.roletab-content{ /* Styles the inner content of the tabs */
+div.roletab-content{ 
   padding-bottom: 70px;
   padding-left: 20px;
   padding-right: 20px;
@@ -71,7 +71,6 @@ div#param_div {
   padding: 8px 0px 8px 8px;
   border: 1px dashed #cdcdcd;
 }
-
 /* Decoration of job parts panel */
 .ptabs {
   margin: 25px 0;
@@ -140,7 +139,6 @@ div#param_div {
   border-radius: 0 10px 10px 10px;
   box-sizing: border-box;
 }
-
 /* Decoration of commands panel */
 .stabs {
   margin: auto;

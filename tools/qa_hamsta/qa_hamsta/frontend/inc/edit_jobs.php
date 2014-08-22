@@ -35,7 +35,7 @@
         $go = 'edit_jobs';
         return require("index.php");
     }
-
+    $sections = array('worker', 'finish', 'abort', 'kill');
     $errors = array();
     $file = request_str("file");
     $opt = request_str("opt");

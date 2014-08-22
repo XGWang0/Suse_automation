@@ -34,7 +34,7 @@ $(document).ready(function(){
 	$('#param_div').hide();
 
 	var role_count = document.getElementById('role_count').value;
-	if(role_count == 0)
+/*	if(role_count == 0)
 	{
 		$('#singlemachine_form').show();
         	$('#multimachine_form').hide();
@@ -43,7 +43,7 @@ $(document).ready(function(){
 	}
 	else
 	{
-		$('#singlemachine_form').hide();
+*/		$('#singlemachine_form').hide();
 		$('#multimachine_form').show();
 		for(i=0; i<5; i++)
 		{
@@ -52,7 +52,7 @@ $(document).ready(function(){
 			else
 				$('#commands_' + i).hide();
 		}
-	}
+//	}
 
 	for(i=0;i<10;i++)
 	{
