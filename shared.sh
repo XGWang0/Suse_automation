@@ -13,7 +13,7 @@ FORCED_VERSION="$VERSION"
 [ -z "$DESTDIR" ] && DESTDIR="`pwd`/BUILT"
 mkdir -p "$DESTDIR" || exit 1
 
-project=QA:Head:Devel
+project=QA:Head
 iosc="osc -A https://api.suse.de"
 
 # this function should be implemented in the script, 
