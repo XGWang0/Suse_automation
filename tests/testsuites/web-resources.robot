@@ -80,7 +80,8 @@ Reinstall Machine
     Page Should Contain    Machine ${SUT_NAME} reinstallation has been launched.
     Sleep    60
     Open Machine Detail Page    ${SUT_NAME}
-    Element Text Should Be    id=status_string    down/ job running
+    Element Should Contain    id=status_string    job running
+    Element Text Should Be    id=job_overview  reinstall
     : FOR    ${i}    IN RANGE    ${REINSTALL_TIMEOUT}
     \    Reload Page
     \    ${STATUS}=    Get Text    id=status_string
