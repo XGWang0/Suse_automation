@@ -293,7 +293,7 @@ function get_patterns (product_field_id, new_element_id, prod_type) {
 
     if (prod_url.length == 0) {
     $("#" + new_element_id).empty();
-    } else if (/^(https?|s?ftp):\/\/[\w-]+\.[\w\.-]+/i.test(prod_url)) {
+    } else if (/^(https?|s?ftp):\/\/[\w-][\w\.-]*/i.test(prod_url)) {
     /* Next sybling that has id mininotification. */
     $(product_field_id + " ~ #mininotification").empty();
     /* Retrieve not cached patterns directly from repository. */
@@ -307,7 +307,7 @@ function get_patterns (product_field_id, new_element_id, prod_type) {
           }
           }
          );
-    } else if (/^(nfs|smb):\/\/[\w-]+\.[\w\.-]+/i.test(prod_url)) {
+    } else if (/^(nfs|smb):\/\/[\w-][\w\.-]*/i.test(prod_url)) {
     $(product_field_id + " ~ #mininotification")
         .text("Can not load patterns for this protocol.");
     $("#" + new_element_id).empty();

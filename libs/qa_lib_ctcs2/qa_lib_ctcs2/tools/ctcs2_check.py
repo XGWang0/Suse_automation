@@ -99,6 +99,11 @@ class Result(object):
                 print("Test %s had internal error %s times."\
                           % (name, res[ResIndexes.interr]))
 
+            if int(res[ResIndexes.skipped]) != 0:
+                print("Test %s was skipped %s times."\
+                          % (name, res[ResIndexes.skipped]))
+
+
 def print_new_missing(result1, result2):
     for name in result1.get_order():
         if not result2.has_test(name):
@@ -144,8 +149,8 @@ def print_help():
     print("usage: %s old_ctcs2_result_dir new_ctcs2_result_dir\n" % (sys.argv[0]))
 
     print('''When looking for failures all tests with non-zero failure count,
-non-zero internal error count or with zero iteration count
-(indicates timeout) are printed.\n''')
+non-zero internal error count, non-zero skipped count or with zero iteration
+count (indicates timeout) are printed.\n''')
 
     print('''When comparing results from two testruns (for the same testsuite!)
 all result fields but runtime are compared and differencies printed.

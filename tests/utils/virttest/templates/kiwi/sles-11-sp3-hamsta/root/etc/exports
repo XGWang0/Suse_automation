@@ -1,0 +1,1 @@
+/srv/www/htdocs/autoinst	*(fsid=0,crossmnt,rw,root_squash,sync,no_subtree_check)

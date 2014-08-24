@@ -31,12 +31,6 @@ if (!defined('HAMSTA_FRONTEND')) {
 	return require("index.php");
 }
 
-function filter($var) {
-	if($var == '')
-		return false;
-	return true;
-}
-
 $search = new MachineSearch();
 $search->filter_in_array(request_array("a_machines"));
 $machines = $search->query();
@@ -49,26 +43,8 @@ foreach($machines as $m) {
 	$m->get_children();
 }
 
-/* Check if user is logged in, registered and have sufficient
- * privileges. */
-if ($config->authentication->use) {
-	if (isset ($user)) {
-		$rh = new ReservationsHelper ();
-		foreach($machines as $m) {
-			$users_machine = $rh->getForMachineUser ($m, $user);
-			if (! ($users_machine && $user->isAllowed ('machine_reinstall'))
-				|| ! $user->isAllowed ('machine_reinstall_reserved')) {
-					redirect (
-						array ('errmsg' =>
-							   'You do not have privileges to upgrade a machine.'));
-			}
-		}
-	} else {
-		redirect (array (
-					'errmsg' =>
-					'You have to be logged in to upgrade a machine.'));
-	}
-}
+$perm=array('owner'=>'machine_reinstall','other'=>'machine_reinstall_reserved','url'=>'index.php?go=upgrade');
+machine_permission_or_disabled($machines,$perm);
 
 # If install options are set in the DB, they will show up in upgrade page, else use what user set in upgrade page even it's empty.
 $installoptions_warning="";

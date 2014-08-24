@@ -137,8 +137,8 @@ sub _read_partitions
 {
 	my $args=shift;
 	my $libsata=&_has_libsata(map {$args->{$_}} qw(to_type to_version to_subversion to_arch));
-	my $swappart=`cat /proc/swaps | tail -n 1 | cut -f1 -d' '`;
-	my $swapsize = `cat /proc/swaps | tail -n 1 |awk {'print \$3'}`;
+	my $get_swap_cmd = q@awk '/^\/dev/{print $1" "$3}' /proc/swaps@;
+	my ($swappart,$swapsize) = `$get_swap_cmd` =~ /([^\s]+)\s([^\s]+)/;
 	my $rootpart=`df /|tail -n1 | cut -f1 -d' '`;
 	$rootpart=$args->{'root_pt'} if($args->{'root_pt'});
 	my $abuildpart=`df | grep "abuild" |tail -n1 | cut -f1 -d' '`;
@@ -819,7 +819,7 @@ sub _print_profile_partitions
 			$abuildsize = 0 if !$abuildid;
 			$bootsize = 0 if !$bootid;
 			my $sizepercent = $args->{'repartitiondisk'} ? $args->{'repartitiondisk'}*0.01 : 1;
-			$swapsize = int($swapsize)/1024;
+			$swapsize = $swapsize ? int($swapsize)/1024 : 0;
 			my $rootusesize = int(($disksize - $abuildsize - $bootsize - $swapsize)*$sizepercent);
 
 			my %fs = ( '/'=>$args->{'rootfstype'}, 'swap'=>'swap', '/boot/efi'=>'vfat', '/abuild'=>'ext3', 'NULL' => 'ext3');
@@ -839,7 +839,22 @@ sub _print_profile_partitions
 				foreach my $num ( keys %{$drives->{$drive}} ) {
 					my $mnt=$drives->{$drive}->{$num};
 					print $f "	 <partition>\n";
-					print $f "	  <filesystem config:type=\"symbol\">".$fs{$mnt}."</filesystem>\n";
+					# The filesystem type is optional, it will not be
+					# set unless specified.
+					# https://bugzilla.novell.com/show_bug.cgi?id=867147
+					if ($fs{$mnt} ne 'default') {
+						print $f "	  <filesystem config:type=\"symbol\">".$fs{$mnt}."</filesystem>\n";
+					} else {
+						# Well, the filesystem is optional only unless
+						# the installed system is below SLE 12 or
+						# openSUSE 13.1 and below.
+						if (($args->{'to_type'} =~ /sle[ds]/i and $args->{'to_version'} < 12)
+							or ($args->{'to_type'} =~ /openSUSE/i and $args->{'to_version'} <= 13)) {
+							# ext3 is the default filesystem for earlier distros
+							print $f "	  <filesystem config:type=\"symbol\">ext3</filesystem>\n";
+						}
+					}
+
 					if ( $args->{'repartitiondisk'} ) {
 						print $f "	  <create config:type=\"boolean\">true</create>\n";
 						print $f "	  <format config:type=\"boolean\">true</format>\n";

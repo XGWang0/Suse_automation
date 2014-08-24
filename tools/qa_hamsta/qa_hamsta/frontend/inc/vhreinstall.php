@@ -31,12 +31,6 @@ if (!defined('HAMSTA_FRONTEND')) {
     return require("index.php");
 }
 
-function filter($var) {
-    if($var == '')
-        return false;
-    return true;
-}
-
 $err = 0;
 $search = new MachineSearch();
 $search->filter_in_array(request_array("a_machines"));

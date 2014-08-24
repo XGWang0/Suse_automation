@@ -72,7 +72,7 @@ if( token_read(http('wtoken')) )
 
 if(!$submission_id)
 {	# main search form & results
-	$product	=enum_list_id_val('product'); 
+	$product	=enum_list_id_val('product');
 	$release	=enum_list_id_val('release');
 	$arch		=enum_list_id_val('arch'); 
 	$host		=enum_list_id_val('host');
@@ -81,6 +81,11 @@ if(!$submission_id)
 	$kernel_version	=enum_list_id_val('kernel_version');
 	$kernel_branch	=enum_list_id_val('kernel_branch');
 	$kernel_flavor	=enum_list_id_val('kernel_flavor');
+
+	# products and releases  get alphanumerically sorted
+	usort($product,'compare_alnum');
+	usort($release,'compare_alnum');
+
 	$nothing=array( null, '' );
 	array_unshift($status,$nothing);
 	array_unshift($kernel_version,$nothing);
@@ -90,6 +95,7 @@ if(!$submission_id)
 	$release_got		=http('release');
 	$arch_got		=http('arch');
 	$testsuite_got		=http('testsuite');
+	$testsuite_ex_got	=http('testsuite_ex');
 	$host_got		=http('host');
 	$date_from_got		=http('date_from');
 	$date_to_got		=http('date_to');
@@ -98,7 +104,6 @@ if(!$submission_id)
 	$comment_got		=http('comment');
 	$rpm_config_id_got	=http('rpm_config_id');
 	$hwinfo_id_got		=http('hwinfo_id');
-	$submission_id_got	=http('submission_id');
 	$status_got		=http('status');
 	$md5sum_got		=http('md5sum');
 	$patch_id_got		=http('patch_id');
@@ -122,14 +127,12 @@ if(!$submission_id)
 		array('product',$product,$product_got,MULTI_SELECT),
 		array('release',$release,$release_got,MULTI_SELECT),
 		array('arch',$arch,$arch_got,MULTI_SELECT),
-#		array('testsuite',$testsuite,$testsuite_got,MULTI_SELECT),
 		array('host',$host,$host_got,MULTI_SELECT),
 		array('tester',$tester,$tester_got,MULTI_SELECT),
-		array('testsuite',enum_list_id_val('testsuite'),$testsuite_got,MULTI_SELECT),
 		array('date_from','',$date_from_got,TEXT_ROW),
 		array('date_to','',$date_to_got,TEXT_ROW),
-		array('comment','',$comment_got,TEXT_ROW,'comment [%]'),
-		array('submission_id','',$submission_id_got,TEXT_ROW),
+		array('comment','',$comment_got,TEXT_ROW,'comment [%]','For comments begining XXX, use&#10;XXX%&#10;For comments containing XXX anywhere inside, use&#10;%XXX%'),
+		array('submission_id','',$submission_id,TEXT_ROW),
 		array('md5sum','',$md5sum_got,TEXT_ROW),
 		array('patch_id','',$patch_id_got,TEXT_ROW),
 		array('status',$status,$status_got,SINGLE_SELECT),
@@ -143,27 +146,29 @@ if(!$submission_id)
 
 	# card-dependent form fields
 	if( $step=='tcf' )
-		array_splice($what,6,0,array(
-			array('testcase','',$testcase_got,TEXT_ROW,'testcase(s) (slow) [%]'),
+		array_splice($what,5,0,array(
+			array('testcase','',$testcase_got,TEXT_ROW,'testcase(s) (slow) [%]','For testcases beginning XXX, use&#10;XXX%&#10;NOTE: using this filter causes much more data to be processed, and may make your system busy for some time.'),
 		));
 	else if( $step=='bench' )
 	{
-		$what[5]=array('testsuite',bench_list_testsuite(),$testsuite_got,MULTI_SELECT);
+		array_splice($what,5,0,array(
+			array('testsuite',bench_list_testsuite(),$testsuite_got,MULTI_SELECT)
+			));
 		$pager = null; # cannot use pager as the whole table is a form
 	}
 	else if( $step=='reg' )
 	{
 		$group_by_y_got = http('group_by_y',2);
 		$group_by_x_got = http('group_by_x',1);
-		$reg_method_got = http('reg_method',1);
-		$cell_text_got	= http('cell_text',1);
+		$reg_method_got = http('reg_method',3);
+		$cell_text_got	= http('cell_text',2);
 		$cell_color_got = http('cell_color',1);
 		$no_footer_got	= http('no_footer');
 
 		$group_by_y = array(
 			array(2,'testsuite'),
 			array(1,'testsuite + testcase'),
-			array(3,'submission'),
+			/* array(3,'submission'), - not implemented */
 		);
 		$group_by_x = array(
 			array(1,'product + release'),
@@ -196,7 +201,15 @@ if(!$submission_id)
 	}
 	else	{
 		$what[]=array('submission_type',$modes,$mode_got,SINGLE_SELECT,'submission type');
-		array_splice($what,5,1); # TODO: fix testsuites in this tab too
+		array_splice($what,5,0,array(
+			array('testsuite_ex',enum_list_id_val('testsuite'),$testsuite_ex_got,MULTI_SELECT,'testsuite')
+			));
+	}
+	if( $step=='tcf' || $step=='reg' )	{
+		array_splice($what,5,0,array(
+			array('testsuite',enum_list_id_val('testsuite'),$testsuite_got,MULTI_SELECT)
+			));
+
 	}
 }
 
@@ -239,12 +252,13 @@ if(!$submission_id)
 			'date_from'		=>$date_from_got,
 			'date_to'		=>$date_to_got,
 			'testsuite_id'		=>$testsuite_got,
+			'testsuite_eid'		=>$testsuite_ex_got,
 			'testcase'		=>$testcase,
 			'tester_id'		=>$tester_got,
 			'comment'		=>$comment_got,
 			'rpm_config_id'		=>$rpm_config_id_got,
 			'hwinfo_id'		=>$hwinfo_id_got,
-			'submission_id'		=>$submission_id_got,
+			'submission_id'		=>$submission_id,
 			'status_id'		=>$status_got,
 			'md5sum'		=>$md5sum_got,
 			'patch_id'		=>$patch_id_got,
@@ -411,6 +425,18 @@ function colorize_detail($tcf_id,$testsuite,$testcase,$succ,$fail,$interr,$skip,
 		return ' skipped';
 	if( $succ )
 		return ' i';
+}
+
+/**
+  * To be called by usort()
+  * @param $p1,$p2 : array( id, name )
+  * @return -1,0,1 for $p1 <,==,> $p2
+  **/
+function compare_alnum($p1,$p2)
+{
+	$n1=preg_replace('/-/','',$p1[1]);
+	$n2=preg_replace('/-/','',$p2[1]);
+	return -strnatcasecmp($n1,$n2);
 }
 
 

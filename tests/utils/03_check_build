@@ -1,0 +1,16 @@
+#!/bin/bash
+
+source /etc/qavirttest/utils.config
+
+cd "`dirname $0`/.."
+
+
+echo "Starting build result check..."
+
+./run-tests -a "-i build" -r results/ 
+res=$?
+
+echo "Finished build result check."
+
+exit $?
+

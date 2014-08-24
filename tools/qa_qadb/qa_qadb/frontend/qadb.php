@@ -222,6 +222,8 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	# base SQL for result difference
 	$rd1='NOT EXISTS( SELECT * FROM result r2 JOIN tcf_group g2 USING(tcf_id) WHERE';
 	$rd2='AND r.testcase_id=r2.testcase_id)';
+	# base SQL for testsuite existence searches
+	$te1='EXISTS( SELECT * FROM tcf_group g WHERE g.testsuite_id=? AND g.submission_id=s.submission_id)';
 	# base fields for summaries
 	$sum=array('SUM(times_run) AS runs','SUM(succeeded) AS succ', 'SUM(failed) AS fail', 'SUM(internal_error) AS interr', 'SUM(skipped) AS skip', 'SUM(test_time) AS time', "CASE WHEN SUM(failed)>0 THEN 'failed' WHEN SUM(internal_error)>0 THEN 'interr' WHEN SUM(skipped)>0 THEN 'skipped' WHEN SUM(succeeded)>0 THEN 'success' ELSE NULL END AS status");
 #	$status="CASE WHEN failed THEN 'failed' WHEN internal_error THEN 'interr' WHEN skipped THEN 'skipped' WHEN succeeded THEN 'success' ELSE NULL END AS status";
@@ -235,6 +237,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 		'product_id'	=> array('s.product_id=?',		'i'),
 		'release_id'	=> array('s.release_id=?',		'i'),
 		'testsuite_id'	=> array('g.testsuite_id=?',		'i'),
+		'testsuite_eid'	=> array( $te1,				'i'),
 		'testcase_id'	=> array('r.testcase_id=?',		'i'),
 		'testcase'	=> array('c.testcase like ?',		's'),
 		'tcf_id'	=> array('r.tcf_id=?',			'i'),
@@ -1177,24 +1180,80 @@ function common_header($args=null)
   * Prints one-row table of submission details. 
   * @return array the used table data
   **/
-function &print_submission_details($submission_id)
+function &print_submission_details( $submission_id, $print=true )
 {
 	$transl=array();
 	$where=array('submission_id'=>$submission_id);
 	$res=search_submission_result(1,$where,$transl);
-	if( count($res)<2 )
-		print "No such submission_id: $submission_id<br/>\n";
+	if( count($res)<2 )	{
+		if ($print)
+			print "No such submission_id: $submission_id<br/>\n";
+	}
 	else
 	{
 		if($res[1]['type']=='maint')
 			$res=search_submission_result(2,$where,$transl);
 		else if($res[1]['type']=='kotd')
 			$res=search_submission_result(3,$where,$transl);
-		$res2=$res; # need to return original values
+		$res2=$res; # need to return original values, unless $print is off
 		table_translate($res2, $transl );
+		if( !$print )
+			return $res2;
 		print html_table( $res2 );
 	}
 	return $res;
+}
+
+/**
+  * Prints table comparison of multiple submissions
+  * @param array $data array of submission details, returned e.g. by print_submission_details()
+  * @param array $idnames additional info to submission IDs
+  * @see print_submission_details
+  **/
+function submissions_compare_print( $data, $idnames=array() )
+{
+	if( empty($data) )
+		return;
+
+	# union of all column keys
+	$merged=array();
+	foreach( $data as $item )	{
+		$merged=array_merge($merged,$item[0]);
+	}
+	foreach(array_keys($merged) as $key)	{
+
+		# create union of unique values for that column
+		$all_vals=array();
+		foreach( $data as $id=>$item )	{
+			if (array_key_exists($key,$item[1]))
+				$all_vals[]=$item[1][$key];
+		}
+		$all_vals=array_unique($all_vals);
+
+		# CSS classes for the columns
+		$class[$key]=( count($all_vals) > 1 ? 'm' : 'small skipped' );
+	}
+
+	# print a table comparing the submissions
+	print "<table class=\"tbl\">\n";
+	foreach(array_keys($data) as $id)	{
+		if( !isset($data[$id]) )
+			continue;
+		# submission header row
+		$label='<h3>'.(empty($idnames[$id]) ? '': $idnames[$id].' ')."submission $id</h3>";
+		print "\t<tr><td class=\"space\" colspan=\"".count($data[$id][0]).'">'.$label."</td></td>\n";
+
+		# one submission details
+		for( $i=0; $i<=1; $i++ )	{
+			$tag=( $i ? 'td' : 'th' );
+			print "\t<tr>";
+			foreach($data[$id][$i] as $key=>$val)
+				print html_tag($tag,$val,array('class'=>$class[$key]));
+			print "</tr>\n";
+		}
+	}
+	print "</table>\n";
+
 }
 
 /** Prints one-row table with TCF details. */

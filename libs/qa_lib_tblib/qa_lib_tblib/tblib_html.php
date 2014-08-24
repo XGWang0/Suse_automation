@@ -31,7 +31,7 @@ function html_header($args=null)
 		'default_css'=>true,		# if to include default CSS files
 		'doctype'=>'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">',
 		'gs_sortable'=>true,		# include script for table sorting
-		'jquery'=>true,			# include jquery
+		'jquery'=>false,		# include jquery
 		'icon'=>null,			# page icon
 		'icontype'=>'image/png',	# page icon MIME type
 		'id'=>null,			# page body tag ID
@@ -731,7 +731,7 @@ define('EMAIL',9);
 
 /**
   * Returns HTML code for a common search form.
-  * Usage: print html_search_form( $action, array( array($name, $values, $values_got, $type, [$label] ),...))
+  * Usage: print html_search_form( $action, array( array($name, $values, $values_got, $type, [$label, [ $tooltip, [ $required, [ $pattern ]]]] ),...))
   *
   * $name the HTML name of the control
   *
@@ -740,19 +740,19 @@ define('EMAIL',9);
   * $values_got is the data got from HTTP request
   *
   * $type: 
-  *    0 single select
-  *    1 multi select
-  *    2 text input (unused $values)
-  *    3 textarea
-  *    4 checkbox
-  *    5 hidden
-  *    6 horizontal rule
-  *    7 arbitrary text enclosed in div element
-  *    8 password field
-  *    9 email field
+  *    SINGLE_SELECT	single select
+  *    MULTI_SELECT	multi select
+  *    TEXT_ROW		text input (unused $values)
+  *    TEXT_AREA	textarea
+  *    CHECKBOX		checkbox
+  *    HIDDEN		hidden
+  *    HR		horizontal rule
+  *    TEXT		text enclosed in div element
+  *    PASSWORD		password field
+  *    EMAIL		email field
   * $label is the text label to pring, $name by default
   * @param string $action URL where the form submit to
-  * @param array $data array of array( $name, $values, $values_got, $type, [ $label ] ) :
+  * @param array $data array of array( $name, $values, $values_got, $type, [ $label, [ $tooltip, [ $required, [ $pattern ]]]] ) :
   **/
 function html_search_form( $url, $data, $attrs=array() )
 {
