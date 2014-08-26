@@ -32,6 +32,7 @@ use warnings;
 
 BEGIN { push @INC, '.', '/usr/share/hamsta', '/usr/share/qa/lib'; }
 use log;
+use detect;
 
 use IO::Socket::Multicast;
 use Slave::Multicast::hwinfo_unique;
@@ -100,7 +101,7 @@ sub run() {
 			&get_slave_description($stats_version)."\n".
 
 			# IP address of this slave (from hwinfo_unique.pm)	
-			($slave_ip = &get_slave_ip($Slave::multicast_address))."\n".
+			($slave_ip = &get_my_ip_addr($Slave::multicast_address))."\n".
 
 			# Reserved for transmitting some client dependent options to the 
 			# master (from hwinfo_unique.pm)	
