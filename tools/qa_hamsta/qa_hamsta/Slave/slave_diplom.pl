@@ -375,7 +375,7 @@ sub handle_connection_recovery(){
 				chomp $msg_from_job_child;
 				log(LOG_DETAIL, "Slave-server:: sent back to master in-time log: $msg_from_job_child");
 				print $sock $msg_from_job_child."\n";
-				$rfinish = RFINISH;
+				my $rfinish = RFINISH;
 				last if ($msg_from_job_child =~ /$rfinish/);
 			}else{
 				sleep 1;
