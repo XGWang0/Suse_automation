@@ -134,7 +134,8 @@ $pages = array(
     "qa_netconf",
     "usedby",
     "machine_privileges",
-    "machine_reserve"
+    "machine_reserve",
+    "release_machine_for_master"
 );
 
 if (!in_array($go, $pages)) {
