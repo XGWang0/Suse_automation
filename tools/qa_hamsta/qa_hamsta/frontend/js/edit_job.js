@@ -28,32 +28,40 @@ var param_static = 0;
 var option_static = new Array();
 var option_num = new Array();
 var option_real_num = new Array();
+var rpart_count = new Array();
 
+function showHide(idPre, showNum, total) {
+	for(e=0; e<total; e++)
+	{
+		var myTag = 'input' + idPre + e;
+		var myTitle = $(myTag).attr('title');
+		if(e < showNum) { 
+			$(idPre + e).show();
+			myTitle = myTitle.replace(/^optional/,"required");
+			$(myTag).attr('title', myTitle);
+		} else {
+			$(idPre + e).hide();
+			myTitle = myTitle.replace(/^required/,"optional");
+			$(myTag).attr('title', myTitle);
+		}
+	}
+}
 $(document).ready(function(){
 	$('#param_edit').hide();
 	$('#param_div').hide();
 
 	var role_count = document.getElementById('role_count').value;
-/*	if(role_count == 0)
+	var part_count = document.getElementById('part_count').value;
+	for(i=0; i<5; i++)
 	{
-		$('#singlemachine_form').show();
-        	$('#multimachine_form').hide();
-		for(i=2; i<5; i++)
-			$('#commands_' + i).hide();
+		rpart_count[i] = document.getElementById('rpart_count'+i).value;
+		showHide('#rpart_' + i + '_', rpart_count[i], 10);
+       //         console.log($('input#rpart_' + i + '_1').attr("title"));
 	}
-	else
-	{
-*/		$('#singlemachine_form').hide();
-		$('#multimachine_form').show();
-		for(i=0; i<5; i++)
-		{
-			if(i < role_count)
-				$('#commands_' + i).show();
-			else
-				$('#commands_' + i).hide();
-		}
-//	}
-
+	//$('#singlemachine_form').hide();
+	//$('#multimachine_form').show();
+	showHide('#role_', role_count, 5);
+	showHide('#part_', part_count, 10);
 	for(i=0;i<10;i++)
 	{
 		option_static[i] = 0;
@@ -61,9 +69,9 @@ $(document).ready(function(){
 		option_real_num[i] = 0;
 	}
 
-	var smj_count = document.getElementById('smj_count').value;
-	for(i=0; i<smj_count; i++)
-		$('#div_' + i).hide();
+//	var smj_count = document.getElementById('smj_count').value;
+//	for(i=0; i<smj_count; i++)
+//		$('#div_' + i).hide();
 
 });
 
@@ -135,23 +143,19 @@ var getJobType =  function(select)
         return NULL;
 }
 
-var getRoleNumber = function(select)
+var getNumber = function(select, type, total)
 {
+	console.log(select);
 	var idx = select.selectedIndex, option, value;
+        console.log("jhao"+idx);
 	if(idx > -1)
 	{
 		//$('#roleNumOpt').remove();
 		option = select.options[idx];
 		value = option.attributes.value;
-		role_number = (value && value.specified)?option.value:option.text;
-		for(i=0;i<5; i++)
-		{
-			if(i < role_number)
-				$('#commands_' + i).show();
-			else
-				$('#commands_' + i).hide();
-		}
-		return role_number;
+		num = (value && value.specified)?option.value:option.text;
+                showHide(type+'_', num, total);
+		return num;
 	}
 	return NULL;
 }

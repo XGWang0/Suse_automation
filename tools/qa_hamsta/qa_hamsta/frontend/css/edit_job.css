@@ -2,8 +2,8 @@
 .rt-container {
   position: relative; 
   width: 100%;
+  min-height: 650px;
   z-index: 0;
-  padding-bottom: 500px;
   padding-top: 20px;
 }
 span.rolespan {
@@ -45,7 +45,7 @@ span.rolespan:target + div > a {
 .rt-container > div > div { 
   background: #F5F5F5;
   top: 19px;
-  padding: 20px;
+  padding: 10px 20px;
   border: solid 2px #d3d3d3;
   border-radius: 0 10px 10px 10px;
   min-height: 250px; 
@@ -76,7 +76,7 @@ div#param_div {
   margin: 25px 0;
   clear: both;
   position: relative;
-  min-height: 300px;
+  min-height: 350px;
   width: 600px;
 }
 
@@ -89,12 +89,12 @@ div#param_div {
   background: -moz-linear-gradient(#666, #555);
   color: #222;
   border-radius: 7px 7px 0 0;
-  font-size: 1em;
-  font-weight: bold;
+  font-size: 0.8em;
+/*  font-weight: bold;*/
   font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
   text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
   background: #e5e5e5; 
-  padding: 10px; 
+  padding: 5px; 
   border: 1px solid #d3d3d3; 
   position: relative;
   left: 1px;
@@ -129,7 +129,7 @@ div#param_div {
 
 .ppanel {
   position: absolute;
-  top: 28px;
+  top: 23px;
   left: 1px;
   background: #F5F5F5;
   right: 0;
@@ -144,7 +144,7 @@ div#param_div {
   margin: auto;
   clear: both;
   position: relative;
-  min-height: 200px;
+  min-height: 222px;
   width: 500px;
 }
 
@@ -162,7 +162,7 @@ div#param_div {
   padding: 5px; 
   border: 1px solid #d3d3d3; 
   position: relative;
-  top: 202px;
+  top: 222px;
   left: 0px;
   font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;;
   text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75); 
@@ -179,11 +179,11 @@ div#param_div {
   border-top: 1px solid #F5F5F5;
   box-shadow: 4px 3px 4px -3px #555;
   color: #333;
-  z-index: 4;
+  z-index: 6;
 }
 
 .spanels >input:checked ~ .spanel {
-  z-index: 3;
+  z-index: 5;
   -webkit-transition: .3s;
   -moz-transition: .3s;
 }

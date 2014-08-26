@@ -45,6 +45,8 @@
     //if($reboot != 0) $reboot=1;
     //$roleNumber=($jobType == 1)?1:$_POST['rolenumber'];
     $roleNumber=$_POST['rolenumber'];
+    $partNumber=$_POST['partnumber'];
+    $roleParts=$_POST['roleparts'];
     if($roleNumber == 1)
         $commandsArray[] = request_str("commands_content_single");
     else
@@ -124,7 +126,7 @@
 
     # Processing Parts tag
     $partsCustom = "";
-    for($i=0; $i<count($jobParts); $i++) {
+    for($i=0; $i<$partNumber; $i++) {
         $partsCustom .= $ind4.'<part id="'.($i+1).'" name="'.$jobParts[$i]."\"/>\n";
     }
     $partsCustom = "<parts>\n".$partsCustom.$ind2."</parts>\n";
@@ -156,10 +158,12 @@ PARAM_VALUE
     for( $i=0; $i<$roleNumber; $i++ )
     {
         $commandsCustom = "";
+        $cmdCustomArray = array();
         $partsID = request_array($roleName[$i]."_ptid");
-        $numParts = count($partsID); 
-        for( $p=0; $p<$numParts; $p++ ) {
-            $commandsCustom .= $ind6."<commands part_id=\"$partsID[$p]\">\n";
+        $numParts = count($partsID);
+        for( $p=0; $p<$roleParts[$i]; $p++ ) {
+            $rolePartId = $partsID[$p];
+            $cmdCustomArray[$rolePartId] = $ind6."<commands part_id=\"$rolePartId\">\n";
             for( $j=0; $j<count($sections); $j++ ) {
                 //var_dump($commandsArray[$j]);
                 $cmdLine = $commandsArray[$j+4*($preParts+$p)];
@@ -168,14 +172,16 @@ PARAM_VALUE
                 $cmdTmp = $ind8.'<'.$sections[$j].">\n";
                 $cmdTmp .= str_replace("COMMANDS", $cmdLine, $commandString);
                 if($sections[$j] == "worker") {
-                    $cmdtmp .= $ind10.'<directory>/</directory>'."\n".
+                    $cmdTmp .= $ind10.'<directory>/</directory>'."\n".
                                $ind10.'<timeout>300000</timeout>'."\n";
                 }
                 $cmdTmp .= $ind8.'</'.$sections[$j].">\n"; 
-                $commandsCustom .= $cmdTmp;
+                $cmdCustomArray[$rolePartId] .= $cmdTmp;
             }
-            $commandsCustom .= $ind6."</commands>\n";
+            $cmdCustomArray[$rolePartId] .= $ind6."</commands>\n";
         }
+        ksort($cmdCustomArray);
+        $commandsCustom = implode($cmdCustomArray);
         $preParts += $numParts;
         
         # Now compose role config tag
@@ -271,7 +277,7 @@ PARAM_VALUE
     }
 
     # Let's begin to create the new XML file
-    $fileTemplateName = "/usr/share/hamsta/xml_files/templates/customjob-template-latest.xml";
+    $fileTemplateName = "/usr/share/hamsta/xml_files/templates/customjob-template-new.xml";
     $fileTemplate = fopen($fileTemplateName, "r");
     if($fileTemplate == NULL)
         $errors[] = "Can not open template file";
