@@ -40,6 +40,7 @@
     <package name='grub'/>
     <package name='nfs-client'/>
     <package name='qa_qadb'/>
+    <package name='qa_db_report'/>
     <namedCollection name='lamp_server'/>
   </packages>
   <packages type='bootstrap'>

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+rm -fr virttest2
+cp -r virttest3 virttest2
+3to2 virttest2 | patch -p0
+

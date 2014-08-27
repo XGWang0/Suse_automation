@@ -105,6 +105,7 @@ ln -s reinstall.pl.8.gz reinstall.8.gz
 ln -s reinstall.pl.8.gz install.pl.8.gz
 ln -s newvm.pl.8.gz newvm.8.gz
 
+
 %install
 install -m 755 -d %{buildroot}%{destdir}
 install -m 755 -d %{buildroot}%{bindir}
