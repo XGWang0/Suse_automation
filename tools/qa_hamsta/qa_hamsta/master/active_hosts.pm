@@ -266,7 +266,7 @@ sub decode_mcast_message {
 	my $hash;
 
 	# data : Unique-id, hostspezifics(++), IP; seperator is \n 
-	if ((my $host_id, my $host_description, my $host_ip, my $konfiguration, my $notify,my $update) = split (/\n/,$data)) {
+	if ((my $host_id, my $host_description, my $host_ip, my $konfiguration, my $notify,my $update,my $host_status,my $host_master_ip) = split (/\n/,$data)) {
 		my $mac = (split(/\./, $host_id))[-1];
 		$hash->{'id'} = $mac;
 		$host_ip =~ s/ //g; 
@@ -275,6 +275,9 @@ sub decode_mcast_message {
 		$hash->{'description'} = $host_description;
 		$hash->{'notify'} = $notify;
 		$hash->{'update'} = $update;
+		#when the sut has no reserved master, $host_master_ip is undefined,use empty string.
+		$hash->{'host_master_ip'} = '';
+		$hash->{'host_master_ip'} = $host_master_ip if (defined $host_master_ip);
 
 		if (defined($hash->{'description'})) {
 			($hash->{'hostname'}, $hash->{'kernel'}, my $arch, my $stats_version, my @rest) = split / /, $hash->{'description'}; 
@@ -322,6 +325,7 @@ sub process_mcast() {
 	my $stats_changed = 0;
 	my $unique_id = $host->{'id'};
 	my $hostname = $host->{'hostname'};
+	my $host_master_ip = $host->{'host_master_ip'};
 	my $new_machine = 0;
 
 	# FIXME TRANSACTION?
@@ -368,11 +372,15 @@ sub process_mcast() {
 
 	$thread_shared->{$unique_id}->{'now'} = time;
 	
-	&TRANSACTION( 'machine' );
+	&TRANSACTION('machine');
 	&machine_set_status( $machine_id, MS_UP );
 	$host->{'update'}=0 if(! defined $host->{'update'});
 	&machine_set_update_status($machine_id,$host->{'update'}) if($host->{'update'} ne 'skip');
-	
+	&TRANSACTION_END;
+
+	&update_machine_hamsta_master_reservation($machine_id, $host_master_ip);
+
+	&TRANSACTION('machine');
 	if (defined $host->{'stats_version'}) {
 
 		# host has been upgraded to 2.2.0 (from version that did not use stats)
@@ -422,6 +430,35 @@ sub process_mcast() {
 	push @result, 'hwinfo' if $hwinfo_changed;
 	push @result, 'stats' if $stats_changed;
 	return @result;
+}
+
+# update_machine_hamsta_master_reservation($machine_id, $host_master_ip)
+# Checks the original reserved hamsta master ip of the machine and only updates machine table 
+# when it is a valid and necessary reservation update
+sub update_machine_hamsta_master_reservation() {
+    my $machine_id = shift;
+    my $host_master_ip = shift;
+	if ($machine_id){
+	    &TRANSACTION( 'machine','hamsta_master' );
+	    my $host_master_ip_db = &machine_get_master_ip_by_machine_id($machine_id);
+	    if ($host_master_ip and (! $host_master_ip_db or ($host_master_ip ne $host_master_ip_db))){
+	        my $hamsta_master_id = &hamsta_master_get_id_by_ip($host_master_ip);
+	        if ( ! $hamsta_master_id ){
+	            #Reverse DNS to get hostname, if resolve nothing, use ip for hostname.
+	            my $host_name = gethostbyaddr(inet_aton($host_master_ip), AF_INET);
+	            #TODO: consider more DNS return result of host_name, other than undef and timeout issue
+	            $host_name = $host_master_ip if (! defined $host_name);
+	            $hamsta_master_id = &hamsta_master_insert($host_name,$host_master_ip);
+                log(LOG_DETAIL,"A new hamsta master is stored into hamsta_master table!")
+	        }
+	        &machine_update_master($machine_id,$hamsta_master_id);
+            log(LOG_DETAIL, "The reserved hamsta_master of machine #$machine_id is updated to hamsta master #$hamsta_master_id.");
+	    }elsif($host_master_ip_db and ! $host_master_ip){
+	        &machine_update_master($machine_id,undef);
+            log(LOG_DETAIL, "The machine #$machine_id is released!");
+	    }
+        &TRANSACTION_END;
+	}
 }
 
 # check_host_timeouts($thread_shared)

@@ -36,6 +36,9 @@ use threads;
 use Config::IniFiles;
 use Digest::SHA1 qw(sha1_hex);
 use qaconfig;
+use active_hosts qw(update_machine_hamsta_master_reservation);
+BEGIN { push @INC, '.', '/usr/share/qa/lib'; }
+use detect;
 use functions;
 require sql;
 
@@ -225,8 +228,10 @@ sub cmd_help() {
     print "\t 'send one line cmd ip <IP> <cmd> <Email> <Tag>' : submits the one line job to the IP (replace space with # in cmd)  \n";
     print "\t 'send job anywhere <file>' : submits the job to one of the available machines \n";
     print "\t 'print jobtype <number>' : lists available jobs of the given type (1 - pre-defined jobs, 2 - qa-package jobs, 3 - autotest jobs, 4 - multi-machine jobs) \n";
-    print "\t 'reserve <host> for user <login>' : Reserve machine (IP or name) for user identified by <login>";
-    print "\t 'release <host> for user <login>' : Release (unreserve) machine (IP or name) for user identified by <login>";
+    print "\t 'reserve <host> for user <login>' : Reserve machine (IP or name) for user identified by <login> \n";
+    print "\t 'release <host> for user <login>' : Release (unreserve) machine (IP or name) for user identified by <login> \n";
+    print "\t 'reserve <host> for master' : Reserve machine (IP or name) for this hamsta master \n";
+    print "\t 'release <host> for master' : Release (unreserve) machine (IP or name) for this hamsta master \n";
     print "\n end of help \n";
 }
 
@@ -580,10 +585,7 @@ sub send_predefine_job_to_host() {
     my $email = "";
     $email = $cmd_line[5] if(@cmd_line >= 6);
 
-    if (! can_send_job_to_machine ($host)) {
-	notify_about_no_privileges ($sock_handle, $user_id, $host);
-	return;
-    }
+    return if &handle_can_not_send_job_to_machine($host, $sock_handle, $user_id);
 
     print $sock_handle "Pre-define job:$file \n\n";
 
@@ -698,10 +700,7 @@ sub send_multi_job_to_host () {
 
     #check host live
     for my $host (@hosts) {
-      if (! can_send_job_to_machine ($host)) {
-	  notify_about_no_privileges ($sock_handle, $user_id, $host);
-	  return;
-      }
+      return if &handle_can_not_send_job_to_machine($host, $sock_handle, $user_id);
 
       if( not &check_host($host)){
         &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
@@ -773,10 +772,7 @@ sub send_job_to_host () {
     my $file = $cmd_line[-1];
     my $host = $cmd_line[-2];
 
-    if (! can_send_job_to_machine ($host)) {
-	notify_about_no_privileges ($sock_handle, $user_id, $host);
-	return;
-    }
+    return if &handle_can_not_send_job_to_machine($host, $sock_handle, $user_id);
 
     if( not &check_host($host)){
       &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
@@ -800,6 +796,8 @@ sub send_job_to_host () {
     print $sock_handle "MASTER::FUNCTIONS Job send to scheduler, at $host internal id: $job_id\n";
 }
 
+
+
 sub send_re_job_to_host () {
     my $sock_handle = shift @_;
     my $cmd = shift @_ ;
@@ -814,10 +812,7 @@ sub send_re_job_to_host () {
     $reinstall_opt =~ s/#/ /g;
     my $host = $cmd_line[3];
 
-    if (! can_send_job_to_machine ($host)) {
-	notify_about_no_privileges ($sock_handle, $user_id, $host);
-	return;
-    }
+    return if &handle_can_not_send_job_to_machine($host, $sock_handle, $user_id);
 
     if( not &check_host($host)){
       &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
@@ -876,10 +871,7 @@ sub send_line_job_to_host () {
     $one_line_cmd =~ s/#/ /g;
     my $host = $cmd_line[5];
 
-    if (! can_send_job_to_machine ($host)) {
-	notify_about_no_privileges ($sock_handle, $user_id, $host);
-	return;
-    }
+    return if &handle_can_not_send_job_to_machine($host, $sock_handle, $user_id);
 
     if( not &check_host($host)){
       &log(LOG_WARNING, "$host is not active, maybe IP address misspelled");
@@ -996,10 +988,7 @@ sub send_qa_package_job_to_host () {
     $qpt_name =~ s/#/ /g;
     my $host = $cmd_line[3];
 
-    if (! can_send_job_to_machine ($host)) {
-	notify_about_no_privileges ($sock_handle, $user_id, $host);
-	return;
-    }
+    return if &handle_can_not_send_job_to_machine($host, $sock_handle, $user_id);
 
     print $sock_handle "qa package job:$qpt_name \n";
 
@@ -1344,6 +1333,19 @@ sub can_send_job_to_machine ($) # machine ip
     return 0;
 }
 
+sub handle_can_not_send_job_to_machine ()
+{
+    my $host = shift;
+    my $sock_handle = shift;
+    my $user_id = shift;
+
+    if (! &can_send_job_to_machine ($host)) {
+	    &notify_about_no_privileges ($sock_handle, $user_id, $host);
+	    return 1;
+    }
+    return 0;
+}
+
 sub cmd_print_all_machines ($) # socket
 {
     my $sock_handle = shift;
@@ -1354,6 +1356,91 @@ sub cmd_print_all_machines ($) # socket
     foreach (@{$machinesref}) {
 	printf $sock_handle "%15s : %15s : %s\n", ${$_}[0], ${$_}[1], ${$_}[2];
     }
+}
+
+#Log to log file and send to sock given message
+sub log_and_send_sock_msg(){
+    my $log_sevirity = shift;
+    my $sock = shift;
+    my $log_message = shift;
+    &log($log_sevirity, $log_message);
+    print $sock $log_message."\n" if (defined $sock);
+}
+
+
+#This function deals with reservation from master.
+#Supports both reserve and release SUT from both master CLI and jobs.
+#Return value is only useful to jobs, return 0 means failure, return 1 means success.
+sub process_hamsta_reservation () {
+    # For reserve or release from CLI, sock_handle is the socket between CLI and frontend
+    # Or it is from job, sock_handle is undef
+    my $sock_handle = shift @_;
+    my $action = shift;
+    my $host = shift;
+
+    $| =1;
+    $sock_handle->autoflush(1) if (defined $sock_handle);
+
+    &log(LOG_DETAIL, "Input is: action => $action, host => $host");
+
+    if (! $action or ! $host){
+	&log_and_send_sock_msg(LOG_ERR, $sock_handle, "MASTER::CMDLINE Invalid input received: action => $action, host => $host .");
+	return 0;
+    }
+
+    return if &handle_can_not_send_job_to_machine($host, $sock_handle, $user_id);
+
+    if (not &check_host($host)){
+	&log_and_send_sock_msg(LOG_WARNING, $sock_handle, "$host is not active, maybe IP address misspelled");
+	return 0;
+    }
+
+    my $sock;
+
+    eval {
+	$sock = IO::Socket::INET->new(
+	PeerAddr => "$host",
+	PeerPort => $qaconf{hamsta_client_port},
+	Proto   => 'tcp'
+	);
+    };
+    if($@) {
+	&log_and_send_sock_msg(LOG_ERR, $sock_handle, "Can not connect to ip for $action:$@");
+	return 0;
+    }
+
+    $sock->autoflush(1);
+
+    eval {
+	$sock->send("$action\n");
+    };
+    if($@) {
+	&log_and_send_sock_msg(LOG_ERR, $sock_handle, "Error happened when sending $action to SUT:$@");
+	return 0;
+    }
+
+    log(LOG_DETAIL,"MASTER::CMDLINE Send $action to SUT");
+    my $response = '';
+    my $line;
+    log(LOG_DETAIL,"MASTER::CMDLINE The opened socket to SUT for rsv/rls is $sock");
+    while($line=<$sock>){
+	chomp($line);
+	$response .= $line;
+    }
+    $sock->close();
+
+    print $sock_handle "MASTER::CMDLINE $response\n" if (defined $sock_handle);
+    log(LOG_DETAIL,"MASTER::CMDLINE get complete response:$response");
+
+    return 0 unless ($response =~ /succeeded/);
+
+    my $machine_id = &machine_get_by_ip($host);
+    my $new_reserved_hamsta_master_ip = '';
+    $new_reserved_hamsta_master_ip = &get_my_ip_addr if ($action eq 'reserve');
+    log(LOG_DETAIL, "MASTER::CMDLINE is updating the reserved hamsta master of the machine #$machine_id to $new_reserved_hamsta_master_ip...");
+    &update_machine_hamsta_master_reservation($machine_id, $new_reserved_hamsta_master_ip);
+    log(LOG_DETAIL, "MASTER::CMDLINE finishes updating the reserved hamsta master of the machine #$machine_id!");
+    return 1;
 }
 
 # Parameters
@@ -1493,8 +1580,7 @@ sub reserve_release
 	    }
 	}
 	case 'master' {
-	    # TODO code to reserve master goes here
-	    $output = 'Reserving for master is not implemented.';
+	    &process_hamsta_reservation ($sock_handle, $cmd[0], $machine_ip);
 	}
 	else {
 	    $output = 'Reservation target can be only "user" or "master".'
