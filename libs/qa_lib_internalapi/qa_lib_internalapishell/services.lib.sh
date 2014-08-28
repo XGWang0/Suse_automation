@@ -6,7 +6,7 @@ serviceFunction()
     SERVICE=$1
     ACTION=$2
 
-    if [ -z "$SERVICE" -o -z "$ACTION"]; then
+    if [ -z "$SERVICE" -o -z "$ACTION" ]; then
         echo "ERROR: serviceFunction: Expect 2 parameters." 1>&2;
         return $FAILED
     fi
