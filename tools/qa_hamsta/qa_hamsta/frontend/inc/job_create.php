@@ -26,7 +26,7 @@
     /**
      * Logic of the custom job page 
      */
-
+    $sections = array('worker', 'finish', 'abort', 'kill');
     $jobname=$_POST['jobname'];
     if(!preg_match("/^[0-9a-zA-Z_\s\-]+$/", "$jobname"))  # validate the file name user input
     {
@@ -41,16 +41,13 @@
     $rpmlist=$_POST['rpmlist'];
     $jobParts=request_array("job_parts");
     //$jobType=$_POST['jobType'];
-    //$reboot=request_int('reboot');
+    $repository=request_str('repolink');
     //if($reboot != 0) $reboot=1;
     //$roleNumber=($jobType == 1)?1:$_POST['rolenumber'];
     $roleNumber=$_POST['rolenumber'];
     $partNumber=$_POST['partnumber'];
     $roleParts=$_POST['roleparts'];
-    if($roleNumber == 1)
-        $commandsArray[] = request_str("commands_content_single");
-    else
-        $commandsArray = request_array("commands_content_multiple");
+    $commandsArray = request_array("commands_content");
     //var_dump($commandsArray);
     # get custom parameters, put into an array
     $paramFlag = request_str("param_flag");
@@ -108,7 +105,7 @@
     $maxNumber = request_array("maxnumber");
     $roleDbglevel = request_array("role_dbglevel");
     $roleMotd = request_array("role_motd");
-    $roleRepo = request_array("rolo_repo");
+    $roleRepo = request_array("role_repo");
     $roleRpm = request_array("role_rpm");
 
     # OK, so far we have gotten all of the data we need, let's generate the job XML file now
@@ -155,17 +152,18 @@ PARAM_VALUE
     # get the roles and commands
     $rolesCustom = "";
     $preParts = 0;
+    //var_dump($commandsArray);
     for( $i=0; $i<$roleNumber; $i++ )
     {
         $commandsCustom = "";
         $cmdCustomArray = array();
-        $partsID = request_array($roleName[$i]."_ptid");
+        $partsID = request_array("rpart_id".$i);
+//        var_dump($partsID);
         $numParts = count($partsID);
         for( $p=0; $p<$roleParts[$i]; $p++ ) {
             $rolePartId = $partsID[$p];
             $cmdCustomArray[$rolePartId] = $ind6."<commands part_id=\"$rolePartId\">\n";
             for( $j=0; $j<count($sections); $j++ ) {
-                //var_dump($commandsArray[$j]);
                 $cmdLine = $commandsArray[$j+4*($preParts+$p)];
                 if( $cmdLine == "" && $sections[$j] != "worker" )
                     continue;
@@ -309,7 +307,7 @@ PARAM_VALUE
                            "-e \"s/RPMLIST/$rpmlist/g\" ".
                            "-e \"s/DESCRIPTION/$description/g\" ".
                            "-e \"s/MOTDMSG/$motdmsg/g\" ".
-                           "-e \"s/<reboot>[^>]\+</<reboot>$reboot</\" ".
+                           "-e \"s/<repository>t[^>]\+</<repository>$repository</\" ".
                            "-e \"/^\s*$/d\" $filename";
     system($modGlbConfig);
 

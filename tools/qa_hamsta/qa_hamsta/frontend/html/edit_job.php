@@ -40,7 +40,7 @@
                       'description'=>"Enter job description",
                       'motd'=>'Enter your job MOTD message',
                       'mailto'=>(isset($user) ? $user->getEmail() : 'hamsta@suse.com'),
-      	              'reboot'=>0,
+      	              'repolink'=>'',
                       'rpmlist'=>'',
                );
     $sections = array('worker','finish','abort','kill'); 
@@ -72,7 +72,7 @@
             $jobInfo['description'] = $xml->config->description;
             $jobInfo['motd'] = $xml->config->motd;
             $jobInfo['mailto'] = $xml->config->mail;
-            $jobInfo['reboot'] = $xml->config->reboot;
+            $jobInfo['repolink'] = $xml->config->repository;
             foreach($xml->config->rpm as $rpm) {
                 $jobInfo['rpmlist'] .= "$rpm ";
             }
@@ -90,14 +90,12 @@
                 );
             }
 
-
             # get role map
             $i = 0;
             $roleCount = count($xml->roles->role);
             if($roleCount > 0) {
                 foreach($xml->roles->role as $role)
                 {
-                    //if($role['name'] == "server") var_dump($role);
                     $jobRoleMap[$i] = array(
                                               'name'=>$role['name'],
                                               'min'=>$role['num_min'], 
@@ -123,7 +121,6 @@
                                     $jobCommandMap[$i][$c][$sec][$j++] = array('action'=>$cmd['execution'],
                                                                                'commands'=>$cmd);
                                 }
-                                //$commandCount[$i][$sec] = count($jobCommandMap);
                             }
                         }
                         $c++;
@@ -146,6 +143,14 @@
     <tr><td width="40%">Job name: </td>
     <td><input type="text" size="20" name="jobname" title="required: job name, must be composed by number, letter, underscore or dash" required placeholder="Enter name for the job" value="<?php if (! empty ($jobInfo['name'])) echo $jobInfo['name']; ?>">
     </td></tr>
+    <tr>
+    <td>Description:</td>
+    <td><input type="text" size="20" name="description" placeholder="Enter description for the job" title="optional: job description" value="<?php echo $jobInfo['description']; ?>"></td>
+    </tr>
+    <tr>
+    <td>Email address:</td>
+    <td><input type="email" size="20" name="mailto" placeholder="user@domain.com" title="optional: send mail if address is given" value="<?php echo $jobInfo['mailto']; ?>"></td>
+    </tr>
     <tr><td>Debug level:</td>
     <td>
     <select name="debuglevel" title="required: debug information">
@@ -162,36 +167,27 @@
     </select> <?php echo "default \"level-$default_level\""; ?>
     </td></tr >
     <tr>
-    <td>Description:</td>
-    <td><input type="text" size="20" name="description" placeholder="Enter description for the job" title="optional: job description" value="<?php echo $jobInfo['description']; ?>"></td>
-    </tr>
-    <tr>
-    <td>Motd message:</td>
-    <td><input type="text" size="20" name="motdmsg" placeholder="Enter MOTD for the SUT" title="optional: /etc/motd message in SUT" value="<?php echo $jobInfo['motd']; ?>"></td>
-    </tr>
-    <tr>
-    <td>Email address:</td>
-    <td><input type="email" size="20" name="mailto" placeholder="user@domain.com" title="optional: send mail if address is given" value="<?php echo $jobInfo['mailto']; ?>"></td>
-    </tr>
+    <td>Repository:</td>
+    <td><input type="text" size="20" name="repolink" placeholder="Enter repo link" title="optional: repo URL" value="<?php echo $jobInfo['repolink']; ?>"></td></tr>
     <tr>
     <td>Needed rpms:</td>
     <td><input type="text" size="20" name="rpmlist" placeholder="rpm1 rpm2 rpm3" title="optional: divided by space, e.g: qa_tools qa_bind" value="<?php echo $jobInfo['rpmlist']; ?>"></td></tr>
     <tr>
-    <td><label for="reboot-option">Reboot</label>:</td>
-    <td><input id="reboot-option" type="checkbox" size="20" name="reboot" title="optional: set it if job reboot the machine" value=1 "<?php if($jobInfo['reboot']==1) echo ' checked=\"checked\"'; ?>"></td>
+    <td>Motd message:</td>
+    <td><input type="text" size="20" name="motdmsg" placeholder="Enter MOTD for the SUT" title="optional: /etc/motd message in SUT" value="<?php echo $jobInfo['motd']; ?>"></td>
     </tr>
     <tr><td>Job Parts:</td>
     <td>
       <input type="hidden" id="part_count" value="<?php echo $partCount?>">
       <?php
       echo '<select name="partnumber" title="required: part number, from 1 to '.
-           $totalParts.'" onChange="getNumber(partnumber, \'#part\', '.$totalParts.');">';
+           $totalParts.'" onChange="getNumber(partnumber, \'#part\', '.$totalParts.');">\n';
       for($j=1;$j<=$totalParts;$j++)
       {
           if(($partCount !=0) && ($j==$partCount))
-              echo "<option value=\"$j\" selected=\"selected\">$j</option>";
+              echo "        <option value=\"$j\" selected=\"selected\">$j</option>\n";
           else
-              echo "<option value=\"$j\">$j</option>";
+              echo "        <option value=\"$j\">$j</option>\n";
       }
       ?>
       </select>
@@ -203,8 +199,11 @@
         for($i=0;$i<$totalParts;$i++) {
             $myPartname = ($i<$partCount)?$jobPartMap[$i]['name']:"";
             $myId = ($i<$partCount)?$jobPartMap[$i]['id']:($i+1);
-            echo "<div id=\"part_$i\"><p>Part ".$myId.":";
-            echo '<input id="part_'.$i.'" style=\"span-left:100px\" type="text" size="20" name="job_parts[]" placeholder="Enter part name" title="required: Given a part name" value="'.$myPartname.'"></p></div>';
+            echo "    <div id=\"part_$i\">\n    <p>Part ".$myId.":";
+            echo '<input id="part_'.$i.'" style="span-left:100px" type="text" size="20" ';
+            echo 'name="job_parts[]" placeholder="Enter part name" title="required: Given a part name" value="'.
+                 $myPartname.'"></p>';
+            echo "\n    </div>\n";
         }
     ?>
     </div>
@@ -317,26 +316,7 @@
     <input type="hidden" id="role_count" value="<?php echo $roleCount?>">
     </td></tr>
     <tr><td colspan="2">
-<!--
-    <div id="singlemachine_form">
-    <table class="text-main" width="900px">
-    <tr><td width="40%">Commands (one per line):</td>
--->
-    <?php
-/*
-    if($commandCount > 0)
-        $commands = trim($jobCommandMap[0]['commands']);
-    else
-        $commands = "#!/bin/sh\necho custom job";
-    echo "<td><textarea cols=\"50\" rows=\"10\" id=\"commands\" name=\"commands_content_single\" title=\"required: write your script here, one command per line.\">$commands</textarea><span class=\"required\">*</span>";
-*/
-    ?>
-<!--
     </td></tr>
-    </table></div>
--->
-    </td></tr>
-    
     <tr><td colspan="2">
     <div id="multimachine_form">
     <table class="text-main" width="900px">
@@ -347,10 +327,11 @@
            $totalRoles.'" onChange="getNumber(rolenumber,\'#role\', '.$totalRoles.');">';
       for($j=1;$j<=$totalRoles;$j++)
       {
+          echo "            ";
           if(($roleCount !=0) && ($j==$roleCount))
-              echo "<option value=\"$j\" selected=\"selected\">$j</option>";
+              echo "<option value=\"$j\" selected=\"selected\">$j</option>\n";
           else
-              echo "<option value=\"$j\">$j</option>";
+              echo "<option value=\"$j\">$j</option>\n";
       }
       ?>
     </select>
@@ -358,6 +339,9 @@
     <tr><td colspan="2">
     <div class="rt-container">
     <?php
+    // Generating roles
+    require("edit_job_template.php");
+    $roleCustom = "";
     for($i=0; $i<$totalRoles; $i++)
     {
         if($i<$roleCount) {
@@ -376,112 +360,102 @@
             $jobRoleMap[$i]['level'] = "";
             $jobRoleMap[$i]['repo'] = "";
         }
-//        echo "<div id=\"role_$i\">";
-        echo "<span id=\"roletab_$i\" class=\"rolespan\"></span>";
-        echo "<div id=\"role_$i\">\n";
-        echo "<a href=\"#roletab_$i\" title=\"Role_$name\">Role_$name</a>";
-        echo "<div id=\"rcontent_$i\" class=\"roletab-content\">";
-        echo "<table class=\"text-main\">\n";
-        //echo "<tr><td colspan=\"2\"><hr style=\"border:1px dashed\"></td><tr>\n";
-        //echo "<tr><td colspan=\"2\"><b>Edit SUT Role #$i:</b></td><tr>\n";
-        echo "<tr><td>Role name: </td>";
-        echo "<td><input id=\"role_$i\" type=\"text\" size=\"20\" name=\"rolename[]\" value=\"$name\" title=\"required: role name\"></td>\n";
-        echo "</tr>\n";
-        echo "<tr><td>Minimum machines: </td>";
-        echo "<td><select name=\"minnumber[]\" title=\"required: Select the minimum number for role $i\">";
+        $minimum = "\n";
         for($j=1;$j<=10;$j++)
         {
+            $minimum .= "                ";
             if($j==$min)
-                echo "<option value=\"$j\" selected=\"selected\">$j</option>";
+                $minimum .= "<option value=\"$j\" selected=\"selected\">$j</option>\n";
             else
-                echo "<option value=\"$j\">$j</option>";
+                $minimum .= "<option value=\"$j\">$j</option>\n";
         }
-        echo "</select></td></tr>\n";
-        echo "<tr><td>Maximum machines: </td>";
-        echo "<td><select name=\"maxnumber[]\" title=\"required: Select the maximum number for role $i\">";
+        $maximum = "\n";
         for($j=1;$j<=20;$j++)
         {
+            $maximum .= "                ";
             if($j == $max)
-                echo "<option value=\"$j\" selected=\"selected\">$j</option>";
+                $maximum .= "<option value=\"$j\" selected=\"selected\">$j</option>\n";
             else
-                echo "<option value=\"$j\">$j</option>";
+                $maximum .= "<option value=\"$j\">$j</option>\n";
         }
-        echo "</select></td></tr>\n";
-        echo "<tr><td>Debug level:</td>";
-        echo '<td><select name="role_dbglevel[]" title="required: debug information">';
         $default_level = $jobRoleMap[$i]['level'] ? $jobRoleMap[$i]['level'] : 3;
+        $debugLevel = "\n";
         for($l=0;$l<10;$l++)
         {
+            $debugLevel .= "                ";
             if($default_level == "$l")
-                echo "<option value=\"$l\" selected=\"selected\">Level-$l</option>";
+                $debugLevel .= "<option value=\"$l\" selected=\"selected\">Level-$l</option>\n";
             else
-                echo "<option value=\"$l\">Level-$l</option>";
+                $debugLevel .= "<option value=\"$l\">Level-$l</option>\n";
         }
-        echo "</select>default \"level-$default_level\"";
-        echo '</td></tr >';
-        echo "<tr><td>Motd message:</td>";
-        echo '<td><input type="text" size="20" name="role_motd[]" placeholder="Enter MOTD for the SUT" title="optional: /etc/motd message in SUT" value='.$jobRoleMap[$i]['motd'].'></td>';
-        echo '</tr>';
-        echo "<tr><td>Repository:</td>";
-        echo '<td><input type="text" size="20" name="role_repo[]" placeholder="Enter repo for the SUT" title="optional: Extra repo" value='.$jobRoleMap[$i]['repo'].'></td>';
-        echo '</tr>';
-        echo "<tr><td>Needed rpms:</td>";
-        echo '<td><input type="text" size="20" name="role_rpm[]" placeholder="Enter rpm names for the SUT" title="optional: seperated by blank" value='.$jobRoleMap[$i]['rpm'].'></td>';
-        echo '</tr>';
-        echo '<tr><td>Job Parts:</td>';
-        echo '<td>';
-        $part_num = count($part_id);
-        echo '<input type="hidden" id="rpart_count'.$i.'" value="'.$part_num.'">';
-        echo '<select name="roleparts[]" title="required: part number, from 1 to '.
-             $totalParts.'" onChange="getNumber(this, \'#rpart_'.$i.'\', '.$totalParts.');">';
+        $partNum = count($part_id);
+        $partOption = "\n";
         for($j=1;$j<=$totalParts;$j++)
         {
-            if(($partCount !=0) && ($j==$part_num))
-                echo "<option value=\"$j\" selected=\"selected\">$j</option>";
+            $partOption .= "                ";
+            if(($partCount !=0) && ($j==$partNum))
+                $partOption .= "<option value=\"$j\" selected=\"selected\">$j</option>\n";
             else
-                echo "<option value=\"$j\">$j</option>";
+                $partOption .= "<option value=\"$j\">$j</option>\n";
         }
-        echo '</select></td></tr>';
-        echo '<tr><td colspan="2">';
-        echo '<article class="ptabs">';
+        $partCustom = "";
         for($c=0;$c<$totalParts;$c++) {
-            $myPartName = ($c < $part_num)?$part_id[$c]:"#"; 
-            $myPartId = ($c < $part_num)?$part_id[$c]:""; 
-            echo '<div id="rpart_'.$i.'_'.$c.'" class="ppanels">';
-            echo '<input id="Part_' . "$i$c" . '" type="radio" name="ptabs"';
-            if( $c==0 ) echo ' checked="checked"';
-            echo '><label for="Part_' . "$i$c" . '">Part_' . $myPartName.'</label>';
-            echo '<div class="ppanel">';
-            echo '<label>Part ID:</label>';
-            echo '<input type="text" id="rpart_'.$i.'_'.$c.'" size="20" name="'.
-                 $name.'_ptid[]" placeholder="Enter part id" title="required: part id" value="'.$myPartId.'">';
-            // construct commands panel 
-            echo '<article class="stabs">';
+            $myPartName = "Part_".(($c < $partNum)?$part_id[$c]:"#"); 
+            $myPartId = ($c < $partNum)?$part_id[$c]:""; 
+            $rolePartId = "rpart_$i"."_$c";
+            $rolePartLabel = "Part_$i$c";
+            $secCustom = "";
             foreach( $sections as $sec ) {
-                echo '<div class="spanels">';
-                echo '<input id="' . "$sec$i$myPartName" . '" name="sectabs" type="radio"';
-                if( $sec == "worker") echo ' checked="checked"';
-                echo '><label for="' . "$sec$i$myPartName" . '">'.$sec.'</label>';
+                $sectionId = "$sec$i$c";
       	        $commands = (isset($jobCommandMap[$i][$c][$sec][0]['commands'])?
                                     $jobCommandMap[$i][$c][$sec][0]['commands']:"");
-                echo '<div class="spanel"><textarea 
-                      cols="60" rows="10" 
-                      align="left" 
-                      name="commands_content_multiple[]" 
-                      placeholder="Please write your script here, one command per line." 
-                      title="optional: write your script here, one command per line.">';
-                echo $commands;
-                echo '</textarea></div>';
-                echo "</div>";
+                $tagArray = array('/SECTION_ID/', '/SECNAME/', '/COMMAND_CONTENT/');
+                $valueArray = array($sectionId, $sec, $commands);
+                $secCustom .= preg_replace($tagArray, $valueArray, $secPanel);
             }
-            echo "</article>";
-            echo "</div>\n";
-            echo "</div>";
+            $tagArray = array(
+                              '/ROLE_PART_ID/',
+                              '/ROLE_PART_LABEL/',
+                              '/MYPARTNAME/',
+                              '/MYPARTID/',
+                              '/SECTION_CONTENT/'
+            );
+            $valueArray = array($rolePartId, $rolePartLabel, $myPartName, $myPartId, $secCustom);
+            $partCustom .= preg_replace($tagArray, $valueArray, $partPanel);
         }
-        echo "</article></td></tr>";
-        echo "</table></div></div>\n";
+        $tagArray = array(
+                          '/ROLE_PART_CONTENT/',
+                          '/ROLE_INDEX/',
+                          '/ROLE_NAME/',
+                          '/MINIMUM/',
+                          '/MAXIMUM/',
+                          '/DEBUG_LEVEL/',
+                          '/DEFAULT_LEVEL/',
+                          '/ROLE_REPO/',
+                          '/ROLE_RPM/',
+                          '/ROLE_MOTD/',
+                          '/TOTAL_PARTS/',
+                          '/ROLE_PART_NUM/',
+                          '/ROLE_PART_SELECT/'
+        );
+        $valueArray = array(
+                            $partCustom,
+                            $i,
+                            $name,
+                            $minimum,
+                            $maximum,
+                            $debugLevel,
+                            $default_level,
+                            $jobRoleMap[$i]['repo'],
+                            $jobRoleMap[$i]['rpm'],
+                            $jobRoleMap[$i]['motd'],
+                            $totalParts,
+                            $partNum,
+                            $partOption
+        );                            
+        $roleCustom .= preg_replace($tagArray, $valueArray, $roleTemplate); 
     }
-
+    echo $roleCustom;
     ?>
     </div></td></tr>
     </table></div>  <!-- End of mm_form area -->
