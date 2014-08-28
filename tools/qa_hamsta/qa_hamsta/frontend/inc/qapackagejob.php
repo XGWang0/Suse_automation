@@ -79,14 +79,14 @@
 		foreach( $machines as $machine )
 		{
 			if( $machine->send_job($qapackagejobfile) )	{
-				Log::create($machine->get_id(), $user->getLogin (), 'JOB_START', "has sent a \"qa-package\" job to this machine (Job name: \"" . htmlspecialchars($jobname) . "\")");
+				Log::create($machine->get_id(), get_user_login ($user), 'JOB_START', "has sent a \"qa-package\" job to this machine (Job name: \"" . htmlspecialchars($jobname) . "\")");
 			} else {
 				$error = (empty($error) ? "" : $error) . "<p>" . $machine->get_hostname() . ": " . $machine->errmsg . "</p>";
 			}
 		}
 	}
 	if (empty($error)) {
-		redirect("The job[s] has/have been successfully sent.",true);
+		redirect (array ('succmsg' => "The job[s] has/have been successfully sent."));
 	}
 	$html_title="Send qapackage job";
 ?>

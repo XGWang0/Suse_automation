@@ -55,7 +55,8 @@
 		'perm'         =>  array('name'=>'Machine Permissions', 'type'=>'h'),
 		'role'         =>  array('name'=>'Role', 'type'=>'h'),
 		'type'         =>  array('name'=>'Type', 'type'=>'h'),
-		'vh'           =>  array('name'=>'Virtual Host', 'type'=>'h')
+		'vh'           =>  array('name'=>'Virtual Host', 'type'=>'h'),
+		'reserved_master' => array('name'=>'Reserved Hamsta', 'type'=>'h')
 
 
 	);
@@ -97,7 +98,8 @@ $hamstaVersion = htmlspecialchars ("HAMSTA_VERSION");
 $configuration_group = exec ("/usr/share/qa/tools/location.pl");
 
 /* If the location is not detected by the script, use the default one. */
-if (! isset ($configuration_group) || strcmp($configuration_group, "(unknown)") == 0)
+if (empty ($configuration_group)
+    || strcmp ($configuration_group, "(unknown)") == 0)
 {
 	$configuration_group = 'production';
 }

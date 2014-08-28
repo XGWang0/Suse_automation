@@ -43,7 +43,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Requires:       perl
 Requires:       qa-config
 Requires:       qa_tools
-%if 0%{?sles_version} == 9
+%if 0%{?suse_version} == 910
 Requires:       qa_libmicro_test
 Requires:       qa_libperl
 Requires:       qa_lmbench_test

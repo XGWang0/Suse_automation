@@ -150,6 +150,10 @@ h3 {
     background-color: #87cefa;
 }
 
+.message {
+    margin-left: 4em;
+}
+
 .btrefresh {
 	        background: #F2F2F2;
 		border-bottom: #444444 1px solid;

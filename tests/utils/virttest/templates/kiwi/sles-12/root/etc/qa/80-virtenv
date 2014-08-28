@@ -1,0 +1,34 @@
+# Settings for virtual environment
+
+# The address of QADB DB server
+qa_db_report_sql_host="{{ network.qadb.fqdn }}"
+
+# The QADB database name on QADB DB server
+qa_db_report_sql_db="qadb"
+
+# QADB DB user name
+qa_db_report_sql_user="qadb"
+
+# QADB DB password
+qa_db_report_sql_pwd="qadb"
+
+#
+# Log archive - where to store the submitted logs
+#
+log_archive_host="{{ network.qadb.fqdn }}"
+log_archive_login="rd-qa"
+log_archive_root_path="/srv/www/htdocs/Results"
+log_archive_wwwroot="http://{{ network.qadb.fqdn }}/Results"
+
+# The url address of root ofQADB Webserver
+#
+qadb_wwwroot="http://{{ network.qadb.fqdn }}/qadb"
+
+# The address of the host, where qa_db_report is installed, this
+# is the host that results are sent to by remote_qa_db_report.pl
+#
+remote_qa_db_report_host="{{ network.qadb.fqdn }}"
+remote_qa_db_report_user="rd-qa"
+
+# Which repository should be used for *next* installation 
+install_qa_repository="{{ repositories['QA'] }}"

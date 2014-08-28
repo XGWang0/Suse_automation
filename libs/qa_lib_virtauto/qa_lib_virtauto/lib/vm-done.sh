@@ -93,7 +93,7 @@ then
 	fi
 elif [ "$vmOs" == "win" ]
 then
-	if [ "$vmRelease" == "2k8" ] || [ "$vmRelease" == "2k8r2" ] || [ "$vmRelease" == "vista" ] || [ "$vmRelease" == "7" ]
+	if [[ "$vmRelease" == 2k12* ]] || [[ "$vmRelease" == 2k8* ]] || [ "$vmRelease" == "vista" ] || [[ "$vmRelease" == 8* ]] || [ "$vmRelease" == "7" ]
 	then
 		if [ "$vmMethod" == "iso" ]
 		then

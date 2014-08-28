@@ -26,6 +26,7 @@ package Slave::functions;
 use strict;
 BEGIN { push @INC, '.', '/usr/share/hamsta', '/usr/share/qa/lib'; }
 use log;
+use detect;
 use XML::Simple;
 
 BEGIN {
@@ -40,7 +41,6 @@ BEGIN {
 		&command
 		&install_rpms
 		&read_xml
-		&get_slave_ip
                 &section_run
 	);
 	%EXPORT_TAGS	= ();
@@ -138,31 +138,6 @@ our %force_array = map {$_=>1} @force_array;
 our @file_array = ();
 
 
-# get_slave_ip() : string
-# Returns the IP address of this slave
-sub get_slave_ip() {
-   my $hint_ip=&ip_to_number($_[0]);
-   my $ip;
-   my $ret=undef;
-   my $hint_match=-1;
-
-   my $dev=(split /\s/, `route -n | grep "^0.0.0.0"`)[-1]; #get the main communication device
-   open(CMDFH, "ifconfig $dev |") || die "error: $?";
-   foreach (<CMDFH>) {
-      if ($_=~/inet (\w+):(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/) {
-         $ip = "$2.$3.$4.$5";
-         my $ip_num=($2<<24) | ($3<<16) | ($4<<8) | $5;
-         my $match=defined $hint_ip ? ($hint_ip & $ip_num) : 0;
-         if( $match>=$hint_match ) {
-             $ret=$ip;
-             $hint_match=$match;
-         }
-      }
-   }
-   close(CMDFH);
-   return $ret;
-}
-
 # TODO: duplicite with Master
 sub read_xml($$) # filename, map_roles
 {
@@ -193,7 +168,7 @@ sub read_xml($$) # filename, map_roles
 sub get_role_id($) # XML_tree
 {
 	my $xml = shift;
-	my $ip = &get_slave_ip();
+	my $ip = &get_my_ip_addr();
 	my $my_role = undef;
 	foreach my $role (@{$xml->{'roles'}->{'role'}})
 	{

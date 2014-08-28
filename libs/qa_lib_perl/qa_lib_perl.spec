@@ -38,6 +38,7 @@ Source0:        %{name}-%{version}.tar.bz2
 Source1:        qa_lib_perl.8
 BuildRequires:  coreutils
 Requires:       perl
+Requires:       perl-XML-Simple
 Requires:       qa-config
 Provides:       qa_libperl
 Obsoletes:      qa_libperl

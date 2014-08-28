@@ -329,6 +329,15 @@ class Machine {
 		$ishwvirt = $this->get_hwelement("ishwvirt","IsHWVirt");
 		return $ishwvirt;
 	}
+	function get_reserved_master() {
+		if( !isset($this->fields['hamsta_master_id']) )
+			return NULL;
+		if( !($stmt = get_pdo()->prepare('SELECT hamsta_master_ip FROM hamsta_master WHERE hamsta_master_id=:id')) )
+			return NULL;
+		$stmt->bindParam(':id',$this->fields['hamsta_master_id']);
+		$stmt->execute();
+		return 'http://'.$stmt->fetchColumn().'/hamsta/index.php';
+	}
 
 	/**
 	 * get_devel_tools()
@@ -1027,6 +1036,22 @@ class Machine {
         }
 
 	/**
+	 * Check for multiple machine permissions and return result.
+	 *
+	 * @param array $permissions An array of permission strings to check for.
+	 *
+	 * @return boolean True if machine has permissions from the
+	 * $permissions parameter, false otherwise.
+	 */
+	public function has_permissions($permissions) {
+		$machine_perms = explode(',', $this->get_perm());
+		if (array_diff($permissions, $machine_perms)) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
 	 * Get a permission string from database set.
 	 *
 	 * @return string A string representing the permission set from database.
@@ -1101,6 +1126,17 @@ class Machine {
 		else
 			return NULL;
 	}
+
+	/**
+	 * Check if this machine is a virtual guest.
+	 *
+	 * @return boolean True if this machine is virtual host. False otherwise.
+	 * @see Machine::get_vh_id()
+	 */
+	public function is_virtual_guest() {
+		return $this->get_vh_id() ? true : false;
+	}
+
 	/**
 	 * get_used_by
 	 * This is a workaround function for searching reservator in machine list.
@@ -1470,6 +1506,58 @@ class Machine {
 		}
 
 		if (!stristr($response, "job send to scheduler")) {
+			$this->errmsg = $response;
+			return false;
+		}
+			
+		return true;
+	}
+
+
+	/**
+	 * send_master_release 
+	 *
+	 * Send release command to a machine by the HAMSTA master commandline interface
+	 * 
+	 * @param NULL
+	 *
+	 * @access public
+	 * @return bool true if the machine is successfully relesed from hamsta master; false on error
+	 */
+	function send_master_release() {
+		if (!($sock = Machine::get_master_socket())) {
+			$this->errmsg = (empty(Machine::$readerr)?"cannot connect to master!":Machine::$readerr);
+			return false;
+		}
+
+		global $config;
+		if ($config->authentication->use) {
+			$user = User::getById (User::getIdent (), $config);
+			fputs ($sock, "log in " . $user->getLogin() . " "
+			       . $user->getPassword() . "\n");
+			$response = "";
+			while (($s = fgets($sock, 4096)) != "$>") {
+				$response .= $s;
+			}
+
+			if (!stristr ($response, "you were authenticated")) {
+				$this->errmsg = $response;
+				if (stristr ($response, 'not enough parameters')) {
+					$this->errmsg = 'Could not authenticate to backend.'
+						. ' Check you have your Hamsta master password set.';
+				}
+				return false;
+			}
+		}
+
+		fputs($sock, "release ".$this->get_ip_address()." for master\n");
+
+		$response = "";
+		while (($s = fgets($sock, 4096)) != "$>") {
+			$response .= $s;
+		}
+
+		if (!stristr($response, "succeeded")) {
 			$this->errmsg = $response;
 			return false;
 		}

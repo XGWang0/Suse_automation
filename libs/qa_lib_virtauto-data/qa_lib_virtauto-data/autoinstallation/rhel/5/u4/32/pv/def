@@ -15,4 +15,3 @@ bootloader --location=mbr --append="rhgb quiet"
 reboot
 %packages
 @ X Window System
-@ KDE

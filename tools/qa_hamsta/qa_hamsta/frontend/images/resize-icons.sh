@@ -29,8 +29,8 @@ elif [[ $WD != $IMG_DIR ]]; then
     cd $IMG_DIR;
 fi
 
-IMAGES="icon-*.png exclamation*.png qmark.png xml_green.png\
- gear-cog_blue.png host-collide.png"
+IMAGES="icon-*.png exclamation*.png qmark.png gear-cog_blue.png\
+    host-collide.png"
 
 MINI_SIZE=15
 MINI_IMAGES="icon-info.png"

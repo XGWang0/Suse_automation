@@ -404,6 +404,7 @@ sub process_stop {
 	$skip = 0;
 	$count = 0;
 	$time = $endtime - $starttime;
+	my $test_time = sectotime($time);
 
 	# if the finish case name is not the current case name, it means that 
 	# it is a background test case, we don't care this type of cases, 
@@ -424,25 +425,25 @@ sub process_stop {
 
 		if ($count >= $testarray[3] && ($fail == 0) && ($skip == 0) && ($internal_err == 0)) {
 			if ($ENV{RUNIN_VERBOSE}){
-				ptr_r($key, "fgreen", "PASSED", $bg);
+				ptr_r($key, "fgreen", "PASSED ($test_time)", $bg);
 			} else {
-				ptr_r($key, "fgreen", "PASSED", $bg);
+				ptr_r($key, "fgreen", "PASSED ($test_time)", $bg);
 			}
 		}
 		if (($fail == 0) && ($internal_err == 0) && ($skip != 0)) {
-			ptr_r($key, "fyellow", "SKIPPED", $bg);
+			ptr_r($key, "fyellow", "SKIPPED ($test_time)", $bg);
 		}
 		if (($internal_err != 0) || ($fail != 0)) {
-			ptr_r($key, "fred", "FAILED", $bg);
+			ptr_r($key, "fred", "FAILED ($test_time)", $bg);
 		}
 		if ($count < $testarray[3]) {
-			ptr_r($key, "fmagenta", "TIMEOUT", $bg);
+			ptr_r($key, "fmagenta", "TIMEOUT ($test_time)", $bg);
 		}
 	} else {
 		# no result, some error occured
 		print("\r\e[${casename_width}C\e[K\n");
 		warn("    Test result inconclusive for $key, no results found\n");
-		ptr_r($key, "fred", "FAIL" , $bg);
+		ptr_r($key, "fred", "FAIL ($test_time)" , $bg);
 	}
 	
 	if (defined($test_results{$key}->[0])) {

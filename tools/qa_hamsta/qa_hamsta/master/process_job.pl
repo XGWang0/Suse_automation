@@ -37,6 +37,7 @@ use functions;
 use POSIX 'strftime';
 use hwinfo_xml_sql;
 use XML::Simple;
+use cmdline;
 
 use qaconfig('%qaconf','&get_qa_config');
 %qaconf = ( %qaconf, &get_qa_config('hamsta_master') );
@@ -86,6 +87,9 @@ sub process_job($) {
 	my ($job_file, $job_owner, $job_name) = &job_get_details($job_id);
 	my ($ip, $hostname) = &machine_get_ip_hostname($machine_id);
 	&log(LOG_NOTICE,"PROCESS_JOB: process_job: $hostname using XML job description in $job_file");
+
+	# MM job reservation support: send reserve command before sending job xml file
+	return if not &reserve_or_release_all($job_id,"reserve");
 
 	# Send the job to the slave
 	my $sock;
@@ -157,6 +161,11 @@ sub process_job($) {
 				$parsed{'level'} = 'STDOUT';
 				$parsed{'info'} = 'hamsta';
 				$parsed{'text'} = $line;
+				$parsed{'zone'} = strftime "%z", localtime;
+			}
+			if( $parsed{'zone'} )	{
+				# no DB locking necessary
+				$parsed{'time'} = &convert_timezone($parsed{'time'},$parsed{'zone'});
 			}
 			&TRANSACTION( 'log' );
 			&log_insert(
@@ -211,7 +220,7 @@ sub process_job($) {
 	my $update_sut = &dump_job_xml_config($job_file,'update');
 	if( $reboot ) {
 		if($status == JS_PASSED){
-			sleep 300;
+			sleep 120;
                         $message = "reinstall\/reboot $hostname completed";
 			&machine_status_timeout(120,$machine_id,$hostname,$status,$message); #Timeout for 2 Hours
 		}
@@ -324,7 +333,9 @@ sub send_job($$$) {
 	my $job_file = shift;
 	my $job_id = shift;
 
-# Open a socket to the slave
+	log(LOG_INFO,"Master::Process job send_job");
+
+	# Open a socket to the slave
 	my $sock = IO::Socket::INET->new(
 			PeerAddr => "$ip",
 			PeerPort => $qaconf{hamsta_client_port},
@@ -432,6 +443,51 @@ sub modify_job_xml_config($$$) {
 	print $xmlfd $out;
 	close $xmlfd;
 }
+
+# 1. job_id 2. 'reserve' | 'release'
+sub reserve_or_release_all ($$)
+{
+	my $job_id = shift;
+	my $action = shift;
+	my $aimeds = &job_get_aimed_host($job_id);
+	my @m_ips = split(/,/,$aimeds);
+	my @success_ips;
+	my $orig_reserve_stat = {};
+	foreach my $ip (@m_ips){
+		my $reserved_master_id = &machine_get_hamsta_master_id_by_ip($ip);
+		$orig_reserve_stat->{$ip} = ((defined $reserved_master_id)? 1: 0);
+		my $ret = &Master::process_hamsta_reservation(undef,$action, $ip);
+		if (! $ret){
+			if ($action =~ /reserve/){
+				&log(LOG_ERR, "PROCESS_JOB: Reserve all SUT before sending job xml failed when reserving $ip!");
+			}elsif($action =~ /release/){
+				&log(LOG_ERR, "PROCESS_JOB: Release all SUT failed when releasing $ip!");
+			}
+			#Revert the action, only do once in case cycle revert.
+			my $revert_result = 1;
+			my $revert_action = (($action =~ /reserve/)?'release':'reserve');
+			my @revert_failed_ips;
+			foreach my $revert_ip (@success_ips){
+				next if (($action =~ /reserve/ and $orig_reserve_stat->{$revert_ip}) or 
+				         ($action =~ /release/ and !$orig_reserve_stat->{$revert_ip}));
+				&log(LOG_DETAIL, "PROCESS_JOB: Reverting action \"$action\" on $revert_ip...");
+				my $ret = &Master::process_hamsta_reservation(undef,$revert_action, $revert_ip);
+				push @revert_failed_ips, $revert_ip if not $ret;
+				$revert_result &= $ret;
+			}
+			if ($revert_result){
+				&log(LOG_NOTICE, "PROCESS_JOB: Revert action \"$action all SUT\" for this job succeeded!");
+			}else{
+				&log(LOG_ERR, "PROCESS_JOB: Revert action \"$action all SUT\" for this job failed on ".join(',',@revert_failed_ips)."!");
+			}
+			return 0;
+		}
+		push @success_ips,$ip;
+	}
+	&log(LOG_INFO,"PROCESS_JOB: $action all SUT succeeded!");
+	return 1;
+}
+					
 
 unless(defined($ARGV[0]) and $ARGV[0] =~ /^(\d+)$/)
 {

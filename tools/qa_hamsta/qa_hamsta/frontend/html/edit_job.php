@@ -59,7 +59,7 @@
                           'motd' => '',
                           'rpm' => '',
                           'part_id' => array(1) )
-   );
+    );
 
     # if defined "existFileName", it means that it is come from a existing XML file, parse it
     if(isset($existFileName) && ($existFileName != "") && (file_exists($existFileName)))

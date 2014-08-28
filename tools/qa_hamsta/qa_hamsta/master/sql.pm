@@ -50,6 +50,14 @@ use base 'db_common';
 
 our @ISA = ('db_common');
 
+# non-table functions
+
+sub convert_timezone($$)
+{
+	my ($ts,$zone)=@_;
+	$zone="$1:$2" if $zone =~ /([+-]\d\d)(\d\d)/;
+	return $dbc->scalar_query("SELECT CONVERT_TZ(?,?,'SYSTEM')",$ts,$zone);
+}
 
 ### machine functions
 
@@ -185,6 +193,34 @@ sub busy_machines_without_jobs()	{
 	return $dbc->vector_query("SELECT machine_id FROM machine WHERE busy=1 AND NOT EXISTS(SELECT * FROM job_on_machine WHERE machine.machine_id=job_on_machine.machine_id AND (job_status_id=2 OR job_status_id=6))");
 }
 
+### hamsta master reservation related functions
+
+sub machine_get_master_ip_by_machine_id() #machine_id
+{
+	return $dbc->scalar_query('SELECT hamsta_master_ip  FROM machine JOIN  hamsta_master USING(hamsta_master_id) WHERE machine.machine_id=?',$_[0]);
+}
+
+sub machine_get_hamsta_master_id_by_ip() #machine_ip
+{
+    return $dbc->scalar_query('SELECT hamsta_master_id FROM machine WHERE ip=?',$_[0]);
+}
+
+sub hamsta_master_get_id_by_ip() #hamsta_master_ip
+{
+	return $dbc->scalar_query('SELECT hamsta_master_id FROM hamsta_master WHERE hamsta_master_ip=?',$_[0]);
+}
+
+sub hamsta_master_insert() # hamta_master,hamsta_master_ip
+{
+	#remember to change hamsta_master_name to hamsta_master before git commit
+	return $dbc->insert_query('INSERT INTO hamsta_master(hamsta_master_ip,hamsta_master) VALUES(?,?)',$_[1],$_[0]);
+}
+
+sub machine_update_master($$) # machine_id, hamsta_master_id
+{
+	return $dbc->update_query('UPDATE machine SET hamsta_master_id=? WHERE machine_id=?',$_[1],$_[0]);
+}
+
 ### virtual machines functions
 
 sub machine_update_vhids($$@) # machine_id_of_VH, type, unique_id_list
@@ -202,6 +238,14 @@ sub machine_update_vhids($$@) # machine_id_of_VH, type, unique_id_list
 	$result += $dbc->update_query("UPDATE machine SET vh_id=?, type=? where unique_id IN ($fmt)", $vh_id, $type, @unique_ids) if @unique_ids;
 	
 	return $result
+}
+
+# Return reservations of this machine
+sub machine_reservations($)
+{
+    return $dbc->matrix_query('SELECT machine_id, user_id, user_note, '
+			      . 'reserved, expires FROM user_machine '
+			      . 'WHERE machine_id = ?', $_[0]);
 }
 
 ### job functions
@@ -392,6 +436,28 @@ sub role_get_privileges($) # role_id
 {
 	return $dbc->vector_query ('SELECT privilege FROM `privilege` p JOIN `role_privilege` rp ON (p.privilege_id = rp.privilege_id) WHERE rp.role_id = ? AND (rp.valid_until IS NULL OR rp.valid_until > NOW())', $_[0]);
 }    
+
+### user reservation functions
+
+## machine_id, user_id, user_note, expires (date)
+sub user_machine_insert ($$$$)
+{
+    return $dbc->update_query ('INSERT INTO user_machine (machine_id, user_id, user_note, expires)'
+			       . ' VALUES (?,?,?,?)', @_);
+}
+
+## machine_id, user_id
+sub user_has_reservation ($$)
+{
+    return $dbc->scalar_query ('SELECT COUNT(machine_id) from user_machine'
+			       . ' WHERE machine_id = ? AND user_id = ?', @_);
+}
+
+## machine_id, user_id
+sub user_machine_delete ($$)
+{
+    return $dbc->update_query ('DELETE FROM user_machine WHERE machine_id = ? AND user_id = ?', @_);
+}
 
 ### log functions
 

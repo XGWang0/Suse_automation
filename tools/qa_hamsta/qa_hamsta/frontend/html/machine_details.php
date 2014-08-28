@@ -70,7 +70,11 @@ if (!defined('HAMSTA_FRONTEND')) {
 			if(method_exists('MachineSearch',"filter_$key"))
 				foreach ($arr_res as $res)
 					echo ("<a href=\"index.php?go=machines&set=Search&show_advanced=on&amp;".$key."=".urlencode($res)."\">Search_".$res."</a> ");
-		} else {
+		} elseif ($key == 'reserved_master') {
+                                echo ("<tr><td>$value</td><td>"
+                                      ."<a href=$valuer>$valuer</a>"
+                                      ."</td><td>"); 
+                }else {
 			if (in_array ($key, array ('used_by', 'reserved'))) {
 				echo ("<tr><td>$value</td><td>"
 				      . $rh->printUsersToTable ()
@@ -82,7 +86,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 				if (! empty ($cls)) {
 					$cls = ' class="' . $cls . '"';
 				}
-				echo ("<tr><td>$value</td><td$cls>$valuer</td><td>");
+				echo ("<tr><td>$value</td><td$cls id=\"$key\">$valuer</td><td>");
 				if ($valuer != NULL && method_exists('MachineSearch',"filter_$key")) {
 					echo("<a href=\"index.php?go=machines&set=Search&show_advanced=on&amp;".$key."=".urlencode($valuer)."\">Search</a>");
 				}
