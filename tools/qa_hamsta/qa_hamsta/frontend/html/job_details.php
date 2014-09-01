@@ -104,12 +104,6 @@
 	}?>
 	</td>
     </tr>
-    <?php if (!$d_return): ?>
-    <tr>
-        <td>Return code</td>
-        <td><?php echo(nl2br(htmlentities($job->get_return_code()))); ?></td>
-    </tr>
-    <?php endif; ?>
 </table>
 <br />
 <?php if ($d_job): ?>
@@ -118,11 +112,6 @@
 <a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;d_job=1&amp;d_return=<?php echo($d_return); ?><?php echo($refresh_interval.$xml_norefresh); ?>" class="text-main">Show XML job description</a>
 <?php endif; ?>
 -
-<?php if ($d_return): ?>
-<a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;d_return=0&amp;d_job=<?php echo($d_job); ?><?php echo($refresh_interval.$xml_norefresh); ?>" class="text-main">Don't show returned data</a>
-<?php else: ?>
-<a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;d_return=1&amp;d_job=<?php echo($d_job); ?><?php echo($refresh_interval.$xml_norefresh); ?>" class="text-main">Show returned data</a>
-<?php endif; ?>
 <?php if(isset ($user) &&  in_array($job->get_status_string(), array('running','connecting') )) { ?>
 - <a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;finished_job=1" class="text-main">Set finished flag</a>
 <?php } ?>
@@ -142,22 +131,6 @@
 
 <?php endif; ?>
 
-
-<?php if ($d_return): ?>
-
-<h2 class="text-medium text-blue bold">Returned data</h2>
-<table class="list text-main">
-    <tr>
-        <td>Return code</td>
-        <td><?php echo(nl2br(htmlentities($job->get_return_code()))); ?></td>
-    </tr>
-    <tr>
-        <td>Return XML</td>
-        <td><textarea rows="20" cols="120" readonly="readonly"><?php echo($job->get_return_xml_content()); ?></textarea></td>
-    </tr>
-</table>
-
-<?php endif; ?>
 <br>
 <br>
 <?php

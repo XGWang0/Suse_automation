@@ -85,7 +85,7 @@ sub schedule_jobs() {
     my $jobs = &job_on_machine_get_by_status(JS_QUEUED);
     foreach my $job (@$jobs) {
         my ($job_on_machine_id,$machine_id,$job_id)=@$job;
-        my ($job_file, $job_owner, $job_name) = &job_get_details($job_id);
+        my ($job_file, $job_owner_user_id, $job_name) = &job_get_details($job_id);
         if ($machine_id) {
 	    my @has_connecting = &job_on_machine_get_by_machineid_status($machine_id,JS_CONNECTING);
 	    my @has_running = &job_on_machine_get_by_machineid_status($machine_id,JS_RUNNING);
@@ -95,7 +95,7 @@ sub schedule_jobs() {
                 &TRANSACTION( 'machine', 'job_on_machine', 'job' );
                 &machine_set_busy($machine_id,1);
                 &job_on_machine_start($job_on_machine_id);
-		&job_set_status($job_id,JS_CONNECTING);
+		        &job_set_status($job_id,JS_CONNECTING);
                 &TRANSACTION_END;
                 &log(LOG_NOTICE,"MASTER::SCHEDULER send $job->[0] to machine $machine_id");
                 child {
@@ -129,9 +129,11 @@ sub delete_cancelled_jobs() {
     my @jobs = &job_list_by_status(JS_CANCELED); # list cancelled jobs
     foreach my $job_id (@jobs) {
 	&log(LOG_INFO,"Deleting cancelled job $job_id");
-	&TRANSACTION( 'job_on_machine', 'job' );
+	&TRANSACTION( 'job_on_machine', 'job', 'job_part', 'job_part_on_machine' );
 	&job_on_machine_delete_by_job_id($job_id);
 	&job_delete($job_id);
+    # DELETE CASCADE is used for foreign key about job_id and job_on_machine_id for 
+    # table job_part and job_part_on_machine, so no need to delete those two here
 	&TRANSACTION_END;
     }
 }
@@ -173,9 +175,15 @@ sub distribute_jobs() {
 	    
 	    my $config_id = &config_get_last($machine_id);
 
-	    &TRANSACTION( 'machine', 'job', 'job_on_machine' );
+	    &TRANSACTION( 'machine', 'job', 'job_on_machine','job_part','job_part_on_machine', 'mm_role' );
 	    &job_set_aimed_host($job_id,$host_aimed) unless $host_orig;
-	    &job_on_machine_insert( $job_id, $machine_id, $config_id, JS_QUEUED );
+        # TODO: set mm_role_id according to new format job xml with roles when implement new mm sync
+        my $mm_role_id = &mm_role_get_default_id;
+	    my $job_on_machine_id = &job_on_machine_insert( $job_id, $machine_id, $config_id, JS_QUEUED, $mm_role_id);
+        my $job_part_id = &job_part_insert($job_id);
+        my @job_details = &job_get_details($job_id);
+        my $xml_file = $job_details[0];
+        &job_part_on_machine_insert($job_part_id,JS_QUEUED,$job_on_machine_id,$xml_file);
 	    &job_set_status( $job_id, JS_QUEUED );
 	    &TRANSACTION_END;
     }
