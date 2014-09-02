@@ -35,46 +35,44 @@
 <table class="list text-main" id="machinealljobs">
     <tr>
         <th>ID</th>
+        <th>Name</th>
         <th>Status</th>
         <th>Hostname</th>
-        <th>Name</th>
         <th>Started</th>
         <th>Stopped</th>
         <th>Actions</th>
-        <th colspan="3">last</th>
     </tr>
 <?php 
-$i=1000;
-$ii=0;
+$sub_machine_counts=0;
 foreach ($jobs as $job):
 	$job_link='index.php?go=job_details&amp;id='.$job->get_id();
 	#just for the page can print correctly with old format view .
-	$m_id = $job->pop_machine_id();
-	$i++;
-?>        <tr data-tt-id="<?php echo $i; ?>" >
-	    <td><a href="<?php echo $job_link; ?>"><?php echo($job->get_id()); ?></a></td>
-		<td><span class="<?php echo($job->get_status_string($m_id)); ?>">
-            	    <?php echo($job->get_status_string($m_id)); ?></span>
-		</td>
-<?php
-$mach = $job->get_machine($m_id);
-$cls = '';
-$hostname = '';
-if (isset ($mach)) {
-	$hostname = '<a href="index.php?go=machine_details&amp;id='.$mach->get_id().'">'
-		. $mach->get_hostname() . '</a>';
-	$cls = ' class="' . get_machine_status_class ($mach->get_status_id ()) . '"';
-}
-print "            <td$cls>$hostname</td>";
-print "            <td><a href=\"$job_link\">".$job->get_name()."</a></td>\n";
+	$sub_machine_counts = $job->machine_counts();
 ?>
-            <td><?php echo($job->get_started($m_id)); ?></td>
-            <td><?php echo($job->get_stopped($m_id)); ?></td>
-            <td align="center">
+<tr>
+    <td rowspan="<?php echo $sub_machine_counts; ?>" ><?php echo($job->get_id()); ?></a></td>
+    <td rowspan="<?php echo $sub_machine_counts; ?>" ><?php echo($job->get_name()); ?></td>
+<?php
+    $sub_machines = $job->get_machines(); 
+    foreach($sub_machines as $sub_machine):
+?>
+    <td><span class="<?php echo($job->get_status_string($sub_machine['machine_id'])); ?>">
+       <?php echo($job->get_status_string($sub_machine)); ?> </span>
+    </td>
+<?php
+    $submachine=Machine::get_by_id($sub_machine['machine_id']);
+    $subhostname = '<a href="index.php?go=machine_details&amp;id='.$sub_machine['machine_id'].'">'
+    . $submachine->get_hostname() . '</a>';
+    print "<td>$subhostname</td>";
+?>
+    <td> <?php echo $sub_machine['start'] ?> </td>
+    <td> <?php echo $sub_machine['stop'] ?> </td>
+
+<td>
 <?php
 
 if (isset ($user) && $job->can_cancel()
-    && ($rh->hasReservation ($mach, $user)
+    && ($rh->hasReservation ($job->get_machine($sub_machine['machine_id']), $user)
 	|| $user->isAdmin())) {
 	echo "<a href=\"index.php?go=jobruns&amp;action=cancel&amp;id=" . $job->get_id() . "\">Cancel</a>";
 }
@@ -84,45 +82,18 @@ else
 }
 
 ?>
-            </td>
-	    <td colspan="2">last</td>
-        </tr>
-
-
-<?php
-    $sub_machines = $job->get_machines(); 
-    foreach($sub_machines as $sub_machine):
-    $ii++;
-?>
-    <tr data-tt-id="<?php echo $ii; ?>"   data-tt-parent-id="<?php echo $i; ?>" >
-    <td><a href="#"> <?php echo "sub_job_id"; ?></a> </td>
-    <td><span class="<?php echo($job->get_status_string()); ?>">
-       <?php echo($job->get_status_string()); ?></span>
-    </td>
-<?php
-    $submachine=Machine::get_by_id($sub_machine['machine_id']);
-    $subhostname = '<a href="index.php?go=machine_details&amp;id='.$sub_machine['machine_id'].'">'
-    . $submachine->get_hostname() . '</a>';
-    print "<td>$subhostname</td>";
-?>
-    <td> <?php echo $sub_machine['short_name'] ?> </td>
-    <td> <?php echo $sub_machine['start'] ?> </td>
-    <td> <?php echo $sub_machine['stop'] ?> </td>
-    <td> <?php echo "not reserve for some" ?> </td>
-    <td> <?php echo "machine id is".$sub_machine['machine_id'] ?> </td>
-    </tr>
+</td>
+<tr>
 <?php endforeach; ?>
+
+ </tr>
+</td>
+</tr>
+
+
 <?php endforeach; ?>
 </table>
-<div id="ex_all" class="float">ex_all</div>
-<div id="col_all" class="float">col_all</div>
 <br>
-
-<script>
-$("#machinealljobs").treetable( { expandable: true } );
-$("#ex_all").click(function () { $("#machinealljobs").treetable("expandAll"); });
-$("#col_all").click(function () { $("#machinealljobs").treetable("collapseAll"); });
-</script>
 
 <?php
 if(! isset($html_refresh_interval)){$html_refresh_interval = 0;};

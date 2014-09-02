@@ -221,7 +221,7 @@ class JobRun {
 	 * @return \Machine Machine the job is run on.
 	 */
 	function get_machine($machine_id) {
-		return Machine::get_by_id($machine_id]);
+		return Machine::get_by_id($machine_id);
 	}
 
 	function get_machines() {
@@ -470,6 +470,10 @@ class JobRun {
 
 	function pop_machine_id(){
 		return key($this->fields['machines']);
+	}
+
+	function machine_counts(){
+		return count($this->fields['machines']);
 	}
 
 
