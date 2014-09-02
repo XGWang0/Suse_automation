@@ -46,7 +46,7 @@ if (isset ($user) && $delete_job) {
     $html_title = "Job ".$job->get_id();
 
 	# Figure out if there are any links to qadb inside the log output (supports multiple submission links from any host, qadb, elzar, etc.)
-	$html_log = $job->get_last_log();
+	$html_log = '';
 	$log_table = $job->get_job_log_entries();
 	
 	# concat the new log entries to the old $html_log, to make the old code working
