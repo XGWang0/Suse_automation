@@ -84,25 +84,38 @@ class Result(object):
 
     def print_failed(self):
         results = self.get_results()
+        failed_cnt = 0
+        timeout_cnt = 0
+        interr_cnt = 0
+        skipped_cnt = 0
         for name in self.get_order():
             res = results[name].split()
 
             if int(res[ResIndexes.failed]) != 0:
                 print("Test %s failed %s times."\
                           % (name, res[ResIndexes.failed]))
+                failed_cnt += 1
 
             if int(res[ResIndexes.count]) == 0:
                 print("Test %s hasn't finished after %s seconds (timeout?)."\
                           % (name, res[ResIndexes.time]))
+                timeout_cnt += 1
 
             if int(res[ResIndexes.interr]) != 0:
                 print("Test %s had internal error %s times."\
                           % (name, res[ResIndexes.interr]))
+                interr_cnt += 1
 
             if int(res[ResIndexes.skipped]) != 0:
                 print("Test %s was skipped %s times."\
                           % (name, res[ResIndexes.skipped]))
+                skipped_cnt += 1
 
+        print("\n      SUMMARY\n--------------------")
+        print("Failed:          %s" % failed_cnt)
+        print("Timeouted:       %s" % timeout_cnt)
+        print("Internal Errors: %s" % interr_cnt)
+        print("Skipped:         %s" % skipped_cnt)
 
 def print_new_missing(result1, result2):
     for name in result1.get_order():
