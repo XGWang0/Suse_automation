@@ -206,7 +206,7 @@ sub process_xml
     my $parts = $parsed_ret->{parts};
     if($parts)
     {
-        foreach ( keys $parts)
+        foreach ( keys %$parts)
         {
             my $dir = $DEST . "/" . $_;
             &_create_dir($dir);
