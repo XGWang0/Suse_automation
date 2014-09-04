@@ -44,17 +44,36 @@ sub add_parts($) {
 
 # Bug fix
 # During saving XML, CDATA missing
-# Input: reference to section node.
-# Return: encapsulated by <![CDATA[  ]]>
-sub cmd2cdata($) {
-    my $cmd = shift;
+# Input: hash/array reference.
+# Return: hash/array reference. 
+sub pack_cdata($) {
+    my $in = shift;
+    if(ref($in) eq "HASH") {
+	    $in->{'content'} = "<![CDATA[".$in->{'content'}."]]>";
+	    return $in;
+    }
     my @out;
     my $i=0;
-    map { 
+    map {
+	$_ = { 'content' => $_ } if ref ne "HASH";
         $_->{'content'} = "<![CDATA[".$_->{'content'}."]]>";
         $out[$i++] = $_;
-    } @$cmd;
+    } @$in;
     return \@out;
+}
+
+# Input:
+#   $sections : commands hash with section name as keys
+#   $cmds: result mount point
+sub sec2cdata($$) {
+    my $sections = shift;
+    my $cmds = shift;
+
+    foreach (keys(%$sections)) {
+	my $cmd_ref = $sections->{$_}->[0]->{'command'};
+	my @ref = ( {'command' => &pack_cdata($cmd_ref)} );
+	$cmds->{$_} = \@ref;
+    }
 }
 
 # By default
@@ -67,22 +86,18 @@ sub add_roles($) {
         my $roles = $root->{'roles'}->[0]->{'role'};
         foreach my $role (keys(%$roles)) {
             my $role_id = $roles->{$role}->{'id'};
-            my $worker = clone($root->{'commands'}->[0]->{'worker'});
+            my $commands = clone($root->{'commands'}->[0]);
+            my $worker = $commands->{'worker'};
             my @command = grep { $_->{'role_id'} eq $role_id } @{$worker->[0]->{'command'}};
             map { delete $_->{'role_id'} } @command;
-            $worker->[0]->{'command'} = &cmd2cdata(\@command);
+            $worker->[0]->{'command'} = \@command;
             $roles->{$role}->{'commands'} = {
                                     'part_id' => '1',
-                                    'worker' => $worker
             };
             delete $roles->{$role}->{'id'};
-            foreach (keys(%{$root->{'commands'}->[0]})) {
-                $roles->{$role}->{'commands'}->{$_} = $root->{'commands'}->[0]->{$_} if $_ ne 'worker';
-            }
+            &sec2cdata($commands, $roles->{$role}->{'commands'});
         }
         $root->{'roles'} = [ $root->{'roles'}->[0]->{'role'} ];
-        # avoid attributes as elements
-        $root->{'parameters'} = [ $root->{'parameters'}->[0]->{'parameter'} ] if $root->{'parameters'};
     } else {
         $root->{'roles'} = [{
                             'role' => {
@@ -92,11 +107,17 @@ sub add_roles($) {
                                     }
                             }
         }];
-        foreach (keys(%{$root->{'commands'}->[0]})) {
-            my $cmd_ref = $root->{'commands'}->[0]->{$_}->[0]->{'command'};
-	    $root->{'commands'}->[0]->{$_}->[0]->{'command'} = &cmd2cdata($cmd_ref) if($_ eq "worker");
-            $root->{'roles'}->[0]->{'role'}->{'commands'}->{$_} = $root->{'commands'}->[0]->{$_};
+        &sec2cdata($root->{'commands'}->[0], $root->{'roles'}->[0]->{'role'}->{'commands'});
+    }
+    # processing parameters tag 
+    if ($root->{'parameters'}) {
+        my $para = $root->{'parameters'}->[0]->{'parameter'};
+        foreach ( keys(%$para) ) {
+            if ($para->{$_}->{'type'} eq "textarea") {
+                     $para->{$_} = &pack_cdata($para->{$_});
+            }
         }
+        $root->{'parameters'} = [ $root->{'parameters'}->[0]->{'parameter'} ];
     }
     delete $root->{'commands'};
 }
