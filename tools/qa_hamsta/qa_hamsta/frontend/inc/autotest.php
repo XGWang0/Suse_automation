@@ -34,6 +34,7 @@
 	}
 
 	$a_machines = request_array("a_machines");
+
 	if (! isset ($a_machines) || count ($a_machines) < 1)	{
 		header ('Location: index.php');
 		exit ();
@@ -70,7 +71,11 @@
 	# Make sure each job gets sent correctly
 	$error='';
 	if( request_str("submit") )	{
-		if ( !$job->send_job() ){
+		if ( $job->send_job() ){
+			foreach( $a_machines as $machine ) {
+				Log::create($machine, $user->getLogin (), 'JOB_START', "has sent an \"autotest\" job to this machine (Job name: \"" . htmlspecialchars($jobname) . "\")");
+			}
+		}else{
 			$error = $job->errmsg;
 		}
 	}

@@ -80,8 +80,14 @@
 	$job->addfile($qapackagejobfile);
 
 	# Make sure each job gets sent correctly
-	if( request_str("submit") ) {
-		if ( !$job->send_job() ) $error = $job->errmsg;
+	if( request_str("submit") )	{
+		if ( $job->send_job() ){
+			foreach( $a_machines as $machine ) {
+				Log::create($machine, $user->getLogin (), 'JOB_START', "has sent an \"autotest\" job to this machine (Job name: \"" . htmlspecialchars($jobname) . "\")");
+			}
+		}else{
+			$error = $job->errmsg;
+		}
 	}
 	if (empty($error)) {
 		redirect (array ('succmsg' => "The job[s] has/have been successfully sent."));
