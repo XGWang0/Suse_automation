@@ -252,7 +252,6 @@ sub machine_reservations($)
 
 sub job_set_status($$) # job_id, job_status_id
 {	
-    $dbc->update_query('UPDATE job_on_machine SET job_status_id=? WHERE job_id=?',$_[1],$_[0]);
     return $dbc->update_query('UPDATE job SET job_status_id=? WHERE job_id=?',$_[1],$_[0]);
 }
 
@@ -278,15 +277,22 @@ sub job_stop_all($) # machine_id
 {	return $dbc->update_query('UPDATE job SET job_status_id=3 WHERE aimed_host=?',$_[0]);	}
 
 sub job_list_by_status($) # job_status_id
-{	return $dbc->vector_query('SELECT job_id FROM job WHERE job_status_id=?',$_[0]);	}
+{   return $dbc->matrix_query('SELECT xml_file,user_id,short_name,job_id,aimed_host,description FROM job WHERE job_status_id=?',$_[0]); }
+#{   return $dbc->matrix_query('SELECT xml_file,job_owner,short_name,job_id,aimed_host,slave_directory,description FROM job WHERE job_status_id=?',$_[0]); }
 
 ### job_on_machine_functions
 
 sub job_on_machine_list($) # job_id
 {	return $dbc->vector_query("SELECT job_on_machine_id FROM job_on_machine WHERE job_id=?",$_[0]);	}
 
+sub job_on_machine_get_all()
+{   return $dbc->matrix_query('SELECT job_on_machine_id,machine_id,job_id FROM job_on_machine'); }
+
 sub job_on_machine_set_status($$) # job_on_machine_id, job_status_id
 {	return $dbc->update_query("UPDATE job_on_machine SET job_status_id=? WHERE job_on_machine_id=?",$_[1],$_[0]);	}
+
+sub job_on_machine_set_job_group_status($$) #  job_id, job_status_id
+{	$dbc->update_query('UPDATE job_on_machine SET job_status_id=? WHERE job_id=?',$_[1],$_[0]); }
 
 sub job_on_machine_delete_by_job_id($) # job_id
 {	return $dbc->update_query('DELETE FROM job_on_machine WHERE job_on_machine_id=?',$_[0]);	}
@@ -302,6 +308,9 @@ sub job_on_machine_get_by_status($) # status_id
 
 sub job_on_machine_get_by_machineid_status($$) # machine_id status_id
 {	return $dbc->vector_query('SELECT machine_id FROM job_on_machine WHERE machine_id=? AND job_status_id=?',$_[0],$_[1]);	}
+
+sub job_on_machine_get_id_by_jobid_machineid($$) # job_id machine_id
+{	return $dbc->scalar_query('SELECT job_on_machine_id FROM job_on_machine WHERE job_id=? AND machine_id=?',$_[0],$_[1]); }
 
 sub job_on_machine_start($) # job_on_machine_id
 {	return $dbc->update_query('UPDATE job_on_machine SET job_status_id=2 WHERE job_on_machine_id=?',$_[0]);	}
@@ -344,7 +353,13 @@ sub job_part_on_machine_get_id_by_job_on_machine_and_job_part($$) # job_on_machi
 ### mm_role functions
 
 sub mm_role_get_default_id()
-{    return $dbc->scalar_query('SELECT mm_role_id FROM mm_role WHERE mm_role = "default"'); }
+{	return $dbc->scalar_query('SELECT mm_role_id FROM mm_role WHERE mm_role = "default"'); }
+
+sub mm_role_insert_role($) # mm_role
+{	return $dbc->insert_query('INSERT INTO mm_role(mm_role) VALUES(?)',$_[0]); }
+
+sub mm_role_get_id($) # mm_role
+{   return $dbc->scalar_query('SELECT mm_role_id FROM mm_role WHERE mm_role=?',$_[0]); }
 
 ### group_machine functions
 
