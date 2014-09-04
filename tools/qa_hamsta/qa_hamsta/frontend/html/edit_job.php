@@ -28,115 +28,115 @@
      */
 ?>
 
-<?php
-    # edit job from a parametrized job XML file
-    # $existFileName = "/usr/share/hamsta/xml_files/multimachine/qa_parameter.xml";
-    if(isset($real_file))
-        $existFileName = $real_file;
+    <?php
+        # edit job from a parametrized job XML file
+        # $existFileName = "/usr/share/hamsta/xml_files/multimachine/qa_parameter.xml";
+        if(isset($real_file))
+            $existFileName = $real_file;
 
-    # define the default data of job XML file
-    $jobInfo = array( 'name'=>'',
-                      'level'=>'3',
-                      'description'=>"Enter job description",
-                      'motd'=>'Enter your job MOTD message',
-                      'mailto'=>(isset($user) ? $user->getEmail() : 'hamsta@suse.com'),
-      	              'repolink'=>'',
-                      'rpmlist'=>'',
-               );
-    $sections = array('worker','finish','abort','kill'); 
-    $roleCount = 1;
-    $paramCount = 0;
-    $totalRoles = 5;
-    $totalParts = 10;
-    $partCount = 1;
-    $jobPartMap = array( array("name" => "", "id" => 1) );
-    $jobRoleMap = array( array(
-                          'name' => '',
-                          'min' => '',
-                          'max' => '',
-                          'level' => '',
-                          'repo' => '',
-                          'motd' => '',
-                          'rpm' => '',
-                          'part_id' => array(1) )
-    );
-
-    # if defined "existFileName", it means that it is come from a existing XML file, parse it
-    if(isset($existFileName) && ($existFileName != "") && (file_exists($existFileName)))
-    {
-        if(($xml = simplexml_load_file($existFileName)) != false)
+        # define the default data of job XML file
+        $jobInfo = array( 'name'=>'',
+                          'level'=>'3',
+                          'description'=>"Enter job description",
+                          'motd'=>'Enter your job MOTD message',
+                          'mailto'=>(isset($user) ? $user->getEmail() : 'hamsta@suse.com'),
+          	              'repolink'=>'',
+                          'rpmlist'=>'',
+                   );
+        $sections = array('worker','finish','abort','kill'); 
+        $roleCount = 1;
+        $paramCount = 0;
+        $totalRoles = 5;
+        $totalParts = 10;
+        $partCount = 1;
+        $jobPartMap = array( array("name" => "", "id" => 1) );
+        $jobRoleMap = array( array(
+                              'name' => '',
+                              'min' => '',
+                              'max' => '',
+                              'level' => '',
+                              'repo' => '',
+                              'motd' => '',
+                              'rpm' => '',
+                              'part_id' => array(1) )
+        );
+    
+        # if defined "existFileName", it means that it is come from a existing XML file, parse it
+        if(isset($existFileName) && ($existFileName != "") && (file_exists($existFileName)))
         {
-            # get general information
-            $jobInfo['name']  = $xml->config->name;
-            $jobInfo['level'] = $xml->config->debuglevel;
-            $jobInfo['description'] = $xml->config->description;
-            $jobInfo['motd'] = $xml->config->motd;
-            $jobInfo['mailto'] = $xml->config->mail;
-            $jobInfo['repolink'] = $xml->config->repository;
-            foreach($xml->config->rpm as $rpm) {
-                $jobInfo['rpmlist'] .= "$rpm ";
-            }
-            # get parameter map
-            $jobParamMap = get_parameter_maps($xml);
-            $paramCount = count($jobParamMap);
-
-            # get part map
-            $partCount = count($xml->parts->part);
-            $i = 0;
-            foreach($xml->parts->part as $part) {
-                $jobPartMap[$i++] = array(
-                                           'name' => $part['name'],
-                                           'id' => $part['id']
-                );
-            }
-
-            # get role map
-            $i = 0;
-            $roleCount = count($xml->roles->role);
-            if($roleCount > 0) {
-                foreach($xml->roles->role as $role)
-                {
-                    $jobRoleMap[$i] = array(
-                                              'name'=>$role['name'],
-                                              'min'=>$role['num_min'], 
-                                              'max'=>$role['num_max'],
-                                              'level'=>$role->config->debuglevel,
-                                              'repo'=>$role->config->repository,
-                                              'motd'=>$role->config->motd,
-                                              'rpm' => ''
-                                        );
-                    foreach($role->config->rpm as $rpm) {
-                        $jobRoleMap[$i]['rpm'] .= "$rpm ";
-                    }
-                    $role_name = $role['name'];
-                    $c=0;
-                    foreach($role->commands as $command) {
-                        $jobRoleMap[$i]['part_id'][$c] = $command->attributes()->part_id; 
-                        foreach( $sections as $sec ) {
-                            $j = 0;
-                            if(isset($command->$sec)) {
-                        	# get command map
-                                foreach($command->$sec->command as $cmd)
-                                {
-                                    $jobCommandMap[$i][$c][$sec][$j++] = array('action'=>$cmd['execution'],
-                                                                               'commands'=>$cmd);
+            if(($xml = simplexml_load_file($existFileName)) != false)
+            {
+                # get general information
+                $jobInfo['name']  = $xml->config->name;
+                $jobInfo['level'] = $xml->config->debuglevel;
+                $jobInfo['description'] = $xml->config->description;
+                $jobInfo['motd'] = $xml->config->motd;
+                $jobInfo['mailto'] = $xml->config->mail;
+                $jobInfo['repolink'] = $xml->config->repository;
+                foreach($xml->config->rpm as $rpm) {
+                    $jobInfo['rpmlist'] .= "$rpm ";
+                }
+                # get parameter map
+                $jobParamMap = get_parameter_maps($xml);
+                $paramCount = count($jobParamMap);
+    
+                # get part map
+                $partCount = count($xml->parts->part);
+                $i = 0;
+                foreach($xml->parts->part as $part) {
+                    $jobPartMap[$i++] = array(
+                                               'name' => $part['name'],
+                                               'id' => $part['id']
+                    );
+                }
+    
+                # get role map
+                $i = 0;
+                $roleCount = count($xml->roles->role);
+                if($roleCount > 0) {
+                    foreach($xml->roles->role as $role)
+                    {
+                        $jobRoleMap[$i] = array(
+                                                  'name'=>$role['name'],
+                                                  'min'=>$role['num_min'], 
+                                                  'max'=>$role['num_max'],
+                                                  'level'=>$role->config->debuglevel,
+                                                  'repo'=>$role->config->repository,
+                                                  'motd'=>$role->config->motd,
+                                                  'rpm' => ''
+                                            );
+                        foreach($role->config->rpm as $rpm) {
+                            $jobRoleMap[$i]['rpm'] .= "$rpm ";
+                        }
+                        $role_name = $role['name'];
+                        $c=0;
+                        foreach($role->commands as $command) {
+                            $jobRoleMap[$i]['part_id'][$c] = $command->attributes()->part_id; 
+                            foreach( $sections as $sec ) {
+                                $j = 0;
+                                if(isset($command->$sec)) {
+                            	# get command map
+                                    foreach($command->$sec->command as $cmd)
+                                    {
+                                        $jobCommandMap[$i][$c][$sec][$j++] = array('action'=>$cmd['execution'],
+                                                                                   'commands'=>$cmd);
+                                    }
                                 }
                             }
+                            $c++;
                         }
-                        $c++;
+                        $i++;
                     }
-                    $i++;
+                    # sort parameter by key "id"
+                    foreach ($jobRoleMap as $key=>$value) {
+             #           $roleSortKey[$key] = $value['id'];
+                    }
+                    #array_multisort($roleSortKey, SORT_NUMERIC, $jobRoleMap);
+                    $roleCount = count($jobRoleMap);
                 }
-                # sort parameter by key "id"
-                foreach ($jobRoleMap as $key=>$value) {
-         #           $roleSortKey[$key] = $value['id'];
-                }
-                #array_multisort($roleSortKey, SORT_NUMERIC, $jobRoleMap);
-                $roleCount = count($jobRoleMap);
+                    print "<input type=\"hidden\" name=\"existfilename\" value=\"$existFileName\">";
             }
-                print "<input type=\"hidden\" name=\"existfilename\" value=\"$existFileName\">";
         }
-    }
 
     ?>
 
@@ -209,26 +209,15 @@
     </div>
     </td></tr>
     <!-- Additional parameters -->
-    <tr>
-    <td>
-    <input id="edit-parameters" type="checkbox" name="param_flag" value="paramFlag" title="Edit additional Parameters" onclick="editParameters()">
-    <label for="edit-parameters">Edit addtional parameters</label>
-    </td>
-    <td>
-    <div id="param_edit">
-        <select id="param_type" name="param_type" title="required: please chose one parameter type">
+    <tr><td><input id="edit-parameters" type="checkbox" name="param_flag" value="paramFlag" title="Edit additional Parameters" onclick="editParameters()">
+			  <label for="edit-parameters">Edit addtional parameters</label></td>
+    <td><div id="param_edit"><select id="param_type" name="param_type" title="required: please chose one parameter type">
                 <option value="string">string</option>
                 <option value="enum">enum</option>
                 <option value="textarea">textarea</option>
-        </select>&nbsp;
-        <input type="button" value="x" style="color:red;" size="1px" title="Delete one selected parameter" onclick="addDelOneParam(0, <?php echo $paramCount; ?>)">
-        <input type="button" value="+" size="1px" title="Add one parameter" onclick="addDelOneParam(1, <?php echo $paramCount; ?>)">
-    </div>
-    </td>
-    </tr>
-    <tr>
-    <td colspan="2">
-    <div id="param_div"><b>Edit your addtional parameter here:</b><br /><br />
+        </select>&nbsp;<input type="button" value="x" style="color:#FF0000;" size="1px" title="Delete one of the parameters you selected" onclick="addDelOneParam(0, <?php echo $paramCount; ?>)"><input type="button" value="+" size="1px" title="Add one parameter" onclick="addDelOneParam(1, <?php echo $paramCount; ?>)">
+    </div></td></tr>
+    <tr><td colspan="2"><div id="param_div"><b>Edit your addtional parameter here:</b><br /><br />
     <table class="text-main">
     <?php
     if($paramCount > 0) # if it is edit a parameter job XML file
@@ -283,24 +272,7 @@
             }
 
             if($type == "textarea")
-                echo "<tr id = param_$paramNo>".
-                     '<td width="3px">'.
-                     '<input type="checkbox" name="param_checked" value=' . $paramNo . ' title="select and delete it">'.
-                     '</td>'.
-                     '<td width="50px">'.
-                     '<input type="hidden" name="param_type[]" value="textarea">'.
-                     '<input type="hidden" name="param_sort[]" value="' . $paramNo . '">name:'.
-                     '</td><td width="50px">'.
-                     '<input type="text" name="param_name[]" title="required: Paramter name" value="' . $name . '" size="8px">'.
-                     '</td>'.
-                     '<td width="50px">label:</td>'.
-                     '<td width="50px">'.
-                     '<input type="text" name="param_label[]" title="optional: Paramter label" value="' . $label . '" size="8">'.
-                     '</td>'.
-                     '<td width="50px">value:</td>'.
-                     '<td colspan="5">'.
-                     '<textarea cols="30" rows="5" name="param_default[]" title="required: default value of this parameter">'.
-                     $content_default. '</textarea></td></tr>';
+                echo "<tr id = param_" . $paramNo . "><td width=\"3px\"><input type=\"checkbox\" name=\"param_checked\" value=" . $paramNo . " title=\"select and delete it\"></td><td width=\"50px\"><input type=\"hidden\" name=\"param_type[]\" value=\"textarea\"><input type=\"hidden\" name=\"param_sort[]\" value=\"" . $paramNo . "\">name:</td><td width=\"50px\"><input type=\"text\" name=\"param_name[]\" title=\"required: Paramter name\" value=\"" . $name . "\" size=\"8px\"></td><td width=\"50px\">label:</td><td width=\"50px\"><input type=\"text\" name=\"param_label[]\" title=\"optional: Paramter label\" value=\"" . $label . "\" size=\"8\"></td><td width=\"50px\">value:</td><td colspan=\"5\"><textarea cols=\"30\" rows=\"5\" name=\"param_default[]\" title=\"required: default value of this parameter\">$content_default</textarea></td></tr>";
             ;
 
             # Define any other type of parameter here
