@@ -152,7 +152,8 @@ sub read_xml($$) # filename, map_roles
 
 	if( $map_roles )
 	{	
-		$role_id = &get_role_id( $ret );
+#xml2part done this
+#		$role_id = &get_role_id( $ret );
 		&get_parameters($ret)
 	}
 	

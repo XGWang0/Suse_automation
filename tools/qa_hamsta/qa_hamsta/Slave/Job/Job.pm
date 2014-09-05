@@ -202,7 +202,9 @@ sub run {
     # Create the Command objects
     @{$self->{'command_objects'}} = ();
 
-    while ((my $type, my $commandstrings) = each(%{$self->{'data'}->{'commands'}})) {
+    my $cmds_ref = $self->{'data'}->{'roles'}->{'role'}->[0]->{'commands'};
+#    while ((my $type, my $commandstrings) = each(%{$self->{'data'}->{'commands'}})) {
+    while ((my $type, my $commandstrings) = each(%$cmds_ref)) {
 
         # We want to have a list of commands we can iterate over
         if (ref($commandstrings) ne 'ARRAY') {
@@ -216,6 +218,8 @@ sub run {
             # monitors are running
 
             my $command;
+
+            next if $type eq 'part_id'; #part_id is not a valid section
 
             if ($type eq 'worker') {
 
