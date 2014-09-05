@@ -1,13 +1,12 @@
 <?xml version="1.0"?>
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <add-on>
+    <add_on_products config:type="list"/>
+  </add-on>
   <deploy_image>
-    <image_installation config:type="boolean">true</image_installation>
+    <image_installation config:type="boolean">false</image_installation>
   </deploy_image>
-  <firewall>
-    <enable_firewall config:type="boolean">false</enable_firewall>
-    <start_firewall config:type="boolean">false</start_firewall>
-  </firewall>
   <general>
     <ask-list config:type="list"/>
     <mode>
@@ -27,6 +26,60 @@
       <start_multipath config:type="boolean">false</start_multipath>
     </storage>
   </general>
+  <keyboard>
+    <keyboard_values>
+      <delay/>
+      <discaps config:type="boolean">false</discaps>
+      <numlock>bios</numlock>
+      <rate/>
+    </keyboard_values>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language>
+    <language>en_US</language>
+    <languages/>
+  </language>
+  <login_settings/>
+  <networking>
+    <dns>
+      <dhcp_hostname config:type="boolean">false</dhcp_hostname>
+      <resolv_conf_policy/>
+      <write_hostname config:type="boolean">false</write_hostname>
+    </dns>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>
+        <startmode>auto</startmode>
+      </interface>
+      <interface>
+        <bootproto>static</bootproto>
+        <broadcast>127.255.255.255</broadcast>
+        <device>lo</device>
+        <firewall>no</firewall>
+        <ipaddr>127.0.0.1</ipaddr>
+        <netmask>255.0.0.0</netmask>
+        <network>127.0.0.0</network>
+        <prefixlen>8</prefixlen>
+        <startmode>nfsroot</startmode>
+        <usercontrol>no</usercontrol>
+      </interface>
+    </interfaces>
+    <ipv6 config:type="boolean">true</ipv6>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+    <managed config:type="boolean">false</managed>
+    <net-udev config:type="list">
+      <rule>
+        <name>eth0</name>
+        <rule>ATTR{address}</rule>
+        <value>00:16:3e:4b:82:5d</value>
+      </rule>
+    </net-udev>
+    <routing>
+      <ipv4_forward config:type="boolean">false</ipv4_forward>
+      <ipv6_forward config:type="boolean">false</ipv6_forward>
+    </routing>
+  </networking>
   <report>
     <errors>
       <log config:type="boolean">true</log>
@@ -36,28 +89,31 @@
     <messages>
       <log config:type="boolean">true</log>
       <show config:type="boolean">true</show>
-      <timeout config:type="integer">0</timeout>
+      <timeout config:type="integer">10</timeout>
     </messages>
     <warnings>
       <log config:type="boolean">true</log>
       <show config:type="boolean">true</show>
-      <timeout config:type="integer">0</timeout>
+      <timeout config:type="integer">10</timeout>
     </warnings>
     <yesno_messages>
       <log config:type="boolean">true</log>
       <show config:type="boolean">true</show>
-      <timeout config:type="integer">0</timeout>
+      <timeout config:type="integer">10</timeout>
     </yesno_messages>
   </report>
-  <runlevel>
-    <default>3</default>
-    <services config:type="list">
-      <service>
-        <service_name>sshd</service_name>
-        <service_status>enable</service_status>
-      </service>
+  <services-manager>
+    <!-- For text mode installations:
+    <default_target>multi-user</default_target>
+    -->
+    <default_target>graphical</default_target>
+    <services>
+      <disable config:type="list"/>
+      <enable config:type="list">
+        <service>sshd</service>
+      </enable>
     </services>
-  </runlevel>
+  </services-manager>
   <software>
     <image/>
     <instsource/>
@@ -65,7 +121,14 @@
       <package>openssh</package>
     </packages>
     <patterns config:type="list">
+      <pattern>32bit</pattern>
       <pattern>Minimal</pattern>
+      <pattern>apparmor</pattern>
+      <!-- For text mode installations, only the following patterns are not required -->
+      <pattern>desktop-base</pattern>
+      <pattern>desktop-gnome</pattern>
+      <pattern>documentation</pattern>
+      <pattern>x11</pattern>
     </patterns>
   </software>
   <suse_register>
@@ -75,6 +138,17 @@
     <hwclock>UTC</hwclock>
     <timezone>America/Denver</timezone>
   </timezone>
+  <user_defaults>
+    <expire/>
+    <group>500</group>
+    <groups/>
+    <home>/home</home>
+    <inactive/>
+    <no_groups config:type="boolean">true</no_groups>
+    <shell/>
+    <skel/>
+    <umask>022</umask>
+  </user_defaults>
   <users config:type="list">
     <user>
       <encrypted config:type="boolean">true</encrypted>
