@@ -970,18 +970,18 @@ function get_user_login ($user)
 
 function capable ()
 {
-        global $config,$user;
-        $cap=func_get_args();
+	global $config,$user;
+	$cap=func_get_args();
 	# everything allowed when not using authentication
-        if( !$config->authentication->use )
-                return true;
+	if (! $config->authentication->use)
+		return true;
 
 	# nothing allowed unless logged in
-	if( !$user )
+	if (! $user)
 		return false;
 
 	# if no capabilities entered, we just check for being logged in
-	if( count($cap)==0 )
+	if (count ($cap) == 0)
 		return true;
 
 	# need to have at least one of the permissions

@@ -222,6 +222,8 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	# base SQL for result difference
 	$rd1='NOT EXISTS( SELECT * FROM result r2 JOIN tcf_group g2 USING(tcf_id) WHERE';
 	$rd2='AND r.testcase_id=r2.testcase_id)';
+	# base SQL for testsuite existence searches
+	$te1='EXISTS( SELECT * FROM tcf_group g WHERE g.testsuite_id=? AND g.submission_id=s.submission_id)';
 	# base fields for summaries
 	$sum=array('SUM(times_run) AS runs','SUM(succeeded) AS succ', 'SUM(failed) AS fail', 'SUM(internal_error) AS interr', 'SUM(skipped) AS skip', 'SUM(test_time) AS time', "CASE WHEN SUM(failed)>0 THEN 'failed' WHEN SUM(internal_error)>0 THEN 'interr' WHEN SUM(skipped)>0 THEN 'skipped' WHEN SUM(succeeded)>0 THEN 'success' ELSE NULL END AS status");
 #	$status="CASE WHEN failed THEN 'failed' WHEN internal_error THEN 'interr' WHEN skipped THEN 'skipped' WHEN succeeded THEN 'success' ELSE NULL END AS status";
@@ -235,6 +237,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 		'product_id'	=> array('s.product_id=?',		'i'),
 		'release_id'	=> array('s.release_id=?',		'i'),
 		'testsuite_id'	=> array('g.testsuite_id=?',		'i'),
+		'testsuite_eid'	=> array( $te1,				'i'),
 		'testcase_id'	=> array('r.testcase_id=?',		'i'),
 		'testcase'	=> array('c.testcase like ?',		's'),
 		'tcf_id'	=> array('r.tcf_id=?',			'i'),
@@ -1155,7 +1158,8 @@ function common_header($args=null)
 		'session'=>true,
 		'connect'=>true,
 		'icon'=>'icons/qadb_ico.png',
-		'css_screen'=>'css/screen.css'
+		'css_screen'=>'css/screen.css',
+		'jquery'=>'true',
 	);
 	$args=args_defaults($args,$defaults);
 	if( $args['session'] )
@@ -1387,6 +1391,7 @@ function highlight_result()
 	return $row[count($row)-1];
 }
 
+# filter refence hosts
 function reference_host_search($attrs,&$transl=array(),&$pager=null)
 {
 	global $dir;
@@ -1415,13 +1420,22 @@ function reference_host_search($attrs,&$transl=array(),&$pager=null)
 	);
 }
 
+# inserts reference host
 function reference_host_insert($host_id,$arch_id,$product_id)	{
 	return insert_query('INSERT INTO reference_host(host_id,arch_id,product_id) VALUES(?,?,?)', 'iii', $host_id, $arch_id, $product_id );
 }
 
+# deletes reference host
 function reference_host_delete($reference_host_id)	{
 	return update_query('DELETE FROM reference_host WHERE reference_host_id=?', 'i', $reference_host_id );
 }
+
+# function primarily intended for renaming enum values.
+# NOTE: check if $table is a valid table before use!
+function table_replace_value($table,$column,$oldval,$newval)	{
+	return update_query("UPDATE `$table` SET `$column`=? WHERE `$column`=?",'ii',$newval,$oldval);
+}
+
 
 
 

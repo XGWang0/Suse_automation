@@ -82,7 +82,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 				if (! empty ($cls)) {
 					$cls = ' class="' . $cls . '"';
 				}
-				echo ("<tr><td>$value</td><td$cls>$valuer</td><td>");
+				echo ("<tr><td>$value</td><td$cls id=\"$key\">$valuer</td><td>");
 				if ($valuer != NULL && method_exists('MachineSearch',"filter_$key")) {
 					echo("<a href=\"index.php?go=machines&set=Search&show_advanced=on&amp;".$key."=".urlencode($valuer)."\">Search</a>");
 				}

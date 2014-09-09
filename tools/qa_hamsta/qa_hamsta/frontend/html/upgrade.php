@@ -27,41 +27,11 @@
 		$go = 'machine_send_job';
 		return require("index.php");
 	}
-	$blockedMachines = array();
-	$virtualMachines = array();
-	$hasChildren = array();
-	foreach ($machines as $machine) {
-		if( ! $machine->has_perm('job') ||  ! $machine->has_perm('install') ) {
-			$blockedMachines[] = $machine->get_hostname();
-		}
-		if(preg_match ('/^vm\//', $machine->get_type())) {
-			$virtualMachines[] = $machine->get_hostname();
-		}
-		if(count($machine->get_children()) > 0) {
-			$hasChildren[] = $machine->get_hostname();
-		}
-	}
-	if(count($blockedMachines) != 0) {
-		echo "<div class=\"text-medium\">" .
-			"The following machines are currently either marked as \"Not accepting jobs\", \"Upgrade Deny\" or \"Outdated (Blocked)\":<br /><br />" .
-			"<strong>" . implode(", ", $blockedMachines) . "</strong><br /><br />" .
-			"Please go back to free them up and then try your upgrade again." .
-			"</div>";
-	} elseif (count($virtualMachines) != 0) {
-		echo "<div class=\"text-medium\">" .
-			"The following machines are virtual machines:<br /><br />" .
-			"<strong>" . implode(", ", $virtualMachines) . "</strong><br /><br />" .
-			"It is not possible to upgrade all virtual machines (you can delete them in QA Cloud and than create new ones)." .
-			"</div>";
-	} elseif (count($hasChildren) != 0) {
-		echo "<div class=\"text-medium\">" .
-			"The following machines currently contain virtual machines:<br /><br />" .
-			"<strong>" . implode(", ", $hasChildren) . "</strong><br /><br />" .
-			"It is not possible to upgrade virtual hosts with virtual machines (you can delete them in QA Cloud before upgrade virtual host)." .
-			"</div>";
 
-	} else {
+/* Check if the machines are suited for reinstall. */
+if (check_machines_before_reinstall ($machines, 'upgrade')) {
 ?>
+
 <h5>You are trying to upgrade the following machine(s) to a higher release with Autoyast</h5>
 
 <ul>
@@ -136,7 +106,7 @@ If you need to change parameters of the installation in this form, select the cu
   </tr>
   <tr>
 	<td>Installation options (optional): </td>
-	<td><input type="text" name="installoptions" size="70" value="<?php echo $installoptions; ?>" /> (e.g. <em>vnc=1 vncpassword=12345678</em>)<br /><strong>Note:</strong> Don't put any sensitive passwords, since it is plain text. VNC passwords must be 8+ bytes long.
+	<td><input type="text" name="installoptions" size="70" value="<?php echo $installoptions; ?>" /> (e.g. <em>vnc=1 vncpassword=12345678</em>)<br /><strong>Note:</strong> Do not put any sensitive passwords, since it is plain text. VNC passwords must be 8+ bytes long.
 	<?php if($installoptions_warning != "") {echo ("</br> <font color=\"red\" >$installoptions_warning</font>");} ?>
 	</td>
   </tr>

@@ -116,9 +116,9 @@ fi
 # Add an exception for sshd to SUSE firewall. No service restart
 # needed.
 %if 0%{?suse_version} >= 1110
-yast2 firewall services add service=service:sshd zone=EXT
+yast2 firewall services add service=service:sshd zone=EXT || :
 %else
-yast2 firewall services add service=ssh zone=EXT
+yast2 firewall services add service=ssh zone=EXT || :
 %endif
 
 %preun -p /sbin/ldconfig
