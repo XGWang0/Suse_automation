@@ -93,6 +93,7 @@ cd ..
 install -d -m 0755 %{buildroot}%{_datadir}/qa/qa_internalapi/sh
 cp -rv %{name}shell/* %{buildroot}%{_datadir}/qa/qa_internalapi/sh
 ln -s /usr/share/qa/qa_internalapi/sh/libqainternal.lib.sh %{buildroot}%{_bindir}/libqainternal.lib.sh
+ln -s /usr/share/qa/qa_internalapi/sh/ifconfig2ip %{buildroot}%{_bindir}/ifconfig2ip
 %if 0%{?suse_version} == 910
 ln -s change_password.exp %{buildroot}%{_datadir}/qa/qa_internalapi/sh/change_password
 rm %{buildroot}%{_datadir}/qa/qa_internalapi/sh/change_password.sh
@@ -120,6 +121,7 @@ ldconfig
 %{_mandir}/man3/*
 %{_mandir}/man8/*
 %{_bindir}/libqainternal.lib.sh
+%{_bindir}/ifconfig2ip
 %if 0%{?suse_version} == 910
 %attr(0755,root,root) %{_datadir}/qa/qa_internalapi/sh/change_password.exp
 %else

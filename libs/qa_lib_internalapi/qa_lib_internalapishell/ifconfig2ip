@@ -1,0 +1,153 @@
+#!/bin/bash
+
+# Usage:
+# Get all info:           ifconfig2ip 
+# Get ip of the machine:  ifconfig2ip ip   #{device_name}
+# Set ip of the machine:  ifconfig2ip set  #{device_name} #{ip} #{netmask} #{broadcast}
+# Turn down the network:  ifconfig2ip down #{device_name}
+# Turn up the network:    ifconfig2ip up   #{device_name} #{ip} #{netmask}
+# Get Mac of the machine: ifconfig2ip mac  #{device_name}
+# Get broadcast:          ifconfig2ip brd  #{device_name}
+# Get mask:               ifconfig2ip mask #{device_name}
+
+ipPath='/bin/ip'
+ifconfigPath='/sbin/ifconfig'
+dev=$2
+ip=$3
+netmask=$4
+broadcast=$5
+
+function getAll()
+{
+	if [ -f "$ipPath" ] ; then
+		ip a 
+	elif [ -f "$ifconfigPath" ] ; then
+		ifconfig
+	fi
+}
+
+function getIp()
+{
+	if [ -f "$ipPath" ] ; then
+		ip addr show $dev | sed -n 's/.*inet \([0-9.]*\).*/\1/p'
+	elif [ -f "$ifconfigPath" ] ; then
+		ifconfig $dev| sed -n 's/.*inet addr:\([0-9.]*\).*/\1/p'
+	fi
+}
+
+function setIp()
+{
+	if [ -f "$ipPath" ] ; then
+		mask=`ipcalc $ip/$netmask | grep '=' | awk '{ print $4; }'`
+		preIp=`getIp`
+		if [ $preIp ]
+			ip addr add $ip/$mask broadcast $broadcast dev $dev
+			ip addr del $preIp dev $dev/$mask
+		else
+			ip addr add $ip/$mask broadcase $broadcast dev $dev
+		fi
+	elif [ -f "$ifconfigPath" ] ; then
+		ifconfig $dev $ip netmask $netmask broadcast $broadcast
+	fi
+}
+
+function getMac()
+{
+	if [ -f "$ipPath" ] ; then
+		ip addr show $dev | grep ether | awk '{print $2}'
+	elif [ -f "$ifconfigPath" ] ; then  
+		ifconfig $dev | grep HWaddr | awk '{print $5}' | tr '[:upper:]' '[:lower:]'
+	fi
+}
+
+function getBrd()
+{
+	if [ -f "$ipPath" ] ; then
+		ip addr show $dev | grep global | sed -n  's/.*brd \([0-9.]*\).*/\1/p'
+	elif [ -f "$ifconfigPath" ] ; then
+		ifconfig $dev | sed -n 's/.*Bcast:\([0-9.]*\).*/\1/p'
+	fi
+}
+
+function getMask()
+{
+	if [ -f "$ipPath" ] ; then
+		ip=`getIp`
+		ipcalc $ip | grep '=' | awk '{ print $2; }'
+	elif [ -f "$ifconfigPath" ] ; then
+		ifconfig $dev | sed -n 's/.*Mask:\([0-9.]*\).*/\1/p'| grep -v 0.0.0
+	fi
+}
+
+function networkUp()
+{
+	if [ -f "$ipPath" ] ; then
+		if [ ! $ip ] && [ ! $netmask ] ; then
+			ip link set $dev up
+		elif [ $ip ] && [ ! $netmask ] ; then
+			preIp=`getIp`
+			mask=`getMask`
+			broadcast=`getBrd`
+			ip addr add $ip/$mask broadcast $broadcast dev $dev
+			ip addr del $preIp dev $dev/$mask
+			ip link set $dev up
+		elif [ $ip ] && [ $netmask ] ; then
+			preIp=`getIp`
+			broadcast=`getBrd`
+			mask=`ipcalc $ip/$netmask | grep = | awk '{ print $4; }'`
+			ip addr add $ip/$mask broadcast $broadcast dev $dev
+			ip addr del $preIp dev $dev/$mask
+			ip link set $dev up
+		fi
+	elif [ -f "$ifconfigPath" ] ; then
+		if [ ! $ip ] && [ ! $netmask ] ; then
+			ifconfig $dev up
+		elif [ $ip ] && [ ! $netmask ] ; then
+			ifconfig $dev up $ip
+		elif [ $ip ] && [ $netmask ] ; then
+			ifconfig $dev up $ip netmask $netmask
+		fi
+	fi
+}
+
+function networkDown()
+{
+	if [ -f "$ipPath" ] ; then
+		ip link set $dev down
+	elif [ -f "$ifconfigPath" ] ; then
+		ifconfig $dev down
+	fi
+}
+
+case $1 in
+	"ip")
+		getIp
+		;;
+	"down")
+		networkDown
+		;;
+	"up")
+		networkUp
+		;;
+	"set")
+		setIp
+		;;
+	"mac")
+		getMac
+		;;
+	"brd")
+		getBrd
+		;;
+	"mask")
+		getMask
+		;;
+	"?")
+		echo "Unknown error occurs"
+		;;
+	":")
+		echo "No argument value for option"
+		;;
+	*)
+		getAll
+esac
+
