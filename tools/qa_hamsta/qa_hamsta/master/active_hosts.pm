@@ -78,7 +78,7 @@ sub active_hosts() {
 	#try to map IP address with network interface name
 
 	if($qaconf{hamsta_multicast_dev}) {
-		open(my $_tmp_ifo,"/sbin/ifconfig|") || &log(LOG_CRIT,"MASTER_MULTICAST: Can not find IP address ");
+		open(my $_tmp_ifo,"ifconfig2ip|") || &log(LOG_CRIT,"MASTER_MULTICAST: Can not find IP address ");
 		my @if_output = <$_tmp_ifo>;
 		close $_tmp_ifo;
 		foreach my $if_dev (split /,/,$qaconf{hamsta_multicast_dev}) {

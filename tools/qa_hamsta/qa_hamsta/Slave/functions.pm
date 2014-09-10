@@ -146,7 +146,7 @@ sub get_slave_ip() {
    my $hint_match=-1;
 
    my $dev=(split /\s/, `route -n | grep "^0.0.0.0"`)[-1]; #get the main communication device
-   open(CMDFH, "ifconfig $dev |") || die "error: $?";
+   open(CMDFH, "ifconfig2ip ip $dev |") || die "error: $?";
    foreach (<CMDFH>) {
       if ($_=~/inet (\w+):(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/) {
          $ip = "$2.$3.$4.$5";

@@ -269,7 +269,7 @@ sub process_job($) {
 			$data .= "\nJob status:".( $status==JS_FAILED ? 'Fail' : 'Pass' )."\n";
 			if( !$reboot )
 			{
-				`ifconfig` =~ /inet addr:([\d\.]*)\s*Bcast/;
+				`ifconfig2ip ip`;
 				my $loglink = "http://$1/hamsta/index.php?go=job_details&id=$job_id";
 				$data .= "Return codes: $return_codes\nLog link:\n$loglink\nQADB submission link:\n$submission_link\nSummary result:\n".join("\n",@summary);
 			}

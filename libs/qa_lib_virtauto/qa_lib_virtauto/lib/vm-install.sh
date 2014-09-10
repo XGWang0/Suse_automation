@@ -805,7 +805,7 @@ case "$hypervisor" in
 esac
 
 # Make sure that bridge exist
-[ "$bridge" != "" ] && if ! ifconfig "$bridge" > /dev/null 2>&1 
+[ "$bridge" != "" ] && if ! ifconfig2ip ip "$bridge" > /dev/null 2>&1 
 then
 	tmpError="Network bridge ($bridge) does not exist in the system."
 	echo "ERROR - $tmpError"

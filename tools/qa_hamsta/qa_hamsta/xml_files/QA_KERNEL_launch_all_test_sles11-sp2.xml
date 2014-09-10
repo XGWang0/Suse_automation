@@ -38,7 +38,7 @@ if [ -z "$release" ]; then
 fi
 
 mkdir -p /mounts/dist
-ipaddr_list=`ifconfig | grep "inet addr" | cut -d":" -f 2 | cut -d " " -f 1`
+ipaddr_list=`ifconfig2ip ip`
 if echo $ipaddr_list | grep "147\.2\." &>/dev/null;then
         mount -t nfs 147.2.207.208:/srv/ftp/dist /mounts/dist
 	zypper --no-gpg-checks -n ar http://147.2.207.208/dist/install/SLP/SLE-11-SP2-SDK-$release/$ARCH/DVD1 sle11-sp2-sdk

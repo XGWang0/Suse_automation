@@ -37,7 +37,7 @@ BEGIN {
 # NORMALLY, you want to use location.pl
 my $loc = undef;
 
-open IFCONFIG, "/sbin/ifconfig |" or die "Cannot run ifconfig: $!";
+open IFCONFIG, "/usr/bin/ifconfig2ip |" or die "Cannot run ifconfig: $!";
 while( my $row=<IFCONFIG> )
 {
 #		print $row;

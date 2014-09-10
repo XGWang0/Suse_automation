@@ -37,7 +37,7 @@ if [ -z "$release" ]; then
         release="GMC"
 fi
 
-#ipaddr_list=`ifconfig | grep "inet addr" | cut -d":" -f 2 | cut -d " " -f 1`
+#ipaddr_list=`ifconfig2ip ip`
 #if echo $ipaddr_list | grep "147\.2\." &>/dev/null;then
 #        zypper --no-gpg-checks -n ar http://147.2.207.208/dist/ibs/QA:/Head/SUSE_SLE-11-SP3_GA qa-ibs
 #        zypper --no-gpg-checks -n ar http://147.2.207.208/dist/install/SLP/SLE-11-SP3-SDK-$release/$ARCH/DVD1 sle11-sp3-sdk

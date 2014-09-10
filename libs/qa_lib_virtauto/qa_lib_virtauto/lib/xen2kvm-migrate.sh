@@ -77,8 +77,7 @@ function get_guest_ip {
    done
    sleep 60 # Waiting guest in static ip mode.
    ip neigh flush dev $GUEST_IF_SRC_DEV #Clear arp cache.
-   bridge_ip=`ifconfig $GUEST_IF_SRC_DEV | awk '/inet/{print $2}' | awk -F: '{print $2}'`
-   net_id=${bridge_ip%.*}
+   bridge_ip=`ifconfig2ip ip $GUEST_IF_SRC_DEV`
    echo Start guest ip detection. `date`
    for ip in $(seq 1 254); do #Assume the subnet mask is 255.255.255.0, This thing takes time if there are too many ip in a subnet.
      ping -c 1 $net_id.$ip>/dev/null
@@ -629,7 +628,7 @@ fi
 if [ -z "$BRIDGE" ]; then
   BRIDGE=$(ip route list | awk '/^default / { print $NF }')
 fi
-XEN_HOST_IP=`ifconfig $BRIDGE | awk '/inet/{print $2}' | awk -F: '{print $2}'`
+XEN_HOST_IP=`ifconfig2ip ip $BRIDGE`
 
 if ! uname -r | grep -q \\-xen ;then
   echo $XEN_HOST_IP is not a xen hypervisor.

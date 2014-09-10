@@ -40,7 +40,7 @@ function setIp()
 	if [ -f "$ipPath" ] ; then
 		mask=`ipcalc $ip/$netmask | grep '=' | awk '{ print $4; }'`
 		preIp=`getIp`
-		if [ $preIp ]
+		if [ $preIp ] ; then
 			ip addr add $ip/$mask broadcast $broadcast dev $dev
 			ip addr del $preIp dev $dev/$mask
 		else
