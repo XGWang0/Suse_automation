@@ -194,21 +194,21 @@ sub distribute_jobs() {
         my $id_config_ref;
         map{ $id_config_ref->{$_}=&config_get_last($_) } @machine_id;
 
-		#ready to distribute this job
-		#xml2part
-		my $xml2part_script = "/usr/share/qa/tools/xml2part.pl";
-		my $xml2part_output_dir = "/tmp/xml2part_output/$job_id";
-		my $orig_job_xml = $job_detail->[0];
+        #ready to distribute this job
+        #xml2part
+        my $xml2part_script = "/usr/share/qa/tools/xml2part.pl";
+        my $xml2part_output_dir = "/tmp/xml2part_output/$job_id";
+        my $orig_job_xml = $job_detail->[0];
         &log(LOG_DETAIL,"Executing xml2part...");
-		system("perl $xml2part_script -o $xml2part_output_dir $orig_job_xml >/dev/null");
-		&log(LOG_INFO, "xml2part finished execution on job xml $orig_job_xml: return value is $?, output is stored in $xml2part_output_dir.");
+        system("perl $xml2part_script -o $xml2part_output_dir $orig_job_xml >/dev/null");
+        &log(LOG_INFO, "xml2part finished execution on job xml $orig_job_xml: return value is $?, output is stored in $xml2part_output_dir.");
 
-		#get related job role and part info
+        #get related job role and part info
         our $unique_roles = {};
         our $role_part_pairs = {};
         my @sorted_unique_parts=[];
-		my $machine_role_map = {};
-		my $role_machine_map = {};
+        my $machine_role_map = {};
+        my $role_machine_map = {};
 
         &find(\&get_job_roles_parts, "$xml2part_output_dir");
 
@@ -218,65 +218,65 @@ sub distribute_jobs() {
         &log(LOG_DETAIL, "Job sorted unique parts are: @sorted_unique_parts");
         &log(LOG_DETAIL, "Job unique roless are: " . join(",", keys(%$unique_roles)));
 
-		# machine and role mapping
-		foreach my $role (keys(%$unique_roles)){
-			foreach my $part (@sorted_unique_parts){
-				if (exists $role_part_pairs->{$part}->{$role}){
-					$role_machine_map->{$role} = [];#one role can have multiple machines
-					if ( keys(%$unique_roles) > 1 ){
-						# multi-role jobs needs to have info about machine<>role mapping
-    				    my $matched = `egrep '<\\s*machine[^>]+/>' "$xml2part_output_dir/$part/Role-$role.xml"`;
-						&log(LOG_DEBUG, "Searched file is $xml2part_output_dir/$part/Role-$role.xml, matched lines are $matched");
-						foreach my $line (split "\n", $matched){
-							&log(LOG_DEBUG, "matched machine line is : $line");
-        					$line =~ /machine\s+(ip\s*=\s*"([^\s]+)")?(\s+name\s*=\s*"([^\s\/]+)")?/;
-        					my $machine_name = $4;
-        					my $machine_ip = $2;
-							&log(LOG_DEBUG, "machine name is $machine_name, machine ip is $machine_ip");
-        					my $machine_id;
-        					if ($machine_ip){
-        					    $machine_id = &machine_get_by_ip($machine_ip);
-        						$machine_role_map->{$machine_id} = $role;
-    							push @{$role_machine_map->{$role}}, $machine_id;
-        					}elsif($machine_name){
-        					    $machine_id = &machine_get_by_name($machine_name);
-        						$machine_role_map->{$machine_id} = $role;
-    							push @{$role_machine_map->{$role}}, $machine_id;
-        					}else{
-        						&log(LOG_ERROR, "This job xml is wrong for without role machine mapping info!");
-        						goto NEXT_JOB;
-        					}
-						}
-					}else{
-						#single role jobs does not have machine role mapping info, stored as aimed_host in table job
+        # machine and role mapping
+        foreach my $role (keys(%$unique_roles)){
+            foreach my $part (@sorted_unique_parts){
+            	if (exists $role_part_pairs->{$part}->{$role}){
+            		$role_machine_map->{$role} = [];#one role can have multiple machines
+            		if ( keys(%$unique_roles) > 1 ){
+            			# multi-role jobs needs to have info about machine<>role mapping
+						my $matched = `egrep '<\\s*machine[^>]+/>' "$xml2part_output_dir/$part/Role-$role.xml"`;
+            			&log(LOG_DEBUG, "Searched file is $xml2part_output_dir/$part/Role-$role.xml, matched lines are $matched");
+            			foreach my $line (split "\n", $matched){
+            				&log(LOG_DEBUG, "matched machine line is : $line");
+                    		$line =~ /machine\s+(ip\s*=\s*"([^\s]+)")?(\s+name\s*=\s*"([^\s\/]+)")?/;
+                    		my $machine_name = $4;
+                    		my $machine_ip = $2;
+            				&log(LOG_DEBUG, "machine name is $machine_name, machine ip is $machine_ip");
+                    		my $machine_id;
+                    		if ($machine_ip){
+                    		    $machine_id = &machine_get_by_ip($machine_ip);
+                    			$machine_role_map->{$machine_id} = $role;
+                				push @{$role_machine_map->{$role}}, $machine_id;
+                    		}elsif($machine_name){
+                    		    $machine_id = &machine_get_by_name($machine_name);
+                    			$machine_role_map->{$machine_id} = $role;
+                				push @{$role_machine_map->{$role}}, $machine_id;
+                    		}else{
+                    			&log(LOG_ERROR, "This job xml is wrong for without role machine mapping info!");
+                    			goto NEXT_JOB;
+                    		}
+            			}
+            		}else{
+            			#single role jobs does not have machine role mapping info, stored as aimed_host in table job
                         log(LOG_DETAIL, "machine id in id_config_ref is: ". join(",",keys(%$id_config_ref)));
                         my @machine_ids = keys(%$id_config_ref);
-						foreach (@machine_ids) {
-							$machine_role_map->{$_} = $role;
-							push @{$role_machine_map->{$role}}, $_;
-						}
-					}
-    				last;
-				}
-			}
-		}
+            			foreach (@machine_ids) {
+            				$machine_role_map->{$_} = $role;
+            				push @{$role_machine_map->{$role}}, $_;
+            			}
+            		}
+                	last;
+            	}
+            }
+        }
         &log(LOG_DETAIL, "Job machine role map is:");
         while (my ($k,$v)=each %$machine_role_map){&log(LOG_DETAIL,  "$k:$v");}
         &log(LOG_DETAIL, "Job role machine map is:");
         while (my ($k,$v)=each %$role_machine_map){&log(LOG_DETAIL,  "$k:". join(",",@$v));}
         
-		#insert mm_role
-		foreach my $role (keys(%$unique_roles)){
-			&TRANSACTION('mm_role');
-		    my $role_id;
-			$role_id = &mm_role_insert_role($role) unless ($role_id = &mm_role_get_id($role));
-			$unique_roles->{$role} = $role_id;
-			&TRANSACTION_END;
-		}
+        #insert mm_role
+        foreach my $role (keys(%$unique_roles)){
+            &TRANSACTION('mm_role');
+            my $role_id;
+            $role_id = &mm_role_insert_role($role) unless ($role_id = &mm_role_get_id($role));
+            $unique_roles->{$role} = $role_id;
+            &TRANSACTION_END;
+        }
         &log(LOG_DETAIL, "mm_role table insertion is finished, and role id map is:");
         while (my ($k,$v)=each %$unique_roles){&log(LOG_DETAIL, "$k:$v");}
 
-		#insert job_on_machine
+        #insert job_on_machine
         foreach my $machine_id (keys %$id_config_ref) {
             &TRANSACTION( 'job', 'job_on_machine' );
             &job_set_aimed_host($job_id,$host_aimed) unless $host_orig;
@@ -286,37 +286,37 @@ sub distribute_jobs() {
         }
         &log(LOG_DETAIL, "job_on_machine insertion is finished.");
 
-		#insert job_part, job_part_on_machine
-		foreach my $part (@sorted_unique_parts){
-			&TRANSACTION('job_part','job_part_on_machine','job_on_machine');
-			my $job_part_id = &job_part_insert($job_id);
+        #insert job_part, job_part_on_machine
+        foreach my $part (@sorted_unique_parts){
+            &TRANSACTION('job_part','job_part_on_machine','job_on_machine');
+            my $job_part_id = &job_part_insert($job_id);
             &log(LOG_DETAIL, "A new job_part record is inserted as $job_part_id.");
-			foreach my $role (keys %{$role_part_pairs->{$part}}){
-				#insert job_part_on_machine
-				my $job_part_xml = "$xml2part_output_dir/$part/Role-$role.xml";
-				foreach my $machine_id (@{$role_machine_map->{$role}}){
+            foreach my $role (keys %{$role_part_pairs->{$part}}){
+            	#insert job_part_on_machine
+            	my $job_part_xml = "$xml2part_output_dir/$part/Role-$role.xml";
+            	foreach my $machine_id (@{$role_machine_map->{$role}}){
                     &log(LOG_DEBUG, "Query job_on_machine id with job id $job_id, machine id $machine_id");
-					my $job_on_machine_id = &job_on_machine_get_id_by_jobid_machineid($job_id,$machine_id);
+            		my $job_on_machine_id = &job_on_machine_get_id_by_jobid_machineid($job_id,$machine_id);
                     &log(LOG_DEBUG, "Query result is $job_on_machine_id");
-					my $job_part_on_machine_id = &job_part_on_machine_insert($job_part_id,JS_QUEUED,$job_on_machine_id,$job_part_xml);
+            		my $job_part_on_machine_id = &job_part_on_machine_insert($job_part_id,JS_QUEUED,$job_on_machine_id,$job_part_xml);
                     &log(LOG_DETAIL, "A new job_part_on_machine is inserted as $job_part_on_machine_id for part $part role $role machine $machine_id.");
-				}
-			}
-			&TRANSACTION_END;
-		}
+            	}
+            }
+            &TRANSACTION_END;
+        }
         &log(LOG_DETAIL, "job_part and job_part_on_machine insertion is finished.");
 
-		#update job_on_machine status
+        #update job_on_machine status
         &TRANSACTION( 'job_on_machine' );
         &job_on_machine_set_job_group_status( $job_id, JS_QUEUED );
         &TRANSACTION_END;
 
-		#update job status
+        #update job status
         &TRANSACTION( 'job' );
         &job_set_status( $job_id, JS_QUEUED );
         &TRANSACTION_END;
 
-		NEXT_JOB:
+        NEXT_JOB:
     }
 
 }
