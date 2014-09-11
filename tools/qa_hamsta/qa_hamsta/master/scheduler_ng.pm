@@ -248,11 +248,13 @@ sub distribute_jobs() {
         					}
 						}
 					}else{
-						#single role machine does not have machine role mapping info
+						#single role jobs does not have machine role mapping info, stored as aimed_host in table job
                         log(LOG_DETAIL, "machine id in id_config_ref is: ". join(",",keys(%$id_config_ref)));
-                        my @machine_ids = keys(%$id_config_ref);#the size of it is 1
-					    $machine_role_map->{$machine_ids[0]} = $role;
-						push @{$role_machine_map->{$role}}, $machine_ids[0];
+                        my @machine_ids = keys(%$id_config_ref);
+						foreach (@machine_ids) {
+							$machine_role_map->{$_} = $role;
+							push @{$role_machine_map->{$role}}, $_;
+						}
 					}
     				last;
 				}
@@ -278,7 +280,7 @@ sub distribute_jobs() {
         foreach my $machine_id (keys %$id_config_ref) {
             &TRANSACTION( 'job', 'job_on_machine' );
             &job_set_aimed_host($job_id,$host_aimed) unless $host_orig;
-            my $job_on_machine_id = &job_on_machine_insert($job_id, $machine_id, $id_config_ref->{$machine_id}, JS_QUEUED,$unique_roles->{$machine_role_map->{$id_config_ref->{$machine_id}}});
+            my $job_on_machine_id = &job_on_machine_insert($job_id, $machine_id, $id_config_ref->{$machine_id}, JS_QUEUED,$unique_roles->{$machine_role_map->{$machine_id}});
             &log(LOG_DETAIL, "A new job_on_machine record is inserted as $job_on_machine_id for job_id $job_id, machine_id $machine_id.");
             &TRANSACTION_END;
         }
