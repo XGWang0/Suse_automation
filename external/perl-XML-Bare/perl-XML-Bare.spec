@@ -30,8 +30,10 @@ Patch0:         fix-pointers.diff
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildRequires:  perl
 BuildRequires:  perl-macros
+%if 0%{?suse_version} > 1130
 BuildRequires:  perl(Test::More) >= 0.94
 %{perl_requires}
+%endif
 
 %description
 This module is a 'Bare' XML parser. It is implemented in C. The parser
