@@ -221,43 +221,43 @@ sub distribute_jobs() {
         # machine and role mapping
         foreach my $role (keys(%$unique_roles)){
             foreach my $part (@sorted_unique_parts){
-            	if (exists $role_part_pairs->{$part}->{$role}){
-            		$role_machine_map->{$role} = [];#one role can have multiple machines
-            		if ( keys(%$unique_roles) > 1 ){
-            			# multi-role jobs needs to have info about machine<>role mapping
-						my $matched = `egrep '<\\s*machine[^>]+/>' "$xml2part_output_dir/$part/Role-$role.xml"`;
-            			&log(LOG_DEBUG, "Searched file is $xml2part_output_dir/$part/Role-$role.xml, matched lines are $matched");
-            			foreach my $line (split "\n", $matched){
-            				&log(LOG_DEBUG, "matched machine line is : $line");
-                    		$line =~ /machine\s+(ip\s*=\s*"([^\s]+)")?(\s+name\s*=\s*"([^\s\/]+)")?/;
-                    		my $machine_name = $4;
-                    		my $machine_ip = $2;
-            				&log(LOG_DEBUG, "machine name is $machine_name, machine ip is $machine_ip");
-                    		my $machine_id;
-                    		if ($machine_ip){
-                    		    $machine_id = &machine_get_by_ip($machine_ip);
-                    			$machine_role_map->{$machine_id} = $role;
-                				push @{$role_machine_map->{$role}}, $machine_id;
-                    		}elsif($machine_name){
-                    		    $machine_id = &machine_get_by_name($machine_name);
-                    			$machine_role_map->{$machine_id} = $role;
-                				push @{$role_machine_map->{$role}}, $machine_id;
-                    		}else{
-                    			&log(LOG_ERROR, "This job xml is wrong for without role machine mapping info!");
-                    			goto NEXT_JOB;
-                    		}
-            			}
-            		}else{
-            			#single role jobs does not have machine role mapping info, stored as aimed_host in table job
+                if (exists $role_part_pairs->{$part}->{$role}){
+                    $role_machine_map->{$role} = [];#one role can have multiple machines
+                    if ( keys(%$unique_roles) > 1 ){
+                        # multi-role jobs needs to have info about machine<>role mapping
+                        my $matched = `egrep '<\\s*machine[^>]+/>' "$xml2part_output_dir/$part/Role-$role.xml"`;
+                        &log(LOG_DEBUG, "Searched file is $xml2part_output_dir/$part/Role-$role.xml, matched lines are $matched");
+                        foreach my $line (split "\n", $matched){
+                            &log(LOG_DEBUG, "matched machine line is : $line");
+                            $line =~ /machine\s+(ip\s*=\s*"([^\s]+)")?(\s+name\s*=\s*"([^\s\/]+)")?/;
+                            my $machine_name = $4;
+                            my $machine_ip = $2;
+                            &log(LOG_DEBUG, "machine name is $machine_name, machine ip is $machine_ip");
+                            my $machine_id;
+                            if ($machine_ip){
+                                $machine_id = &machine_get_by_ip($machine_ip);
+                                $machine_role_map->{$machine_id} = $role;
+                                push @{$role_machine_map->{$role}}, $machine_id;
+                            }elsif($machine_name){
+                                $machine_id = &machine_get_by_name($machine_name);
+                                $machine_role_map->{$machine_id} = $role;
+                                push @{$role_machine_map->{$role}}, $machine_id;
+                            }else{
+                                &log(LOG_ERROR, "This job xml is wrong for without role machine mapping info!");
+                                goto NEXT_JOB;
+                            }
+                        }
+                    }else{
+                        #single role jobs does not have machine role mapping info, stored as aimed_host in table job
                         log(LOG_DETAIL, "machine id in id_config_ref is: ". join(",",keys(%$id_config_ref)));
                         my @machine_ids = keys(%$id_config_ref);
-            			foreach (@machine_ids) {
-            				$machine_role_map->{$_} = $role;
-            				push @{$role_machine_map->{$role}}, $_;
-            			}
-            		}
-                	last;
-            	}
+                        foreach (@machine_ids) {
+                            $machine_role_map->{$_} = $role;
+                            push @{$role_machine_map->{$role}}, $_;
+                        }
+                    }
+                    last;
+                }
             }
         }
         &log(LOG_DETAIL, "Job machine role map is:");
@@ -292,15 +292,15 @@ sub distribute_jobs() {
             my $job_part_id = &job_part_insert($job_id);
             &log(LOG_DETAIL, "A new job_part record is inserted as $job_part_id.");
             foreach my $role (keys %{$role_part_pairs->{$part}}){
-            	#insert job_part_on_machine
-            	my $job_part_xml = "$xml2part_output_dir/$part/Role-$role.xml";
-            	foreach my $machine_id (@{$role_machine_map->{$role}}){
+                #insert job_part_on_machine
+                my $job_part_xml = "$xml2part_output_dir/$part/Role-$role.xml";
+                foreach my $machine_id (@{$role_machine_map->{$role}}){
                     &log(LOG_DEBUG, "Query job_on_machine id with job id $job_id, machine id $machine_id");
-            		my $job_on_machine_id = &job_on_machine_get_id_by_jobid_machineid($job_id,$machine_id);
+                    my $job_on_machine_id = &job_on_machine_get_id_by_jobid_machineid($job_id,$machine_id);
                     &log(LOG_DEBUG, "Query result is $job_on_machine_id");
-            		my $job_part_on_machine_id = &job_part_on_machine_insert($job_part_id,JS_QUEUED,$job_on_machine_id,$job_part_xml);
+                    my $job_part_on_machine_id = &job_part_on_machine_insert($job_part_id,JS_QUEUED,$job_on_machine_id,$job_part_xml);
                     &log(LOG_DETAIL, "A new job_part_on_machine is inserted as $job_part_on_machine_id for part $part role $role machine $machine_id.");
-            	}
+                }
             }
             &TRANSACTION_END;
         }
