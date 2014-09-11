@@ -136,17 +136,16 @@ sub schedule_jobs() {
 # if no associated entries in job_on_machine remain.
 # 
 sub delete_cancelled_jobs() {
-
     my $jobs = &job_list_by_status(JS_CANCELED); # list cancelled jobs
     foreach my $job (@$jobs) {
-		    my ($job_file, $job_owner, $job_name,$job_id,$aimed_host) = @$job;
-				&log(LOG_INFO,"Deleting cancelled job $job_id");
+        my ($job_file, $job_owner, $job_name,$job_id,$aimed_host) = @$job;
+        &log(LOG_INFO,"Deleting cancelled job $job_id");
         foreach( split(/\s*,\s*/,$aimed_host) ) {
             &TRANSACTION( 'job_on_machine', 'job', 'job_part', 'job_part_on_machine' );
             &job_on_machine_delete_by_job_id($job_id);
             &job_delete($job_id);
-			# DELETE CASCADE is used for foreign key about job_id and job_on_machine_id for
-			# table job_part and job_part_on_machine, so no need to delete those two here
+            # DELETE CASCADE is used for foreign key about job_id and job_on_machine_id for
+            # table job_part and job_part_on_machine, so no need to delete those two here
             &TRANSACTION_END;
         }
     }
