@@ -115,6 +115,27 @@ sub install_rpms # $upgrade_flag, @basenames
 	return $ret;
 }
 
+# add_repository: add repositories by zypper
+# input: $url - ref to array which composed by repo urls
+# return: true or fails
+sub add_repository
+{
+    my $url = shift;
+
+    my $ret = 0;
+    foreach my $u (@$url) {
+        my $exists = `zypper lr -u |grep "$u"`;
+        next if ( $exists ne "" );
+
+        my $rand = int(rand(100000));
+        $ret += &command("zypper ar $u jobrepo_$rand 2>/tmp/sut_repo_stderr_tmp") >> 8;
+        my $repo_stderr = `cat /tmp/sut_repo_stderr_tmp`;
+        chomp($repo_stderr);
+        &log(LOG_ERROR,"ERROR:REPO $u install/update error: $repo_stderr\n") if ( $repo_stderr ne "" );
+    }
+    return $ret;
+}
+
 # returns $pid and PIDs of all its subprocesses
 sub get_process_tree	# $pid
 {
@@ -133,7 +154,7 @@ sub get_process_tree	# $pid
 	return @ret;
 }
 
-our @force_array = qw(rpm attachment worker logger monitor role machine parameter);
+our @force_array = qw(rpm attachment worker logger monitor role machine parameter repository);
 our %force_array = map {$_=>1} @force_array;
 our @file_array = ();
 
