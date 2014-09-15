@@ -119,6 +119,19 @@ function networkDown()
 	fi
 }
 
+function helpInfo()
+{
+    echo "Usage:
+          Get all info:           ifconfig2ip 
+          Get ip of the machine:  ifconfig2ip ip   #{device_name}
+          Set ip of the machine:  ifconfig2ip set  #{device_name} #{ip} #{netmask} #{broadcast}
+          Turn down the network:  ifconfig2ip down #{device_name}
+          Turn up the network:    ifconfig2ip up   #{device_name} #{ip} #{netmask}
+          Get Mac of the machine: ifconfig2ip mac  #{device_name}
+          Get broadcast:          ifconfig2ip brd  #{device_name}
+          Get mask:               ifconfig2ip mask #{device_name}"
+}
+
 case $1 in
 	"ip")
 		getIp
@@ -141,6 +154,9 @@ case $1 in
 	"mask")
 		getMask
 		;;
+    "help")
+        helpInfo
+        ;;
 	"?")
 		echo "Unknown error occurs"
 		;;
