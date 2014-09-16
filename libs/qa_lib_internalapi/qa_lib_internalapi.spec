@@ -20,6 +20,7 @@ Source0:        %{name}-%{version}.tar.bz2
 Source1:        %{name}perl-%{version}.tar.bz2
 Source2:        %{name}shell-%{version}.tar.bz2
 Source3:        %{name}.8
+Source4:        ifconfig2ip.8
 BuildRequires:  autoconf
 BuildRequires:  automake
 BuildRequires:  doxygen
@@ -70,6 +71,7 @@ cd ..
 %install
 install -m 755 -d %{buildroot}%{_mandir}/man8
 install -m 644 %{SOURCE3} %{buildroot}%{_mandir}/man8
+install -m 644 %{SOURCE4} %{buildroot}%{_mandir}/man8
 gzip %{buildroot}%{_mandir}/man8/%{name}.8
 make DESTDIR=%{buildroot} install
 cd %{name}perl
