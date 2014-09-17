@@ -120,7 +120,7 @@
       <pattern>apparmor</pattern>
       <pattern>base</pattern>
       <pattern>documentation</pattern>
-      <pattern>gnome</pattern>
+      <pattern>gnome-basic</pattern>
       <pattern>x11</pattern>
     </patterns>
   </software>
