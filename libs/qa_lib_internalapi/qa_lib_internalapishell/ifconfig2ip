@@ -2,7 +2,9 @@
 
 # Usage:
 # Get all info:           ifconfig2ip 
+# Get dev info:           ifconfig2ip dev  #{device_name}
 # Get ip of the machine:  ifconfig2ip ip   #{device_name}
+# Get ipv6 addr:          ifconfig2ip ipv6 #{device_name}
 # Set ip of the machine:  ifconfig2ip set  #{device_name} #{ip} #{netmask} #{broadcast}
 # Turn down the network:  ifconfig2ip down #{device_name}
 # Turn up the network:    ifconfig2ip up   #{device_name} #{ip} #{netmask}
@@ -119,11 +121,31 @@ function networkDown()
 	fi
 }
 
+function getDevInfo()
+{
+	if [ -f "$ipPath" ] ; then
+		ip a s $dev
+	elif [ -f "$ifconfigPath" ] ; then
+		ifconfig $dev
+	fi
+}
+
+function getIpv6()
+{
+	if [ -f "$ipPath" ] ; then
+		ip a s $dev | sed -n 's/.*inet6 \([0-9a-f::]*\).*/\1/p'
+	elif [ -f "$ifconfigPath" ] ; then
+		ifconfig $dev | sed -n 's/.*inet6 addr: \([0-9a-f::]*\).*/\1/p'
+	fi
+}
+
 function helpInfo()
 {
     echo "Usage:
           Get all info:           ifconfig2ip 
+          Get dev info:           ifconfig2ip dev  #{device_name}
           Get ip of the machine:  ifconfig2ip ip   #{device_name}
+          Get ipv6 addr:          ifconfig2ip ipv6 #{device_name}
           Set ip of the machine:  ifconfig2ip set  #{device_name} #{ip} #{netmask} #{broadcast}
           Turn down the network:  ifconfig2ip down #{device_name}
           Turn up the network:    ifconfig2ip up   #{device_name} #{ip} #{netmask}
@@ -154,9 +176,15 @@ case $1 in
 	"mask")
 		getMask
 		;;
-    "help")
-        helpInfo
-        ;;
+	"dev")
+		getDevInfo
+		;;
+	"ipv6")
+		getIpv6
+		;;
+	"help")
+		helpInfo
+		;;
 	"?")
 		echo "Unknown error occurs"
 		;;
