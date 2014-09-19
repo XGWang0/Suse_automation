@@ -46,6 +46,42 @@ function showHide(idPre, showNum, total) {
 		}
 	}
 }
+
+/*
+ * while change overall part number
+ * the limit of role part selection will change too
+ * and hide/show possible number of part cards
+ */
+function alignPartNumber() {
+        var num = parseInt($("select[name='partnumber']").val());
+	$("select[name='roleparts[]']").each(function() {
+		var rParts = parseInt($(this).val());
+                var pSize = $(this).children().size();
+                if(pSize > num) {
+			//delete extra options from select list
+			$(this).children().each(function() {
+				if(parseInt($(this).text()) > num)
+					$(this).remove();
+				if(rParts>num && parseInt($(this).text())==num)
+					$(this).attr("selected","selected");
+			});
+		} else {
+			//add more options into select list
+			for( var i=pSize+1; i<=num; i++)
+			{
+				var str = "<option value=\""+i+"\">"+i+"</option>";
+                                $(this).append(str);
+			}
+		}
+                //show/hide part cards in parts limit.
+		if(num < rParts)
+		{
+			var tag = "#"+$(this).attr("id")+"_";
+			showHide(tag, num, 10);
+		}
+	});
+}
+
 $(document).ready(function(){
 	$('#param_edit').hide();
 	$('#param_div').hide();
@@ -56,7 +92,6 @@ $(document).ready(function(){
 	{
 		rpart_count[i] = document.getElementById('rpart_count'+i).value;
 		showHide('#rpart_' + i + '_', rpart_count[i], 10);
-       //         console.log($('input#rpart_' + i + '_1').attr("title"));
 	}
 	//$('#singlemachine_form').hide();
 	//$('#multimachine_form').show();
@@ -68,7 +103,7 @@ $(document).ready(function(){
 		option_num[i] = 0;
 		option_real_num[i] = 0;
 	}
-
+        alignPartNumber();
 //	var smj_count = document.getElementById('smj_count').value;
 //	for(i=0; i<smj_count; i++)
 //		$('#div_' + i).hide();
@@ -145,9 +180,7 @@ var getJobType =  function(select)
 
 var getNumber = function(select, type, total)
 {
-	console.log(select);
 	var idx = select.selectedIndex, option, value;
-        console.log("jhao"+idx);
 	if(idx > -1)
 	{
 		//$('#roleNumOpt').remove();
@@ -155,6 +188,8 @@ var getNumber = function(select, type, total)
 		value = option.attributes.value;
 		num = (value && value.specified)?option.value:option.text;
                 showHide(type+'_', num, total);
+                if( type == "#part" )
+			alignPartNumber();
 		return num;
 	}
 	return NULL;

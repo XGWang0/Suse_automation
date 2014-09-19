@@ -2,7 +2,7 @@
 $roleTemplate = '
 <span class="rolespan" id="roletab_ROLE_INDEX"></span>
 <div id="role_ROLE_INDEX">
-  <a title="Role_ROLE_NAME" href="#roletab_ROLE_INDEX">Role_ROLE_NAME</a>
+  <a title="ROLE_NAME" href="#roletab_ROLE_INDEX">ROLE_NAME</a>
   <div class="roletab-content" id="rcontent_ROLE_INDEX">
     <table class="text-main">
       <tbody>
@@ -65,7 +65,7 @@ $roleTemplate = '
             <input type="hidden" id="rpart_countROLE_INDEX" value="ROLE_PART_NUM">
             <select onchange="getNumber(this, \'#rpart_ROLE_INDEX\', TOTAL_PARTS);" 
                     title="required: part number, from 1 to TOTAL_PARTS" 
-                    name="roleparts[]">ROLE_PART_SELECT
+                    id="rpart_ROLE_INDEX" name="roleparts[]">ROLE_PART_SELECT
             </select>
           </td>
         </tr>

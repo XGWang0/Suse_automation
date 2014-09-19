@@ -317,13 +317,14 @@
     for($i=0; $i<$totalRoles; $i++)
     {
         if($i<$roleCount) {
-	    $name = ($jobRoleMap[$i]['name'] == "")?($i+1):$jobRoleMap[$i]['name'];
+	    $name = ($jobRoleMap[$i]['name'] == "")?"Role_".($i+1):$jobRoleMap[$i]['name'];
 	    $min = ($jobRoleMap[$i]['min'] == "")?1:$jobRoleMap[$i]['min'];
 	    $max = ($jobRoleMap[$i]['max'] == "")?2:$jobRoleMap[$i]['max'];
             $part_id = $jobRoleMap[$i]['part_id'];
         }
         else {
             $name = $i+1;
+            $name = "Role_$name";
             $min = 1;
             $max = 2;
             $part_id = array( 1 );
