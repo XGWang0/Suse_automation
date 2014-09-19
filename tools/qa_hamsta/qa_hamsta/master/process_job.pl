@@ -269,8 +269,8 @@ sub process_job($) {
 			$data .= "\nJob status:".( $status==JS_FAILED ? 'Fail' : 'Pass' )."\n";
 			if( !$reboot )
 			{
-				`ifconfig2ip ip`;
-				my $loglink = "http://$1/hamsta/index.php?go=job_details&id=$job_id";
+				`ifconfig2ip | grep -v 127` =~ /inet (addr:)?([\d\.]*)\s*/;
+				my $loglink = "http://$2/hamsta/index.php?go=job_details&id=$job_id";
 				$data .= "Return codes: $return_codes\nLog link:\n$loglink\nQADB submission link:\n$submission_link\nSummary result:\n".join("\n",@summary);
 			}
 			$mailtype = "TEXT";

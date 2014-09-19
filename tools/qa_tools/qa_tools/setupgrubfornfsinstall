@@ -628,7 +628,7 @@ bootparamdialog()
 	if [ "$ay_wanted" ]; then
 		# important is to set ip of the host gateway and so
 		# quake-hosts aren't ipreg'd yet
-		hostip="hostip=`ifconfig2ip ip | grep -v 127`"
+		hostip="hostip=`ifconfig2ip ip | grep 10.10`" . "/16"
 		gateway="gateway=10.10.0.8"
 		nameserver="nameserver=10.10.0.8"
 		# before: params="${params} autoyast=$ay_xml netdevice=eth0 $hostip $netmask $gateway $nameserver vnc=1 vnc_password=susequake"
