@@ -44,17 +44,11 @@
     </tr>
     <tr>
         <td>Status</td>
-        <td><?php echo($job->get_status_string()); ?></td>
-    </tr>
-    <tr>
-        <td>Hostname</td>
-        <td><?php if ($job->get_machine())
-		{
-		  echo('<a href="index.php?go=machine_details&amp;id='
-		       . $job->get_machine()->get_id() . '">'
-		       . $job->get_machine()->get_hostname()
-		       . '</a>');
-		} ?></td>
+        <td>
+	  <span class="<?php echo($job->get_status_string()); ?>">
+	  <?php echo($job->get_status_string()); ?>
+	  </span>
+	</td>
     </tr>
     <tr>
         <td>Name</td>
@@ -64,20 +58,43 @@
 		<td>Description</td>
 		<td><?php echo(htmlspecialchars($job->get_description())); ?></td>
 	</tr>
+<?php
+$i=1;
+foreach ($job_part as $part_id) {
+    $machines = $job->get_machines_by_part_id($part_id);
+    foreach ($machines as $id => $values) {
+	$sid = $values['job_status_id'];
+        $status = $job->get_status_string($sid);
+?>
+    <tr>
+      <th>
+        <input type="checkbox" id="part_head">
+        <label for="part_head">Part:<?php echo $i++;?></label>
+      </th>
+      <th><span class="<?php echo $status; ?>"><?php echo $status; ?></span>
+      <?php
+	  echo('<a href="index.php?go=machine_details&amp;id='
+	       . $id . '">'
+	       . Machine::get_by_id($id)->get_hostname()
+	       . '</a>');
+      ?>
+      </th>
+    </tr>
+    <tbody class="part_box">
     <tr>
         <td>Started</td>
-        <td><?php echo($job->get_started()); ?></td>
+        <td><?php echo($job->get_started($part_id,$id)); ?></td>
     </tr>
     <tr>
         <td>Stopped</td>
-        <td><?php echo($job->get_stopped()); ?></td>
+        <td><?php echo($job->get_stopped($part_id,$id)); ?></td>
     </tr>
     <tr>
 	<td>QADB Results</td>
 <?php
 	print "<td>";
-	if( $qadb_link != "" ) {
-		foreach($qadb_sm as $sm) {
+	if( $qadb_link[$part_id][$id] != "" ) {
+		foreach($qadb_sm[$part_id][$id] as $sm) {
 			$smn=preg_replace('/.*=/','',$sm);
 			echo "<a href=\"$sm\">Submission #$smn</a> &nbsp; ";
 		}
@@ -90,12 +107,12 @@
         <td>Last output</td>
 	<td>
 <?php
-	if( count($log_table) > 0 ) {
+	if( count($log_table[$part_id][$id]) > 0 ) {
 		echo "<div id=\"log_filter\"></div>\n";
 		echo "<div id=\"logtextarea\" style=\"height:20em; overflow:auto;\">\n";
 		echo "<table id=\"job_log\" class=\"logs\">\n";
 		echo "<thead><tr><th>Date/Time</th><th>Type</th><th>Process</th><th>Message</th></tr></thead>\n";
-		foreach( $log_table as $row )	{
+		foreach( $log_table[$part_id][$id] as $row )	{
 			$cls = sprintf("class=\"%s\"",$row->get_log_type());
 			printf("<tr $cls><td><nobr>%s</nobr></td><td>%s</td><td>%s</td><td>%s</td></tr>\n", $row->get_log_time_string(), $row->get_log_type(), $row->get_log_what(), $row->get_log_text());
 		}
@@ -106,10 +123,17 @@
     </tr>
     <?php if (!$d_return): ?>
     <tr>
-        <td>Return code</td>
-        <td><?php echo(nl2br(htmlentities($job->get_return_code()))); ?></td>
+        <td>Job part XML</td>
+        <td>
+          <textarea rows="20" cols="160" readonly="readonly">
+          <?php echo(file_get_contents($values['xml_file'])); ?>
+          </textarea>
+        </td>
     </tr>
     <?php endif; ?>
+    </tbody>
+<?php } ?>
+<?php } ?>
 </table>
 <br />
 <?php if ($d_job): ?>
