@@ -110,6 +110,14 @@ form#fields h3  {
   top:8em;
   color: #fff;
 }
+/*
+tbody.part_box {
+  display: none;
+}
+input#part_head:checked ~ tbody.part_box {
+  display: block;
+}
+*/
 input#fieldsCheck:checked + .fields{right:0em;}
 /* action */
 .action  {
