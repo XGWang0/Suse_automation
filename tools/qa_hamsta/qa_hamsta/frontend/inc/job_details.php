@@ -34,7 +34,6 @@
     }
 
     $job = JobRun::get_by_id(request_int("id"));
-    $job_part = $job->get_part_id();
 
     $d_return = request_int("d_return");
     $d_job= request_int("d_job");
@@ -47,31 +46,22 @@ if (isset ($user) && $delete_job) {
     $html_title = "Job ".$job->get_id();
 
 	# Figure out if there are any links to qadb inside the log output (supports multiple submission links from any host, qadb, elzar, etc.)
-	//$html_log = $job->get_last_log();
-        $log_table = array();
-	$qadb_link = array();
-	$qadb_sm = array();
-	foreach ($job_part as $id) {
-	    $suts = $job->get_machines_by_part_id($id);
-            $part_log = $job->get_job_log_entries($id);
-            foreach ($suts as $sut) {
-		$mid = $sut['machine_id'];
-                $log_table[$id][$mid] = $part_log[$mid];
-		# concat the new log entries to the old $html_log, to make the old code working
-		# TODO: fix (there might be a separate DB field for QADB link)
-	        $html_log = "";
-		foreach( $part_log[$mid] as $row )
-			$html_log .= $row->get_log_text() . "\n";
-			
-		preg_match_all("/http:[^ ]+.php\?submission_id=(\d+)/", $html_log, $logMatches);
-		if( empty($logMatches[0]) ) {
-			$qadb_link[$id][$mid]="";
-		} else {
-			$qadb_link[$id][$mid]="has";
-			$qadb_sm[$id][$mid]=$logMatches[0];
-		}
-	    }
+	$html_log = $job->get_last_log();
+	$log_table = $job->get_job_log_entries();
+	
+	# concat the new log entries to the old $html_log, to make the old code working
+	# TODO: fix (there might be a separate DB field for QADB link)
+	foreach( $log_table as $row )
+		$html_log .= $row->get_log_text() . "\n";
+		
+	preg_match_all("/http:[^ ]+.php\?submission_id=(\d+)/", $html_log, $logMatches);
+	if( empty($logMatches[0]) ) {
+		$qadb_link="";
+	} else {
+		$qadb_link="has";
+		$qadb_sm=$logMatches[0];
 	}
+
 	genRefresh("job_details");
 
 ?>
