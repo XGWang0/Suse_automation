@@ -78,6 +78,7 @@ function get_guest_ip {
    sleep 60 # Waiting guest in static ip mode.
    ip neigh flush dev $GUEST_IF_SRC_DEV #Clear arp cache.
    bridge_ip=`ifconfig2ip ip $GUEST_IF_SRC_DEV`
+   net_id=${bridge_ip%.*}
    echo Start guest ip detection. `date`
    for ip in $(seq 1 254); do #Assume the subnet mask is 255.255.255.0, This thing takes time if there are too many ip in a subnet.
      ping -c 1 $net_id.$ip>/dev/null
