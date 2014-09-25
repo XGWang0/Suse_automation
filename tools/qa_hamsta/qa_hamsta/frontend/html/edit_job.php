@@ -49,7 +49,8 @@
         $totalRoles = 5;
         $totalParts = 10;
         $partCount = 1;
-        $jobPartMap = array( array("name" => "", "id" => 1) );
+        $defaultPartName = "default";
+        $jobPartMap = array( array("name" => $defaultPartName, "id" => 1) );
         $jobRoleMap = array( array(
                               'name' => '',
                               'min' => '',
@@ -73,6 +74,7 @@
                 $jobInfo['motd'] = $xml->config->motd;
                 $jobInfo['mailto'] = $xml->config->mail;
                 $jobInfo['repolink'] = $xml->config->repository;
+                $defaultPartName = "#null#";
                 foreach($xml->config->rpm as $rpm) {
                     $jobInfo['rpmlist'] .= "$rpm ";
                 }
@@ -109,21 +111,20 @@
                             $jobRoleMap[$i]['rpm'] .= "$rpm ";
                         }
                         $role_name = $role['name'];
-                        $c=0;
                         foreach($role->commands as $command) {
-                            $jobRoleMap[$i]['part_id'][$c] = $command->attributes()->part_id; 
+			    $myId = (int)$command->attributes()->part_id;
+                            $jobRoleMap[$i]['part_id'][$myId] = $command->attributes()->part_id; 
                             foreach( $sections as $sec ) {
                                 $j = 0;
                                 if(isset($command->$sec)) {
                             	# get command map
                                     foreach($command->$sec->command as $cmd)
                                     {
-                                        $jobCommandMap[$i][$c][$sec][$j++] = array('action'=>$cmd['execution'],
+                                        $jobCommandMap[$i][$myId][$sec][$j++] = array('action'=>$cmd['execution'],
                                                                                    'commands'=>$cmd);
                                     }
                                 }
                             }
-                            $c++;
                         }
                         $i++;
                     }
@@ -197,12 +198,12 @@
     <div>
     <?php
         for($i=0;$i<$totalParts;$i++) {
-            $myPartname = ($i<$partCount)?$jobPartMap[$i]['name']:"";
+            $myPartname = ($i<$partCount)?$jobPartMap[$i]['name']:$defaultPartName;
             $myId = ($i<$partCount)?$jobPartMap[$i]['id']:($i+1);
             echo "    <div id=\"part_$i\">\n    <p>Part ".$myId.":";
             echo '<input id="part_'.$i.'" style="span-left:100px" type="text" size="20" ';
-            echo 'name="job_parts[]" placeholder="Enter part name" title="required: Given a part name" value="'.
-                 $myPartname.'"></p>';
+            echo 'name="job_parts[]" placeholder="Enter part name" onblur="syncName(this,\'part\')" '.
+                 'title="required: Given a part name" value="'.$myPartname.'"></p>';
             echo "\n    </div>\n";
         }
     ?>
@@ -373,15 +374,14 @@
         }
         $partCustom = "";
         for($c=0;$c<$totalParts;$c++) {
-            $myPartName = "Part_".(($c < $partNum)?$part_id[$c]:"#"); 
-            $myPartId = ($c < $partNum)?$part_id[$c]:""; 
+            $myPartName = ($c < $partCount)?$jobPartMap[$c]['name']:"#null#";
             $rolePartId = "rpart_$i"."_$c";
             $rolePartLabel = "Part_$i$c";
             $secCustom = "";
             foreach( $sections as $sec ) {
                 $sectionId = "$sec$i$c";
-      	        $commands = (isset($jobCommandMap[$i][$c][$sec][0]['commands'])?
-                                    $jobCommandMap[$i][$c][$sec][0]['commands']:"");
+      	        $commands = (isset($jobCommandMap[$i][$c+1][$sec][0]['commands'])?
+                                    $jobCommandMap[$i][$c+1][$sec][0]['commands']:"");
                 $tagArray = array('/SECTION_ID/', '/SECNAME/', '/COMMAND_CONTENT/');
                 $valueArray = array($sectionId, $sec, $commands);
                 $secCustom .= preg_replace($tagArray, $valueArray, $secPanel);
@@ -389,11 +389,11 @@
             $tagArray = array(
                               '/ROLE_PART_ID/',
                               '/ROLE_PART_LABEL/',
+                              '/PART_INDEX/',
                               '/MYPARTNAME/',
-                              '/MYPARTID/',
                               '/SECTION_CONTENT/'
             );
-            $valueArray = array($rolePartId, $rolePartLabel, $myPartName, $myPartId, $secCustom);
+            $valueArray = array($rolePartId, $rolePartLabel, $c, $myPartName, $secCustom);
             $partCustom .= preg_replace($tagArray, $valueArray, $partPanel);
         }
         $tagArray = array(
@@ -406,10 +406,7 @@
                           '/DEFAULT_LEVEL/',
                           '/ROLE_REPO/',
                           '/ROLE_RPM/',
-                          '/ROLE_MOTD/',
-                          '/TOTAL_PARTS/',
-                          '/ROLE_PART_NUM/',
-                          '/ROLE_PART_SELECT/'
+                          '/ROLE_MOTD/'
         );
         $valueArray = array(
                             $partCustom,
@@ -421,10 +418,7 @@
                             $default_level,
                             $jobRoleMap[$i]['repo'],
                             $jobRoleMap[$i]['rpm'],
-                            $jobRoleMap[$i]['motd'],
-                            $totalParts,
-                            $partNum,
-                            $partOption
+                            $jobRoleMap[$i]['motd']
         );                            
         $roleCustom .= preg_replace($tagArray, $valueArray, $roleTemplate); 
     }

@@ -33,16 +33,10 @@ var rpart_count = new Array();
 function showHide(idPre, showNum, total) {
 	for(e=0; e<total; e++)
 	{
-		var myTag = 'input' + idPre + e;
-		var myTitle = $(myTag).attr('title');
 		if(e < showNum) { 
 			$(idPre + e).show();
-			myTitle = myTitle.replace(/^optional/,"required");
-			$(myTag).attr('title', myTitle);
 		} else {
 			$(idPre + e).hide();
-			myTitle = myTitle.replace(/^required/,"optional");
-			$(myTag).attr('title', myTitle);
 		}
 	}
 }
@@ -54,32 +48,10 @@ function showHide(idPre, showNum, total) {
  */
 function alignPartNumber() {
         var num = parseInt($("select[name='partnumber']").val());
-	$("select[name='roleparts[]']").each(function() {
-		var rParts = parseInt($(this).val());
-                var pSize = $(this).children().size();
-                if(pSize > num) {
-			//delete extra options from select list
-			$(this).children().each(function() {
-				if(parseInt($(this).text()) > num)
-					$(this).remove();
-				if(rParts>num && parseInt($(this).text())==num)
-					$(this).attr("selected","selected");
-			});
-		} else {
-			//add more options into select list
-			for( var i=pSize+1; i<=num; i++)
-			{
-				var str = "<option value=\""+i+"\">"+i+"</option>";
-                                $(this).append(str);
-			}
-		}
-                //show/hide part cards in parts limit.
-		if(num < rParts)
-		{
-			var tag = "#"+$(this).attr("id")+"_";
-			showHide(tag, num, 10);
-		}
-	});
+	for(i=0;i<5;i++)
+	{
+		showHide('#rpart_' + i + '_', num, 10);
+	}
 }
 
 $(document).ready(function(){
@@ -90,8 +62,7 @@ $(document).ready(function(){
 	var part_count = document.getElementById('part_count').value;
 	for(i=0; i<5; i++)
 	{
-		rpart_count[i] = document.getElementById('rpart_count'+i).value;
-		showHide('#rpart_' + i + '_', rpart_count[i], 10);
+		showHide('#rpart_' + i + '_', part_count, 10);
 	}
 	//$('#singlemachine_form').hide();
 	//$('#multimachine_form').show();
@@ -176,6 +147,35 @@ var getJobType =  function(select)
                 return jobtype;
         }
         return NULL;
+}
+
+function clickChild(id) {
+        $(id).click();
+}
+
+function syncName(input,type)
+{
+	var id = input.id;
+
+        if(input.value == "")
+	{
+		alert("Please input a "+type+" name!");
+		return;
+	}
+	if(type == "part")
+	{
+		for(i=0;i<5;i++)
+		{
+			var tid = "#role"+i+id;
+			var target = $(tid);
+			if(input.value != target.text())
+				target.text(input.value);
+		}
+	} else {
+		var target = $("#"+id+"_name");
+		if(input.value != target.text())
+			target.text(input.value);
+	}
 }
 
 var getNumber = function(select, type, total)
