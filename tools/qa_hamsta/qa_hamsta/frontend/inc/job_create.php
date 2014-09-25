@@ -44,9 +44,8 @@
 	$repository=request_str('repolink');
 	$roleNumber=$_POST['rolenumber'];
 	$partNumber=$_POST['partnumber'];
-	$roleParts=$_POST['roleparts'];
+	$maxPart=10; 
 	$commandsArray = request_array("commands_content");
-	//var_dump($commandsArray);
 	# get custom parameters, put into an array
 	$paramFlag = request_str("param_flag");
 	$existFileName = request_str("existfilename");
@@ -149,22 +148,20 @@ PARAM_VALUE
 
 	# get the roles and commands
 	$rolesCustom = "";
-	$preParts = 0;
-	//var_dump($commandsArray);
 	for( $i=0; $i<$roleNumber; $i++ )
 	{
 		$commandsCustom = "";
 		$cmdCustomArray = array();
-		$partsID = request_array("rpart_id".$i);
-//		var_dump($partsID);
-		$numParts = count($partsID);
-		for( $p=0; $p<$roleParts[$i]; $p++ ) {
-			$rolePartId = $partsID[$p];
-			$cmdCustomArray[$rolePartId] = $ind6."<commands part_id=\"$rolePartId\">\n";
+		for( $p=0; $p<$partNumber; $p++ ) {
+                        $validPart = false;
+                        $sectionAll = "";
+                        $cmdCustomArray[$p] = "";
 			for( $j=0; $j<count($sections); $j++ ) {
-				$cmdLine = $commandsArray[$j+4*($preParts+$p)];
-				if( $cmdLine == "" && $sections[$j] != "worker" )
-					continue;
+				$cmdLine = $commandsArray[$j+4*($maxPart*$i+$p)];
+				if( $cmdLine != "" ) 
+                                    $validPart = true;
+				else
+				    continue;
 				$cmdTmp = $ind8.'<'.$sections[$j].">\n";
 				$cmdTmp .= str_replace("COMMANDS", $cmdLine, $commandString);
 				if($sections[$j] == "worker") {
@@ -172,13 +169,16 @@ PARAM_VALUE
 							   $ind10.'<timeout>300000</timeout>'."\n";
 				}
 				$cmdTmp .= $ind8.'</'.$sections[$j].">\n"; 
-				$cmdCustomArray[$rolePartId] .= $cmdTmp;
+				$sectionAll .= $cmdTmp;
 			}
-			$cmdCustomArray[$rolePartId] .= $ind6."</commands>\n";
+                        if( $validPart ) {
+			    $cmdCustomArray[$p] = $ind6.'<commands part_id="'.($p+1)."\">\n";
+                            $cmdCustomArray[$p] .= $sectionAll;
+			    $cmdCustomArray[$p] .= $ind6."</commands>\n";
+                        }
 		}
-		ksort($cmdCustomArray);
+		//ksort($cmdCustomArray);
 		$commandsCustom = implode($cmdCustomArray);
-		$preParts += $numParts;
 		
 		# Now compose role config tag
 		if($roleDbglevel[$i] != "") 
@@ -200,8 +200,6 @@ PARAM_VALUE
 			$roleTmp = str_replace($roleMacro[$m],$roleMacroFill[$m],$roleTmp);
 		$rolesCustom .= $roleTmp;
 	}
-
-//	$rolesCustom = "<roles>\n" . $rolesCustom . "\n	</roles>";	
 
 	# get the parameters
 	$parametersCustom = "";
@@ -269,7 +267,8 @@ PARAM_VALUE
 	{
 		$fileContent = file_get_contents($existFileName);
 		preg_match("/<parameters>.*<\/parameters>/is", $fileContent, $results);
-		$parametersCustom = $results[0] . "\n";
+		if(isset($results[0]))
+			$parametersCustom = $results[0] . "\n";
 	}
 
 	# Let's begin to create the new XML file
@@ -293,7 +292,6 @@ PARAM_VALUE
 	if (strpos ($motdmsg, '[Custom job]') === false) {
 		$motdmsg = '[Custom job]: ' . $motdmsg;
 	}
-
 	$fileJob = fopen($filename, "w");
 	if($fileJob == NULL)
 		$errors[] = "Can not open job file to write";
@@ -305,7 +303,7 @@ PARAM_VALUE
 						   "-e \"s/RPMLIST/$rpmlist/g\" ".
 						   "-e \"s/DESCRIPTION/$description/g\" ".
 						   "-e \"s/MOTDMSG/$motdmsg/g\" ".
-						   "-e \"s/<repository>t[^>]\+</<repository>$repository</\" ".
+						   "-e \"s/REPO/$repository/g\" ".
 						   "-e \"/^\s*$/d\" $filename";
 	system($modGlbConfig);
 
