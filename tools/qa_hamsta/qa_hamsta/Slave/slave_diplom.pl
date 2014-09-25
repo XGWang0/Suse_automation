@@ -463,7 +463,6 @@ sub process_request {
 		last;
             } elsif ($incoming =~ /^ping$/) {
                 print $sock "pong\n" ;
-		last;
             } elsif ($incoming =~ /^reserve$/) {
 		my $response = &reserve($ip_addr);
 		$response .= "The SUT was reserved by other hamsta master already, and the reserved master ip was $Slave::reserved_hamsta_master_ip!\n" if ( $response =~ /failed/ );

@@ -251,10 +251,7 @@ sub machine_reservations($)
 ### job functions
 
 sub job_set_status($$) # job_id, job_status_id
-{	
-    $dbc->update_query('UPDATE job_on_machine SET job_status_id=? WHERE job_id=?',$_[1],$_[0]);
-    return $dbc->update_query('UPDATE job SET job_status_id=? WHERE job_id=?',$_[1],$_[0]);
-}
+{	return $dbc->update_query('UPDATE job SET job_status_id=? WHERE job_id=?',$_[1],$_[0]); }
 
 sub job_get_status($) # job_id
 {	return $dbc->scalar_query('SELECT job_status_id FROM job_on_machine WHERE job_id=?',$_[0]);	}
@@ -266,7 +263,7 @@ sub job_set_aimed_host($$) # job_id, aimed_host
 {	return $dbc->update_query('UPDATE job SET aimed_host=? WHERE job_id=?',$_[1],$_[0]);	}
 
 sub job_get_details($) # job_id
-{	return $dbc->row_query('SELECT xml_file,user_id,short_name FROM job WHERE job_id=?',$_[0]);	}
+{	return $dbc->row_query('SELECT xml_file,user_id,short_name,job_status_id,aimed_host FROM job WHERE job_id=?',$_[0]);	}
 
 sub job_delete($) # job_id
 {	return $dbc->update_query('DELETE FROM job WHERE job_id=?',$_[0]);	}
@@ -278,7 +275,7 @@ sub job_stop_all($) # machine_id
 {	return $dbc->update_query('UPDATE job SET job_status_id=3 WHERE aimed_host=?',$_[0]);	}
 
 sub job_list_by_status($) # job_status_id
-{	return $dbc->vector_query('SELECT job_id FROM job WHERE job_status_id=?',$_[0]);	}
+{	return $dbc->matrix_query('SELECT xml_file,user_id,short_name,job_id,aimed_host,description,created FROM job WHERE job_status_id=?',$_[0]);	}
 
 ### job_on_machine_functions
 
@@ -288,8 +285,11 @@ sub job_on_machine_list($) # job_id
 sub job_on_machine_set_status($$) # job_on_machine_id, job_status_id
 {	return $dbc->update_query("UPDATE job_on_machine SET job_status_id=? WHERE job_on_machine_id=?",$_[1],$_[0]);	}
 
+sub job_on_machine_get_status($) # job_on_machine_id
+{	return $dbc->scalar_query("SELECT job_status_id FROM job_on_machine WHERE job_on_machine_id=?",$_[0]);}
+
 sub job_on_machine_delete_by_job_id($) # job_id
-{	return $dbc->update_query('DELETE FROM job_on_machine WHERE job_on_machine_id=?',$_[0]);	}
+{	return $dbc->update_query('DELETE FROM job_on_machine WHERE job_id=?',$_[0]);	}
 
 #sub job_on_machine_set_return($$$) # job_on_machine_id, return_status, return_xml
 #{	return $dbc->update_query('UPDATE job_on_machine SET return_status=?,return_xml=? WHERE job_on_machine_id=?',$_[1],$_[2],$_[0]);	}
@@ -305,7 +305,6 @@ sub job_on_machine_get_by_machineid_status($$) # machine_id status_id
 
 sub job_on_machine_start($) # job_on_machine_id
 {	return $dbc->update_query('UPDATE job_on_machine SET job_status_id=2 WHERE job_on_machine_id=?',$_[0]);	}
-#{	return $dbc->update_query('UPDATE job_on_machine SET start=NOW(), job_status_id=2 WHERE job_on_machine_id=?',$_[0]);	}
 
 sub job_on_machine_stop($) # job_on_machine_id
 {	return $dbc->update_query('UPDATE job_on_machine SET job_status_id=4 WHERE job_on_machine_id=?',$_[0]);	}
