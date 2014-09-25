@@ -1339,17 +1339,18 @@ sub process_hamsta_reservation () {
     return if &handle_can_not_send_job_to_machine($host, $sock_handle, $user_id);
 
 
+    my $port = $qaconf{hamsta_client_port};
     my $sock;
 
     eval {
 	$sock = IO::Socket::INET->new(
 	PeerAddr => "$host",
-	PeerPort => $qaconf{hamsta_client_port},
+	PeerPort => $port,
 	Proto   => 'tcp'
 	);
     };
-    if($@) {
-	&log_and_send_sock_msg(LOG_ERR, $sock_handle, "Can not connect to ip for $action:$@");
+    if(!$sock || $@) {
+	&log_and_send_sock_msg(LOG_ERR, $sock_handle, "Can not connect to ip port $port for $action :$@ $!");
 	return 0;
     }
 
