@@ -133,22 +133,22 @@ fi
 
 # Get the local IP
 echo "Retrieving your local IP address..."
-localIp=`ifconfig br0 | grep 'inet addr' | cut -d: -f2 | awk '{print $1;}'`
+localIp=`ifconfig2ip ip br0`
 if [ "$localIp" == "" ]
 then
-	localIp=`ifconfig br1 | grep 'inet addr' | cut -d: -f2 | awk '{print $1;}'`
+	localIp=`ifconfig2ip ip br1`
         if [ "$localIp" == "" ]
         then
-			localIp=`ifconfig br2 | grep 'inet addr' | cut -d: -f2 | awk '{print $1;}'`
+			localIp=`ifconfig2ip ip br2`
 			if [ "$localIp" == "" ]
 			then
-				localIp=`ifconfig eth0 | grep 'inet addr' | cut -d: -f2 | awk '{print $1;}'`
+				localIp=`ifconfig2ip ip eth0`
 				if [ "$localIp" == "" ]
 				then
-					localIp=`ifconfig eth1 | grep 'inet addr' | cut -d: -f2 | awk '{print $1;}'`
+					localIp=`ifconfig2ip ip eth1`
 					if [ "$localIp" == "" ]
 					then
-						localIp=`ifconfig eth2 | grep 'inet addr' | cut -d: -f2 | awk '{print $1;}'`
+						localIp=`ifconfig2ip ip eth2`
 						if [ "$localIp" == "" ]
 						then
 							echo "ERROR: Could not get IP address from local box."

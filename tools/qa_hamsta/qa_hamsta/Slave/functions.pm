@@ -146,9 +146,9 @@ sub get_slave_ip() {
    my $hint_match=-1;
 
    my $dev=(split /\s/, `route -n | grep "^0.0.0.0"`)[-1]; #get the main communication device
-   open(CMDFH, "ifconfig $dev |") || die "error: $?";
+   open(CMDFH, "ifconfig2ip dev $dev |") || die "error: $?";
    foreach (<CMDFH>) {
-      if ($_=~/inet (\w+):(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/) {
+      if ($_=~/inet (addr:)?(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/) {
          $ip = "$2.$3.$4.$5";
          my $ip_num=($2<<24) | ($3<<16) | ($4<<8) | $5;
          my $match=defined $hint_ip ? ($hint_ip & $ip_num) : 0;

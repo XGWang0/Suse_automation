@@ -39,6 +39,7 @@ Requires:       php-gmp
 Requires:       php-pdo
 Requires:       phplot
 Requires:       tblib
+Requires:       libqainternal
 Provides:       qadb
 Obsoletes:      qadb
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build

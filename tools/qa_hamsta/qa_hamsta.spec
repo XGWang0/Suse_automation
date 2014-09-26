@@ -101,6 +101,7 @@ Requires:       perl-XML-Simple
 Requires:       qa_libperl
 Requires:       screen
 Requires:       hamsta-common
+Requires:       libqainternal
 Recommends:     hamsta-cmdline
 # Since openSUSE 13.1 and SLES 12 the switch statement is provided by
 # this package
