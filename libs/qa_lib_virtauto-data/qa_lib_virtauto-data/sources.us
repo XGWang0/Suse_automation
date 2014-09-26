@@ -159,7 +159,7 @@ source.nfs.sles-11-sp3-32=nfs://xen100.virt.lab.novell.com/install/sles11sp3/i38
 source.nfs.sles-11-sp3-64=nfs://xen100.virt.lab.novell.com/install/sles11sp3/x86_64
 
 source.ftp.sles-12-fcs-64=ftp://xen100.virt.lab.novell.com/install/sles12/x86_64
-source.iso.sles-12-fcs-64=/mnt/iso/sles12b9/SLE-12-Server-DVD-x86_64-Beta9-DVD1.iso
+source.iso.sles-12-fcs-64=/mnt/iso/sles12/SLE-12-Server-DVD-x86_64-DVD1.iso
 source.nfs.sles-12-fcs-64=nfs://xen100.virt.lab.novell.com/install/sles12/x86_64
 
 # RHEL
@@ -310,7 +310,7 @@ source.iso.sled-11-sp3-64=/mnt/iso/sled11sp3/SLED-11-SP3-DVD-x86_64-GM-Media1.is
 source.iso.sled-11-sp3-32=/mnt/iso/sled11sp3/SLED-11-SP3-DVD-i586-GM-Media1.iso
 
 source.ftp.sled-12-fcs-64=ftp://xen100.virt.lab.novell.com/install/sled12/x86_64
-source.iso.sled-12-fcs-64=/mnt/iso/sled12b9/SLE-12-Desktop-DVD-x86_64-Beta9-DVD1.iso
+source.iso.sled-12-fcs-64=/mnt/iso/sled12/SLE-12-Desktop-DVD-x86_64-DVD1.iso
 
 # Windows
 

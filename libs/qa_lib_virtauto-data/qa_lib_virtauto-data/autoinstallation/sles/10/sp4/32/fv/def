@@ -46,7 +46,7 @@
     <loader_type>grub</loader_type>
     <sections config:type="list">
       <section>
-        <append>resume=/dev/hda1 splash=silent showopts</append>
+        <append>resume=/dev/hda1 splash=silent acpi=off showopts</append>
         <image>/boot/vmlinuz</image>
         <initial>1</initial>
         <initrd>/boot/initrd</initrd>
