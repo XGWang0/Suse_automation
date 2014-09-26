@@ -180,14 +180,12 @@ sub run {
     #Check repository and add them
     if( $self->{'data'}->{'config'}->{'repository'} )  {
         my @repos = @{$self->{'data'}->{'config'}->{'repository'}};
-        my $url = [];
+        my @url;
 
-        foreach my $repo (@repos) {
-            push @$url, $repo->{'content'};
-        }
+        map{ push @url, $_->{'content'}; } @repos;
 
-        &log(LOG_INFO, "Repositories to add if missing: \n%s", join("\n", @$url));
-        if( &add_repository($url) ) {
+        &log(LOG_INFO, "Repositories to add if missing: \n%s", join("\n", @url));
+        if( &add_repos(@url) ) {
             &log(LOG_ERROR, "Repository adding failed, aborting");
             return;
         }

@@ -42,6 +42,7 @@ BEGIN {
 		&install_rpms
 		&read_xml
                 &section_run
+                &add_repos
 	);
 	%EXPORT_TAGS	= ();
 	@EXPORT_OK	= qw(
@@ -115,15 +116,17 @@ sub install_rpms # $upgrade_flag, @basenames
 	return $ret;
 }
 
-# add_repository: add repositories by zypper
-# input: $url - ref to array which composed by repo urls
-# return: true or fails
-sub add_repository
+# add_repos: add repositories by zypper
+# input: @url - array which composed by repo urls
+# return: integer 
+#    0 - all success
+#    1 - some repos failed
+sub add_repos
 {
-    my $url = shift;
+    my @url = @_;
 
     my $ret = 0;
-    foreach my $u (@$url) {
+    foreach my $u (@url) {
         my $exists = `zypper lr -u |grep "$u"`;
         next if ( $exists ne "" );
 
