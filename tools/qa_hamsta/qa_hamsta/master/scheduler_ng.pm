@@ -96,6 +96,8 @@ sub schedule_jobs() {
                 my @has_connecting = &job_on_machine_get_by_machineid_status($machine_id,JS_CONNECTING);
                 my @has_running = &job_on_machine_get_by_machineid_status($machine_id,JS_RUNNING);
                 my $busy_status = &machine_get_busy($machine_id);
+		my $machine_status = &machine_get_status($machine_id);
+		$unavailable_tag++ if($machine_status != MS_UP);
                 $unavailable_tag++ if( @has_connecting || @has_running || $busy_status || !&machine_has_perm($machine_id,'job') );
                 $unavailable_tag++ if( $job_file =~ /reinstall/ && !&machine_has_perm($machine_id,'install') );
             }else{

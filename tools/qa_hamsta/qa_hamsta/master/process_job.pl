@@ -467,7 +467,7 @@ sub process_job_on_machine ($)
 	&TRANSACTION( 'job_on_machine','machine' );
 	#&job_on_machine_set_return($job_on_machine_id,$return_codes);
 	#&job_on_machine_set_summary($job_on_machine_id,join("\n",@summary)) if (@summary);
-	&job_on_machine_set_result_link($job_on_machine_id,join("\n",@result_link)) if (@result_link);
+	#&job_on_machine_set_result_link($job_on_machine_id,join("\n",@result_link)) if (@result_link);
 	&machine_set_busy($machine_id,0);
 	&TRANSACTION_END;
     # REMOVE USELESS RETURN OF job_on_machine
