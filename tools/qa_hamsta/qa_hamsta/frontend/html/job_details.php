@@ -36,15 +36,15 @@
 <table class="list text-main">
     <tr>
         <th>Element</th>
-        <th>Value</th>
+        <th colspan="<?php echo $roleNumber?>">Value</th>
     </tr>
     <tr>
         <td>ID</td>
-        <td><?php echo($job->get_id()); ?></td>
+        <td colspan="<?php echo $roleNumber?>"><?php echo($job->get_id()); ?></td>
     </tr>
     <tr>
         <td>Status</td>
-        <td>
+        <td colspan="<?php echo $roleNumber?>">
 	  <span class="<?php echo($job->get_status_string()); ?>">
 	  <?php echo($job->get_status_string()); ?>
 	  </span>
@@ -52,49 +52,70 @@
     </tr>
     <tr>
         <td>Name</td>
-        <td><?php echo($job->get_name()); ?></td>
+        <td colspan="<?php echo $roleNumber?>"><?php echo($job->get_name()); ?></td>
     </tr>
 	<tr>
 		<td>Description</td>
-		<td><?php echo(htmlspecialchars($job->get_description())); ?></td>
+		<td colspan="<?php echo $roleNumber?>"><?php echo(htmlspecialchars($job->get_description())); ?></td>
 	</tr>
+    <tr>
+        <td></td>
+<?php
+foreach ($job_roles as $id => $name) {
+    echo "<th>".strtoupper($name)."</th>";
+}
+?>
+    </tr>
+
 <?php
 $i=1;
 foreach ($job_part as $part_id) {
     $machines = $job->get_machines_by_part_id($part_id);
-    foreach ($machines as $id => $values) {
-	$sid = $values['job_status_id'];
-        $status = $job->get_status_string($sid);
 ?>
     <tr>
-      <th>
-        <input type="checkbox" id="part_head">
-        <label for="part_head">Part:<?php echo $i++;?></label>
+      <th rowspan="<?php echo $maxSuts?>" class="vtop">
+        <input type="checkbox" id="part_log" name="part_<?php echo $i ?>" onChange="logToggle(this)">
+        <label for="part_log">Part:<?php echo $i;?></label>
       </th>
-      <th><span class="<?php echo $status; ?>"><?php echo $status; ?></span>
-      <?php
-	  echo('<a href="index.php?go=machine_details&amp;id='
-	       . $id . '">'
-	       . Machine::get_by_id($id)->get_hostname()
-	       . '</a>');
-      ?>
-      </th>
-    </tr>
-    <tbody class="part_box">
+<?php
+for($m=0;$m<$maxSuts;$m++) {
+foreach ($job_roles as $id => $name) {
+    $role_suts = $roleMachines[$id];
+    if(isset($role_suts[$m])) {
+        $mid = $role_suts[$m];
+        if(isset($machines[$mid])) {
+            $sut = $machines[$mid];
+	    $sid = $sut['job_status_id'];
+            $status = $job->get_status_string($sid);
+	    $hostname = Machine::get_by_id($mid)->get_hostname();
+?>
+      <td>
+      <table id="log_tbl" class="list text-main">
+      <tr>
+        <th>
+          <span class="<?php echo $status; ?>"><?php echo $status; ?></span>
+        </th>
+        <th width="100%">
+         <a href="index.php?go=machine_details&amp;id=<?php echo $mid?>">
+         <?php echo $hostname ?>
+	 </a>
+        </th>
+      </tr>
+    <tbody id="part_<?php echo $i ?>_log" class="log_body">
     <tr>
         <td>Started</td>
-        <td><?php echo($job->get_started($part_id,$id)); ?></td>
+        <td><?php echo($job->get_started($part_id,$mid)); ?></td>
     </tr>
     <tr>
         <td>Stopped</td>
-        <td><?php echo($job->get_stopped($part_id,$id)); ?></td>
+        <td><?php echo($job->get_stopped($part_id,$mid)); ?></td>
     </tr>
     <tr>
 	<td>QADB Results</td>
+	<td>
 <?php
-	print "<td>";
-	if( $qadb_link[$part_id][$id] != "" ) {
-		foreach($qadb_sm[$part_id][$id] as $sm) {
+	if( $qadb_link[$part_id][$mid] != "" ) {
+		foreach($qadb_sm[$part_id][$mid] as $sm) {
 			$smn=preg_replace('/.*=/','',$sm);
 			echo "<a href=\"$sm\">Submission #$smn</a> &nbsp; ";
 		}
@@ -102,38 +123,60 @@ foreach ($job_part as $part_id) {
 		echo "Not available";
 	}
 ?>
+       </td>
     </tr>
     <tr>
         <td>Last output</td>
 	<td>
 <?php
-	if( count($log_table[$part_id][$id]) > 0 ) {
-		echo "<div id=\"log_filter\"></div>\n";
+	if( count($log_table[$part_id][$mid]) > 0 ) {
+		echo "<div id=\"log_filter$id$part_id$mid\" class=\"logs\"></div>\n";
 		echo "<div id=\"logtextarea\" style=\"height:20em; overflow:auto;\">\n";
-		echo "<table id=\"job_log\" class=\"logs\">\n";
+		echo "<table id=\"job_log$id$part_id$mid\" class=\"logs\" width=\"100%\">\n";
 		echo "<thead><tr><th>Date/Time</th><th>Type</th><th>Process</th><th>Message</th></tr></thead>\n";
-		foreach( $log_table[$part_id][$id] as $row )	{
+		foreach( $log_table[$part_id][$mid] as $row )	{
 			$cls = sprintf("class=\"%s\"",$row->get_log_type());
 			printf("<tr $cls><td><nobr>%s</nobr></td><td>%s</td><td>%s</td><td>%s</td></tr>\n", $row->get_log_time_string(), $row->get_log_type(), $row->get_log_what(), $row->get_log_text());
 		}
 		echo "</table></div>\n";
-		echo "<script>scrollLog('logtextarea');filter_init('job_log','log_filter',1);</script>\n";
+		echo "<script>scrollLog('logtextarea');filter_init('job_log$id$part_id$mid','log_filter$id$part_id$mid',1);</script>\n";
 	}?>
 	</td>
     </tr>
-    <?php if (!$d_return): ?>
     <tr>
         <td>Job part XML</td>
         <td>
-          <textarea rows="20" cols="160" readonly="readonly">
-          <?php echo(file_get_contents($values['xml_file'])); ?>
+          <textarea class="job_xml" rows="20" cols="90" readonly="readonly">
+          <?php echo(file_get_contents($sut['xml_file'])); ?>
           </textarea>
         </td>
     </tr>
-    <?php endif; ?>
+    <tr>
+        <td>Action</td>
+        <td>
+<?php if(isset ($user) &&  in_array($status, array('running','connecting') )) { ?>
+- <a href="index.php?go=job_details&amp;id=<?php echo $job->get_id().'&amp;part_id='.$part_id.'&amp;machine_id='.$mid; ?>&amp;finished_job=1" class="text-main">Set finished flag</a>
+<?php } ?>
+        </td>
+    </tr>
     </tbody>
+    </table>
+    </td>
+<script>
+var TSort_Data = new Array ('job_log<?php echo $id.$part_id.$mid; ?>','d');
+var TSort_Icons = new Array ('<span class="text-blue sorting-arrow">&uArr;</span>', '<span class="text-blue sorting-arrow">&dArr;</span>');
+tsRegister();
+</script>
+<?php } else { ?>
+    <td></td>        
+<?php } ?>
+<?php } else { ?>
+    <td></td>
 <?php } ?>
 <?php } ?>
+</tr>
+<?php } ?>
+<?php $i++; } ?>
 </table>
 <br />
 <?php if ($d_job): ?>
@@ -147,9 +190,6 @@ foreach ($job_part as $part_id) {
 <?php else: ?>
 <a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;d_return=1&amp;d_job=<?php echo($d_job); ?><?php echo($refresh_interval.$xml_norefresh); ?>" class="text-main">Show returned data</a>
 <?php endif; ?>
-<?php if(isset ($user) &&  in_array($job->get_status_string(), array('running','connecting') )) { ?>
-- <a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;finished_job=1" class="text-main">Set finished flag</a>
-<?php } ?>
 	<!--td>
 -	<a href="index.php?xml_file_name=<php echo($job->get_xml_filename()); ?>&amp;go=machines&amp;action=machine_send_job&amp;machines[a_machines]=a_machines&amp;a_machines[0]=<php echo($job->get_machine()->get_id()); >" class="text-main">Resend job</a>
 	</td-->
@@ -167,29 +207,9 @@ foreach ($job_part as $part_id) {
 <?php endif; ?>
 
 
-<?php if ($d_return): ?>
-
-<h2 class="text-medium text-blue bold">Returned data</h2>
-<table class="list text-main">
-    <tr>
-        <td>Return code</td>
-        <td><?php echo(nl2br(htmlentities($job->get_return_code()))); ?></td>
-    </tr>
-    <tr>
-        <td>Return XML</td>
-        <td><textarea rows="20" cols="120" readonly="readonly"><?php echo($job->get_return_xml_content()); ?></textarea></td>
-    </tr>
-</table>
-
-<?php endif; ?>
 <br>
 <br>
 <?php
 if(! isset($html_refresh_interval)){$html_refresh_interval = 0;};
 echo showRefresh("index.php?go=job_details&amp;id=" . $job->get_id() . "&amp;d_return=" . $d_return . "&amp;d_job=" . $d_job, $html_refresh_interval);
 ?>
-<script>
-var TSort_Data = new Array ('job_log','d');
-var TSort_Icons = new Array ('<span class="text-blue sorting-arrow">&uArr;</span>', '<span class="text-blue sorting-arrow">&dArr;</span>');
-tsRegister();
-</script>

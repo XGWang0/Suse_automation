@@ -35,27 +35,40 @@
 
     $job = JobRun::get_by_id(request_int("id"));
     $job_part = $job->get_part_id();
-
+    $job_roles = $job->get_roles();
+    $roleNumber = count($job_roles);
+    $roleMachines = $job->get_role_machines();
     $d_return = request_int("d_return");
     $d_job= request_int("d_job");
     $delete_job= request_int("finished_job");
 if (isset ($user) && $delete_job) {
-	$job->set_status(4);
-	$job->set_stopped();
+	$part_id = request_int("part_id");
+	$mid = request_int("machine_id");
+	$job->set_status($part_id, $mid, 4);
+	$job->set_stopped($part_id, $mid);
 }
 
     $html_title = "Job ".$job->get_id();
+    #find max number of machines in all roles
+    $maxSuts = 0;
+    foreach ($roleMachines as $id => $data) {
+        $maxSuts = (count($data)>$maxSuts)?count($data):$maxSuts;
+    }
 
 	# Figure out if there are any links to qadb inside the log output (supports multiple submission links from any host, qadb, elzar, etc.)
 	//$html_log = $job->get_last_log();
         $log_table = array();
 	$qadb_link = array();
 	$qadb_sm = array();
+	$partSpan = array();
 	foreach ($job_part as $id) {
 	    $suts = $job->get_machines_by_part_id($id);
             $part_log = $job->get_job_log_entries($id);
+
             foreach ($suts as $sut) {
 		$mid = $sut['machine_id'];
+	        if( !isset($part_log[$mid]) )
+		    $part_log[$mid] = array();
                 $log_table[$id][$mid] = $part_log[$mid];
 		# concat the new log entries to the old $html_log, to make the old code working
 		# TODO: fix (there might be a separate DB field for QADB link)

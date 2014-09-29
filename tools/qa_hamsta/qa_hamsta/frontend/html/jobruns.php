@@ -74,8 +74,7 @@ foreach ($job->get_part_id() as $part_id):
 	<span class="<?php echo $status;?>"><?php echo $status; ?></span>
     </td>
 <?php
-    $subhostname = '<a href="index.php?go=machine_details&amp;id='.$sub_machine['machine_id'].'">'
-    . $hostname . '</a>';
+    $subhostname = '<a href="index.php?go=machine_details&amp;id='.$mid.'">'.$hostname.'</a>';
     print "<td>$subhostname</td>";
 ?>
     <td> <?php echo $sub_machine['start'] ?> </td>
@@ -83,11 +82,11 @@ foreach ($job->get_part_id() as $part_id):
 
 <td>
 <?php
-
-if (isset ($user) && $job->can_cancel()
-    && ($rh->hasReservation ($job->get_machine($sub_machine['machine_id']), $user)
+if (isset ($user) && $job->can_cancel($part_id,$mid)
+    && ($rh->hasReservation ($job->get_machine($mid), $user)
 	|| $user->isAdmin())) {
-	echo "<a href=\"index.php?go=jobruns&amp;action=cancel&amp;id=" . $job->get_id() . "\">Cancel</a>";
+	echo "<a href=\"index.php?go=jobruns&amp;action=cancel&amp;id=". $job->get_id()
+             . "&amp;part_id=". $part_id."&amp;machine_id=". $mid . "\">Cancel</a>";
 }
 else
 {

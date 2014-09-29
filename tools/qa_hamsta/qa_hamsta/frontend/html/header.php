@@ -53,6 +53,7 @@ if( isset($disabled_css) && $disabled_css ) print '<link href="css/disabled.css"
   <script src="js/machines.js" type="text/javascript"></script>
   <script src="../scripts/gs_sortable.js" type="text/javascript"></script>
   <script src="../scripts/jquery.js" type="text/javascript"></script>
+  <script src="js/job_details.js" type="text/javascript"></script>
   <?php if (!empty($html_refresh_uri)): ?>
     <meta http-equiv="refresh" content="<?php echo($html_refresh_interval.";".$html_refresh_uri); ?>">
   <?php endif; ?>
