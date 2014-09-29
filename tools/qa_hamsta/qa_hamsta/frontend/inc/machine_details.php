@@ -32,8 +32,8 @@
     }
 
     $highlight = request_str("highlight");
-
-    $machine = Machine::get_by_id(request_int("id"));
+    $mid = request_int("id");
+    $machine = Machine::get_by_id($mid);
 
     $machine_logs = $machine->get_log_entries($machine->get_id(), 20);
     $machine_logs_number = count($machine_logs);

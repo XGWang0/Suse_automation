@@ -36,6 +36,7 @@
     <tr>
         <th>ID</th>
         <th>Name</th>
+        <th>Part ID</th>
         <th>Status</th>
         <th>Hostname</th>
         <th>Started</th>
@@ -43,26 +44,37 @@
         <th>Actions</th>
     </tr>
 <?php 
-$sub_machine_counts=0;
 foreach ($jobs as $job):
+	$row_flag = false;
 	$job_link='index.php?go=job_details&amp;id='.$job->get_id();
 	#just for the page can print correctly with old format view .
-	$sub_machine_counts = $job->machine_counts();
+	$mCounts = 0;
+	foreach ($job->get_part_id() as $part_id)
+		$mCounts += (int)$job->part_count_machine($part_id);
 ?>
 <tr>
-    <td rowspan="<?php echo $sub_machine_counts; ?>" ><?php echo($job->get_id()); ?></a></td>
-    <td rowspan="<?php echo $sub_machine_counts; ?>" ><?php echo($job->get_name()); ?></td>
+    <td rowspan="<?php echo $mCounts; ?>" >
+      <a href="<?php echo $job_link;?>"><?php echo($job->get_id()); ?></a>
+    </td>
+    <td rowspan="<?php echo $mCounts; ?>" ><?php echo($job->get_name()); ?></td>
 <?php
-    $sub_machines = $job->get_machines(); 
-    foreach($sub_machines as $sub_machine):
+$i=1; 
+foreach ($job->get_part_id() as $part_id):
+    $sid = $job->get_status_id($part_id);
 ?>
-    <td><span class="<?php echo($job->get_status_string($sub_machine['machine_id'])); ?>">
-       <?php echo($job->get_status_string($sub_machine)); ?> </span>
+    <td rowspan="<?php echo $job->part_count_machine($part_id); ?>" ><?php echo $i++;?></td>
+<?php
+    $sub_machines = $job->get_machines_by_part_id($part_id); 
+    foreach($sub_machines as $sub_machine):
+	$mid = $sub_machine['machine_id'];
+	$status = $job->get_status_string($sid[$mid]);
+    	$hostname = Machine::get_by_id($mid)->get_hostname();
+?>
+    <td>
+	<span class="<?php echo $status;?>"><?php echo $status; ?></span>
     </td>
 <?php
-    $submachine=Machine::get_by_id($sub_machine['machine_id']);
-    $subhostname = '<a href="index.php?go=machine_details&amp;id='.$sub_machine['machine_id'].'">'
-    . $submachine->get_hostname() . '</a>';
+    $subhostname = '<a href="index.php?go=machine_details&amp;id='.$mid.'">'.$hostname.'</a>';
     print "<td>$subhostname</td>";
 ?>
     <td> <?php echo $sub_machine['start'] ?> </td>
@@ -70,11 +82,11 @@ foreach ($jobs as $job):
 
 <td>
 <?php
-
-if (isset ($user) && $job->can_cancel()
-    && ($rh->hasReservation ($job->get_machine($sub_machine['machine_id']), $user)
+if (isset ($user) && $job->can_cancel($part_id,$mid)
+    && ($rh->hasReservation ($job->get_machine($mid), $user)
 	|| $user->isAdmin())) {
-	echo "<a href=\"index.php?go=jobruns&amp;action=cancel&amp;id=" . $job->get_id() . "\">Cancel</a>";
+	echo "<a href=\"index.php?go=jobruns&amp;action=cancel&amp;id=". $job->get_id()
+             . "&amp;part_id=". $part_id."&amp;machine_id=". $mid . "\">Cancel</a>";
 }
 else
 {
@@ -83,14 +95,11 @@ else
 
 ?>
 </td>
-<tr>
-<?php endforeach; ?>
-
- </tr>
-</td>
 </tr>
-
-
+<?php endforeach; ?>
+</tr>
+<?php endforeach; ?>
+</tr>
 <?php endforeach; ?>
 </table>
 <br>
