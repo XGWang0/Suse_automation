@@ -666,7 +666,7 @@ sub deploy {
 
 				my $sub_job_on_machine_id = $machine_job->{$_}->{'job_on_machine_id'};
 				$job_id = $machine_job->{$_}->{'job_id'};
-				$jom_status = &job_on_machine_get_status($job_id,$sub_job_on_machine_id);
+				$jom_status = &job_on_machine_get_status($sub_job_on_machine_id);
 				#set it fail if the status is connecting
 				if( $jom_status == JS_CONNECTING ) {
 					&TRANSACTION( 'job_on_machine','job');
