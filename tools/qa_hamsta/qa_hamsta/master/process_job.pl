@@ -736,7 +736,7 @@ sub reserve_or_release_all ($$)
 	my $job_id = shift;
 	my $action = shift;
 	my $aimeds = &job_get_aimed_host($job_id);
-	my @m_ips = split(/,/,$aimeds);
+	my @m_ips = split(/\s*,\s*/,$aimeds);
 	my @success_ips;
 	my $orig_reserve_stat = {};
 	foreach my $ip (@m_ips){
