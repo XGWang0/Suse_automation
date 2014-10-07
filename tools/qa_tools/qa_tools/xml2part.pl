@@ -29,6 +29,7 @@ use Getopt::Std;
 use File::Path;
 use XML::Simple;
 use XML::Bare;
+use Data::Dumper;
 
 our ($opt_h, $opt_o, $opt_f) = ("", "", "");
 our $DEST = ".";
@@ -90,17 +91,18 @@ sub _extract_part_job
 {
     my ($cmdroot, $part_id) = @_;
     my $cmds = $cmdroot->{commands};
-
+    $cmds = [ $cmds ] if ref($cmds) ne "ARRAY"; 
     for ( my $i=0; $i<=$#$cmds; $i++ )
     {
         my $c = $cmds->[$i];
-        delete $cmds->[$i] if ($c->{part_id}->{value} != $part_id);
+        delete $cmds->[$i] if ($c->{part_id}->{value} ne $part_id);
     }
 }
 sub _extract_role_job
 {
     my ($roles, $role_name) = @_;
 
+    $roles = [ $roles ] if ref($roles) ne "ARRAY";
     for (my $i=0; $i<=$#$roles; $i++)
     {
         my $r = $roles->[$i];
@@ -114,9 +116,10 @@ sub _extract_role_part_job
 
     &_extract_role_job($roles,$role_name);
 
+    $roles = [ $roles ] if ref($roles) ne "ARRAY";
     foreach (@$roles)
     {
-        &_extract_part_job($_,$part_id);
+        &_extract_part_job($_,$part_id) if defined($_);
     }
 }
 
@@ -134,6 +137,7 @@ sub parse_xml_file
  
     if ($parts)
     {
+	$parts = [ $parts ] if ref($parts) ne "ARRAY"; 
         foreach (@$parts)
         {
             my $name = $_->{name}->{value};
@@ -147,6 +151,7 @@ sub parse_xml_file
 
     if ($roles)
     {
+	$roles = [ $roles ] if ref($roles) ne "ARRAY"; 
         foreach (@$roles)
         {
             my %r;
@@ -158,6 +163,7 @@ sub parse_xml_file
             my $commands = $_->{commands};
             if($parts)
             {
+	        $commands = [ $commands ] if ref($commands) ne "ARRAY"; 
                 foreach (@$commands)
                 {
                     my $c = $_;
@@ -206,7 +212,7 @@ sub process_xml
     my $parts = $parsed_ret->{parts};
     if($parts)
     {
-        foreach ( keys $parts)
+        foreach ( keys %$parts)
         {
             my $dir = $DEST . "/" . $_;
             &_create_dir($dir);
@@ -291,7 +297,7 @@ if ($opt_h)
 if ($opt_o)
 {
     $DEST = &_create_dir($opt_o);
-    print "DEST= $DEST \n";
+    #print "DEST= $DEST \n";
 }
 
 if ($#ARGV != 0) 

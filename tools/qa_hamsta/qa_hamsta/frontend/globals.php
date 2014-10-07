@@ -55,7 +55,8 @@
 		'perm'         =>  array('name'=>'Machine Permissions', 'type'=>'h'),
 		'role'         =>  array('name'=>'Role', 'type'=>'h'),
 		'type'         =>  array('name'=>'Type', 'type'=>'h'),
-		'vh'           =>  array('name'=>'Virtual Host', 'type'=>'h')
+		'vh'           =>  array('name'=>'Virtual Host', 'type'=>'h'),
+		'reserved_master' => array('name'=>'Reserved Hamsta', 'type'=>'h')
 
 
 	);

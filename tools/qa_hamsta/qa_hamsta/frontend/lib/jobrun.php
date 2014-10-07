@@ -270,7 +270,17 @@ class JobRun {
 	 * @access public
 	 * @return string Owner of the JobRun.
 	 */
-	function get_owner() {
+	/*function get_owner() {
+		return $this->fields["job_owner"];
+	}*/
+
+	/**
+	 * Getter for the user_id of the owner of this job.
+	 * 
+	 * @access public
+	 * @return user_id of the Owner of the JobRun.
+	 */
+	function get_user_id() {
 		return $this->fields["user_id"];
 	}
 

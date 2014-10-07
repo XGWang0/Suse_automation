@@ -44,6 +44,7 @@ use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
 
 BEGIN { push @INC, '.', '/usr/share/hamsta', '/usr/share/qa/lib'; }
 use log;
+use detect;
 $log::loginfo='slave_diplom';
 
 use Slave::hwinfo_xml;
@@ -101,7 +102,7 @@ $log::loglevel=$Slave::debug;
 # problem won't occur ever. This does not mean the problem is gone. If
 # you remove the forking again, the code will probably be broken on some
 # machines.
-our $last_ip = &get_slave_ip($Slave::multicast_address);
+our $last_ip = &get_my_ip_addr($Slave::multicast_address);
 our $slave_pid;
 our $multicast_pid;
 
@@ -113,30 +114,30 @@ use constant JOB_LOG_FILE => "/var/log/hamsta-job.log";
 # detects socket recovery and transmits logs back from the breaking point in sequence,
 # and restart real-time log transmission.
 #
-# How: 
+# How:
 # We use socket-pair for communication between the job process which runs the real job code,
 # i.e. the child process of slave-server process, and the slave-server process, which communicates
-# about the job socket error, recovery, and event handling progress. 
+# about the job socket error, recovery, and event handling progress.
 #
-# When job socket is detected to be broken the very fist time in job child proc, 
-# it notifies the slave-server proc about it through the socket-pair, 
-# which is now waiting for the job child proc ends. 
-# Then the slave-server proc stops waiting and goes back to accept new connections. 
-# Since SUT reservation is used, only the reserved master can connect to the SUT. 
-# Once the new connection is accepted, it is regarded as a recovered job socket. 
+# When job socket is detected to be broken the very fist time in job child proc,
+# it notifies the slave-server proc about it through the socket-pair,
+# which is now waiting for the job child proc ends.
+# Then the slave-server proc stops waiting and goes back to accept new connections.
+# Since SUT reservation is used, only the reserved master can connect to the SUT.
+# Once the new connection is accepted, it is regarded as a recovered job socket.
 #
 # Then the slave-server proc starts to handle the job socket recovery:
-# notify the job child proc, if it is still running, to recover real-time logging by socket-pair, 
-# send the local job log back directly to recovered job sock from local job log file, and then 
+# notify the job child proc, if it is still running, to recover real-time logging by socket-pair,
+# send the local job log back directly to recovered job sock from local job log file, and then
 # transmit back the real-time logging, which is restarted in job child proc, from the socket-pair to the
 # recovered job sock(yes, the socket-pair is reused as a data pipe from a communication pipe now).
-# 
+#
 # If during this process, job socket is broken again, all transmitted back logs will be removed,
 # and all that not transmitted back to the recovered job socket from the break point,
 # including what's left in local log file and not transmitted back real-time logs from socket-pair,
-# will be stored in the local job log file in-sequence order, and notification will be sent to 
+# will be stored in the local job log file in-sequence order, and notification will be sent to
 # the job child proc about the socket problem, which will start logging to local job log file again.
-# This process continues untils the job child proc finishes and all logs are transmitted back to the 
+# This process continues untils the job child proc finishes and all logs are transmitted back to the
 # reserved master via socket connection.
 
 #monitor for IP change.
@@ -149,7 +150,7 @@ $log::loginfo = 'hamsta';
 section_run($Slave::abort_section, $Slave::finish_section);
 
 while(1){
-    my $current_ip=&get_slave_ip($Slave::multicast_address);
+    my $current_ip=&get_my_ip_addr($Slave::multicast_address);
     if( $last_ip ne $current_ip or !$slave_pid ) {
       if( ($last_ip ne $current_ip) and !&chk_jobrun ) {
 	  kill 9,$slave_pid,$multicast_pid;
@@ -179,7 +180,7 @@ while(1){
                 sleep 1;
                 next;
             }
-            
+
             #Set to non-blocking
             my $flags = fcntl(JOB_CHILD, F_GETFL, 0);
             fcntl(JOB_CHILD, F_SETFL, $flags | O_NONBLOCK);
@@ -285,7 +286,7 @@ sub run_slave_server() {
 		    &log(LOG_NOTICE,"Refuse connection from non-reserved master $ip_addr.");
 		    print $connection "Connection failed!\n The SUT was reserved by other hamsta master already, and the reserved master ip was $Slave::reserved_hamsta_master_ip!\n";
             }
-        };  
+        };
         if ($@) {
             &log(LOG_ERROR, "$@ Will retry.");
             sleep 5;
@@ -307,7 +308,7 @@ sub run_slave_server() {
 
 # handle_connection_recovery()
 #
-# Handles connection recovery after job socket previously  broken  with master: 
+# Handles connection recovery after job socket previously  broken  with master:
 # Do what: send back local stored job log; slave_state setting; notify job child process to recover normal logging; recover real-time logging
 sub handle_connection_recovery(){
 	my $sock = shift;
@@ -327,7 +328,7 @@ sub handle_connection_recovery(){
 	log(LOG_NOTICE,"Connection recovered after job socket previously  broken!");
 	my $msg_from_job_child;
 	my $has_in_time_log = 'no';
-	#Notify the job proc if it is still running 
+	#Notify the job proc if it is still running
 	unless(waitpid($sock_broken_job_proc, WNOHANG)){
 		$has_in_time_log = 'yes';
 
@@ -335,7 +336,7 @@ sub handle_connection_recovery(){
 		log(LOG_NOTICE, "Notification to the job child process about recovered job connection was sent!");
 
 		#wait for child finish dealing with the norification
-	  	while ( not read(JOB_PARENT,$msg_from_job_child,1024)  
+	  	while ( not read(JOB_PARENT,$msg_from_job_child,1024)
 			or $msg_from_job_child !~ /Job child proc connection recovery handling is done!/){
 			sleep 1;
 		}
@@ -359,7 +360,7 @@ sub handle_connection_recovery(){
 			$transfered_local_job_log_line++;
 		}
 		log(LOG_NOTICE, "All stored local job log was sent back!");
-		
+
 		close $local_log_fh;
 		unlink JOB_LOG_FILE;
 		$finish_local_job_log_trans = 'yes';
@@ -374,7 +375,7 @@ sub handle_connection_recovery(){
 				chomp $msg_from_job_child;
 				log(LOG_DETAIL, "Slave-server:: sent back to master in-time log: $msg_from_job_child");
 				print $sock $msg_from_job_child."\n";
-				$rfinish = RFINISH;
+				my $rfinish = RFINISH;
 				last if ($msg_from_job_child =~ /$rfinish/);
 			}else{
 				sleep 1;
@@ -450,7 +451,7 @@ sub process_request {
                 }
                 &log(LOG_NOTICE, "[$ip_addr] Sent hwinfo.");
                 $sent_hwinfo = time;
-		        last;
+		last;
             } elsif ($incoming =~ /^get_stats$/) {
                 eval {
                     print $sock uri_escape(&get_stats_xml());
@@ -459,17 +460,16 @@ sub process_request {
                     &log(LOG_ERROR, $@);
                 }
                 &log(LOG_NOTICE, "[$ip_addr] Sent machine stats.");
-		        last;
-            } elsif ($incoming =~ /^ping$/) {
-                print $sock "pong\n" ;	
 		last;
+            } elsif ($incoming =~ /^ping$/) {
+                print $sock "pong\n" ;
             } elsif ($incoming =~ /^reserve$/) {
 		my $response = &reserve($ip_addr);
 		$response .= "The SUT was reserved by other hamsta master already, and the reserved master ip was $Slave::reserved_hamsta_master_ip!\n" if ( $response =~ /failed/ );
 		print $sock $response;
-		last;	    
+		last;
             } elsif ($incoming =~ /^release$/) {
-		print $sock &release($ip_addr);   
+		print $sock &release($ip_addr);
 		last;
 	    } else {
                 my $job = $incoming."\n";
@@ -483,7 +483,7 @@ sub process_request {
 			last if ($incoming =~ /%3C\/job%3E/);
                 }
                 &start_job($job, $sock, $ip_addr);
-		        last;
+		last;
             }
         }
     };
@@ -609,7 +609,7 @@ sub start_job() {
 				&deal_with_broken_job_sock_child;
 		    }else{
 			    log(LOG_DETAIL,"Job socket is normal, send to sock log: $log_line");
-		    }	    
+		    }
 
 		    if($sock_just_broke_sign eq 'yes'){
 			    print $job_log_fh $log_line."\n" if ($job_log_fh);
@@ -721,7 +721,7 @@ sub deal_with_broken_job_sock_child() {
     log(LOG_NOTICE,"Job child process sent to parent: Job sock is abnormal in child proc:");
     #wait for slave-server process finish dealing with the socket error
     my $msg_from_parent;
-    while(not read(JOB_CHILD,$msg_from_parent,1024)  
+    while(not read(JOB_CHILD,$msg_from_parent,1024)
 	  or $msg_from_parent !~ /Finish dealing with socket error on (recovered )*job socket by slave-server!/){
         sleep 1;
     }
@@ -748,7 +748,7 @@ sub deal_with_broken_job_sock_parent() {
     #only have one file handler open to the local log file
     close $local_log_fh;
 
-    #deal with not transferred back to master local stored job log 
+    #deal with not transferred back to master local stored job log
     if($finish_local_job_log_trans eq 'no'){
         #remove lines that are already transmitted back from local job log file
 	system("sed -i \"1,$transfered_local_job_log_line d\" $local_log_file");
@@ -780,7 +780,7 @@ sub deal_with_broken_job_sock_parent() {
     log(LOG_NOTICE,"Slave-server:: Finish dealing with socket error on recovered job socket by slave-server!\n");
     #Recover the file handler to local log file
     open $local_log_fh, "<".JOB_LOG_FILE;
-    #Give enough time for socketpair communicate messages, without this, child proc sometimes can not get msg: 
+    #Give enough time for socketpair communicate messages, without this, child proc sometimes can not get msg:
     #"The recovered job socket met error again!"
     sleep 3;
 }
