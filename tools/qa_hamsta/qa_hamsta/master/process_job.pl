@@ -47,317 +47,65 @@ use sql;
 use db_common;
 our $dbc;
 
-our $machine_job;
-
-
-our %machine_sock;
-our $sub_procs;
-
-our @unsend_hosts;
-
 $log::loglevel = $qaconf{hamsta_master_loglevel_job} if $qaconf{hamsta_master_loglevel_job};
 $log::loginfo = 'process_job';
 
-#$SIG{'HUP'} = 'IGNORE';
-#$SIG{'INT'} = 'IGNORE';
+our $job_ref;
+our $sub_procs;
+our %machine_sock;
 
-# process_job(job_id)
-#
-# Sends a job to one (TODO: or more) slaves, gathers the slave output and 
-# writes it to the database.
-#
-# $job_id		   ID of the job (TODO This should be the ID of job_on_machine)
-sub process_job($) {
-
-	my $job_id = shift @_;
-
-	&log_add_output(path=>$qaconf{'hamsta_master_root'}."/job.$job_id.log", unlink=>1, bzip2=>0);
-	$log::loginfo = "proc_job_$job_id";
-
-	&log(LOG_NOTICE, "Processing job $job_id");
-
-	my $data = &job_on_machine_get_by_job_id($job_id);
-	if( !@$data )
-	{
-		&log(LOG_ERR, "PROCESS_JOB: no such job with ID $job_id");
-		return;
-	}
-	#map all the job information
-	for (@$data) {
-		my ($job_on_machine_id,$machine_id) = @{$_};
-		my ($job_file, $job_owner, $job_name) = &job_get_details($job_id);
-		my ($ip, $hostname) = &machine_get_ip_hostname($machine_id);
-		my @job_part_ids = &job_part_get_ids_by_job_id($job_id);
-		my @job_part_on_machine_id = map { &job_part_on_machine_get_id_by_job_on_machine_and_job_part($job_on_machine_id,$_) }  @job_part_ids;                 ;
-
-		#build the machine reference
-		$machine_job->{$ip}->{'job_file'} = $job_file;
-		$machine_job->{$ip}->{'job_id'} = $job_id;
-		$machine_job->{$ip}->{'job_owner'} = &user_get_email_by_id($job_owner);
-		$machine_job->{$ip}->{'job_name'} = $job_name;
-		$machine_job->{$ip}->{'machine_id'} = $machine_id;
-		$machine_job->{$ip}->{'job_on_machine_id'} = $job_on_machine_id;
-		$machine_job->{$ip}->{'hostname'} = $hostname;
-		$machine_job->{$ip}->{'job_part_id'} = \@job_part_ids;
-		$machine_job->{$ip}->{'job_part_on_machine_id'} = \@job_part_on_machine_id;
-
-	}
-
-	# MM job reservation support: send reserve command before sending job xml file
-	return if not &reserve_or_release_all($job_id,"reserve");
-
-	return if not &connect_all($job_id);
-
-	for (keys %$machine_job) {
-		#query "Used By" and "Usage" information ,add them to job xml file.
-		my ($usage,$users,$maintainer_id)=&machine_get_info($_);
-		my $job_file = $machine_job->{$_}->{'job_file'};
-		my $local_addr = $machine_sock{$_}->sockhost();
-		$usage="default" unless( defined($usage) );
-		$users="default" unless( defined($users) );
-		$maintainer_id="default" unless( defined($maintainer_id) );
-		&modify_job_xml_config($job_file,'useinfo',"USAGE: $usage ; USEDBY: $users ; MAINTAINER: $maintainer_id ");
-		&modify_job_xml_config($job_file,'job_id',"http://$local_addr/hamsta/index.php?go=job_details&id=$job_id");
-
-
-		&log(LOG_NOTICE,"PROCESS_JOB: process_job: " . $machine_job->{$_}->{'hostname'} . " using XML job description in" . $machine_job->{$_}->{'job_file'} );
-	}
-
-
-	#create xml for each machine , going to use xml2part here.
-
-	#add machine information to XML
-
-
-
-	#deploy job xml to slaves and process the job
-
-	&deploy($machine_job);
-
-	# send e-mail that the job has finished
-	# see http://lena.franken.de/perl_hier/sendingmail.html for example on sending attachments
-
-	my $submission_link;
-	my @summary;
-
-	my($response_xml,$job_owner,$short_name,$job_status_id,$aimed_host) = &job_get_details($job_id);
-
-	#start to pick up the result from DB
-	foreach(keys %$machine_job) {
-		#query the return value from DB
-		#$machine_job->{$_}->{'job_return_text'} = &job_on_machine_get_return_status($machine_job->{$_}->{'job_on_machine_id'});
-
-		#query the submission link from DB
-		#$machine_job->{$_}->{'submission_link'} = &job_on_machine_get_result_link($machine_job->{$_}->{'job_on_machine_id'});
-
-		#query the job_status from DB
-		$machine_job->{$_}->{'job_status_id'} = &job_on_machine_get_status($machine_job->{$_}->{'job_on_machine_id'});
-
-		#query the summary from DB
-		#my $summ = &job_on_machine_get_summary($machine_job->{$_}->{'job_on_machine_id'});
-		#push(@summary,"host:$_ summary:\n");
-		#push(@summary,$summ);
-
-	}
-
-	#let mail be the last part
-	if( $job_owner =~ /@/ )
-	{
-		&log(LOG_DETAIL, "Sending mail to '%s'", $job_owner);
-		my $response = &read_xml($response_xml);
-		my $data = "";
-		my $mailtype = "";
-		my $reboot;
-		my $message = "";
-		foreach(keys %$machine_job) {
-			#TODO query from database about submission_link
-			if ($machine_job->{$_}->{'submission_link'}) {
-				foreach my $link (split(/\n/,$machine_job->{$_}->{'submission_link'})){
-
-					my $embedlink = $link.'&embed=1';
-					my $rand = int(rand(100000));
-					my $subhtml = '/tmp/sub'.$rand.'.html';
-					my $ret = system("wget -O $subhtml \'$embedlink\'");
-					if ($ret == 0) {
-						$data .= "host $_ submission result:";
-					$data .= `cat $subhtml`;
-					system("rm -rf '$subhtml'");
-					$mailtype = "text/html";
-					}
-					else {
-					$data = "------------------------------------------------------\nPlain text mail received,please check submission link.\n------------------------------------------------------\n\n";
-					goto PMAIL;
-					}
-				}
-			}
-			else {
-PMAIL:
-#$data .= "$ip job completed at ".`date +%F-%R`;
-				$data .= "job completed at ".`date +%F-%R`;
-#$data .= "\nJob status:".( $status==JS_FAILED ? 'Fail' : 'Pass' )."\n";
-				if( !$reboot )
-				{
-					`ifconfig` =~ /inet addr:([\d\.]*)\s*Bcast/;
-					my $loglink = "http://$1/hamsta/index.php?go=job_details&id=$job_id"; #fix me
-					$data .= "\nLog link:\n$loglink\nQADB submission link:\n ". $machine_job->{$_}->{'submission_link'}."\nSummary result:\n".join("\n",@summary);
-				}
-				$mailtype = "TEXT";
-			}
-		}
-		
-		my $msg = MIME::Lite->new(
-				From => ($qaconf{hamsta_master_mail_from} || 'hamsta-master@suse.de'),
-				To => $job_owner,
-				Subject => $message,
-				Type => $mailtype,
-				Data => $data
-				);
-		if( $response->{'config'}->{'attachment'} )
-		{
-			my $i=0;
-			foreach my $att ( @{$response->{'config'}->{'attachment'}} )
-			{
-				next unless defined $att->{'content'};
-				$msg->attach(
-					Type => ($att->{'mime'} ? $att->{'mime'} : 'text/plain'),
-#					Encoding => 'base64',
-					Data => decode_base64($att->{'content'}),
-					Filename => ($att->{'name'} ? $att->{'name'} : 'attachment'.($i++).'.txt')
-				);	# anyone knowing a way how to avoid base64 reencoding?
-			}
-		}
-		my @args=('smtp');
-		if( $qaconf{hamsta_master_smtp_relay} )
-		{
-			push @args, $qaconf{hamsta_master_smtp_relay};
-			if($qaconf{hamsta_master_smtp_login})
-			{	push @args, (AuthUser=>$qaconf{hamsta_master_smtp_login}, ($qaconf{hamsta_master_smtp_password} ? (AuthPass=>$qaconf{hamsta_master_smtp_password}) : ()))	}
-		}else
-                {
-			@args=('sendmail');
-		}
-		$msg->send(@args);
-		&log(LOG_DETAIL, "Mail sending done");
-	}
-	&log(LOG_DETAIL, "job done");
-}
-
-# send_job(ip)
-#
-# Sends a XML job description to the client and returns both the opened socket
-# on which the slave respone can be read and the debuglevel for the job.
-#
-# $ip			   IP of the host to which the job is to be sent
-#
-# Return:		   ($tf, $loglevel)$usage
-#				   $tf is true or false;
-#				   $loglevel is the debuglevel for the job specified in the
-#				   XML job description.
-sub send_job($) {
-	my $ip = shift;
-	my $job_file = $machine_job->{$ip}->{'job_file'};
-	my $job_id = $machine_job->{$ip}->{'job_id'};
-	my $job_on_machine_id = $machine_job->{$ip}->{'job_on_machine_id'};
-
-	#get log level from job xml file
-	my $loglevel = &dump_job_xml_config($job_file,'debuglevel');
-	$loglevel = $log::loglevel  unless defined($loglevel);
-
-	# Pass the XML job description to the slave
-
-	open (FH,'<',"$job_file");
-
-	while (<FH>) { 
-		$_ =~ s/\n//g;
-		eval {
-			&log(LOG_DETAIL, "Sent XML: $_");
-			$machine_sock{$ip}->send("$_\n");
-		};
-	}
-	if ($@) {
-		&log(LOG_ERR, "PROCESS_JOB: send_job: $@");
-		return (0, $loglevel);
-	}
-	close FH;
-
-	# Return the result and log level.
-	return (1, $loglevel);
-}
-
-sub machine_status_timeout($$$$$) {
-	my $timeout = shift;
-	my $machine_id = shift;
-	my $hostname = shift;
-	$timeout *= 60;
-	my $init_time = 0;
-	while( &machine_get_status($machine_id) != MS_UP ) {
-		$dbc->commit();	# do not remove, or cause a deadlock
-		if($init_time>$timeout) {
-			#timeout we jump out
-			$_[0] = JS_FAILED;
-			$_[1] = "Reinstall/Reboot/Update $hostname Failed";
-			last;
-		}
-		sleep 60;
-		$init_time += 60;
-	}
-	$dbc->commit();
-}
-
-#return the vaule of config option, 
-sub dump_job_xml_config($$) {
-
-	my $job_xml = shift;
-	my $option = shift;
-	return undef if(not $option);
-	my $job_xml_ref = XMLin($job_xml,ForceArray=>0);
-	#TODO : better mail handle. or remove the notify
-        if($option eq 'mail') {
-		return $job_xml_ref->{'config'}->{$option}->{'content'} if defined($job_xml_ref->{'config'}->{$option}->{'content'});
-		return undef;
-	}
-	return $job_xml_ref->{'config'}->{$option} if defined($job_xml_ref->{'config'}->{$option});
-	return undef;
-}
-
-#1. xml file 2.name  3. vaule
-sub modify_job_xml_config($$$) {
-	my $job_xml = shift;
-	my $name = shift;
-	my $value = shift;
-	my $job_xml_ref = XMLin($job_xml,ForceArray=>1);
-	if(not $job_xml_ref){
-		&log(LOG_ERR,"Can Not parser XML File !");
-		return undef;
-	}
-	#TODO : better mail handle. or remove the notify
-	if($name eq 'mail'){
-		$job_xml_ref->{'config'}->[0]->{$name}->[0]->{'content'} = $value;
-	}else{
-		$job_xml_ref->{'config'}->[0]->{$name} = [ $value ];
-	}
-	$job_xml_ref->{'config'}->[0]->{$name} = [ $value ];
-	open my $xmlfd,'>',$job_xml or &log(LOG_ERR,"Can Not Open XML File For Write !");
-	my $out = XMLout($job_xml_ref,RootName => 'job',XMLDecl => '1');
-	print $xmlfd $out;
-	close $xmlfd;
-}
-
-sub process_job_on_machine ($)
+sub process_job($)
 {
+	my $job_id = shift;
+
+	#query all information into $job_ref;
+	&build_ref($job_id);
+
+	#split parts from whole job
+	my $all_parts = &split_part();
+	
+	#Do the work for each part
+	
+	foreach my $sub_part (@$all_parts)
+	{
+
+		
+		%machine_sock = ();
+		
+		#&reserve_or_release_all($sub_part,"reserve");
+		
+		&connect_all($sub_part);
+
+		&send_xml($sub_part);
+
+		&deploy($sub_part);
+
+	}
+	
+	#mark the whole job result
+	
+	#send the email
+
+}
+
+
+
+
+
+sub process_job_part_on_machine ($$$)
+{
+
 	&sql_get_connection();
 
-	my $job_file = $machine_job->{$_}->{'job_file'};
-	my $job_name = $machine_job->{$_}->{'job_name'};
-	my $hostname = $machine_job->{$_}->{'hostname'};
-	my $machine_id = $machine_job->{$_}->{'machine_id'};
-	my $job_on_machine_id = $machine_job->{$_}->{'job_on_machine_id'};
-	my $job_id = $machine_job->{$_}->{'job_id'};
-	#fix me
-	my $job_part_on_machine_id = $machine_job->{$_}->{'job_part_on_machine_id'};
-	$job_part_on_machine_id = $job_part_on_machine_id->[0];
+	my $machine_id = shift;
+	my $job_part_on_machine_id = shift;
+	my $job_on_machine_id = shift;
+	my $job_file = $job_ref->{'job_file'} ;
+	my $job_name = $job_ref->{'job_name'} ;
 
-	&log(LOG_DETAIL, "start to process job on machine $_,job_file:$job_file ,job_name:$job_name,hostname:$hostname,machine_id:$machine_id,job_on_machine_id:$job_on_machine_id,job_id:$job_id"); 
+	my ($ip,$hostname) = &machine_get_ip_hostname($machine_id);
+
+	&log(LOG_DETAIL, "start to process job on machine: machine_id:$machine_id,job_on_machine_id:$job_on_machine_id,job_part_on_machine_id:$job_part_on_machine_id"); 
 
 	# Mark the job as started
 	&TRANSACTION( 'job_on_machine','machine','job_part_on_machine');
@@ -368,7 +116,7 @@ sub process_job_on_machine ($)
 
 	# Open the XML result file for writing
 	# Create the directory for the host, if it does not exist
-	my $response_xml = $qaconf{'hamsta_master_root'}."/$hostname/Job_return_".$job_id;
+	my $response_xml = $qaconf{'hamsta_master_root'}."/$hostname/Job_return_".$job_part_on_machine_id;
 	&change_working_dir($qaconf{'hamsta_master_root'}."/$hostname");
 
 	&log(LOG_INFO,"SEND_JOB_TO: Saving results in $response_xml");
@@ -395,7 +143,7 @@ sub process_job_on_machine ($)
 
 	$| = 1;
 	$dbc->commit();
-	my $sock = $machine_sock{$_};
+	my $sock = $machine_sock{$ip};
 	while (<$sock>) {
 		my $line = $_;
 		$line =~ s/\n//g;
@@ -470,10 +218,6 @@ sub process_job_on_machine ($)
 	#&job_on_machine_set_result_link($job_on_machine_id,join("\n",@result_link)) if (@result_link);
 	&machine_set_busy($machine_id,0);
 	&TRANSACTION_END;
-    # REMOVE USELESS RETURN OF job_on_machine
-	# &TRANSACTION( 'job_on_machine' );
-	# &job_on_machine_set_return($job_on_machine_id,$return_codes,$response_xml);
-	# &TRANSACTION_END;
 
 	my $message = "$job_name completed on $hostname";
 	my $status=JS_FAILED;
@@ -505,44 +249,119 @@ sub process_job_on_machine ($)
 		
 	# Mark the job as finished
 	&TRANSACTION( 'job_on_machine', 'job', 'job_part_on_machine' );
-	my $job_old_stauts = &job_on_machine_get_status($job_on_machine_id);
 	&job_on_machine_stop($job_on_machine_id);
 	&job_part_on_machine_stop($job_part_on_machine_id, $status);
-	&job_on_machine_set_status($job_on_machine_id,$status) if $job_old_stauts == JS_RUNNING;
+	#&job_part_on_machine_set_status($job_on_machine_id,$status) if $job_old_stauts == JS_RUNNING;
 	&TRANSACTION_END;
 	
 }
 
+
+
+
+
+
+
+
+
+sub build_ref($)
+{
+	#build the job_ref;
+
+	my $job_id = shift;
+	my ($job_file, $user_id, $job_name, $job_status_id,$aimed_host) = &job_get_details($job_id) ;
+	$job_ref->{'job_file'} = $job_file ;
+	$job_ref->{'user_id'} = $user_id ;
+	$job_ref->{'job_name'} = $job_name ;
+	$job_ref->{'job_status_id'} = $job_status_id ;
+	$job_ref->{'aimed_hosts'} = $aimed_host ;
+
+	foreach my $machine_ip ( split /[\s,]+/,$aimed_host )
+	{
+		next unless ($machine_ip);
+		my $machine_id = &machine_get_by_ip($machine_ip);
+		$job_ref->{'aimed_host'}->{$machine_id} = $machine_ip ;
+
+	}
+
+	
+
+	my @parts = &job_part_id_get_by_job_id($job_id);
+	my @job_on_machine_id = &job_on_machine_id_get_by_job_id($job_id);
+	
+	my @past_job;
+	
+	foreach my $part (@parts) {
+	
+		foreach my $jomid (@job_on_machine_id) {
+			
+			my ($xml,$job_part_on_machine_id) = &job_part_xml_get_by_pid_jomid($part,$jomid);
+			$job_ref->{'mm_jobs'}->{$part}->{$jomid} = [$xml,$job_part_on_machine_id,$jomid] if ($xml);
+
+		}
+
+
+	}
+
+}
+
+sub split_part()
+
+{
+	my @part_machines_xml;
+
+	my @parts =	sort { $a <=> $b } keys %{$job_ref->{'mm_jobs'}};
+
+	foreach my $part ( @parts )
+	{
+		
+		my @job_on_machine_ids = keys %{$job_ref->{'mm_jobs'}->{$part}};
+
+		my $part_ref ;
+		
+		map { my $machine_id = &job_on_machine_get_machine($_) ; $part_ref->{$machine_id} = $job_ref->{'mm_jobs'}->{$part}->{$_}; } @job_on_machine_ids;
+		
+		push @part_machines_xml,$part_ref;
+
+	}
+
+	return \@part_machines_xml;
+
+
+}
+
+
+
+
 sub connect_all ($)
 {
-	#get the job id
 	my $sock_canread = IO::Select->new();
-	my $job_id = shift;
-	my $aimeds = &job_get_aimed_host($job_id);
-	my @m_ips = split(/\s*,\s*/,$aimeds);
+	my $sub_job_part = shift;
+	my @machine_ids = keys %$sub_job_part;
+	my @m_ips = map { $job_ref->{'aimed_host'}->{$_} } @machine_ids;
+
 	foreach my $ipaddr (@m_ips)
 	{
 		$machine_sock{$ipaddr} = &creat_connection($ipaddr);
 		if(defined $machine_sock{$ipaddr})
 		{
 			$sock_canread->add($machine_sock{$ipaddr}) ;
-			
 		}else{
 			&log(LOG_ERROR, "Can not create connection to $ipaddr"); 
 			&set_fail_release();
 			return 0;
 		}
-		
+	
 	}
 	# send ping to sut ,and check the return value
-
+	
 	foreach (keys %machine_sock)
 	{
 		#send ping to SUT 
 		my $tmpsock = $machine_sock{$_};
 		print $tmpsock "ping\n";
 	}
-
+	
 	#set a sync timeout 
 	my $timeout = 100;
 	for my $temp_ca (1 .. $timeout)
@@ -565,14 +384,120 @@ sub connect_all ($)
 				}
 			}
 			return 1;
-
-		}
-		sleep 3; 
-	}
-	&log(LOG_ERROR, "Timeout to sync all machines :$@");
-	&set_fail_release();
-	return 0;
 	
+		}
+	sleep 3; 
+	}
+
+	&log(LOG_ERROR, "Timeout to sync all machines :$@");
+	#&set_fail_release();
+	return 0;
+
+}
+
+
+
+sub send_xml($)
+{
+
+	my $sub_job_part = shift;
+	my @machine_ids = keys %$sub_job_part;
+
+	foreach my $mid (@machine_ids)
+	{
+		my $ip = $job_ref->{'aimed_host'}->{$mid};
+		my $xmlfile = $sub_job_part->{$mid}->[0];
+
+		# Pass the XML job description to the slave
+			
+		open (FH,'<',"$xmlfile");
+			
+		while (<FH>) 
+		{ 
+			$_ =~ s/\n//g;
+			eval {
+			&log(LOG_DETAIL, "Sent XML: $_");
+			$machine_sock{$ip}->send("$_\n");
+			};
+			if ($@) {
+				&log(LOG_ERR, "PROCESS_JOB: send_job: $@");
+				#mark the result and remove the failed job ;
+				&TRANSACTION( 'job_part_on_machine');
+				&job_part_on_machine_set_status( $sub_job_part->{$mid}->[1],JS_FAILED); 
+				&TRANSACTION_END;
+				delete $sub_job_part->{$mid};
+				last;
+			}
+		}
+			close FH;
+			
+			# Return the result and log level.
+			&log(LOG_INFO,"PROCESS_JOB: send xml: $xmlfile to $ip succeed");
+	}
+	
+
+}
+
+
+sub deploy()
+{
+
+	local $SIG{'CHLD'} = sub { $sub_procs--; };
+	my $sub_job_part = shift;
+	$sub_procs =  scalar keys %$sub_job_part;
+	my @sub_pid;
+
+	$dbc->{'dbh'}->disconnect();
+	undef $dbc;
+
+	#start use fork
+	foreach(keys %{$sub_job_part})
+	{
+		child {
+			my $job_part_on_machine_id = $sub_job_part->{$_}->[1];
+			my $job_on_machine_id = $sub_job_part->{$_}->[2];
+			&process_job_part_on_machine($_,$job_part_on_machine_id,$job_on_machine_id);
+			exit 0;
+		}
+		parent {
+			push(@sub_pid,shift);
+		};
+	}
+		
+	
+	&sql_get_connection();
+	&log(LOG_NOTICE, "Going to check timeout"); 
+
+	#get time of job 
+	my $timeout = 1000000; #should read from database;
+	my $init =0;
+
+	while($init <= $timeout)
+	{
+		sleep 3;
+		$init++;
+		if($sub_procs == 0)
+		{
+			#Need mark the result at the end of job, not the job part
+
+			#call waitpid to clean the process table
+			for(@sub_pid)
+			{
+				waitpid($_,0);
+			}
+			return;
+		}
+
+	}
+
+	# TIMEOUT 
+	# which means SUT could NOT able to release the connection
+	# which means SUT could NOT able to receive the job;
+	# maybe we should exit and mark fail of whole job.
+
+	&log(LOG_ERROR, "Timeout the Job ");
+		
+
 }
 
 sub creat_connection {
@@ -596,147 +521,13 @@ sub creat_connection {
 	return $sock;
 }
 
-sub deploy {
-	local $SIG{'CHLD'} = sub { $sub_procs--; };
-	my $job_id;
-
-	# Send the job xml to the slave
-	my $result;
-	foreach (keys %$machine_job){
-		my $ip = $_;
-		($result, $log::loglevel) = &send_job($ip);
-		if( $result ) {
-			&log(LOG_NOTICE, "Send job XML to $ip");
-		}else{
-			#save the hosts which is not able to get XML
-			&log(LOG_NOTICE, "Can NOT send job XML to $ip");
-			push @unsend_hosts,$ip;
-			
-
-			&TRANSACTION( 'job_on_machine');
-			&job_on_machine_set_status($machine_job->{$ip}->{'job_on_machine_id'},JS_FAILED);
-			&TRANSACTION_END;
-
-			#remove the hosts with errors.
-			delete $machine_job->{$ip};
-
-		}
-		
-	}
-
-	my @sub_pid;
-	#mark the max machine
-	$sub_procs =  scalar keys %$machine_job;
-	$dbc->{'dbh'}->disconnect();
-	undef $dbc;
-
-	#start use fork 
-	foreach(keys %$machine_job){
-
-		child {
-			&log(LOG_NOTICE, "start to process_job_on_machine $_"); 
-			&process_job_on_machine($_);
-			exit 0;
-
-		}
-
-		parent {
-
-			push(@sub_pid,shift);
-	
-		}
-
-		;
-	}
-	&sql_get_connection();
-	&log(LOG_NOTICE, "going to check timeout"); 
-
-	#get time of job 
-	my $timeout = 1000; #should read from database;
-	my $init =0;
-
-	while($init <= $timeout)
-	{
-		sleep 3;
-		$init++;
-		if($sub_procs == 0)
-		{
-			my ($jom_status,$fail_tag);
-			foreach( keys %$machine_job ) {
-
-				my $sub_job_on_machine_id = $machine_job->{$_}->{'job_on_machine_id'};
-				$job_id = $machine_job->{$_}->{'job_id'};
-				$jom_status = &job_on_machine_get_status($sub_job_on_machine_id);
-				#set it fail if the status is connecting
-				if( $jom_status == JS_CONNECTING ) {
-					&TRANSACTION( 'job_on_machine','job');
-					&job_on_machine_set_status($sub_job_on_machine_id,JS_FAILED);
-					&job_set_status($job_id,JS_FAILED);
-					&TRANSACTION_END;
-					$fail_tag = 1;
-					last;
-				}
-				if( $jom_status != JS_PASSED ) {
-					&TRANSACTION( 'job' );
-					&job_set_status($job_id,JS_FAILED);
-					&TRANSACTION_END;
-					$fail_tag = 1;
-					last;
-				}
-
-			}
-			if( scalar @unsend_hosts ) {
-				&TRANSACTION( 'job' );
-				&job_set_status($job_id,JS_FAILED);
-				&TRANSACTION_END;
-				$fail_tag = 1;
-				
-			}
-			if( !$fail_tag ) {
-				&TRANSACTION( 'job' );
-				&job_set_status($job_id,JS_PASSED);
-				&TRANSACTION_END;
-			}
-
-			#call waitpid to clean the process table
-			for(@sub_pid)
-			{
-				waitpid($_,0);
-			}
-			return;
-		}
-
-	}
-	# timeout , send error message.
-	&log(LOG_ERROR, "Timeout the Job ");
-	&set_fail_release();
-		
-}
-
-sub set_fail_release() {
-
-  #when jobs failed with some error, need to mark the result and 
-  #release the machine
-  
-  my $job_id;
-
-  &TRANSACTION( 'job_on_machine','job','machine');
-  foreach( keys %$machine_job ) {
-    &job_on_machine_set_status($machine_job->{$_}->{'job_on_machine_id'},JS_FAILED);
-    &machine_set_busy($machine_job->{$_}->{'machine_id'},0);
-    $job_id = $machine_job->{$_}->{'job_id'};
-  }
-  &job_set_status($job_id,JS_FAILED);
-  &TRANSACTION_END;
-}
-
 # 1. job_id 2. 'reserve' | 'release'
 sub reserve_or_release_all ($$)
 {
-	my $job_id = shift;
+	my $sub_job_part = shift;
 	my $action = shift;
-	my $aimeds = &job_get_aimed_host($job_id);
-	my @m_ips = split(/\s*,\s*/,$aimeds);
+	my @machine_ids = keys %$sub_job_part;
+	my @m_ips = map { $job_ref->{'aimed_host'}->{$_} } @machine_ids;
 	my @success_ips;
 	my $orig_reserve_stat = {};
 	foreach my $ip (@m_ips){
@@ -773,7 +564,6 @@ sub reserve_or_release_all ($$)
 	&log(LOG_INFO,"PROCESS_JOB: $action all SUT succeeded!");
 	return 1;
 }
-					
 
 unless(defined($ARGV[0]) and $ARGV[0] =~ /^(\d+)$/)
 {
