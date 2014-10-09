@@ -72,7 +72,7 @@ sub process_job($)
 		
 		%machine_sock = ();
 		
-		#&reserve_or_release_all($sub_part,"reserve");
+		&reserve_or_release_all($sub_part,"reserve");
 		
 		&connect_all($sub_part);
 
@@ -226,8 +226,8 @@ sub process_job_part_on_machine ($$$)
 	foreach my $ret ( split /\n/, $return_codes )
 	{	$status=JS_PASSED if $ret=~/^(\d+)/ and $1==0;	}
 
-	my $reboot = &dump_job_xml_config($job_file,'reboot');
-	my $update_sut = &dump_job_xml_config($job_file,'update');
+	my $reboot = &job_part_on_machine_get_reboot($job_part_on_machine_id);
+	my $update_sut = 0;
 	if( $reboot ) {
 		if($status == JS_PASSED){
 			sleep 120;
@@ -245,14 +245,12 @@ sub process_job_part_on_machine ($$$)
 	} else {
 		1 == 1;
 	}
-	$dbc->commit();
-		
 	# Mark the job as finished
-	&TRANSACTION( 'job_on_machine', 'job', 'job_part_on_machine' );
+	&TRANSACTION( 'job_on_machine', 'job_part_on_machine' );
 	&job_on_machine_stop($job_on_machine_id);
 	&job_part_on_machine_stop($job_part_on_machine_id, $status);
-	#&job_part_on_machine_set_status($job_on_machine_id,$status) if $job_old_stauts == JS_RUNNING;
 	&TRANSACTION_END;
+	$dbc->commit();
 	
 }
 
@@ -485,6 +483,7 @@ sub deploy()
 			{
 				waitpid($_,0);
 			}
+			&log(LOG_NOTICE, "Part job DONE"); 
 			return;
 		}
 

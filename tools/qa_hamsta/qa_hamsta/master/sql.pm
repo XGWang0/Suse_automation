@@ -350,10 +350,13 @@ sub job_part_on_machine_get_id_by_job_on_machine_and_job_part($$) # job_on_machi
 {   return $dbc->scalar_query('SELECT job_part_on_machine_id FROM job_part_on_machine WHERE job_on_machine_id = ? AND job_part_id = ?', @_); }
 
 sub job_part_on_machine_set_status($$) # job_part_on_machine_id status
-{   return $dbc->update_query('UPDATE job_part_on_machine SET job_status_id=? WHERE job_part_on_machine_id=?',$_[0],$_[1]);  }
+{   return $dbc->update_query('UPDATE job_part_on_machine SET job_status_id=? WHERE job_part_on_machine_id=?',$_[1],$_[0]);  }
 
 sub job_part_on_machine_get_status($) # job_part_on_machine_id
 {   return $dbc->scalar_query('SELECT job_status_id FROM job_part_on_machine WHERE job_part_on_machine_id=?',$_[0]);  }
+
+sub job_part_on_machine_get_reboot($) # job_part_on_machine_id
+{   return $dbc->scalar_query('SELECT does_reboot FROM job_part_on_machine WHERE job_part_on_machine_id=?',$_[0]);  }
 
 sub job_part_xml_get_by_pid_jomid()
 {   return $dbc->row_query("SELECT xml_file,job_part_on_machine_id FROM job_part_on_machine WHERE job_part_id=? AND job_on_machine_id=? ",$_[0],$_[1]); }
