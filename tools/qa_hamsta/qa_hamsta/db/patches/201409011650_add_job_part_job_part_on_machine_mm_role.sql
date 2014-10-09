@@ -52,7 +52,7 @@ UPDATE `job` SET `created` = (SELECT `timestamp` from `job_on_machine` WHERE `jo
 ALTER TABLE `job`
     MODIFY COLUMN `job_owner` varchar(255);
 UPDATE `job` set `job_owner` = '' where `job_owner` not like "%@%";
-UPDATE `job` set `job_owner` = (SELECT `user_id` from `user` where `user`.`email` is not null and `user`.`email` != '' and `user`.`email` = `job`.`job_owner`);
+UPDATE `job` set `job_owner` = (SELECT `user_id` from `user` where `user`.`email` is not null and `user`.`email` != '' and `user`.`email` = `job`.`job_owner` LIMIT 1);
 
 -- Use a default user for jobs that has no owner set
 INSERT INTO `user`(extern_id, login, name, email, password) VALUES ('DEFAULT_USER', 'default_user', 'Default user for jobs without owner set', '', '');

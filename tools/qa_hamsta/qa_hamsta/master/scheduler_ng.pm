@@ -87,7 +87,7 @@ sub schedule_jobs() {
     my $jobs = &job_list_by_status(JS_QUEUED);
     foreach my $job (@$jobs) {
         #my ($job_on_machine_id,$machine_id,$job_id)=@$job;
-        my ($job_file, $job_owner_user_id, $job_name,$job_id,$aimed_host) = @$job;
+        my ($job_file, $job_owner, $job_name,$job_id,$aimed_host) = @$job;
         #get machine_id from job and job_on_machine table
         my $unavailable_tag = 0;
         my @machine_ids;
@@ -98,15 +98,17 @@ sub schedule_jobs() {
                 my @has_connecting = &job_on_machine_get_by_machineid_status($machine_id,JS_CONNECTING);
                 my @has_running = &job_on_machine_get_by_machineid_status($machine_id,JS_RUNNING);
                 my $busy_status = &machine_get_busy($machine_id);
+		my $machine_status = &machine_get_status($machine_id);
+		$unavailable_tag++ if($machine_status != MS_UP);
                 $unavailable_tag++ if( @has_connecting || @has_running || $busy_status || !&machine_has_perm($machine_id,'job') );
-                $unavailable_tag++ if( $job_file =~ /reinstall/ && !&machine_has_perm($machine_id,'install') ); 
+                $unavailable_tag++ if( $job_file =~ /reinstall/ && !&machine_has_perm($machine_id,'install') );
             }else{
                 $unavailable_tag++;
                 &log(LOG_WARNING,"MASTER::SCHEDULER job $job->[0] has no defined destination");
             }
         }
         if($unavailable_tag == 0){
-            &TRANSACTION( 'machine', 'job' );
+            &TRANSACTION( 'machine', 'job_on_machine', 'job' );
             map { &machine_set_busy($_,1) } @machine_ids;
             &job_set_status($job_id,JS_RUNNING);
             &TRANSACTION_END;
@@ -136,6 +138,7 @@ sub schedule_jobs() {
 # if no associated entries in job_on_machine remain.
 # 
 sub delete_cancelled_jobs() {
+
     my $jobs = &job_list_by_status(JS_CANCELED); # list cancelled jobs
     foreach my $job (@$jobs) {
         my ($job_file, $job_owner, $job_name,$job_id,$aimed_host) = @$job;
@@ -144,7 +147,7 @@ sub delete_cancelled_jobs() {
             &TRANSACTION( 'job_on_machine', 'job', 'job_part', 'job_part_on_machine' );
             &job_on_machine_delete_by_job_id($job_id);
             &job_delete($job_id);
-            # DELETE CASCADE is used for foreign key about job_id and job_on_machine_id for
+            # DELETE CASCADE is used for foreign key about job_id and job_on_machine_id for 
             # table job_part and job_part_on_machine, so no need to delete those two here
             &TRANSACTION_END;
         }
