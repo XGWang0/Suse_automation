@@ -260,7 +260,7 @@ if ($opt_F) {
 # If logs should be deleted, don't move them to oldlogs
 $nomove=1 if $delete;
 
-&log_and_die('Wrong product type :'.$args{'type'}."\n") unless $args{'type'} =~ /^(kotd:[^:]+:[^:]+:[^:]+:[^:]+|patch:[0-9a-f]{32}|product)$/;
+&log_and_die('Wrong product type :'.$args{'type'}."\n") unless $args{'type'} =~ /^(kotd:[^:]+:[^:]+:[^:]+:[^:]+|patch:[0-9a-f]{32}|patch:\w+:Maintenance:\d+:\d+|product)$/;
 
 
 unless ($args{'product'}) {
@@ -681,12 +681,21 @@ sub exec_submission_type # $submission_id, $config_id, $type
 	my @parts = split /:/, $_[2];
 	if( $parts[0] eq 'patch' )
 	{
-		my $md5sum=$parts[1];
-		my @released_rpms=&get_patch_details($md5sum);
-		my $patch_id=shift @released_rpms;
-		$dst->die_cleanly("No patch submit possible") unless @released_rpms;
+		my ($md5sum,$patch_id,$issuer_id,$issue_id,$request_id,@released_rpms);
+		if( $parts[1] =~ /SUSE/ )	{
+			# SLE-12+ patch format - issuer:issue:request
+			($_,$issuer_id,$issue_id,$request_id)=@parts;
+			@released_rpms=&get_patch_details_new($issuer_id,$issue_id,$request_id);
+		} else {
+			# old patch format - md5sum => patch_id
+			my $md5sum=$parts[1];
+			my @released_rpms=&get_patch_details_old($md5sum);
+			my $patch_id=shift @released_rpms;
+		}
 
+		$dst->die_cleanly("No patch submit possible") unless @released_rpms;
 		&TRANSACTION('rpm_basename','software_config','rpm','released_rpm','submission');
+		# FIXME
 		$dst->submission_set_maintenance_values($submission_id, $patch_id, $md5sum);
 		foreach my $rpm( @released_rpms )
 		{
@@ -710,7 +719,7 @@ sub exec_submission_type # $submission_id, $config_id, $type
 }
 
 # returns patch_id and a list of RPM basenames, if /mounts/work/built/patchinfo exists and contains needed md5summed data
-sub get_patch_details # md5sum
+sub get_patch_details_old # md5sum
 {
 	my $md5sum=shift;
 	my $patch_id;
@@ -724,6 +733,40 @@ sub get_patch_details # md5sum
 	my @released_rpms = split /,/, `grep '^PACKAGE: ' $p/patchinfo | cut -d' ' -f2-`;
 	&log(LOG_CRIT,"Could not read packages from $p/patchinfo") unless @released_rpms;
 	return ($patch_id,@released_rpms);
+}
+
+sub get_patch_details_new # issuer_id, issue_id, request_id
+{
+	my ($issuer_id,$issue_id,$request_id)=@_;
+	my $patchpath="/mounts/qam/testreports/$issuer_id:Maintenance:$issue_id:$request_id";
+	unless( -d $patchpath )	{
+		&log(LOG_CRIT,"No such directory: $patchpath");
+		return ();
+	}
+	my $rpmpath="$patchpath/packages-list.txt";
+	unless( open LIST, $rpmpath )	{
+		&log(LOG_CRIT,"Cannot open '$rpmpath':$!");
+		return ();
+	}
+	my %released_rpms;
+	while( my $row=<LIST> ) {
+
+		# remove paths, keep just RPM filenames
+		unless( $row=~/([^\/]+.rpm)[\r\n]?$/ )  {
+			&log(LOG_WARN,"Cannot match '$row', skipping");
+			next;
+		}
+		my $rpm=$1;
+
+		# extract base part - maximal components not beginning with digit
+		unless( $rpm=~/^((-?[\w][\w\d]+)+)/ )   {
+			&log(LOG_WARN,"Cannot match '$rpm', skipping");
+			next;
+		}
+		$released_rpms{$1}=1;
+	}
+	close LIST;
+	return sort {$a cmp $b} keys %released_rpms;
 }
 
 sub rpmlist_remove_kernel($) { # path

@@ -107,6 +107,8 @@ if(!$submission_id)
 	$status_got		=http('status');
 	$md5sum_got		=http('md5sum');
 	$patch_id_got		=http('patch_id');
+	$issuer_id_got		=http('issuer_id');
+	$issue_id_got		=http('issue_id');
 	$kernel_version_got	=http('kernel_version');
 	$kernel_branch_got	=http('kernel_branch');
 	$kernel_flavor_got	=http('kernel_flavor');
@@ -122,6 +124,12 @@ if(!$submission_id)
 		array( 5, "Any")
 	);
 
+	$issuer_id=array(
+		array( "","" ),
+		array( "SUSE", "SUSE" ),
+		array( "openSUSE", "openSUSE"),
+	);
+
 	# create the form
 	$what=array(
 		array('product',$product,$product_got,MULTI_SELECT),
@@ -133,7 +141,9 @@ if(!$submission_id)
 		array('date_to','',$date_to_got,TEXT_ROW),
 		array('comment','',$comment_got,TEXT_ROW,'comment [%]','For comments begining XXX, use&#10;XXX%&#10;For comments containing XXX anywhere inside, use&#10;%XXX%'),
 		array('submission_id','',$submission_id,TEXT_ROW),
-		array('md5sum','',$md5sum_got,TEXT_ROW),
+		array('issuer_id',$issuer_id,$issuer_id_got,SINGLE_SELECT),
+		array('issue_id','',$issue_id_got,TEXT_ROW),
+		array('md5sum','',$md5sum_got,TEXT_ROW,'MD5sum / request ID'),
 		array('patch_id','',$patch_id_got,TEXT_ROW),
 		array('status',$status,$status_got,SINGLE_SELECT),
 		array('kernel_version',$kernel_version,$kernel_version_got,SINGLE_SELECT),
@@ -262,6 +272,8 @@ if(!$submission_id)
 			'status_id'		=>$status_got,
 			'md5sum'		=>$md5sum_got,
 			'patch_id'		=>$patch_id_got,
+			'issuer_id'		=>$issuer_id_got,
+			'issue_id'		=>$issue_id_got,
 			'kernel_version'	=>$kernel_version_got,
 			'kernel_branch'		=>$kernel_branch_got,
 			'kernel_flavor'		=>$kernel_flavor_got,
