@@ -21,9 +21,12 @@
   WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
   ****************************************************************************
  */
+$(document).ready(function() {
+    $("tbody[id^='part_']").addClass("log_body");
+});
 
-console.log($("input#part_log"));
+
 function logToggle(obj) {
-    var name = obj.name;
-    $("table tbody#"+name+"_log").slideToggle("fast");
+    var id = obj.id;
+    $("table tbody#"+id+"_log").slideToggle(100);
 }

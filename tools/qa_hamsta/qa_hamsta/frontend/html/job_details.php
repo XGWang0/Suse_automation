@@ -74,8 +74,8 @@ foreach ($job_part as $part_id) {
 ?>
     <tr>
       <th rowspan="<?php echo $maxSuts?>" class="vtop">
-        <input type="checkbox" id="part_log" name="part_<?php echo $i ?>" onChange="logToggle(this)">
-        <label for="part_log">Part:<?php echo $i;?></label>
+        <input type="checkbox" name="part_log" id="part_<?php echo $i ?>" onChange="logToggle(this)">
+        <label id="part_<?php echo $i ?>_lbl" for="part_<?php echo $i ?>">Part:<?php echo $i;?></label>
       </th>
 <?php
 for($m=0;$m<$maxSuts;$m++) {
@@ -101,7 +101,7 @@ foreach ($job_roles as $id => $name) {
 	 </a>
         </th>
       </tr>
-    <tbody id="part_<?php echo $i ?>_log" class="log_body">
+    <tbody id="part_<?php echo $i ?>_log">
     <tr>
         <td>Started</td>
         <td><?php echo($job->get_started($part_id,$mid)); ?></td>
@@ -144,9 +144,11 @@ foreach ($job_roles as $id => $name) {
 	</td>
     </tr>
     <tr>
-        <td>Job part XML</td>
+        <td>Job Part XML</td>
         <td>
-          <textarea class="job_xml" rows="20" cols="90" readonly="readonly">
+          - <input id="xml<?php echo $part_id.$mid ?>" type="checkbox" name="xmls" class="partxml">
+          <label class="pointer" for="xml<?php echo $part_id.$mid ?>"><u>Show/Hide XML</u></label>
+          <textarea class="job_xml" rows="20" cols="90" readonly="readonly" id="xml<?php echo $part_id.$mid ?>">
           <?php echo(file_get_contents($sut['xml_file'])); ?>
           </textarea>
         </td>
@@ -183,12 +185,6 @@ tsRegister();
 <a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;d_job=0&amp;d_return=<?php echo($d_return); ?><?php echo($refresh_interval.$xml_norefresh); ?>" class="text-main">Don't show XML job description</a>
 <?php else: ?>
 <a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;d_job=1&amp;d_return=<?php echo($d_return); ?><?php echo($refresh_interval.$xml_norefresh); ?>" class="text-main">Show XML job description</a>
-<?php endif; ?>
--
-<?php if ($d_return): ?>
-<a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;d_return=0&amp;d_job=<?php echo($d_job); ?><?php echo($refresh_interval.$xml_norefresh); ?>" class="text-main">Don't show returned data</a>
-<?php else: ?>
-<a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;d_return=1&amp;d_job=<?php echo($d_job); ?><?php echo($refresh_interval.$xml_norefresh); ?>" class="text-main">Show returned data</a>
 <?php endif; ?>
 	<!--td>
 -	<a href="index.php?xml_file_name=<php echo($job->get_xml_filename()); ?>&amp;go=machines&amp;action=machine_send_job&amp;machines[a_machines]=a_machines&amp;a_machines[0]=<php echo($job->get_machine()->get_id()); >" class="text-main">Resend job</a>
