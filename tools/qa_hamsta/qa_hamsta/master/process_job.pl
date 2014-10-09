@@ -83,13 +83,46 @@ sub process_job($)
 	}
 	
 	#mark the whole job result
+
+	&mark_job_result($job_id);
 	
 	#send the email
 
 }
 
 
+sub mark_job_result ($)
+{
+	&log(LOG_INFO,"Start to count the part result!");
+	my $job_id = shift;
 
+	&build_ref($job_id);
+
+	foreach my $part_id (keys %{$job_ref->{'mm_jobs'}})
+	{
+		foreach my $jpm_id ( keys %{$job_ref->{'mm_jobs'}->{$part_id}})
+		{
+
+			if($job_ref->{'mm_jobs'}->{$part_id}->{$jpm_id}->[3] != JS_PASSED)
+			{	
+				#set job status JS_FAILED
+				&TRANSACTION( 'job');
+				&job_set_status($job_id,JS_FAILED);
+				&TRANSACTION_END;
+				return;
+			}
+
+		}
+	}
+
+	#set job status JS_PASSED
+
+	&TRANSACTION( 'job');
+	&job_set_status($job_id,JS_PASSED);	
+	&TRANSACTION_END;
+	
+
+}
 
 
 sub process_job_part_on_machine ($$$)
@@ -293,8 +326,8 @@ sub build_ref($)
 	
 		foreach my $jomid (@job_on_machine_id) {
 			
-			my ($xml,$job_part_on_machine_id) = &job_part_xml_get_by_pid_jomid($part,$jomid);
-			$job_ref->{'mm_jobs'}->{$part}->{$jomid} = [$xml,$job_part_on_machine_id,$jomid] if ($xml);
+			my ($xml,$job_part_on_machine_id,$status) = &job_part_info_get_by_pid_jomid($part,$jomid);
+			$job_ref->{'mm_jobs'}->{$part}->{$jomid} = [$xml,$job_part_on_machine_id,$jomid,$status] if ($xml);
 
 		}
 

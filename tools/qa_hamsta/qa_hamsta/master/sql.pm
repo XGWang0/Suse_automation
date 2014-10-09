@@ -358,8 +358,8 @@ sub job_part_on_machine_get_status($) # job_part_on_machine_id
 sub job_part_on_machine_get_reboot($) # job_part_on_machine_id
 {   return $dbc->scalar_query('SELECT does_reboot FROM job_part_on_machine WHERE job_part_on_machine_id=?',$_[0]);  }
 
-sub job_part_xml_get_by_pid_jomid()
-{   return $dbc->row_query("SELECT xml_file,job_part_on_machine_id FROM job_part_on_machine WHERE job_part_id=? AND job_on_machine_id=? ",$_[0],$_[1]); }
+sub job_part_info_get_by_pid_jomid()
+{   return $dbc->row_query("SELECT xml_file,job_part_on_machine_id,job_status_id FROM job_part_on_machine WHERE job_part_id=? AND job_on_machine_id=? ",$_[0],$_[1]); }
 
 
 ### mm_role functions
