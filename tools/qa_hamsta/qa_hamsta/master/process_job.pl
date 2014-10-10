@@ -88,6 +88,46 @@ sub process_job($)
 	
 	#send the email
 
+	&send_email($job_id);
+
+}
+
+
+sub send_email()
+{
+	my $job_id = shift;
+	my $user_id = $job_ref->{'user_id'};
+	my $job_owner = &user_get_email_by_id($user_id);
+	my $mailtype = "TEXT";
+	
+	my $message = "The job result for:" . $job_ref->{'job_name'} ;
+	my $status = ($job_ref->{'result'})?"PASS":"FAILED";
+	my $data = "\nStatus : $status\n For detail information refer to http://" . $job_ref->{'master_ip'} . "/hamsta/index.php?go=job_details&id=$job_id \n";
+	
+	my $msg = MIME::Lite->new(
+		From => ($qaconf{hamsta_master_mail_from} || 'hamsta-master@suse.de'),
+		To => $job_owner,
+		Subject => $message,
+		Type => $mailtype,
+		Data => $data
+	);
+	
+	my @args=('smtp');
+	if( $qaconf{hamsta_master_smtp_relay} )
+	{
+		push @args, $qaconf{hamsta_master_smtp_relay};
+		if($qaconf{hamsta_master_smtp_login})
+		{
+			push @args, (AuthUser=>$qaconf{hamsta_master_smtp_login}, ($qaconf{hamsta_master_smtp_password} ? (AuthPass=>$qaconf{hamsta_master_smtp_password}) : ()))   
+		}else
+		{
+			@args=('sendmail');
+		}
+		if ($job_owner =~ /@/){ 
+			$msg->send(@args) ;
+			&log(LOG_DETAIL, "Mail sending done");
+		}
+	}
 }
 
 
@@ -109,6 +149,7 @@ sub mark_job_result ($)
 				&TRANSACTION( 'job');
 				&job_set_status($job_id,JS_FAILED);
 				&TRANSACTION_END;
+				$job_ref->{'result'} = 0;
 				return;
 			}
 
@@ -120,6 +161,7 @@ sub mark_job_result ($)
 	&TRANSACTION( 'job');
 	&job_set_status($job_id,JS_PASSED);	
 	&TRANSACTION_END;
+	$job_ref->{'result'} = 1;
 	
 
 }
@@ -549,6 +591,8 @@ sub creat_connection {
 		&log(LOG_ERROR, "Can not connect to ip '$ip' port '$port' :$@ $! ");
 		return undef;
 	}
+
+	$job_ref->{'master_ip'} = $sock->sockhost() unless(defined($job_ref->{'master_ip'}));
 
 	return $sock;
 }
