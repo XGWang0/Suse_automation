@@ -49,7 +49,9 @@ foreach ($jobs as $job):
 	$job_link='index.php?go=job_details&amp;id='.$job->get_id();
 	#just for the page can print correctly with old format view .
 	$mCounts = 0;
-	foreach ($job->get_part_id() as $part_id)
+        $partIDs = $job->get_part_id();
+        asort($partIDs);
+	foreach ($partIDs as $part_id)
 		$mCounts += (int)$job->part_count_machine($part_id);
 ?>
 <tr>
@@ -59,7 +61,7 @@ foreach ($jobs as $job):
     <td rowspan="<?php echo $mCounts; ?>" ><?php echo($job->get_name()); ?></td>
 <?php
 $i=1; 
-foreach ($job->get_part_id() as $part_id):
+foreach ($partIDs as $part_id):
     $sid = $job->get_status_id($part_id);
 ?>
     <td rowspan="<?php echo $job->part_count_machine($part_id); ?>" ><?php echo $i++;?></td>
@@ -97,9 +99,7 @@ else
 </td>
 </tr>
 <?php endforeach; ?>
-</tr>
 <?php endforeach; ?>
-</tr>
 <?php endforeach; ?>
 </table>
 <br>

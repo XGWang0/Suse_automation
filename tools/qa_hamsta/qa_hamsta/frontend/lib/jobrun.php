@@ -72,20 +72,28 @@ class JobRun {
 	 * @access public
 	 * @return array Array of JobRun objects or null on error.
 	 */
-	static function find_all($limit = 10, $start = 0 ,$status = 1000) {
-		$sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k USING(job_id) LEFT JOIN job_part_on_machine p USING(job_on_machine_id) ORDER BY j.job_id DESC';
-		if ($status != 1000 ) $sql = 'SELECT * FROM job_on_machine k USING(job_id) LEFT JOIN job_part_on_machine p USING(job_on_machine_id) WHERE job_status_id = :status_id ORDER BY k.job_id DESC';
+	static function find_all($limit = 10, $start = 0) {
+		//fix bug900886 , list jobs on one page according job_id numbers.
+                $sql = 'SELECT job_id FROM job ORDER BY job_id DESC';
 		if ($limit) {
 			$sql .= ' LIMIT '.((int) $start).','.((int) $limit);
 		}
+		
+		if (!($stmt = get_pdo()->prepare($sql))) {
+			return null;
+		}
+		$stmt->execute();
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC))
+                	$ids[] = $row['job_id']; 
+		$inQuery = str_repeat('?,', count($ids) - 1) . '?'; 
+
+		$sql = "SELECT * FROM job j LEFT JOIN job_on_machine k USING(job_id) LEFT JOIN job_part_on_machine p USING(job_on_machine_id) WHERE j.job_id IN ($inQuery) ORDER BY j.job_id DESC";
 
 		if (!($stmt = get_pdo()->prepare($sql))) {
 			return null;
 		}
 
-		if ($status != 1000 ) $stmt->bindParam(':status_id', $status);
-
-		$stmt->execute();
+		$stmt->execute($ids);
 		$result = array();
 		$build_hash = array();
 		$tmp = array();
@@ -160,7 +168,24 @@ class JobRun {
 	 * @return array Array of JobRun objects.
 	 */
 	static function find_by_status($status_id, $limit = 0) {
-		return JobRun::find_all($limit,0,$status_id);
+               $sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k USING(job_id) WHERE job_status_id = :status_id ORDER BY
+j.job_id DESC';
+               if ($limit) {
+                       $sql .= ' LIMIT '.((int) $limit);
+               }
+
+               if (!($stmt = get_pdo()->prepare($sql))) {
+                       return null;
+               }
+               $stmt->bindParam(':status_id', $status_id);
+
+               $stmt->execute();
+               $result = array();
+               while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                       $result[] = new JobRun($row);
+               }
+
+               return $result;
 	}
 
 	/**
