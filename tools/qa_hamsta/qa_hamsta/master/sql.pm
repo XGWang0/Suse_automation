@@ -291,9 +291,6 @@ sub job_on_machine_get_status($) # job_on_machine_id
 sub job_on_machine_delete_by_job_id($) # job_id
 {	return $dbc->update_query('DELETE FROM job_on_machine WHERE job_id=?',$_[0]);	}
 
-sub job_on_machine_id_get_by_job_id() #job_id
-{   return $dbc->vector_query("SELECT job_on_machine_id FROM job_on_machine WHERE job_id=? ",$_[0]); }
-
 sub job_on_machine_get_machine($) # job_on_machine_id
 {   return $dbc->scalar_query("SELECT machine_id FROM job_on_machine WHERE job_on_machine_id=?",$_[0]);}
 
@@ -330,9 +327,6 @@ sub job_part_delete_by_job_id($) # job_id
 {	return $dbc->update_query('DELETE FROM job_part WHERE job_id=?',$_[0]);	}
 
 sub job_part_get_ids_by_job_id($) # job_id
-{   return $dbc->vector_query('SELECT job_part_id FROM job_part WHERE job_id = ?',$_[0]); }
-
-sub job_part_id_get_by_job_id()
 { return $dbc->vector_query("SELECT job_part_id FROM job_part WHERE job_id=? ORDER BY job_part_id ASC",$_[0]); }
 
 ### job_part_on_machine functions

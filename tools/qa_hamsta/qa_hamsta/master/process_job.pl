@@ -63,17 +63,21 @@ sub process_job($)
 
 	#split parts from whole job
 	my $all_parts = &split_part();
-	
+
+
+	#set machine busy
+	&set_machine_busy(1);
+	&reserve_or_release_all("reserve");
+
 	#Do the work for each part
-	
+
 	foreach my $sub_part (@$all_parts)
 	{
 
-		
+
 		%machine_sock = ();
-		
-		&reserve_or_release_all($sub_part,"reserve");
-		
+
+
 		&connect_all($sub_part);
 
 		&send_xml($sub_part);
@@ -81,11 +85,15 @@ sub process_job($)
 		&deploy($sub_part);
 
 	}
-	
+
 	#mark the whole job result
 
 	&mark_job_result($job_id);
-	
+
+	#release the machine
+	&set_machine_busy(0);
+	&reserve_or_release_all("release");
+
 	#send the email
 
 	&send_email($job_id);
@@ -93,13 +101,26 @@ sub process_job($)
 }
 
 
+sub set_machine_busy($)
+{
+	my $status = shift;
+
+	&TRANSACTION('machine');
+	foreach my $machine_id (keys %{$job_ref->{'aimed_host'}} ) 
+	{
+	    &machine_set_busy($machine_id,$status);
+	}
+	&TRANSACTION_END;
+
+}
+
 sub send_email()
 {
 	my $job_id = shift;
 	my $user_id = $job_ref->{'user_id'};
 	my $job_owner = &user_get_email_by_id($user_id);
 	my $mailtype = "TEXT";
-	
+
 	my $message = "The job result for:" . $job_ref->{'job_name'} ;
 	my $status = ($job_ref->{'result'})?"PASS":"FAILED";
 	my $data = "\nStatus : $status\n For detail information refer to http://" . $job_ref->{'master_ip'} . "/hamsta/index.php?go=job_details&id=$job_id \n";
@@ -183,10 +204,9 @@ sub process_job_part_on_machine ($$$)
 	&log(LOG_DETAIL, "start to process job on machine: machine_id:$machine_id,job_on_machine_id:$job_on_machine_id,job_part_on_machine_id:$job_part_on_machine_id"); 
 
 	# Mark the job as started
-	&TRANSACTION( 'job_on_machine','machine','job_part_on_machine');
+	&TRANSACTION( 'job_on_machine','job_part_on_machine');
 	&job_on_machine_set_status($job_on_machine_id,JS_RUNNING);
 	&job_part_on_machine_start($job_part_on_machine_id);
-	&machine_set_busy($machine_id,1);
 	&TRANSACTION_END;
 
 	# Open the XML result file for writing
@@ -287,12 +307,12 @@ sub process_job_part_on_machine ($$$)
 	
 	&log(LOG_DETAIL, "job done, updating status info");
 
-	&TRANSACTION( 'job_on_machine','machine' );
+	#&TRANSACTION( 'job_on_machine','machine' );
 	#&job_on_machine_set_return($job_on_machine_id,$return_codes);
 	#&job_on_machine_set_summary($job_on_machine_id,join("\n",@summary)) if (@summary);
 	#&job_on_machine_set_result_link($job_on_machine_id,join("\n",@result_link)) if (@result_link);
-	&machine_set_busy($machine_id,0);
-	&TRANSACTION_END;
+	#&machine_set_busy($machine_id,0);
+	#&TRANSACTION_END;
 
 	my $message = "$job_name completed on $hostname";
 	my $status=JS_FAILED;
@@ -347,7 +367,6 @@ sub build_ref($)
 	$job_ref->{'user_id'} = $user_id ;
 	$job_ref->{'job_name'} = $job_name ;
 	$job_ref->{'job_status_id'} = $job_status_id ;
-	$job_ref->{'aimed_hosts'} = $aimed_host ;
 
 	foreach my $machine_ip ( split /[\s,]+/,$aimed_host )
 	{
@@ -359,10 +378,8 @@ sub build_ref($)
 
 	
 
-	my @parts = &job_part_id_get_by_job_id($job_id);
-	my @job_on_machine_id = &job_on_machine_id_get_by_job_id($job_id);
-	
-	my @past_job;
+	my @parts = &job_part_get_ids_by_job_id($job_id);
+	my @job_on_machine_id = &job_on_machine_list($job_id);
 	
 	foreach my $part (@parts) {
 	
@@ -597,13 +614,11 @@ sub creat_connection {
 	return $sock;
 }
 
-# 1. job_id 2. 'reserve' | 'release'
-sub reserve_or_release_all ($$)
+# 'reserve' | 'release'
+sub reserve_or_release_all ($)
 {
-	my $sub_job_part = shift;
 	my $action = shift;
-	my @machine_ids = keys %$sub_job_part;
-	my @m_ips = map { $job_ref->{'aimed_host'}->{$_} } @machine_ids;
+	my @m_ips = values %{$job_ref->{'aimed_host'}};
 	my @success_ips;
 	my $orig_reserve_stat = {};
 	foreach my $ip (@m_ips){
