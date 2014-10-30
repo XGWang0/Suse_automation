@@ -20,8 +20,8 @@ body {
 #cssmenu > ul > li > a {
     color: rgb(160,160,160);
     font-size: 15px;
-    line-height: 70px;
-    padding: 15px 20px;
+/*    line-height: 70px; */
+/*    padding: 15px 20px; */
 -webkit-transition: color .15s;
    -moz-transition: color .15s;
      -o-transition: color .15s;
