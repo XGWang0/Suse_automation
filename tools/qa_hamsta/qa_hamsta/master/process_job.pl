@@ -480,7 +480,7 @@ sub connect_all ($)
 	}
 
 	&log(LOG_ERROR, "Timeout to sync all machines :$@");
-	#&set_fail_release();
+	&set_fail_release();
 	return 0;
 
 }
@@ -656,6 +656,37 @@ sub reserve_or_release_all ($)
 	return 1;
 }
 
+sub set_fail_release()
+{
+	#Set Fail
+	&TRANSACTION( 'job_on_machine', 'job_part_on_machine' );
+	foreach my $part (keys %{$job_ref->{'mm_jobs'}} )
+	{
+	        foreach my $jomid (keys %{$job_ref->{'mm_jobs'}->{$part}}) 
+	        {
+			my $job_part_on_machine_id = $job_ref->{'mm_jobs'}->{$part}->{$jomid}->[1];
+			&TRANSACTION( 'job_on_machine', 'job_part_on_machine' );
+			&job_on_machine_stop($jomid);
+			&job_part_on_machine_stop($job_part_on_machine_id,JS_FAILED);
+         	}
+
+	}
+	&TRANSACTION_END;
+	$dbc->commit();
+
+
+	&TRANSACTION('machine');
+	foreach my $machine_id (keys %{$job_ref->{'aimed_host'}} ) 
+	{
+	    &machine_set_busy($machine_id,0);
+	}
+	&TRANSACTION_END;
+	&log(LOG_NOTICE, "PROCESS_JOB: Set job failed and release the machine");
+
+	exit 1;
+
+
+}
 unless(defined($ARGV[0]) and $ARGV[0] =~ /^(\d+)$/)
 {
 	print STDERR "Usage : $0 <job ID>\n";
