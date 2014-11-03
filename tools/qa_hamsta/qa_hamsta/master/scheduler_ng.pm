@@ -271,7 +271,7 @@ sub distribute_jobs() {
         foreach my $role (keys(%$unique_roles)){
             &TRANSACTION('mm_role');
             my $role_id;
-            $role_id = &mm_role_insert_role($role) unless ($role_id = &mm_role_get_id($role));
+            $role_id = $dbc->enum_get_id_or_insert('mm_role',$role);
             $unique_roles->{$role} = $role_id;
             &TRANSACTION_END;
         }
@@ -307,11 +307,6 @@ sub distribute_jobs() {
             &TRANSACTION_END;
         }
         &log(LOG_DETAIL, "job_part and job_part_on_machine insertion is finished.");
-
-        #update job_on_machine status
-        &TRANSACTION( 'job_on_machine' );
-        &job_on_machine_set_job_group_status( $job_id, JS_QUEUED );
-        &TRANSACTION_END;
 
         #update job status
         &TRANSACTION( 'job' );

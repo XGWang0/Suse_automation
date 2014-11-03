@@ -46,6 +46,7 @@ use base 'db_common';
 	'module_name'		=>	[ 'module_name_id', 'module_name' ],
 	'product'		=>	[ 'product_id', 'product' ],
 	'release'		=>	[ 'release_id', 'release' ],
+	'mm_role'		=>	[ 'mm_role_id', 'mm_role' ],
 );
 
 our @ISA = ('db_common');
@@ -282,14 +283,8 @@ sub job_list_by_status($) # job_status_id
 sub job_on_machine_list($) # job_id
 {	return $dbc->vector_query("SELECT job_on_machine_id FROM job_on_machine WHERE job_id=?",$_[0]);	}
 
-sub job_on_machine_get_all()
-{   return $dbc->matrix_query('SELECT job_on_machine_id,machine_id,job_id FROM job_on_machine'); }
-
 sub job_on_machine_set_status($$) # job_on_machine_id, job_status_id
 {	return $dbc->update_query("UPDATE job_on_machine SET job_status_id=? WHERE job_on_machine_id=?",$_[1],$_[0]);	}
-
-sub job_on_machine_set_job_group_status($$) #  job_id, job_status_id
-{	$dbc->update_query('UPDATE job_on_machine SET job_status_id=? WHERE job_id=?',$_[1],$_[0]); }
 
 sub job_on_machine_get_status($) # job_on_machine_id
 {	return $dbc->scalar_query("SELECT job_status_id FROM job_on_machine WHERE job_on_machine_id=?",$_[0]);}
@@ -348,17 +343,6 @@ sub job_part_on_machine_stop($$) # job_part_on_machine_id, job_status_id
 
 sub job_part_on_machine_get_id_by_job_on_machine_and_job_part($$) # job_on_machine_id, job_part_id
 {   return $dbc->scalar_query('SELECT job_part_on_machine_id FROM job_part_on_machine WHERE job_on_machine_id = ? AND job_part_id = ?', @_); }
-
-### mm_role functions
-
-sub mm_role_get_default_id()
-{	return $dbc->scalar_query('SELECT mm_role_id FROM mm_role WHERE mm_role = "default"'); }
-
-sub mm_role_insert_role($) # mm_role
-{	return $dbc->insert_query('INSERT INTO mm_role(mm_role) VALUES(?)',$_[0]); }
-
-sub mm_role_get_id($) # mm_role
-{   return $dbc->scalar_query('SELECT mm_role_id FROM mm_role WHERE mm_role=?',$_[0]); }
 
 ### group_machine functions
 
