@@ -325,7 +325,10 @@ sub modify_job_xml_config($$$) {
 	my $job_xml = shift;
 	my $name = shift;
 	my $value = shift;
-	my $job_xml_ref = XMLin($job_xml,ForceArray=>1);
+	my $job_xml_ref = XMLin($job_xml,
+	                        ForceArray=>1,
+	                        KeyAttr=>{ role => 'name'},
+				);
 	if(not $job_xml_ref){
 		&log(LOG_ERR,"Can Not parser XML File !");
 		return undef;
@@ -338,7 +341,11 @@ sub modify_job_xml_config($$$) {
 	}
 	$job_xml_ref->{'config'}->[0]->{$name} = [ $value ];
 	open my $xmlfd,'>',$job_xml or &log(LOG_ERR,"Can Not Open XML File For Write !");
-	my $out = XMLout($job_xml_ref,RootName => 'job',XMLDecl => '1');
+	my $out = XMLout($job_xml_ref,
+	                 RootName => 'job',
+			 XMLDecl => '1',
+			 KeyAttr=>{ role => 'name'},
+			);
 	print $xmlfd $out;
 	close $xmlfd;
 }
