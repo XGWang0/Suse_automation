@@ -196,7 +196,8 @@ sub process_job_part_on_machine ($$$)
 	my $machine_id = shift;
 	my $job_part_on_machine_id = shift;
 	my $job_on_machine_id = shift;
-	my $job_file = $job_ref->{'job_file'} ;
+	my $job_file = shift ;
+	my $reboot = shift;
 	my $job_name = $job_ref->{'job_name'} ;
 
 	my ($ip,$hostname) = &machine_get_ip_hostname($machine_id);
@@ -321,7 +322,6 @@ sub process_job_part_on_machine ($$$)
 	foreach my $ret ( split /\n/, $return_codes )
 	{	$status=JS_PASSED if $ret=~/^(\d+)/ and $1==0;	}
 
-	my $reboot = &job_part_on_machine_get_reboot($job_part_on_machine_id);
 	my $update_sut = 0;
 	if( $reboot ) {
 		if($status == JS_PASSED){
@@ -385,8 +385,8 @@ sub build_ref($)
 	
 		foreach my $jomid (@job_on_machine_id) {
 			
-			my ($xml,$job_part_on_machine_id,$status) = &job_part_info_get_by_pid_jomid($part,$jomid);
-			$job_ref->{'mm_jobs'}->{$part}->{$jomid} = [$xml,$job_part_on_machine_id,$jomid,$status] if ($xml);
+			my ($xml,$job_part_on_machine_id,$status,$does_reboot) = &job_part_info_get_by_pid_jomid($part,$jomid);
+			$job_ref->{'mm_jobs'}->{$part}->{$jomid} = [$xml,$job_part_on_machine_id,$jomid,$status,$does_reboot] if ($xml);
 
 		}
 
@@ -546,7 +546,9 @@ sub deploy()
 		child {
 			my $job_part_on_machine_id = $sub_job_part->{$_}->[1];
 			my $job_on_machine_id = $sub_job_part->{$_}->[2];
-			&process_job_part_on_machine($_,$job_part_on_machine_id,$job_on_machine_id);
+			my $job_part_on_machine_xml = $sub_job_part->{$_}->[0];
+			my $job_reboot = $sub_job_part->{$_}->[4];
+			&process_job_part_on_machine($_,$job_part_on_machine_id,$job_on_machine_id,$job_part_on_machine_xml,$job_reboot);
 			exit 0;
 		}
 		parent {
