@@ -63,8 +63,6 @@ package Master;
 
 use strict;
 use warnings;
-use File::Path;
-use File::Find;
 
 use functions;
 
@@ -206,13 +204,25 @@ sub distribute_jobs() {
         &log(LOG_INFO, "xml2part finished execution on job xml $orig_job_xml: return value is $?, output is stored in $xml2part_output_dir.");
 
         #get related job role and part info
-        our $unique_roles = {};
-        our $role_part_pairs = {};
+        my $unique_roles = {};
+        my $role_part_pairs = {};
         my @sorted_unique_parts=[];
         my $machine_role_map = {};
         my $role_machine_map = {};
 
-        &find(\&get_job_roles_parts, "$xml2part_output_dir");
+	# find matching XMLs
+	unless( open LIST, "find \"$xml2part_output_dir\" -name \*.xml |" )	{
+		&log( LOG_ERROR, "Cannot start 'find' to list XMLs: $!" );
+		return;
+	}
+	while( my $file=<LIST> )	{
+		next unless $file =~ /\/(\d+)\/Role-([^\.]+).xml$/;
+		my($part_num, $role) = ($1,$2);
+		$unique_roles->{$role} = 1;
+		$role_part_pairs->{$part_num}->{$role} = 1;
+	}
+	close LIST;
+
 
         &log(LOG_DETAIL, "Job parts-roles are: \n");
         while (my ($k,$v)=each %$role_part_pairs){&log(LOG_DETAIL,  "$k:". join(",", keys(%$v)));}
@@ -319,18 +329,6 @@ sub distribute_jobs() {
         NEXT_JOB:
     }
 
-}
-
-sub get_job_roles_parts() {
-    our $unique_roles;
-    our $role_part_pairs;
-	if (! -d $File::Find::name){
-		$File::Find::name =~ /\/(\d+)\/Role-([^\.]+).xml$/;
-		my $part_num = $1;
-		my $role = $2;
-		$unique_roles->{$role} = 1;
-		$role_part_pairs->{$part_num}->{$role} = 1;
-	}
 }
 
 # scheduler()
