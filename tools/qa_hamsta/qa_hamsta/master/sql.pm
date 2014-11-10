@@ -304,9 +304,6 @@ sub job_on_machine_get_by_status($) # status_id
 sub job_on_machine_get_by_machineid_status($$) # machine_id status_id
 {	return $dbc->vector_query('SELECT machine_id FROM job_on_machine WHERE machine_id=? AND job_status_id=?',$_[0],$_[1]);	}
 
-sub job_on_machine_get_id_by_jobid_machineid($$) # job_id machine_id
-{	return $dbc->scalar_query('SELECT job_on_machine_id FROM job_on_machine WHERE job_id=? AND machine_id=?',$_[0],$_[1]); }
-
 sub job_on_machine_start($) # job_on_machine_id
 {	return $dbc->update_query('UPDATE job_on_machine SET job_status_id=2 WHERE job_on_machine_id=?',$_[0]);	}
 
