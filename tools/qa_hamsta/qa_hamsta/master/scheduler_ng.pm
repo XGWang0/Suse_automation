@@ -288,17 +288,20 @@ sub distribute_jobs() {
         }
         &log(LOG_DETAIL, "job_on_machine insertion is finished.");
 
+	# list machine_id => job_on_machine_id
+	&log(LOG_DEBUG, "Query job_on_machine ids for job id $job_id");
+	%jom_ids = map {$_->[1] => $_->[0]} &job_on_machine_get_by_job_id($job_id);
+
         #insert job_part, job_part_on_machine
         foreach my $part (@sorted_unique_parts){
-            &TRANSACTION('job_part','job_part_on_machine','job_on_machine');
+            &TRANSACTION('job_part','job_part_on_machine');
             my $job_part_id = &job_part_insert($job_id);
             &log(LOG_DETAIL, "A new job_part record is inserted as $job_part_id.");
             foreach my $role (keys %{$role_part_pairs->{$part}}){
                 #insert job_part_on_machine
                 my $job_part_xml = "$xml2part_output_dir/$part/Role-$role.xml";
                 foreach my $machine_id (@{$role_machine_map->{$role}}){
-                    &log(LOG_DEBUG, "Query job_on_machine id with job id $job_id, machine id $machine_id");
-                    my $job_on_machine_id = &job_on_machine_get_id_by_jobid_machineid($job_id,$machine_id);
+                    my $job_on_machine_id = $jom_ids{$machine_id};
                     &log(LOG_DEBUG, "Query result is $job_on_machine_id");
                     my $job_part_on_machine_id = &job_part_on_machine_insert($job_part_id,JS_QUEUED,$job_on_machine_id,$job_part_xml);
                     &log(LOG_DETAIL, "A new job_part_on_machine is inserted as $job_part_on_machine_id for part $part role $role machine $machine_id.");
