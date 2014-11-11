@@ -209,6 +209,7 @@ sub distribute_jobs() {
         my @sorted_unique_parts=[];
         my $machine_role_map = {};
         my $role_machine_map = {};
+	my %jom_ids = ();
 
 	# find matching XMLs
 	unless( open LIST, "find \"$xml2part_output_dir\" -name \*.xml |" )	{
@@ -293,14 +294,11 @@ sub distribute_jobs() {
             &TRANSACTION( 'job', 'job_on_machine' );
             &job_set_aimed_host($job_id,$host_aimed) unless $host_orig;
             my $job_on_machine_id = &job_on_machine_insert($job_id, $machine_id, $id_config_ref->{$machine_id}, JS_QUEUED,$unique_roles->{$machine_role_map->{$machine_id}});
+	    $jom_ids{$machine_id} = $job_on_machine_id;
             &log(LOG_DETAIL, "A new job_on_machine record is inserted as $job_on_machine_id for job_id $job_id, machine_id $machine_id.");
             &TRANSACTION_END;
         }
         &log(LOG_DETAIL, "job_on_machine insertion is finished.");
-
-	# list machine_id => job_on_machine_id
-	&log(LOG_DEBUG, "Query job_on_machine ids for job id $job_id");
-	%jom_ids = map {$_->[1] => $_->[0]} &job_on_machine_get_by_job_id($job_id);
 
         #insert job_part, job_part_on_machine
         foreach my $part (@sorted_unique_parts){
