@@ -1,24 +1,20 @@
 <?xml version="1.0"?>
 <job>
-    <config>
-        <name>SUT full kernel tests</name>
-        <debuglevel>4</debuglevel>
-        <distributable>0</distributable>
-        <parallel>0</parallel>
-        <logdir>/tmp</logdir>
-	<mail notify="0">yxu@suse.de</mail>
-        <description>SUT full kernel tests: validation, regression, performance</description>
-        <motd>!!!BE AWARE: the system is running full kernel tests now. See screen -r kerneltests for details.!!!</motd>
-        <reboot>0</reboot>
-    </config>
-
-
-    <commands>
-
-	<!-- only one worker -->
+  <config>
+    <name>SUT full kernel tests</name>
+    <debuglevel>4</debuglevel>
+    <description>SUT full kernel tests: validation, regression, performance</description>
+    <mail notify="0">yxu@suse.de</mail>
+    <motd>!!!BE AWARE: the system is running full kernel tests now. See screen -r kerneltests for details.!!!</motd>
+  </config>
+  <parts>
+    <part name="default" id="1" />
+  </parts>
+  <roles>
+    <role name="default">
+      <commands part_id="1">
         <worker>
-        <!-- Required -->
-        <command execution="forked">
+          <command execution="forked" reboot="0"><![CDATA[
 
 #! /bin/bash
 
@@ -215,13 +211,9 @@ screen -L -S kerneltests  -d -m /bin/bash -c '(
 		while screen -ls | grep kerneltests > /dev/null ; do sleep 30; done
 
 
-                </command>
-
-                <!-- Optional -->
-                <directory>/</directory>
-
-                </worker>
-
-        </commands>
+                ]]></command>
+        </worker>
+      </commands>
+    </role>
+  </roles>
 </job>
-

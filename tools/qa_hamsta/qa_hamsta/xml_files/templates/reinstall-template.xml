@@ -1,27 +1,25 @@
 <?xml version="1.0"?>
 <job>
-    <config>
-        <name>reinstall from REPOURL</name>
-        <debuglevel>4</debuglevel>
-        <distributable>0</distributable>
-        <parallel>0</parallel>
-        <mail notify="1"></mail>
-        <logdir>/tmp</logdir>
-        <rpm>qa_hamsta</rpm>
-        <rpm upgrade="1">qa_tools</rpm>
-	<rpm upgrade="1">qa_lib_perl</rpm>
-        <description>Reinstalls the machine from REPOURL</description>
-        <motd>Machine being reinstalled</motd>
-        <reboot>1</reboot>
-    </config>
-
-    <commands>
+  <config>
+    <name>reinstall from REPOURL</name>
+    <debuglevel>4</debuglevel>
+    <description>Reinstalls the machine from REPOURL</description>
+    <mail notify="1"></mail>
+    <motd>Machine being reinstalled</motd>
+    <rpm>qa_hamsta</rpm>
+    <rpm upgrade="1">qa_tools</rpm>
+    <rpm upgrade="1">qa_lib_perl</rpm>
+  </config>
+  <parts>
+    <part name="default" id="1" />
+  </parts>
+  <roles>
+    <role name="default">
+      <commands part_id="1">
         <worker>
-            <!-- Required -->
-            <command execution="threaded">/usr/share/qa/tools/install.pl ARGS</command>
-            <!-- Optional -->
-            <directory>/</directory>
-            <timeout>120</timeout>
+          <command execution="threaded" reboot="1"><![CDATA[/usr/share/qa/tools/install.pl ARGS]]></command>
         </worker>
-    </commands>
+      </commands>
+    </role>
+  </roles>
 </job>
