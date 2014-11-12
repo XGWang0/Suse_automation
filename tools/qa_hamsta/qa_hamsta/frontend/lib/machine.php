@@ -1260,7 +1260,7 @@ class Machine {
 	 *	  pending jobs
 	 */
 	function get_all_jobs($limit = 0, $start = 0) {
-        $sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k USING(job_id) LEFT JOIN job_part_on_machine l USING(job_on_machine_id) WHERE machine_id = :machine_id ORDER BY j.job_id DESC, j.job_status_id ASC';
+		$sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k USING(job_id) LEFT JOIN job_part_on_machine p USING(job_on_machine_id) WHERE machine_id = :machine_id ORDER BY j.job_id DESC, j.job_status_id ASC';
 		if ($limit) {
 			$sql .= ' LIMIT '.((int) $start).','.((int) $limit);
 		}
@@ -1272,8 +1272,26 @@ class Machine {
 		
 		$stmt->execute();
 		$result = array();
+		$mid = $this->fields["id"];
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-			$result[] = new JobRun($row);
+			$job_id = $row['job_id'];
+                        $part_id = $row['job_part_id'];
+                        $build_hash[$job_id][$part_id][$mid] = $row;
+		}
+		foreach ($build_hash as $job_id => $values) {
+			$tmp['job_id'] = $job_id;
+			$tmp['part_id'] = array();
+			foreach ($values as $part => $data) {
+				$tmp['part_id'][] = $part;
+				$tmp['machines'][$part][$mid] = $data[$mid];
+                                $tmp['short_name'] = $data[$mid]['short_name'];
+                                $tmp['description'] = $data[$mid]['description'];
+                                $tmp['user_id'] = $data[$mid]['user_id'];
+                                $tmp['job_status_id'][$part][$mid] = $data[$mid]['job_status_id'];
+                                $tmp['start'][$part][$mid] = $data[$mid]['start'];
+                                $tmp['stop'][$part][$mid] = $data[$mid]['stop'];
+			}
+			$result[] = new JobRun($tmp);
 		}
 
 		return $result;
@@ -1686,6 +1704,7 @@ class Machine {
 
 		$result = array();
 
+		//if (!($stmt = get_pdo()->prepare('SELECT * FROM log WHERE machine_id = :id AND job_on_machine_id IS NULL ORDER BY log_id DESC' . ((is_int($limit) and $limit != 0) ? " LIMIT $limit" : "")))) {
 		if (!($stmt = get_pdo()->prepare('SELECT * FROM log WHERE machine_id = :id AND job_part_on_machine_id IS NULL ORDER BY log_id DESC' . ((is_int($limit) and $limit != 0) ? " LIMIT $limit" : "")))) {
 			return null;
 		}

@@ -47,10 +47,12 @@
     if (isset ($user) && request_str("action") == "cancel"
 	&& $id = request_int("id")) {
 	    $job = JobRun::get_by_id($id);
-	    if ($job && $machine = $job->get_machine ()) {
+            $part = request_int("part_id");
+            $mid = request_int("machine_id");
+	    if ($job && $machine = $job->get_machine($mid)) {
 		    if ($rh->hasReservation ($machine, $user)
 			|| $user->isAdmin()) {
-			    $job->cancel();
+			    $job->cancel($part,$mid);
 		    }
 	    }
     }
