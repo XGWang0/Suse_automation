@@ -1,28 +1,24 @@
 <?xml version="1.0"?>
 <job>
-    <!-- Optional -->
-    ROLES_AREA
-    <config>
-        <name>JOBNAME</name>
-        <debuglevel>DEBUGLEVEL</debuglevel>
-        <distributable>0</distributable>
-        <parallel>0</parallel>
-        <mail notify="1">MAILTO</mail>
-        <rpm>qa_hamsta qa_tools qa_lib_perl RPMLIST</rpm>
-        <logdir>/tmp</logdir>
-        <description>DESCRIPTION</description>
-        <motd>MOTDMSG</motd>
-        <reboot>0</reboot>
-    </config>
-    <!-- Optional -->
-    PARAMETERS_AREA
-    <commands>
+  <config>
+    <name>JOBNAME</name>
+    <debuglevel>DEBUGLEVEL</debuglevel>
+    <description>DESCRIPTION</description>
+    <mail notify="1">MAILTO</mail>
+    <motd>MOTDMSG</motd>
+    <rpm>qa_hamsta qa_tools qa_lib_perl RPMLIST</rpm>
+  </config>
+  PARAMETERS_AREA
+  <parts>
+    <part name="default" id="1" />
+  </parts>
+  <roles>
+    <role name="default">
+      <commands part_id="1">
         <worker>
-            <!-- Required -->
-            COMMANDS_AREA
-            <!-- Optional -->
-            <directory>/</directory>
-            <timeout>300000</timeout>
+          <command reboot="0" />
         </worker>
-    </commands>
+      </commands>
+    </role>
+  </roles>
 </job>

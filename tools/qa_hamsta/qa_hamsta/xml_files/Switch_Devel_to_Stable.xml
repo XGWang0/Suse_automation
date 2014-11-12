@@ -1,21 +1,20 @@
 <?xml version="1.0"?>
 <job>
-    <config>
-        <name>Switch from QA:Head:Devel to QA:Head</name>
-        <debuglevel>4</debuglevel>
-        <distributable>0</distributable>
-        <parallel>0</parallel>
-        <mail notify="1"></mail>
-        <logdir>/tmp</logdir>
-        <rpm>qa_hamsta zypper</rpm>
-        <description>If machine is running QA:Head:Devel, than it is switched to QA:Head. This job always fails since the hamsta is restarted in the last step! See job output to check whether it was successful.</description>
-        <reboot>0</reboot>
-    </config>
-
-    <commands>
+  <config>
+    <name>Switch from QA:Head:Devel to QA:Head</name>
+    <debuglevel>4</debuglevel>
+    <description>If machine is running QA:Head:Devel, than it is switched to QA:Head. This job always fails since the hamsta is restarted in the last step! See job output to check whether it was successful.</description>
+    <mail notify="1"></mail>
+    <rpm>qa_hamsta zypper</rpm>
+  </config>
+  <parts>
+    <part name="default" id="1" />
+  </parts>
+  <roles>
+    <role name="default">
+      <commands part_id="1">
         <worker>
-            <!-- Required -->
-	    <command execution="forked"> 
+          <command execution="forked" reboot="0"><![CDATA[ 
 #!/bin/bash
 
 export LANG=C
@@ -36,10 +35,9 @@ else
 	echo "QA:Head repository is already used... making sure most recent qa_tools are used"
 	zypper up -y qa_tools
 fi
-	    </command>
-            <!-- Optional -->
-            <directory>/</directory>
-            <timeout>1800</timeout>
+	    ]]></command>
         </worker>
-    </commands>
+      </commands>
+    </role>
+  </roles>
 </job>

@@ -1,26 +1,27 @@
 <?xml version="1.0"?>
 <job>
-    <config>
-	<name>Format abuild work space into reiserfs</name>
-        <debuglevel>4</debuglevel>
-        <distributable>0</distributable>
-        <parallel>0</parallel>
-        <mail notify="1"></mail>        
-        <logdir>/tmp</logdir>
-        <description>Format abuild work space into reiserfs</description>
-        <reboot>0</reboot>
-    </config>
-
-    <commands>
+  <config>
+    <name>Format abuild work space into reiserfs</name>
+    <debuglevel>4</debuglevel>
+    <description>Format abuild work space into reiserfs</description>
+    <mail notify="1"></mail>
+  </config>
+  <parts>
+    <part name="default" id="1" />
+  </parts>
+  <roles>
+    <role name="default">
+      <commands part_id="1">
         <worker>
-            <!-- Required -->
-            <command execution="forked">#!/bin/bash
+          <command execution="forked" reboot="0"><![CDATA[#!/bin/bash
 		    devname=`mount | grep abuild | awk {'print $1'}`
 		    umount /abuild
 		    mkfs.reiserfs $devname -f -q
 		    sleep 5
 		    mount $devname /abuild
-	    </command>
+	    ]]></command>
         </worker>
-    </commands>
+      </commands>
+    </role>
+  </roles>
 </job>

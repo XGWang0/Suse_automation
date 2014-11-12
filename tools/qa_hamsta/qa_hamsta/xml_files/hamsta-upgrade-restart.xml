@@ -1,21 +1,19 @@
 <?xml version="1.0"?>
 <job>
-    <config>
-        <name>upgrade/restart Hamsta</name>
-        <distributable>0</distributable>
-        <parallel>0</parallel>
-        <mail notify="0">vmarsik@suse.cz</mail>
-        <logdir>/tmp</logdir>
-        <description>Upgrade and restart Hamsta client</description>
-        <motd>Hamsta upgrade and restart</motd>
-        <reboot>0</reboot>
-	<update>1</update>
-    </config>
-
-    <commands>
+  <config>
+    <name>upgrade/restart Hamsta</name>
+    <description>Upgrade and restart Hamsta client</description>
+    <mail notify="0">vmarsik@suse.cz</mail>
+    <motd>Hamsta upgrade and restart</motd>
+  </config>
+  <parts>
+    <part name="default" id="1" />
+  </parts>
+  <roles>
+    <role name="default">
+      <commands part_id="1">
         <worker>
-            <!-- Required -->
-            <command execution="forked">#!/bin/sh
+          <command execution="forked" reboot="0"><![CDATA[#!/bin/sh
 retv=0
 err_p=""
 zypper -n --gpg-auto-import-keys ref 
@@ -36,11 +34,12 @@ if [ $retv -ne 0 ];then
   echo "Package :$err_p update failed"
   exit $retv
 else
-  (sleep 10;rchamsta restart)&amp;
+  (sleep 10;rchamsta restart)&
   exit 0
 fi
-	    </command>
+	    ]]></command>
         </worker>
-        
-    </commands>
+      </commands>
+    </role>
+  </roles>
 </job>

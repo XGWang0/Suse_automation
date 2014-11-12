@@ -1,21 +1,20 @@
 <?xml version="1.0"?>
 <job>
-    <config>
-        <name>Switch from QA:Head to QA:Head:Devel</name>
-        <debuglevel>4</debuglevel>
-        <distributable>0</distributable>
-        <parallel>0</parallel>
-        <mail notify="1"></mail>
-        <logdir>/tmp</logdir>
-        <rpm>qa_hamsta zypper</rpm>
-        <description>If machine is running QA:Head, than it is switched to QA:Head:Devel. This job always fails since the hamsta is restarted in the last step! See job output to check whether it was successful.</description>
-        <reboot>0</reboot>
-    </config>
-
-    <commands>
+  <config>
+    <name>Switch from QA:Head to QA:Head:Devel</name>
+    <debuglevel>4</debuglevel>
+    <description>If machine is running QA:Head, than it is switched to QA:Head:Devel. This job always fails since the hamsta is restarted in the last step! See job output to check whether it was successful.</description>
+    <mail notify="1"></mail>
+    <rpm>qa_hamsta zypper</rpm>
+  </config>
+  <parts>
+    <part name="default" id="1" />
+  </parts>
+  <roles>
+    <role name="default">
+      <commands part_id="1">
         <worker>
-            <!-- Required -->
-	    <command execution="forked"> 
+          <command execution="forked" reboot="0"><![CDATA[ 
 #!/bin/bash
 
 export LANG=C
@@ -34,10 +33,9 @@ if echo $repourl | grep -q 'QA:/Head/' ; then
 else
 	echo "QA:Head:Devel repository is already used... nothing to do"
 fi
-	    </command>
-            <!-- Optional -->
-            <directory>/</directory>
-            <timeout>1800</timeout>
+	    ]]></command>
         </worker>
-    </commands>
+      </commands>
+    </role>
+  </roles>
 </job>

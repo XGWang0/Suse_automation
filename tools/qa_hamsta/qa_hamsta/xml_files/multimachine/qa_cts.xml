@@ -1,32 +1,34 @@
 <?xml version="1.0"?>
 <job>
-    <roles>
-        <role id="0" name="server" num_min="1" num_max="1"/>
-        <role id="1" name="client" num_min="1"/>
-    </roles>
-    <config>
-        <name>qa_test_cts</name>
-        <debuglevel>4</debuglevel>
-        <distributable>0</distributable>
-        <mail notify="0">vmarsik@suse.cz</mail>        
-	<description>HA cluster CTS test</description>
-	<logdir>/tmp</logdir>
-        <reboot>0</reboot>
-    </config>
-
-    <commands>
-    <worker>
-	    <!-- Pre -->
-	    <command execution="forked" role_id="0">#!/bin/bash
-		zypper -n in qa_test_cts
-		/usr/share/qa/qa_test_cts/cts.sh
-           </command>
-           <command execution="forked" role_id="1">#!/bin/bash
+  <config>
+    <name>qa_test_cts</name>
+    <debuglevel>4</debuglevel>
+    <description>HA cluster CTS test</description>
+    <mail notify="0">vmarsik@suse.cz</mail>
+  </config>
+  <parts>
+    <part name="default" id="1" />
+  </parts>
+  <roles>
+    <role name="client" num_min="1">
+      <commands part_id="1">
+        <worker>
+          <command execution="forked" reboot="0"><![CDATA[#!/bin/bash
 		zypper -n in qa_test_cts
 		/usr/share/qa/qa_test_cts/nodes.sh
-           </command>
-
-	   <directory>/var/log/qa/ctcs2</directory>
-     </worker>
-    </commands>
+           ]]></command>
+        </worker>
+      </commands>
+    </role>
+    <role name="server" num_max="1" num_min="1">
+      <commands part_id="1">
+        <worker>
+          <command execution="forked" reboot="0"><![CDATA[#!/bin/bash
+		zypper -n in qa_test_cts
+		/usr/share/qa/qa_test_cts/cts.sh
+           ]]></command>
+        </worker>
+      </commands>
+    </role>
+  </roles>
 </job>

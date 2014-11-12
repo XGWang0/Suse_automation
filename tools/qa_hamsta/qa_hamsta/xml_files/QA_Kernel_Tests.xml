@@ -1,31 +1,29 @@
 <?xml version="1.0"?>
 <job>
-    <config>
-        <name>QA Kernel Test Set</name>
-        <debuglevel>4</debuglevel>
-        <distributable>0</distributable>
-        <parallel>0</parallel>
-        <mail notify="1"></mail>
-	<rpm>qa_testset_kernel</rpm>
-	<rpm>qa_tools</rpm>
-	<rpm>qa_hamsta</rpm>
-        <logdir>/tmp</logdir>
-        <description>QA APACII set of kernel testsuites</description>
-        <motd>[Custom job]: QA Kernel Test Set is running</motd>
-        <reboot>0</reboot>
-    </config>
-
-    <commands>
+  <config>
+    <name>QA Kernel Test Set</name>
+    <debuglevel>4</debuglevel>
+    <description>QA APACII set of kernel testsuites</description>
+    <mail notify="1"></mail>
+    <motd>[Custom job]: QA Kernel Test Set is running</motd>
+    <rpm>qa_testset_kernel</rpm>
+    <rpm>qa_tools</rpm>
+    <rpm>qa_hamsta</rpm>
+  </config>
+  <parts>
+    <part name="default" id="1" />
+  </parts>
+  <roles>
+    <role name="default">
+      <commands part_id="1">
         <worker>
-            <!-- Required -->
-            <command execution="forked">
+          <command execution="forked" reboot="0"><![CDATA[
 #!/bin/bash
 /usr/share/qa/tools/testset_kernel-run
 /usr/share/qa/tools/remote_qa_db_report -c 'QA APACII Kernel Test Set'
-</command>
-            <!-- Optional -->
-            <directory>/</directory>
-            <timeout>300000</timeout>
+]]></command>
         </worker>
-    </commands>
+      </commands>
+    </role>
+  </roles>
 </job>

@@ -1,20 +1,19 @@
 <?xml version="1.0"?>
 <job>
-    <config>
-        <name>SUT setup</name>
-        <debuglevel>4</debuglevel>
-        <distributable>0</distributable>
-        <parallel>0</parallel>
-        <logdir>/tmp</logdir>
-	<mail notify="0">yxu@suse.de</mail>
-        <description>SUT setup</description>
-        <reboot>0</reboot>
-    </config>
-
-    <commands>
+  <config>
+    <name>SUT setup</name>
+    <debuglevel>4</debuglevel>
+    <description>SUT setup</description>
+    <mail notify="0">yxu@suse.de</mail>
+  </config>
+  <parts>
+    <part name="default" id="1" />
+  </parts>
+  <roles>
+    <role name="default">
+      <commands part_id="1">
         <worker>
-            <!-- Required -->
-            <command execution="forked">
+          <command execution="forked" reboot="0"><![CDATA[
 
 #! /bin/bash
 
@@ -117,7 +116,7 @@ fi
 #modify mysql
 service mysql start
 if [ -x /etc/init.d/mysql ] ; then
-grep max_connections /etc/init.d/mysql || ( sed -i 's@\(\$SAFE_MYSQLD\ \\\)@\1\n\t\t\t\-\-max_connections\=1000 \\@g' /etc/init.d/mysql &amp;&amp; /etc/init.d/mysql restart )
+grep max_connections /etc/init.d/mysql || ( sed -i 's@\(\$SAFE_MYSQLD\ \\\)@\1\n\t\t\t\-\-max_connections\=1000 \\@g' /etc/init.d/mysql && /etc/init.d/mysql restart )
 fi
 
 
@@ -146,12 +145,9 @@ fi
 
 echo -e "SUT has been setup. You can run various tests now.\n"
 
-            </command>
-
-            <!-- Optional -->
-            <directory>/</directory>
-            </worker>
-
-            </commands>
-
+            ]]></command>
+        </worker>
+      </commands>
+    </role>
+  </roles>
 </job>

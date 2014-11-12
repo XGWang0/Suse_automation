@@ -1,28 +1,28 @@
 <?xml version="1.0"?>
 <job>
-    <config>
-        <name>libmicro</name>
-        <debuglevel>4</debuglevel>
-        <distributable>0</distributable>
-        <mail notify="0">vmarsik@suse.cz</mail>        
-	<description>libmicro benchmark</description>
-	<logdir>/tmp</logdir>
-	<rpm>hamsta libmicro-ctcs2-glue</rpm>
-        <reboot>0</reboot>
-    </config>
-
-    <commands>
-    <worker>
-	    <!-- Pre -->
-	    <command execution="forked">#!/bin/bash
+  <config>
+    <name>libmicro</name>
+    <debuglevel>4</debuglevel>
+    <description>libmicro benchmark</description>
+    <mail notify="0">vmarsik@suse.cz</mail>
+    <rpm>hamsta libmicro-ctcs2-glue</rpm>
+  </config>
+  <parts>
+    <part name="default" id="1" />
+  </parts>
+  <roles>
+    <role name="default">
+      <commands part_id="1">
+        <worker>
+          <command execution="forked" reboot="0"><![CDATA[#!/bin/bash
 		echo Running Libmicro in Screen
 		screen -S libmicro-hamsta -L -d -m /bin/bash -c '/usr/lib/ctcs2/tools/libmicro-bench-run'
 		sleep 1
 		while screen -ls | grep libmicro-hamsta > /dev/null ; do sleep 1; done
 		echo Done
-           </command>
-
-	   <directory>/var/log/qa/ctcs2</directory>
-     </worker>
-    </commands>
+           ]]></command>
+        </worker>
+      </commands>
+    </role>
+  </roles>
 </job>
