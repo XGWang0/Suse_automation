@@ -42,6 +42,7 @@ BEGIN {
 		&install_rpms
 		&read_xml
                 &section_run
+                &add_repos
 	);
 	%EXPORT_TAGS	= ();
 	@EXPORT_OK	= qw(
@@ -115,6 +116,29 @@ sub install_rpms # $upgrade_flag, @basenames
 	return $ret;
 }
 
+# add_repos: add repositories by zypper
+# input: @url - array which composed by repo urls
+# return: integer 
+#    0 - all success
+#    1 - some repos failed
+sub add_repos
+{
+    my @url = @_;
+
+    my $ret = 0;
+    foreach my $u (@url) {
+        my $exists = `zypper lr -u |grep "$u"`;
+        next if ( $exists ne "" );
+
+        my $rand = int(rand(100000));
+        $ret += &command("zypper ar $u jobrepo_$rand 2>/tmp/sut_repo_stderr_tmp") >> 8;
+        my $repo_stderr = `cat /tmp/sut_repo_stderr_tmp`;
+        chomp($repo_stderr);
+        &log(LOG_ERROR,"ERROR:REPO $u install/update error: $repo_stderr\n") if ( $repo_stderr ne "" );
+    }
+    return $ret;
+}
+
 # returns $pid and PIDs of all its subprocesses
 sub get_process_tree	# $pid
 {
@@ -133,7 +157,7 @@ sub get_process_tree	# $pid
 	return @ret;
 }
 
-our @force_array = qw(rpm attachment worker logger monitor role machine parameter);
+our @force_array = qw(rpm attachment worker logger monitor role machine parameter repository);
 our %force_array = map {$_=>1} @force_array;
 our @file_array = ();
 
@@ -152,7 +176,8 @@ sub read_xml($$) # filename, map_roles
 
 	if( $map_roles )
 	{	
-		$role_id = &get_role_id( $ret );
+#xml2part done this
+#		$role_id = &get_role_id( $ret );
 		&get_parameters($ret)
 	}
 	

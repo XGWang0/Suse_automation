@@ -123,6 +123,48 @@ sub _extract_role_part_job
     }
 }
 
+# Sub: _merge_config
+#  Merge role config into global config
+sub _merge_config
+{
+    my $root = shift;
+    my $config = $root->{job}->{config};
+    my $role = $root->{job}->{roles}->{role};
+
+    $role = [ $role ] if ref($role) ne "ARRAY";
+    foreach (@$role)
+    {
+        next if !defined($_);
+
+        if (defined($_->{config}->{rpm})) {
+            $config->{rpm} = [] if !defined($config->{rpm}); 
+            if (ref($_->{config}->{rpm}) ne "ARRAY") {
+                $_->{config}->{rpm} = [ $_->{config}->{rpm} ];
+	    }
+	    if (ref($config->{rpm}) ne "ARRAY") {
+                $config->{rpm} = [ $config->{rpm} ];
+	    }
+            push(@{$config->{rpm}}, @{$_->{config}->{rpm}});
+	}
+	if (defined($_->{config}->{repository})) {
+            if (ref($_->{config}->{repository}) ne "ARRAY") {
+                $_->{config}->{repository} = [ $_->{config}->{repository} ];
+	    }
+            if (ref($config->{repository}) ne "ARRAY") {
+                $config->{repository} = [ $config->{repository} ];
+	    }
+            push(@{$config->{repository}}, @{$_->{config}->{repository}});
+        }
+        if (defined($_->{config}->{motd})) {
+	    $config->{motd} = $_->{config}->{motd};
+	}
+	if (defined($_->{config}->{debuglevel})) {
+	    $config->{debuglevel} = $_->{config}->{debuglevel};
+	}
+	delete $_->{config};
+    }
+}
+
 sub parse_xml_file
 {
     my $ob = shift;
@@ -232,6 +274,7 @@ sub process_xml
                 {
                     my $r = clone($root);
                     my $t =  &_extract_role_part_job($r, $role_name, $part_id);
+                    &_merge_config($r);
                     my $txt = $ob->xml($r);
                     my $output_dir = "$DEST/$part_id";
                     &_create_role_xml_file($role_name, $output_dir, $txt);
@@ -241,6 +284,7 @@ sub process_xml
             {
                 my $r = clone($root);
                 my $t = &_extract_role_job($r->{job}->{roles}->{role}, $role_name);
+                &_merge_config($r);
                 my $txt = $ob->xml($r);
                 &_create_role_xml_file($role_name, $DEST, $txt);
             }
