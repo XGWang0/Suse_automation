@@ -1288,9 +1288,11 @@ sub handle_can_not_send_job_to_machine ()
     my $user_id = shift;
 
     if (! &can_send_job_to_machine ($host)) {
+	    $dbc->commit();
 	    &notify_about_no_privileges ($sock_handle, $user_id, $host);
 	    return 1;
     }
+    $dbc->commit();
     return 0;
 }
 
