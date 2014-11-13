@@ -56,7 +56,7 @@ our $sub_procs;
 our @unsend_hosts;
 
 $log::loglevel = $qaconf{hamsta_master_loglevel_job} if $qaconf{hamsta_master_loglevel_job};
-$log::loginfo = 'process_job';
+$log::loginfo = 'job';
 
 #$SIG{'HUP'} = 'IGNORE';
 #$SIG{'INT'} = 'IGNORE';
@@ -72,7 +72,7 @@ sub process_job($) {
 	my $job_id = shift @_;
 
 	&log_add_output(path=>$qaconf{'hamsta_master_root'}."/job.$job_id.log", unlink=>1, bzip2=>0);
-	$log::loginfo = "proc_job_$job_id";
+	$log::loginfo = "job_$job_id";
 
 	&log(LOG_NOTICE, "Processing job $job_id");
 
@@ -363,6 +363,8 @@ sub process_job_on_machine ($)
 	#fix me
 	my $job_part_on_machine_id = $machine_job->{$_}->{'job_part_on_machine_id'};
 	$job_part_on_machine_id = $job_part_on_machine_id->[0];
+
+	$log::loginfo = 'job_'.$job_id.'_'.$hostname;
 
 	&log(LOG_DETAIL, "start to process job on machine $_,job_file:$job_file ,job_name:$job_name,hostname:$hostname,machine_id:$machine_id,job_on_machine_id:$job_on_machine_id,job_id:$job_id"); 
 
