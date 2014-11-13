@@ -356,7 +356,7 @@ sub scheduler() {
 # See BNC#714905
 our %last_busy_machines_without_jobs=();
 sub fix_busy_machines_without_jobs()    {
-    &TRANSACTION('machine','job_on_machine');
+    &TRANSACTION('machine','job_on_machine','job');
     my @ids = &busy_machines_without_jobs();
     foreach my $id (@ids) {
         next unless $last_busy_machines_without_jobs{$id};
