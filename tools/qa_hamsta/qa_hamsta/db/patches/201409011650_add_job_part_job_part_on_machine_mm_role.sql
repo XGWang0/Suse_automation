@@ -37,8 +37,16 @@ INSERT INTO `job_part_on_machine` (job_part_id , job_status_id, job_on_machine_i
 -- Change table log
 ALTER TABLE `log` ADD COLUMN `job_part_on_machine_id` INT;
 UPDATE `log` SET job_part_on_machine_id = (SELECT job_part_on_machine_id from `job_part_on_machine` jpm WHERE `log`.job_on_machine_id = jpm.job_on_machine_id);
+
+-- DROP fk job_on_machine_id bnc#905242
+SELECT CONCAT('ALTER TABLE log DROP FOREIGN KEY ',constraint_name,'') INTO @sqlst
+FROM information_schema.key_column_usage where table_name='log' and column_name='job_on_machine_id';
+PREPARE stmt FROM @sqlst;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+SET @sqlstr = NULL;
+
 ALTER TABLE `log` 
-    DROP FOREIGN KEY `log_ibfk_2`,     
     DROP COLUMN `job_on_machine_id`, 
     ADD CONSTRAINT `fk_log_job_part_on_machine` FOREIGN KEY (`job_part_on_machine_id`) references `job_part_on_machine` (`job_part_on_machine_id`) ON DELETE CASCADE;
 
