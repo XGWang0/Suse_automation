@@ -183,7 +183,7 @@ sub mark_job_result ($)
 	&job_set_status($job_id,JS_PASSED);	
 	&TRANSACTION_END;
 	$job_ref->{'result'} = 1;
-	
+}
 
 #1. xml file 2.name  3. vaule
 sub modify_job_xml_config($$$) {
