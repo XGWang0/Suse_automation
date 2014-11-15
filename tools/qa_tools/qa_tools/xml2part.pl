@@ -83,9 +83,16 @@ sub _create_role_xml_file
 
     $role_name = "default" if ( !defined($role_name) );
     my $file_path = $outdir ."/$JOB_NAME" . "-" . $role_name . ".xml";
-    my $ob = new XML::Bare( file => $file_path, text => $xml );
-    $ob->parse();
-    $ob->save();
+    my $job_xml_ref = XMLin($xml,
+                        ForceArray=>1,
+                        KeyAttr=>{ role => 'name'},
+                        );
+    XMLout($job_xml_ref,
+           RootName => 'job',
+           XMLDecl => '1',
+           KeyAttr=>{ role => 'name'},
+      	   OutputFile => $file_path,
+          );
 }
 sub _extract_part_job
 {
