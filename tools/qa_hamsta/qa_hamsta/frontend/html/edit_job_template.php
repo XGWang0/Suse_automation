@@ -54,10 +54,9 @@ $roleTemplate = '
                      name="role_rpm[]" size="20"></td>
         </tr>
         <tr>
-          <td>Motd message:</td>
-          <td><input type="text" value="ROLE_MOTD" 
+          <td>MOTD message:</td>
+          <td><input type="text" value="ROLE_MOTD"
                      title="optional: /etc/motd message in SUT" 
-                     placeholder="Enter MOTD for the SUT" 
                      name="role_motd[]" size="20"></td>
         </tr>
         <tr>

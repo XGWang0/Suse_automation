@@ -49,7 +49,7 @@
         $totalRoles = 5;
         $totalParts = 10;
         $partCount = 1;
-        $defaultPartName = "default";
+        $defaultPartName = "part1";
         $jobPartMap = array( array("name" => $defaultPartName, "id" => 1) );
         $jobRoleMap = array( array(
                               'name' => '',
@@ -57,7 +57,7 @@
                               'max' => '',
                               'level' => '',
                               'repo' => '',
-                              'motd' => '',
+                              'motd' => 'Enter your role MOTD message',
                               'rpm' => '',
                               'part_id' => array(1) )
         );
@@ -146,7 +146,7 @@
     </td></tr>
     <tr>
     <td>Description:</td>
-    <td><input type="text" size="20" name="description" placeholder="Enter description for the job" title="optional: job description" value="<?php echo $jobInfo['description']; ?>"></td>
+    <td><input type="text" size="20" name="description" title="optional: job description" value="<?php echo $jobInfo['description']; ?>"></td>
     </tr>
     <tr>
     <td>Email address:</td>
@@ -174,7 +174,7 @@
     <td>Needed rpms:</td>
     <td><input type="text" size="20" name="rpmlist" placeholder="rpm1 rpm2 rpm3" title="optional: divided by space, e.g: qa_tools qa_bind" value="<?php echo $jobInfo['rpmlist']; ?>"></td></tr>
     <tr>
-    <td>Motd message:</td>
+    <td>MOTD message:</td>
     <td><input type="text" size="20" name="motdmsg" placeholder="Enter MOTD for the SUT" title="optional: /etc/motd message in SUT" value="<?php echo $jobInfo['motd']; ?>"></td>
     </tr>
     <tr><td>Job Parts:</td>
@@ -198,8 +198,8 @@
     <div>
     <?php
         for($i=0;$i<$totalParts;$i++) {
-            $myPartname = ($i<$partCount)?$jobPartMap[$i]['name']:$defaultPartName;
             $myId = ($i<$partCount)?$jobPartMap[$i]['id']:($i+1);
+            $myPartname = ($i<$partCount)?$jobPartMap[$i]['name']:"part$myId";
             echo "    <div id=\"part_$i\">\n    <p>Part ".$myId.":";
             echo '<input id="part_'.$i.'" style="span-left:100px" type="text" size="20" ';
             echo 'name="job_parts[]" placeholder="Enter part name" onblur="syncName(this,\'part\')" '.
@@ -293,7 +293,7 @@
     <tr><td colspan="2">
     <div id="multimachine_form">
     <table class="text-main" width="900px">
-    <tr><td width="40%">Role number:</td>
+    <tr><td width="40%">Job Roles:</td>
     <td>
       <?php
       echo '<select name="rolenumber" title="required: role number, from 1 to '.
@@ -320,7 +320,7 @@
         if($i<$roleCount) {
 	    $name = ($jobRoleMap[$i]['name'] == "")?"Role_".($i+1):$jobRoleMap[$i]['name'];
 	    $min = ($jobRoleMap[$i]['min'] == "")?1:$jobRoleMap[$i]['min'];
-	    $max = ($jobRoleMap[$i]['max'] == "")?2:$jobRoleMap[$i]['max'];
+	    $max = ($jobRoleMap[$i]['max'] == "")?0:$jobRoleMap[$i]['max'];
             $part_id = $jobRoleMap[$i]['part_id'];
         }
         else {
@@ -344,7 +344,7 @@
                 $minimum .= "<option value=\"$j\">$j</option>\n";
         }
         $maximum = "\n";
-        for($j=1;$j<=20;$j++)
+        for($j=0;$j<=20;$j++)
         {
             $maximum .= "                ";
             if($j == $max)
@@ -374,7 +374,7 @@
         }
         $partCustom = "";
         for($c=0;$c<$totalParts;$c++) {
-            $myPartName = ($c < $partCount)?$jobPartMap[$c]['name']:"#null#";
+            $myPartName = ($c < $partCount)?$jobPartMap[$c]['name']:("part".($c+1));
             $rolePartId = "rpart_$i"."_$c";
             $rolePartLabel = "Part_$i$c";
             $secCustom = "";
