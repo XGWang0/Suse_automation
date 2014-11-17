@@ -426,4 +426,5 @@
     ?>
     </div></td></tr>
     </table></div>  <!-- End of mm_form area -->
+    <script type="text/javascript" src="js/edit_job.js"></script>
 
