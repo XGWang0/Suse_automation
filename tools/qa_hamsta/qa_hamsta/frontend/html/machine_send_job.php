@@ -66,8 +66,6 @@ function print_machines_list ($machines_list) {
 
 ?>
 
-<script type="text/javascript" src="js/edit_job.js"></script>
-
 <span class="text-main">(<span class="required">*</span>) required field(s)</span>
 <h2 class="text-medium text-blue bold" id="singlemachine">Single-machine Jobs</h2>
 <p class="text-main">
@@ -312,9 +310,16 @@ if(is_dir($dir) && $handle = opendir($dir)) {
 		}
 	}
 	closedir($handle);
-}
 ?>
 </table>
+<script type="text/javascript">
+<!--
+var TSort_Data = new Array ('mmjobs_custom', '','s','' );
+var TSort_Icons = new Array ('<span class="text-blue sorting-arrow">&uArr;</span>', '<span class="text-blue sorting-arrow">&dArr;</span>');
+tsRegister();
+-->
+</script>
+<?php } ?>
 <br/>
 <span class="text-main"><b>Email address: </b></span>
 <input type="text" name="mailto" title="optional: send mail if address is given" value="<?php if (isset($user)) { echo $user->getEmail(); } ?>" />
@@ -326,9 +331,6 @@ if(is_dir($dir) && $handle = opendir($dir)) {
 <script type="text/javascript">
 <!--
 var TSort_Data = new Array ('mmjobs', '','s','' );
-var TSort_Icons = new Array ('<span class="text-blue sorting-arrow">&uArr;</span>', '<span class="text-blue sorting-arrow">&dArr;</span>');
-tsRegister();
-var TSort_Data = new Array ('mmjobs_custom', '','s','' );
 var TSort_Icons = new Array ('<span class="text-blue sorting-arrow">&uArr;</span>', '<span class="text-blue sorting-arrow">&dArr;</span>');
 tsRegister();
 -->

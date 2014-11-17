@@ -2,7 +2,7 @@
 $roleTemplate = '
 <span class="rolespan" id="roletab_ROLE_INDEX"></span>
 <div id="role_ROLE_INDEX">
-  <a title="ROLE_NAME" id="role_ROLE_INDEX_name" onClick="clickChild(\'#Part_ROLE_INDEX0\')" href="#roletab_ROLE_INDEX">ROLE_NAME</a>
+  <a title="ROLE_NAME" id="role_ROLE_INDEX_name" onClick="clickChild(this,\'#Part_ROLE_INDEX0\')" href="#roletab_ROLE_INDEX">ROLE_NAME</a>
   <div class="roletab-content" id="rcontent_ROLE_INDEX">
     <table class="text-main">
       <tbody>
@@ -77,7 +77,7 @@ $partPanel = '
               <div class="ppanels" id="ROLE_PART_ID">
                 <input type="radio" checked="checked" 
 		       name="ptabs" id="ROLE_PART_LABEL" 
-		       onClick="clickChild(\'#workerROLE_INDEXPART_INDEX\')">
+		       onClick="clickChild(this,\'#workerROLE_INDEXPART_INDEX\')">
                 <label id="roleROLE_INDEXpart_PART_INDEX" for="ROLE_PART_LABEL">MYPARTNAME</label>
                 <div class="ppanel">
                   <article class="stabs">SECTION_CONTENT

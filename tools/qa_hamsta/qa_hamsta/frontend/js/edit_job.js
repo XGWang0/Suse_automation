@@ -75,6 +75,7 @@ $(document).ready(function(){
 		option_real_num[i] = 0;
 	}
         alignPartNumber();
+        $('#role_0_name').click();
 //	var smj_count = document.getElementById('smj_count').value;
 //	for(i=0; i<smj_count; i++)
 //		$('#div_' + i).hide();
@@ -149,7 +150,8 @@ var getJobType =  function(select)
         return NULL;
 }
 
-function clickChild(id) {
+function clickChild(idp,id) {
+        idp.click();
         $(id).click();
 }
 
