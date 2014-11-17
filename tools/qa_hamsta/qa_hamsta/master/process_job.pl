@@ -48,7 +48,7 @@ use db_common;
 our $dbc;
 
 $log::loglevel = $qaconf{hamsta_master_loglevel_job} if $qaconf{hamsta_master_loglevel_job};
-$log::loginfo = 'process_job';
+$log::loginfo = 'job';
 
 our $job_ref;
 our $sub_procs;
@@ -60,6 +60,8 @@ sub process_job($)
 
 	#query all information into $job_ref;
 	&build_ref($job_id);
+	&log_add_output(path=>$qaconf{'hamsta_master_root'}."/job.$job_id.log", unlink=>1, bzip2=>0);
+	$log::loginfo = "job_$job_id";
 
 	#split parts from whole job
 	my $all_parts = &split_part();
@@ -76,7 +78,6 @@ sub process_job($)
 
 
 		%machine_sock = ();
-
 
 		&connect_all($sub_part);
 
@@ -183,8 +184,36 @@ sub mark_job_result ($)
 	&job_set_status($job_id,JS_PASSED);	
 	&TRANSACTION_END;
 	$job_ref->{'result'} = 1;
-	
+}
 
+#1. xml file 2.name  3. vaule
+sub modify_job_xml_config($$$) {
+	my $job_xml = shift;
+	my $name = shift;
+	my $value = shift;
+	my $job_xml_ref = XMLin($job_xml,
+	                        ForceArray=>1,
+	                        KeyAttr=>{ role => 'name'},
+				);
+	if(not $job_xml_ref){
+		&log(LOG_ERR,"Can Not parser XML File !");
+		return undef;
+	}
+	#TODO : better mail handle. or remove the notify
+	if($name eq 'mail'){
+		$job_xml_ref->{'config'}->[0]->{$name}->[0]->{'content'} = $value;
+	}else{
+		$job_xml_ref->{'config'}->[0]->{$name} = [ $value ];
+	}
+	$job_xml_ref->{'config'}->[0]->{$name} = [ $value ];
+	open my $xmlfd,'>',$job_xml or &log(LOG_ERR,"Can Not Open XML File For Write !");
+	my $out = XMLout($job_xml_ref,
+	                 RootName => 'job',
+			 XMLDecl => '1',
+			 KeyAttr=>{ role => 'name'},
+			);
+	print $xmlfd $out;
+	close $xmlfd;
 }
 
 
@@ -203,6 +232,8 @@ sub process_job_part_on_machine ($$$)
 	my ($ip,$hostname) = &machine_get_ip_hostname($machine_id);
 
 	&log(LOG_DETAIL, "start to process job on machine: machine_id:$machine_id,job_on_machine_id:$job_on_machine_id,job_part_on_machine_id:$job_part_on_machine_id"); 
+	#$log::loginfo = 'job_'.$job_id.'_'.$hostname;
+
 
 	# Mark the job as started
 	&TRANSACTION( 'job_on_machine','job_part_on_machine');

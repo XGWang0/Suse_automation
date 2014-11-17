@@ -46,6 +46,7 @@ use base 'db_common';
 	'module_name'		=>	[ 'module_name_id', 'module_name' ],
 	'product'		=>	[ 'product_id', 'product' ],
 	'release'		=>	[ 'release_id', 'release' ],
+	'mm_role'		=>	[ 'mm_role_id', 'mm_role' ],
 );
 
 our @ISA = ('db_common');
@@ -190,7 +191,7 @@ sub machine_list_all()
 }
 
 sub busy_machines_without_jobs()	{
-	return $dbc->vector_query("SELECT machine_id FROM machine WHERE busy=1 AND NOT EXISTS(SELECT * FROM job_on_machine WHERE machine.machine_id=job_on_machine.machine_id AND (job_status_id=2 OR job_status_id=6))");
+	return $dbc->vector_query("SELECT machine_id FROM machine WHERE busy=1 AND NOT EXISTS(SELECT * FROM job JOIN job_on_machine USING(job_id) WHERE machine.machine_id=job_on_machine.machine_id AND (job.job_status_id=2 OR job.job_status_id=6))");
 }
 
 ### hamsta master reservation related functions
@@ -351,12 +352,6 @@ sub job_part_on_machine_get_status($) # job_part_on_machine_id
 
 sub job_part_info_get_by_pid_jomid()
 {   return $dbc->row_query("SELECT xml_file,job_part_on_machine_id,job_status_id,does_reboot FROM job_part_on_machine WHERE job_part_id=? AND job_on_machine_id=? ",$_[0],$_[1]); }
-
-
-### mm_role functions
-
-sub mm_role_get_default_id()
-{    return $dbc->scalar_query('SELECT mm_role_id FROM mm_role WHERE mm_role = "default"'); }
 
 ### group_machine functions
 
