@@ -457,7 +457,8 @@ function job_icons ($xml_web_path, $machines_list, $custom = false,
 		'edit' => array (
 				'url'			=> "index.php?go=edit_jobs"
 								. "&file=$relative_xml_path&"
-								. "opt=edit&machine_list=$machines_ids",
+								. "opt=edit&machine_list=$machines_ids"
+								. "#roletab_0",
 				'type'			=> 'edit',
 				'fullname'		=> 'Edit the job definition.',
 				'err_noperm'	=> 'You are not allowed to edit'
