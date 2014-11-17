@@ -119,6 +119,8 @@ sub send_email()
 	my $job_id = shift;
 	my $user_id = $job_ref->{'user_id'};
 	my $job_owner = &user_get_email_by_id($user_id);
+	my $email = &dump_job_xml_config($job_ref->{'job_file'},"mail");
+	$job_owner = ($job_owner)?$job_owner:$email;
 	my $mailtype = "TEXT";
 
 	my $message = "The job result for:" . $job_ref->{'job_name'} ;
@@ -186,7 +188,8 @@ sub mark_job_result ($)
 }
 
 #1. xml file 2.name  3. vaule
-sub modify_job_xml_config($$$) {
+sub modify_job_xml_config($$$) 
+{
 	my $job_xml = shift;
 	my $name = shift;
 	my $value = shift;
@@ -213,6 +216,21 @@ sub modify_job_xml_config($$$) {
 			);
 	print $xmlfd $out;
 	close $xmlfd;
+}
+
+sub dump_job_xml_config($$)
+{
+	my $job_xml = shift;
+	my $option = shift;
+	return undef if(not $option);
+	my $job_xml_ref = XMLin($job_xml,ForceArray=>0);
+	#TODO : better mail handle. or remove the notify
+	if($option eq 'mail') {
+		return $job_xml_ref->{'config'}->{$option}->{'content'} if defined($job_xml_ref->{'config'}->{$option}->{'content'});
+		return undef;
+	}
+	return $job_xml_ref->{'config'}->{$option} if defined($job_xml_ref->{'config'}->{$option});
+	return undef;
 }
 
 
