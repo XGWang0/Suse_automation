@@ -1272,6 +1272,7 @@ class Machine {
 		
 		$stmt->execute();
 		$result = array();
+		$build_hash = array();
 		$mid = $this->fields["id"];
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 			$job_id = $row['job_id'];
