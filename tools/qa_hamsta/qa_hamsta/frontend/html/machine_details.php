@@ -135,18 +135,9 @@ if (!defined('HAMSTA_FRONTEND')) {
 			<td><?php echo($job->get_started($pid,$mid)); ?></td>
 			<td><?php echo($job->get_stopped($pid,$mid)); ?></td>
 			<td>
-		<?php
-			if (isset ($user) && ! $job->is_finished ($pid,$mid)) {
-		?>
-			<a href="index.php?go=job_details&amp;id=<?php echo $job->get_id().'&amp;part_id='.$pid.'&amp;machine_id='.$mid; ?>&amp;finished_job=1" class="text-main">Set finished</a>
-		<?php
-			}
-			if (isset ($user) && $job->can_cancel ($pid,$mid)) {
-		?>
+		<?php if (isset ($user) && $job->can_cancel ()) { ?>
 		    	<a href="index.php?go=jobruns&amp;action=cancel&amp;id=<?php echo $job->get_id().'&amp;part_id='.$pid.'&amp;machine_id='.$mid; ?>">Cancel</a>
-		<?php
-			}
-		?>
+		<?php }	?>
 		        </td>
 		</tr>
 		<?php endforeach; ?>

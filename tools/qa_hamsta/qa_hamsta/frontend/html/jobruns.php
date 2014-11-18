@@ -36,8 +36,9 @@
     <tr>
         <th>ID</th>
         <th>Name</th>
-        <th>Part ID</th>
         <th>Status</th>
+        <th>Part ID</th>
+        <th>Part Status</th>
         <th>Hostname</th>
         <th>Started</th>
         <th>Stopped</th>
@@ -49,6 +50,7 @@ foreach ($jobs as $job):
 	$job_link='index.php?go=job_details&amp;id='.$job->get_id();
 	#just for the page can print correctly with old format view .
 	$mCounts = 0;
+        $action = true;
         $partIDs = $job->get_part_id();
         asort($partIDs);
 	foreach ($partIDs as $part_id)
@@ -59,6 +61,11 @@ foreach ($jobs as $job):
       <a href="<?php echo $job_link;?>"><?php echo($job->get_id()); ?></a>
     </td>
     <td rowspan="<?php echo $mCounts; ?>" ><?php echo($job->get_name()); ?></td>
+    <td rowspan="<?php echo $mCounts; ?>" >
+      <span class="<?php echo($job->get_status_string());?>">
+        <?php echo($job->get_status_string());?>
+      </span>
+    </td>
 <?php
 $i=1; 
 foreach ($partIDs as $part_id):
@@ -81,10 +88,11 @@ foreach ($partIDs as $part_id):
 ?>
     <td> <?php echo $sub_machine['start'] ?> </td>
     <td> <?php echo $sub_machine['stop'] ?> </td>
-
-<td>
+<?php if ($action) { ?>
+<td rowspan="<?php echo $mCounts; ?>">
 <?php
-if (isset ($user) && $job->can_cancel($part_id,$mid)
+$action = false;
+if (isset ($user) && $job->can_cancel()
     && ($rh->hasReservation ($job->get_machine($mid), $user)
 	|| $user->isAdmin())) {
 	echo "<a href=\"index.php?go=jobruns&amp;action=cancel&amp;id=". $job->get_id()
@@ -97,6 +105,7 @@ else
 
 ?>
 </td>
+<?php } ?>
 </tr>
 <?php endforeach; ?>
 <?php endforeach; ?>

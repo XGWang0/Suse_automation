@@ -513,22 +513,25 @@ j.job_id DESC';
 	 * @return boolean true if the job part could be successfully cancelled; false
 	 * if an error occured (e.g. job part is already running).
 	 */
-	function cancel($part_id,$machine_id) {
-		$sql = 'UPDATE job_part_on_machine p '
-                      .'LEFT JOIN job_on_machine k USING(job_on_machine_id) '
-                      .'SET p.job_status_id = 5 '
-                      .'WHERE k.job_id = :job_id AND machine_id = :machine_id '
-                      .'AND job_part_id = :part_id '
-                      .'AND p.job_status_id IN (0, 1)';
+	function cancel() {
+                $sql = 'UPDATE job set job_status_id = 5 WHERE job_id = :job_id AND job_status_id IN (0, 1)';
 		$stmt = get_pdo()->prepare($sql);
 		$stmt->bindParam(':job_id', $this->fields["id"]);
-		$stmt->bindParam(':part_id', $part_id);
-		$stmt->bindParam(':machine_id', $machine_id);
 		$stmt->execute(); 
 		if ($stmt->rowCount()) { 
+		    $sql = 'UPDATE job_part_on_machine p '
+                          .'LEFT JOIN job_on_machine k USING(job_on_machine_id) '
+                          .'SET p.job_status_id = 5 '
+                          .'WHERE k.job_id = :job_id '
+                          .'AND p.job_status_id IN (0, 1)';
+		    $stmt = get_pdo()->prepare($sql);
+		    $stmt->bindParam(':job_id', $this->fields["id"]);
+		    $stmt->execute(); 
+		    if ($stmt->rowCount()) { 
 			$this->update_from_db();
 			return true;
-		}
+		    }
+                }
 		return false;
 /*
 		$stmt = get_pdo()->prepare('UPDATE job_on_machine SET job_status_id = 5 WHERE job_id = :job_id AND job_status_id IN (0, 1)');
@@ -604,11 +607,9 @@ j.job_id DESC';
 	 * @access public
 	 * @return boolean true if the job can be cancelled, false otherwise.
 	 */
-	function can_cancel($part_id,$machine_id) {
-		$stmt = get_pdo()->prepare('SELECT COUNT(*) FROM job_part_on_machine p LEFT JOIN job_on_machine k USING(job_on_machine_id) WHERE k.job_id = :job_id AND p.job_part_id = :part_id AND machine_id = :machine_id AND p.job_status_id IN (0, 1)');
+	function can_cancel() {
+		$stmt = get_pdo()->prepare('SELECT COUNT(*) FROM job WHERE job_id = :job_id AND job_status_id IN (0, 1)');
 		$stmt->bindParam(':job_id', $this->fields["id"]);
-		$stmt->bindParam(':part_id', $part_id);
-		$stmt->bindParam(':machine_id', $machine_id);
 
 		$stmt->execute();
 		return ($stmt->fetchColumn() > 0);
