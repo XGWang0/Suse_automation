@@ -707,6 +707,28 @@ sub reserve_or_release_all ($)
 	return 1;
 }
 
+
+sub machine_status_timeout($$$$$) {
+	my $timeout = shift;
+	my $machine_id = shift;
+	my $hostname = shift;
+	$timeout *= 60;
+	my $init_time = 0;
+	while( &machine_get_status($machine_id) != MS_UP ) {
+		$dbc->commit();	# do not remove, or cause a deadlock
+		if($init_time>$timeout) {
+			#timeout we jump out
+			$_[0] = JS_FAILED;
+			$_[1] = "Reinstall/Reboot/Update $hostname Failed";
+			last;
+		}
+		sleep 60;
+		$init_time += 60;
+	}
+	$dbc->commit();
+}
+
+
 sub set_fail_release()
 {
 	#Set Fail
