@@ -1344,7 +1344,7 @@ class Machine {
          * @return int Number of all jobs currently queued on this machine       
          */
         function count_queue_jobs() {
-                $sql = 'SELECT COUNT(*) FROM job j LEFT JOIN job_on_machine k ON k.job_id = j.job_id WHERE machine_id = :machine_id AND k.job_status_id = 1 ORDER BY j.job_id DESC';
+                $sql = 'SELECT COUNT(*) FROM job j LEFT JOIN job_on_machine k USING(job_id) WHERE machine_id = :machine_id AND j.job_status_id = 1 ORDER BY j.job_id DESC';
 
                 if (!($stmt = get_pdo()->prepare($sql))) {
                         return null;

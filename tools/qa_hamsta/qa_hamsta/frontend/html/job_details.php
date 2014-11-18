@@ -153,14 +153,6 @@ foreach ($job_roles as $id => $name) {
           </textarea>
         </td>
     </tr>
-    <tr>
-        <td>Action</td>
-        <td>
-<?php if(isset ($user) &&  in_array($status, array('running','connecting') )) { ?>
-- <a href="index.php?go=job_details&amp;id=<?php echo $job->get_id().'&amp;part_id='.$part_id.'&amp;machine_id='.$mid; ?>&amp;finished_job=1" class="text-main">Set finished flag</a>
-<?php } ?>
-        </td>
-    </tr>
     </tbody>
     </table>
     </td>

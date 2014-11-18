@@ -48,6 +48,11 @@ table.list td
 	padding: 2px;
 }
 
+table.list td[rowspan]
+{
+	vertical-align: middle;
+}
+
 table.list tr
 {
     text-align:left;
