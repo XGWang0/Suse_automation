@@ -153,6 +153,29 @@ sub read_xml($) # filename
 	return undef;
 }
 
+# return reboot value of a role part xml.
+sub get_reboot($)
+{
+    my $xml = shift;
+    my $ref = &read_xml($xml);
+    my $cmds;
+
+    if(defined($ref->{'roles'}->{'role'}->{'commands'}))
+    {
+        $cmds = $ref->{'roles'}->{'role'}->{'commands'};
+    } else {
+        &log( LOG_ERR, "commands not found in XML: $xml" );
+    }
+    
+    if(defined($cmds->{'worker'}->[0]->{'command'}->{'reboot'}))
+    {
+        return $cmds->{'worker'}->[0]->{'command'}->{'reboot'};
+    } else {
+        &log( LOG_NOTICE, "reboot not found in XML: $xml" );
+        return 0;
+    }
+}
+
 # Returns an array containing version of this master
 sub get_master_version ()
 {

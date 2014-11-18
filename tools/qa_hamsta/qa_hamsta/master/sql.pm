@@ -332,8 +332,8 @@ sub job_part_get_ids_by_job_id($) # job_id
 
 ### job_part_on_machine functions
 
-sub job_part_on_machine_insert($$$$) # job_part_id, job_status_id, job_on_machine_id, xml_file
-{   return $dbc->insert_query('INSERT INTO job_part_on_machine(job_part_id, job_status_id, job_on_machine_id, xml_file) VALUES(?,?,?,?)',@_); }
+sub job_part_on_machine_insert($$$$$) # job_part_id, job_status_id, job_on_machine_id, xml_file, does_reboot
+{   return $dbc->insert_query('INSERT INTO job_part_on_machine(job_part_id, job_status_id, job_on_machine_id, xml_file, does_reboot) VALUES(?,?,?,?,?)',@_); }
 
 sub job_part_on_machine_start($) # job_part_on_machine_id
 {	return $dbc->update_query('UPDATE job_part_on_machine SET start=NOW(), job_status_id=2 WHERE job_part_on_machine_id=?',$_[0]);	}
