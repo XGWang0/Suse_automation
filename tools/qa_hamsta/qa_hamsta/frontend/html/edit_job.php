@@ -61,6 +61,18 @@
                               'rpm' => '',
                               'part_id' => array(1) )
         );
+        $debug = array(
+                    "Critical",
+                    "Error   ",
+                    "Warning ",
+                    "Notice  ",
+                    "Info    ",
+                    "Detail  ",
+                    "Debug   ",
+                    "Stdout  ",
+                    "Stderr  ",
+                    "Return  "
+        );
     
         # if defined "existFileName", it means that it is come from a existing XML file, parse it
         if(isset($existFileName) && ($existFileName != "") && (file_exists($existFileName)))
@@ -165,7 +177,7 @@
               echo "<option value=\"$i\">Level-$i</option>";
       }
       ?>
-    </select> <?php echo "default \"level-$default_level\""; ?>
+    </select> <?php echo "default \"".$debug[$default_level]." ($default_level)\""; ?>
     </td></tr >
     <tr>
     <td>Repository:</td>
@@ -358,9 +370,9 @@
         {
             $debugLevel .= "                ";
             if($default_level == "$l")
-                $debugLevel .= "<option value=\"$l\" selected=\"selected\">Level-$l</option>\n";
+                $debugLevel .= "<option value=\"$l\" selected=\"selected\">".$debug[$l]." ($l)</option>\n";
             else
-                $debugLevel .= "<option value=\"$l\">Level-$l</option>\n";
+                $debugLevel .= "<option value=\"$l\">".$debug[$l]." ($l)</option>\n";
         }
         $partNum = count($part_id);
         $partOption = "\n";
@@ -415,7 +427,7 @@
                             $minimum,
                             $maximum,
                             $debugLevel,
-                            $default_level,
+                            $debug[$default_level]." ($default_level)",
                             $jobRoleMap[$i]['repo'],
                             $jobRoleMap[$i]['rpm'],
                             $jobRoleMap[$i]['motd']

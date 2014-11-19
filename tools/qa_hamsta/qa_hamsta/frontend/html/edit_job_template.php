@@ -36,7 +36,7 @@ $roleTemplate = '
           <td>
             <select title="required: debug information" name="role_dbglevel[]">DEBUG_LEVEL
             </select>
-            default "level-DEFAULT_LEVEL"
+            default "DEFAULT_LEVEL"
           </td>
         </tr>
         <tr>
