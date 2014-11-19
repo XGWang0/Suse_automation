@@ -220,11 +220,11 @@ if (request_str("proceed")) {
 		{ /* Do not create global variables. */
 			$name = $job_xml->config->name;
 			$desc = $job_xml->config->description;
-			$command = $job_xml->commands[0]->worker[0]->command;
+			$command = $job_xml->roles[0]->role->commands[0]->worker[0]->command;
 
 			$job_xml->config->name = str_replace ('REPOURL', $producturl_raw, $name);
 			$job_xml->config->description = str_replace ('REPOURL', $producturl_raw, $desc);
-			$job_xml->commands[0]->worker[0]->command = str_replace ('ARGS', $args, $command);
+			$job_xml->roles[0]->role->commands[0]->worker[0]->command = str_replace ('ARGS', $args, $command);
 		}
 
 		if (! empty ($kexecboot)) {
