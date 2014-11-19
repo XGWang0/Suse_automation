@@ -679,30 +679,35 @@ sub exec_submission_type # $submission_id, $config_id, $type
 {
 	my ($submission_id,$config_id) = @_;
 	my @parts = split /:/, $_[2];
+	my $is_new = ($parts[1] =~ /SUSE/);
 	if( $parts[0] eq 'patch' )
 	{
 		my ($md5sum,$patch_id,$issuer_id,$issue_id,$request_id,@released_rpms);
-		if( $parts[1] =~ /SUSE/ )	{
+		if( $is_new )	{
 			# SLE-12+ patch format - issuer:issue:request
-			($_,$issuer_id,$issue_id,$request_id)=@parts;
+			($_,$issuer_id,$_,$issue_id,$request_id)=@parts;
 			@released_rpms=&get_patch_details_new($issuer_id,$issue_id,$request_id);
 		} else {
 			# old patch format - md5sum => patch_id
-			my $md5sum=$parts[1];
-			my @released_rpms=&get_patch_details_old($md5sum);
-			my $patch_id=shift @released_rpms;
+			$md5sum=$parts[1];
+			@released_rpms=&get_patch_details_old($md5sum);
+			$patch_id=shift @released_rpms;
 		}
 
 		$dst->die_cleanly("No patch submit possible") unless @released_rpms;
 		&TRANSACTION('rpm_basename','software_config','rpm','released_rpm','submission');
-		# FIXME
-		$dst->submission_set_maintenance_values($submission_id, $patch_id, $md5sum);
+		if( $is_new )	{
+			$dst->submission_set_maintenance_values_new($submission_id, $issuer_id, $issue_id, $request_id );
+		}
+		else	{
+			$dst->submission_set_maintenance_values_old($submission_id, $patch_id, $md5sum);
+		}
 		foreach my $rpm( @released_rpms )
 		{
 			my $rpm_basename_id=$dst->enum_get_id('rpm_basename',$rpm);
 			unless($rpm_basename_id)
 			{
-				&log(LOG_WARNING,"The package '$rpm' is specified in patchinfo for md5sum $md5sum, but not installed");
+				&log(LOG_WARNING,"The package '$rpm' is specified in patchinfo, but not installed");
 				next;
 			}
 			my @rpm_version_ids = $dst->get_rpm_versions($config_id, $rpm_basename_id);
