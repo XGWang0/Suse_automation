@@ -1362,7 +1362,7 @@ class Machine {
 	 * @return return JobRun object with 'running' or 'connecting' status
 	 */
 	function get_current_job() {
-                $sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k ON k.job_id = j.job_id WHERE machine_id = :machine_id AND (k.job_status_id = 2 OR k.job_status_id = 6) ORDER BY j.job_id DESC';
+                $sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k ON k.job_id = j.job_id WHERE machine_id = :machine_id AND (j.job_status_id = 2 OR j.job_status_id = 6) ORDER BY j.job_id DESC';
                 if (!($stmt = get_pdo()->prepare($sql))) {
                         return null;
                 }
