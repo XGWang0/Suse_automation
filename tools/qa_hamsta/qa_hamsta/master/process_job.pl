@@ -255,7 +255,6 @@ sub process_job_part_on_machine ($$$)
 
 	# Mark the job as started
 	&TRANSACTION( 'job_on_machine','job_part_on_machine');
-	&job_on_machine_set_status($job_on_machine_id,JS_RUNNING);
 	&job_part_on_machine_start($job_part_on_machine_id);
 	&TRANSACTION_END;
 
@@ -391,7 +390,6 @@ sub process_job_part_on_machine ($$$)
 	}
 	# Mark the job as finished
 	&TRANSACTION( 'job_on_machine', 'job_part_on_machine' );
-	&job_on_machine_stop($job_on_machine_id);
 	&job_part_on_machine_stop($job_part_on_machine_id, $status);
 	&TRANSACTION_END;
 	$dbc->commit();
@@ -739,7 +737,6 @@ sub set_fail_release()
 	        {
 			my $job_part_on_machine_id = $job_ref->{'mm_jobs'}->{$part}->{$jomid}->[1];
 			&TRANSACTION( 'job_on_machine', 'job_part_on_machine' );
-			&job_on_machine_stop($jomid);
 			&job_part_on_machine_stop($job_part_on_machine_id,JS_FAILED);
          	}
 
