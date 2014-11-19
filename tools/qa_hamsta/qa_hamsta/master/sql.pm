@@ -305,7 +305,7 @@ sub job_on_machine_get_by_status($) # status_id
 {	return $dbc->matrix_query('SELECT job_on_machine_id,machine_id,job_id FROM job_on_machine WHERE job_status_id=?',$_[0]);	}
 
 sub job_on_machine_get_by_machineid_status($$) # machine_id status_id
-{	return $dbc->vector_query('SELECT machine_id FROM job_on_machine WHERE machine_id=? AND job_status_id=?',$_[0],$_[1]);	}
+{	return $dbc->vector_query('SELECT machine_id FROM job_on_machine k LEFT JOIN job_part_on_machine p USING(job_on_machine_id) WHERE machine_id=? AND p.job_status_id=?',$_[0],$_[1]);	}
 
 sub job_on_machine_start($) # job_on_machine_id
 {	return $dbc->update_query('UPDATE job_on_machine SET job_status_id=2 WHERE job_on_machine_id=?',$_[0]);	}
@@ -316,8 +316,8 @@ sub job_on_machine_stop($) # job_on_machine_id
 sub job_on_machine_stop_all($) # machine_id
 {	return $dbc->update_query('UPDATE job_on_machine SET job_status_id=3 WHERE machine_id=?',$_[0]);	}
 
-sub job_on_machine_insert($$$$) # job_id, machine_id, config_id, job_status_id, mm_role_id
-{	return $dbc->insert_query('INSERT INTO job_on_machine(job_id,machine_id,config_id,job_status_id,mm_role_id) VALUES(?,?,?,?,?)',@_);	}
+sub job_on_machine_insert($$$$) # job_id, machine_id, config_id, mm_role_id
+{	return $dbc->insert_query('INSERT INTO job_on_machine(job_id,machine_id,config_id,mm_role_id) VALUES(?,?,?,?)',@_);	}
 
 ### job_part functions
 

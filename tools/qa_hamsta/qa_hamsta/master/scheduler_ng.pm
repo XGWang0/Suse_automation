@@ -293,7 +293,7 @@ sub distribute_jobs() {
         foreach my $machine_id (keys %$id_config_ref) {
             &TRANSACTION( 'job', 'job_on_machine' );
             &job_set_aimed_host($job_id,$host_aimed) unless $host_orig;
-            my $job_on_machine_id = &job_on_machine_insert($job_id, $machine_id, $id_config_ref->{$machine_id}, JS_QUEUED,$unique_roles->{$machine_role_map->{$machine_id}});
+            my $job_on_machine_id = &job_on_machine_insert($job_id, $machine_id, $id_config_ref->{$machine_id}, $unique_roles->{$machine_role_map->{$machine_id}});
 	    $jom_ids{$machine_id} = $job_on_machine_id;
             &log(LOG_DETAIL, "A new job_on_machine record is inserted as $job_on_machine_id for job_id $job_id, machine_id $machine_id.");
             &TRANSACTION_END;
