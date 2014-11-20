@@ -184,7 +184,7 @@ sub run {
 
         map{ push @url, $_->{'content'}; } @repos;
 
-        &log(LOG_INFO, "Repositories to add if missing: \n%s", join("\n", @url));
+        &log(LOG_INFO, "Repositories to add if missing: \n%s", $#url>0?join("\n", @url):"");
         if( &add_repos(@url) ) {
             &log(LOG_ERROR, "Repository adding failed, aborting");
             return;
