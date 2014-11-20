@@ -28,7 +28,7 @@
     <parameter name="slave_ip" default="10.20.3.100" label="Slave IP address" type="string" />
   </parameters>
   <parts>
-    <part name="default" id="1" />
+    <part name="part1" id="1" />
   </parts>
   <roles>
     <role name="client" num_min="1">

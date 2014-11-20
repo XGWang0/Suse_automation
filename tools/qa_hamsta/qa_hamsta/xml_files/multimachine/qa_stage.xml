@@ -7,7 +7,7 @@
     <mail notify="0">jtang@suse.com</mail>
   </config>
   <parts>
-    <part name="default" id="1" />
+    <part name="part1" id="1" />
   </parts>
   <roles>
     <role name="client" num_min="1">

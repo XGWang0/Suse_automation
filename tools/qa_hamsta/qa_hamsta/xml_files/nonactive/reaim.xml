@@ -8,10 +8,10 @@
     <rpm>hamsta reaim-ctcs2-glue</rpm>
   </config>
   <parts>
-    <part name="default" id="1" />
+    <part name="part1" id="1" />
   </parts>
   <roles>
-    <role name="default">
+    <role name="role_1">
       <commands part_id="1">
         <worker>
           <command execution="forked" reboot="0"><![CDATA[#!/bin/bash
