@@ -109,7 +109,7 @@ sub machine_has_perm($$) # machine_id, perm_str
 {    return $dbc->scalar_query('SELECT FIND_IN_SET(?,perm) FROM machine WHERE machine_id=?',$_[1],$_[0]);    }
 
 sub machine_set_all_unknown(){
-     $dbc->update_query('UPDATE job_on_machine SET job_status_id=4 WHERE job_status_id=6');
+     $dbc->update_query('UPDATE job_part_on_machine SET job_status_id=4 WHERE job_status_id=6');
      $dbc->update_query('UPDATE job SET job_status_id=4 WHERE job_status_id=6');
      $dbc->update_query('UPDATE machine SET machine_status_id=6');
 }
