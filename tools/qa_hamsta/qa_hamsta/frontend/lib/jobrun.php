@@ -120,6 +120,7 @@ class JobRun {
 
 		foreach( $build_hash as $job_id => $value) {
 		    $tmp['job_id'] = $job_id;
+                    if(!array_key_exists($job_id,$roles)) continue; 
 		    $tmp['roles'] = $roles[$job_id];
 		    $tmp['role_machines'] = $roles[$job_id]['machines'];
 		    $tmp['part_id'] = array();
