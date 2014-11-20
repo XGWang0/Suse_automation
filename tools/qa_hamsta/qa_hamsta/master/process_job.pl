@@ -393,15 +393,8 @@ sub process_job_part_on_machine ($$$)
 	&job_part_on_machine_stop($job_part_on_machine_id, $status);
 	&TRANSACTION_END;
 	$dbc->commit();
-	
+
 }
-
-
-
-
-
-
-
 
 
 sub build_ref($)
@@ -415,23 +408,30 @@ sub build_ref($)
 	$job_ref->{'job_name'} = $job_name ;
 	$job_ref->{'job_status_id'} = $job_status_id ;
 
-	foreach my $machine_ip ( split /[\s,]+/,$aimed_host )
+	foreach my $machine ( split /[\s,]+/,$aimed_host )
 	{
-		next unless ($machine_ip);
-		my $machine_id = &machine_get_by_ip($machine_ip);
-		$job_ref->{'aimed_host'}->{$machine_id} = $machine_ip ;
+		next unless ($machine);
+		if($machine =~ /\.\d+\./)
+		{
+			#the format of machine is ip address xx.xx.xx.xx
+			my $machine_id = &machine_get_by_ip($machine);
+			$job_ref->{'aimed_host'}->{$machine_id} = $machine ;
 
+		}else {
+			#the format of machine is machine_id 
+
+			my $machine_ip = &machine_get_ip($machine) ;
+			$job_ref->{'aimed_host'}->{$machine} = $machine_ip ;
+		}
 	}
-
-	
 
 	my @parts = &job_part_get_ids_by_job_id($job_id);
 	my @job_on_machine_id = &job_on_machine_list($job_id);
-	
+
 	foreach my $part (@parts) {
-	
+
 		foreach my $jomid (@job_on_machine_id) {
-			
+
 			my ($xml,$job_part_on_machine_id,$status,$does_reboot) = &job_part_info_get_by_pid_jomid($part,$jomid);
 			$job_ref->{'mm_jobs'}->{$part}->{$jomid} = [$xml,$job_part_on_machine_id,$jomid,$status,$does_reboot] if ($xml);
 
@@ -451,13 +451,13 @@ sub split_part()
 
 	foreach my $part ( @parts )
 	{
-		
+
 		my @job_on_machine_ids = keys %{$job_ref->{'mm_jobs'}->{$part}};
 
 		my $part_ref ;
-		
+
 		map { my $machine_id = &job_on_machine_get_machine($_) ; $part_ref->{$machine_id} = $job_ref->{'mm_jobs'}->{$part}->{$_}; } @job_on_machine_ids;
-		
+
 		push @part_machines_xml,$part_ref;
 
 	}
@@ -488,18 +488,18 @@ sub connect_all ($)
 			&set_fail_release();
 			return 0;
 		}
-	
+
 	}
 	# send ping to sut ,and check the return value
-	
+
 	foreach (keys %machine_sock)
 	{
-		#send ping to SUT 
+		#send ping to SUT
 		my $tmpsock = $machine_sock{$_};
 		print $tmpsock "ping\n";
 	}
-	
-	#set a sync timeout 
+
+	#set a sync timeout
 	my $timeout = 100;
 	for my $temp_ca (1 .. $timeout)
 	{
