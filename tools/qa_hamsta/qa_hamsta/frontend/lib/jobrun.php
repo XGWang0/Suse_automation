@@ -83,18 +83,20 @@ class JobRun {
 			return null;
 		}
 		$stmt->execute();
+                $ids = array();
+		$result = array();
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC))
                 	$ids[] = $row['job_id']; 
+                if ( count($ids) == 0 ) return $result;
 		$inQuery = str_repeat('?,', count($ids) - 1) . '?'; 
 
 		$sql = "SELECT * FROM job j LEFT JOIN job_on_machine k USING(job_id) LEFT JOIN job_part_on_machine p USING(job_on_machine_id) WHERE j.job_id IN ($inQuery) ORDER BY j.job_id DESC";
 
 		if (!($stmt = get_pdo()->prepare($sql))) {
-			return null;
+			return $result;
 		}
 
 		$stmt->execute($ids);
-		$result = array();
 		$build_hash = array();
 		$tmp = array();
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
