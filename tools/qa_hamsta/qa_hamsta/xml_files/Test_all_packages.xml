@@ -9,10 +9,10 @@
     <rpm>qa_hamsta qa_tools qa_lib_perl qa_test_bind qa_test_coreutils qa_test_openssh qa_test_apache_testsuite qa_test_cpio qa_test_net-snmp qa_test_indent qa_test_sharutils qa_test_gzip qa_test_findutils qa_test_postfix qa_test_fetchmail qa_test_php5 qa_test_nfs qa_test_bzip2 qa_test_apparmor qa_test_apparmor-profiles qa_test_cracklib qa_test_siege qa_test_interbench qa_test_kernbench qa_test_libmicro qa_test_reaim qa_test_bonnie qa_test_tiobench qa_test_dbench ltp qa_test_newburn qa_test_memtester qa_test_memeater memtst qa_test_netperf ftpload qa_test_lmbench qa_test_sysbench qa_test_autotest qa_test_lynis</rpm>
   </config>
   <parts>
-    <part name="default" id="1" />
+    <part name="part1" id="1" />
   </parts>
   <roles>
-    <role name="default">
+    <role name="role_1">
       <commands part_id="1">
         <worker>
           <command execution="forked" reboot="0"><![CDATA[#!/bin/bash

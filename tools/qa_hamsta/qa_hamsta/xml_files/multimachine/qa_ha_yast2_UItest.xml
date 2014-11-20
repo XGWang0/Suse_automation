@@ -15,7 +15,7 @@
     </parameter>
   </parameters>
   <parts>
-    <part name="default" id="1" />
+    <part name="part1" id="1" />
   </parts>
   <roles>
     <role name="client" num_max="2" num_min="1">

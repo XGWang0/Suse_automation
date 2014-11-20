@@ -8,10 +8,10 @@
     <motd>Hamsta testjob - pinging qadb.suse.de</motd>
   </config>
   <parts>
-    <part name="default" id="1" />
+    <part name="part1" id="1" />
   </parts>
   <roles>
-    <role name="default">
+    <role name="role_1">
       <commands part_id="1">
         <logger>
           <command><![CDATA[tail -f /var/log/messages]]></command>
