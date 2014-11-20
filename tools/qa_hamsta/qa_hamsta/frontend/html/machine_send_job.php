@@ -119,7 +119,7 @@ if (is_dir ($dir) && $handle = opendir ($dir)) {
 			echo "     <tr class=\"file_list\">\n";
 			echo "        <td colspan=\"3\">\n";
 			if ($count > 0) {
-					echo "        <div style=\"margin-left: 40px; margin-top: 2px; padding: 2px 2px 10px 2px; border: 1px solid #cdcdcd\" id=\"div_$sortcount\">\n";
+					echo "        <div style=\"margin-left: 40px; margin-top: 2px; padding: 2px 2px 10px 2px; border: 1px solid #cdcdcd; display: none\" id=\"div_$sortcount\">\n";
 					echo "            <div class=\"text-main\" style=\"padding: 5px 5px 5px 5px\"><b>Edit parameters in the form below.</b></div>\n";
 			
 # get the parameter table, avoid the same parameter name in different jobs

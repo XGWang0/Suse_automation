@@ -119,8 +119,10 @@
                                                   'motd'=>$role->config->motd,
                                                   'rpm' => ''
                                             );
-                        foreach($role->config->rpm as $rpm) {
-                            $jobRoleMap[$i]['rpm'] .= "$rpm ";
+                        if(isset($role->config->rpm)) { 
+                            foreach($role->config->rpm as $rpm) {
+                                $jobRoleMap[$i]['rpm'] .= "$rpm ";
+                            }
                         }
                         $role_name = $role['name'];
                         foreach($role->commands as $command) {
@@ -168,16 +170,16 @@
     <td>
     <select name="debuglevel" title="required: debug information">
       <?php
-      $default_level = $jobInfo['level']?$jobInfo['level']:3;
+      $default_level = intVal($jobInfo['level']?$jobInfo['level']:3);
       for($i=0;$i<10;$i++)
       {
           if($default_level == "$i")
-              echo "<option value=\"$i\" selected=\"selected\">Level-$i</option>";
+              echo "<option value=\"$i\" selected=\"selected\">".$debug[$default_level]." ($i)</option>";
           else
-              echo "<option value=\"$i\">Level-$i</option>";
+              echo "<option value=\"$i\">".$debug[$default_level]." ($i)</option>";
       }
       ?>
-    </select> <?php echo "default \"".$debug[$default_level]." ($default_level)\""; ?>
+    </select> <?php echo $debug[$default_level]." ($default_level)"; ?>
     </td></tr >
     <tr>
     <td>Repository:</td>
@@ -364,7 +366,7 @@
             else
                 $maximum .= "<option value=\"$j\">$j</option>\n";
         }
-        $default_level = $jobRoleMap[$i]['level'] ? $jobRoleMap[$i]['level'] : 3;
+        $default_level = intVal($jobRoleMap[$i]['level'] ? $jobRoleMap[$i]['level'] : 3);
         $debugLevel = "\n";
         for($l=0;$l<10;$l++)
         {
