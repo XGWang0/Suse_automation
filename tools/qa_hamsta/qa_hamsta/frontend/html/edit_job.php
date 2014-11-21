@@ -341,9 +341,9 @@
             $name = $i+1;
             $name = "Role_$name";
             $min = 1;
-            $max = 2;
+            $max = 0;
             $part_id = array( 1 );
-            $jobRoleMap[$i]['motd'] = "";
+            $jobRoleMap[$i]['motd'] = "Enter your role MOTD message";
             $jobRoleMap[$i]['rpm'] = "";
             $jobRoleMap[$i]['level'] = "";
             $jobRoleMap[$i]['repo'] = "";
