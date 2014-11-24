@@ -85,7 +85,7 @@ cp --target-directory=%{buildroot}%{mandir}/man1 *.1.gz
 cp --target-directory=%{buildroot}%{mandir}/man3 *.3.gz
 cp -r --target-directory=%{buildroot}%{libdir} utils
 cp --target-directory=%{buildroot}%{libdir} db_common.pm
-cp --target-directory=%{buildroot}%{confdir} 00-qa_libperl-default 00-qa_libperl-default.us
+cp --target-directory=%{buildroot}%{confdir} 00-qa_libperl-default
 echo ${version} > %{buildroot}%{libdir}/qa_libperl.version
 
 %clean
