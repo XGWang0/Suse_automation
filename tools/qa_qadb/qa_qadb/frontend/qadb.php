@@ -202,6 +202,7 @@ function build_promoted_delete($build_promoted_id)	{
   *  12 extended regressions, just testsuites
   *  13 distinct products/releases for extended regressions
   *  14 distinct testsuite/testcase combinations (for regressions)
+  *  15 distinct submissions for extended regressions
   * $attrs['only_id']: 
   *   0 for full details
   *   1 for IDs only 
@@ -221,6 +222,8 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	# base SQL for result difference
 	$rd1='NOT EXISTS( SELECT * FROM result r2 JOIN tcf_group g2 USING(tcf_id) WHERE';
 	$rd2='AND r.testcase_id=r2.testcase_id)';
+	# base SQL for testsuite existence searches
+	$te1='EXISTS( SELECT * FROM tcf_group g WHERE g.testsuite_id=? AND g.submission_id=s.submission_id)';
 	# base fields for summaries
 	$sum=array('SUM(times_run) AS runs','SUM(succeeded) AS succ', 'SUM(failed) AS fail', 'SUM(internal_error) AS interr', 'SUM(skipped) AS skip', 'SUM(test_time) AS time', "CASE WHEN SUM(failed)>0 THEN 'failed' WHEN SUM(internal_error)>0 THEN 'interr' WHEN SUM(skipped)>0 THEN 'skipped' WHEN SUM(succeeded)>0 THEN 'success' ELSE NULL END AS status");
 #	$status="CASE WHEN failed THEN 'failed' WHEN internal_error THEN 'interr' WHEN skipped THEN 'skipped' WHEN succeeded THEN 'success' ELSE NULL END AS status";
@@ -234,6 +237,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 		'product_id'	=> array('s.product_id=?',		'i'),
 		'release_id'	=> array('s.release_id=?',		'i'),
 		'testsuite_id'	=> array('g.testsuite_id=?',		'i'),
+		'testsuite_eid'	=> array( $te1,				'i'),
 		'testcase_id'	=> array('r.testcase_id=?',		'i'),
 		'testcase'	=> array('c.testcase like ?',		's'),
 		'tcf_id'	=> array('r.tcf_id=?',			'i'),
@@ -261,13 +265,13 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	);
 
 	# index into $sel0[], $sel1[] (SELECT ...), and $from0[] (FROM ...)
-	$i_main = array( 1,0,0,0,0,0,2,0,0,0,0,2,2,3,4 );
+	$i_main = array( 1,0,0,0,0,0,2,0,0,0,0,2,2,3,4,5 );
 	# index into $sel2[] (SELECT ...)
-	$i_next = array( 0,0,1,2,0,3,0,4,5,5,6,7,8,0,9 );
+	$i_next = array( 0,0,1,2,0,3,0,4,5,5,6,7,8,0,9,0 );
 	# index into $from2[] (FROM ...)
-	$i_from = array( 0,0,1,2,3,4,0,0,5,6,7,0,0,8,0 );
+	$i_from = array( 0,0,1,2,3,4,0,0,5,6,7,0,0,8,0,0 );
 	# index into $links2[] ( $transl->['links'] )
-	$i_link = array( 0,0,0,1,0,0,0,0,2,2,2,0,0,0,0 );
+	$i_link = array( 0,0,0,1,0,0,0,0,2,2,2,0,0,0,0,0 );
 
 	# should I return submission_id only?
 	$only_id  = hash_get($attrs,'only_id',false,true);
@@ -280,7 +284,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	# $from = $from0 $from2
 	# $sel0..$sel2 are done as lists - for ordering by them
 	# $sel0[ $i_main ] -- always
-	$sel0=array( 's.submission_id', 'r.result_id', 'testsuite_id','DISTINCT product_id', 'DISTINCT testsuite_id' );
+	$sel0=array( 's.submission_id', 'r.result_id', 'testsuite_id','DISTINCT product_id', 'DISTINCT testsuite_id', 'DISTINCT submission_id' );
 	# $sel1[ $i_main ] -- appends for full details
 	$sel1=array( 
 /* subms */  array('s.submission_date','s.host_id','s.tester_id','s.arch_id','s.product_id','s.release_id','s.related','s.status_id','s.comment','s.rpm_config_id','s.hwinfo_id','s.type','s.ref'),
@@ -288,6 +292,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 /* suite */  array(),
 /* Dprod */  array('product','s.release_id','`release`'),
 /* Dsuit */  array(),
+/* Dsubm */  array(),
 	);
 	# $sel2[ $i_next ] -- appends for full details
 	$sel2=array( 
@@ -310,6 +315,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 /* suite */	'submission s JOIN tcf_group g USING(submission_id)',
 /* Dprod */	'submission s JOIN product USING(product_id) JOIN `release` USING(release_id)',
 /* Dsuit */	'submission s JOIN tcf_group g USING(submission_id)',
+/* Dsubm */	'submission s JOIN tcf_group g USING(submission_id)',
 );
 	# $from1[ $i_main ] -- append for full details
 	$from1=array( 
@@ -318,6 +324,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 /* suite */	' JOIN `result` r USING(tcf_id)', 
 /* Dprod */	'',
 /* Dsuit */	' JOIN `result` r USING(tcf_id)',
+/* Dsubm */	'',
 );
 	# $from2[ $i_from ] -- always
 	$from2=array(
@@ -341,6 +348,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 /* suite */	array(),
 /* Dprod */	array(),
 /* Dsuit */	array(),
+/* Dsubm */	array(),
 	);
 
 	# $group_by1[ $i_next ] - appends for full details
@@ -365,6 +373,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 /* suite */  array('testsuite_id'=>'testsuite'),
 /* Dprod */  array(),
 /* Dsuit */  array('testsuite_id'=>'testsuite'),
+/* Dsubm */  array(),
 	);
 
 	# $enum1[ $i_next ] - for full details when $transl set
@@ -388,6 +397,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 /* suite */	array(),
 /* Dprod */	array(),
 /* Dsuit */	array(),
+/* Dsubm */	array(),
 	);
 
 	# $links2[ $i_link ] - for full details when $transl set
@@ -433,7 +443,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
   * @param &$transl array enum translation table
   * @param &$pager array pager
   **/
-function extended_regression($is_tc,$method,$attrs,&$transl=null,&$pager=null)
+function extended_regression($is_tc,$group_submissions,$method,$attrs,&$footer=null,&$transl=null,&$pager=null)
 {
 	# This turned out to be the simplest way to print extended regressions
 	# in a reasonable time.
@@ -450,22 +460,36 @@ function extended_regression($is_tc,$method,$attrs,&$transl=null,&$pager=null)
 	# first part, just read the products/releases that go onto X
 	$debug=0;
 	$use_res=($method==1);
-	$cell_color=hash_get($attrs,'cell_color',1,true);
-	$cell_text=hash_get($attrs,'cell_text',1,true);
+	$cell_color	= hash_get($attrs,'cell_color',1,true);
+	$cell_text	= hash_get($attrs,'cell_text',1,true);
+	$footer_color	= hash_get($attrs,'footer_color',1,true);
+	$footer_text	= hash_get($attrs,'footer_text',1,true);
+	$show_runs	= hash_get($attrs,'show_runs',0,true);
 	$a=$attrs; # copy for the main query
-	$a['order_by']=array('product','`release`');
+	$attrs['just_sql']=1; # use the original to generate SQL
+
+	# order by, group by
+	if( !$group_submissions )
+		$a['order_by']=array('product','`release`');
 	unset($a['group_by']);
 
 	if( $debug>1 )	{
 		print "<pre>"; 
 		print_r($a);
 		print "SQL="; 
-		print_r(search_submission_result(13,array_merge($a,array('just_sql'=>1)))); 
+		print_r(search_submission_result(($group_submissions ? 15 : 13),array_merge($a,array('just_sql'=>1)))); 
 		print "</pre>\n";
 	}
-	$xaxis=search_submission_result(13,$a);
-	$attrs['just_sql']=1;
 
+	# make X axis
+	$xaxis=search_submission_result(($group_submissions ? 15 : 13),$a);
+	if( count($xaxis) < 2 )	{
+		return array(array()); # empty table header
+	}
+	if( count($xaxis) > 51 )	{
+		print html_error("Too many different values on X axis (".(count($xaxis)-1)."), only showing first 50");
+		array_splice($xaxis,50);
+	}
 	if( $debug )	{
 		print "<h3>X-axis</h3>\n";
 		print html_table($xaxis);
@@ -487,14 +511,22 @@ function extended_regression($is_tc,$method,$attrs,&$transl=null,&$pager=null)
 	);
 
 	# prepare base table that just holds all combinations of testsuites (+testcases)
-	$product_id=array();
-	$release_id=array();
-	for($i=1; $i<count($xaxis); $i++)	{
-		$product_id[$xaxis[$i]['product_id']]=1;
-		$release_id[$xaxis[$i]['release_id']]=1;
+	if( $group_submissions )	{
+		$submission_id=array();
+		for( $i=1; $i<count($xaxis); $i++ )
+			$submission_id[$xaxis[$i]['submission_id']]=1;
+		$attrs['submission_id']=array_keys($submission_id);
 	}
-	$attrs['product_id']=array_keys($product_id);
-	$attrs['release_id']=array_keys($release_id);
+	else	{
+		$product_id=array();
+		$release_id=array();
+		for($i=1; $i<count($xaxis); $i++)	{
+			$product_id[$xaxis[$i]['product_id']]=1;
+			$release_id[$xaxis[$i]['release_id']]=1;
+		}
+		$attrs['product_id']=array_keys($product_id);
+		$attrs['release_id']=array_keys($release_id);
+	}
 	$attrs['only_id']=(!$is_tc);
 	$sub_sql=search_submission_result(14,$attrs);
 	$attrs['only_id']=0;
@@ -529,8 +561,13 @@ function extended_regression($is_tc,$method,$attrs,&$transl=null,&$pager=null)
 	# create & fill a temporary table holding testsuites/testcases for every column
 	for($i=1; $i<count($xaxis); $i++)	{
 		# this is what we are processing now
-		$attrs['product_id']=$xaxis[$i]['product_id'];
-		$attrs['release_id']=$xaxis[$i]['release_id'];
+		if( $group_submissions )	{
+			$attrs['submission_id']=$xaxis[$i]['submission_id'];
+		}
+		else	{
+			$attrs['product_id']=$xaxis[$i]['product_id'];
+			$attrs['release_id']=$xaxis[$i]['release_id'];
+		}
 
 		# SQL to clean up the temporary tables
 		$clean="DROP TABLE IF EXISTS $tbase2$i";
@@ -564,15 +601,14 @@ function extended_regression($is_tc,$method,$attrs,&$transl=null,&$pager=null)
 
 		# join the temporary table into the main SELECT
 		$from[]="LEFT JOIN $tbase2$i t$i ON(base.testsuite_id=t$i.testsuite_id".($is_tc ? " AND base.testcase_id=t$i.testcase_id":'').')';
-		
 	}
 
 	# when showing differences only, this builds the filter column
 	if( $use_res )	{
 		$resol=array();
 		foreach( $colsr as $c )
-			$resol[$c]='IF('.join('+',$res[$c]).'>0,1,0)';
-		$select['res']=join('+',$resol);
+			$resol[$c]='IF('.join(' + ',$res[$c]).'>0,1,0)';
+		$select['res']=join(' + ',$resol);
 	}
 
 	# prepare SELECT fields
@@ -583,14 +619,12 @@ function extended_regression($is_tc,$method,$attrs,&$transl=null,&$pager=null)
 	# build the base SELECT
 	$sql_right=' FROM '.join(' ',$from).($where?' WHERE '.join(' OR ',$where):'');
 	$sql='SELECT '.join(',',$sel).$sql_right;
-	$sql_count='SELECT COUNT(*)'.$sql_right;
 	if( $use_res )	{
 		# build the construction that shows different statuses
-#		unset($select['res']);
 		$sql_right=" FROM ( $sql ) t WHERE t.res>1";
 		$sql='SELECT '.join(',',array_keys($select)).$sql_right;
-		$sql_count='SELECT COUNT(*)'.$sql_right;
 	}
+	$sql_count='SELECT COUNT(*)'.$sql_right;
 	if( $debug > 1 )	{
 		print "<pre>\n";
 		print_r($commands);
@@ -600,7 +634,6 @@ function extended_regression($is_tc,$method,$attrs,&$transl=null,&$pager=null)
 		print_r($cleanup);
 		print "</pre>\n";
 	}
-
 	# run the section that creates & fills temporary tables
 	if( ($ret=update_sequence($commands)) < 0 )
 		exit;
@@ -620,6 +653,8 @@ function extended_regression($is_tc,$method,$attrs,&$transl=null,&$pager=null)
 			table_translate($data,$transl);
 			print html_table($data);
 		}
+		if( $debug>1 )
+			print "Count query: $sql_count<br/>\n";
 	}
 
 	# run the main query
@@ -637,12 +672,25 @@ function extended_regression($is_tc,$method,$attrs,&$transl=null,&$pager=null)
 #	return $data;
 	# postprocessing
 	$ibase=( $is_tc ? 2 : 1 );
+
+	# format header fields
 	array_splice( $data[0], $ibase );
 	for( $j=1; $j<count($xaxis); $j++ )	{
-		$data[0]['c'.($ibase+$j-1)]=sprintf( "%s<br/>%s", $xaxis[$j]['product'], $xaxis[$j]['release'] );
+		$data[0]['c'.($ibase+$j-1)]=( $group_submissions ?
+			$xaxis[$j]['submission_id'] :
+			sprintf( "%s<br/>%s", $xaxis[$j]['product'], $xaxis[$j]['release'] )
+		);
 	}
 
 	$status2class=array('success'=>'i','failed'=>'failed','interr'=>'internalerr','skipped'=>'skipped',''=>'');
+	$names=array('fail','interr','skip','succ','runs');
+	if( isset($footer) )	{
+		foreach( $names as $n )	{
+			$footer[$n]['testsuite_id']=$n;
+			if( $is_tc )
+				$footer[$n]['testcase_id']='';
+		}
+	}
 	
 	for( $i=1; $i<count($data); $i++ )	{
 		$r=$data[$i];
@@ -655,49 +703,160 @@ function extended_regression($is_tc,$method,$attrs,&$transl=null,&$pager=null)
 			$skip=hash_get($r,"skip$j",'',true);
 			$time=hash_get($r,"time$j",'',true);
 
+			$col='c'.($ibase+$j-1);
+
+			if( $footer )	{
+				if( $i==1 )	{
+					foreach( $names as $n )
+						$footer[$n][$col]='';
+				}
+				$footer['runs'][$col] += $runs;
+				$footer['succ'][$col] += $succ;
+				$footer['fail'][$col] += $fail;
+				$footer['interr'][$col] += $interr;
+				$footer['skip'][$col] += $skip;
+			}
+
 			$f=array('text'=>'');
 
 			if( $runs>0 )	{
 				switch( $cell_text )	{
-				case 1:
+				case 1: # status
 					$f['text']=$status;
 					break;
-				case 2:
+				case 2: # % pass
 					$f['text']=( $runs>0 ? sprintf("%2d",100*$succ/$runs).'%' : 'N/A' );
 					break;
-				case 3:
+				case 3: # numbers
 					$f['text']="$fail $interr $skip $succ";
 					break;
-				case 4:
+				case 4: # X
 					$f['text']=( $fail || $interr ? 'X' : '' );
 					break;
 				}
 
 				$f['title']="fail:$fail interr:$interr skip:$skip success:$succ runs:$runs time:$time";
 				switch( $cell_color )	{
-				case 1: 
+				case 1: # status
 					$f['class']=$status2class[$status]; 
 					break;
-				case 2: 
-					$f['style']=sprintf( "background-color: rgb(%d,%d,%d)",
-						255*$fail/$runs,
-						255*$succ/$runs,
-						255*$interr/$runs
-					); 
+				case 2: # RGB
+					$f['style']=rgbstyle($fail,$succ,$interr,$runs);
 					break;
-				case 3: 
-					$gray=sprintf( "%d", 255*$succ/$runs );
-					$f['style']="background-color: rgb($gray,$gray,$gray);";
-					$f['style'].=" color:".($gray>128 ? 'black':'white');
+				case 3: # grayscale
+					$f['style']=rgbstyle($succ,$succ,$succ,$runs);
 					break;
 				}
 			}
-			$r['c'.($ibase+$j-1)]=$f;
+			$r[$col]=$f;
 		}
 
 		$data[$i]=$r;
 	}
+
+	# format / colorize the footer
+	if( $footer )	{
+		$name2class=array('succ'=>'i','fail'=>'failed','interr'=>'internalerr','skip'=>'skipped',''=>'');
+
+		# debug: print footer
+		if( $debug > 1 )	{
+			print "<h3>Footer</h3>\n";
+			print "<pre>\n";
+			print_r($footer);
+			print "</pre>\n";
+		}
+		foreach($footer as $n=>$row)
+			foreach( $row as $col=>$val )	{
+				$n2c = ( isset($name2class[$n]) ? $name2class[$n] : '' );
+				# colorize the header
+				if( $col=='testsuite_id' && $n2c )	{
+					$footer[$n][$col]=array(
+						'text'=>$val,
+						'class'=>$n2c,
+					);
+					continue;
+				}
+
+				# get number of total runs
+				$runs = ( $footer['runs'][$col] ? $footer['runs'][$col] : '' );
+
+				# skip missing / wrong data
+				if( !is_numeric($val) || !is_numeric($runs) )
+					continue;
+				$style = '';
+				$class = '';
+				if( !$val )
+					$footer[$n][$col]='';
+				else {
+					# cell text
+					switch( $footer_text )	{
+					case 1: # status
+						break;
+					case 2: # %pass
+						if( $n!='runs' )
+							$val = sprintf( "%2d%%", 100*$val/$runs );
+						break;
+					case 3: # numbers
+						break;
+					case 4: # X
+						$val = ($val ? 'X' : '');
+						break;
+					case 5:
+						$val='';
+						break;
+					}
+
+					# cell color
+					if( $n != 'runs' )	{
+						switch( $footer_color )	{
+						case 1: # status
+							$class=$n2c;
+							break;
+						case 2: # RGB
+							switch( $n )	{
+								case 'succ':
+									$style=rgbstyle(0,$val,0,$runs);
+									break;
+								case 'fail':
+									$style=rgbstyle($val,0,0,$runs);
+									break;
+								case 'interr':
+									$style=rgbstyle(0,0,$val,$runs);
+									break;
+								default:
+									$style=rgbstyle($val,$val,$val,$runs);
+									break;
+							}
+							break;
+						case 3: # grayscale
+							$style=rgbstyle($val,$val,$val,$runs);
+							break;
+						}
+					}
+				}
+				if( $style || $class )	{
+					$footer[$n][$col]=array(
+						'text'=>$val,
+					);
+					if( $style )
+						$footer[$n][$col]['style']=$style;
+					else
+						$footer[$n][$col]['class']=$class;
+				}
+			}
+	}
+	if( !$show_runs )
+		unset($footer['runs']);
 	return $data;
+}
+
+function rgbstyle($r,$g,$b,$div)
+{
+# luminosity - see http://stackoverflow.com/questions/596216/formula-to-determine-brightness-of-rgb-color
+	$lum=(0.2126*$r + 0.7152*$g + 0.0722*$b) / $div;
+	return sprintf( "background-color:rgb(%d,%d,%d); color:%s",
+		255*$r/$div, 255*$g/$div, 255*$b/$div,
+		($lum<0.5) ? 'white' : 'black' );
 }
 
 function get_maintenance_rpms($submission_id)
@@ -996,7 +1155,8 @@ function common_header($args=null)
 		'session'=>true,
 		'connect'=>true,
 		'icon'=>'icons/qadb_ico.png',
-		'css_screen'=>'css/screen.css'
+		'css_screen'=>'css/screen.css',
+		'jquery'=>'true',
 	);
 	$args=args_defaults($args,$defaults);
 	if( $args['session'] )
@@ -1017,24 +1177,80 @@ function common_header($args=null)
   * Prints one-row table of submission details. 
   * @return array the used table data
   **/
-function &print_submission_details($submission_id)
+function &print_submission_details( $submission_id, $print=true )
 {
 	$transl=array();
 	$where=array('submission_id'=>$submission_id);
 	$res=search_submission_result(1,$where,$transl);
-	if( count($res)<2 )
-		print "No such submission_id: $submission_id<br/>\n";
+	if( count($res)<2 )	{
+		if ($print)
+			print "No such submission_id: $submission_id<br/>\n";
+	}
 	else
 	{
 		if($res[1]['type']=='maint')
 			$res=search_submission_result(2,$where,$transl);
 		else if($res[1]['type']=='kotd')
 			$res=search_submission_result(3,$where,$transl);
-		$res2=$res; # need to return original values
+		$res2=$res; # need to return original values, unless $print is off
 		table_translate($res2, $transl );
+		if( !$print )
+			return $res2;
 		print html_table( $res2 );
 	}
 	return $res;
+}
+
+/**
+  * Prints table comparison of multiple submissions
+  * @param array $data array of submission details, returned e.g. by print_submission_details()
+  * @param array $idnames additional info to submission IDs
+  * @see print_submission_details
+  **/
+function submissions_compare_print( $data, $idnames=array() )
+{
+	if( empty($data) )
+		return;
+
+	# union of all column keys
+	$merged=array();
+	foreach( $data as $item )	{
+		$merged=array_merge($merged,$item[0]);
+	}
+	foreach(array_keys($merged) as $key)	{
+
+		# create union of unique values for that column
+		$all_vals=array();
+		foreach( $data as $id=>$item )	{
+			if (array_key_exists($key,$item[1]))
+				$all_vals[]=$item[1][$key];
+		}
+		$all_vals=array_unique($all_vals);
+
+		# CSS classes for the columns
+		$class[$key]=( count($all_vals) > 1 ? 'm' : 'small skipped' );
+	}
+
+	# print a table comparing the submissions
+	print "<table class=\"tbl\">\n";
+	foreach(array_keys($data) as $id)	{
+		if( !isset($data[$id]) )
+			continue;
+		# submission header row
+		$label='<h3>'.(empty($idnames[$id]) ? '': $idnames[$id].' ')."submission $id</h3>";
+		print "\t<tr><td class=\"space\" colspan=\"".count($data[$id][0]).'">'.$label."</td></td>\n";
+
+		# one submission details
+		for( $i=0; $i<=1; $i++ )	{
+			$tag=( $i ? 'td' : 'th' );
+			print "\t<tr>";
+			foreach($data[$id][$i] as $key=>$val)
+				print html_tag($tag,$val,array('class'=>$class[$key]));
+			print "</tr>\n";
+		}
+	}
+	print "</table>\n";
+
 }
 
 /** Prints one-row table with TCF details. */
@@ -1172,6 +1388,7 @@ function highlight_result()
 	return $row[count($row)-1];
 }
 
+# filter refence hosts
 function reference_host_search($attrs,&$transl=array(),&$pager=null)
 {
 	global $dir;
@@ -1200,13 +1417,22 @@ function reference_host_search($attrs,&$transl=array(),&$pager=null)
 	);
 }
 
+# inserts reference host
 function reference_host_insert($host_id,$arch_id,$product_id)	{
 	return insert_query('INSERT INTO reference_host(host_id,arch_id,product_id) VALUES(?,?,?)', 'iii', $host_id, $arch_id, $product_id );
 }
 
+# deletes reference host
 function reference_host_delete($reference_host_id)	{
 	return update_query('DELETE FROM reference_host WHERE reference_host_id=?', 'i', $reference_host_id );
 }
+
+# function primarily intended for renaming enum values.
+# NOTE: check if $table is a valid table before use!
+function table_replace_value($table,$column,$oldval,$newval)	{
+	return update_query("UPDATE `$table` SET `$column`=? WHERE `$column`=?",'ii',$newval,$oldval);
+}
+
 
 
 

@@ -1,6 +1,6 @@
 # ****************************************************************************
 # Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
-# 
+#
 # THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
 # CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
 # RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
@@ -11,7 +11,7 @@
 # PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
 # AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
 # LIABILITY.
-# 
+#
 # SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
 # WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
@@ -28,43 +28,59 @@
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
-# norootforbuild
+%define with_firewall 0
 
-BuildRequires:  coreutils perl qa_libperl qa-config
+# Where to get the numbers
+# http://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
+%if 0%{?suse_version} >= 1110
+%define with_firewall 1
+%endif
+
+BuildRequires:  coreutils
+BuildRequires:  perl
+BuildRequires:  qa-config
+BuildRequires:  qa_libperl
 
 Name:           qa_tools
-License:        SUSE Proprietary
-Group:          SUSE internal
-AutoReqProv:    on
 Version:        @@VERSION@@
 Release:        0
+License:        SUSE-NonFree
 Summary:        rd-qa internal package for test systems
-#Url:          http://qa.suse.de/hamsta
-Source0:         %{name}-%{version}.tar.bz2
-Source1:	%name.8
-#Patch:        %{name}-%{version}.patch
+Group:          SUSE internal
+Source0:        %{name}-%{version}.tar.bz2
+Source1:        %{name}.8
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
-%if 0%{?sles_version} == 9
-Requires:       perl perl-XML-Simple openslp curl qa_keys qa_libperl qa-config
+Requires:       curl
+Requires:       openslp
+Requires:       perl
+Requires:       perl-XML-Simple
+Requires:       perl-Clone
+Requires:       perl-XML-Bare
+Requires:       qa-config
+Requires:       qa_libperl
+Requires:       coreutils
+%if 0%{?suse_version} == 910
+Requires:       qa_keys
 %else
-Requires:       perl perl-XML-Simple openslp curl qa_libperl qa-config
 Recommends:     qa_keys
 %endif
 BuildArch:      noarch
-PreReq:         coreutils
+%if %{?with_firewall}
+# These are needed to configure the SUSE firewall
+Requires(post):   yast2
+Requires(preun):  yast2
+Requires(post):   yast2-firewall
+Requires(preun):  yast2-firewall
+Requires(post):   yast2-ncurses
+Requires(preun):  yast2-ncurses
+%endif
 
 %description
 QA internal package. This package contains QA automation scripts:
 reinstall.pl - reinstalls the system (GRUB systems only)
 cmllist.pl - grep in systems on cml.suse.cz
-product.pl - guesses the SuSE product
+product.pl - guesses the SUSE product
 and others
-
-
-Authors:
---------
-    Vilem Marsik <vmarsik@suse.cz>
-    Patrick Kirsch <pkirsch@suse.de>
 
 %define destdir /usr/share/qa
 %define bindir %{destdir}/tools
@@ -72,13 +88,13 @@ Authors:
 %define homedir /root
 %define fhsdir %{destdir}/keys
 %define profiledir %{destdir}/profiles
-%define mandir	/usr/share/man
-%define confdir /etc/qa
-
+%define confdir %{_sysconfdir}/qa
+%if %{?with_firewall}
+%define fwconfdir %{_sysconfdir}/sysconfig/SuSEfirewall2.d/services
+%endif
 
 %prep
 %setup -n %{name}
-#%patch
 
 %build
 ln -s reinstall.pl install.pl
@@ -92,54 +108,78 @@ ln -s reinstall.pl.8.gz install.pl.8.gz
 ln -s newvm.pl.8.gz newvm.8.gz
 
 %install
-install -m 755 -d $RPM_BUILD_ROOT%{destdir}
-install -m 755 -d $RPM_BUILD_ROOT%{bindir}
-install -m 755 -d $RPM_BUILD_ROOT%{libdir}
-install -m 755 -d $RPM_BUILD_ROOT%{fhsdir}
-install -m 755 -d $RPM_BUILD_ROOT%{profiledir}
-install -m 755 -d $RPM_BUILD_ROOT%{mandir}/man1
-install -m 755 -d $RPM_BUILD_ROOT%{mandir}/man8
-install -m 755 -d $RPM_BUILD_ROOT%{confdir}
-install -m 755 -d $RPM_BUILD_ROOT%{_sysconfdir}/init.d
-install -m 755 -d $RPM_BUILD_ROOT%{_sbindir}
-cp --target-directory=$RPM_BUILD_ROOT%{bindir} setupIA64liloforinstall
-cp --target-directory=$RPM_BUILD_ROOT%{bindir} setupPPCliloforinstall
-cp --target-directory=$RPM_BUILD_ROOT%{bindir} setupgrubforinstall
-cp --target-directory=$RPM_BUILD_ROOT%{bindir} setupUIAutomationtest
-cp -d --target-directory=$RPM_BUILD_ROOT%{bindir} *.pl
-echo ${version} > $RPM_BUILD_ROOT%{libdir}/qa_tools.version
-cp --target-directory=$RPM_BUILD_ROOT%{libdir} install_functions.pm
-cp vimrc $RPM_BUILD_ROOT%{fhsdir}/.vimrc
-cp -d --target-directory=$RPM_BUILD_ROOT%{mandir}/man1 *.1.gz
-cp -d --target-directory=$RPM_BUILD_ROOT%{mandir}/man8 *.8.gz
-cp --target-directory=$RPM_BUILD_ROOT%{mandir}/man8 %{S:1}
-gzip -9 $RPM_BUILD_ROOT%{mandir}/man8/%{name}.8
-cp --target-directory=$RPM_BUILD_ROOT%{confdir} 00-qa_tools-default 00-qa_tools-default.*
-cp -r profiles/* $RPM_BUILD_ROOT%{profiledir}
-cd $RPM_BUILD_ROOT%{bindir}
-
+install -m 755 -d %{buildroot}%{destdir}
+install -m 755 -d %{buildroot}%{bindir}
+install -m 755 -d %{buildroot}%{libdir}
+install -m 755 -d %{buildroot}%{fhsdir}
+install -m 755 -d %{buildroot}%{profiledir}
+install -m 755 -d %{buildroot}%{_mandir}/man1
+install -m 755 -d %{buildroot}%{_mandir}/man8
+install -m 755 -d %{buildroot}%{confdir}
+install -m 755 -d %{buildroot}%{_sysconfdir}/init.d
+install -m 755 -d %{buildroot}%{_sbindir}
+%if %{?with_firewall}
+install -d %{buildroot}%{fwconfdir}
+%endif
+cp --target-directory=%{buildroot}%{bindir} setupIA64liloforinstall
+cp --target-directory=%{buildroot}%{bindir} setupPPCliloforinstall
+cp --target-directory=%{buildroot}%{bindir} setupgrubforinstall
+cp --target-directory=%{buildroot}%{bindir} setupUIAutomationtest
+cp -d --target-directory=%{buildroot}%{bindir} *.pl
+%if %{?with_firewall}
+cp --target-directory=%{buildroot}%{fwconfdir} hamsta
+%endif
+echo ${version} > %{buildroot}%{libdir}/qa_tools.version
+cp --target-directory=%{buildroot}%{libdir} install_functions.pm
+cp vimrc %{buildroot}%{fhsdir}/.vimrc
+cp -d --target-directory=%{buildroot}%{_mandir}/man1 *.1.gz
+cp -d --target-directory=%{buildroot}%{_mandir}/man8 *.8.gz
+cp --target-directory=%{buildroot}%{_mandir}/man8 %{SOURCE1}
+gzip -9 %{buildroot}%{_mandir}/man8/%{name}.8
+cp --target-directory=%{buildroot}%{confdir} 00-qa_tools-default 00-qa_tools-default.*
+cp -r profiles/* %{buildroot}%{profiledir}
+cd %{buildroot}%{bindir}
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
 %post
 mkdir -p %{homedir}
 cp --target-directory=%{homedir} %{fhsdir}/.vimrc
+
+# Shut down the firewall -- keeping for reference
+# if [ $(which systemctl) && $(systemctl --no-pager --no-legend list-units SuSEfirewall2*) ]
+# then
+#     systemctl stop SuSEfirewall2
+#     systemclt stop SuSEfirewall2_init
+#     systemctl disable SuSEfirewall2
+#     systemclt disable SuSEfirewall2_init
+# elif [ -x /etc/init.d/SuSEfirewall2_init ]
+# then
+#     /etc/init.d/SuSEfirewall2_init stop || true
+#     /etc/init.d/SuSEfirewall2_setup stop || true
+#     chkconfig -d SuSEfirewall2_setup || true
+#     chkconfig -d SuSEfirewall2_init || true
+# fi
+
+%if %{?with_firewall}
+# Instead of disabling the firewall completely, enable the Hamsta
+# service for EXTernal zone
+/sbin/yast2 firewall services add zone=EXT service=service:hamsta || :
+%else
 if [ -x /etc/init.d/SuSEfirewall2_init ]
 then
-    /etc/init.d/SuSEfirewall2_init stop || true
-    /etc/init.d/SuSEfirewall2_setup stop || true
-    chkconfig -d SuSEfirewall2_setup || true
-    chkconfig -d SuSEfirewall2_init || true
+	/etc/init.d/SuSEfirewall2_init stop || true
+	/etc/init.d/SuSEfirewall2_setup stop || true
+	chkconfig -d SuSEfirewall2_setup || true
+	chkconfig -d SuSEfirewall2_init || true
 fi
-if [ -e /etc/systemd/system/SuSEfirewall2_setup.service ]
-then
-    systemctl start SuSEfirewall2.service
-    systemctl disable SuSEfirewall2.service
-fi
-echo "Your system has been hacked successfuly."
+%endif
 
-%preun
+%postun
+%if %{?with_firewall}
+/sbin/yast2 firewall services remove zone=EXT service=service:hamsta || :
+%endif
 
 %files
 %defattr(0644,root,root,0755)
@@ -148,14 +188,16 @@ echo "Your system has been hacked successfuly."
 %dir %{libdir}
 %dir %{bindir}
 %dir %{fhsdir}
-%{mandir}/man1/*
-%{mandir}/man8/*
+%{_mandir}/man1/*
+%{_mandir}/man8/*
 %attr(0755,root,root) %{bindir}/*
 %{libdir}/*
 %{fhsdir}/.vimrc
 %{profiledir}/*
 %{confdir}
+%if %{?with_firewall}
+%{fwconfdir}/hamsta
+%endif
 %doc COPYING
 
 %changelog
-

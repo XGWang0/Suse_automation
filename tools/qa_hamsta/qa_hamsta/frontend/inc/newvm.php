@@ -31,14 +31,15 @@ if (!defined('HAMSTA_FRONTEND')) {
 	return require("index.php");
 }
 
-function filter($var) {
-	if($var == '')
-		return false;
-	return true;
-}
+$a_machines = request_array("a_machines");
 
+$job = new Job();
+
+foreach( $a_machines as $machine ) {
+	$job->add_machine_id($machine);
+}
 $search = new MachineSearch();
-$search->filter_in_array(request_array("a_machines"));
+$search->filter_in_array($a_machines);
 $machines = $search->query();
 
 ### Figure out, check, and set the installation options ###
@@ -147,6 +148,10 @@ if (request_str("proceed")) {
 			$args .= " -D";
 		if ($virtcpu)
 			$args .= " -c $virtcpu";
+                if ($virtinitmem)
+                        $args .= " -m $virtinitmem";
+                if ($virtmaxmem)
+                        $args .= " -M $virtmaxmem"; 
 		if ($virtdisksizestring and $virtdisktypestring) {
 			$virtdisktypestring = preg_replace("/def/","file",$virtdisktypestring); 
 			$args .= " -d $virtdisksizestring -T $virtdisktypestring";
@@ -164,24 +169,27 @@ if (request_str("proceed")) {
 		system("sed -i 's/ARGS/$args/g' $autoyastfile");
 		system("sed -i 's/REPOURL/$producturl/g' $autoyastfile");
 
-		foreach ($machines as $machine) {
-			if (!$machine->send_job($autoyastfile)) {
-				$error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
-			} else {
-				Log::create($machine->get_id(), $user->getLogin (), 'VMNEW', "has installed new virtual machine using \"$producturl_raw\" (SDK: " . ($addon_url ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
-			}
+
+		#jobxml add
+		$job->addfile($autoyastfile);
+		foreach( $a_machines as $machine ) {
+				Log::create($machine, get_user_login ($user), 'VMNEW', "has installed new virtual machine using \"$producturl_raw\" (SDK: " . ($addon_url ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
 		}
+		
 		# Check if a validation test is needed
 		if ($validation) {
-			$validationfiles = split (" ", $config->xml->validation);
+			$validationfiles = explode (" ", $config->xml->validation);
 			foreach ( $validationfiles as &$validationfile ) {
 				$randfile= "/tmp/validation_$rand.xml";
 				system("cp $validationfile $randfile");
 				$validationfile = $randfile;
 				system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $validationfile");
-				$machine->send_job($validationfile) or $errors['validationjob']=$machine->get_hostname().": ".$machine->errmsg;
+				$job->addfile($validationfile);
 			}
 		}
+
+		if ( !$job->send_job() ) $error = $job->errmsg;
+
 
 		if (empty($error)) {
 			header("Location: index.php?go=qacloud");

@@ -58,7 +58,9 @@ sub parse_source_url
 	if( $name =~ /(os|opensuse|suse-linux|suse)-?(\d+)\.(\d+)/i  or
 			$name =~ /(full)-(\d+).(\d+)-(\w+)/i) {
 		($type,$ver,$sub) = ( 'opensuse', $2, $3 );
-	} elsif(  $name =~ /(sles?|sled)-?(\d+)(.*?-?sp-?(\d+))?/i or
+	}elsif( $name =~ /factory/i ) {
+		($type,$ver,$sub) = ( 'opensuse',99,99 );
+	}elsif(  $name =~ /(sles?|sled)-?(\d+)(.*?-?sp-?(\d+))?/i or
 			$name =~ /full-(sles?)(\d+)(-sp(\d+))?/i ) {
 		($type,$ver,$sub) = ( 'sles', $2, $4 );
 		$type=lc($1) if lc($1) eq 'sled';
@@ -66,7 +68,7 @@ sub parse_source_url
 		$type = 'slepos' if $name =~ /-slepos-/i;
 		$sub = 0 unless $sub;
 	}
-	if ($name =~ /(i\d86|ppc(64)?|s390x?|ia64|x86[_-]64)/i) {
+	if ($name =~ /(i\d86|ppc(64(le)?)?|s390x?|ia64|x86[_-]64)/i) {
 		$arch = lc $1;
 		$arch =~ s/-/_/g;
 	}
@@ -135,8 +137,8 @@ sub _read_partitions
 {
 	my $args=shift;
 	my $libsata=&_has_libsata(map {$args->{$_}} qw(to_type to_version to_subversion to_arch));
-	my $swappart=`cat /proc/swaps | tail -n 1 | cut -f1 -d' '`;
-	my $swapsize = `cat /proc/swaps | tail -n 1 |awk {'print \$3'}`;
+	my $get_swap_cmd = q@awk '/^\/dev/{print $1" "$3}' /proc/swaps@;
+	my ($swappart,$swapsize) = `$get_swap_cmd` =~ /([^\s]+)\s([^\s]+)/;
 	my $rootpart=`df /|tail -n1 | cut -f1 -d' '`;
 	$rootpart=$args->{'root_pt'} if($args->{'root_pt'});
 	my $abuildpart=`df | grep "abuild" |tail -n1 | cut -f1 -d' '`;
@@ -177,6 +179,7 @@ sub get_patterns
 		$ret .= ",".$args->{'patterns'};
 	} else	{
 		# case 3: patterns set without '+', use instead of detected
+		$args->{'patterns'} .= ",sw_management" if($args->{'to_type'} eq 'opensuse' and $args->{'to_version'} > 11);
 		return $args->{'patterns'};
 	}
 	if($args->{'to_type'} eq 'sled') { 
@@ -192,8 +195,9 @@ sub get_patterns
 sub get_packages
 {
 	my $args = shift;
-	my $ret='qa_tools,qa_hamsta,autoyast2,vim,mc,iputils,less,screen,lsof,pciutils,tcpdump,telnet,zip,yast2-runlevel,SuSEfirewall2,curl,wget,perl,openssh';
-	if( $args->{'to_type'} eq 'opensuse' or $args->{'to_type'} eq 'sled') {
+	my $ret='qa_tools,qa_hamsta,autoyast2,vim,mc,iputils,less,screen,lsof,pciutils,tcpdump,telnet,zip,SuSEfirewall2,curl,wget,perl,openssh';
+	$ret .= ",yast2-runlevel" if $args->{'to_version'} < 12;
+	if( $args->{'to_type'} eq 'opensuse' or $args->{'to_type'} eq 'sled' or $args->{'to_version'} > 11) {
 		$ret .= ',nfs-client';	
 	} else {	
 		$ret .= ',nfs-utils';	
@@ -207,6 +211,7 @@ sub get_packages
 	$ret .= ",atk-devel,at-spi,gconf2" if $args->{'setupfordesktoptest'};
 	$ret .= ",".$args->{'additionalrpms'} if (defined $args->{'additionalrpms'});
 	$ret .= ','.$qaconf{install_additional_rpms}  if $qaconf{install_additional_rpms};
+	$ret .= ',grub2' if( ($args->{'to_type'} eq 'opensuse' and $args->{'to_version'} > 11)||( $args->{'to_type'} =~ /sle/i and $args->{'to_version'} > 11 ));
 	$args->{'packages'} = $ret;
 }
 
@@ -219,26 +224,11 @@ sub get_profile
 
 sub _get_buildservice_repo
 {
-# TODO
-# SLES_9, SLE_10_SP1_Head, SLE_10_SP2_Head, SLE_Factory, openSUSE_11.0, openSUSE_Factory
 	my ($type,$version,$subversion) = @_;
 	if( $type eq 'opensuse' ) {
-		return "openSUSE_11.4" if $version==11 and $subversion==4;
-		return "openSUSE_12.1" if $version==12 and $subversion==1;
-		return "openSUSE_12.2" if $version==12 and $subversion==2;
-		return "openSUSE_12.3" if $version==12 and $subversion==3;
-		return 'openSUSE_Factory';
+		return $version != 99 ? "openSUSE-$version.$subversion" : 'openSUSE-Factory';
 	} else {
-		return 'SLES_9' if $version==9;
-		return 'SLE_10_SP1_Head' if $version==10 and $subversion<=1;
-		return 'SLE_10_SP2_Head' if $version==10 and $subversion==2;
-		return 'SLE_10_SP3' if $version==10 and $subversion==3;
-		return 'SLE_10_SP4' if $version==10;
-		return 'SUSE_SLE-11_GA' if $version==11 and $subversion==0;
-		return 'SUSE_SLE-11-SP1_GA' if $version==11 and $subversion==1;
-		return 'SUSE_SLE-11-SP2_GA' if $version==11 and $subversion==2;
-		return 'SUSE_SLE-11-SP3_GA' if $version==11 and $subversion==3;
-		return 'SLE_Factory' if $version>11;
+		return "SLE-$version" . ($subversion ? "-SP$subversion" : '');
 	}
 	return undef;
 }
@@ -354,15 +344,15 @@ EOF
 		print $f "\t    <email>".$args->{'ncc_email'}."</email>\n";
 		foreach my $rcode (split(/,/, $args->{'ncc_code'})) {
 			my $prname = "";
-			# Possible regi-codes could be: WORKFORCEID@PRV-EXT-SLES-XXXXXXXXXX
-			# or sles10XXXXXXXX
-			if ($rcode =~ /^.+(-.+){3}.+$/) {
-				$rcode =~ /^.*-([^-]+)-[^-]+$/;
-				$prname = lc $1;
-			} else {
-				$rcode =~ /^([a-zA-Z]+)\d+.+$/;
-				$prname = lc $1;
+			# According to the new proposal of reinstall page. The product code is not extracted from
+			# registration code any more, and let the user input the accurate one if not product name
+			# is guessed. Unified the code format as 'productname+xxxxxxxx"
+			if ($rcode=~ /^(.+)\+(.+)$/)
+			{
+			    $prname = lc $1;
+			    $rcode  = lc $2
 			}
+
 			print $f "		<regcode-$prname>$rcode</regcode-$prname>";
 		}
 		print $f "	  </registration_data>\n";
@@ -648,6 +638,15 @@ $postcmd
 			print $f "	  <hostname>".$args->{'hostname'}."</hostname>\n";
 			print $f "	  <domain>".$args->{'domainname'}."</domain>\n";
 		}
+		# fix bug 832698 - Entry for HOSTNAME is absent in /etc/hosts
+		my $curHostName=`hostname`;
+		chomp($curHostName);
+		my $curDomain=`hostname -d 2>/dev/null`;
+		my $ret=system("grep -E \"^127.0.0.2\\s+$curHostName.$curDomain\\s+$curHostName\" /etc/hosts");
+		if( $ret eq 0 ) {
+	                print $f "	  <write_hostname config:type=\"boolean\">true</write_hostname>\n";
+		}
+
 		print $f "	</dns>\n";
 		print $f "	<interfaces config:type=\"list\">\n";
 		foreach my $if ( glob "/sys/class/net/*" )	{
@@ -796,17 +795,31 @@ sub _print_profile_partitions
 			$drives->{$abuildid}->{$abuildnum}='/abuild' if defined $abuildid;
 			$drives->{$bootid}->{$bootnum}='/boot/efi' if defined $bootid and $args->{'to_arch'} eq 'ia64';
 			$drives->{$bootid}->{$bootnum}='NULL' if defined $bootid and ($args->{'to_arch'} eq 'ppc64' or $args->{'to_arch'} eq 'ppc');
-			my $sizeunit = `fdisk -l |grep "\$drive" |grep Disk |awk {'print \$4'} | cut -f1 -d','`;
-			my $disksize = `fdisk -l |grep "\$drive" |grep Disk |awk {'print \$3'} | cut -f1 -d'\n'`;
-			chomp($sizeunit);
-			chomp($disksize);
-			if ( substr($sizeunit, 0, 2) =~ /GB/ ) {
+
+			my @fdisk = `fdisk -l`;
+			my ($sizeunit, $disksize);
+
+			foreach my $line (@fdisk) {
+				# Want to capture the used disk size
+				# and units. Only the first matching
+				# line is used. Beware that there is
+				# also the 'Disk identifier' line.
+				# Expected line example:
+				# Disk /dev/sda: 500.1 GB, 500107862016 bytes
+				if ($line =~ /^Disk \/[\w\/]+: ([\d.]+) (\w+)/) {
+					chomp($sizeunit = $2);
+					chomp ($disksize = $1);
+					last;
+				}
+			}
+
+			if ( $sizeunit =~ /Gi?B/ ) {
 				$disksize = int($disksize*1024);
 			}
 			$abuildsize = 0 if !$abuildid;
 			$bootsize = 0 if !$bootid;
 			my $sizepercent = $args->{'repartitiondisk'} ? $args->{'repartitiondisk'}*0.01 : 1;
-			$swapsize = int($swapsize)/1024;
+			$swapsize = $swapsize ? int($swapsize)/1024 : 0;
 			my $rootusesize = int(($disksize - $abuildsize - $bootsize - $swapsize)*$sizepercent);
 
 			my %fs = ( '/'=>$args->{'rootfstype'}, 'swap'=>'swap', '/boot/efi'=>'vfat', '/abuild'=>'ext3', 'NULL' => 'ext3');
@@ -826,7 +839,22 @@ sub _print_profile_partitions
 				foreach my $num ( keys %{$drives->{$drive}} ) {
 					my $mnt=$drives->{$drive}->{$num};
 					print $f "	 <partition>\n";
-					print $f "	  <filesystem config:type=\"symbol\">".$fs{$mnt}."</filesystem>\n";
+					# The filesystem type is optional, it will not be
+					# set unless specified.
+					# https://bugzilla.novell.com/show_bug.cgi?id=867147
+					if ($fs{$mnt} ne 'default') {
+						print $f "	  <filesystem config:type=\"symbol\">".$fs{$mnt}."</filesystem>\n";
+					} else {
+						# Well, the filesystem is optional only unless
+						# the installed system is below SLE 12 or
+						# openSUSE 13.1 and below.
+						if (($args->{'to_type'} =~ /sle[ds]/i and $args->{'to_version'} < 12)
+							or ($args->{'to_type'} =~ /openSUSE/i and $args->{'to_version'} <= 13)) {
+							# ext3 is the default filesystem for earlier distros
+							print $f "	  <filesystem config:type=\"symbol\">ext3</filesystem>\n";
+						}
+					}
+
 					if ( $args->{'repartitiondisk'} ) {
 						print $f "	  <create config:type=\"boolean\">true</create>\n";
 						print $f "	  <format config:type=\"boolean\">true</format>\n";
@@ -903,7 +931,11 @@ sub _print_profile_bootloader
 					print $f "	<generic_mbr>false</generic_mbr>\n";
 					print $f "	<timeout config:type=\"integer\">5</timeout>\n";
 					print $f "    </global>\n";
-					print $f "    <loader_type>grub</loader_type>\n";
+					#detect the grub version
+					my $grub = 'grub2';
+					$grub = 'grub' if( $args->{'to_type'} eq 'opensuse' and $args->{'to_version'} < 12 );
+					$grub = 'grub' if( $args->{'to_type'} =~ /sle/i and $args->{'to_version'} < 12 );
+					print $f "    <loader_type>$grub</loader_type>\n";
 				}
 				print $f "  </bootloader>\n";
 			}

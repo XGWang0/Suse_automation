@@ -47,7 +47,7 @@ if (request_str("proceed")) {
 	$errors = array();
 
 	$sshpass_cmd = sprintf ('sshpass -p "%s"', $rootpwd);
-	$addsut_path = '/usr/share/qa/tools/addsut.pl';
+	$addsut_path = '/usr/share/hamsta/frontend/utils/addsut.pl';
 	$ssh_options = 'StrictHostKeyChecking=no';
 
 	# Copy the executable to the host machine
@@ -57,7 +57,7 @@ if (request_str("proceed")) {
 
 	# In case of success, the command is executed, otherwise an error is reported
 	if ( $ret != 0 ) {
-		$errors['fail'] = "Can not scp to $sutname,please check ssh service!";
+		$errors['fail'] = "Can not scp to $sutname. Check the ssh service.";
 	} else {
 		$repo_url = `/usr/share/qa/tools/get_qa_config install_qa_repository`;
 		$repo_url = rtrim($repo_url);
@@ -80,11 +80,11 @@ if (request_str("proceed")) {
 	if (count($errors)==0) {
 		$_SESSION['message'] = "$sutname is connected by $conn_type";
 		$_SESSION['mtype'] = "success";
-		$mailsub = "\"Add SUT:$sutname to master:$master_ip success\"";
+		$mailsub = "\"Add SUT: $sutname to master: $master_ip success\"";
 	} else {
 		$_SESSION['message'] = implode("\n", $errors);
 		$_SESSION['mtype'] = "fail";
-		$mailsub = "\"Add SUT:$sutname to master:$master_ip failed\"";
+		$mailsub = "\"Add SUT: $sutname to master: $master_ip failed\"";
 	}
 
 	if (!empty($mailto)) {

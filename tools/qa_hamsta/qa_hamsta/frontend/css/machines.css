@@ -4,7 +4,6 @@ body  {
   font-size: 16px;
 }
 
-/* header */
 h1 {
   font-size: 1.5em;
   padding-left:3em;
@@ -115,8 +114,8 @@ input#fieldsCheck:checked + .fields{right:0em;}
 /* action */
 .action  {
   position: fixed;
-  padding: 1.5em;
-  margin-left:-1em;
+  padding: 1.5em 3em;
+  margin-left:-2.5em;
   left:-30.8em;
   bottom: 7em;
   border-radius: 0 1em 1em 0;
@@ -137,8 +136,8 @@ label#action h3  {
   -moz-transform:rotate(270deg);
   -webkit-transform:rotate(270deg);
   float:right;
-  margin-top: 6.5em;
-  margin-right:-2em;
+  margin-top: 7em;
+  margin-right:-3.5em;
   color: #fff;
 }
 label#action input[type="submit"]{
@@ -149,6 +148,17 @@ input#blkAni:checked + .noani{}
 input#fieldsCheck,input#actionCheck,input#blkAni {
   display: none;
 } 
+/* action tab enhancement */
+div#chkedsut {
+  transform: rotate(90deg);
+  -ms-transform:rotate(90deg);
+  -moz-transform:rotate(90deg);
+  -webkit-transform:rotate(90deg);
+  float:right;
+  margin-right:-5em;
+  color: #fff;
+}
+input#showmore {  display: none;} 
 
 /* animations */
 div#advanced {
@@ -388,4 +398,11 @@ form.float {
 {
         content: url("../images/27/icon-vhreinstall.png");
 }
-
+.machine_reserve:before
+{
+        content: url("../images/27/icon-reserve.png");
+}
+.release_machine_for_master:before
+{
+        content: url("../images/27/icon-release-for-master.png");
+}

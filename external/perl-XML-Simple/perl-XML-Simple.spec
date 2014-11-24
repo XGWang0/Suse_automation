@@ -14,7 +14,7 @@ Requires:       perl-XML-Parser
 Requires:       perl
 AutoReqProv:    on
 Group:          Development/Libraries/Perl
-License:		Artistic
+License:	Artistic-1.0 or GPL-1.0+
 Url:            http://cpan.org/modules/by-module/XML/
 Summary:        Easy API to read/write XML (Perl module)
 Source:         XML-Simple-%{version}.tar.bz2
@@ -39,6 +39,8 @@ Authors:
 %build
 perl Makefile.PL
 make
+
+%check
 make test
 
 %install

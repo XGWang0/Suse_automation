@@ -23,22 +23,24 @@
   ****************************************************************************
  */
 ?>
-  <tr>
-    <td>Virtualization type: </td>
-    <td>
-      <select name="virttype">
+  <div class='row'>
+    <label for='virttype'>Virtualization type </label>
+    <select name="virttype" id='virttype'>
         <option <?php if(count($paravirtnotsupported)>0){echo "selected=\"1\"";} ?> value="fv">Full</option>
         <option <?php if(count($paravirtnotsupported)>0){echo "disabled=\"1\"";} else {echo "selected=\"`\"";} ?> value="pv">Para</option>
-      </select></td>
-  </tr>
-  <tr>
-    <td>Graphics mode: (default is gnome for SLED): </td>
-    <td>
-      <select name="graphicmode" id="graphicmode">
+    </select>
+  </div>
+  <div class='row'>
+    <label for="graphicmode">Graphics mode: (default is gnome for SLED)</label>
+    <select name="graphicmode" id="graphicmode">
         <option <?php if(isset($_POST["graphicmode"]) and $_POST["graphicmode"] == "nographic"){echo "selected";} ?> value="nographic">No graphical desktop</option>
         <option <?php if(isset($_POST["graphicmode"]) and $_POST["graphicmode"] == "gnome"){echo "selected";} ?> value="gnome">Gnome desktop</option>
         <option <?php if(isset($_POST["graphicmode"]) and $_POST["graphicmode"] == "kde"){echo "selected";} ?> value="kde">KDE desktop</option>
-        </select> (No graphical desktop means xorg desktop for SLED)
-    </td>
-  </tr>
+    </select> (No graphical desktop means xorg desktop for SLED)
+  </div>
+ 
+  <div class='row'>
+    <label for='repartitiondisk'>Repartition the entire disk?</label>
+    <input type="text" size="5" name="repartitiondisk" id="repartitiondisk" value=""/>% of free disk for root partition (e.g.80%; 100%)
+  </div>
 

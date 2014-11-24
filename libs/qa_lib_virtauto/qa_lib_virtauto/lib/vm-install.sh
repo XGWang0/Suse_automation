@@ -1496,6 +1496,7 @@ workingLocation=
 newLocation=
 osFlag=
 additionalInstallSource=
+supportedGuestOSTypes="empty"
 
 # Other Settings
 if [ "$virtType" == "pv" ]
@@ -1508,8 +1509,14 @@ else
 	diskPrefix=hd
 	virtOption=-V
 fi
+
 workingLocation=$autoInstallation/$operatingSystem/$release/$servicePack/$architecture/$virtType
 newLocation=$machineName.autoinstall
+# The vm-install prints the output of '-O' option to stderr. This has
+# been reported and fixed. Feel free to remove the redirection if that
+# is fixed already.
+supportedGuestOSTypes=$(vm-install -O 2>&1);
+
 if [ "$operatingSystem" == "sles" ] || [ "$operatingSystem" == "rhel" ] || [ "$operatingSystem" == "sled" ]
 then
 	osFlag=$operatingSystem$release
@@ -1537,7 +1544,10 @@ then
 	osFlag=oes2l
 elif [ "$operatingSystem" == "win" ]
 then
-	if [ "$release" == "2k8" ] || [ "$release" == "2k8r2" ]
+	if [ "$release" == "2k12" ] || [ "$release" == "2k12r2" ]
+	then
+		osFlag=winserver2012
+	elif [ "$release" == "2k8" ] || [ "$release" == "2k8r2" ]
 	then
 		if echo "$installScenario" | grep -q '^shm.*$'
 		then
@@ -1571,6 +1581,24 @@ then
 				osFlag=windowsvista
 			else
 				osFlag=windowsvistax64
+			fi
+		fi
+	elif [ "$release" == "8" ] || [ "$release" == "8.1" ]
+	then
+		if echo "$installScenario" | grep -q '^shm.*$'
+		then
+			if [ "$architecture" == "32" ]
+			then
+				osFlag=windows8
+			else
+				osFlag=windows8x64
+			fi
+		else
+			if [ "$architecture" == "32" ]
+			then
+				osFlag=windows8
+			else
+				osFlag=windows8x64
 			fi
 		fi
 	elif [ "$release" == "7" ]
@@ -1607,6 +1635,12 @@ then
 	echo "ERROR - $tmpError"
 	echo "ERROR - $tmpError" >&2
 	popd > /dev/null; exit $rERROR
+elif [ $(expr "$supportedGuestOSTypes" : ".*$osFlag") -eq 0 ]
+then
+	tmpError="The OS type '$osFlag' is not supported by vm-install command."
+	echo "SKIPPED - $tmpError"
+	echo "SKIPPED - $tmpError" >&2
+	popd > /dev/null; exit $rSKIPPED
 fi
 if [ "$operatingSystem" == "oes" ] && [ "$release" == "2" ]
 then
@@ -2262,24 +2296,24 @@ then
 			popd > /dev/null; exit $rFAILED
 		fi
 		
-		# Echo out the text to the file on the DHCP server
-		#export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo 'default $machineName' > $pxeFileName" 2> /dev/null
-		#export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo >> $pxeFileName" 2> /dev/null
-		#export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo 'label $machineName' >> $pxeFileName" 2> /dev/null
-		#export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo '        kernel qa-virtauto/$pxe_os/$pxe_rl/$pxe_sp/$archFolder/linux' >> $pxeFileName" 2> /dev/null
 		if [ -z $autoinstProfile ] 
 		then
+			# Echo out the text to the file on the DHCP server
+			export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo 'default $machineName' > $pxeFileName" 2> /dev/null
+			export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo >> $pxeFileName" 2> /dev/null
+			export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo 'label $machineName' >> $pxeFileName" 2> /dev/null
+			export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo '        kernel qa-virtauto/$pxe_os/$pxe_rl/$pxe_sp/$archFolder/linux' >> $pxeFileName" 2> /dev/null
 			autoyastURL="http://$httpServer/$httpAutoyastWeb/$autoyastFileName"
 		
 			# Get the autoyast file over to the http server
 			export SSHPASS=$httpPass; cat $newLocation | $sshNoPass $httpUser@$httpServer "cat - > $httpAutoyastLocal/$autoyastFileName" 2> /dev/null
+			export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo '        append initrd=qa-virtauto/$pxe_os/$pxe_rl/$pxe_sp/$archFolder/initrd $pxeInstallOptions $installBootOption=$pxeInstallSource $autoInstallationType=$autoyastURL $customInstallBootOption' >> $pxeFileName" 2> /dev/null
 		else
 			autoyastURL="$autoinstProfile"
+			# re-use autopxe.pl to generate booting files on pxe Server
+			export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "autopxe.pl $pxeInstallSource mac $installMac on on 1>/dev/null " 2> /dev/null
 		fi
-		# re-use autopxe.pl to generate booting files on pxe Server
-		export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "autopxe.pl $pxeInstallSource mac $installMac on on 1>/dev/null " 2> /dev/null
 
-		#export SSHPASS=$pxePass; $sshNoPass $pxeUser@$pxeServer "echo '        append initrd=qa-virtauto/$pxe_os/$pxe_rl/$pxe_sp/$archFolder/initrd $pxeInstallOptions $installBootOption=$pxeInstallSource $autoInstallationType=$autoyastURL $customInstallBootOption' >> $pxeFileName" 2> /dev/null
 	fi
 fi
 

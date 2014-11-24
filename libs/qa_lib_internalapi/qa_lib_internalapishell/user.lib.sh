@@ -5,6 +5,7 @@ function addUser()
 {
     USER="$1"
     MAIN_GROUP="$2"
+    TESTHOME="/tmp/home"
     if [ -z "$USER" ]; then
         echo "Usage: addUser: <userName> [mainGroup]"
         return $FAILED 
@@ -19,8 +20,12 @@ function addUser()
         group="-g $MAIN_GROUP"
     fi
     
+    if ! test -d $TESTHOME ; then
+        mkdir -p $TESTHOME
+	echo "$TESTHOME created"
+    fi
 
-    if ! useradd -m "$USER" -d "/tmp/home/$USER" $group -p "$DEFAULT_PASSWORD_CRYPTED" > /dev/null 2> /dev/null; then
+    if ! useradd -m "$USER" -d "$TESTHOME/$USER" $group -p "$DEFAULT_PASSWORD_CRYPTED" > /dev/null 2> /dev/null; then
             return $FAILED
     fi
 

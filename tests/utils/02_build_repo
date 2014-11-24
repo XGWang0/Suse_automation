@@ -1,0 +1,66 @@
+#!/bin/bash
+
+source /etc/qavirttest/utils.config
+
+CONFIG="/tmp/autotest.conf.$NETWORK"
+BUILDLOG="/$REPOROOT/$REPOPATH/autotest.buildlog"
+ROBOT_CHECK="`pwd`/testsuites/check_build_results.robot"
+
+# Create configuration for building
+cat > $CONFIG << EOF
+REPO="$REPOROOT/$REPOPATH"
+PRODUCTS="$PRODUCTS"
+ARCHS="`arch`"
+PORT=$REPOPORT
+BUILDLOG="$BUILDLOG"
+EOF
+
+MY_DIR=`dirname "$0"`
+
+cd "$MY_DIR"
+
+BUILDARGS="--clean" ../../build-repository $CONFIG
+
+
+
+# remove temp. config
+rm $CONFIG
+
+
+# Generate robot test file
+cat > "$ROBOT_CHECK" << EOF
+*** Settings ***
+Documentation     Verify that all packages has been built successfully
+Force Tags        build
+Library           lib/BuildLogChecker.py    testsuites/broken-builds.list
+Test Template     Build of \${package} on \${product} with status \${status} is correct
+
+*** Variables ***
+
+*** Test Cases ***
+EOF
+
+cat "$BUILDLOG" | sort | while read line
+do
+	pack=`echo $line | cut -d ':' -f 1`
+	prod=`echo $line | cut -d ':' -f 2`
+	stat=`echo $line | cut -d ':' -f 3 | sed 's/skip/ok/'`
+
+	cat >> "$ROBOT_CHECK" << EOF
+Build of $pack on $prod with result $stat is correct
+    $pack  $prod  $stat
+
+EOF
+
+done
+
+cat >> "$ROBOT_CHECK" << EOF
+
+*** Keywords ***
+Build of \${package} on \${product} with status \${status} is correct
+    [Documentation]    The package should build successfully, unless it is known not to build (is in broken list)
+    Check Package Build Status  \${package}  \${product}  \${status}
+
+EOF
+
+

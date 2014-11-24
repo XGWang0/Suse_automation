@@ -2,6 +2,8 @@
 
 export LANG=C
 
+FORCED_VERSION="$VERSION"
+
 [ -r PROJECT/config ] && source PROJECT/config
 
 project=QA:Huawei

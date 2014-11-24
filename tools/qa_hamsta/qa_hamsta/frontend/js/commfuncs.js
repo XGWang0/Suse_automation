@@ -143,6 +143,7 @@ function chkall(input1,input2)
             }
         }
     }
+    attachToTab(input2,"");
 }
 
 function MM_swapImgRestore() 

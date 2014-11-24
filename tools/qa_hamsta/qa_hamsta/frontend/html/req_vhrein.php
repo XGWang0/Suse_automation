@@ -24,12 +24,10 @@
  */
 ?>
 
-  <tr>
-    <td>Virtualization method: </td>
-    <td>
-      <select name="virtualization_method">
-        <option selected="yes" value="xen">XEN</option>
-        <option value="kvm">KVM</option>
-      </select>
-    </td>
-  </tr>
+  <div class='row'>
+    <label for="virtualization_method">Virtualization method: </label>
+    <select name="virtualization_method" id="virtualization_method">
+      <option selected="yes" value="xen">XEN</option>
+      <option value="kvm">KVM</option>
+    </select>
+  </div>

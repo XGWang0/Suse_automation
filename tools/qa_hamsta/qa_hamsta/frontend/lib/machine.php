@@ -329,6 +329,15 @@ class Machine {
 		$ishwvirt = $this->get_hwelement("ishwvirt","IsHWVirt");
 		return $ishwvirt;
 	}
+	function get_reserved_master() {
+		if( !isset($this->fields['hamsta_master_id']) )
+			return NULL;
+		if( !($stmt = get_pdo()->prepare('SELECT hamsta_master_ip FROM hamsta_master WHERE hamsta_master_id=:id')) )
+			return NULL;
+		$stmt->bindParam(':id',$this->fields['hamsta_master_id']);
+		$stmt->execute();
+		return 'http://'.$stmt->fetchColumn().'/hamsta/index.php';
+	}
 
 	/**
 	 * get_devel_tools()
@@ -1028,6 +1037,22 @@ class Machine {
         }
 
 	/**
+	 * Check for multiple machine permissions and return result.
+	 *
+	 * @param array $permissions An array of permission strings to check for.
+	 *
+	 * @return boolean True if machine has permissions from the
+	 * $permissions parameter, false otherwise.
+	 */
+	public function has_permissions($permissions) {
+		$machine_perms = explode(',', $this->get_perm());
+		if (array_diff($permissions, $machine_perms)) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
 	 * Get a permission string from database set.
 	 *
 	 * @return string A string representing the permission set from database.
@@ -1102,6 +1127,17 @@ class Machine {
 		else
 			return NULL;
 	}
+
+	/**
+	 * Check if this machine is a virtual guest.
+	 *
+	 * @return boolean True if this machine is virtual host. False otherwise.
+	 * @see Machine::get_vh_id()
+	 */
+	public function is_virtual_guest() {
+		return $this->get_vh_id() ? true : false;
+	}
+
 	/**
 	 * get_used_by
 	 * This is a workaround function for searching reservator in machine list.
@@ -1225,7 +1261,7 @@ class Machine {
 	 *	  pending jobs
 	 */
 	function get_all_jobs($limit = 0, $start = 0) {
-		$sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k ON k.job_id = j.job_id WHERE machine_id = :machine_id ORDER BY j.job_id DESC, j.job_status_id ASC';
+		$sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k USING(job_id) LEFT JOIN job_part_on_machine p USING(job_on_machine_id) WHERE machine_id = :machine_id ORDER BY j.job_id DESC, j.job_status_id ASC';
 		if ($limit) {
 			$sql .= ' LIMIT '.((int) $start).','.((int) $limit);
 		}
@@ -1237,8 +1273,27 @@ class Machine {
 		
 		$stmt->execute();
 		$result = array();
+		$build_hash = array();
+		$mid = $this->fields["id"];
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-			$result[] = new JobRun($row);
+			$job_id = $row['job_id'];
+                        $part_id = $row['job_part_id'];
+                        $build_hash[$job_id][$part_id][$mid] = $row;
+		}
+		foreach ($build_hash as $job_id => $values) {
+			$tmp['job_id'] = $job_id;
+			$tmp['part_id'] = array();
+			foreach ($values as $part => $data) {
+				$tmp['part_id'][] = $part;
+				$tmp['machines'][$part][$mid] = $data[$mid];
+                                $tmp['short_name'] = $data[$mid]['short_name'];
+                                $tmp['description'] = $data[$mid]['description'];
+                                $tmp['user_id'] = $data[$mid]['user_id'];
+                                $tmp['job_status_id'][$part][$mid] = $data[$mid]['job_status_id'];
+                                $tmp['start'][$part][$mid] = $data[$mid]['start'];
+                                $tmp['stop'][$part][$mid] = $data[$mid]['stop'];
+			}
+			$result[] = new JobRun($tmp);
 		}
 
 		return $result;
@@ -1290,7 +1345,7 @@ class Machine {
          * @return int Number of all jobs currently queued on this machine       
          */
         function count_queue_jobs() {
-                $sql = 'SELECT COUNT(*) FROM job j LEFT JOIN job_on_machine k ON k.job_id = j.job_id WHERE machine_id = :machine_id AND k.job_status_id = 1 ORDER BY j.job_id DESC';
+                $sql = 'SELECT COUNT(*) FROM job j LEFT JOIN job_on_machine k USING(job_id) WHERE machine_id = :machine_id AND j.job_status_id = 1 ORDER BY j.job_id DESC';
 
                 if (!($stmt = get_pdo()->prepare($sql))) {
                         return null;
@@ -1308,7 +1363,7 @@ class Machine {
 	 * @return return JobRun object with 'running' or 'connecting' status
 	 */
 	function get_current_job() {
-                $sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k ON k.job_id = j.job_id WHERE machine_id = :machine_id AND (k.job_status_id = 2 OR k.job_status_id = 6) ORDER BY j.job_id DESC';
+                $sql = 'SELECT * FROM job j LEFT JOIN job_on_machine k ON k.job_id = j.job_id WHERE machine_id = :machine_id AND (j.job_status_id = 2 OR j.job_status_id = 6) ORDER BY j.job_id DESC';
                 if (!($stmt = get_pdo()->prepare($sql))) {
                         return null;
                 }
@@ -1480,6 +1535,58 @@ class Machine {
 
 
 	/**
+	 * send_master_release 
+	 *
+	 * Send release command to a machine by the HAMSTA master commandline interface
+	 * 
+	 * @param NULL
+	 *
+	 * @access public
+	 * @return bool true if the machine is successfully relesed from hamsta master; false on error
+	 */
+	function send_master_release() {
+		if (!($sock = Machine::get_master_socket())) {
+			$this->errmsg = (empty(Machine::$readerr)?"cannot connect to master!":Machine::$readerr);
+			return false;
+		}
+
+		global $config;
+		if ($config->authentication->use) {
+			$user = User::getById (User::getIdent (), $config);
+			fputs ($sock, "log in " . $user->getLogin() . " "
+			       . $user->getPassword() . "\n");
+			$response = "";
+			while (($s = fgets($sock, 4096)) != "$>") {
+				$response .= $s;
+			}
+
+			if (!stristr ($response, "you were authenticated")) {
+				$this->errmsg = $response;
+				if (stristr ($response, 'not enough parameters')) {
+					$this->errmsg = 'Could not authenticate to backend.'
+						. ' Check you have your Hamsta master password set.';
+				}
+				return false;
+			}
+		}
+
+		fputs($sock, "release ".$this->get_ip_address()." for master\n");
+
+		$response = "";
+		while (($s = fgets($sock, 4096)) != "$>") {
+			$response .= $s;
+		}
+
+		if (!stristr($response, "succeeded")) {
+			$this->errmsg = $response;
+			return false;
+		}
+			
+		return true;
+	}
+
+
+	/**
 	 * get_architectures 
 	 *
 	 * Note: This gets the *current* architectures of the machines (i.e. what they are currently installed to).
@@ -1599,7 +1706,8 @@ class Machine {
 
 		$result = array();
 
-		if (!($stmt = get_pdo()->prepare('SELECT * FROM log WHERE machine_id = :id AND job_on_machine_id IS NULL ORDER BY log_id DESC' . ((is_int($limit) and $limit != 0) ? " LIMIT $limit" : "")))) {
+		//if (!($stmt = get_pdo()->prepare('SELECT * FROM log WHERE machine_id = :id AND job_on_machine_id IS NULL ORDER BY log_id DESC' . ((is_int($limit) and $limit != 0) ? " LIMIT $limit" : "")))) {
+		if (!($stmt = get_pdo()->prepare('SELECT * FROM log WHERE machine_id = :id AND job_part_on_machine_id IS NULL ORDER BY log_id DESC' . ((is_int($limit) and $limit != 0) ? " LIMIT $limit" : "")))) {
 			return null;
 		}
 
@@ -1972,7 +2080,7 @@ class MachineSearch {
 	 *	  on error
 	 */
     protected function add_condition($field, $value, $operator = '=') {
-        if (!ereg("[a-z_`]+", $field)) {
+        if (! preg_match ('/[a-z_`]+/', $field)) {
             return false;
         }
 
@@ -2020,7 +2128,7 @@ class MachineSearch {
 	 * @return boolean true on success; false otherwise
 	 */
 	protected function add_table($table, $join_condition) {
-		if (!ereg("[a-z_]+", $table)) {
+		if (! preg_match ('/[a-z_]+/', $table)) {
 			return false;
 		}
 

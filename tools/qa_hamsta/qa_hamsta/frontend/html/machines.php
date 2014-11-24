@@ -45,12 +45,13 @@ if (isset ($ns_machine_filter->fields)
 	 * WARNING! In PHP the continue statement does not work within
 	 * switch block nested in foreach loop. Hence if statemens are
 	 * used here. Just live with that. */
-	if ($key == 's_anything' || $key == 'search_hidden_field' || $key == 'hide_match_field')
-	  {
+	if ($key == 's_anything' || $key == 'search_hidden_field' || $key == 'hide_match_field' 
+		|| $key == 's_module' || $key == 's_module_element_value')
+	{
 	    continue;
-	  }
+	}
 	else if ($key == 's_anything_operator' && isset ($ns_machine_filter->fields['s_anything']))
-	  {
+	{
 	    $filter_description = "\n\t" . '<span class="bold">Hwinfo</span>';
 	    switch ($value)
 	      {
@@ -64,14 +65,26 @@ if (isset ($ns_machine_filter->fields)
 		/* This shoud not be displayed. Never ever. */
 		$value = ' has ';
 	      }
-	  }
+	}
+        else if ($key == 's_module_description' && isset ($ns_machine_filter->fields['s_module']))
+	{
+		$filter_description = "\n\t" . '<span class="bold">' . implode($ns_machine_filter->fields['s_module']) . '</span> is ' . implode($ns_machine_filter->fields[$key]);
+	}
+        else if ($key == 's_module_driver' && isset ($ns_machine_filter->fields['s_module']))
+	{
+		$filter_description = "\n\t" . '<span class="bold">' . implode($ns_machine_filter->fields['s_module']) . ' Driver</span> is ' . implode($ns_machine_filter->fields[$key]);
+	}
+        else if ($key == 's_module_element' && isset ($ns_machine_filter->fields['s_module']) && isset($ns_machine_filter->fields['s_module_element_value']))
+	{
+		$filter_description = "\n\t" . '<span class="bold">' . implode($ns_machine_filter->fields[$key]) . '</span>is ' . implode($ns_machine_filter->fields['s_module_element_value']);
+	}
 	else if ($key == 'fulltext')	
 	{
 		$filter_description = "\n\t" . '<span class="bold">' . ucfirst($key) . '</span> is "' . $value . '"';
 	}
 	else if ($key == 'used_by')
 	{
-		$filter_description = "\n\t" . '<span class="bold">' . $fields_list[$key] . '</span> is ';
+		$filter_description = "\n\t" . '<span class="bold">' . $fields_list[$key]['name'] . '</span> is ';
 		if (isset($value) && is_array($value))
 		{
 			if (isset($value['my']))
@@ -90,9 +103,13 @@ if (isset ($ns_machine_filter->fields)
 			}
 		}
 	}
+	else if($key == 'group')
+	{
+		$filter_description = "\n\t" . "<span class='bold'> Machines from group</span> " . '"'. $value . '"';
+	}
 	else
 	{
-		$filter_description = "\n\t" . '<span class="bold">' . $fields_list[$key] . '</span> is "' . $value . '"';
+		$filter_description = "\n\t" . '<span class="bold">' . $fields_list[$key]['name'] . '</span> is "' . $value . '"';
 	}
 	
 	echo ("<span>$filter_description</span>&nbsp;&nbsp;");
@@ -304,14 +321,14 @@ if (! empty ($s_anything))
 <table class="list text-main" id="machines">
   <thead>
 	<tr>
-		<th><input type="checkbox" onChange='chkall("machine_list", this)'></th>
-		<th><?php print ($fields_list['hostname']); ?></th>
-		<th><?php print ($fields_list['status_string']); ?></th>
-		<th><?php print ($fields_list['used_by']); ?></th>
+		<th><input type="checkbox" id="checkall" onChange='chkall("machine_list", this)'></th>
+		<th><?php print ($fields_list['hostname']['name']); ?></th>
+		<th><?php print ($fields_list['status_string']['name']); ?></th>
+		<th><?php print ($fields_list['used_by']['name']); ?></th>
 		<?php
 			foreach ($fields_list as $key=>$value)
                                 if (isset ($display_fields) && in_array($key, $display_fields))
-					echo("<th>$value</th>");
+					echo("<th>" . $value['name'] . "</th>");
 		?>
 		<th id='actions'><a>Actions</a></th>
 	</tr>
@@ -319,11 +336,11 @@ if (! empty ($s_anything))
   <tbody>
     <?php foreach ($machines as $machine): ?>
     <tr>
-		<td><input type="checkbox" name="a_machines[]" value="<?php echo($machine->get_id()); ?>"<?php if (isset ($a_machines) && in_array($machine->get_id(), $a_machines)) echo(' checked="checked"'); ?>></td>
+	<td><input type="checkbox" name="a_machines[]" onChange='attachToTab(this,"<?php echo($machine->get_id()); ?>")' value="<?php echo($machine->get_id()); ?>"<?php if (isset ($a_machines) && in_array($machine->get_id(), $a_machines)) echo(' checked="checked"'); ?>></td>
 
     <td title="<?php echo($machine->get_notes()); ?>"><a href="index.php?go=machine_details&amp;id=<?php echo($machine->get_id()); ?>&amp;highlight=<?php echo($highlight); ?>"><?php echo($machine->get_hostname()); ?></a><?php if ($machine->count_host_collide() >= 2) echo '<img src="images/27/host-collide.png" class="icon-notification" title="Hostnames collide! Merge or delete machine if MAC was changed, otherwise rename it.">'; ?></td>
 		    
-    <td class="<?php print (get_machine_status_class ($machine->get_status_id ())); ?>"><?php echo($machine->get_status_string());
+    <td class="bold <?php print (get_machine_status_class ($machine->get_status_id ())); ?>"><?php echo($machine->get_status_string());
 	$rh = new ReservationsHelper ();
 	if (isset ($machine) && isset ($user)) {
 		$users_machine = $rh->getForMachineUser ($machine, $user);
@@ -346,10 +363,15 @@ if (! empty ($s_anything))
 <?php
 $rh = new ReservationsHelper ($machine);
 $users_string = $rh->prettyPrintUsers ();
-print ('<td title="' . $users_string
-       . '"><div class="ellipsis-no-wrapped machine_table_usedby">'
-       . $users_string . "</div></td>\n");
-
+if (empty ($users_string) && isset ($user)) {
+	print ('<td><a href="index.php?go=machine_reserve&amp;a_machines[]='
+	       . $machine->get_id()
+	       . '"><img class="machine_quick_reserve" src="images/27/icon-reserve.png" title="Reserve ' . $machine->get_hostname () . '" alt="Reserve this machine"/></a></td>' . PHP_EOL);
+} else {
+	print ('<td title="' . $users_string
+	       . '"><div class="ellipsis-no-wrapped machine_table_usedby">'
+	       . $users_string . "</div></td>\n");
+}
 foreach ($fields_list as $key=>$value)
 {
 	$res = '';
@@ -357,8 +379,15 @@ foreach ($fields_list as $key=>$value)
 	if (method_exists ($machine, $fname)) {
 		$res = $machine->$fname();
 	}
-	if (isset ($display_fields) && in_array($key, $display_fields))
-		echo ("\t<td>$res</td>\n");
+        if (isset ($display_fields) && in_array($key, $display_fields)) {
+                echo ("\t<td>");
+                if ($key == 'reserved_master' ){
+                        echo ("<a href=$res>$res</a>");
+                }else{
+                        echo ("$res");
+                }
+                echo("</td>\n");
+        }
 }
 ?>
 		<td align="center">
@@ -373,9 +402,27 @@ foreach ($fields_list as $key=>$value)
 </table>
 <script type="text/javascript">
 //<!--
-var TSort_Data = new Array ('machines','', '0' <?php echo str_repeat(", 'h'", (isset ($display_fields) ? count($display_fields)+2 : 1)); ?>);
+<?php
+    $types = array();
+    isset ($display_fields) ? $types = array_merge($types, array("'h'", "'h'")) : array_push($types, "'h'");
+    for ($i=0; $i<count($display_fields); $i++)
+    {
+        $type =  isset($display_fields[$i]) ? isset($fields_list[$display_fields[$i]]['type']) ? $fields_list[$display_fields[$i]]['type'] : "h" : "h";
+        array_push($types, "'".$type."'");
+    }
+?>
+var TSort_Data = new Array ('machines','', '0', <?php echo implode(',', $types); ?>);
 var TSort_Icons = new Array ('<span class="text-blue sorting-arrow">&uArr;</span>', '<span class="text-blue sorting-arrow">&dArr;</span>');
 tsRegister();
+
+var sutList = new Object();
+var sutCnt = 0;
+var machines = {
+		<?php foreach ($machines as $machine)
+			echo('"'.$machine->get_id().'":"'.$machine->get_hostname().'",');
+		?>
+		};
+
 
 var height = $(window).height(); 
 var width = $(window).width(); 
@@ -416,6 +463,23 @@ $('#x').on('click', function() {
 	$('#fulltext').attr('value', "");
 });
 
+$('img[class="machine_quick_reserve"]').on('click', function () {
+	var usage = prompt('Please fill in usage for your reservation.', '');
+
+	if (usage != null) {
+		var a = $(this).parent().get(0);
+		if (usage != '' && a) {
+			var href = a.getAttribute ('href');
+			if (href) {
+				a.setAttribute ('href', href + encodeURI ('&usage=' + usage));
+			}
+		}
+		return true;
+	} else {
+		return false;
+	}
+});
+
 /* Check privileges for the sliding actions. */
 function checkPrivileges (action) {
 	var ids = [];
@@ -443,7 +507,6 @@ function checkPrivileges (action) {
 			    }
 			});
 		    }});
-	console.debug (allowed);
 	return allowed;
 }
 
@@ -458,7 +521,6 @@ function checkForm (action) {
 	}
 	return checkboxes && confirmed;
 }
-
 $(document).ready(function(){
 $("label#action button[name='action']").click(function(){
 	return checkForm (this.value);
@@ -467,25 +529,39 @@ $("label#action button[name='action']").click(function(){
 </script>
 <input type="checkbox" id="actionCheck">
 <label id="action" class="action" for="actionCheck">
-<h3>&darr;  Action  &darr;</h3>
+<h3>&darr;  Action  &darr;<div id="chkedsut"></div></h3>
 <input type="checkbox" id="blkAni">
 <label class="noani" for="blkAni">
-<button name="action" class="button machine_send_job" value="machine_send_job" >Send job</button>
-<button name="action" class="button addsut" value="addsut" class="action_button_short_right" >Add SUT</button>
-<br>
-<button name="action" value="machine_edit" class="button edit" >Edit/reserve</button>
-<button name="action" value="machine_reinstall" class="button machine_reinstall" >Reinstall</button>
-<br>
-<button name="action" value="machine_delete" class="button delete" >Delete</button>
-<button name="action" value="merge_machines" class="button merge_machines" >Merge machines</button>
-<br>
-<button name="action" value="create_group" class="button create_group" >Add to group</button>
-<button name="action" class="button machine_config" value="machine_config" >Configure machines</button>
-<br>
-<button name="action" class="button group_del_machines" value="group_del_machines" >Remove from group</button>
-<button name="action" value="upgrade" class="button upgrade" >Upgrade to higher</button>
-<br>
-<button name="action" value="vhreinstall" class="buttonlong button vhreinstall" >Reinstall as Virtualization Host</button>
+<div id="chkedlist"></div>
+<table>
+<tr>
+<td><button name="action" value="machine_reserve" class="button machine_reserve">Reserve machines</button></td>
+<td><button name="action" value="machine_edit" class="button edit">Edit</button></td>
+</tr>
+<tr>
+<td><button name="action" value="machine_reinstall" class="button machine_reinstall">Reinstall</button></td>
+<td><button name="action" value="machine_send_job" class="button machine_send_job">Send job</button></td>
+</tr>
+<tr>
+<td><button name="action" value="merge_machines" class="button merge_machines">Merge machines</button></td>
+<td><button name="action" value="machine_delete" class="button delete">Delete</button></td>
+</tr>
+<tr>
+<td><button name="action" value="create_group" class="button create_group">Add to group</button></td>
+<td><button name="action" value="group_del_machines" class="button group_del_machines">Remove from group</button></td>
+</tr>
+<tr>
+<td><button name="action" value="machine_config" class="button machine_config">Configure machines</button></td>
+<td><button name="action" value="upgrade" class="button upgrade">Upgrade to higher</button></td>
+</tr>
+<tr>
+<td><button name="action" value="vhreinstall" class="button vhreinstall">Reinstall as Virt. Host</button></td>
+<td><button name="action" value="addsut" class="button addsut">Add SUT</button></td>
+</tr>
+<tr>
+<td><button name="action" value="release_machine_for_master" class="button release_machine_for_master">Release for master</button></td>
+</tr>
+</table>
 </label>
 </label>
 </form>
@@ -513,7 +589,7 @@ $("label#action button[name='action']").click(function(){
                         echo(' checked="checked"');
                     }
 		    echo ('>'); // Close the input element
-                    echo("<label for=$key>$value</label><br>");
+                    echo("<label for=$key>" . $value['name'] . "</label><br>");
                 }
         ?>
         <input type="checkbox" name="flage_for_display_set" checked="checked" style="display:none" >

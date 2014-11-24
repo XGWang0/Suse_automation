@@ -14,7 +14,7 @@ Requires:       perl perl-XML-Parser
 BuildRequires:  perl-XML-Parser
 AutoReqProv:    on
 Group:          Development/Libraries/Perl
-License:        Artistic; GPL v1 or later
+License:        Artistic-1.0 or GPL-1.0+
 Url:            http://search.cpan.org/~mikewong/XML-Dumper-0.81/Dumper.pm
 Summary:        A Perl Module XML::Dumper - Perl module for dumping Perl objects from/to XML
 Source:         XML-Dumper-%{version}.tar.bz2
@@ -45,6 +45,8 @@ Authors:
 %build
 perl Makefile.PL OPTIMIZE="$RPM_OPT_FLAGS"
 make
+
+%check
 make test
 
 %install

@@ -24,21 +24,25 @@
  */
 ?>
 
-  <tr>
-   	<td>Repartition the entire disk?</td>
-	<td><label>Yes, use <input type="text" size="5" name="repartitiondisk" value="<?php if(isset($_POST["repartitiondisk"])){echo $_POST["repartitiondisk"];} ?>">% free disk for root partition (e.g. 80%; 100%)</label></td>
-  </tr>
-  <tr>
-    <td>Upload custom autoyast profile (optional):</td>
-    <td><input type="file" name="userfile" id="userfile">
-    <input type="button" value="clear" onclick='clear_filebox("userfile")'>
-    </td>
-  </tr>
-  <tr>
-	<td>Setup host for running desktop tests?</td>
-	<td><label><input type="checkbox" name="setupfordesktop" value="yes">Yes, setup for running desktop test.</label>
-  </tr>
-  <tr>
-        <td>Load installation by Kexec?</td>
-	  <td><label class="left"><input id="kexecboot" type="checkbox" class="left" name="kexecboot" value="yes">Yes, load by Kexec.</label> <div id="kexecnote" class="text-red text-small"></div></td>
-  </tr>
+	<div class="row">
+		<label for="userfile">Upload custom autoyast profile</label>
+		<input type="file" name="userfile" id="userfile">
+		<input type="button" value="clear" onclick='clear_filebox("userfile")'>
+
+	</div>
+	<div class="row">
+		<input type="checkbox" name="setupfordesktop" id="setupfordesktop"  value="yes">
+		<label for="setupfordesktop">Setup host for running desktop tests?</label>
+	</div>
+<?php
+        $user = User::getCurrent();
+        $email = isset($user) ? $user->getEmail() : "";
+            
+?>
+	<div class="row">
+		<label for='mailto'>Notification email address</label>
+		<input type="text" name="mailto" id="mailto" value=<?php echo $email; ?> >
+	</div>
+	<div class="row">
+		(if you want to be notified when the installation is finished)
+	</div>

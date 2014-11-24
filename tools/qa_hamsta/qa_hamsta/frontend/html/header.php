@@ -28,7 +28,7 @@
      * title and page selection bar if needed.
      */
 
-header('Content-Type: text/html; charset=utf-8');
+header(sprintf ('Content-Type: text/html; charset=%s', $header_charset));
 require_once("include/Util.php");
 
 ?>
@@ -43,6 +43,9 @@ require_once("include/Util.php");
   <link href="css/links.css" rel="stylesheet" type="text/css">
   <link href="css/color.css" rel="stylesheet" type="text/css">
   <link href="css/machine_actions.css" rel="stylesheet" type="text/css">
+  <link href="css/reinstall.css" rel="stylesheet" type="text/css">
+  <link href="css/job_details.css" rel="stylesheet" type="text/css">
+  <link href="css/edit_job.css" rel="stylesheet" type="text/css">
 
  <?php
 if( isset($disabled_css) && $disabled_css ) print '<link href="css/disabled.css" rel="stylesheet" type="text/css">'."\n";
@@ -52,6 +55,7 @@ if( isset($disabled_css) && $disabled_css ) print '<link href="css/disabled.css"
   <script src="js/machines.js" type="text/javascript"></script>
   <script src="../scripts/gs_sortable.js" type="text/javascript"></script>
   <script src="../scripts/jquery.js" type="text/javascript"></script>
+  <script src="js/job_details.js" type="text/javascript"></script>
   <?php if (!empty($html_refresh_uri)): ?>
     <meta http-equiv="refresh" content="<?php echo($html_refresh_interval.";".$html_refresh_uri); ?>">
   <?php endif; ?>
@@ -59,7 +63,7 @@ if( isset($disabled_css) && $disabled_css ) print '<link href="css/disabled.css"
 <body>
   <div id="header">
     <div class="version text-main text-white bold">
-      <em>v<?php $version = explode("-", $hamstaVersion); echo($version[2]);?></em>
+	<em>v<?php echo ($hamstaVersion); ?></em>
     </div>
 
     <div id="hlogo">
@@ -90,7 +94,6 @@ if( isset($disabled_css) && $disabled_css ) print '<link href="css/disabled.css"
              User::printLogInOut();
            }
            ?>
-      <a href="index.php?go=install_client">Install Client</a>
     </div>
 
     <div id="header-links" class="text-medium bold">

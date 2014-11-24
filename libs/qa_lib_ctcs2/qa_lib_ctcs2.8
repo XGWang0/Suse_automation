@@ -35,6 +35,13 @@ Results are stored in \fI/var/log/qa/ctcs2/\<testsuite\>\-\<timestamp\>\fP if ru
 .BI $HOME /var\-log\-qa/ctcs2/\<testsuite\>\-\<timestamp\>
 if run as non-root. If environment variable \fB$TESTS_LOGDIR\fP is set, results are stored in
 .BI $TESTS_LOGDIR /ctcs2/\<testsuite\>\-\<timestamp\>\.
+
+The package also includes a
+.I ctcs2_check.py
+script that can find a failed testcases given the
+.B CTCS2
+log directory or compare results of two testruns.
+
 .SH COMMON PROBLEMS
 None.
 .SH ENVIRONMENT VARIABLES

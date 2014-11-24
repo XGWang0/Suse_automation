@@ -41,10 +41,20 @@
     }
 
     $page = request_int("page");
+    /* Used also in the ../html/ part. */
+    $rh = new ReservationsHelper ();
 
-    if (isset ($user) && request_str("action") == "cancel") {
-        $job = JobRun::get_by_id(request_int("id"));
-        $job->cancel();
+    if (isset ($user) && request_str("action") == "cancel"
+	&& $id = request_int("id")) {
+	    $job = JobRun::get_by_id($id);
+            $part = request_int("part_id");
+            $mid = request_int("machine_id");
+	    if ($job && $machine = $job->get_machine($mid)) {
+		    if ($rh->hasReservation ($machine, $user)
+			|| $user->isAdmin()) {
+			    $job->cancel($part,$mid);
+		    }
+	    }
     }
 
     if ($machine = request_int("machine")) {

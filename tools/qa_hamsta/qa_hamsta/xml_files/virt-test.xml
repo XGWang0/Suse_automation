@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<job>
+  <config>
+    <name>virt-test</name>
+    <debuglevel>4</debuglevel>
+    <description>Execute virt-test</description>
+    <mail notify="1"></mail>
+  </config>
+  <parts>
+    <part name="part1" id="1" />
+  </parts>
+  <roles>
+    <role name="role_1">
+      <commands part_id="1">
+        <worker>
+          <command execution="threaded" reboot="0"><![CDATA[
+        # Check OS version and repository
+        [ -r /etc/os-release ] && source /etc/os-release
+        if [ $NAME == "SLES" ]; then
+          if [ $VERSION_ID -ge 12 ]; then
+            ADD_REPO='http://download.suse.de/ibs/Devel:/Virt:/Tests/SLE_12/Devel:Virt:Tests.repo'
+          fi
+        else
+          # OpenSUSE repository
+          if [ $VERSION_ID -ge 13.1 ];then
+            ADD_REPO='http://download.opensuse.org/repositories/Virtualization:/Tests/openSUSE_13.1/Virtualization:Tests.repo'
+          fi
+        fi
+
+        if [ -n $ADD_REPO ]; then
+          zypper --non-interactive addrepo --refresh $ADD_REPO;
+          zypper --non-interactive refresh && zypper --non-interactive install virt-test;
+          /usr/share/qa/qa_test_virt-test/bin/qa_test_virt-test-run;
+        else
+          echo "Could not find suitable repository" 1>&2
+        fi
+      ]]></command>
+        </worker>
+      </commands>
+    </role>
+  </roles>
+</job>

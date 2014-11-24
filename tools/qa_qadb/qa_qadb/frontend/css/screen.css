@@ -64,32 +64,38 @@ body {
 	font-size: 80%;
 }
 
-/* 3. buttons - taken from phpMyAdmin */
-
-/* 4. resizeable table bodies */
+/* tables */
 .tbl.controls td:last-child { white-space:nowrap; }
 
 .tbl td 								{ background-color:#eee; }
 .tbl th									{ background-color:#68a; }
-.failed td, .r td, td.r, td.failed		{ background-color:#fbb; }
-.internalerr td, .wr td, td.internalerr, td.wr	{ background-color:#fbf; }
-.skipped td, td.skipped				{ background-color:#bbb; }
-.i td, td.i					{ background-color:#bfb; }
-.wi td, td.wi					{ background-color:#bdd; }
-.m td, td.m					{ background-color:#ffb; }
+.failed td, .r td, td.r, td.failed					{ background-color:#fbb; }
+.internalerr td, .wr td, td.internalerr, td.wr				{ background-color:#fbf; }
+.skipped td, td.skipped							{ background-color:#bbb; }
+.i td, td.i								{ background-color:#bfb; }
+.wi td, td.wi								{ background-color:#bdd; }
+.m td, td.m								{ background-color:#ffb; }
 
-/* 5. table row highlights */
-.tbl td:hover,			.tbl tr:hover td						{ background-color:#ccc; }
-.tbl th:hover,			.tbl tr:hover th						{ background-color:#468; }
-td.failed:hover, tr.failed:hover td, tr:hover td.failed		{ background-color:#f99; }
-td.r:hover, tr.r:hover td, tr:hover td.r		{ background-color:#f99; }
+/* table row highlights */
+.tbl td:hover, .tbl tr:hover td						{ background-color:#ccc; }
+.tbl th:hover, .tbl tr:hover th						{ background-color:#468; }
+td.failed:hover, tr.failed:hover td, tr:hover td.failed			{ background-color:#f99; }
+td.r:hover, tr.r:hover td, tr:hover td.r				{ background-color:#f99; }
 td.internalerr:hover, tr.internalerr:hover td, tr:hover td.internalerr	{ background-color:#f9f; }
-td.wr:hover, tr.wr:hover td, tr:hover td.wr		{ background-color:#f9f; }
-td.skipped:hover, tr.skipped:hover td, tr:hover td.skipped	{ background-color:#999; }
-td.i:hover, tr.i:hover td, tr:hover td.i		{ background-color:#9f9; }
-td.wi:hover, tr.wi:hover td, tr:hover td.wi		{ background-color:#9bb; }
-td.m:hover, tr.m:hover td, tr:hover td.m		{ background-color:#ffb; }
+td.wr:hover, tr.wr:hover td, tr:hover td.wr				{ background-color:#f9f; }
+td.skipped:hover, tr.skipped:hover td, tr:hover td.skipped		{ background-color:#999; }
+td.i:hover, tr.i:hover td, tr:hover td.i				{ background-color:#9f9; }
+td.wi:hover, tr.wi:hover td, tr:hover td.wi				{ background-color:#9bb; }
+td.m:hover, tr.m:hover td, tr:hover td.m				{ background-color:#dd9; }
 
+/* specials for comparing submission details */
+.small, th.small	{ font-size:0.5em; }
+.tbl td.space, .tbl td.space:hover	{
+	background-color:transparent;
+	box-shadow:none;
+}
+
+/* benchmark tables */
 .benchtbl th	{
 	background-color:#68a;
 	color: #000;
@@ -105,6 +111,7 @@ p.benchimg { text-align: center; }
 	text-shadow: 2px 2px 0px #888;
 }
 
+/* forms */
 select, input { background-color: #eee; }
 select:hover, input:hover { background-color: #ccc; }
 select option:hover { background-color:#8ac; }

@@ -28,42 +28,57 @@ var param_static = 0;
 var option_static = new Array();
 var option_num = new Array();
 var option_real_num = new Array();
+var rpart_count = new Array();
+
+function showHide(idPre, showNum, total) {
+	for(e=0; e<total; e++)
+	{
+		if(e < showNum) { 
+			$(idPre + e).show();
+		} else {
+			$(idPre + e).hide();
+		}
+	}
+}
+
+/*
+ * while change overall part number
+ * the limit of role part selection will change too
+ * and hide/show possible number of part cards
+ */
+function alignPartNumber() {
+        var num = parseInt($("select[name='partnumber']").val());
+	for(i=0;i<5;i++)
+	{
+		showHide('#rpart_' + i + '_', num, 10);
+	}
+}
 
 $(document).ready(function(){
 	$('#param_edit').hide();
 	$('#param_div').hide();
 
 	var role_count = document.getElementById('role_count').value;
-	if(role_count == 0)
+	var part_count = document.getElementById('part_count').value;
+	for(i=0; i<5; i++)
 	{
-		$('#singlemachine_form').show();
-        	$('#multimachine_form').hide();
-		for(i=2; i<5; i++)
-			$('#commands_' + i).hide();
+		showHide('#rpart_' + i + '_', part_count, 10);
 	}
-	else
-	{
-		$('#singlemachine_form').hide();
-		$('#multimachine_form').show();
-		for(i=0; i<5; i++)
-		{
-			if(i < role_count)
-				$('#commands_' + i).show();
-			else
-				$('#commands_' + i).hide();
-		}
-	}
-
+	//$('#singlemachine_form').hide();
+	//$('#multimachine_form').show();
+	showHide('#role_', role_count, 5);
+	showHide('#part_', part_count, 10);
 	for(i=0;i<10;i++)
 	{
 		option_static[i] = 0;
 		option_num[i] = 0;
 		option_real_num[i] = 0;
 	}
-
-	var smj_count = document.getElementById('smj_count').value;
-	for(i=0; i<smj_count; i++)
-		$('#div_' + i).hide();
+        alignPartNumber();
+        $('#role_0_name').click();
+//	var smj_count = document.getElementById('smj_count').value;
+//	for(i=0; i<smj_count; i++)
+//		$('#div_' + i).hide();
 
 });
 
@@ -135,7 +150,37 @@ var getJobType =  function(select)
         return NULL;
 }
 
-var getRoleNumber = function(select)
+function clickChild(idp,id) {
+        idp.click();
+        $(id).click();
+}
+
+function syncName(input,type)
+{
+	var id = input.id;
+
+        if(input.value == "")
+	{
+		alert("Please input a "+type+" name!");
+		return;
+	}
+	if(type == "part")
+	{
+		for(i=0;i<5;i++)
+		{
+			var tid = "#role"+i+id;
+			var target = $(tid);
+			if(input.value != target.text())
+				target.text(input.value);
+		}
+	} else {
+		var target = $("#"+id+"_name");
+		if(input.value != target.text())
+			target.text(input.value);
+	}
+}
+
+var getNumber = function(select, type, total)
 {
 	var idx = select.selectedIndex, option, value;
 	if(idx > -1)
@@ -143,15 +188,11 @@ var getRoleNumber = function(select)
 		//$('#roleNumOpt').remove();
 		option = select.options[idx];
 		value = option.attributes.value;
-		role_number = (value && value.specified)?option.value:option.text;
-		for(i=0;i<5; i++)
-		{
-			if(i < role_number)
-				$('#commands_' + i).show();
-			else
-				$('#commands_' + i).hide();
-		}
-		return role_number;
+		num = (value && value.specified)?option.value:option.text;
+                showHide(type+'_', num, total);
+                if( type == "#part" )
+			alignPartNumber();
+		return num;
 	}
 	return NULL;
 }

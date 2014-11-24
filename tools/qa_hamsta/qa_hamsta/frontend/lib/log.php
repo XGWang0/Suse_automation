@@ -62,7 +62,7 @@ class Log {
 	 * @return void
 	 */
 	public static function create($machine, $user, $type, $text, $what = "", $job = NULL) {
-		if (!($stmt = get_pdo()->prepare('INSERT INTO `log` (`machine_id`, `log_user`, `log_type`, `log_text`, `log_what`, `job_on_machine_id`) VALUES (:machine, :user, :type, :text, :what, :job)'))) {
+		if (!($stmt = get_pdo()->prepare('INSERT INTO `log` (`machine_id`, `log_user`, `log_type`, `log_text`, `log_what`, `job_part_on_machine_id`) VALUES (:machine, :user, :type, :text, :what, :job)'))) {
 			return null;
 		}
 		$stmt->bindParam(':machine', $machine);

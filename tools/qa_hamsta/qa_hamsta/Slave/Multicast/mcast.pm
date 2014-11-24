@@ -32,9 +32,11 @@ use warnings;
 
 BEGIN { push @INC, '.', '/usr/share/hamsta', '/usr/share/qa/lib'; }
 use log;
+use detect;
 
 use IO::Socket::Multicast;
 use Slave::Multicast::hwinfo_unique;
+use Slave::rsv_rls
 
 require 'Slave/config_slave.pm';
 
@@ -51,7 +53,9 @@ my $num_hal_devices = 0;
 
 sub hal_devices_have_changed() {
 	return 0 if (! (-e "/usr/bin/dbus-send" or -e "/bin/dbus-send" ));
-	my @hal_answer = `dbus-send --system --dest=org.freedesktop.Hal --print-reply /org/freedesktop/Hal/Manager org.freedesktop.Hal.Manager.GetAllDevices | tail +2`;
+#	my @hal_answer = `dbus-send --system --dest=org.freedesktop.Hal --print-reply /org/freedesktop/Hal/Manager org.freedesktop.Hal.Manager.GetAllDevices | tail +2`;
+#	Workaround of Bug 858037 - multi-cast can not get hal_devices_have_changed in openSUSE_Factory
+	my @hal_answer = `dbus-send --system --dest=org.freedesktop.Hal --print-reply /org/freedesktop/Hal/Manager org.freedesktop.Hal.Manager.GetAllDevices 2>/dev/null| tail +2 2>/dev/null`;
 	if ($num_hal_devices != $#hal_answer) {
 		# hardware changed
 		&log(LOG_NOTICE, "MCAST: DBUS_HWINFO_CHANGE ".$#hal_answer);
@@ -87,7 +91,7 @@ sub run() {
 	my $self_inc = 0;
 	while (1) {
 	    my $slave_ip;
-
+	    my $reserved_hamsta_ip;
 	    my $message = 
 			# An ID (hopefully) unique to this configuration (from hwinfo_unique.pm)
 			&unique_id()."\n".
@@ -97,7 +101,7 @@ sub run() {
 			&get_slave_description($stats_version)."\n".
 
 			# IP address of this slave (from hwinfo_unique.pm)	
-			($slave_ip = &get_slave_ip($Slave::multicast_address))."\n".
+			($slave_ip = &get_my_ip_addr($Slave::multicast_address))."\n".
 
 			# Reserved for transmitting some client dependent options to the 
 			# master (from hwinfo_unique.pm)	
@@ -106,7 +110,13 @@ sub run() {
 			# Whether the hardware configuration has changed since the last message
 			(&hal_devices_have_changed() ? "HWINFO_CHANGE" : "")."\n".
 			#self check hamsta software update status
-			&get_update_status($self_inc);
+			&get_update_status($self_inc)."\n".
+
+                        #Reservation status, 'r' means reserved, 'i' means idle
+                        (($reserved_hamsta_ip = &Slave::get_reserved_hamsta_ip()) ? 'r' : 'i')."\n".
+
+                        #Reserved hamsta IP, use '' if not reserved
+                        $reserved_hamsta_ip;
 			
 
 	    &log(LOG_DEBUG, "-->>$message<<--");

@@ -42,6 +42,7 @@ $mysqlhost = $config->database->params->host;
 $mysqldb = $config->database->params->dbname;
 $mysqluser = $config->database->params->username;
 $mysqlpasswd = $config->database->params->password;
+$mysqlcharset = $config->database->params->charset;
 $is_pdo = 1;
 
 require( 'lib/qaconf_db.php' );

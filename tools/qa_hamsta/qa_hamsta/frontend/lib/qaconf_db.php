@@ -26,7 +26,8 @@ function common_header($args=null)
 	$defaults=array(
 		'session'=>true,
 		'connect'=>true,
-		'icon'=>'icons/qadb_ico.png'
+		'icon'=>'icons/qadb_ico.png',
+		'jquery'=>true,
 	);
 	$args=args_defaults($args,$defaults);
 	if( $args['session'] )
@@ -205,6 +206,10 @@ function qaconf_replace_body_unparsed($qaconf_id,$text,&$bad_rows=null)	{
 
 function qaconf_get_desc($qaconf_id)	{
 	return scalar_query('SELECT `desc` FROM qaconf WHERE qaconf_id=?','i',$qaconf_id);
+}
+
+function qaconf_get_by_desc($desc)	{
+	return scalar_query('SELECT qaconf_id FROM qaconf WHERE `desc`=?','s',$desc);
 }
 
 function qaconf_get_rows($qaconf_id)	{

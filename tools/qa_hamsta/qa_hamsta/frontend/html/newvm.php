@@ -80,29 +80,39 @@ This page will allow you to customize the AutoYaST product installation for the 
 </p>
 
 <form enctype="multipart/form-data" action="index.php?go=newvm" method="POST" onsubmit="return checkcontents(this);">
-
-<table class="text-medium">
   <?php require ("req_rein_all.php"); ?>
   <?php require ("req_newvm_com_conf.php"); ?>
   <?php require ("req_newvm_linux_conf.php"); ?>
-  <?php require ("req_sut.php"); ?>
-  <tr>
-    <td>Notification email address (optional):</td>
-    <td><input type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} else if (isset($user)) { echo $user->getEmail(); } ?>" /> (if you want to be notified when the installation is finished)</td>
-  </tr>
-</table>    
+  <div class="row">
+    <label for="userfile">Upload custom autoyast profile</label>
+    <input type="file" name="userfile" id="userfile">
+    <input type="button" value="clear" onclick='clear_filebox("userfile")'>
+  </div>
+  <div class="row">
+    <label for="setupfordesktop">Setup host for running desktop tests?</label>
+    <input type="checkbox" name="setupfordesktop" id="setupfordesktop"  value="yes">
+          <span>Yes, setup for running desktop test.</span>
+  </div>
+  <div class="row">
+    <label for="kexecboot">Load installtion by Kexec?</label>
+    <input type="checkbox" name="kexecboot" id="kexecboot"  value="yes">
+          <span>Yes, load by Kexec.</span>
+  </div>
+  <div class="row">
+    <label for="mailto" >Notification email address (optional):</label>
+    <input id="mailto" type="text" name="mailto" value="<?php if(isset($_POST["mailto"])){echo $_POST["mailto"];} else if (isset($user)) { echo $user->getEmail(); } ?>" /> (if you want to be notified when the installation is finished)
+  </div>
+
 <br />
 <?php
 	echo ('<input type="submit" name="proceed" value="Proceed">');
 	foreach ($machines as $machine):
 		echo('<input type="hidden" name="a_machines[]" value="'.$machine->get_id().'">');
 	endforeach;
+
+	print_install_post_data ();
+}
 ?>
 </form>
 
-<script>
-<?php
-}
-require ('js/install_product.js');
-?>
-</script>
+<script src="js/install_product.js"></script>

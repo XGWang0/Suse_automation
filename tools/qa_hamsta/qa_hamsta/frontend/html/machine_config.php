@@ -51,7 +51,19 @@ $group=http('group');
 $id_defined=array_key_exists('id',$_REQUEST);
 
 if( token_read($wtoken) )	{
-	if( ($submit=='new' && $desc) || $submit=='set' )	{
+	$step='l';
+	$failed=false;
+	if( ($submit=='new' || $submit=='update') && $desc )	{
+		# check for description collisions
+		$old_id=qaconf_get_by_desc($desc);
+		if( $old_id && $submit=='new' )
+			$failed=true;
+	}
+	if( $failed )	{
+		print html_error("Desc '$desc' already exists");
+		$step=($submit=='new' ? 'n' : 'e');
+	}
+	else if( ($submit=='new' && $desc) || $submit=='set' )	{
 		check_perm_redirect();
 		transaction();
 		if( $submit=='new' )	{
@@ -103,7 +115,6 @@ if( token_read($wtoken) )	{
 			commit();
 		}
 	}
-	$step='l';
 }
 
 $steps=array(
@@ -151,7 +162,7 @@ else if( $step=='e' || $step=='n' )	{
 		print html_div('list machines',"machines: ".join(' ',array_map('machine_get_name',$a_machines)));
 	}
 	print "<form method=\"post\" action=\"$page_base\" class=\"input\" id=\"qaconf_edit\">\n";
-	print html_search_form('',$what,array('form'=>0,'submit'=>($edit ? 'Update':'Insert')));
+	print html_search_form('',$what,array('form'=>0,'submit'=>($edit ? 'Update':'Insert'),'hr'=>false));
 	print "</form>\n";
 	print html_div('text-main',"Edit rows of the configuration. Rows should be in a form of \"<i>key=value # comment</i>\", otherwise they will be dropped on submit.");
 }
@@ -273,21 +284,38 @@ function print_conf_list($ids=array(),$id_active=null)
 		$attached=(isset($row['groups']) || isset($row['machines']));
 		$cantdel=(!$nonsys ? 'is a system configuration' : 
 			(!$local ? 'not a local configuration' : ($attached ? 'need to be detached first':'')));
+		# controls - network URL
 		$ctrl=array(
-			'rows'=>array('url'=>$base1.'v','enbl'=>true,'fullname'=>'content show','allowed'=>true),
-			'edit'=>array('url'=>$base1.'e','enbl'=>!$row['sync_url'],'err_noavail'=>'remote configurations cannot be edited, delete sync_URL first'),
 			'net' =>array('url'=>$base1.'eu','enbl'=>!($local&&$row['rows']),'fullname'=>'URL edit','err_noavail'=>'local configurations cannot be changed to remotes, delete rows first'),
-			'sync'=>array('url'=>$base1.'sync','enbl'=>!$local,'allowed'=>true,'err_noavail'=>'sync_url not set'),
-			'detach'=>array('url'=>$base2.'detach','enbl'=>$attached,'confirm'=>true,'err_noavail'=>'cannot detach - not attached to groups/machines'),
-			'delete'=>array('url'=>$base2.'delete','enbl'=>!$cantdel,'confirm'=>true,'err_noavail'=>"Cannot delete - $cantdel"),
 		);
+		# edit local config / sync remote config
+		if( $local )
+			$ctrl['edit'] = array('url'=>$base1.'e');
+		else
+			$ctrl['sync'] = array('url'=>$base1.'sync','allowed'=>true);
+		# detach attached / delete detached
+		if( $attached )
+			$ctrl['detach'] = array('url'=>$base2.'detach','confirm'=>true);
+		else
+			$ctrl['delete'] = array('url'=>$base2.'delete','enbl'=>!$cantdel,'confirm'=>true,'err_noavail'=>"Cannot delete - $cantdel");
 		$row['ctrls']='';
-		$defaults=array('enbl'=>$local_nonsys,'object'=>$row['desc']);
+		# default settings
+		$defaults=array(
+			'object'=>$row['desc'],
+			'allowed'=>($nonsys ? $logged : $admin)
+		);
 		foreach( array_keys($ctrl) as $c )
-			$row['ctrls'].=task_icon(array_merge(array('type'=>$c,'allowed'=>($nonsys ? $logged : $admin)),$defaults,$ctrl[$c]));
+			$row['ctrls'].=task_icon(array_merge(array('type'=>$c),$defaults,$ctrl[$c]));
+
+		$row['id']=html_link($row['qaconf_id'],$base1.'v');
+		$row['desc']=html_link($row['desc'],$base1.'v');
 	}
+	# rename header fields
 	$data[0]['ctrls']='controls';
-	$data[0]['qaconf_id']='id';
+	$data[0]=array('id'=>'id')+$data[0];
+	unset($data[0]['qaconf_id']);
+
+	# colorize
 	tbl_add_color_class($data,$id_active);
 
 	print "<h3>Configurations involved</h3>\n";

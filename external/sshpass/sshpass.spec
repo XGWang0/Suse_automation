@@ -1,21 +1,28 @@
+#
+# spec file for package sshpass
+#
+# Please submit bugfixes or comments via http://bugs.opensuse.org/
+#
+
 # norootforbuild
-Summary: noninteractive ssh password provider
-Name: sshpass
-Version: 1.04
-Release: 1
-License: GPL v2 or later
-Vendor: Lingnu Open Source Consulting Ltd.
-Group: System Environment/Libraries
-Source0:  %{name}-%{version}.tar.bz2
-Source1:	sshpass.8
-URL: http://www.lingnu.com
-BuildRoot: %{_tmppath}/%{name}-%{version}-root
-BuildRequires: gcc-c++ pkgconfig
-Prefix: %{_prefix}
-Group: Productivity
+Name:           sshpass
+Version:        1.05
+Release:        1
+License:        GPL-2.0+
+Summary:        Non-interactive ssh password provider
+Vendor:         Lingnu Open Source Consulting Ltd.
+Group:          System Environment/Libraries
+Source0:        %{name}-%{version}.tar.gz
+URL:            http://www.lingnu.com
+BuildRoot:      %{_tmppath}/%{name}-%{version}-root
+BuildRequires:  gcc-c++ pkgconfig coreutils
+Prefix:         %{_prefix}
+Group:          Productivity
 
 %description
-sshpass  is  a utility designed for running ssh using the mode referred to as "keyboard-interactive" password authentication, but in non-interactive mode.
+sshpass is a utility designed for running ssh using the mode referred
+to as "keyboard-interactive" password authentication, but in
+non-interactive mode.
 
 %prep
 
@@ -23,20 +30,17 @@ sshpass  is  a utility designed for running ssh using the mode referred to as "k
 
 %build
 # Needed for snapshot releases.
-  CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%{prefix} 
+env CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%{prefix}
 
 if [ "$SMP" != "" ]; then
   (make "MAKE=make -k -j $SMP"; exit 0)
-  make 
+  make
 else
-  make 
+  make
 fi
 
 %install
-install -m 755 -d $RPM_BUILD_ROOT/usr/share/man/man8
-install -m 644 %{S:1} $RPM_BUILD_ROOT/usr/share/man/man8
-gzip $RPM_BUILD_ROOT/usr/share/man/man8/%{name}.8
-make prefix=$RPM_BUILD_ROOT%{prefix} install 
+make prefix=$RPM_BUILD_ROOT%{prefix} install
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -49,13 +53,9 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-, root, root)
-/usr/share/man/man8/sshpass.8.gz
 %{prefix}/bin/*
 %{prefix}/share/man/man1/*
 
 %changelog
 * Wed Oct 22 2009 Brasil/East 2009  <alessandrofaria@netitec.com.br>
 - Create package in openSuse Build : Alessandro de Oliveira Faria.
-
-
-

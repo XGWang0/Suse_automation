@@ -81,7 +81,7 @@ function search_common( $sel, $from, &$attrs, &$attrs_known, &$pager=null )
 		if( is_array($vals) && ( count($vals)==0 || !set($vals[0]) ) )
 			continue;
 
-		$keys=split(',',$keys);
+		$keys=explode(',',$keys);
 
 		$sql_part=array();
 		foreach( $keys as $key )
@@ -303,18 +303,27 @@ function enum_get_id_or_insert($tbl,$val)
 	return enum_insert($tbl,$val);
 }
 
-/**  removes all rows with a given ID */
-function enum_remove_id($tbl, $id)
+/**  deletes all rows with a given ID */
+function enum_delete_id($tbl, $id)
 {	
+	global $enum_cache;
 	unset($enum_cache[$tbl]);
 	return update_query("DELETE FROM `$tbl` WHERE ".eid($tbl)."=?",'i',$id);	
 }
 
-/** removes all rows with a given value */
-function enum_remove_val($tbl, $val)
+/** deletes all rows with a given value */
+function enum_delete_val($tbl, $val)
 {	
+	global $enum_cache;
 	unset($enum_cache[$tbl]);
 	return update_query("DELETE FROM `$tbl` WHERE ".ename($tbl)."=?",'s',$val);	
+}
+
+function enum_rename_id($tbl, $id, $newval)
+{
+	global $enum_cache;
+	unset($enum_cache[$tbl]);
+	return update_query("UPDATE `$tbl` SET ".ename($tbl)."=? WHERE ".eid($tbl)."=?",'si',$newval,$id);
 }
 
 /**  returns count of unique IDs */
@@ -743,8 +752,11 @@ function cached_query()
 				$statement->bindValue($i,$args[$i],$type);
 			}
 		}
-		else
+		else	{
+			foreach($args as $key => $value)
+				$args[$key] = &$args[$key];
 			call_user_func_array(array($statement,'bind_param'),$args);
+		}
 	}
 	if( !$statement->execute() )	{
 		if( $is_pdo && $statement->errorCode()==42000 )	{
@@ -826,7 +838,10 @@ function uncached_query($sql)
   **/
 function connect_to_mydb()
 {
-	global $mysqli,$mysqlhost,$mysqluser,$mysqlpasswd,$mysqldb,$pdo,$is_pdo;
+	global $mysqli,$mysqlhost,$mysqluser,$mysqlpasswd,$mysqldb,$mysqlcharset,$pdo,$is_pdo;
+	if ( !isset($mysqlcharset)) {
+		$mysqlcharset = 'UTF8';
+	}
 	if( !isset($mysqlhost) || !isset($mysqluser) || !isset($mysqldb) )	{
 		require_once('myconnect.inc.php');
 	}
@@ -835,6 +850,7 @@ function connect_to_mydb()
 		try {
 			$pdo=new PDO("mysql:dbname=$mysqldb;host=$mysqlhost",$mysqluser,$mysqlpasswd);
 			$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+			$pdo->exec("SET NAMES $mysqlcharset");
 			return $pdo;
 		} catch( Exception $e ) {
 			return null;
@@ -844,6 +860,7 @@ function connect_to_mydb()
 		$mysqli=@new mysqli($mysqlhost,$mysqluser,$mysqlpasswd,$mysqldb);
 		if( mysqli_connect_error() )
 			return null;
+		$mysqli->query("SET NAMES UTF8");
 		return $mysqli;
 	}
 }
@@ -891,9 +908,9 @@ function mysql_foreign_keys($header,$limit,$count=array(),$table=null,$column=nu
   * Lists foreign keys
   **/
 function mysql_foreign_keys_list_all()	{
-	global $enums;
+	global $enums,$mysqldb;
 	$tables="'".join("','",array_keys($enums))."'";
-	return mhash_query(1,null,"SELECT referenced_table_name AS `table`, GROUP_CONCAT(table_name,'.',column_name SEPARATOR ' ') AS reference FROM information_schema.key_column_usage WHERE referenced_table_name IN($tables) GROUP BY referenced_table_name");
+	return mhash_query(1,null,"SELECT referenced_table_name AS `table`, GROUP_CONCAT(table_name,'.',column_name SEPARATOR ' ') AS reference FROM information_schema.key_column_usage WHERE referenced_table_name IN($tables) AND table_schema=? AND referenced_table_schema=? GROUP BY referenced_table_name",'ss',$mysqldb,$mysqldb);
 }
 
 /**
@@ -901,7 +918,8 @@ function mysql_foreign_keys_list_all()	{
   * When $usage=1, prints a statistics instead
   **/
 function mysql_foreign_keys_list($tbl,$usage=0,$header=1,$limit=array(5000))	{
-	$data=mhash_query($header,$limit,"SELECT table_name AS `table`,column_name AS `column` FROM information_schema.key_column_usage WHERE referenced_table_name=?",'s',$tbl);
+	global $mysqldb;
+	$data=mhash_query($header,$limit,"SELECT table_name AS `table`,column_name AS `column` FROM information_schema.key_column_usage WHERE referenced_table_name=? AND table_schema=? AND referenced_table_schema=?",'sss',$tbl,$mysqldb,$mysqldb);
 	if( !$usage )
 		return $data;
 	$eid=eid($tbl);
@@ -916,10 +934,20 @@ function mysql_foreign_keys_list($tbl,$usage=0,$header=1,$limit=array(5000))	{
 		$c[$ci] = "$ci AS '$t<br/>$a'";
 		$sub[] = "(SELECT COUNT(*) FROM `$t` WHERE t.$eid=`$t`.`$a`) AS $ci";
 	}
-	$fields = "$ename,".join(',',array_values($c)).','.join('+',array_keys($c)).' AS total';
-	$sql = "SELECT $fields FROM ( SELECT t.$ename,".join(',',$sub)." FROM `$tbl` t ) x";
+	$fields = "$eid,$ename,".join(',',array_values($c)).','.join('+',array_keys($c)).' AS total';
+	$sql = "SELECT $fields FROM ( SELECT t.$eid,t.$ename,".join(',',$sub)." FROM `$tbl` t ) x";
 	$sql .= ' ORDER BY total DESC';
 #	print "<br/><pre>SQL=$sql</pre><br/>\n";
 	return mhash_query($header,$limit,$sql);
 }
+
+/**
+  * returns tables/columns that reference input $table/$field with a FK.
+  **/
+function mysql_referers($header,$table,$field)
+{
+	global $mysqldb;
+	return mhash_query(1,array(),"SELECT table_name AS `table`,column_name AS `column` FROM information_schema.key_column_usage WHERE referenced_table_name=? AND referenced_column_name=? AND table_schema=? AND referenced_table_schema=?",'ssss',$table,$field,$mysqldb,$mysqldb);
+}
+
 ?>

@@ -31,12 +31,31 @@
         return require("index.php");
     }
 		
-	$blockedMachines = array();
-	foreach ($machines as $machine) {
-		if( ! $machine->has_perm('job') ) {
-			$blockedMachines[] = $machine->get_hostname();
-		}
+$blockedMachines = array();
+/* Save a list of machine ids and hostnames to avoid repetitive
+ * querying from the database. */
+$machines_list = array();
+foreach ($machines as $machine) {
+	$machines_list[$machine->get_id()] = $machine->get_hostname();
+
+	if( ! $machine->has_perm('job') ) {
+		$blockedMachines[] = $machine->get_hostname();
 	}
+}
+
+/* Often used below as a value for the machines[] array. */
+$machines_ids = join (',', array_keys ($machines_list));
+/* A helper function to print a list of machines provided to this
+ * page.
+ *
+ * It also prints hidden <input> elements to sent by the form. */
+function print_machines_list ($machines_list) {
+	print (join (', ', $machines_list));
+	foreach (array_keys ($machines_list) as $id) {
+		print ("<input type='hidden' name='a_machines[]' value='$id'>" . PHP_EOL);
+	}
+}
+
 	if(count($blockedMachines) != 0) {
 		echo "<div class=\"text-medium\">" .
 			"The following machines are currently either marked as \"Not accepting jobs\" or \"Outdated (Blocked)\":<br /><br />" . 
@@ -47,10 +66,8 @@
 
 ?>
 
-<script type="text/javascript" src="js/edit_job.js"></script>
-
 <span class="text-main">(<span class="required">*</span>) required field(s)</span>
-<h2 class="text-medium text-blue bold">Single-machine Jobs</h2>
+<h2 class="text-medium text-blue bold" id="singlemachine">Single-machine Jobs</h2>
 <p class="text-main">
 Single-machine jobs are configuration tasks or test runs that have been stored on the automation servers, this is a subcategory of pre-defined jobs intended for single machine tests. If you want to pre-define a job and add it to this list, please email qa-automation@suse.de
 </p>
@@ -58,21 +75,7 @@ Single-machine jobs are configuration tasks or test runs that have been stored o
 <p class="text-main">
 <b>Job(s) will run on the following machine(s): </b>
 <?php
-    $flag=0;
-    $machine_list = "";
-    foreach ($machines as $machine):
-	echo('<input type="hidden" name="a_machines[]" value="'.$machine->get_id().'">');
-	if( $flag ){
-		echo ', ';
-		echo($machine->get_hostname() );
-		$machine_list .= "," . $machine->get_id();
-	}
-	else{
-		echo($machine->get_hostname() );
-		$machine_list = $machine->get_id();
-	}
-	$flag=1;
-    endforeach;
+print_machines_list ($machines_list);
 ?>
 </p>
 <div id="predefined" class="text-main">
@@ -86,62 +89,57 @@ Single-machine jobs are configuration tasks or test runs that have been stored o
         </thead>
     <?php
 
-    /* See 'hamsta.ini' file for description. */
-    $dir=$config->xml->dir->default;
-    if(is_dir($dir))
-    {
-        if($handle = opendir($dir))
-        {
-	    $sortcount = 0;  # at first, I wanna use the XML file name, but failed, I have to sort the XML and use the sort number.
-            while(($file = readdir($handle)) !== false)
-            {
-                if($file != "." && $file != ".." && substr($file,-4)=='.xml')
-		{
-			$filebasename = substr($file, 0, -4);
+/* See 'hamsta.ini' file for description. */
+$dir = $config->xml->dir->default;
+if (is_dir ($dir) && $handle = opendir ($dir)) {
+	/* At first, I wanna use the XML file name, but failed, I have to
+	 * sort the XML and use the sort number. */
+	$sortcount = 0;
+	while (($file = readdir ($handle)) !== false) {
+		$fullpath = join ("/", array ($dir, $file));
+		if (($xml = get_xml_file ($fullpath)) !== FALSE) {
+			$web_dir = $config->xml->dir->web->default;
+			$filebasename = basename ($file, '.xml');
+			/* Path browseable from the web UI. */
+			$web_path = $web_dir . '/' . $file;
 
-			$xml = simplexml_load_file( "$dir/$file" );
 			$jobname = $xml->config->name;
 			$jobdescription = $xml->config->description;
-
 			$param_map = get_parameter_maps($xml);
 			$count = count($param_map);
 					
-                    echo "    <tr class=\"file_list\">\n";
-		    # echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"single-machine job:$file\" onclick=\"showParamConts('$filebasename')\">\n";
-		    echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"Single-machine job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
-                    echo "        <td title=\"$jobdescription\">$file</td>\n";
-                    echo "        <td class=\"viewXml\" align=\"center\">\n";
-                    echo "            <a href=\"".$config->xml->dir->web->default."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/27/xml_green.png\" class=\"icon-small\" alt=\"view\" title=\"view the job XML $file\" /></a>\n";
-                    echo "            <a href=\"index.php?go=edit_jobs&amp;file=$file&amp;opt=edit&amp;machine_list=$machine_list\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" class=\"icon-small\"alt=\"edit\" title=\"Edit the job XML $file\" /></a>\n";
-                    echo "        </td>";
-		    echo "     </tr>\n";
-                    echo "     <tr class=\"file_list\">\n";
-		    echo "        <td colspan=\"3\">\n";
-		    if( $count > 0 )
-		    {
-
-		    	echo "        <div style=\"margin-left: 40px; margin-top: 2px; padding: 2px 2px 10px 2px; border: 1px solid #cdcdcd\" id=\"div_$sortcount\">\n";
-			echo "            <div class=\"text-main\" style=\"padding: 5px 5px 5px 5px\"><b>Edit parameters in the form below.</b></div>\n";
+			echo "    <tr class=\"file_list\">\n";
+# echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"single-machine job:$file\" onclick=\"showParamConts('$filebasename')\">\n";
+			echo "        <td><input id=\"$filebasename\" type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"Single-machine job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
+			echo "        <td title=\"$jobdescription\"><label for=\"$filebasename\">$file</label></td>\n";
+			echo "        <td class=\"viewXml\" align=\"center\">\n";
+			print (job_icons ($web_path, $machines_list, false, $job_editing_allowed));
+			echo "        </td>";
+			echo "     </tr>\n";
+			echo "     <tr class=\"file_list\">\n";
+			echo "        <td colspan=\"3\">\n";
+			if ($count > 0) {
+					echo "        <div style=\"margin-left: 40px; margin-top: 2px; padding: 2px 2px 10px 2px; border: 1px solid #cdcdcd; display: none\" id=\"div_$sortcount\">\n";
+					echo "            <div class=\"text-main\" style=\"padding: 5px 5px 5px 5px\"><b>Edit parameters in the form below.</b></div>\n";
 			
-			# get the parameter table, avoid the same parameter name in different jobs
-			$prefix_name = $filebasename . "_";
-			$parameter_table = get_parameter_table($param_map, $prefix_name);
+# get the parameter table, avoid the same parameter name in different jobs
+					$prefix_name = $filebasename . "_";
+					$parameter_table = get_parameter_table($param_map, $prefix_name);
 
-			echo $parameter_table;
-			echo "        </div>\n";
-		    }
+					echo $parameter_table;
+					echo "        </div>\n";
+			}
 
-		    echo "        </td>\n";
-		    echo "    </tr>\n";
+			echo "        </td>\n";
+			echo "    </tr>\n";
 
-		    $sortcount++;
-                }
-            }
-            closedir($handle);
-        }
-    }
+			$sortcount++;
+		}
+	}
+	closedir($handle);
+}
 
-    ?>
+?>
 </table>
 
 <table id="jobs_custom" class="text-main" width="600px">
@@ -154,64 +152,56 @@ Single-machine jobs are configuration tasks or test runs that have been stored o
 	</thead>
     <?php
 
-    /* See 'hamsta.ini' file for description. */
-    $dir=$config->xml->dir->custom;
-    if(is_dir($dir))
-    {
-        if($handle = opendir($dir))
-        {
-	    # $sortcount = 0;  # at first, I wanna use the XML file name, but failed, I have to sort the XML and use the sort number.
-            while(($file = readdir($handle)) !== false)
-            {
-                if($file != "." && $file != ".." && substr($file,-4)=='.xml')
-		{
-			$filebasename = substr($file, 0, -4);
+/* See 'hamsta.ini' file for description. */
+$dir = $config->xml->dir->custom;
+if (is_dir ($dir) && $handle = opendir ($dir)) {
+	while (($file = readdir ($handle)) !== false) {
+		$fullpath = join ('/', array ($dir, $file));
 
-			$xml = simplexml_load_file( "$dir/$file" );
+		if (($xml = get_xml_file ($fullpath)) !== FALSE) {
+			$filebasename = basename ($file, '.xml');
+			$web_dir = $config->xml->dir->web->custom;
+			/* Path browseable from the web UI. */
+			$web_path = join ('/', array ($web_dir, $file));
+
 			$jobname = $xml->config->name;
 			$jobdescription = $xml->config->description;
-
 			$param_map = get_parameter_maps($xml);
 			$count = count($param_map);
-					
-                    echo "    <tr class=\"file_list\">\n";
-		    # echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"single-machine job:$file\" onclick=\"showParamConts('$filebasename')\">\n";
-		    echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"Single-machine custom job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
-                    echo "        <td title=\"$jobdescription\">$file</td>\n";
-                    echo "        <td class=\"viewXml\" align=\"center\">\n";
-                    echo "            <a href=\"".$config->xml->dir->web->custom."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/27/xml_green.png\" class=\"icon-small\" alt=\"view\" title=\"view the job XML $file\" /></a>\n";
-                    echo "            <a href=\"index.php?go=edit_jobs&amp;file=custom/$file&amp;opt=edit&amp;machine_list=$machine_list\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" class=\"icon-small\" alt=\"edit\" title=\"Edit the job XML $file\" /></a>\n";
-                    echo "            <a href=\"index.php?go=machine_send_job&amp;file=custom/$file&amp;opt=delete&amp;machine_list=$machine_list\" onclick=\"if(confirm('WARNING: You will delete the custom job XML file, are you sure?')) return true; else return false;\" title=\"delete $file\"><img src=\"images/27/icon-delete.png\" class=\"icon-small\" alt=\"delete\" title=\"Delete the job XML $file\" /></a>\n";
-                    echo "    </tr class=\"file_list\">\n";
-                    echo "    <tr>\n";
-		    echo "        <td colspan=\"3\">\n";
-		    if( $count > 0 )
-		    {
 
-		    	echo "        <div style=\"margin-left: 40px; margin-top: 2px; padding: 2px 2px 10px 2px; border: 1px solid #cdcdcd\" id=\"div_$sortcount\">\n";
-			echo "            <div class=\"text-main\" style=\"padding: 5px 5px 5px 5px\"><b>Edit parameters in the form below.</b></div>\n";
+			echo "    <tr class=\"file_list\">\n";
+# echo "        <td><input type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"single-machine job:$file\" onclick=\"showParamConts('$filebasename')\">\n";
+			echo "        <td><input id=\"$filebasename\" type=\"checkbox\" name=\"filename[]\" value=\"$dir/$file\" title=\"Single-machine custom job:$file\" onclick=\"showParamConts( $sortcount )\"></td>\n";
+			echo "        <td title=\"$jobdescription\"><label for=\"$filebasename\">$file</label></td>\n";
+			echo "        <td class=\"viewXml\" align=\"center\">\n";
+			print (job_icons ($web_path, $machines_list, true, $job_editing_allowed));
+			echo "    </tr class=\"file_list\">\n";
+			echo "    <tr>\n";
+			echo "        <td colspan=\"3\">\n";
+			if ($count > 0) {
+					echo "        <div style=\"margin-left: 40px; margin-top: 2px; padding: 2px 2px 10px 2px; border: 1px solid #cdcdcd\" id=\"div_$sortcount\">\n";
+					echo "            <div class=\"text-main\" style=\"padding: 5px 5px 5px 5px\"><b>Edit parameters in the form below.</b></div>\n";
 			
-			# get the parameter table
+# get the parameter table
 			
-			# define the parameter prefix name
-                        # $filebasename is used to distinguish the same parameter name in different jobs
-                        # "_custom_" is used to ditinguish the same XML file name in default directory and custom directory
-			$prefix_name = $filebasename . "_custom_";
-			$parameter_table = get_parameter_table($param_map, $prefix_name);
+# define the parameter prefix name
+					# $filebasename is used to distinguish the same parameter name in different jobs
+					# "_custom_" is used to ditinguish the same XML file name in default directory and custom directory
+					$prefix_name = $filebasename . "_custom_";
+					$parameter_table = get_parameter_table($param_map, $prefix_name);
 
-			echo $parameter_table;
-			echo "        </div>\n";
-		    }
+					echo $parameter_table;
+					echo "        </div>\n";
+			}
 
-		    echo "        </td>\n";
-		    echo "    </tr>\n";
+			echo "        </td>\n";
+			echo "    </tr>\n";
 
-		    $sortcount++;
-                }
-            }
-            closedir($handle);
-        }
-    }
+			$sortcount++;
+		}
+	}
+	closedir($handle);
+}
 
     ?>
 </table>
@@ -228,12 +218,12 @@ Single-machine jobs are configuration tasks or test runs that have been stored o
 <input type="submit" name="submit" value="Send Single-machine job(s)">
 </form>
 <script type="text/javascript">
-<!--
+// <!--
 //var TSort_Data = new Array ('jobs', '','s','' );
 //tsRegister();
 //var TSort_Data = new Array ('jobs_custom', '','s','' );
 //tsRegister();
--->
+// -->
 </script>
 
 
@@ -247,23 +237,8 @@ Jobs in this category have different roles for different machines, you will be a
 <p class="text-main">
 <b>Job(s) will run on the following machine(s): </b>
 <?php
-    $flag=0;
-    $machine_list = "";
-    foreach ($machines as $machine):
-	echo('<input type="hidden" name="a_machines[]" value="'.$machine->get_id().'">');
-	if( $flag ){
-		echo ', ';
-		echo($machine->get_hostname() );
-		$machine_list .= "," . $machine->get_id();
-	}
-	else{
-		echo($machine->get_hostname() );
-		$machine_list = $machine->get_id();
-	}
-	$flag=1;
-    endforeach;
+print_machines_list ($machines_list);
 ?>
-
 
 </p>
 <table id="mmjobs" class="text-main" width="600px">
@@ -276,38 +251,37 @@ Jobs in this category have different roles for different machines, you will be a
     </thead>
     <?php
 
-    /* See 'hamsta.ini' for description. */
-    $dir=$config->xml->dir->multimachine->default;
-    if(is_dir($dir))
-    {
-        if($handle = opendir($dir))
-        {
-            while(($file = readdir($handle)) !== false)
-            {
-                if($file != "." && $file != ".." && substr($file,-4)=='.xml')
-                {
-                    echo "    <tr class=\"file_list\">\n";
-		    echo "        <td><input type=\"radio\" name=\"filename\" value=\"$dir/$file\" title=\"Multi-machine job:$file\"></td>\n";
-                    echo "        <td>$file</td>\n";
-                    echo "        <td align=\"center\">";
-                    echo "            <a href=\"".$config->xml->dir->multimachine->web->default."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/27/xml_green.png\" class=\"icon-small\" alt=\"view\" title=\"view the job XML $file\" /></a>";
-                    echo "            <a href=\"index.php?go=edit_jobs&amp;file=multimachine/$file&amp;opt=edit&amp;machine_list=$machine_list\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" class=\"icon-small\" alt=\"edit\" title=\"Edit the job XML $file\" /></a>";
-                    echo "        </td>\n";
-                    echo "    </tr>\n";
-                }
-            }
-            closedir($handle);
-        }
-    }
-    ?>
+/* See 'hamsta.ini' for description. */
+$dir = $config->xml->dir->multimachine->default;
+if (is_dir ($dir) && $handle = opendir ($dir)) {
+	while (($file = readdir ($handle)) !== false) {
+		$fullpath = join ("/", array ($dir, $file));
+		if (($xml = get_xml_file ($fullpath)) !== FALSE) {
+			$filebasename = basename ($file, '.xml');
+			$web_dir = $config->xml->dir->multimachine->web->default;
+			/* Path browseable from the web UI. */
+			$web_path = join ('/', array ($web_dir, $file));
+
+			echo "    <tr class=\"file_list\">\n";
+			echo "        <td><input id=\"$filebasename\" type=\"radio\" name=\"filename\" value=\"$dir/$file\" title=\"Multi-machine job:$file\"></td>\n";
+			echo "        <td><label for=\"$filebasename\">$file</label></td>\n";
+			echo "        <td align=\"center\">";
+			print (job_icons ($web_path, $machines_list, false, $job_editing_allowed));
+			echo "        </td>\n";
+			echo "    </tr>\n";
+		}
+	}
+	closedir ($handle);
+}
+?>
 </table>
 
 <?php
 
-$dir=$config->xml->dir->multimachine->custom;
-if(is_dir($dir))
-{
+$dir = $config->xml->dir->multimachine->custom;
+if(is_dir($dir) && $handle = opendir($dir)) {
 ?>
+
 <table id="mmjobs_custom" class="text-main" width="600px">
     <thead>
         <tr>
@@ -316,35 +290,36 @@ if(is_dir($dir))
             <th align="centre">Controls</th>
         </tr>
     </thead>
-    <?php
 
-    #print "$dir <br />";
-    //print "<br /> 2 ----------------------------- <br />machine_targets = $machine_targets <br />";
-    if(is_dir($dir))
-    {
-        if($handle = opendir($dir))
-        {
-            while(($file = readdir($handle)) !== false)
-            {
-                if($file != "." && $file != ".." && substr($file,-4)=='.xml')
-                {
-                    echo "    <tr class=\"file_list\">\n";
-                    echo "        <td><input type=\"radio\" name=\"filename\" value=\"$dir/$file\" title=\"Multi-machine custom job:$file\"></td>\n";
-                    echo "        <td>$file</td>\n";
-                    echo "        <td align=\"center\">";
-                    echo "            <a href=\"".$config->xml->dir->multimachine->web->custom."/$file\" target=\"_blank\" title=\"view $file\"><img src=\"images/27/xml_green.png\" alt=\"vire\" title=\"View the job XML $file\" class=\"icon-small\" /></a>";
-                    echo "            <a href=\"index.php?go=edit_jobs&amp;file=multimachine/custom/$file&amp;opt=edit&amp;machine_list=$machine_list\" title=\"edit $file\"><img src=\"images/27/icon-edit.png\" alt=\"edit\" title=\"Edit the job XML $file\" class=\"icon-small\" /></a>";
-                    echo "            <a href=\"index.php?go=machine_send_job&amp;file=multimachine/custom/$file&amp;opt=delete&amp;machine_list=$machine_list\" onclick=\"if(confirm('WARNING: You will delete the custom job XML file, are you sure?')) return true; else return false;\" title=\"delete $file\"><img src=\"images/27/icon-delete.png\" alt=\"delete\" title=\"Delete the job XML $file\" class=\"icon-small\" /></a>";
-                    echo "        </td>\n";
-                    echo "    </tr>\n";
-                }
-            }
-            closedir($handle);
-        }
-    }
-}
+<?php
+	while(($file = readdir($handle)) !== false) {
+		$fullpath = join ("/", array ($dir, $file));
+		if ($xml = get_xml_file ($fullpath)) {
+			$filebasename = basename ($file, '.xml');
+			$web_dir = $config->xml->dir->multimachine->web->custom;
+			/* Path browseable from the web UI. */
+			$web_path = join ('/', array ($web_dir, $file));
+
+			echo "    <tr class=\"file_list\">\n";
+			echo "        <td><input id=\"$filebasename\" type=\"radio\" name=\"filename\" value=\"$dir/$file\" title=\"Multi-machine custom job:$file\"></td>\n";
+			echo "        <td><label for=\"$filebasename\">$file</label></td>\n";
+			echo "        <td align=\"center\">";
+			print (job_icons ($web_path, $machines_list, true, $job_editing_allowed));
+			echo "        </td>\n";
+			echo "    </tr>\n";
+		}
+	}
+	closedir($handle);
 ?>
 </table>
+<script type="text/javascript">
+<!--
+var TSort_Data = new Array ('mmjobs_custom', '','s','' );
+var TSort_Icons = new Array ('<span class="text-blue sorting-arrow">&uArr;</span>', '<span class="text-blue sorting-arrow">&dArr;</span>');
+tsRegister();
+-->
+</script>
+<?php } ?>
 <br/>
 <span class="text-main"><b>Email address: </b></span>
 <input type="text" name="mailto" title="optional: send mail if address is given" value="<?php if (isset($user)) { echo $user->getEmail(); } ?>" />
@@ -356,9 +331,6 @@ if(is_dir($dir))
 <script type="text/javascript">
 <!--
 var TSort_Data = new Array ('mmjobs', '','s','' );
-var TSort_Icons = new Array ('<span class="text-blue sorting-arrow">&uArr;</span>', '<span class="text-blue sorting-arrow">&dArr;</span>');
-tsRegister();
-var TSort_Data = new Array ('mmjobs_custom', '','s','' );
 var TSort_Icons = new Array ('<span class="text-blue sorting-arrow">&uArr;</span>', '<span class="text-blue sorting-arrow">&dArr;</span>');
 tsRegister();
 -->
@@ -373,27 +345,21 @@ QA-packages Jobs are used to launch various test suites on your System Under Tes
 <table class="text-main">
     <tr><td><b>Selected job(s) will run on the following machine(s): </b></td><td>
     <?php
-        $flag=0;
-        foreach ($machines as $machine):
-            echo('<input type="hidden" name="a_machines[]" value="'.$machine->get_id().'">');
-            if( $flag ) echo ', ';
-            echo($machine->get_hostname() );
-            $flag=1;
-        endforeach;
-        echo "</td></tr></table><table class=\"text-main\">";
+print_machines_list ($machines_list);
+echo "</td></tr></table><table class=\"text-main\">";
 
 	$tslist=$config->lists->tslist;
 	$test_suites="";
-	$arr=split (" ", $tslist);
+	$arr = explode (" ", $tslist);
         $i=0;
 	sort ($arr);
         foreach ($arr as $value)
         { 
           if ($i%6==0) {echo "<tr>";} 
           echo "<td style=\"padding: 5px;\">" .
-              "<input name=testsuite[] type=checkbox value=$value title=\"check one at least\"/>" .
-              "$value " .
-              "<a href=\"http://qa.suse.de/automation/qa-packages?package=" . urlencode($value) . "#" . urlencode($value) . "\" target=\"_blank\">" .
+              "<input id=\"$value\" name=testsuite[] type=checkbox value=$value title=\"check one at least\"/>" .
+              " <label for=\"$value\">$value</label>" .
+              " <a href=\"http://qa.suse.de/automation/qa-packages?package=" . urlencode($value) . "#" . urlencode($value) . "\" target=\"_blank\">" .
                   "<img src=\"images/15/icon-info.png\" alt=\"Click for information\" title=\"Click for information\" class=\"icon-miniinfo\" />" .
               "</a>" .
           "</td>";
@@ -406,14 +372,15 @@ QA-packages Jobs are used to launch various test suites on your System Under Tes
 <tr><td><b>UI tests:</b></td></tr>
 	<?php
 		$UIlist=$config->lists->uilist;
-		$arr=split(" ", $UIlist);
+		$arr= explode (" ", $UIlist);
 		sort($arr);
 		$i=0;
 		foreach ($arr as $value) {
 			if ($i%6==0) {echo "<tr>\n";}
 			echo "<td stype=\"padding: 5px;\">";
-			echo "<lable><input name=testsuite[] type=\"checkbox\" value=\"$value\" title=\"check one at least\"/>$value</label>";
-			echo "<a href=\"http://qa.suse.de/automation/qa-packages?package=" . urlencode($value) . "#" . urlencode($value) . "\" target=\"_blank\">".
+			echo "<input id=\"$value\" name=testsuite[] type=\"checkbox\" value=\"$value\" title=\"check one at least\"/>" .
+				 " <label for=\"$value\">$value</label>";
+			echo " <a href=\"http://qa.suse.de/automation/qa-packages?package=" . urlencode($value) . "#" . urlencode($value) . "\" target=\"_blank\">".
 				"<img src=\"images/15/icon-info.png\" alt=\"Click for information\" title=\"Click for information\" class=\"icon-miniinfo\" /></a>";
 			echo "</td>";
 			if ($i%6==5) {echo "</tr>\n";}
@@ -422,7 +389,7 @@ QA-packages Jobs are used to launch various test suites on your System Under Tes
 	?>
 <tr></tr>
 
-<tr><td><input type="checkbox" value="checkall" onclick='chkall("qapackagejob",this)' name=chk>Select all</td></tr>
+<tr><td><input id="select-all-qa-packages" type="checkbox" value="checkall" onclick='chkall("qapackagejob",this)' name=chk> <label for="select-all-qa-packages">Select all</label></td></tr>
 </table>
 <br/>
 <span class="text-main"><b>Email address: </b></span>
@@ -442,31 +409,30 @@ Autotest jobs.
 <table class="text-main">
     <tr><td><b>Selected job(s) will run on the following machine(s): </b></td><td>
     <?php
-        $flag=0;
-        foreach ($machines as $machine):
-            echo('<input type="hidden" name="a_machines[]" value="'.$machine->get_id().'">');
-            if( $flag ) echo ', ';
-            echo($machine->get_hostname() );
-            $flag=1;
-        endforeach;
-        echo "</td></tr></table><table class=\"text-main\">";
+print_machines_list ($machines_list);
+echo "</td></tr></table><table class=\"text-main\">";
 
     $atlist=$config->lists->atlist;
     $test_suites="";
-    $arr=split (" ", $atlist);
+    $arr = explode (" ", $atlist);
     $i=0;
     sort ($arr);
         foreach ($arr as $value)
         {
           if ($i%6==0) {echo "<tr>";}
-          echo "<td style=\"padding: 5px;\"><input name=testsuite[] type=checkbox value=$value title=\"check one at least\"/>$value</td>";
+          echo "<td style=\"padding: 5px;\"><input id=\"$value\" name=testsuite[] type=checkbox value=$value title=\"check one at least\"/> <label for=\"$value\">$value</label></td>";
           if ($i%6==5) {echo "</tr>";}
       if ($i==count($arr)) {echo "end</tr>";}
           $i++;
         }
     ?>
 <tr><td></td></tr>
-<tr><td><input type="checkbox" value="checkall" onclick='chkall("autotest",this)' name=chk>Select all</td></tr>
+  <tr>
+    <td>
+      <input id="select-all-autotest-jobs" type="checkbox" value="checkall" onclick='chkall("autotest",this)' name=chk>
+      <label for="select-all-autotest-jobs">Select all</label>
+    </td>
+  </tr>
 </table>
 <br/>
 <span class="text-main"><b>Email address: </b></span>
@@ -488,29 +454,21 @@ You can create two type of job: Single-machine job and Multi-machine job, for Si
     <tr>
     <td><b>Job will run on the following machine(s): </b></td>
     <td>
-    <?php
-    $machine_list="";
-    $flag=0;
-    foreach ($machines as $machine):
-        echo('<input type="hidden" name="a_machines[]" value="'.$machine->get_id().'">');
-        if( $flag ){
-                echo ', ';
-                echo($machine->get_hostname() );
-                $machine_list .= "," . $machine->get_id();
-        }
-        else{
-                echo($machine->get_hostname() );
-                $machine_list = $machine->get_id();
-        }
-        $flag=1;
-    endforeach;
-        echo "</td></tr></table><table class=\"text-main\" width=\"900px\"";
-	echo "<input type=\"hidden\" name=\"machine_list\" value=\"$machine_list\">";
-    ?>
+
+<?php
+print_machines_list ($machines_list);
+echo "</td></tr></table><table class=\"text-main\" width=\"900px\">";
+echo "<input type=\"hidden\" name=\"machine_list\" value=\"$machines_ids\">";
+?>
 
     <?php require("edit_job.php"); ?>
 
-    <tr><td colspan="2"><input type="checkbox" value="addtoCustomJob" name="addtoCustomJob">Add this job to the custom job list</td></tr>
+    <tr>
+      <td colspan="2">
+        <input id="add-to-custom-jobs" type="checkbox" value="addtoCustomJob" name="addtoCustomJob"/>
+        <label for="add-to-custom-jobs">Add this job to the custom job list</label>
+      </td>
+    </tr>
     <tr><td><input type="submit" name="submit" value="Send custom job"></td></tr>
     <input type="hidden" name="customflag" value="1">
 </table>

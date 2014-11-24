@@ -1,0 +1,4 @@
+STARTMODE='auto'
+BOOTPROTO='static'
+IPADDR='{{ network.server.ip }}'
+NETMASK='{{ network.netmask }}'

@@ -45,10 +45,11 @@ BEGIN {
 		&get_location
 		&detect_location
 		&get_kernel_version
-		&parse_suse_release
+		&parse_base_product
 		&get_install_urls
 		&get_zypper_urls
 		&detect_product
+		&get_my_ip_addr
 	);
 	%EXPORT_TAGS	= ();
 	@EXPORT_OK	= ();
@@ -188,46 +189,18 @@ sub get_kernel_version
 
 our $arch_re="(i\\d86|ppc(64)?|s390x?|ia64|x86[_-]64)";
 
-# gets distro info from /etc/SuSE-release
-# returns ( type, version, subversion, undef, architecture )
-#   type = sles|opensuse
-sub parse_suse_release
+# replacement of subroutine parse_suse_release
+# return type,version,subversion,'',arch
+sub parse_base_product
 {
-	my( $type, $version, $subversion, $ar ) = ('','','','');
-	my $file='/etc/SuSE-release';
-	open RELEASE, $file or die "Cannot open $file: $!";
-	while( my $row = <RELEASE> )
-	{
-		if( $row =~ /linux enterprise/i )
-		{
-			if( $row =~ /desktop/i )
-			{	$type = 'SLED';	}
-			elsif( $row =~ /RT/i )
-			{	$type = 'SLERT';	}	# TODO: check
-			else
-			{	$type = 'SLES';	}
-		}
-		elsif( $row =~ /openSUSE/i )
-		{   $type = 'openSUSE'; }
-		elsif( $row =~ /VERSION\s*=\s*(\d+)(?:\.(\d+))?/i )
-		{
-			$version = $1;
-			$subversion = $2 if defined $2;
-		}
-		elsif( $row =~ /PATCHLEVEL\s*=\s*(\d+)/i )
-		{   $subversion = $1;   }
-		elsif( $row =~ /SLES for SAP/ )
-		{	$type = 'SLES4SAP';	}
-
-		if( $row =~ /\($arch_re\)/i )
-		{   
-			$ar = lc $1;
-			$ar =~ s/-/_/g;
-		}
-	}
-	close RELEASE;
-	&log( LOG_DEBUG, "/etc/SuSE-release reading: type $type, version $version, subversion $subversion, arch $ar" );
-	return ( $type, $version, $subversion, '', $ar ); # no release info here
+        use XML::Simple;
+        my $baseproduct = "/etc/products.d/baseproduct";
+	if( -e $baseproduct ) {
+		my $xmlres = XMLin($baseproduct);
+		&log( LOG_DEBUG, "/etc/products.d/baseproduct reading: type $xmlres->{'name'}, version $xmlres->{'version'}, subversion $xmlres->{'patchlevel'}, arch $xmlres->{'arch'}" );
+	        return ( $xmlres->{'name'}, $xmlres->{'version'}, $xmlres->{'patchlevel'}, '', $xmlres->{'arch'} );
+	} 
+	return ('','','','','');
 }
 
 sub get_install_urls
@@ -273,7 +246,8 @@ sub guess_product_from_url # URL
 		$url =~ /\Wsles\W+(\d+)/i or 
 		$url =~ /\Wenterprise\W+(?:server|desktop)\W+(\d+)/i or 
 		$url =~ /full-sle(\d+)-/ or
-		$url =~ /SLES for SAP.* (\d+)/
+		$url =~ /SLES for SAP.* (\d+)/ or
+		$url =~ /SLE-(\d+)-(?:Server|Desktop)/i
 	)
 	{
 		$version = $1;
@@ -372,21 +346,31 @@ sub detect_product
 		);
 	my @data=();
 	my ($type, $version, $subversion, $release, $arch, $product, $build_nr);
+	my $os_info ;
+	my @fields = ( '', 'type', 'version', 'subversion', 'release', 'arch' ,'build_nr');
 
 	# find possible candidates from different sources
-	push @data, [ 'SuSE-release', &parse_suse_release(), ''];
-	foreach my $url ( &get_zypper_urls() )	{	
-		push @data, [ 'zypper URLs',  &guess_product_from_url($url) ];
-	}
-	foreach my $url ( &get_install_urls() ) {
-		push @data, [ 'install.inf',  &guess_product_from_url($url) ];
-	}
-	push @data, [ 'uname', '', '', '', '', `echo -n \$(uname -m)` , ''];
+	push @data, [ 'SuSE-release', &parse_base_product(), ''];
 	push @data, [ '/etc/issue', &guess_product_from_url(`echo -n \$(cat /etc/issue)`) ];
-	my @fields = ( '', 'product type', 'product version', 'product subversion', 'product release', 'arch' ,'build_nr');
+	
+	map { our $i=$_; $os_info->{"$fields[$i]"} = &best($fields[$i],map {$_->[$i]} @data) } (1 .. 6);
 
-	# find the best candidate
-	($type, $version, $subversion, $release, $arch, $build_nr) = map { our $i=$_; &best($fields[$i],map {$_->[$i]} @data) } (1 .. 6);
+	my @notfound = @fields;
+	map {  $notfound[$_]='' if $os_info->{$fields[$_]} ne '' } (1 .. 6);
+
+	if( join('',@notfound) ne '' ) {
+		foreach my $url ( &get_zypper_urls() )	{	
+			push @data, [ 'zypper URLs',  &guess_product_from_url($url) ];
+		}
+		foreach my $url ( &get_install_urls() ) {
+			push @data, [ 'install.inf',  &guess_product_from_url($url) ];
+		}
+		push @data, [ 'uname', '', '', '', '', `echo -n \$(uname -m)` , ''];
+		map { our $i=$_; $os_info->{$notfound[$i]} = &best($notfound[$i],map {$_->[$i]} @data) } (1 .. @notfound-1);
+	}
+	
+	($type, $version, $subversion, $release, $arch, $build_nr) = map { $os_info->{$fields[$_]} } (1 .. 6);
+
 	map { $release=$_[4] if $_[4] and $_[4] eq 'maintained' } @data;
 	$release = 'GA' unless $release;
 	$release = 'buildXXX' if $build_nr;
@@ -412,6 +396,38 @@ sub detect_product
 	&log( LOG_INFO, "Autodetection results: type='$type', version='$version', subversion='$subversion', release='$release', arch='$arch', QADB product = '$product',Build number = '$build_nr'" );
 	return ($type, $version, $subversion, $release, $arch, $product,$build_nr) if wantarray;
 	return { type=>$type, version=>$version, subversion=>$subversion, release=>$release, arch=>$arch, product=>$product ,build_nr=>$build_nr };
+}
+
+# get_my_ip_addr() : string
+# Returns the IP address of this host
+sub get_my_ip_addr() {
+   my $hint_ip=&ip_to_number($_[0]);
+   my $ip;
+   my $ret=undef;
+   my $hint_match=-1;
+
+   my $dev=(split /\s/, `route -n | grep "^0.0.0.0"`)[-1]; #get the main communication device
+   open(CMDFH, "ifconfig $dev |") || die "error: $?";
+   foreach (<CMDFH>) {
+      if ($_=~/inet (\w+):(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/) {
+         $ip = "$2.$3.$4.$5";
+         my $ip_num=($2<<24) | ($3<<16) | ($4<<8) | $5;
+         my $match=defined $hint_ip ? ($hint_ip & $ip_num) : 0;
+         if( $match>=$hint_match ) {
+             $ret=$ip;
+             $hint_match=$match;
+         }
+      }
+   }
+   close(CMDFH);
+   return $ret;
+}
+
+sub ip_to_number()
+{
+    my $text=$_[0];
+    return undef unless defined $text and $text =~ /(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/;
+    return ($1<<24) | ($2<<16) | ($3<<8) | $4;
 }
 
 1;

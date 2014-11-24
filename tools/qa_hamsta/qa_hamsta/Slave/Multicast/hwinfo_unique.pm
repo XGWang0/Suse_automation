@@ -111,19 +111,20 @@ sub unique_id () {
 
     # MAC address workaround (for machines with exact duplicate HW, etc)
     &log(LOG_DEBUG, "  MAC");
-    my @data = `/sbin/ifconfig -a | grep HWaddr | awk '{print \$NF;}' | sort`;
-    foreach my $i (@data)
+    #get the route gateway  interface
+    my $routei = `route -n|awk '\$3~/0.0.0.0/{print \$NF}'`;
+    chomp $routei;
+    #find the mac for the route gateway interface
+    my $uid = `ifconfig $routei|awk '{print \$NF;exit}'`;
+    chomp $uid;
+    
+    if($uid =~ /^([0-9a-f]{2}([:]|$)){6}$/i)
     {
-        $i =~ s/\s+$//;
-        if($i =~ /^([0-9a-f]{2}([:]|$)){6}$/i)
-        {
-            $unique_id = "$unique_id.$i";
-        }
-        else
-        {
-            $unique_id = "$unique_id.NoMAC";
-        }
-        last;
+        $unique_id = "$unique_id.$uid";
+    }
+    else
+    {
+        $unique_id = "$unique_id.NoMAC";
     }
 
     &log(LOG_DETAIL, "Unique ID == $unique_id");
@@ -205,8 +206,8 @@ sub get_update_status {
 	chomp($current_v);
 	return 0 unless($current_v);
 	#get the hamsta version sum from repo
-	system('zypper -n --gpg-auto-import-keys ref &>/dev/null' );
-	my $repo_v=`zypper se -st package qa_ 2>/dev/null|grep 'qa_hamsta[^-]\\|qa_hamsta-cmdline\\|qa_hamsta-common\\|qa_tools\\|qa_lib_perl\\|qa_lib_config\\|qa_lib_keys'|awk -F\"|\" '!b[\$2]++{split(\$4,a,"");for(i in a){if(a[i]~/[0-9]/)s+=a[i]}}END{print s}'`;
+	system('zypper --non-interactive --gpg-auto-import-keys refresh &>/dev/null' );
+	my $repo_v=`zypper --non-interactive search --details --type package qa_ 2>/dev/null|grep 'qa_hamsta[^-]\\|qa_hamsta-cmdline\\|qa_hamsta-common\\|qa_tools\\|qa_lib_perl\\|qa_lib_config\\|qa_lib_keys'|awk -F\"|\" '!b[\$2]++{split(\$4,a,"");for(i in a){if(a[i]~/[0-9]/)s+=a[i]}}END{print s}'`;
 	chomp($repo_v);
 	return 0 unless($repo_v);
 	return 1 if($current_v!=$repo_v);

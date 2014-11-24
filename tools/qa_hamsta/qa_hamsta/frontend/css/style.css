@@ -48,6 +48,11 @@ table.list td
 	padding: 2px;
 }
 
+table.list td[rowspan]
+{
+	vertical-align: middle;
+}
+
 table.list tr
 {
     text-align:left;
@@ -148,6 +153,10 @@ h3 {
 #message{
     float:right;
     background-color: #87cefa;
+}
+
+.message {
+    margin-left: 4em;
 }
 
 .btrefresh {

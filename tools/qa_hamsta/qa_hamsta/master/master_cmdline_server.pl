@@ -36,7 +36,12 @@ use File::Path;
 use XML::Dumper;
 use Proc::Fork;
 
-BEGIN { push @INC, '.', '/usr/share/hamsta/master', '/usr/share/qa/lib'; }
+use constant MASTER_DIR => '/usr/share/hamsta/master';
+BEGIN { 
+    chdir MASTER_DIR;
+    push @INC, '.', MASTER_DIR, '/usr/share/qa/lib';
+}
+
 use log;
 require sql;
 use functions; 	
@@ -71,7 +76,7 @@ sub deconstruct() {
     # empty the machine table, so we have to initialize and fill them later again
     &sql_get_connection();
 
-    &TRANSACTION( 'machine','job_on_machine','job' );
+    &TRANSACTION( 'machine','job_part_on_machine','job' );
     &machine_set_all_unknown();
     &TRANSACTION_END;
 
@@ -107,7 +112,7 @@ sub load_config() {
 #################################
 # the startup sequence
 #################################
-$SIG{'HUP'} = sub { die(); };
+$SIG{'HUP'} = sub { exit (0); };
 $SIG{'CHLD'} = 'IGNORE';
 
 # configuration:

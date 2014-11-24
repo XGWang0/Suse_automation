@@ -24,31 +24,41 @@
  */
 ?>
 
-  <tr>
-    <td>Virtualizied CPU count (optional): </td>
-    <td><select id="virtcpu" name="virtcpu"><option value="0">default</option>
+  <div class="row">
+    <label for="virtcpu">Virtualized CPU count (optional) </label>
+    <select id="virtcpu" name="virtcpu"><option value="0">default</option>
           <?php 
 			for($i=1;$i<=8;$i++) {
 				echo "<option value=\"$i\">$i</option>";
 			}
 		  ?>
 		</select>
-	</td>	
-  </tr>
-  <tr>
-    <td>Virtualizied memory size (optional): <br>Available Memory: <?php echo "$virtavaimem"; ?>MB</td>
-    <td>
-      Initial Memory (MB):&nbsp;<input type="text" id="virtinitmem" name="virtinitmem" size="4"><br>
-      Maximum Memory (MB):&nbsp;<input type="text" id="virtmaxmem" name="virtmaxmem" size="4">
-    </td>  
-  </tr>
-  <tr>
-    <td>Virtualizied disks (optional): <br/>Available disk space: <?php echo "$virtavaidisk"; ?>B</td>
-    <td>
-      <label><input type="checkbox" id="virtdiskdef" name="virtdiskdef" onclick="showvirtdisk()">use one disk with default type & size</label><br/>
-      <div id="virtdisk">Virtual Disk type: <select id="virtdisktypes" name="virtdisktypes[]"><?php foreach ($virtdisktypes as $type) { echo "<option value=\"$type\">$type</option>"; } ?>
-      </select>&nbsp;&nbsp;
-      Virtual Disk size (GB): <input type="text" id="virtdisksizes" name="virtdisksizes[]" size="4">&nbsp;(put a dot "." for default size)&nbsp;&nbsp;<input type="button" size="5" onclick="anotherdisk()" value="+">
-      <span id="additional_disk"></span></div>
-    </td>
-  </tr>
+  </div>
+
+  <div class='row'>
+    <label for="virtinitmem">Virtualized memory size (optional)</label>
+    Initial memory <input type="text" id="virtinitmem" name="virtinitmem" size="4"> MB
+  </div>
+
+  <div class='row'>
+    <label for="virtmaxmem">Available memory <?php echo "$virtavaimem"; ?> MB</label>
+    Maximum memory <input type="text" id="virtmaxmem" name="virtmaxmem" size="4"> MB
+  </div>
+
+  <div class='row'>
+    <label for="virtdiskdef">Virtual disks (optional)<br/>
+			Available disk space <b><?php echo "$virtavaidisk"; ?>B</b></label>
+    <input type="checkbox" id="virtdiskdef" name="virtdiskdef" onclick="showvirtdisk()">use one disk with default type and size
+  </div>
+
+  <div id="virtdisk">   
+      <div id="additional_disk" class='row'>
+        <label for="virdisktypes"> </label> 
+        <span id="additional_disk">
+          <label/>Virtual disk type </label> 
+          <select id="virtdisktypes" name="virtdisktypes[]"><?php foreach ($virtdisktypes as $type) { echo "<option value=\"$type\">$type</option>"; } ?>
+          </select>, disk size
+            <input type="text" id="virtdisksizes" title="Insert a dot for default size" name="virtdisksizes[]" size="4" value=".">&nbsp;GB&nbsp;(insert a dot "." for default size)&nbsp;<input type="button" size="5" onclick="anotherdisk()" value="+">
+        </span>
+      </div>
+  </div>

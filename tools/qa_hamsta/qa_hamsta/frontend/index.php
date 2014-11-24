@@ -66,6 +66,7 @@ require_once ('lib/ReservationsHelper.php');
 require("lib/request.php");
 require("lib/db.php");
 require("lib/machine.php");
+require("lib/job.php");
 require("lib/log.php");
 require("lib/module.php");
 require("lib/jobrun.php");
@@ -88,7 +89,6 @@ $pages = array(
     "machines",
     "machine_edit",
     "machine_delete",
-    "install_client",
     "machine_details",
     "machine_purge",
     "action_history",
@@ -121,6 +121,7 @@ $pages = array(
     "vhreinstall",
     "newvm",
     "newvm-win",
+    "vm_migrate",
     "del_virtual_machines",
     "upgrade",
     "merge_machines",
@@ -133,7 +134,9 @@ $pages = array(
     "machine_config",
     "qa_netconf",
     "usedby",
-    "machine_privileges"
+    "machine_privileges",
+    "machine_reserve",
+    "release_machine_for_master"
 );
 
 if (!in_array($go, $pages)) {

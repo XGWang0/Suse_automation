@@ -36,7 +36,11 @@
     $html_title = "Start/Stop/Restart machine";
 
     $allmachines = request_array("a_machines");
-    
+    machine_permission_or_redirect ($allmachines,
+				    array ('owner' => 'machine_powerswitch',
+					   'other' => 'machine_powerswitch_reserved',
+					    'errmsg' => 'You have to be logged in and have privileges to use power.'));
+
     if (request_str("action") == "start") {
 	foreach ($allmachines as $machine_id) {
 		$machine = Machine::get_by_id($machine_id);

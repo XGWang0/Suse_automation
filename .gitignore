@@ -1,0 +1,6 @@
+BUILT
+/config
+tags
+*~
+tests/results
+*.pyc

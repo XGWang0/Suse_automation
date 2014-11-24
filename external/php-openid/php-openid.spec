@@ -1,7 +1,7 @@
 #
 # spec file for package php-openid
 #
-# Copyright (c) 2013 SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) 2013, 2014 SUSE LINUX Products GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -23,7 +23,7 @@
 
 BuildRequires:  coreutils
 Name:           php-openid
-License:        Apache License version 2.0
+License:        Apache-2.0
 Group:          Development/Libraries/Sources
 AutoReqProv:    on
 Version:        2.2.2
@@ -32,7 +32,7 @@ Summary:        PHP OpenID library
 Url:            http://www.openidenabled.com/
 Source:         %{auth}-%{version}.tar.bz2
 Source1:	%{name}.8
-Requires:	php5 >= 4.3.0 php5-gmp php5-pear php5-curl
+Requires:	php >= 4.3.0 php-gmp php-pear php-curl
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 PreReq:         coreutils

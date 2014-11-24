@@ -54,6 +54,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 		$fstring = "get_".$key;
 		$valuer = null;
 		$cls = '';
+                $value = $value['name'];
 
 		if (method_exists ($machine, $fstring)) {
 			$valuer = $machine->$fstring();
@@ -68,22 +69,26 @@ if (!defined('HAMSTA_FRONTEND')) {
 			echo ("</td><td>");
 			if(method_exists('MachineSearch',"filter_$key"))
 				foreach ($arr_res as $res)
-					echo ("<a href=index.php?go=machines&amp;".$key."=".urlencode($res).">Search_".$res."</a> ");
-		} else {
+					echo ("<a href=\"index.php?go=machines&set=Search&show_advanced=on&amp;".$key."=".urlencode($res)."\">Search_".$res."</a> ");
+		} elseif ($key == 'reserved_master') {
+                                echo ("<tr><td>$value</td><td>"
+                                      ."<a href=$valuer>$valuer</a>"
+                                      ."</td><td>"); 
+                }else {
 			if (in_array ($key, array ('used_by', 'reserved'))) {
 				echo ("<tr><td>$value</td><td>"
 				      . $rh->printUsersToTable ()
 				      ."</td><td>");
 			} else {
 				if ($key == 'status_string') {
-					$cls = get_machine_status_class ($machine->get_status_id ());
+					$cls = 'bold '.get_machine_status_class ($machine->get_status_id ());
 				}
 				if (! empty ($cls)) {
 					$cls = ' class="' . $cls . '"';
 				}
-				echo ("<tr><td>$value</td><td$cls>$valuer</td><td>");
+				echo ("<tr><td>$value</td><td$cls id=\"$key\">$valuer</td><td>");
 				if ($valuer != NULL && method_exists('MachineSearch',"filter_$key")) {
-					echo("<a href=index.php?go=machines&amp;".$key."=".urlencode($valuer).">Search</a>");
+					echo("<a href=\"index.php?go=machines&set=Search&show_advanced=on&amp;".$key."=".urlencode($valuer)."\">Search</a>");
 				}
 			}
 		}
@@ -99,6 +104,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 	<thead>
 	<tr>
 		<th>ID</th>
+		<th>Part ID</th>
 		<th>Status</th>
 		<th>Name</th>
 		<th>Started</th>
@@ -111,33 +117,30 @@ if (!defined('HAMSTA_FRONTEND')) {
 		/* Get this machines last 10 jobs. */
 		$last_jobs = $machine->get_all_jobs (10);
 		foreach ($last_jobs as $job):
+		   $i = 1;
+		   foreach ($job->get_part_id() as $pid):
+		       $status_id = $job->get_status_id($pid);
+		       $status = $job->get_status_string($status_id[$mid]); 
 	?>
 		<tr>
 			<td><a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>"><?php echo($job->get_id()); ?></a></td>
-                        <td><span class="<?php echo($job->get_status_string()); ?>">
-                                <?php echo($job->get_status_string()); ?></span>
+			<td><?php echo $i++; ?></a></td>
+                        <td><span class="<?php echo $status; ?>">
+                                <?php echo $status; ?></span>
 			</td>
 <?php
 	$job_name = $job->get_name();
 ?>
 			<td><div title="<?php echo ($job->get_name()); ?>" class="ellipsis-no-wrapped job_name"><?php echo($job_name); ?></div></td>
-			<td><?php echo($job->get_started()); ?></td>
-			<td><?php echo($job->get_stopped()); ?></td>
+			<td><?php echo($job->get_started($pid,$mid)); ?></td>
+			<td><?php echo($job->get_stopped($pid,$mid)); ?></td>
 			<td>
-		<?php
-			if (isset ($user) && ! $job->is_finished ()) {
-		?>
-			<a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;finished_job=1" class="text-main">Set finished</a>
-		<?php
-			}
-			if (isset ($user) && $job->can_cancel ()) {
-		?>
-		    	<a href="index.php?go=jobruns&amp;action=cancel&amp;id=<?php echo($job->get_id()); ?>">Cancel</a>
-		<?php
-			}
-		?>
+		<?php if (isset ($user) && $job->can_cancel ()) { ?>
+		    	<a href="index.php?go=jobruns&amp;action=cancel&amp;id=<?php echo $job->get_id().'&amp;part_id='.$pid.'&amp;machine_id='.$mid; ?>">Cancel</a>
+		<?php }	?>
 		        </td>
 		</tr>
+		<?php endforeach; ?>
 		<?php endforeach; ?>
 
 </table>
@@ -171,14 +174,14 @@ if (!defined('HAMSTA_FRONTEND')) {
 		>
 			<td><a href="index.php?go=module_details&amp;module=<?php echo($module->get_name()); ?>&amp;id=<?php echo($module->get_version()); ?>&amp;highlight=<?php echo($highlight); ?>"><?php echo($module->get_name()); ?></a></td>
 			<td><?php echo($module->__toString()); ?></td>
-			<td><a href="index.php?go=machines&amp;s_module=<?php echo(urlencode($module->get_name())); ?>&amp;s_module_description=<?php echo(urlencode($module->__toString())); ?>">Search</a></td>
+			<td><a href="index.php?go=machines&set=Search&show_advanced=on&amp;s_module=<?php echo(urlencode($module->get_name())); ?>&amp;s_module_description=<?php echo(urlencode($module->__toString())); ?>">Search</a></td>
 			<td><?php echo($module->get_driver()); ?></td>
 <?php
 $driver_name = $module->get_driver();
 ?>
 			<td>
 <?php if (! empty ($driver_name)): ?>
-<a href="index.php?go=machines&amp;s_module=<?php echo(urlencode($module->get_name())); ?>&amp;s_module_driver=<?php echo(urlencode($driver_name)); ?>">Search</a>
+<a href="index.php?go=machines&set=Search&show_advanced=on&amp;s_module=<?php echo(urlencode($module->get_name())); ?>&amp;s_module_driver=<?php echo(urlencode($driver_name)); ?>">Search</a>
 <?php endif; ?>
 </td>
 		</tr>

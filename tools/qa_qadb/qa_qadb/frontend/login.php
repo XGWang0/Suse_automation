@@ -7,8 +7,10 @@ common_header(array(
 
 // unset all session variables, and destroy session
 function destroySession($p_strMessage) {
-	session_unset();
-	session_destroy();
+	if( session_id() )	{
+		session_unset();
+		session_destroy();
+	}
 	print html_error($p_strMessage);
 	flush();
 #	header ('Location: index.php');
@@ -17,30 +19,29 @@ function destroySession($p_strMessage) {
 
 $openid_auth = false;
 $openid_url = "www.novell.com/openid";
+$forbidden_users = array( 'root', 'hamsta-default' );
 
 if( isset($_SESSION['user']) ) {
 	if ( isset($_POST['pass']) )
 		$_SESSION['pass'] = $_POST['pass'];
 
-	if ( $_SESSION['user'] == 'root' )
-		destroySession("No root login allowed");
+	if ( in_array($_SESSION['user'], $forbidden_users) )
+		destroySession("No login allowed for '".$_SESSION['user']."'");
 
-	if( substr($_SESSION['ip_address'],0,6)
-        != substr($_SERVER['REMOTE_ADDR'],0,6) ) {
+	if( isset($_SESSION['ip_address']) &&  substr($_SESSION['ip_address'],0,6) != substr($_SERVER['REMOTE_ADDR'],0,6) ) {
 		destroySession("Invalid IP Address");
 	}
 	// verify user-agent is same
-	elseif( $_SESSION['user_agent'] 
-	        != $_SERVER['HTTP_USER_AGENT'] ) {
+	elseif( isset($_SESSION['user_agent']) && $_SESSION['user_agent'] != $_SERVER['HTTP_USER_AGENT'] ) {
 		destroySession("Invalid User-Agent");
 	}
 	// verify access within 20 min
-	elseif( (time()-1200) > $_SESSION['last_access'] ) {
+	elseif( isset($_SESSION['last_access']) && (time()-1200) > $_SESSION['last_access'] ) {
 		destroySession("Session Timed Out");
 	}
 
 	# after we made sure that the user is ok, let's check if he can access the database
-	if (! connect_to_mydb() ) {
+	elseif (! connect_to_mydb() ) {
 #		if (! $openid_auth ) {
 #			$mysqluser = 'qadb';
 #			$password = search_user ($_SESSION['user']);
@@ -125,8 +126,9 @@ else	{
 				}
 			}
 		}
+		header("Location: login.php");
 	}
-	header("Location: login.php");
+	header("Location: index.php");
 }
 print html_footer();
 ?>

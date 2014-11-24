@@ -1,53 +1,45 @@
-<?php
-/* pkacer@suse.com: This file has to be included a php file because it
- * contains some PHP code: require ('<this-file-path>');.
- * That should be fixed in near future.
- */
-?>
 //<!--
 var sled_text = ["desktop-base"];
-var sled_gnome = ["<?php echo (str_replace (" ", "\", \"", $config->lists->gnome->default));?>"];
-var sled_kde = ["<?php echo (str_replace (" ", "\", \"", $config->lists->kde->default));?>"];
-var old_repo_product = "<?php if(isset($_POST["repo_products"])){echo $_POST["repo_products"];}?>";
-var old_repo_arch = "<?php if(isset($_POST["repo_archs"])){echo $_POST["repo_archs"];}?>";
-var old_addon_product = "<?php if(isset($_POST["addon_products"])){echo $_POST["addon_products"];}?>";
-var old_addon_arch = "<?php if(isset($_POST["addon_archs"])){echo $_POST["addon_archs"];}?>";
+var sled_gnome = [];	// set in function get_config_data
+var sled_kde = [];		// set in function get_config_data
+/* These are initialized when document is ready for reading. */
+var old_repo_product =	'';
+var old_repo_arch =		'';
+var old_addon_product =	'';
+var old_addon_arch =	'';
 
 // addonid & addoncodeid
-var addonid = 1
+var addonid = 1;
 var addoncodeid = 1;
 var product_patterns = [];
 var all_patterns = [];
 var product_type = 'others';
-var kexec_manually_selected = false;
+/* Used to mark elements for virtual disk in anotherdisk()
+ * "function" */
+var virtdiskno = 1;
+
+function get_config_data () {
+	$.getJSON ('html/install_product_ajax.php',
+			   { getval: 'gnome-default-patterns' },
+			   function (data) {
+				   sled_gnome = data;
+			   });
+	$.getJSON ('html/install_product_ajax.php',
+			   { getval: 'kde-default-patterns' },
+			   function (data) {
+				   sled_kde = data
+			   });
+}
 
 // Iterate $data and insert all options to select box $id
 function insert_options (id, data, old_selected) {
     $(id).empty();
     $(id).append('<option value=""></option>');
-    $.each(data, function(i, item){
+    $.each(data, function(i, item) {
 	$(id).append('<option value="' + item + '">' + item + '</option>');
     });//each
     $(id).val(old_selected);
     $(id).change();
-}
-
-function auto_set_kexec (value) {
-    $('#kexecnote').empty ();
-    if (! kexec_manually_selected) {
-	$('#kexecboot').attr ('checked', false);
-    }
-    var product_regex = /opensuse-\d+\.\d+/i;
-    var matched = value.match (product_regex);
-    var parts = [];
-    if (matched[0]) {
-	parts = matched[0].split (/-/g);
-	if (parts.length >= 2 && parts[1] > 12) {
-	    $('#kexecboot').attr ('checked', true);
-	    $('#kexecnote').append ('You have selected a product that requires'
-				    + ' a Kexec because it uses grub2.');
-	}
-    }
 }
 
 /* Insert check boxes to provided patterns. */
@@ -55,9 +47,9 @@ function insert_checkboxes (id, data, typicmode, old_selected){
     $(id).empty();
     $.each(data, function(i, item){
         $(id).append('<label class="patterns">'
-		     + '<input type="checkbox" name="patterns[]"'
-		     + ' onchange="insert_modified_flag()" value="'
-		     + item + '" id="pt_' + item + '" />' + item + '</label>');
+             + '<input type="checkbox" name="patterns[]"'
+             + ' onchange="insert_modified_flag()" value="'
+             + item + '" id="pt_' + item + '" />' + item + '</label>');
     });//each
     $(id).val(old_selected);
     $(id).change();
@@ -101,26 +93,26 @@ function change_patterns () {
 
     switch (preset_type) {
     case "text":
-	plist = sled_text;
-	break;
+		plist = sled_text;
+		break;
     case "gnome":
         plist = sled_gnome;
-	break;
+		break;
     case "kde":
         plist = sled_kde;
-	break;
+		break;
     case "full-distro":
-	plist = product_patterns;
-	break;
+		plist = product_patterns;
+		break;
     case "full":
-	plist = product_patterns;
-	break;
+		plist = product_patterns;
+		break;
     default:
-	// Keep the list unmodified.
+		// Keep the list unmodified.
     }
 
     if (product_type != "sled") {
-	plist = replace_string_in_packages (plist, "desktop-", "");
+    plist = replace_string_in_packages (plist, "desktop-", "");
     }
     /* Uncheck all patterns. */
     $.each(product_patterns, function(i, item) {
@@ -129,7 +121,7 @@ function change_patterns () {
 
     /* Check the required patterns. */
     $.each(plist, function(i, item) {
-	$("#pt_"+item).attr("checked", true);
+    $("#pt_"+item).attr("checked", true);
     });
 
     remove_modified_flag();
@@ -142,7 +134,6 @@ function get_archs (product_type) {
     /* Get architecture of the machine. */
     var para = {
         product: $("#" + product_type + "_products").val(),
-	capable: "<?php echo $machine->get_architecture_capable(); ?>"
     };
 
     switch (product_type) {
@@ -150,18 +141,18 @@ function get_archs (product_type) {
 	para['prod_type'] = "distro";
         old_repo_product = para['product'];
         if (old_repo_product.length == 0) {
-	    $("#repo_archs").empty();
+            $("#repo_archs").empty();
             $("#available_patterns").empty();
-	    return false;
+            return false;
         }
 	break;
     case 'addon':
 	para['prod_type'] = "addon";
         old_addon_product = para['product'];
         if (old_addon_product.length == 0) {
-	    $("#addon_archs").empty();
+            $("#addon_archs").empty();
             $("#addon_pattern_1").empty();
-	    return false;
+            return false;
         }
 	break;
     default:
@@ -170,17 +161,24 @@ function get_archs (product_type) {
 
     $.getJSON("html/search_repo.php", para,
               function(data) {
-	          insert_options("#" + product_type + "_archs", data, old_repo_arch);
+		  insert_options("#" + product_type + "_archs", data, old_repo_arch);
               });
 
     return false;
 }
 
-function get_urls (product_type) {
+function get_urls (product_type, arch_type, addon_products_id, addon_products_url_id) {
+
     var para = {
         product: $("#" + product_type + "_products").val(),
-        arch: $("#"  + product_type + "_archs").val()
+        //arch: $("#"  + product_type + "_archs").val()
+        arch: arch_type
     };
+
+    if (addon_products_id) {
+        para.product = $("#" + addon_products_id).val();
+    }
+
     var patterns_id = "";
     switch (product_type) {
     case 'repo':
@@ -188,9 +186,9 @@ function get_urls (product_type) {
         old_repo_arch = para['arch'];
         patterns_id = "#available_patterns";
         if (old_repo_arch.length == 0) {
-	    $("#available_patterns").empty();
-	    $("#repo_producturl").empty();
-	    return;
+            $("#available_patterns").empty();
+            $("#repo_producturl").empty();
+            return;
         }
 	break;
     case 'addon':
@@ -198,7 +196,7 @@ function get_urls (product_type) {
         old_addon_arch = para['arch'];
         patterns_id = "#addon_pattern_1";
         if (old_addon_arch.length == 0) {
-	    $("#addon_pattern_1").empty();
+            $("#addon_pattern_1").empty();
             $("#addon_producturl").empty();
             return;
         }
@@ -210,10 +208,21 @@ function get_urls (product_type) {
     $.getJSON("html/search_repo.php", para,
               function(data) {
                   if (para['arch'] == "") {
-	              $("#" + product_type + "_producturl").empty();
+                      $("#" + product_type + "_producturl").empty();
                   } else {
-                      $("#" + product_type + "_producturl").val(data[0]);
-		      $("#" + product_type + "_producturl").change();
+                      if (addon_products_url_id) {
+                          $("#" + addon_products_url_id).val(data[0]);
+                          $("#" + addon_products_url_id).change();
+                      } else {
+			  if ($("#" + product_type + "_producturl").length) {
+                              $("#" + product_type + "_producturl").val(data[0]);
+                              $("#" + product_type + "_producturl").change();
+			  } else {
+			      /* AutoPXE page */
+			      $("#" + product_type + "url").val(data[0]);
+                              $("#" + product_type + "url").change();
+			  }
+                      }
                   }
               });
     return false;
@@ -227,28 +236,28 @@ function get_urls (product_type) {
 function retrieve_patterns (data, product_name, url, prod_type) {
     var patterns_vals = data.replace(/^\s+|\s+$/g, '').split("\n");
     if (!document.getElementById(product_name)) {
-	$('#addon_patterns').append('<div id="' + product_name + '"></div>');
+    $('#addon_patterns').append('<div id="' + product_name + '"></div>');
     }
     if (patterns_vals[0] != '' || patterns_vals.length > 1) {
         /* Global variable: array of all distro patterns. */
         if (product_patterns.length == 0) {
             product_patterns = patterns_vals;
         }
-	insert_checkboxes('#' + product_name, patterns_vals);
-	if (prod_type == 'distro') {
-	    if (url.toLowerCase().match("sled")) {
-		set_preset_type_value ("gnome");
-		product_type = 'sled';
-	    } else {
-		set_preset_type_value ("text");
-		product_type = 'others';
-	    }
-	    change_patterns (patterns_vals);
-	}
-	return true;
+    insert_checkboxes('#' + product_name, patterns_vals);
+    if (prod_type == 'distro') {
+        if (url.toLowerCase().match("sled")) {
+        set_preset_type_value ("gnome");
+        product_type = 'sled';
+        } else {
+        set_preset_type_value ("text");
+        product_type = 'others';
+        }
+        change_patterns (patterns_vals);
+    }
+    return true;
     } else {
-	$('#' + product_name).empty();
-	return false;
+    $('#' + product_name).empty();
+    return false;
     }
 };
 
@@ -267,30 +276,45 @@ function get_patterns (product_field_id, new_element_id, prod_type) {
      * some library. There is plugin for jQuery but it knows only the
      * first format and we need the other as well. Maybe it could be
      * overriden, though. */
+    $("#btrfs").remove();
+    $("#ext4").remove();
+
+   if(/factory/i.test(prod_url)) {
+	$("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option> <option id="ext4" value="ext4">ext4</option>');
+    }
+
+    if(/openSUSE-(\d+)\./i.test(prod_url) && RegExp.$1 >= 12) {
+	$("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option> <option id="ext4" value="ext4">ext4</option>');
+    }
+
+    if(/sle.?-(\d+)/i.test(prod_url) && RegExp.$1 >= 12) {
+	$("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option> <option id="ext4" value="ext4">ext4</option>');
+    }
+
     if (prod_url.length == 0) {
-	$("#" + new_element_id).empty();
-    } else if (/^(https?|s?ftp):\/\/[\w-]+\.[\w\.-]+/i.test(prod_url)) {
-	/* Next sybling that has id mininotification. */
-	$(product_field_id + " ~ #mininotification").empty();
-	/* Retrieve not cached patterns directly from repository. */
-	$.get('html/refresh_patterns.php',
-	      { product_url : prod_url },
-	      function (data) {
-		  if (! retrieve_patterns (data, new_element_id,
-					   prod_url, prod_type)) {
-		      $(product_field_id + " ~ #mininotification")
-			  .text("No patterns were retrieved. Check your URL.");
-		  }
-	      }
-	     );
-    } else if (/^(nfs|smb):\/\/[\w-]+\.[\w\.-]+/i.test(prod_url)) {
-	$(product_field_id + " ~ #mininotification")
-	    .text("Can not load patterns for this protocol.");
-	$("#" + new_element_id).empty();
+    $("#" + new_element_id).empty();
+    } else if (/^(https?|s?ftp):\/\/[\w-][\w\.-]*/i.test(prod_url)) {
+    /* Next sybling that has id mininotification. */
+    $(product_field_id + " ~ #mininotification").empty();
+    /* Retrieve not cached patterns directly from repository. */
+    $.get('html/refresh_patterns.php',
+          { product_url : prod_url },
+          function (data) {
+          if (! retrieve_patterns (data, new_element_id,
+                       prod_url, prod_type)) {
+              $(product_field_id + " ~ #mininotification")
+              .text("No patterns were retrieved. Check your URL.");
+          }
+          }
+         );
+    } else if (/^(nfs|smb):\/\/[\w-][\w\.-]*/i.test(prod_url)) {
+    $(product_field_id + " ~ #mininotification")
+        .text("Can not load patterns for this protocol.");
+    $("#" + new_element_id).empty();
     } else {
-	$(product_field_id + " ~ #mininotification")
-	    .text("To refresh patterns the URL field has to contain correct address.");
-	$("#" + new_element_id).empty();
+    $(product_field_id + " ~ #mininotification")
+        .text("To refresh patterns the URL field has to contain correct address.");
+    $("#" + new_element_id).empty();
     }
     remove_modified_flag();
 }
@@ -301,113 +325,246 @@ function remove_repo (addon_number) {
     addonid -= 1;
 }
 
-function anotherrepo () {
-    addonid += 1;
-    var addon_refresh_button_id = "addon_" + addonid + "_refresh_button";
-    var addon_url_name = '#addon_url_' + addonid;
-    var addon_pattern_name = 'addon_pattern_' + addonid;
-
-    $('#additional_repo').append('<span id="addon_row_' + addonid + '">Add-on #' + addonid
-				 + ': <input type="text" name="addon_url[]" id="addon_url_'
-				 + addonid + '" size="70" /> <button type="button" onclick="remove_repo('
-				 + addonid + ')">'
-				 + ' - </button> <span id="mininotification" class="text-red text-small bold">'
-				 + '</span><br /></span>');
-    $(addon_url_name).change ( function() {
-	get_patterns (addon_url_name, addon_pattern_name, 'addon');
-    });
-}
-
 var anotherrcode = function (){
     addoncodeid += 1;
     $('#additional_rcode').append('Registration Code for add-on repo #'
-				  + addoncodeid
-				  + ': <input type="text" name="rcode[]" size="20" />'
-				  + '<input type="button" onclick="anotherrcode('
-				  + addoncodeid +')" value="+" /><br />');
+                  + addoncodeid
+                  + ': <input type="text" name="rcode[]" size="20" />'
+                  + '<input type="button" onclick="anotherrcode('
+                  + addoncodeid +')" value="+" /><br />');
 }
 
-var anotherdisk = function (){
-    $('#additional_disk').append('<br>Virtual Disk type: <select id="virtdisktypes" name="virtdisktypes[]">'
-				 + '<?php foreach ($virtdisktypes as $type) { echo "<option value=\"$type\">$type</option>"; } ?>'
-				 + '</select>&nbsp;&nbsp;&nbsp;Virtual Disk size (GB): <input type="text"'
-				 + ' id="virtdisksizes" name="virtdisksizes[]" size="4">&nbsp;'
-				 + '(put a dot "." for default size)&nbsp;&nbsp;<input type="button"'
-				 + ' size="5" onclick="anotherdisk()" value="+">');
+var anotherdisk = function () {
+	virtdiskno++;
+	$.getJSON ('html/install_product_ajax.php', { getval: 'virt-disk-types' },
+		function (data) {
+			$('#additional_disk').after('<div class="row"> <label> </label> <span>'
+				+ 'Virtual disk type <select id="virtdisktypes'+virtdiskno+'" name="virtdisktypes[]">'
+				+ '</select>, disk size <input type="text"'
+				+ ' id="virtdisksizes'+virtdiskno+'" name="virtdisksizes[]" size="4"> GB'
+				+ '</span></div>');
+
+			$.each(data, function (i, value) {
+				$('#virtdisktypes' + virtdiskno).append (
+					'<option value="' + value + '">' + value + '</option>'
+				);
+			});
+
+		}
+	);
 }
 
 var showvirtdisk = function () {
     $('#virtdisk').slideToggle("slow");
 }
 
+function guessProductCode(url) {
+    if (!url)
+        return;
+    
+    var slesPtn = new RegExp('sles', 'i');
+    var sledPtn = new RegExp('sled', 'i');
+    if (slesPtn.test(url)) 
+    {
+    $('#regprefix_prod').val('sles');
+    }
+    else if (sledPtn.test(url))
+    {
+    $('#regprefix_prod').val('sled');
+    }
+}
+
+function removeMachine(id, node) {
+
+    if (!id)
+        return;
+    var machines = $(".machine_name");
+    if (machines.length == 1)
+    {
+        return;
+    }
+
+    $(node).parent().remove();
+    $("input[name='a_machines[]']").each(function(index, m){
+        if (m.value == id)
+        {
+            $(m).remove();
+        }
+    });
+}
+
 $(document).ready(function() {
     // Setup ajax messaging
     $(document)
-	.ajaxStart(function() {
-	    $('#message').text("Loading content...");
-	}).ajaxStop(function() {
-	    $('#message').empty();
-	});
+    .ajaxStart(function() {
+        $('#message').text("Loading content...");
+    }).ajaxStop(function() {
+        $('#message').empty();
+    });
+
+	old_repo_product = $('#old_repo_product').val();
+	old_repo_arch = $('#old_repo_arch').val();
+	old_addon_product = $('#old_addon_product').val();
+	old_addon_arch = $('#old_addon_arch').val();
+
+	/* Populates some variables above with proper data. */
+	get_config_data ();
 
     // Reinstall with updates options
     $('#startupdate')
-	.change(function() {
-	    var updateVal = $('#startupdate').val();
-	    if(updateVal == 'update-smt') {
-		$('#updateoptions-smt').slideDown();
-		$('#updateoptions-reg').hide();
-	    } else if(updateVal == 'update-reg') {
-		$('#updateoptions-smt').hide();
-		$('#updateoptions-reg').slideDown();
-	    } else {
-		$('#updateoptions-smt').hide();
-		$('#updateoptions-reg').hide();
-	    }
-	});
+    .change(function() {
+        var updateVal = $('#startupdate').val();
+        if(updateVal == 'update-smt') {
+        $('#updateoptions-smt').slideDown();
+        $('#updateoptions-reg').hide();
+        } else if(updateVal == 'update-reg') {
+        $('#updateoptions-smt').hide();
+        $('#updateoptions-reg').slideDown();
+        } else {
+        $('#updateoptions-smt').hide();
+        $('#updateoptions-reg').hide();
+        }
+    });
 
     // For dropdown lists, load products
     $.getJSON("html/search_repo.php", { prod_type : "distro" }, function(data) {
-	insert_options("#repo_products", data, old_repo_product);
+    insert_options("#repo_products", data, old_repo_product);
     });
 
     $.getJSON("html/search_repo.php", { prod_type : "addon" }, function(data) {
-	insert_options("#addon_products", data, old_addon_product);
+        $("select[name*='addon_products']").each(function(index, value){
+       insert_options($(this), data, old_addon_product);
+        });
+    });
+    
+    /*Register events for select addon products*/ 
+    $("select[name*='addon_products']").each(function(index, value){
+            var addon_id = index +1;
+            var addon_products_id      =  "addon_products_" + addon_id;
+            var addon_products_url_id  =  "addon_products_url_"+ addon_id;
+            var addon_arch_name = 'addon' + addon_id + 'arch';
+            $(this).bind('change', {id: "addon_products_"+addon_id}, function () {
+                if ($(this).val())
+                {
+                    var arch = $(this).val();
+                    var arch = $("input:radio[name="+ addon_arch_name +"]:checked").val();
+                    if (/x86_64/.test(arch))
+                        get_urls ('addon', 'x86_64', addon_products_id, addon_products_url_id);
+                    else if (/i[1-9]86/.test(arch))
+                        get_urls ('addon', 'i586', addon_products_id, addon_products_url_id);
+                    else
+                        get_urls ('addon', 'x86_64', addon_products_id, addon_products_url_id);
+                }
+             });
+
+            $("input[name=addon"+addon_id+"arch]").bind('change', {id: "addon_products_url_"+addon_id}, function () {
+                if ($(this).val())
+                {
+                    var arch = $(this).val();
+                    if (/x86_64/.test(arch))
+                        get_urls ('addon', 'x86_64', addon_products_id, addon_products_url_id);
+                    else if (/i[1-9]86/.test(arch))
+                        get_urls ('addon', 'i586', addon_products_id, addon_products_url_id);
+                    else
+                        get_urls ('addon', 'x86_64', addon_products_id, addon_products_url_id);
+                }
+                });
+            });
+
+    /* Register events for pattens change */
+    $("input[id*='addon_products_url']").each(function(index, value){
+        var addon_id = index + 1;
+        var addon_pattern_name = 'addon_pattern_' + addon_id;
+    $(this).bind('change', {id: "addon_products_url_"+addon_id}, function () {
+           get_patterns ("#addon_products_url_"+addon_id  , addon_pattern_name, 'addon');
+        });
     });
 
     /* Register events for specified form parts. */
     $("#repo_products").change( function () {
-	get_archs ('repo');
-    });
+        if ($("#repo_products").val()) {
+            var arch = $("input[name='product_arch']:checked").val();
 
-    $("#repo_archs").change( function () {
-	get_urls ('repo');
-    });
+            if (arch) {
+		if (arch == 'i586') {
+                    get_urls ('repo', 'i386');
+		} else {
+                    get_urls ('repo', arch);
+		}
+	    } else {
+		/* This is for the AutoPXE page. */
+		get_archs ('repo');
+	    }
 
-    $("#addon_products").change( function () {
-	get_archs ('addon');
-    });
+	    $("#btrfs").remove();
+	    $("#ext4").remove();
 
-    $("#addon_archs").change( function () {
-	get_urls('addon');
+	    if(/factory/i.test($("#repo_products").val())) {
+		$("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option> <option id="ext4" value="ext4">ext4</option>');
+	    }
+
+	    if(/openSUSE-(\d+)\./i.test($("#repo_products").val()) && RegExp.$1 >= 12) {
+		$("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option> <option id="ext4" value="ext4">ext4</option>');
+	    }
+
+	    if(/sle.?-(\d+)/i.test($("#repo_products").val()) && RegExp.$1 >= 12) {
+		$("#rootfstype").append('<option id="btrfs" value="btrfs">btrfs</option> <option id="ext4" value="ext4">ext4</option>');
+	    }
+        }
     });
 
     $("#repo_producturl").change ( function () {
-	get_patterns ('#repo_producturl', 'available_patterns', 'distro');
-	auto_set_kexec ($(this).val ());
+    get_patterns ('#repo_producturl', 'available_patterns', 'distro');
+    guessProductCode($(this).val());
     });
 
     $("#addon_producturl").change ( function () {
-	get_patterns ('#addon_producturl', 'addon_pattern_1', 'addon');
+    get_patterns ('#addon_producturl', 'addon_pattern_1', 'addon');
     });
 
     $("#typicmode").change(function () {
-	change_patterns ();
+    change_patterns ();
     });
 
-    $('#kexecboot').change(function () {
-	kexec_manually_selected = $(this).attr ('checked');
+    $('#repo_archs').change(function () {
+	get_urls ('repo', $(this).val());
     });
+
+    $("input[name='product_arch']").change(function(){
+        if ($("input[name='product_arch']:checked").val() == 'i586')
+        {
+            get_urls ('repo', 'i386');
+        }
+        else if ($("input[name='product_arch']:checked").val() == 'x86_64')
+        {
+            get_urls ('repo', 'x86_64');
+        }
+        else
+        {}
+    });
+    
+    $("input:radio").on("change", function(){
+        var item = $(this).val();
+        switch (item){
+            case "update-none": 
+            case "update-opensuse": 
+            case "update-smt": 
+                $('#update-reg-email').attr('required', false);
+                $('#rcode_product').attr('required', false);
+                break;
+            case "update-reg": 
+                $('#update-reg-email').attr('required', true);
+                $('#rcode_product').attr('required', true);
+
+                break;
+            default:
+                break;
+        }
+    });
+
+	/* Check the default disk setup and hide underlaying the menu at
+	 * the virtual machine setup page. */
+	$('#virtdiskdef').click();
 
 });
 //-->
-

@@ -33,11 +33,15 @@
 		return require("../index.php");
 	}
 
-	$search = new MachineSearch();
-	$search->filter_in_array(request_array("a_machines"));
-	$machines = $search->query();
+	$job = new Job();
+	$machines_id_array = request_array("a_machines");
 
-	machine_permission_or_redirect($machines,$perm_send_job);
+	foreach( $machines_id_array as $machine ) {
+		$job->add_machine_id($machine);
+	}
+
+
+	machine_permission_or_redirect($machines_id_array,$perm_send_job);
 
 	$tslist = $_POST['testsuite'];
 	$rand = rand();
@@ -65,7 +69,7 @@
 	# Check UI test cases
 	$UISetupComm = "\/usr\/share\/qa\/tools\/setupUIAutomationtest; sleep 60";
 	$UIlist = $config->lists->uilist;
-	$UIarr = split(" ", $UIlist);
+	$UIarr = explode (" ", $UIlist);
 	foreach ( $UIarr as $case ) {
 		if ( in_array($case, $tslist) ) {
 			system("sed -i 's/#setupUI/". $UISetupComm . "/g' $qapackagejobfile");
@@ -73,20 +77,20 @@
 		}
 	}
 
+	$job->addfile($qapackagejobfile);
+
 	# Make sure each job gets sent correctly
-	if( request_str("submit") )
-	{
-		foreach( $machines as $machine )
-		{
-			if( $machine->send_job($qapackagejobfile) )	{
-				Log::create($machine->get_id(), $user->getLogin (), 'JOB_START', "has sent a \"qa-package\" job to this machine (Job name: \"" . htmlspecialchars($jobname) . "\")");
-			} else {
-				$error = (empty($error) ? "" : $error) . "<p>" . $machine->get_hostname() . ": " . $machine->errmsg . "</p>";
+	if( request_str("submit") )	{
+		if ( $job->send_job() ){
+			foreach( $a_machines as $machine ) {
+				Log::create($machine, $user->getLogin (), 'JOB_START', "has sent an \"autotest\" job to this machine (Job name: \"" . htmlspecialchars($jobname) . "\")");
 			}
+		}else{
+			$error = $job->errmsg;
 		}
 	}
 	if (empty($error)) {
-		require("send_success.php");
+		redirect (array ('succmsg' => "The job[s] has/have been successfully sent."));
 	}
 	$html_title="Send qapackage job";
 ?>

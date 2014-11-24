@@ -1,0 +1,13 @@
+[Unit]
+Description=HAMSTA, Test Automation Client
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/screen -dmS hamsta /usr/share/hamsta/Slave/slave_diplom.pl
+ExecStop=/usr/bin/screen -S hamsta -X quit
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target
