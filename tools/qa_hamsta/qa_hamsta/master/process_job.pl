@@ -147,7 +147,7 @@ sub send_email()
 		{
 			@args=('sendmail');
 		}
-		if ($job_owner =~ /@/){ 
+		if (defined($job_owner) and $job_owner =~ /@/){ 
 			$msg->send(@args) ;
 			&log(LOG_DETAIL, "Mail sending done");
 		}
