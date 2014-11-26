@@ -98,9 +98,8 @@ sub process_job($)
 	&set_machine_busy(0);
 	&reserve_or_release_all("release");
 
-	#send the email
-
-	&send_email($job_id);
+	#send the email, email part will be process in subprocess.
+	#&send_email($job_id);
 
 }
 
@@ -118,6 +117,7 @@ sub set_machine_busy($)
 
 }
 
+#need enhance for job detail information
 sub send_email()
 {
 	my $job_id = shift;
@@ -257,11 +257,13 @@ sub process_job_part_on_machine ($$$$$)
 	my $job_file = shift ;
 	my $reboot = shift;
 	my $job_name = $job_ref->{'job_name'} ;
+	my $job_owner = $job_ref->{'job_owner'};
+	my $job_id = $job_ref->{'job_id'};
 
 	my ($ip,$hostname) = &machine_get_ip_hostname($machine_id);
 
 	&log(LOG_DETAIL, "start to process job on machine: machine_id:$machine_id,job_on_machine_id:$job_on_machine_id,job_part_on_machine_id:$job_part_on_machine_id"); 
-	#$log::loginfo = 'job_'.$job_id.'_'.$hostname;
+	$log::loginfo = 'job_'.$job_id.'_'.$hostname;
 
 
 	# Mark the job as started
@@ -295,6 +297,7 @@ sub process_job_part_on_machine ($$$$$)
 	my @result_link = ();
 	my %parsed;
 	my $is_xml = 0;
+	my $master_ip="";
 
 	$| = 1;
 	$dbc->commit();
@@ -362,6 +365,7 @@ sub process_job_part_on_machine ($$$$$)
 			push @result_link,$1 if $parsed{'text'} =~ /(http:.*qadb\/submission\.php\?submission_id=\d+)/;
 		}
 	}
+	$master_ip = $sock->sockhost();
 	close($sock);
 	close FH;
 	
@@ -405,6 +409,76 @@ sub process_job_part_on_machine ($$$$$)
 	&TRANSACTION_END;
 	$dbc->commit();
 
+	#start to process email
+
+	if( defined($job_owner) and $job_owner =~ /@/ )
+	{
+		&log(LOG_DETAIL, "Sending mail to '%s'", $job_owner);
+		my $response = &read_xml($job_file);
+		my $data = "";
+		my $mailtype = "";
+		if (defined($submission_link) and length($submission_link) != 0) {
+			my $embedlink = $submission_link.'&embed=1';
+			my $rand = int(rand(100000));
+			my $subhtml = '/tmp/sub'.$rand.'.html';
+			my $ret = system("wget -O $subhtml \'$embedlink\'");
+			if ($ret == 0) {
+				$data = `cat $subhtml`;
+				system("rm -rf '$subhtml'");
+				$mailtype = "text/html";
+			}
+			else {
+				$data = "------------------------------------------------------\nPlain text mail received,please check submission link.\n------------------------------------------------------\n\n";
+				goto PMAIL;
+			}
+		}
+		else {
+			PMAIL:
+			$data .= "$job_name on HOST:$hostname ( $ip ) completed at ".`date +%F-%R`;
+			$data .= "\nJob status:".( $status==JS_FAILED ? 'Fail' : 'Pass' )."\n";
+			if( !$reboot )
+			{
+				my $loglink = "http://$master_ip/hamsta/index.php?go=job_details&id=$job_id";
+				$data .= "Return codes: $return_codes\nLog link:\n$loglink\nSummary result:\n".join("\n",@summary);
+			}
+			$mailtype = "TEXT";
+		}
+		my $msg = MIME::Lite->new(
+				From => ($qaconf{hamsta_master_mail_from} || 'hamsta-master@suse.de'),
+				To => $job_owner,
+				Subject => $message,
+				Type => $mailtype,
+				Data => $data
+				);
+		if( $response->{'config'}->{'attachment'} )
+		{
+			my $i=0;
+			foreach my $att ( @{$response->{'config'}->{'attachment'}} )
+			{
+				next unless defined $att->{'content'};
+				$msg->attach(
+					Type => ($att->{'mime'} ? $att->{'mime'} : 'text/plain'),
+#					Encoding => 'base64',
+					Data => decode_base64($att->{'content'}),
+					Filename => ($att->{'name'} ? $att->{'name'} : 'attachment'.($i++).'.txt')
+				);	# anyone knowing a way how to avoid base64 reencoding?
+			}
+		}
+		my @args=('smtp');
+		if( $qaconf{hamsta_master_smtp_relay} )
+		{
+			push @args, $qaconf{hamsta_master_smtp_relay};
+			if($qaconf{hamsta_master_smtp_login})
+			{	push @args, (AuthUser=>$qaconf{hamsta_master_smtp_login}, ($qaconf{hamsta_master_smtp_password} ? (AuthPass=>$qaconf{hamsta_master_smtp_password}) : ()))	}
+		}else
+                {
+			@args=('sendmail');
+		}
+		$msg->send(@args);
+		&log(LOG_DETAIL, "Mail sending done");
+	}
+
+
 }
 
 
@@ -420,10 +494,15 @@ sub build_ref($)
 	    exit 0;
 	}
 	my ($job_file, $user_id, $job_name, $job_status_id,$aimed_host) = @data;
+	$job_ref->{'job_id'} = $job_id ;
 	$job_ref->{'job_file'} = $job_file ;
 	$job_ref->{'user_id'} = $user_id ;
 	$job_ref->{'job_name'} = $job_name ;
 	$job_ref->{'job_status_id'} = $job_status_id ;
+	$job_ref->{'job_owner'} = &user_get_email_by_id($user_id);
+	my $email = &dump_job_xml_config($job_file,"mail");
+	$job_ref->{'job_owner'} = ($email)?$email:$job_ref->{'job_owner'};
+
 
 	foreach my $machine ( split /[\s,]+/,$aimed_host )
 	{
@@ -575,12 +654,7 @@ sub send_xml($)
 			};
 			if ($@) {
 				&log(LOG_ERR, "PROCESS_JOB: send_job: $@");
-				#mark the result and remove the failed job ;
-				&TRANSACTION( 'job_part_on_machine');
-				&job_part_on_machine_set_status( $sub_job_part->{$mid}->[1],JS_FAILED); 
-				&TRANSACTION_END;
-				delete $sub_job_part->{$mid};
-				last;
+				&set_fail_release();
 			}
 		}
 			close FH;
@@ -747,27 +821,34 @@ sub machine_status_timeout($$$$$) {
 sub set_fail_release()
 {
 	#Set Fail
-	&TRANSACTION( 'job_on_machine', 'job_part_on_machine' );
+	&TRANSACTION( 'job_part_on_machine' );
 	foreach my $part (keys %{$job_ref->{'mm_jobs'}} )
 	{
 	        foreach my $jomid (keys %{$job_ref->{'mm_jobs'}->{$part}}) 
 	        {
 			my $job_part_on_machine_id = $job_ref->{'mm_jobs'}->{$part}->{$jomid}->[1];
-			&TRANSACTION( 'job_on_machine', 'job_part_on_machine' );
 			&job_part_on_machine_stop($job_part_on_machine_id,JS_FAILED);
          	}
 
 	}
 	&TRANSACTION_END;
-	$dbc->commit();
 
+	&TRANSACTION('job');
 
+	&job_set_status($job_ref->{'job_id'},JS_FAILED);
+
+	&TRANSACTION_END;
+
+	#set machine free
 	&TRANSACTION('machine');
 	foreach my $machine_id (keys %{$job_ref->{'aimed_host'}} ) 
 	{
 	    &machine_set_busy($machine_id,0);
 	}
 	&TRANSACTION_END;
+
+	$dbc->commit();
+
 	&log(LOG_NOTICE, "PROCESS_JOB: Set job failed and release the machine");
 
 	exit 1;
