@@ -54,7 +54,12 @@ $log::loglevel = $qaconf{hamsta_master_loglevel_job} if $qaconf{hamsta_master_lo
 $log::loginfo = 'job';
 
 
-
+# process_job(job_id)
+#
+# Sends a job to one or more slaves, gathers the slave output and 
+# writes it to the database.
+#
+# $job_id		   ID of the job 
 sub process_job($)
 {
 	my $job_id = shift;
@@ -104,6 +109,79 @@ sub process_job($)
 
 }
 
+# code that was not merged, but need to be, in order to prevent regressions
+# FIXME : merge
+sub old_mailing()
+{
+	my $submission_link;
+	my @summary;
+
+	my($response_xml,$job_owner,$short_name,$job_status_id,$aimed_host) = &job_get_details($job_id);
+
+	#start to pick up the result from DB
+	foreach(keys %$machine_job) {
+		#query the return value from DB
+		#$machine_job->{$_}->{'job_return_text'} = &job_on_machine_get_return_status($machine_job->{$_}->{'job_on_machine_id'});
+
+		#query the submission link from DB
+		#$machine_job->{$_}->{'submission_link'} = &job_on_machine_get_result_link($machine_job->{$_}->{'job_on_machine_id'});
+
+		#query the job_status from DB
+		$machine_job->{$_}->{'job_status_id'} = &job_on_machine_get_status($machine_job->{$_}->{'job_on_machine_id'});
+
+		#query the summary from DB
+		#my $summ = &job_on_machine_get_summary($machine_job->{$_}->{'job_on_machine_id'});
+		#push(@summary,"host:$_ summary:\n");
+		#push(@summary,$summ);
+
+	}
+
+	#let mail be the last part
+	if( $job_owner =~ /@/ )
+	{
+		&log(LOG_DETAIL, "Sending mail to '%s'", $job_owner);
+		my $response = &read_xml($response_xml);
+		my $data = "";
+		my $mailtype = "";
+		my $reboot;
+		my $message = "";
+		foreach(keys %$machine_job) {
+			#TODO query from database about submission_link
+			if ($machine_job->{$_}->{'submission_link'}) {
+				foreach my $link (split(/\n/,$machine_job->{$_}->{'submission_link'})){
+
+					my $embedlink = $link.'&embed=1';
+					my $rand = int(rand(100000));
+					my $subhtml = '/tmp/sub'.$rand.'.html';
+					my $ret = system("wget -O $subhtml \'$embedlink\'");
+					if ($ret == 0) {
+						$data .= "host $_ submission result:";
+					$data .= `cat $subhtml`;
+					system("rm -rf '$subhtml'");
+					$mailtype = "text/html";
+					}
+					else {
+					$data = "------------------------------------------------------\nPlain text mail received,please check submission link.\n------------------------------------------------------\n\n";
+					goto PMAIL;
+					}
+				}
+			}
+			else {
+PMAIL:
+				#$data .= "$ip job completed at ".`date +%F-%R`;
+				$data .= "job completed at ".`date +%F-%R`;
+				#$data .= "\nJob status:".( $status==JS_FAILED ? 'Fail' : 'Pass' )."\n";
+				if( !$reboot )
+				{
+					`ifconfig` =~ /inet addr:([\d\.]*)\s*Bcast/;
+					my $loglink = "http://$1/hamsta/index.php?go=job_details&id=$job_id"; #fix me
+					$data .= "\nLog link:\n$loglink\nQADB submission link:\n ". $machine_job->{$_}->{'submission_link'}."\nSummary result:\n".join("\n",@summary);
+				}
+				$mailtype = "TEXT";
+			}
+		}
+	}
+}
 
 sub set_machine_busy($)
 {
@@ -138,7 +216,21 @@ sub send_email()
 		Type => $mailtype,
 		Data => $data
 	);
-	
+	# FIXME: we want to send attachments, but they need to be forwarded from SUT outputs first
+	#if( $response->{'config'}->{'attachment'} )
+	#{
+	#	my $i=0;
+	#	foreach my $att ( @{$response->{'config'}->{'attachment'}} )
+	#	{
+	#		next unless defined $att->{'content'};
+	#		$msg->attach(
+	#			Type => ($att->{'mime'} ? $att->{'mime'} : 'text/plain'),
+	#			Encoding => 'base64',
+	#			Data => decode_base64($att->{'content'}),
+	#			Filename => ($att->{'name'} ? $att->{'name'} : 'attachment'.($i++).'.txt')
+	#		);	# anyone knowing a way how to avoid base64 reencoding?
+	#	}
+	#}
 	my @args=('smtp');
 	if( $qaconf{hamsta_master_smtp_relay} )
 	{
