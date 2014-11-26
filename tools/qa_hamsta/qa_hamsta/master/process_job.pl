@@ -54,7 +54,12 @@ $log::loglevel = $qaconf{hamsta_master_loglevel_job} if $qaconf{hamsta_master_lo
 $log::loginfo = 'job';
 
 
-
+# process_job(job_id)
+#
+# Sends a job to one or more slaves, gathers the slave output and 
+# writes it to the database.
+#
+# $job_id		   ID of the job 
 sub process_job($)
 {
 	my $job_id = shift;
@@ -78,20 +83,13 @@ sub process_job($)
 
 	foreach my $sub_part (@$all_parts)
 	{
-
-
 		%machine_sock = ();
-
 		&connect_all($sub_part);
-
 		&send_xml($sub_part);
-
 		&deploy($sub_part);
-
 	}
 
 	#mark the whole job result
-
 	&mark_job_result($job_id);
 
 	#release the machine
@@ -103,14 +101,12 @@ sub process_job($)
 
 }
 
-
 sub set_machine_busy($)
 {
 	my $status = shift;
 
 	&TRANSACTION('machine');
-	foreach my $machine_id (keys %{$job_ref->{'aimed_host'}} ) 
-	{
+	foreach my $machine_id (keys %{$job_ref->{'aimed_host'}} )	{
 	    &machine_set_busy($machine_id,$status);
 	}
 	&TRANSACTION_END;
@@ -124,7 +120,13 @@ sub send_email()
 	my $user_id = $job_ref->{'user_id'};
 	my $job_owner = &user_get_email_by_id($user_id);
 	my $email = &dump_job_xml_config($job_ref->{'job_file'},"mail");
-	$job_owner = ($job_owner)?$job_owner:$email;
+	$job_owner = ($job_owner ? $job_owner : $email );
+
+	# do not proceed if recipient not defined
+	return unless $job_owner =~ /@/;
+
+	&log(LOG_DETAIL, "Sending mail to '%s'", $job_owner);
+
 	my $mailtype = "TEXT";
 
 	my $message = "The job result for:" . $job_ref->{'job_name'} ;
@@ -138,20 +140,34 @@ sub send_email()
 		Type => $mailtype,
 		Data => $data
 	);
-	
+	# FIXME: we want to send attachments, but they need to be forwarded from SUT outputs first
+	#if( $response->{'config'}->{'attachment'} )
+	#{
+	#	my $i=0;
+	#	foreach my $att ( @{$response->{'config'}->{'attachment'}} )
+	#	{
+	#		next unless defined $att->{'content'};
+	#		$msg->attach(
+	#			Type => ($att->{'mime'} ? $att->{'mime'} : 'text/plain'),
+	#			Encoding => 'base64',
+	#			Data => decode_base64($att->{'content'}),
+	#			Filename => ($att->{'name'} ? $att->{'name'} : 'attachment'.($i++).'.txt')
+	#		);	# anyone knowing a way how to avoid base64 reencoding?
+	#	}
+	#}
 	my @args=('smtp');
 	if( $qaconf{hamsta_master_smtp_relay} )
 	{
 		push @args, $qaconf{hamsta_master_smtp_relay};
-		if($qaconf{hamsta_master_smtp_login})
-		{
+		if($qaconf{hamsta_master_smtp_login})	{
 			push @args, (AuthUser=>$qaconf{hamsta_master_smtp_login}, ($qaconf{hamsta_master_smtp_password} ? (AuthPass=>$qaconf{hamsta_master_smtp_password}) : ()))   
-		}else
-		{
+		}
+		else	{
 			@args=('sendmail');
 		}
 		if (defined($job_owner) and $job_owner =~ /@/){ 
 			$msg->send(@args) ;
+			# TODO: process return value
 			&log(LOG_DETAIL, "Mail sending done");
 		}
 	}
@@ -251,11 +267,7 @@ sub process_job_part_on_machine ($$$$$)
 
 	&sql_get_connection();
 
-	my $machine_id = shift;
-	my $job_part_on_machine_id = shift;
-	my $job_on_machine_id = shift;
-	my $job_file = shift ;
-	my $reboot = shift;
+	my ($machine_id, $job_part_on_machine_id, $job_on_machine_id, $job_file, $reboot) = @_;
 	my $job_name = $job_ref->{'job_name'} ;
 	my $job_owner = $job_ref->{'job_owner'};
 	my $job_id = $job_ref->{'job_id'};
@@ -528,6 +540,7 @@ sub build_ref($)
 
 		foreach my $jomid (@job_on_machine_id) {
 
+			# FIXME: this should be accessed by the PK job_part_on_machine_id, not by (job_part_id,job_on_machine_id)
 			my ($xml,$job_part_on_machine_id,$status,$does_reboot) = &job_part_info_get_by_pid_jomid($part,$jomid);
 			$job_ref->{'mm_jobs'}->{$part}->{$jomid} = [$xml,$job_part_on_machine_id,$jomid,$status,$does_reboot] if ($xml);
 
@@ -539,28 +552,17 @@ sub build_ref($)
 }
 
 sub split_part()
-
 {
 	my @part_machines_xml;
-
 	my @parts =	sort { $a <=> $b } keys %{$job_ref->{'mm_jobs'}};
-
 	foreach my $part ( @parts )
 	{
-
 		my @job_on_machine_ids = keys %{$job_ref->{'mm_jobs'}->{$part}};
-
 		my $part_ref ;
-
 		map { my $machine_id = &job_on_machine_get_machine($_) ; $part_ref->{$machine_id} = $job_ref->{'mm_jobs'}->{$part}->{$_}; } @job_on_machine_ids;
-
 		push @part_machines_xml,$part_ref;
-
 	}
-
 	return \@part_machines_xml;
-
-
 }
 
 
@@ -571,6 +573,7 @@ sub connect_all ($)
 	my $sock_canread = IO::Select->new();
 	my $sub_job_part = shift;
 	my @machine_ids = keys %$sub_job_part;
+	# FIXME: this is wrong, we must use job_on_machine.machine_id, not machine.aimed_host
 	my @m_ips = map { $job_ref->{'aimed_host'}->{$_} } @machine_ids;
 
 	foreach my $ipaddr (@m_ips)
@@ -617,7 +620,7 @@ sub connect_all ($)
 				}
 			}
 			return 1;
-	
+
 		}
 	sleep 3; 
 	}
@@ -657,10 +660,10 @@ sub send_xml($)
 				&set_fail_release();
 			}
 		}
-			close FH;
-			
-			# Return the result and log level.
-			&log(LOG_INFO,"PROCESS_JOB: send xml: $xmlfile to $ip succeed");
+		close FH;
+
+		# Return the result and log level.
+		&log(LOG_INFO,"PROCESS_JOB: send xml: $xmlfile to $ip succeed");
 	}
 	
 
