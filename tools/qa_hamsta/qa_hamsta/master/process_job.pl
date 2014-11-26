@@ -239,6 +239,7 @@ sub send_email()
 		}
 		if (defined($job_owner) and $job_owner =~ /@/){ 
 			$msg->send(@args) ;
+			# TODO: process return value
 			&log(LOG_DETAIL, "Mail sending done");
 		}
 	}
@@ -532,6 +533,7 @@ sub build_ref($)
 
 		foreach my $jomid (@job_on_machine_id) {
 
+			# FIXME: this should be accessed by the PK job_part_on_machine_id, not by (job_part_id,job_on_machine_id)
 			my ($xml,$job_part_on_machine_id,$status,$does_reboot) = &job_part_info_get_by_pid_jomid($part,$jomid);
 			$job_ref->{'mm_jobs'}->{$part}->{$jomid} = [$xml,$job_part_on_machine_id,$jomid,$status,$does_reboot] if ($xml);
 
@@ -564,6 +566,7 @@ sub connect_all ($)
 	my $sock_canread = IO::Select->new();
 	my $sub_job_part = shift;
 	my @machine_ids = keys %$sub_job_part;
+	# FIXME: this is wrong, we must use job_on_machine.machine_id, not machine.aimed_host
 	my @m_ips = map { $job_ref->{'aimed_host'}->{$_} } @machine_ids;
 
 	foreach my $ipaddr (@m_ips)

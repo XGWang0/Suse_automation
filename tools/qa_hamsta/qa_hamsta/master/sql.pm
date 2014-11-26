@@ -350,6 +350,7 @@ sub job_part_on_machine_set_status($$) # job_part_on_machine_id status
 sub job_part_on_machine_get_status($) # job_part_on_machine_id
 {	return $dbc->scalar_query('SELECT job_status_id FROM job_part_on_machine WHERE job_part_on_machine_id=?',$_[0]);  }
 
+# FIXME: this function should be changed/removed in favor of accessing by table's PK
 sub job_part_info_get_by_pid_jomid()
 {	return $dbc->row_query("SELECT xml_file,job_part_on_machine_id,job_status_id,does_reboot FROM job_part_on_machine WHERE job_part_id=? AND job_on_machine_id=? ",$_[0],$_[1]); }
 
