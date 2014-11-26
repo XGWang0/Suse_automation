@@ -83,20 +83,13 @@ sub process_job($)
 
 	foreach my $sub_part (@$all_parts)
 	{
-
-
 		%machine_sock = ();
-
 		&connect_all($sub_part);
-
 		&send_xml($sub_part);
-
 		&deploy($sub_part);
-
 	}
 
 	#mark the whole job result
-
 	&mark_job_result($job_id);
 
 	#release the machine
@@ -104,9 +97,7 @@ sub process_job($)
 	&reserve_or_release_all("release");
 
 	#send the email
-
 	&send_email($job_id);
-
 }
 
 # code that was not merged, but need to be, in order to prevent regressions
@@ -188,8 +179,7 @@ sub set_machine_busy($)
 	my $status = shift;
 
 	&TRANSACTION('machine');
-	foreach my $machine_id (keys %{$job_ref->{'aimed_host'}} ) 
-	{
+	foreach my $machine_id (keys %{$job_ref->{'aimed_host'}} )	{
 	    &machine_set_busy($machine_id,$status);
 	}
 	&TRANSACTION_END;
@@ -202,7 +192,7 @@ sub send_email()
 	my $user_id = $job_ref->{'user_id'};
 	my $job_owner = &user_get_email_by_id($user_id);
 	my $email = &dump_job_xml_config($job_ref->{'job_file'},"mail");
-	$job_owner = ($job_owner)?$job_owner:$email;
+	$job_owner = ($job_owner ? $job_owner : $email );
 	my $mailtype = "TEXT";
 
 	my $message = "The job result for:" . $job_ref->{'job_name'} ;
@@ -235,11 +225,10 @@ sub send_email()
 	if( $qaconf{hamsta_master_smtp_relay} )
 	{
 		push @args, $qaconf{hamsta_master_smtp_relay};
-		if($qaconf{hamsta_master_smtp_login})
-		{
+		if($qaconf{hamsta_master_smtp_login})	{
 			push @args, (AuthUser=>$qaconf{hamsta_master_smtp_login}, ($qaconf{hamsta_master_smtp_password} ? (AuthPass=>$qaconf{hamsta_master_smtp_password}) : ()))   
-		}else
-		{
+		}
+		else	{
 			@args=('sendmail');
 		}
 		if (defined($job_owner) and $job_owner =~ /@/){ 
@@ -343,11 +332,7 @@ sub process_job_part_on_machine ($$$$$)
 
 	&sql_get_connection();
 
-	my $machine_id = shift;
-	my $job_part_on_machine_id = shift;
-	my $job_on_machine_id = shift;
-	my $job_file = shift ;
-	my $reboot = shift;
+	my ($machine_id, $job_part_on_machine_id, $job_on_machine_id, $job_file, $reboot) = @_;
 	my $job_name = $job_ref->{'job_name'} ;
 
 	my ($ip,$hostname) = &machine_get_ip_hostname($machine_id);
@@ -552,28 +537,17 @@ sub build_ref($)
 }
 
 sub split_part()
-
 {
 	my @part_machines_xml;
-
 	my @parts =	sort { $a <=> $b } keys %{$job_ref->{'mm_jobs'}};
-
 	foreach my $part ( @parts )
 	{
-
 		my @job_on_machine_ids = keys %{$job_ref->{'mm_jobs'}->{$part}};
-
 		my $part_ref ;
-
 		map { my $machine_id = &job_on_machine_get_machine($_) ; $part_ref->{$machine_id} = $job_ref->{'mm_jobs'}->{$part}->{$_}; } @job_on_machine_ids;
-
 		push @part_machines_xml,$part_ref;
-
 	}
-
 	return \@part_machines_xml;
-
-
 }
 
 
