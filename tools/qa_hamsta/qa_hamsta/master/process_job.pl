@@ -46,17 +46,20 @@ use qaconfig('&get_qa_config');
 use sql;
 use db_common;
 our $dbc;
-
-$log::loglevel = $qaconf{hamsta_master_loglevel_job} if $qaconf{hamsta_master_loglevel_job};
-$log::loginfo = 'job';
-
 our $job_ref;
 our $sub_procs;
 our %machine_sock;
 
+$log::loglevel = $qaconf{hamsta_master_loglevel_job} if $qaconf{hamsta_master_loglevel_job};
+$log::loginfo = 'job';
+
+
+
 sub process_job($)
 {
 	my $job_id = shift;
+
+	&log(LOG_NOTICE, "Processing job $job_id");
 
 	#query all information into $job_ref;
 	&build_ref($job_id);
@@ -235,7 +238,15 @@ sub dump_job_xml_config($$)
 }
 
 
-sub process_job_part_on_machine ($$$)
+#This function going to process the connection from SUT
+#update the database require the information below
+#1.machine_id
+#2.job_part_on_machine_id
+#3.job_on_machine_id
+#4.job_part_on_machine_xml  the xml send to the	SUT
+#5.job_reboot	reboot flag
+
+sub process_job_part_on_machine ($$$$$)
 {
 
 	&sql_get_connection();
@@ -402,7 +413,13 @@ sub build_ref($)
 	#build the job_ref;
 
 	my $job_id = shift;
-	my ($job_file, $user_id, $job_name, $job_status_id,$aimed_host) = &job_get_details($job_id) ;
+	my @data = &job_get_details($job_id) ;
+	if( !@data )
+	{
+	    &log(LOG_ERR, "PROCESS_JOB: no such job with ID $job_id");
+	    exit 0;
+	}
+	my ($job_file, $user_id, $job_name, $job_status_id,$aimed_host) = @data;
 	$job_ref->{'job_file'} = $job_file ;
 	$job_ref->{'user_id'} = $user_id ;
 	$job_ref->{'job_name'} = $job_name ;
