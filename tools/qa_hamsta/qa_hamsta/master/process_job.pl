@@ -613,7 +613,7 @@ sub connect_all ($)
 				}
 			}
 			return 1;
-	
+
 		}
 	sleep 3; 
 	}
@@ -658,10 +658,10 @@ sub send_xml($)
 				last;
 			}
 		}
-			close FH;
-			
-			# Return the result and log level.
-			&log(LOG_INFO,"PROCESS_JOB: send xml: $xmlfile to $ip succeed");
+		close FH;
+
+		# Return the result and log level.
+		&log(LOG_INFO,"PROCESS_JOB: send xml: $xmlfile to $ip succeed");
 	}
 	
 
