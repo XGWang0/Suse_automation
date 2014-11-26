@@ -344,7 +344,7 @@ sub process_job_part_on_machine ($$$$$)
 	my ($ip,$hostname) = &machine_get_ip_hostname($machine_id);
 
 	&log(LOG_DETAIL, "start to process job on machine: machine_id:$machine_id,job_on_machine_id:$job_on_machine_id,job_part_on_machine_id:$job_part_on_machine_id"); 
-	#$log::loginfo = 'job_'.$job_id.'_'.$hostname;
+	$log::loginfo .= '_'.$hostname;
 
 
 	# Mark the job as started
