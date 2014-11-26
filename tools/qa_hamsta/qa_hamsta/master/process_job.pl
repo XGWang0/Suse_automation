@@ -646,7 +646,7 @@ sub send_xml($)
 			$machine_sock{$ip}->send("$_\n");
 			};
 			if ($@) {
-				&log(LOG_ERR, "PROCESS_JOB: send_job: $@");
+				&log(LOG_ERR, "PROCESS_JOB: send_xml: $@");
 				#mark the result and remove the failed job ;
 				&TRANSACTION( 'job_part_on_machine');
 				&job_part_on_machine_set_status( $sub_job_part->{$mid}->[1],JS_FAILED); 
