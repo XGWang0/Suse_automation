@@ -193,6 +193,12 @@ sub send_email()
 	my $job_owner = &user_get_email_by_id($user_id);
 	my $email = &dump_job_xml_config($job_ref->{'job_file'},"mail");
 	$job_owner = ($job_owner ? $job_owner : $email );
+
+	# do not proceed if recipient not defined
+	return unless $job_owner =~ /@/;
+
+	&log(LOG_DETAIL, "Sending mail to '%s'", $job_owner);
+
 	my $mailtype = "TEXT";
 
 	my $message = "The job result for:" . $job_ref->{'job_name'} ;
