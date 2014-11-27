@@ -82,39 +82,49 @@ our $dbc;
 # the master can be shut down and the processing of the job continues.
 # 
 sub schedule_jobs() {
-    my $jobs = &job_on_machine_get_by_status(JS_QUEUED);
+    my $jobs = &job_list_by_status(JS_QUEUED);
     foreach my $job (@$jobs) {
-        my ($job_on_machine_id,$machine_id,$job_id)=@$job;
-        my ($job_file, $job_owner_user_id, $job_name) = &job_get_details($job_id);
-        if ($machine_id) {
-	    my @has_connecting = &job_on_machine_get_by_machineid_status($machine_id,JS_CONNECTING);
-	    my @has_running = &job_on_machine_get_by_machineid_status($machine_id,JS_RUNNING);
-            my $busy_status = &machine_get_busy($machine_id);
-	    my $machine_status_id = &machine_get_status($machine_id);
-            if( !@has_connecting && !@has_running && !$busy_status && &machine_has_perm($machine_id,'job') && ( $job_file !~ /reinstall/ || &machine_has_perm($machine_id,'install') ) ) {
-                &TRANSACTION( 'machine', 'job_on_machine', 'job' );
-                &machine_set_busy($machine_id,1);
-                &job_on_machine_start($job_on_machine_id);
-		        &job_set_status($job_id,JS_CONNECTING);
-                &TRANSACTION_END;
-                &log(LOG_NOTICE,"MASTER::SCHEDULER send $job->[0] to machine $machine_id");
-                child {
-                    system("/usr/bin/perl process_job.pl ".$job->[2]);
-                    if( &sql_get_connection() )	{
-			&TRANSACTION( 'machine' );
-                        &machine_set_busy($machine_id,0);
-			&TRANSACTION_END;
-                    }
-                    exit;
-                }
-                parent {
-                    &log(LOG_DETAIL,"Processing job in PID ".(shift));
-                };
-            } else {
-                &log(LOG_DETAIL,"MASTER::SCHEDULER machine ".$job->[1]." is busy, job $job->[0] waiting");
+        #my ($job_on_machine_id,$machine_id,$job_id)=@$job;
+        my ($job_file, $job_owner, $job_name,$job_id,$aimed_host) = @$job;
+        #get machine_id from job and job_on_machine table
+        my $unavailable_tag = 0;
+        my @machine_ids;
+        foreach( split(/\s*,\s*/,$aimed_host) ) {
+            my $machine_id = &machine_get_by_ip($_);
+            push @machine_ids,$machine_id;
+            if ($machine_id) {
+                my @has_connecting = &job_on_machine_get_by_machineid_status($machine_id,JS_CONNECTING);
+                my @has_running = &job_on_machine_get_by_machineid_status($machine_id,JS_RUNNING);
+                my $busy_status = &machine_get_busy($machine_id);
+		my $machine_status = &machine_get_status($machine_id);
+		$unavailable_tag++ if($machine_status != MS_UP);
+                $unavailable_tag++ if( @has_connecting || @has_running || $busy_status || !&machine_has_perm($machine_id,'job') );
+                $unavailable_tag++ if( $job_file =~ /reinstall/ && !&machine_has_perm($machine_id,'install') );
+            }else{
+                $unavailable_tag++;
+                &log(LOG_WARNING,"MASTER::SCHEDULER job $job->[0] has no defined destination");
             }
+        }
+        if($unavailable_tag == 0){
+            &TRANSACTION( 'machine', 'job_on_machine', 'job' );
+            map { &machine_set_busy($_,1) } @machine_ids;
+            &job_set_status($job_id,JS_RUNNING);
+            &TRANSACTION_END;
+            &log(LOG_NOTICE,"MASTER::SCHEDULER send $job->[3] to machine $aimed_host");
+            child {
+                system("/usr/bin/perl process_job.pl ".$job_id);
+                if( &sql_get_connection() ) {
+                    &TRANSACTION( 'machine' );
+                    map { &machine_set_busy($_,0) } @machine_ids;
+                    &TRANSACTION_END;
+                }
+                exit;
+            }
+            parent {
+                &log(LOG_DETAIL,"Processing job in PID ".(shift));
+            };
         } else {
-            &log(LOG_WARNING,"MASTER::SCHEDULER job $job->[0] has no defined destination");
+            &log(LOG_DETAIL,"MASTER::SCHEDULER machine ".$job->[1]." is busy, job $job->[0] waiting");
         }
     }
 }
@@ -126,15 +136,19 @@ sub schedule_jobs() {
 # if no associated entries in job_on_machine remain.
 # 
 sub delete_cancelled_jobs() {
-    my @jobs = &job_list_by_status(JS_CANCELED); # list cancelled jobs
-    foreach my $job_id (@jobs) {
-	&log(LOG_INFO,"Deleting cancelled job $job_id");
-	&TRANSACTION( 'job_on_machine', 'job', 'job_part', 'job_part_on_machine' );
-	&job_on_machine_delete_by_job_id($job_id);
-	&job_delete($job_id);
-    # DELETE CASCADE is used for foreign key about job_id and job_on_machine_id for 
-    # table job_part and job_part_on_machine, so no need to delete those two here
-	&TRANSACTION_END;
+
+    my $jobs = &job_list_by_status(JS_CANCELED); # list cancelled jobs
+    foreach my $job (@$jobs) {
+        my ($job_file, $job_owner, $job_name,$job_id,$aimed_host) = @$job;
+        &log(LOG_INFO,"Deleting cancelled job $job_id");
+        foreach( split(/\s*,\s*/,$aimed_host) ) {
+            &TRANSACTION( 'job_on_machine', 'job', 'job_part', 'job_part_on_machine' );
+            &job_on_machine_delete_by_job_id($job_id);
+            &job_delete($job_id);
+            # DELETE CASCADE is used for foreign key about job_id and job_on_machine_id for 
+            # table job_part and job_part_on_machine, so no need to delete those two here
+            &TRANSACTION_END;
+        }
     }
 }
 
@@ -153,39 +167,164 @@ sub delete_cancelled_jobs() {
 # 
 sub distribute_jobs() {
     my @machines_free = &machine_list_free();
-    my @jobs_idle = &job_list_by_status(JS_NEW); # list idle jobs
+    my $jobs_idle = &job_list_by_status(JS_NEW); # list idle jobs
     my %machines_assigned = ();
 
-    foreach my $job_id (@jobs_idle)
+    foreach my $job_detail (@$jobs_idle)
     {
-	    my $host_orig=&job_get_aimed_host($job_id);
-	    my $host_aimed=$host_orig;
-	    my $machine_id;
-	    if( not $host_aimed )
-	    {	
-		    next unless @machines_free; # skip job if no free machine
-		    $machine_id = shift @machines_free;
-		    $host_aimed = &machine_get_ip($machine_id);
-	    }
-	    else
-	    {
-		    $machine_id = &machine_get_by_ip($host_aimed);
-		    next unless $machine_id;	# skip if the machine does not exist
-	    }
-	    
-	    my $config_id = &config_get_last($machine_id);
+        my $job_id = $job_detail->[3];
+        my $host_orig=&job_get_aimed_host($job_id);
 
-	    &TRANSACTION( 'machine', 'job', 'job_on_machine','job_part','job_part_on_machine', 'mm_role' );
-	    &job_set_aimed_host($job_id,$host_aimed) unless $host_orig;
-        # TODO: set mm_role_id according to new format job xml with roles when implement new mm sync
-        my $mm_role_id = &mm_role_get_default_id;
-	    my $job_on_machine_id = &job_on_machine_insert( $job_id, $machine_id, $config_id, JS_QUEUED, $mm_role_id);
-        my $job_part_id = &job_part_insert($job_id);
-        my @job_details = &job_get_details($job_id);
-        my $xml_file = $job_details[0];
-        &job_part_on_machine_insert($job_part_id,JS_QUEUED,$job_on_machine_id,$xml_file);
-	    &job_set_status( $job_id, JS_QUEUED );
-	    &TRANSACTION_END;
+        #how many machines does the job require
+        my @host_aimed =  split(/\s*,\s*/,$host_orig);
+        my $host_aimed;
+        my @machine_id;
+        if( not @host_aimed )
+        {
+            next unless @machines_free ; # skip job if not enough free machine.
+            @machine_id = ( shift @machines_free ) ;
+            $host_aimed = &machine_get_ip(shift @machine_id);
+        }
+        else
+        {
+            next if @machines_free < @host_aimed; # skip job if not enough free machine.
+            @machine_id = map {&machine_get_by_ip($_)} @host_aimed;
+            next if @machine_id < @host_aimed;   # skip if the some machine does not exist.
+        }
+        my $id_config_ref;
+        map{ $id_config_ref->{$_}=&config_get_last($_) } @machine_id;
+
+        #ready to distribute this job
+        #xml2part
+        my $xml2part_script = "/usr/share/qa/tools/xml2part.pl";
+        my $xml2part_output_dir = "/tmp/xml2part_output/$job_id";
+        my $orig_job_xml = $job_detail->[0];
+        &log(LOG_DETAIL,"Executing xml2part...");
+        system("perl $xml2part_script -o $xml2part_output_dir $orig_job_xml >/dev/null");
+        &log(LOG_INFO, "xml2part finished execution on job xml $orig_job_xml: return value is $?, output is stored in $xml2part_output_dir.");
+
+        #get related job role and part info
+        my $unique_roles = {};
+        my $role_part_pairs = {};
+        my @sorted_unique_parts=[];
+        my $machine_role_map = {};
+        my $role_machine_map = {};
+	my %jom_ids = ();
+
+	# find matching XMLs
+	unless( open LIST, "find \"$xml2part_output_dir\" -name \*.xml |" )	{
+		&log( LOG_ERROR, "Cannot start 'find' to list XMLs: $!" );
+		return;
+	}
+	while( my $file=<LIST> )	{
+		next unless $file =~ /\/(\d+)\/Role-([^\.]+).xml$/;
+		my($part_num, $role) = ($1,$2);
+		$unique_roles->{$role} = 1;
+		$role_part_pairs->{$part_num}->{$role} = 1;
+	}
+	close LIST;
+
+
+        &log(LOG_DETAIL, "Job parts-roles are: \n");
+        while (my ($k,$v)=each %$role_part_pairs){&log(LOG_DETAIL,  "$k:". join(",", keys(%$v)));}
+        @sorted_unique_parts = sort { $a <=> $b } keys(%$role_part_pairs);
+        &log(LOG_DETAIL, "Job sorted unique parts are: @sorted_unique_parts");
+        &log(LOG_DETAIL, "Job unique roless are: " . join(",", keys(%$unique_roles)));
+
+        # machine and role mapping
+        foreach my $role (keys(%$unique_roles)){
+            foreach my $part (@sorted_unique_parts){
+                if (exists $role_part_pairs->{$part}->{$role}){
+                    $role_machine_map->{$role} = [];#one role can have multiple machines
+                    if ( keys(%$unique_roles) > 1 ){
+                        # multi-role jobs needs to have info about machine<>role mapping
+                        my $matched = `egrep '<\\s*machine[^>]+/>' "$xml2part_output_dir/$part/Role-$role.xml"`;
+                        &log(LOG_DEBUG, "Searched file is $xml2part_output_dir/$part/Role-$role.xml, matched lines are $matched");
+                        foreach my $line (split "\n", $matched){
+                            &log(LOG_DEBUG, "matched machine line is : $line");
+                            $line =~ /machine\s+(ip\s*=\s*"([^\s]+)")?(\s+name\s*=\s*"([^\s\/]+)")?/;
+                            my $machine_name = $4;
+                            my $machine_ip = $2;
+                            &log(LOG_DEBUG, "machine name is $machine_name, machine ip is $machine_ip");
+                            my $machine_id;
+                            if ($machine_ip){
+                                $machine_id = &machine_get_by_ip($machine_ip);
+                                $machine_role_map->{$machine_id} = $role;
+                                push @{$role_machine_map->{$role}}, $machine_id;
+                            }elsif($machine_name){
+                                $machine_id = &machine_get_by_name($machine_name);
+                                $machine_role_map->{$machine_id} = $role;
+                                push @{$role_machine_map->{$role}}, $machine_id;
+                            }else{
+                                &log(LOG_ERROR, "This job xml is wrong for without role machine mapping info!");
+                                goto NEXT_JOB;
+                            }
+                        }
+                    }else{
+                        #single role jobs does not have machine role mapping info, stored as aimed_host in table job
+                        log(LOG_DETAIL, "machine id in id_config_ref is: ". join(",",keys(%$id_config_ref)));
+                        my @machine_ids = keys(%$id_config_ref);
+                        foreach (@machine_ids) {
+                            $machine_role_map->{$_} = $role;
+                            push @{$role_machine_map->{$role}}, $_;
+                        }
+                    }
+                    last;
+                }
+            }
+        }
+        &log(LOG_DETAIL, "Job machine role map is:");
+        while (my ($k,$v)=each %$machine_role_map){&log(LOG_DETAIL,  "$k:$v");}
+        &log(LOG_DETAIL, "Job role machine map is:");
+        while (my ($k,$v)=each %$role_machine_map){&log(LOG_DETAIL,  "$k:". join(",",@$v));}
+        
+        #insert mm_role
+        foreach my $role (keys(%$unique_roles)){
+            &TRANSACTION('mm_role');
+            my $role_id;
+            $role_id = $dbc->enum_get_id_or_insert('mm_role',$role);
+            $unique_roles->{$role} = $role_id;
+            &TRANSACTION_END;
+        }
+        &log(LOG_DETAIL, "mm_role table insertion is finished, and role id map is:");
+        while (my ($k,$v)=each %$unique_roles){&log(LOG_DETAIL, "$k:$v");}
+
+        #insert job_on_machine
+        foreach my $machine_id (keys %$id_config_ref) {
+            &TRANSACTION( 'job', 'job_on_machine' );
+            &job_set_aimed_host($job_id,$host_aimed) unless $host_orig;
+            my $job_on_machine_id = &job_on_machine_insert($job_id, $machine_id, $id_config_ref->{$machine_id}, JS_QUEUED,$unique_roles->{$machine_role_map->{$machine_id}});
+	    $jom_ids{$machine_id} = $job_on_machine_id;
+            &log(LOG_DETAIL, "A new job_on_machine record is inserted as $job_on_machine_id for job_id $job_id, machine_id $machine_id.");
+            &TRANSACTION_END;
+        }
+        &log(LOG_DETAIL, "job_on_machine insertion is finished.");
+
+        #insert job_part, job_part_on_machine
+        foreach my $part (@sorted_unique_parts){
+            &TRANSACTION('job_part','job_part_on_machine');
+            my $job_part_id = &job_part_insert($job_id);
+            &log(LOG_DETAIL, "A new job_part record is inserted as $job_part_id.");
+            foreach my $role (keys %{$role_part_pairs->{$part}}){
+                #insert job_part_on_machine
+                my $job_part_xml = "$xml2part_output_dir/$part/Role-$role.xml";
+                foreach my $machine_id (@{$role_machine_map->{$role}}){
+                    my $job_on_machine_id = $jom_ids{$machine_id};
+                    &log(LOG_DEBUG, "Query result is $job_on_machine_id");
+                    my $job_part_on_machine_id = &job_part_on_machine_insert($job_part_id,JS_QUEUED,$job_on_machine_id,$job_part_xml);
+                    &log(LOG_DETAIL, "A new job_part_on_machine is inserted as $job_part_on_machine_id for part $part role $role machine $machine_id.");
+                }
+            }
+            &TRANSACTION_END;
+        }
+        &log(LOG_DETAIL, "job_part and job_part_on_machine insertion is finished.");
+
+        #update job status
+        &TRANSACTION( 'job' );
+        &job_set_status( $job_id, JS_QUEUED );
+        &TRANSACTION_END;
+
+        NEXT_JOB:
     }
 
 }
@@ -197,36 +336,36 @@ sub distribute_jobs() {
 #
 sub scheduler() {
 
-	while(1) {
-		&fix_busy_machines_without_jobs(); # remove after BNC#714905 fixed
-	#&delete_cancelled_jobs();
-        &schedule_jobs();
+    while(1) {
+    &fix_busy_machines_without_jobs(); # remove after BNC#714905 fixed
+    #&delete_cancelled_jobs();
+    &schedule_jobs();
         
-        # distribute_jobs is the last action because schedule_jobs could
-        # cause machines to be marked as busy. To these machines no jobs
-        # should be distributed. (Typical observation with different order:
-        # One job starts and another gets queued, possibly even if a
-        # different machine is free in fact)
-        &distribute_jobs();
-	$dbc->commit(); # workaround to see new updates    
-		sleep 3;
-	}
+    # distribute_jobs is the last action because schedule_jobs could
+    # cause machines to be marked as busy. To these machines no jobs
+    # should be distributed. (Typical observation with different order:
+    # One job starts and another gets queued, possibly even if a
+    # different machine is free in fact)
+    &distribute_jobs();
+    $dbc->commit(); # workaround to see new updates    
+    sleep 3;
+    }
 }
 
 # Workaround over machines that are busy, have no jobs, and cannot be brought to idle again
 # See BNC#714905
 our %last_busy_machines_without_jobs=();
-sub fix_busy_machines_without_jobs()	{
-	&TRANSACTION('machine','job_on_machine');
-	my @ids = &busy_machines_without_jobs();
-	foreach my $id (@ids) {
-		next unless $last_busy_machines_without_jobs{$id};
-		my ($ip,$name) = &machine_get_ip_hostname( $id );
-		&log(LOG_ERROR, "Machine %s (%s) is busy without jobs, fixing", $name, $ip);
-		&machine_set_busy($id,0);
-	}
-	%last_busy_machines_without_jobs = map {$_=>1} @ids;
-	&TRANSACTION_END;
+sub fix_busy_machines_without_jobs()    {
+    &TRANSACTION('machine','job_on_machine','job');
+    my @ids = &busy_machines_without_jobs();
+    foreach my $id (@ids) {
+        next unless $last_busy_machines_without_jobs{$id};
+        my ($ip,$name) = &machine_get_ip_hostname( $id );
+        &log(LOG_ERROR, "Machine %s (%s) is busy without jobs, fixing", $name, $ip);
+        &machine_set_busy($id,0);
+    }
+    %last_busy_machines_without_jobs = map {$_=>1} @ids;
+    &TRANSACTION_END;
 }
 
 1;

@@ -1,20 +1,21 @@
 <?xml version="1.0"?>
 <job>
-    <config>
-        <name>Reboot</name>
-        <debuglevel>4</debuglevel>
-        <distributable>0</distributable>
-        <parallel>0</parallel>
-        <mail notify="1"></mail>
-        <logdir>/tmp</logdir>
-        <description>Reboot SUT</description>
-        <reboot>1</reboot>
-    </config>
-
-    <commands>
+  <config>
+    <name>Reboot</name>
+    <debuglevel>4</debuglevel>
+    <description>Reboot SUT</description>
+    <mail notify="1"></mail>
+  </config>
+  <parts>
+    <part name="part1" id="1" />
+  </parts>
+  <roles>
+    <role name="role_1">
+      <commands part_id="1">
         <worker>
-            <!-- Required -->
-            <command execution="threaded">/sbin/reboot</command>
+          <command execution="threaded" reboot="1"><![CDATA[/sbin/reboot]]></command>
         </worker>
-    </commands>
+      </commands>
+    </role>
+  </roles>
 </job>

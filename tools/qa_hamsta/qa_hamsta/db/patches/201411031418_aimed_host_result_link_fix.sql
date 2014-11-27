@@ -1,6 +1,7 @@
-/* ****************************************************************************
+/*
+****************************************************************************
   Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
-  
+
   THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
   CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
   RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
@@ -11,7 +12,7 @@
   PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
   AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
   LIABILITY.
-  
+
   SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
   WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
@@ -20,82 +21,9 @@
   OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
   WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
   ****************************************************************************
- */
+   */
 
-.text-large
-{
-	font-family: arial, verdana, sans-serif;
-	font-size: 1.33em;
-}
-.text-medium
-{
-	font-family: arial, verdana, sans-serif;
-	font-size: 1.13em;
-}
-.text-main
-{
-	font-family: arial, verdana, sans-serif;
-	font-size: 1em;
-}
-div.text-main	{ padding: 0.2em; }
-.text-small
-{
-	font-family: arial, verdana, sans-serif;
-	font-size: 0.8em;
-}
-.text-smaller
-{
-	font-family: arial, verdana, sans-serif;
-	font-size: 0.67em;
-}
-.center
-{
-	text-align: center;
-}
 
-.text-left {
-    text-align:left;
-}
+ALTER TABLE `job` MODIFY COLUMN `aimed_host` VARCHAR(255);
 
-.bold
-{
-	font-weight: bold;
-}
-.normal
-{
-	font-weight: normal;
-}
-.em
-{
-	font-style: italic;
-}
-.logs
-{
-	font-size: 0.7em;
-	font-family: arial, verdana, sans-serif;
-}
-
-.log_body {
-    display: none;
-}
-.vtop {
-    vertical-align: top;
-}
-.text-small-bold {
-    font-size:small;
-    font-weight:bold;
-}
-
-.ellipsis-no-wrapped {
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-}
-
-.sorting-arrow {
-    size:3.5em;
-}
-
-.monospace {
-	font-family:monospace;
-}
+ALTER TABLE `job_on_machine` ADD COLUMN result_link VARCHAR(255) DEFAULT NULL;
