@@ -278,6 +278,9 @@ sub job_stop_all($) # machine_id
 sub job_list_by_status($) # job_status_id
 {	return $dbc->matrix_query('SELECT xml_file,user_id,short_name,job_id,aimed_host,description,created FROM job WHERE job_status_id=?',$_[0]);	}
 
+sub job_get_by_machineid_status($$) # machine_id status_id
+{	return $dbc->vector_query('SELECT machine_id FROM job_on_machine k LEFT JOIN job j USING(job_id) WHERE machine_id=? AND j.job_status_id=?',$_[0],$_[1]);	}
+
 ### job_on_machine_functions
 
 sub job_on_machine_list($) # job_id
@@ -303,9 +306,6 @@ sub job_on_machine_get_by_job_id($) # job_id
 
 sub job_on_machine_get_by_status($) # status_id
 {	return $dbc->matrix_query('SELECT job_on_machine_id,machine_id,job_id FROM job_on_machine WHERE job_status_id=?',$_[0]);	}
-
-sub job_on_machine_get_by_machineid_status($$) # machine_id status_id
-{	return $dbc->vector_query('SELECT machine_id FROM job_on_machine k LEFT JOIN job_part_on_machine p USING(job_on_machine_id) WHERE machine_id=? AND p.job_status_id=?',$_[0],$_[1]);	}
 
 sub job_on_machine_start($) # job_on_machine_id
 {	return $dbc->update_query('UPDATE job_on_machine SET job_status_id=2 WHERE job_on_machine_id=?',$_[0]);	}

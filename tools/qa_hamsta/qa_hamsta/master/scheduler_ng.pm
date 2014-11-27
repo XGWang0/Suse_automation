@@ -93,8 +93,8 @@ sub schedule_jobs() {
             my $machine_id = &machine_get_by_ip($_);
             push @machine_ids,$machine_id;
             if ($machine_id) {
-                my @has_connecting = &job_on_machine_get_by_machineid_status($machine_id,JS_CONNECTING);
-                my @has_running = &job_on_machine_get_by_machineid_status($machine_id,JS_RUNNING);
+                my @has_connecting = &job_get_by_machineid_status($machine_id,JS_CONNECTING);
+                my @has_running = &job_get_by_machineid_status($machine_id,JS_RUNNING);
                 my $busy_status = &machine_get_busy($machine_id);
 		my $machine_status = &machine_get_status($machine_id);
 		$unavailable_tag++ if($machine_status != MS_UP);
