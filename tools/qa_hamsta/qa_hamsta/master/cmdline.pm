@@ -147,6 +147,7 @@ sub parse_cmd() {
 
     switch ($cmd) {
 	case /^version/			{ cmd_version ($sock_handle); }
+	case /^(exit|quit)/			{ cmd_exit ($sock_handle); }
 	case /^protocol version/	{ cmd_protocol_version ($sock_handle); }
 	case /^check version/		{ cmd_check_protocol_version ($sock_handle, $cmd); }
 	case /^(print|list) all/	{ cmd_print_all_machines ($sock_handle); }
@@ -189,6 +190,14 @@ sub parse_cmd() {
   SWSW:
 }
 
+# Master->cmd_exit()
+#
+# close the sock and exit
+sub cmd_exit() {
+    my $sock_handle = shift @_;
+    $sock_handle->close;
+	exit 0;
+}
 # Master->cmd_help()
 #
 # Prints the command line interface help
