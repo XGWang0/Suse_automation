@@ -1,22 +1,21 @@
 <?xml version="1.0"?>
 <job>
-    <config>
-        <name>SLES-11-SP3_KERNEL_TESTING</name>
-        <debuglevel>4</debuglevel>
-        <distributable>0</distributable>
-        <parallel>0</parallel>
-        <mail notify="1"></mail>
-	<rpm>qa_hamsta qa_tools</rpm>
-        <logdir>/tmp</logdir>
-        <description>SLES-11-SP3 QA kernel test</description>
-        <motd>[Custom job]: SLES-11-SP3 QA kernel test is running</motd>
-        <reboot>0</reboot>
-    </config>
-
-    <commands>
+  <config>
+    <name>SLES-11-SP3_KERNEL_TESTING</name>
+    <debuglevel>4</debuglevel>
+    <description>SLES-11-SP3 QA kernel test</description>
+    <mail notify="1"></mail>
+    <motd>[Custom job]: SLES-11-SP3 QA kernel test is running</motd>
+    <rpm>qa_hamsta qa_tools</rpm>
+  </config>
+  <parts>
+    <part name="part1" id="1" />
+  </parts>
+  <roles>
+    <role name="role_1">
+      <commands part_id="1">
         <worker>
-            <!-- Required -->
-	    <command execution="forked"><![CDATA[#!/bin/bash 
+          <command execution="forked" reboot="0"><![CDATA[#!/bin/bash 
 
 ARCH=$HOSTTYPE
 if [ "$ARCH" != "" ]; then
@@ -348,11 +347,10 @@ screen -L -S tests  -d -m /bin/bash -c '(
 
 	/usr/share/hamsta/testscript/report
 	/usr/share/qa/tools/remote_qa_db_report.pl -b -c "SLES-11-SP3_KERNEL_TESTING"
-]]>
-</command>
-            <!-- Optional -->
-            <directory>/</directory>
-	    <timeout>604800</timeout> <!-- one week -->
+
+]]></command>
         </worker>
-    </commands>
+      </commands>
+    </role>
+  </roles>
 </job>

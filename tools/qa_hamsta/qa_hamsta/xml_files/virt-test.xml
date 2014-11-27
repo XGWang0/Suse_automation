@@ -3,20 +3,19 @@
   <config>
     <name>virt-test</name>
     <debuglevel>4</debuglevel>
-    <distributable>0</distributable>
-    <parallel>0</parallel>
-    <mail notify="1"></mail>
-    <logdir>/tmp</logdir>
     <description>Execute virt-test</description>
-    <reboot>0</reboot>
+    <mail notify="1"></mail>
   </config>
-
-  <commands>
-    <worker>
-      <!-- Required -->
-      <command execution="threaded">
+  <parts>
+    <part name="part1" id="1" />
+  </parts>
+  <roles>
+    <role name="role_1">
+      <commands part_id="1">
+        <worker>
+          <command execution="threaded" reboot="0"><![CDATA[
         # Check OS version and repository
-        [ -r /etc/os-release ] &amp;&amp; source /etc/os-release
+        [ -r /etc/os-release ] && source /etc/os-release
         if [ $NAME == "SLES" ]; then
           if [ $VERSION_ID -ge 12 ]; then
             ADD_REPO='http://download.suse.de/ibs/Devel:/Virt:/Tests/SLE_12/Devel:Virt:Tests.repo'
@@ -30,12 +29,14 @@
 
         if [ -n $ADD_REPO ]; then
           zypper --non-interactive addrepo --refresh $ADD_REPO;
-          zypper --non-interactive refresh &amp;&amp; zypper --non-interactive install virt-test;
+          zypper --non-interactive refresh && zypper --non-interactive install virt-test;
           /usr/share/qa/qa_test_virt-test/bin/qa_test_virt-test-run;
         else
-          echo "Could not find suitable repository" 1>&amp;2
+          echo "Could not find suitable repository" 1>&2
         fi
-      </command>
-    </worker>
-  </commands>
+      ]]></command>
+        </worker>
+      </commands>
+    </role>
+  </roles>
 </job>
