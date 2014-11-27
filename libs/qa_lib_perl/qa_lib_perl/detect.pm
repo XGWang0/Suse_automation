@@ -268,7 +268,7 @@ sub guess_product_from_url # URL
 		$subversion = $2 if defined $2;
 		$type = 'openSUSE';
 	}
-	my $releases_regexp = join '|',keys %qadb_releases;
+	my $releases_regexp = join '|',sort { length($b) <=> length($a) } keys %qadb_releases;
 	if( $url =~ /($releases_regexp)/i )
 	{	
 		my $rel = $1;
