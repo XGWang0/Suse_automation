@@ -112,9 +112,8 @@ sub destroy {
     # TODO Kill all subprocesses
 
     # Clean up /etc/motd
-    if (defined($self->{'motd_id'})) {
-        $self->clear_motd();
-    }
+	# motd=job_id ,Every job have a job_id so clear motd directly
+    $self->clear_motd();
 
     foreach my $file (@file_array){
         unlink $file if -f $file;
