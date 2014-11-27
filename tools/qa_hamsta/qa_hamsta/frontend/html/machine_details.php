@@ -104,6 +104,7 @@ if (!defined('HAMSTA_FRONTEND')) {
 	<thead>
 	<tr>
 		<th>ID</th>
+		<th>Part ID</th>
 		<th>Status</th>
 		<th>Name</th>
 		<th>Started</th>
@@ -116,33 +117,30 @@ if (!defined('HAMSTA_FRONTEND')) {
 		/* Get this machines last 10 jobs. */
 		$last_jobs = $machine->get_all_jobs (10);
 		foreach ($last_jobs as $job):
+		   $i = 1;
+		   foreach ($job->get_part_id() as $pid):
+		       $status_id = $job->get_status_id($pid);
+		       $status = $job->get_status_string($status_id[$mid]); 
 	?>
 		<tr>
 			<td><a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>"><?php echo($job->get_id()); ?></a></td>
-                        <td><span class="<?php echo($job->get_status_string()); ?>">
-                                <?php echo($job->get_status_string()); ?></span>
+			<td><?php echo $i++; ?></a></td>
+                        <td><span class="<?php echo $status; ?>">
+                                <?php echo $status; ?></span>
 			</td>
 <?php
 	$job_name = $job->get_name();
 ?>
 			<td><div title="<?php echo ($job->get_name()); ?>" class="ellipsis-no-wrapped job_name"><?php echo($job_name); ?></div></td>
-			<td><?php echo($job->get_started()); ?></td>
-			<td><?php echo($job->get_stopped()); ?></td>
+			<td><?php echo($job->get_started($pid,$mid)); ?></td>
+			<td><?php echo($job->get_stopped($pid,$mid)); ?></td>
 			<td>
-		<?php
-			if (isset ($user) && ! $job->is_finished ()) {
-		?>
-			<a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;finished_job=1" class="text-main">Set finished</a>
-		<?php
-			}
-			if (isset ($user) && $job->can_cancel ()) {
-		?>
-		    	<a href="index.php?go=jobruns&amp;action=cancel&amp;id=<?php echo($job->get_id()); ?>">Cancel</a>
-		<?php
-			}
-		?>
+		<?php if (isset ($user) && $job->can_cancel ()) { ?>
+		    	<a href="index.php?go=jobruns&amp;action=cancel&amp;id=<?php echo $job->get_id().'&amp;part_id='.$pid.'&amp;machine_id='.$mid; ?>">Cancel</a>
+		<?php }	?>
 		        </td>
 		</tr>
+		<?php endforeach; ?>
 		<?php endforeach; ?>
 
 </table>

@@ -21,81 +21,12 @@
   WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
   ****************************************************************************
  */
+$(document).ready(function() {
+    $("tbody[id^='part_']").addClass("log_body");
+});
 
-.text-large
-{
-	font-family: arial, verdana, sans-serif;
-	font-size: 1.33em;
-}
-.text-medium
-{
-	font-family: arial, verdana, sans-serif;
-	font-size: 1.13em;
-}
-.text-main
-{
-	font-family: arial, verdana, sans-serif;
-	font-size: 1em;
-}
-div.text-main	{ padding: 0.2em; }
-.text-small
-{
-	font-family: arial, verdana, sans-serif;
-	font-size: 0.8em;
-}
-.text-smaller
-{
-	font-family: arial, verdana, sans-serif;
-	font-size: 0.67em;
-}
-.center
-{
-	text-align: center;
-}
 
-.text-left {
-    text-align:left;
-}
-
-.bold
-{
-	font-weight: bold;
-}
-.normal
-{
-	font-weight: normal;
-}
-.em
-{
-	font-style: italic;
-}
-.logs
-{
-	font-size: 0.7em;
-	font-family: arial, verdana, sans-serif;
-}
-
-.log_body {
-    display: none;
-}
-.vtop {
-    vertical-align: top;
-}
-.text-small-bold {
-    font-size:small;
-    font-weight:bold;
-}
-
-.ellipsis-no-wrapped {
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-}
-
-.sorting-arrow {
-    size:3.5em;
-}
-
-.monospace {
-	font-family:monospace;
+function logToggle(obj) {
+    var id = obj.id;
+    $("table tbody#"+id+"_log").slideToggle(100);
 }

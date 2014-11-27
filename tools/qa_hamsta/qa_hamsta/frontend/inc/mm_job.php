@@ -27,10 +27,13 @@ if (!defined('HAMSTA_FRONTEND')) {
 	$go = 'job_details';
 	return require("index.php");
 }
+$a_machines = request_array("a_machines");
 
 $search = new MachineSearch();
-$search->filter_in_array(request_array("a_machines"));
+$search->filter_in_array($a_machines);
 $machines = $search->query();
+
+$job = new Job();
 
 $machine_names = array();
 
@@ -201,13 +204,21 @@ else if( request_str('submit') )
 				$errors[] = "No such machine_id : $machine_id";
 				continue;
 			}
+			$job->add_machine_id($machine_id);
 
-			if($machine->send_job($path)) {
-				Log::create($machine->get_id(), get_user_login ($user), 'JOB_START', "has sent a \"multi-machine\" job including this machine (Job name: \"" . htmlspecialchars(basename($filename)) . "\")");
-			} else {
-				$errors[] = $machine->get_hostname() . ': ' . $machine->errmsg;
-			}
 		}
+		#add the xml file
+		$job->addfile($path);
+
+		#send the job
+		if($job->send_job()) {
+			foreach($a_machines as $machine){
+				Log::create($machine, get_user_login ($user), 'JOB_START', "has sent a \"multi-machine\" job including this machine (Job name: \"" . htmlspecialchars(basename($filename)) . "\")");
+			}
+		} else {
+			$errors[] = "Machine ids :" . implode(",",$a_machines) . ",Send Job failed ";
+		}
+
 		if (count($errors) == 0)
 			redirect (array ('succmsg' => "The job[s] has/have been successfully sent."));
 	}

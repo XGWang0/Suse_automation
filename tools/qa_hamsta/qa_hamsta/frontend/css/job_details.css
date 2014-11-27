@@ -1,0 +1,42 @@
+th.vtop input
+{
+  opacity: 0;
+  cursor: pointer;
+}
+th.vtop label
+{
+  cursor: pointer;
+  display: block;
+  padding-left: 37px;
+  margin: -0.938em 0 0 -40px; /* 15px */
+  height: 1em;
+}
+th.vtop label
+{
+  background: url(../images/toggle-small-expand.png) 40px 0 no-repeat;
+}
+th.vtop input:checked + label
+{
+  background: url(../images/toggle-small.png) 40px 0px no-repeat;
+}
+.partxml
+{
+  opacity: 0;
+  cursor: pointer;
+}
+input.partxml:checked ~ textarea
+{
+  display: block;
+}
+input.partxml + label
+{
+  text-decoration: underline;
+  color: blue;
+  cursor: pointer;
+  margin-left: -1.75em;
+}
+input.partxml ~ textarea
+{
+  display: none;
+  margin-top: 1em;
+}
