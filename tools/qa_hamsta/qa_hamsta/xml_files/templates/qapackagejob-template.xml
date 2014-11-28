@@ -1,29 +1,27 @@
 <?xml version="1.0"?>
 <job>
-    <config>
-        <name>QA-packages test (TS_LIST_SHORT)</name>
-        <debuglevel>4</debuglevel>
-        <distributable>0</distributable>
-        <parallel>0</parallel>
-        <mail notify="1"></mail>        
-        <logdir>/tmp</logdir>
-        <description>QA-packages test, includes: TS_LIST.</description>
-        <rpm>qa_hamsta qa_tools qa_lib_perl TS_LIST</rpm>
-        <motd>Be careful, this computer is testing the following packages: TS_LIST!</motd>
-        <reboot>0</reboot>
-    </config>
-
-    <commands>
+  <config>
+    <name>QA-packages test (TS_LIST_SHORT)</name>
+    <debuglevel>4</debuglevel>
+    <description>QA-packages test, includes: TS_LIST.</description>
+    <mail notify="1"></mail>
+    <motd>Be careful, this computer is testing the following packages: TS_LIST!</motd>
+    <rpm>qa_hamsta qa_tools qa_lib_perl TS_LIST</rpm>
+  </config>
+  <parts>
+    <part name="part1" id="1" />
+  </parts>
+  <roles>
+    <role name="role_1">
+      <commands part_id="1">
         <worker>
-            <!-- Required -->
-            <command execution="forked">#!/bin/bash
+          <command execution="forked" reboot="0"><![CDATA[#!/bin/bash
 			#setupUI;
 		    cd /usr/share/hamsta/testscript 
 		    ./customtest TS_LIST
-	    </command>
-            <!-- Optional -->
-            <directory>/</directory>
-            <timeout>300000</timeout>
+	    ]]></command>
         </worker>
-    </commands>
+      </commands>
+    </role>
+  </roles>
 </job>

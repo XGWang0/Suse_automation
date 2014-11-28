@@ -84,7 +84,7 @@ sub create_sql_backbone() {
 	# disk size
 	my @disks=();
 	foreach my $disk( @{$hwinfo->{'disk'}} )	{
-		push @disks, (($1*$2)>>30) if $disk->{'Size'} =~ /(\d+) sectors a (\d+) bytes/;
+		push @disks, (($1*$2)>>30) if $disk->{'Size'} and $disk->{'Size'} =~ /(\d+) sectors a (\d+) bytes/;
 	}
 	my $disksize = join(" + ", map { $_."G" } @disks);
 

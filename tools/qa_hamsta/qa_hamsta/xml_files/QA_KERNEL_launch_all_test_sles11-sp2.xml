@@ -1,22 +1,21 @@
 <?xml version="1.0"?>
 <job>
-    <config>
-        <name>QA_KERNEL_launch_all_test_sles11-sp2</name>
-        <debuglevel>4</debuglevel>
-        <distributable>0</distributable>
-        <parallel>0</parallel>
-        <mail notify="1"></mail>
-	<rpm>qa_hamsta qa_tools</rpm>
-        <logdir>/tmp</logdir>
-        <description>SLES11-SP2 QA kernel test</description>
-        <motd>[Custom job]: SLES11-SP2 QA kernel test is running</motd>
-        <reboot>0</reboot>
-    </config>
-
-    <commands>
+  <config>
+    <name>QA_KERNEL_launch_all_test_sles11-sp2</name>
+    <debuglevel>4</debuglevel>
+    <description>SLES11-SP2 QA kernel test</description>
+    <mail notify="1"></mail>
+    <motd>[Custom job]: SLES11-SP2 QA kernel test is running</motd>
+    <rpm>qa_hamsta qa_tools</rpm>
+  </config>
+  <parts>
+    <part name="part1" id="1" />
+  </parts>
+  <roles>
+    <role name="role_1">
+      <commands part_id="1">
         <worker>
-            <!-- Required -->
-	    <command execution="forked"><![CDATA[#!/bin/bash 
+          <command execution="forked" reboot="0"><![CDATA[#!/bin/bash 
 
 ARCH=$HOSTTYPE
 if [ "$ARCH" != "" ]; then
@@ -363,11 +362,10 @@ echo -e "All tests starts now\n"
 	echo "!!!All tests have finished. Next is to analyze results."
 	/usr/share/hamsta/testscript/report
 	/usr/share/qa/tools/remote_qa_db_report.pl -b -c "QA_KERNEL_launch_all_test_sles11-sp2"
-]]>
-</command>
-            <!-- Optional -->
-            <directory>/</directory>
-	    <timeout>604800</timeout> <!-- one week -->
+
+]]></command>
         </worker>
-    </commands>
+      </commands>
+    </role>
+  </roles>
 </job>

@@ -29,6 +29,8 @@ use Getopt::Std;
 use File::Path;
 use XML::Simple;
 use XML::Bare;
+use XML::Bare qw/forcearray/;
+use Data::Dumper;
 
 our ($opt_h, $opt_o, $opt_f) = ("", "", "");
 our $DEST = ".";
@@ -82,25 +84,32 @@ sub _create_role_xml_file
 
     $role_name = "default" if ( !defined($role_name) );
     my $file_path = $outdir ."/$JOB_NAME" . "-" . $role_name . ".xml";
-    my $ob = new XML::Bare( file => $file_path, text => $xml );
-    $ob->parse();
-    $ob->save();
+    my $job_xml_ref = XMLin($xml,
+                        ForceArray=>1,
+                        KeyAttr=>{ role => 'name'},
+                        );
+    XMLout($job_xml_ref,
+           RootName => 'job',
+           XMLDecl => '1',
+           KeyAttr=>{ role => 'name'},
+      	   OutputFile => $file_path,
+          );
 }
 sub _extract_part_job
 {
     my ($cmdroot, $part_id) = @_;
-    my $cmds = $cmdroot->{commands};
-
+    my $cmds = forcearray($cmdroot->{commands});
     for ( my $i=0; $i<=$#$cmds; $i++ )
     {
         my $c = $cmds->[$i];
-        delete $cmds->[$i] if ($c->{part_id}->{value} != $part_id);
+        delete $cmds->[$i] if ($c->{part_id}->{value} ne $part_id);
     }
 }
 sub _extract_role_job
 {
     my ($roles, $role_name) = @_;
 
+    $roles = forcearray($roles);
     for (my $i=0; $i<=$#$roles; $i++)
     {
         my $r = $roles->[$i];
@@ -114,9 +123,42 @@ sub _extract_role_part_job
 
     &_extract_role_job($roles,$role_name);
 
+    $roles = forcearray($roles);
     foreach (@$roles)
     {
-        &_extract_part_job($_,$part_id);
+        &_extract_part_job($_,$part_id) if defined($_);
+    }
+}
+
+# Sub: _merge_config
+#  Merge role config into global config
+sub _merge_config
+{
+    my $root = shift;
+    my $config = $root->{job}->{config};
+    my $role = forcearray($root->{job}->{roles}->{role});
+
+    foreach (@$role)
+    {
+        next if !defined($_);
+
+        if (defined($_->{config}->{rpm})) {
+	    $_->{config}->{rpm} = forcearray($_->{config}->{rpm});
+	    $config->{rpm} = forcearray($config->{rpm});
+            push(@{$config->{rpm}}, @{$_->{config}->{rpm}});
+	}
+        if (defined($_->{config}->{repository})) {
+            $_->{config}->{repository} = forcearray($_->{config}->{repository});
+            $config->{repository} = forcearray($config->{repository}); 
+            push(@{$config->{repository}}, @{$_->{config}->{repository}});
+        }
+        if (defined($_->{config}->{motd})) {
+	    $config->{motd} = $_->{config}->{motd};
+	}
+	if (defined($_->{config}->{debuglevel})) {
+	    $config->{debuglevel} = $_->{config}->{debuglevel};
+	}
+	delete $_->{config};
     }
 }
 
@@ -134,6 +176,7 @@ sub parse_xml_file
  
     if ($parts)
     {
+	$parts = forcearray($parts); 
         foreach (@$parts)
         {
             my $name = $_->{name}->{value};
@@ -147,6 +190,7 @@ sub parse_xml_file
 
     if ($roles)
     {
+	$roles = forcearray($roles); 
         foreach (@$roles)
         {
             my %r;
@@ -155,7 +199,7 @@ sub parse_xml_file
             push @parse_roles, \%r;
     
             my @parse_cmds;
-            my $commands = $_->{commands};
+            my $commands = forcearray($_->{commands});
             if($parts)
             {
                 foreach (@$commands)
@@ -206,7 +250,7 @@ sub process_xml
     my $parts = $parsed_ret->{parts};
     if($parts)
     {
-        foreach ( keys $parts)
+        foreach ( keys %$parts)
         {
             my $dir = $DEST . "/" . $_;
             &_create_dir($dir);
@@ -226,6 +270,7 @@ sub process_xml
                 {
                     my $r = clone($root);
                     my $t =  &_extract_role_part_job($r, $role_name, $part_id);
+                    &_merge_config($r);
                     my $txt = $ob->xml($r);
                     my $output_dir = "$DEST/$part_id";
                     &_create_role_xml_file($role_name, $output_dir, $txt);
@@ -235,6 +280,7 @@ sub process_xml
             {
                 my $r = clone($root);
                 my $t = &_extract_role_job($r->{job}->{roles}->{role}, $role_name);
+                &_merge_config($r);
                 my $txt = $ob->xml($r);
                 &_create_role_xml_file($role_name, $DEST, $txt);
             }
@@ -291,7 +337,7 @@ if ($opt_h)
 if ($opt_o)
 {
     $DEST = &_create_dir($opt_o);
-    print "DEST= $DEST \n";
+    #print "DEST= $DEST \n";
 }
 
 if ($#ARGV != 0) 

@@ -63,9 +63,9 @@
 
                 <!-- Worker is the main part, does the work itself -->
                 <worker>
-                    <command>#!/bin/sh
+                    <command><![CDATA[#!/bin/sh
                     echo Starting webserver
-                    rcapache2 start
+                    rcapache2 start]]>
                     </command>
                 </worker>
 
@@ -76,8 +76,8 @@
 
                 <!-- Optional monitor thread, runs periodically -->
                 <monitor cycle_sec="60" cycle_count="10">
-                    <command>#!/bin/sh
-                    awk '/MemFree/ {print $2,$3;}' /proc/meminfo
+                    <command><![CDATA[#!/bin/sh
+                    awk '/MemFree/ {print $2,$3;}' /proc/meminfo]]>
                     </command>
                 </monitor>
             </commands>
@@ -85,9 +85,9 @@
             <!-- Commands: third part for first role - we do nothing in second part -->
             <commands part_id="3">
                 <worker>
-                    <command>#!/bin/sh
+                    <command><![CDATA[#!/bin/sh
                     echo Shutting down webserver
-                    rcapache2 stop
+                    rcapache2 stop]]>
                     </command>
                 </worker>
             </commands>
@@ -104,9 +104,9 @@
             <!-- Commands: first part for second role -->
             <commands part_id="1">
                 <worker>
-                    <command>#!/bin/sh
+                    <command><![CDATA[#!/bin/sh
                     echo Preparing test directory
-                    mkdir -p /tmp/testdir
+                    mkdir -p /tmp/testdir]]>
                     </command>
                 </worker>
             </commands>
@@ -114,12 +114,12 @@
             <!-- Commands: second part for second role -->
             <commands part_id="2">
                 <worker>
-                    <command>#!/bin/sh
+                    <command><![CDATA[#!/bin/sh
                     cd /tmp/testdir
                     for A in `seq 1 10`
                     do
                         time wget http://$ROLE_1_IP/ 2>>progress
-                    done
+                    done]]>
                     </command>
                 </worker>
             </commands>
@@ -127,9 +127,9 @@
             <!-- Commands: third part for second role -->
             <commands part_id="3">
                 <worker>
-                    <command>#!/bin/sh
+                    <command><![CDATA[#!/bin/sh
                     echo Finished - results are:
-                    cat /tmp/testdir/progress
+                    cat /tmp/testdir/progress]]>
                     </command>
                 </worker>
 

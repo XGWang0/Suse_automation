@@ -66,6 +66,7 @@ require_once ('lib/ReservationsHelper.php');
 require("lib/request.php");
 require("lib/db.php");
 require("lib/machine.php");
+require("lib/job.php");
 require("lib/log.php");
 require("lib/module.php");
 require("lib/jobrun.php");

@@ -41,18 +41,18 @@ function xml_read( $path )	{
 function roles_read( $xml )
 {
 	$ret=array();
+        $i = 0;
 	foreach( $xml->roles->role as $role )
 	{
 		$r=array();
-		$id=(integer)$role['id'];
 		
-		if( !isset($id) )
+		if( !isset($role['name']) )
 			continue;
 
 		foreach( $role->attributes() as $key=>$val )
 			$r[(string)$key]=(string)$val;
 
-		$ret[0+$id]=$r;
+		$ret[$i++]=$r;
 	}
 	return $ret;
 }
@@ -66,19 +66,19 @@ function roles_read( $xml )
 function roles_assign( &$xml, $roles )
 {
 	$cnt=( $xml->roles ? count($xml->roles->children()) : 0 );
+        $i=0;
 	foreach( $xml->roles->role as $role )
 	{
-		$id = (integer)$role['id'];
-		
-		if( !$roles[$id] )
+		if( !$roles[$i] )
 			continue;
 		
-		foreach( $roles[$id] as $machine )
+		foreach( $roles[$i] as $machine )
 		{
 			$m = $role->addChild('machine');
 			foreach( $machine as $key=>$val )
 				$m[$key]=$val;
 		}
+                $i++;
 		
 	}
 }
