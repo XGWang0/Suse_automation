@@ -44,6 +44,7 @@ require_once("include/Util.php");
   <link href="css/color.css" rel="stylesheet" type="text/css">
   <link href="css/machine_actions.css" rel="stylesheet" type="text/css">
   <link href="css/reinstall.css" rel="stylesheet" type="text/css">
+  <link href="css/edit_job.css" rel="stylesheet" type="text/css">
   <link href="css/job_details.css" rel="stylesheet" type="text/css">
 
  <?php
