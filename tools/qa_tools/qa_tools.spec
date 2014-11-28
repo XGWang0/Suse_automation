@@ -59,6 +59,7 @@ Requires:       perl-XML-Bare
 Requires:       qa-config
 Requires:       qa_libperl
 Requires:       coreutils
+Requires:       libqainternal
 %if 0%{?suse_version} == 910
 Requires:       qa_keys
 %else
@@ -106,6 +107,7 @@ gzip -9 *.1 *.8
 ln -s reinstall.pl.8.gz reinstall.8.gz
 ln -s reinstall.pl.8.gz install.pl.8.gz
 ln -s newvm.pl.8.gz newvm.8.gz
+
 
 %install
 install -m 755 -d %{buildroot}%{destdir}

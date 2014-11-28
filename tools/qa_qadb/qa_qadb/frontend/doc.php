@@ -14,7 +14,7 @@ $data = array(
 	),
 	'Manual pages for qa_tools package' => array(
 		html_link('location.pl','doc/location.pl.1.html','location auto-detection'),
-		html_link('location_detect_impl.pl','doc/location_detect_impl.pl.1.html','location detection from ifconfig settings'),
+		html_link('location_detect_impl.pl','doc/location_detect_impl.pl.1.html','location detection from ifconfig2ip settings'),
 		html_link('modify_xml.pl','doc/modify_xml.pl.1.html','tool to merge XMLs for AutoYaST configuration'),
 		html_link('remote_qa_db_report.pl','doc/remote_qa_db_report.pl.1.html','QADB submission tool'),
 		html_link('product.pl','doc/product.pl.1.html','product guesser'),

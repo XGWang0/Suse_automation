@@ -78,15 +78,15 @@ sub active_hosts() {
 	#try to map IP address with network interface name
 
 	if($qaconf{hamsta_multicast_dev}) {
-		open(my $_tmp_ifo,"/sbin/ifconfig|") || &log(LOG_CRIT,"MASTER_MULTICAST: Can not find IP address ");
+		open(my $_tmp_ifo,"/usr/bin/ifconfig2ip|") || &log(LOG_CRIT,"MASTER_MULTICAST: Can not find IP address ");
 		my @if_output = <$_tmp_ifo>;
 		close $_tmp_ifo;
 		foreach my $if_dev (split /,/,$qaconf{hamsta_multicast_dev}) {
 			my $net_addr;
 			for(my $i=0;$i<@if_output;$i++){
 				if($if_output[$i] =~ /^$if_dev/){
-				$if_output[++$i] =~ /inet addr:([^\s]+)\s/ ;	
-				$net_addr = $1 ;
+				$if_output[++$i] =~ /inet (addr:)?([^\s]+)\s/ ;
+				$net_addr = $2 ;
 				last ;
 
 				}

@@ -20,6 +20,7 @@ Source0:        %{name}-%{version}.tar.bz2
 Source1:        %{name}perl-%{version}.tar.bz2
 Source2:        %{name}shell-%{version}.tar.bz2
 Source3:        %{name}.8
+Source4:        ifconfig2ip.8
 BuildRequires:  autoconf
 BuildRequires:  automake
 BuildRequires:  doxygen
@@ -70,6 +71,7 @@ cd ..
 %install
 install -m 755 -d %{buildroot}%{_mandir}/man8
 install -m 644 %{SOURCE3} %{buildroot}%{_mandir}/man8
+install -m 644 %{SOURCE4} %{buildroot}%{_mandir}/man8
 gzip %{buildroot}%{_mandir}/man8/%{name}.8
 make DESTDIR=%{buildroot} install
 cd %{name}perl
@@ -93,6 +95,7 @@ cd ..
 install -d -m 0755 %{buildroot}%{_datadir}/qa/qa_internalapi/sh
 cp -rv %{name}shell/* %{buildroot}%{_datadir}/qa/qa_internalapi/sh
 ln -s /usr/share/qa/qa_internalapi/sh/libqainternal.lib.sh %{buildroot}%{_bindir}/libqainternal.lib.sh
+ln -s /usr/share/qa/qa_internalapi/sh/ifconfig2ip %{buildroot}%{_bindir}/ifconfig2ip
 %if 0%{?suse_version} == 910
 ln -s change_password.exp %{buildroot}%{_datadir}/qa/qa_internalapi/sh/change_password
 rm %{buildroot}%{_datadir}/qa/qa_internalapi/sh/change_password.sh
@@ -120,6 +123,7 @@ ldconfig
 %{_mandir}/man3/*
 %{_mandir}/man8/*
 %{_bindir}/libqainternal.lib.sh
+%{_bindir}/ifconfig2ip
 %if 0%{?suse_version} == 910
 %attr(0755,root,root) %{_datadir}/qa/qa_internalapi/sh/change_password.exp
 %else

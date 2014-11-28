@@ -137,6 +137,10 @@ source.http.sles-11-sp3-32=http://147.2.207.240/repo/sles-11-sp3-i586/
 source.http.sles-11-sp3-64=http://147.2.207.240/repo/sles-11-sp3-x86_64/
 source.iso.sles-11-sp3-32=/MOUNT-VIRT/SLES-11-SP3-GM/SLES-11-SP3-DVD-i586-GM-DVD1.iso
 source.iso.sles-11-sp3-64=/MOUNT-VIRT/SLES-11-SP3-GM/SLES-11-SP3-DVD-x86_64-GM-DVD1.iso
+
+source.ftp.sles-12-fcs-64=ftp://147.2.207.1/dist/install/SLP/SLE-12-Server-GM/x86_64/dvd1/
+source.http.sles-12-fcs-64=http://147.2.207.1/dist/install/SLP/SLE-12-Server-GM/x86_64/dvd1/
+source.iso.sles-12-fcs-64=/VIRT-ISO/SLE-12-Server-DVD-x86_64-GM-DVD1.iso
 # RHEL
 
 source.ftp.rhel-3-u9-64=ftp://xen100.virt.lab.novell.com/install/rhel3u9/x86_64

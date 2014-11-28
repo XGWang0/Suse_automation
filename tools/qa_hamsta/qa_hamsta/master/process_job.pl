@@ -448,8 +448,7 @@ sub process_job_part_on_machine ($$$$$)
 			PMAIL:
 			$data .= "$job_name on HOST:$hostname ( $ip ) completed at ".`date +%F-%R`;
 			$data .= "\nJob status:".( $status==JS_FAILED ? 'Fail' : 'Pass' )."\n";
-			if( !$reboot )
-			{
+			if( !$reboot )	{
 				my $loglink = "http://$master_ip/hamsta/index.php?go=job_details&id=$job_id";
 				$data .= "Return codes: $return_codes\nLog link:\n$loglink\nSummary result:\n".join("\n",@summary);
 			}
