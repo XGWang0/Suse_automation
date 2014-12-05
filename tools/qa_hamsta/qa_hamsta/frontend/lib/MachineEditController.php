@@ -144,6 +144,7 @@ class MachineEditController
 		$machines_ids = request_array ('a_machines');
 		$usage_all = array_combine($machines_ids, request_array('usage'));
 		$current_user = User::getCurrent ();
+		$username = ($current_user ? $current_user->getLogin() : 'someone');
 
 		foreach ($this->machine_list as $machine) {
 			$machine_id = $machine->get_id ();
@@ -165,7 +166,7 @@ class MachineEditController
 				if (! in_array ($uid, $machine_reservators)) {
 					$users_to_delete[] = $uid;
 				} else {
-					Log::create($machine_id, $current_user->getLogin (),
+					Log::create($machine_id, $username,
 						    'CONFIG', 'has updated reservation values');
 					/* Update reservation values. */
 					$res->setNote ($machine_user_notes[$uid]);
@@ -186,7 +187,7 @@ class MachineEditController
 					$rh->createReservation ($machine, $machine_user,
 								$machine_user_notes[$uid],
 								$machine_expire);
-					Log::create($machine_id, $current_user->getLogin (),
+					Log::create($machine_id, $username,
 						    'CONFIG', "has created a reservation for "
 						    . $machine_user->getLogin ());
 				}
@@ -196,16 +197,16 @@ class MachineEditController
 			$machine->set_usage ($machine_usage);
 			$machine->set_perm ($this->formatPermissions (
 						    request_array("perm_".$machine_id)));
-			if ($current_user->isInRole ('admin')) {
+			if (!$current_user || $current_user->isInRole ('admin')) {
 				$machine->set_consolesetdefault(0);
-				$this->processFields ($machine, $current_user);
+				$this->processFields ($machine, $username);
 				$default_options = request_array("default_options");
 				$machine_option = isset ($default_options[$machine_id])
 					? $default_options[$machine_id] : '';
 
 				if ($machine->get_def_inst_opt() != trim ($machine_option)) {
 					$machine->set_def_inst_opt (trim ($machine_option));
-					Log::create($machine->get_id (), $current_user->getLogin (),
+					Log::create($machine->get_id (), $username,
 						    'CONFIG', "has set the 'Default Install Options' to "
 						    . "'$machine_option'");
 				}
@@ -213,7 +214,7 @@ class MachineEditController
 		}
 	}
 
-	private function processFields ($machine, $current_user)
+	private function processFields ($machine, $username)
 	{
 		$machine_id = $machine->get_id ();
 
@@ -245,7 +246,7 @@ class MachineEditController
 
 				if (is_string ($old_value) && strcmp ($old_value, $r_value)) {
 					$machine_id = $machine->get_id ();
-					$user_login = $current_user->getLogin ();
+					$user_login = $username;
 					if (empty ($r_value)) {
 						Log::create ($machine_id, $user_login,
 							     'RELEASE', "has cleared the '$label' field");
