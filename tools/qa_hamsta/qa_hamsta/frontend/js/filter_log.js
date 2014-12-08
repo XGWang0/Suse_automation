@@ -56,12 +56,14 @@ function filter_init(table,filterdiv,processes)
 
 function filter_refresh(table,processes)
 {
+	var filter_id=table.substr(7);
+	filter_id="#log_filter"+filter_id;
 	var tbl = document.getElementById(table);
 	var rows = tbl.getElementsByTagName('tr');
 	for( var row=1; row<rows.length; row++ ) {
 		var cells = rows[row].getElementsByTagName('td');
 		var l = cells[1].innerHTML;
-		var show_l = document.getElementById('filter_'+l).checked;
+		var show_l = $(filter_id).find('input#filter_'+ l)[0].checked ;
 		var show_p = true;
 		if( processes )	{
 			var p = (cells[2].innerHTML ? cells[2].innerHTML : '(none)' );
