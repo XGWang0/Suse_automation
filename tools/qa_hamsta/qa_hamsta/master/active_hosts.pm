@@ -605,6 +605,16 @@ sub process_hwinfo_response($) {
 	$host->{'description'} = $description;
 	my $prod = &process_product($description);
 	($host->{'product'}, $host->{'release'}, $host->{'product_arch'}) = @$prod;
+	# Bug 864874 - hamsta master doesn't show up added SUT
+	# if the length of product  is more than 50 which means the regex pattern is failed
+	# to match the product, release and product_arch will be null.
+	if (length($host->{'product'}) >50 ) {
+		$host->{'product'} = "unknown";
+		$host->{'release'} = "unknown";
+		$host->{'product_arch'} = "unknown";
+		$prod = [ "unknown" , "unknown" , "unknown"];
+	}
+
 
 	# If hwinfo has been sent, process it
 	if ($host->{'hwinfo'}) {
