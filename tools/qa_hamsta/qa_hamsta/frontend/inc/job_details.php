@@ -42,10 +42,8 @@
     $d_job= request_int("d_job");
     $delete_job= request_int("finished_job");
 if (isset ($user) && $delete_job) {
-	$part_id = request_int("part_id");
-	$mid = request_int("machine_id");
-	$job->set_status($part_id, $mid, 4);
-	$job->set_stopped($part_id, $mid);
+	$job->set_status(4);
+	$job->set_stopped();
 }
 
     $html_title = "Job ".$job->get_id();

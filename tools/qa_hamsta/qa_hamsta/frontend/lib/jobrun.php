@@ -557,11 +557,9 @@ j.job_id DESC';
 	 * @access public
 	 * @return void
 	*/
-	function set_status($part_id, $machine_id, $status_id) {
-		$stmt = get_pdo()->prepare('UPDATE job_part_on_machine p LEFT JOIN job_on_machine k USING(job_on_machine_id) set p.job_status_id=:status_id where k.job_id = :job_id AND p.job_part_id = :part_id AND k.machine_id = :machine_id');
+	function set_status($status_id) {
+		$stmt = get_pdo()->prepare('UPDATE job j JOIN job_on_machine o USING(job_id) JOIN job_part_on_machine p USING(job_on_machine_id) SET p.job_status_id = :status_id,j.job_status_id = :status_id  WHERE job_id = :job_id AND p.job_status_id <> 3');
 		$stmt->bindParam(':job_id', $this->fields["id"]);
-		$stmt->bindParam(':part_id', $part_id);
-		$stmt->bindParam(':machine_id', $machine_id);
 		$stmt->bindParam(':status_id', $status_id);
 		$stmt->execute();
                 if ($stmt->rowCount() > 0) {
@@ -589,11 +587,11 @@ j.job_id DESC';
 	 * @access public
 	 * @return void
 	*/
-	function set_stopped($part_id,$machine_id) {
-		$stmt = get_pdo()->prepare('UPDATE job_part_on_machine p LEFT JOIN job_on_machine k USING(job_on_machine_id) set p.stop=NOW() where k.job_id = :job_id AND machine_id = :machine_id AND job_part_id = :part_id');
+
+	function set_stopped() {
+
+		$stmt = get_pdo()->prepare('UPDATE job j JOIN job_on_machine o USING(job_id) JOIN job_part_on_machine p USING(job_on_machine_id) SET p.stop = NOW(),p.job_status_id=4 WHERE job_id = :job_id AND p.job_status_id <> 3');
 		$stmt->bindParam(':job_id', $this->fields["id"]);
-		$stmt->bindParam(':machine_id', $machine_id);
-		$stmt->bindParam(':part_id', $part_id);
 		$stmt->execute();
 		if ($stmt->rowCount() > 0) {
 			$this->update_from_db();
