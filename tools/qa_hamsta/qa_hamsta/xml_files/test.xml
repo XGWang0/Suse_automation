@@ -16,7 +16,7 @@
         <logger>
           <command><![CDATA[tail -f /var/log/messages]]></command>
         </logger>
-        <monitor>
+        <monitor cycle_sec="10" cycle_count="5">
           <command execution="forked"><![CDATA[who]]></command>
         </monitor>
         <worker>
