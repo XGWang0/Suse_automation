@@ -300,10 +300,11 @@ sub distribute_jobs() {
             foreach my $role (keys %{$role_part_pairs->{$part}}){
                 #insert job_part_on_machine
                 my $job_part_xml = "$xml2part_output_dir/$part/Role-$role.xml";
+                my $does_reboot = &get_reboot($job_part_xml);
                 foreach my $machine_id (@{$role_machine_map->{$role}}){
                     my $job_on_machine_id = $jom_ids{$machine_id};
                     &log(LOG_DEBUG, "Query result is $job_on_machine_id");
-                    my $job_part_on_machine_id = &job_part_on_machine_insert($job_part_id,JS_QUEUED,$job_on_machine_id,$job_part_xml);
+                    my $job_part_on_machine_id = &job_part_on_machine_insert($job_part_id,JS_QUEUED,$job_on_machine_id,$job_part_xml,$does_reboot);
                     &log(LOG_DETAIL, "A new job_part_on_machine is inserted as $job_part_on_machine_id for part $part role $role machine $machine_id.");
                 }
             }
