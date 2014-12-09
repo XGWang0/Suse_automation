@@ -21,6 +21,7 @@ $roleTemplate = '
             <select title="required: Select the minimum number for role ROLE_INDEX" 
                     name="minnumber[]">MINIMUM
             </select>
+	    Default: 1
           </td>
         </tr>
         <tr>
@@ -29,6 +30,7 @@ $roleTemplate = '
             <select title="required: Select the maximum number for role ROLE_INDEX" 
                     name="maxnumber[]">MAXIMUM
             </select>
+            Default: 0 (no limit)
           </td>
         </tr>
         <tr>

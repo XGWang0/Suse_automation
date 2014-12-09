@@ -36,7 +36,7 @@
 
         # define the default data of job XML file
         $jobInfo = array( 'name'=>'',
-                          'level'=>'3',
+                          'level'=>'4',
                           'description'=>"Enter job description",
                           'motd'=>'Enter your job MOTD message',
                           'mailto'=>(isset($user) ? $user->getEmail() : 'hamsta@suse.com'),
@@ -68,10 +68,7 @@
                     "Notice  ",
                     "Info    ",
                     "Detail  ",
-                    "Debug   ",
-                    "Stdout  ",
-                    "Stderr  ",
-                    "Return  "
+                    "Debug   "
         );
     
         # if defined "existFileName", it means that it is come from a existing XML file, parse it
@@ -170,13 +167,13 @@
     <td>
     <select name="debuglevel" title="required: debug information">
       <?php
-      $default_level = intVal($jobInfo['level']?$jobInfo['level']:3);
-      for($i=0;$i<10;$i++)
+      $default_level = intVal($jobInfo['level']?$jobInfo['level']:4);
+      for($i=0;$i<7;$i++)
       {
           if($default_level == "$i")
-              echo "<option value=\"$i\" selected=\"selected\">".$debug[$default_level]." ($i)</option>";
+              echo "<option value=\"$i\" selected=\"selected\">".$debug[$i]." ($i)</option>";
           else
-              echo "<option value=\"$i\">".$debug[$default_level]." ($i)</option>";
+              echo "<option value=\"$i\">".$debug[$i]." ($i)</option>";
       }
       ?>
     </select> <?php echo $debug[$default_level]." ($default_level)"; ?>
@@ -366,9 +363,9 @@
             else
                 $maximum .= "<option value=\"$j\">$j</option>\n";
         }
-        $default_level = intVal($jobRoleMap[$i]['level'] ? $jobRoleMap[$i]['level'] : 3);
+        $default_level = intVal($jobRoleMap[$i]['level'] ? $jobRoleMap[$i]['level'] : 4);
         $debugLevel = "\n";
-        for($l=0;$l<10;$l++)
+        for($l=0;$l<7;$l++)
         {
             $debugLevel .= "                ";
             if($default_level == "$l")
