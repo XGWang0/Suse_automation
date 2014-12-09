@@ -31,9 +31,17 @@ if (!defined('HAMSTA_FRONTEND')) {
     return require("index.php");
 }
 
+$a_machines = request_array("a_machines");
+
+$job = new Job();
+
+foreach( $a_machines as $machine ) {
+	$job->add_machine_id($machine);
+}
+
 $err = 0;
 $search = new MachineSearch();
-$search->filter_in_array(request_array("a_machines"));
+$search->filter_in_array($a_machines);
 $machines = $search->query();
 
 $perm=array('owner'=>'vh_admin','other'=>'vh_admin_reserved','url'=>'index.php?go=vhreinstall');
@@ -159,21 +167,21 @@ if (request_str("proceed")) {
                system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $autoyastfile");
                system("sed -i 's/ARGS/$args/g' $autoyastfile");
                system("sed -i 's/REPOURL/$producturl/g' $autoyastfile");
-               foreach ($machines as $machine) {
-                   if (!$machine->send_job($autoyastfile)) {
-                       $error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
-                   } else {
-			Log::create($machine->get_id(), get_user_login ($user), 'REINSTALL', "has reinstalled this machine as virtualization host using \"$producturl_raw\", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
-                   }
-                   if ($virtualization_method == "xen") {
-                       if(!$machine->send_job("/usr/share/hamsta/xml_files/set_xen_default.xml"))
-                           $error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
-                    }                
-               }    
-		    if (empty($error)) {
-				header("Location: index.php");
-			}
-            }
+							#jobxml add
+							$job->addfile($autoyastfile);
+              if ($virtualization_method == "xen") $job->addfile("/usr/share/hamsta/xml_files/set_xen_default.xml");
+							if ( $job->send_job() ){
+								foreach( $a_machines as $machine ) {
+									Log::create($machine, get_user_login ($user), 'REINSTALL', "has reinstalled this machine as virtualization host using \"$producturl_raw\", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
+								}
+							}else{
+								$error = $job->errmsg;
+							}
+
+							if (empty($error)) {
+								header("Location: index.php");
+							}
+					}
         } else { echo "<div class=\"failmessage\">Product URL is wrong, please make sure $producturl/media.1/media exists</div>";}
     } else {
         echo "<div class=\"failmessage\" style=\"text-align: left;\">The following errors were returned:";

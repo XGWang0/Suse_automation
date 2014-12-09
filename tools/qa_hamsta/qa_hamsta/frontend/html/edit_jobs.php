@@ -31,7 +31,6 @@
 		return require("index.php");
 	}
 ?>
-<script type="text/javascript" src="js/edit_job.js"></script>
 <form name='edit_jobs' action="index.php?go=edit_jobs" method="post" onsubmit="return (this.submited == 'Cancel' ? true : checkcontents(this));" />
 <table name='table_jobs' class="text-main" width="900px">
 <p><b>Please edit the job XML file in the form below.</b></p>

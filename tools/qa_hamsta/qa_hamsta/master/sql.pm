@@ -109,8 +109,8 @@ sub machine_has_perm($$) # machine_id, perm_str
 {    return $dbc->scalar_query('SELECT FIND_IN_SET(?,perm) FROM machine WHERE machine_id=?',$_[1],$_[0]);    }
 
 sub machine_set_all_unknown(){
-     $dbc->update_query('UPDATE job_on_machine SET job_status_id=4 WHERE job_status_id=6');
-     $dbc->update_query('UPDATE job SET job_status_id=4 WHERE job_status_id=6');
+     $dbc->update_query('UPDATE job_part_on_machine SET job_status_id=4 WHERE job_status_id=6 or job_status_id=2');
+     $dbc->update_query('UPDATE job SET job_status_id=4 WHERE job_status_id=6 or job_status_id=2');
      $dbc->update_query('UPDATE machine SET machine_status_id=6');
 }
 
@@ -292,6 +292,9 @@ sub job_on_machine_get_status($) # job_on_machine_id
 sub job_on_machine_delete_by_job_id($) # job_id
 {	return $dbc->update_query('DELETE FROM job_on_machine WHERE job_id=?',$_[0]);	}
 
+sub job_on_machine_get_machine($) # job_on_machine_id
+{	return $dbc->scalar_query("SELECT machine_id FROM job_on_machine WHERE job_on_machine_id=?",$_[0]);}
+
 #sub job_on_machine_set_return($$$) # job_on_machine_id, return_status, return_xml
 #{	return $dbc->update_query('UPDATE job_on_machine SET return_status=?,return_xml=? WHERE job_on_machine_id=?',$_[1],$_[2],$_[0]);	}
 
@@ -302,7 +305,7 @@ sub job_on_machine_get_by_status($) # status_id
 {	return $dbc->matrix_query('SELECT job_on_machine_id,machine_id,job_id FROM job_on_machine WHERE job_status_id=?',$_[0]);	}
 
 sub job_on_machine_get_by_machineid_status($$) # machine_id status_id
-{	return $dbc->vector_query('SELECT machine_id FROM job_on_machine WHERE machine_id=? AND job_status_id=?',$_[0],$_[1]);	}
+{	return $dbc->vector_query('SELECT machine_id FROM job_on_machine k LEFT JOIN job_part_on_machine p USING(job_on_machine_id) WHERE machine_id=? AND p.job_status_id=?',$_[0],$_[1]);	}
 
 sub job_on_machine_start($) # job_on_machine_id
 {	return $dbc->update_query('UPDATE job_on_machine SET job_status_id=2 WHERE job_on_machine_id=?',$_[0]);	}
@@ -313,8 +316,8 @@ sub job_on_machine_stop($) # job_on_machine_id
 sub job_on_machine_stop_all($) # machine_id
 {	return $dbc->update_query('UPDATE job_on_machine SET job_status_id=3 WHERE machine_id=?',$_[0]);	}
 
-sub job_on_machine_insert($$$$) # job_id, machine_id, config_id, job_status_id, mm_role_id
-{	return $dbc->insert_query('INSERT INTO job_on_machine(job_id,machine_id,config_id,job_status_id,mm_role_id) VALUES(?,?,?,?,?)',@_);	}
+sub job_on_machine_insert($$$$) # job_id, machine_id, config_id, mm_role_id
+{	return $dbc->insert_query('INSERT INTO job_on_machine(job_id,machine_id,config_id,mm_role_id) VALUES(?,?,?,?)',@_);	}
 
 ### job_part functions
 
@@ -325,12 +328,12 @@ sub job_part_delete_by_job_id($) # job_id
 {	return $dbc->update_query('DELETE FROM job_part WHERE job_id=?',$_[0]);	}
 
 sub job_part_get_ids_by_job_id($) # job_id
-{   return $dbc->vector_query('SELECT job_part_id FROM job_part WHERE job_id = ?',$_[0]); }
+{	return $dbc->vector_query("SELECT job_part_id FROM job_part WHERE job_id=? ORDER BY job_part_id ASC",$_[0]); }
 
 ### job_part_on_machine functions
 
 sub job_part_on_machine_insert($$$$$) # job_part_id, job_status_id, job_on_machine_id, xml_file, does_reboot
-{   return $dbc->insert_query('INSERT INTO job_part_on_machine(job_part_id, job_status_id, job_on_machine_id, xml_file, does_reboot) VALUES(?,?,?,?,?)',@_); }
+{	return $dbc->insert_query('INSERT INTO job_part_on_machine(job_part_id, job_status_id, job_on_machine_id, xml_file, does_reboot) VALUES(?,?,?,?,?)',@_); }
 
 sub job_part_on_machine_start($) # job_part_on_machine_id
 {	return $dbc->update_query('UPDATE job_part_on_machine SET start=NOW(), job_status_id=2 WHERE job_part_on_machine_id=?',$_[0]);	}
@@ -340,6 +343,16 @@ sub job_part_on_machine_stop($$) # job_part_on_machine_id, job_status_id
 
 sub job_part_on_machine_get_id_by_job_on_machine_and_job_part($$) # job_on_machine_id, job_part_id
 {   return $dbc->scalar_query('SELECT job_part_on_machine_id FROM job_part_on_machine WHERE job_on_machine_id = ? AND job_part_id = ?', @_); }
+
+sub job_part_on_machine_set_status($$) # job_part_on_machine_id status
+{	return $dbc->update_query('UPDATE job_part_on_machine SET job_status_id=? WHERE job_part_on_machine_id=?',$_[1],$_[0]);  }
+
+sub job_part_on_machine_get_status($) # job_part_on_machine_id
+{	return $dbc->scalar_query('SELECT job_status_id FROM job_part_on_machine WHERE job_part_on_machine_id=?',$_[0]);  }
+
+# FIXME: this function should be changed/removed in favor of accessing by table's PK
+sub job_part_info_get_by_pid_jomid()
+{	return $dbc->row_query("SELECT xml_file,job_part_on_machine_id,job_status_id,does_reboot FROM job_part_on_machine WHERE job_part_id=? AND job_on_machine_id=? ",$_[0],$_[1]); }
 
 ### group_machine functions
 

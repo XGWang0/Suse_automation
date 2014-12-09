@@ -78,15 +78,15 @@ sub active_hosts() {
 	#try to map IP address with network interface name
 
 	if($qaconf{hamsta_multicast_dev}) {
-		open(my $_tmp_ifo,"/sbin/ifconfig|") || &log(LOG_CRIT,"MASTER_MULTICAST: Can not find IP address ");
+		open(my $_tmp_ifo,"/usr/bin/ifconfig2ip|") || &log(LOG_CRIT,"MASTER_MULTICAST: Can not find IP address ");
 		my @if_output = <$_tmp_ifo>;
 		close $_tmp_ifo;
 		foreach my $if_dev (split /,/,$qaconf{hamsta_multicast_dev}) {
 			my $net_addr;
 			for(my $i=0;$i<@if_output;$i++){
 				if($if_output[$i] =~ /^$if_dev/){
-				$if_output[++$i] =~ /inet addr:([^\s]+)\s/ ;	
-				$net_addr = $1 ;
+				$if_output[++$i] =~ /inet (addr:)?([^\s]+)\s/ ;
+				$net_addr = $2 ;
 				last ;
 
 				}
@@ -119,7 +119,7 @@ sub active_hosts() {
 	# it sometimes failed, e.g. due to lost DB connection, resulting in 
 	# non-existing machines being still up. Fixed by vmarsik.
 
-	&TRANSACTION( 'machine','job_on_machine','job' );
+	&TRANSACTION( 'machine','job_part_on_machine','job' );
 	&machine_set_all_unknown();
 	&TRANSACTION_END;
 
@@ -605,6 +605,16 @@ sub process_hwinfo_response($) {
 	$host->{'description'} = $description;
 	my $prod = &process_product($description);
 	($host->{'product'}, $host->{'release'}, $host->{'product_arch'}) = @$prod;
+	# Bug 864874 - hamsta master doesn't show up added SUT
+	# if the length of product  is more than 50 which means the regex pattern is failed
+	# to match the product, release and product_arch will be null.
+	if (length($host->{'product'}) >50 ) {
+		$host->{'product'} = "unknown";
+		$host->{'release'} = "unknown";
+		$host->{'product_arch'} = "unknown";
+		$prod = [ "unknown" , "unknown" , "unknown"];
+	}
+
 
 	# If hwinfo has been sent, process it
 	if ($host->{'hwinfo'}) {

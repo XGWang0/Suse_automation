@@ -224,10 +224,16 @@ sub submission_set_kernel_values # submission_id, kernel_branch_id, kernel_flavo
 	$self->update_query( $sql, @args );
 }
 
-sub submission_set_maintenance_values # submission_id, patch_id, md5sum
+sub submission_set_maintenance_values_old # submission_id, patch_id, md5sum
 {	
 	my $self=shift;
 	$self->update_query("UPDATE submission SET patch_id=?,md5sum=?,status_id=1 WHERE submission_id=?",$_[1],$_[2],$_[0]); # status_id=1 means 'wip'
+}
+
+sub submission_set_maintenance_values_new # submission_id, issuer_id, issue_id, request_id
+{
+	my $self = shift;
+	$self->update_query("UPDATE submission SET issuer_id=?,issue_id=?,md5sum=? WHERE submission_id=?",$_[1],$_[2],$_[3],$_[0]);
 }
 
 sub released_rpms_insert # submission_id, rpm_basename_id, rpm_version_id

@@ -248,6 +248,8 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 		'status_id'	=> array('s.status_id=?',		'i'),
 		'md5sum'	=> array('s.md5sum=?',			's'),
 		'patch_id'	=> array('s.patch_id=?',		's'),
+		'issuer_id'	=> array('s.issuer_id=?',		's'),
+		'issue_id'	=> array('s.issue_id=?',		'i'),
 		'type'		=> array('s.type=?',			's'),
 		'kernel_version'=> array('s.kernel_version_id=?',	'i'),
 		'kernel_branch'	=> array('s.kernel_branch_id=?',	'i'),
@@ -297,7 +299,7 @@ function search_submission_result($mode, $attrs, &$transl=null, &$pager=null)
 	# $sel2[ $i_next ] -- appends for full details
 	$sel2=array( 
 /* simple */ array(),
-/* mtnce  */ array('s.patch_id','s.md5sum'),
+/* mtnce  */ array('s.patch_id','s.issuer_id','s.issue_id','s.md5sum'),
 /* KOTD   */ array('s.md5sum','s.kernel_version_id','s.kernel_branch_id','s.kernel_flavor_id'),
 /* any    */ array('s.patch_id','s.md5sum'),
 /* trend  */ array('g.testsuite_id'),

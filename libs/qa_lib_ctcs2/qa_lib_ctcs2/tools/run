@@ -393,8 +393,9 @@ sub process_stop {
 	
 	open (LOGFILE, $testarray[1]);
 	while (<LOGFILE>) {
-		$line = $_;
-		last if $line =~ /(\d+\s+\w+\s+){4}\d+/ ;
+		if ($_) {
+			$line = $_;
+		}
 	}
 	close LOGFILE;
 	

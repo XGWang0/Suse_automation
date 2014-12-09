@@ -71,10 +71,16 @@ div.text-main	{ padding: 0.2em; }
 }
 .logs
 {
-	font-size: 0.8em;
+	font-size: 0.7em;
 	font-family: arial, verdana, sans-serif;
 }
 
+.log_body {
+    display: none;
+}
+.vtop {
+    vertical-align: top;
+}
 .text-small-bold {
     font-size:small;
     font-weight:bold;

@@ -1,26 +1,24 @@
 <?xml version="1.0"?>
 <job>
-    <config>
-        <name>Validation test of SLES</name>
-        <debuglevel>4</debuglevel>
-        <distributable>0</distributable>
-        <parallel>0</parallel>
-        <mail notify="1"></mail>
-        <logdir>/tmp</logdir>
-        <rpm>qa_hamsta qa_tools qa_lib_perl qa_test_fs_stress qa_test_process_stress qa_test_sched_stress</rpm>
-        <description>[SLES] 3 hours build validation test. qa_test_fs_stress qa_test_process_stress qa_test_sched_stress</description>
-        <motd>Be careful, this computer is used for validation test. Include 3 stress test!</motd>
-        <reboot>0</reboot>
-    </config>
-
-    <commands>
+  <config>
+    <name>Validation test of SLES</name>
+    <debuglevel>4</debuglevel>
+    <description>[SLES] 3 hours build validation test. qa_test_fs_stress qa_test_process_stress qa_test_sched_stress</description>
+    <mail notify="1"></mail>
+    <motd>Be careful, this computer is used for validation test. Include 3 stress test!</motd>
+    <rpm>qa_hamsta qa_tools qa_lib_perl qa_test_fs_stress qa_test_process_stress qa_test_sched_stress</rpm>
+  </config>
+  <parts>
+    <part name="part1" id="1" />
+  </parts>
+  <roles>
+    <role name="role_1">
+      <commands part_id="1">
         <worker>
-            <!-- Required -->
-            <command execution="forked">/usr/share/hamsta/testscript/customtest qa_test_fs_stress qa_test_process_stress qa_test_sched_stress
-	    </command>
-            <!-- Optional -->
-            <directory>/</directory>
-            <timeout>100000</timeout>
+          <command execution="forked" reboot="0"><![CDATA[/usr/share/hamsta/testscript/customtest qa_test_fs_stress qa_test_process_stress qa_test_sched_stress
+	    ]]></command>
         </worker>
-    </commands>
+      </commands>
+    </role>
+  </roles>
 </job>

@@ -179,18 +179,10 @@ sub distribute_jobs() {
         my @host_aimed =  split(/\s*,\s*/,$host_orig);
         my $host_aimed;
         my @machine_id;
-        if( not @host_aimed )
-        {
-            next unless @machines_free ; # skip job if not enough free machine.
-            @machine_id = ( shift @machines_free ) ;
-            $host_aimed = &machine_get_ip(shift @machine_id);
-        }
-        else
-        {
-            next if @machines_free < @host_aimed; # skip job if not enough free machine.
-            @machine_id = map {&machine_get_by_ip($_)} @host_aimed;
-            next if @machine_id < @host_aimed;   # skip if the some machine does not exist.
-        }
+
+		#not enough free machine should not keep the scheduler from insert job
+		#to job table;
+        @machine_id = map {&machine_get_by_ip($_)} @host_aimed;
         my $id_config_ref;
         map{ $id_config_ref->{$_}=&config_get_last($_) } @machine_id;
 
@@ -293,7 +285,7 @@ sub distribute_jobs() {
         foreach my $machine_id (keys %$id_config_ref) {
             &TRANSACTION( 'job', 'job_on_machine' );
             &job_set_aimed_host($job_id,$host_aimed) unless $host_orig;
-            my $job_on_machine_id = &job_on_machine_insert($job_id, $machine_id, $id_config_ref->{$machine_id}, JS_QUEUED,$unique_roles->{$machine_role_map->{$machine_id}});
+            my $job_on_machine_id = &job_on_machine_insert($job_id, $machine_id, $id_config_ref->{$machine_id}, $unique_roles->{$machine_role_map->{$machine_id}});
 	    $jom_ids{$machine_id} = $job_on_machine_id;
             &log(LOG_DETAIL, "A new job_on_machine record is inserted as $job_on_machine_id for job_id $job_id, machine_id $machine_id.");
             &TRANSACTION_END;

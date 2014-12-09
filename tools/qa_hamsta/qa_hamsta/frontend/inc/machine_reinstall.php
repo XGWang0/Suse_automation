@@ -38,7 +38,8 @@ function map_regcode($e1, $e2)
 
 /* Check if user is logged in, registered and have sufficient privileges. */
 $search = new MachineSearch();
-$search->filter_in_array(request_array("a_machines"));
+$a_machines = request_array("a_machines");
+$search->filter_in_array($a_machines);
 $machines = $search->query();
 
 /* pkacer@suse.com
@@ -219,11 +220,11 @@ if (request_str("proceed")) {
 		{ /* Do not create global variables. */
 			$name = $job_xml->config->name;
 			$desc = $job_xml->config->description;
-			$command = $job_xml->commands[0]->worker[0]->command;
+			$command = $job_xml->roles[0]->role->commands[0]->worker[0]->command;
 
 			$job_xml->config->name = str_replace ('REPOURL', $producturl_raw, $name);
 			$job_xml->config->description = str_replace ('REPOURL', $producturl_raw, $desc);
-			$job_xml->commands[0]->worker[0]->command = str_replace ('ARGS', $args, $command);
+			$job_xml->roles[0]->role->commands[0]->worker[0]->command = str_replace ('ARGS', $args, $command);
 		}
 
 		if (! empty ($kexecboot)) {
@@ -238,30 +239,30 @@ if (request_str("proceed")) {
 			/* Written. Free resources. */
 			unset ($job_xml);
 		}
-
-		foreach ($machines as $machine) {
-			if ($machine->send_job($autoyastfile)) {
-				Log::create($machine->get_id(), get_user_login ($user), 'REINSTALL', "has reinstalled this machine using $producturl_raw (Addon: " . ($addonurl ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
-			} else {
-				$errors['autoyastjob']=$machine->get_hostname().": ".$machine->errmsg;
-			}
-			if ($setxen)
-				$machine->send_job("/usr/share/hamsta/xml_files/set_xen_default.xml") or $errors['setxenjob']=$machine->get_hostname().": ".$machine->errmsg;
-			if ($setupfordesktop == "yes")  # Needs reboot so accesible technologies starts correctly (bnc#710624)
-				$machine->send_job("/usr/share/hamsta/xml_files/reboot.xml") or $errors['setxenjob']=$machine->get_hostname().": ".$machine->errmsg;
-			if ($validation) {
-				$validationfiles = explode (" ", $config->xml->validation);
-				foreach ( $validationfiles as &$validationfile ) {
-					$rand = rand();
-					$randfile= "/tmp/validation_$rand.xml";
-					system("cp $validationfile $randfile");
-					$validationfile = $randfile;
-                                        system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $validationfile");
-                                        $machine->send_job($validationfile) or $errors['validationjob']=$machine->get_hostname().": ".$machine->errmsg;
-                                }
-
-			}
+		$job = new job();
+		foreach ($a_machines as $machine){
+			$job->add_machine_id($machine);
+		  Log::create($machine, get_user_login ($user), 'REINSTALL', "has reinstalled this machine using $producturl_raw (Addon: " . ($addonurl ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
 		}
+		$job->addfile($autoyastfile);
+		if ($setxen) $job->addfile("/usr/share/hamsta/xml_files/set_xen_default.xml");
+		if ($setupfordesktop == "yes") $job->addfile("/usr/share/hamsta/xml_files/reboot.xml") ; # Needs reboot so accesible technologies starts correctly (bnc#710624)
+		
+		if ($validation) {
+			$validationfiles = explode (" ", $config->xml->validation);
+			foreach ( $validationfiles as &$validationfile ) {
+				$rand = rand();
+				$randfile= "/tmp/validation_$rand.xml";
+				system("cp $validationfile $randfile");
+				$validationfile = $randfile;
+					system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $validationfile");
+					$job->addfile($validationfile);
+				}
+		}
+		if ( ! $job->send_job() ){
+			$errors['xmlsfile'] = "$autoyastfile xen:$setxen desktop:$setupfordesktop $validationfile";
+		}
+
 		if (count($errors)==0) {
 			$machine_list = "";
 			foreach ($machines as $machine)
