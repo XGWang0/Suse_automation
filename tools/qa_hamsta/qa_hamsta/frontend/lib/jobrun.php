@@ -588,9 +588,9 @@ j.job_id DESC';
 	 * @return void
 	*/
 
-	function set_stopped() {
+	function set_failed() {
 
-		$stmt = get_pdo()->prepare('UPDATE job j JOIN job_on_machine o USING(job_id) JOIN job_part_on_machine p USING(job_on_machine_id) SET p.stop = NOW(),p.job_status_id=4 WHERE job_id = :job_id AND p.job_status_id <> 3');
+		$stmt = get_pdo()->prepare('UPDATE job j JOIN job_on_machine o USING(job_id) JOIN job_part_on_machine p USING(job_on_machine_id) SET p.stop = NOW(),p.job_status_id=4,j.job_status_id=4 WHERE job_id = :job_id AND p.job_status_id <> 3');
 		$stmt->bindParam(':job_id', $this->fields["id"]);
 		$stmt->execute();
 		if ($stmt->rowCount() > 0) {

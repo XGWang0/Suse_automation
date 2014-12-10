@@ -42,8 +42,7 @@
     $d_job= request_int("d_job");
     $delete_job= request_int("finished_job");
 if (isset ($user) && $delete_job) {
-	$job->set_status(4);
-	$job->set_stopped();
+	$job->set_failed();
 }
 
     $html_title = "Job ".$job->get_id();
