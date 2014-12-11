@@ -67,7 +67,7 @@ function filter_refresh(table,processes)
 		var show_p = true;
 		if( processes )	{
 			var p = (cells[2].innerHTML ? cells[2].innerHTML : '(none)' );
-			var show_p = document.getElementById('filter_'+p).checked;
+			var show_p = $(filter_id).find('input#filter_'+ p)[0].checked ;
 		}
 		rows[row].style.display=(show_l&&show_p ? 'table-row' : 'none');
 	}
