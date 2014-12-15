@@ -187,4 +187,24 @@ sub get_master_version ()
     return Hamsta::version_to_array ($version);
 }
 
+
+sub back_log ()
+{
+	my ($machine_id,$job_part_on_machine_id,$log_text) = @_;
+	my $time = strftime "%Y-%m-%d %H:%M:%S", localtime;
+	my $zone = strftime "%z", localtime;
+	$time = &convert_timezone($time,$zone);
+	&log( LOG_INFO, "Send message from backend, machine_id:$machine_id,job_part_on_machine_id:$job_part_on_machine_id,log_text:$log_text" );
+	&log_insert(
+		$machine_id,
+		$job_part_on_machine_id,
+		$time,
+		'MASTER-BACKEND',
+		'administrator',
+		$0,
+		$log_text
+	);
+
+}
+
 1;

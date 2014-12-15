@@ -822,16 +822,19 @@ sub machine_status_timeout($$$$$) {
 
 sub set_fail_release()
 {
+	my $err_message = shift;
+	$err_message .= " : Set fail from Master";
 	#Set Fail
-	&TRANSACTION( 'job_part_on_machine' );
+	&TRANSACTION( 'job_part_on_machine', 'log' );
 	foreach my $part (keys %{$job_ref->{'mm_jobs'}} )
 	{
-	        foreach my $jomid (keys %{$job_ref->{'mm_jobs'}->{$part}}) 
-	        {
+		foreach my $jomid (keys %{$job_ref->{'mm_jobs'}->{$part}})
+		{
 			my $job_part_on_machine_id = $job_ref->{'mm_jobs'}->{$part}->{$jomid}->[1];
+			my $machine_id = $job_ref->{'mm_jobs'}->{$part}->{$jomid}->[5];
+			&back_log($machine_id,$job_part_on_machine_id,$err_message);
 			&job_part_on_machine_stop($job_part_on_machine_id,JS_FAILED);
-         	}
-
+		}
 	}
 	&TRANSACTION_END;
 
@@ -843,7 +846,7 @@ sub set_fail_release()
 
 	#set machine free
 	&TRANSACTION('machine');
-	foreach my $machine_id (keys %{$job_ref->{'aimed_host'}} ) 
+	foreach my $machine_id (keys %{$job_ref->{'aimed_host'}} )
 	{
 	    &machine_set_busy($machine_id,0);
 	}
