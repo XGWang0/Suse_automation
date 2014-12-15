@@ -583,7 +583,7 @@ sub connect_all ($)
 			$sock_canread->add($machine_sock{$ipaddr}) ;
 		}else{
 			&log(LOG_ERROR, "Can not create connection to $ipaddr"); 
-			&set_fail_release();
+			&set_fail_release("Can not create connection to $ipaddr");
 			return 0;
 		}
 
@@ -614,7 +614,7 @@ sub connect_all ($)
 				if($ping_ack ne "pong")
 				{
 					&log(LOG_ERROR, "Can not get ping ACK from  $_ ,Got $ping_ack "); 
-					&set_fail_release();
+					&set_fail_release("Can not get ping ACK from  $_ ,Got $ping_ack");
 					return 0 ;
 				}
 			}
@@ -625,7 +625,7 @@ sub connect_all ($)
 	}
 
 	&log(LOG_ERROR, "Timeout to sync all machines :$@");
-	&set_fail_release();
+	&set_fail_release("Timeout to sync all machines");
 	return 0;
 
 }
@@ -656,7 +656,7 @@ sub send_xml($)
 			};
 			if ($@) {
 				&log(LOG_ERR, "PROCESS_JOB: send_job: $@");
-				&set_fail_release();
+				&set_fail_release("Sent XML to $ip failed");
 			}
 		}
 		close FH;
