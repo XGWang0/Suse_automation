@@ -21,9 +21,14 @@
   WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
   ****************************************************************************
  */
+
+ /*
+ #refresh will reset the expand output
+ #let the result output expand by default
 $(document).ready(function() {
     $("tbody[id^='part_']").addClass("log_body");
 });
+ */
 
 
 function logToggle(obj) {
