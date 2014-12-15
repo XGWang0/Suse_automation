@@ -221,7 +221,7 @@ function act_menu($args)
 	/* Edit menu */
 	print '<li><a href="' . $args['edit']['href'] . '" onclick="'
 		. $args['edit']['onclick'] . '">';
-	print '<img src="' . $args['edit']['src'] . '" alt="edit/reserve" onclick="' . $args['edit']['onclick'] . '"/>';
+	print '<img src="' . $args['edit']['src'] . '" alt="edit/reserve" onclick="' . $args['edit']['onclick'] . '"/></a>';
 	print make_submenu ($args, array ('edit', 'config', 'delete'));
 	print '</li>';
 
