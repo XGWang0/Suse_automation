@@ -24,6 +24,7 @@
 
 function filter_init(table,filterdiv,processes)
 {
+	var table_id = table.substr(7);
 	var tbl = document.getElementById(table);
 	var rows = tbl.getElementsByTagName('tr');
 	var lvl = [];
@@ -40,12 +41,12 @@ function filter_init(table,filterdiv,processes)
 	var h = "";
 	h+="Type : \n";
 	for( var i in lvl) {
-		h+='<span class="'+i+'"><input type="checkbox" id="filter_'+i+'" checked="checked" onclick="filter_refresh('+"'"+table+"',"+processes+')"/><label for="filter_'+i+'">'+i+"</label></span>\n";
+		h+='<span class="'+i+'"><input type="checkbox" id="filter_'+table_id+'_'+i+'" checked="checked" onclick="filter_refresh('+"'"+table+"',"+processes+')"/><label for="filter_'+table_id+'_'+i+'">'+i+"</label></span>\n";
 	}
 	if( processes )	{
 		h+="<br/>\nProcesses : \n";
 		for( var p in ps) {
-			h+='<input type="checkbox" id="filter_'+p+'" checked="checked" onclick="filter_refresh('+"'"+table+"',"+processes+')"/><label for="filter_'+p+'">'+p+"</label>\n";
+			h+='<input type="checkbox" id="filter_'+table_id+'_'+p+'" checked="checked" onclick="filter_refresh('+"'"+table+"',"+processes+')"/><label for="filter_'+table_id+'_'+p+'">'+p+"</label>\n";
 		}
 	}
 	h+="<br/>\n";
@@ -56,16 +57,17 @@ function filter_init(table,filterdiv,processes)
 
 function filter_refresh(table,processes)
 {
+	var table_id=table.substr(7)
 	var tbl = document.getElementById(table);
 	var rows = tbl.getElementsByTagName('tr');
 	for( var row=1; row<rows.length; row++ ) {
 		var cells = rows[row].getElementsByTagName('td');
 		var l = cells[1].innerHTML;
-		var show_l = document.getElementById('filter_'+l).checked;
+		var show_l = document.getElementById('filter_'+table_id+'_'+l).checked;
 		var show_p = true;
 		if( processes )	{
 			var p = (cells[2].innerHTML ? cells[2].innerHTML : '(none)' );
-			var show_p = document.getElementById('filter_'+p).checked;
+			var show_p = document.getElementById('filter_'+table_id+'_'+p).checked;
 		}
 		rows[row].style.display=(show_l&&show_p ? 'table-row' : 'none');
 	}
