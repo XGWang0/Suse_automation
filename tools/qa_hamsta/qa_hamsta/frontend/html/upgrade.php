@@ -107,7 +107,7 @@ If you need to change parameters of the installation in this form, select the cu
   <tr>
 	<td>Installation options (optional): </td>
 	<td><input type="text" name="installoptions" size="70" value="<?php echo $installoptions; ?>" /> (e.g. <em>vnc=1 vncpassword=12345678</em>)<br /><strong>Note:</strong> Do not put any sensitive passwords, since it is plain text. VNC passwords must be 8+ bytes long.
-	<?php if($installoptions_warning != "") {echo ("</br> <font color=\"red\" >$installoptions_warning</font>");} ?>
+	<?php if($installoptions_warning != "") {echo ("<br/> <font color=\"red\" >$installoptions_warning</font>");} ?>
 	</td>
   </tr>
   <tr>

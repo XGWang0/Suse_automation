@@ -37,11 +37,11 @@ require("timezone.php");
     <label for='update-reg-email'>Registration e-mail</label>
     <input id='update-reg-email' type='text' name='update-reg-email' placeholder="required" title='The email is required for registration'/>
   </span>
-  </br>
+  <br/>
   <div class='row' id='smt'>
 <?php
   print "SMT server: <strong>$config->smtserver</strong> (<strong>Note:</strong> This has to be configured in config.ini by admin.)."
-        . "<input type='hidden' value= $config->smtserver name='update-smt-url' />";
+        . "<input type='hidden' value='$config->smtserver' name='update-smt-url' />";
 
 ?>
   </div>
@@ -56,8 +56,8 @@ require("timezone.php");
 	<input type="text" name="repo_producturl" id="repo_producturl" class='url' required="" placeholder="required" value="<?php if(isset($_POST["repo_producturl"])){echo $_POST["repo_producturl"];} ?>" title="required: url" />
 	<span class='rcode'>
 		<label for='rcode_product'>Reg.code</label>
-		<select type='text' class='regprefix' name='regprefix[]' id='regprefix_prod' value=''>
-			<option value=""></option>
+		<select class='regprefix' name='regprefix[]' id='regprefix_prod'>
+			<option value="">-</option>
 			<option value='sles'>SLES</option>
 			<option value='sled'>SLED</option>
 		</select>
@@ -92,13 +92,13 @@ require("timezone.php");
              "</span>\n" .
              "<div class='addon_btns'>\n";
              if ( $addon_id == $ADDON_NUMS )
-	         print "<input type='button' class='addonbtn' value='+' disabled/>\n";
+	         print '<label class="btn disabled">+</label>'."\n";
              else
-		 print "<label for='addon$addon_id'><input type='button' class='addonbtn' value='+' /></label>\n";
+		 print '<label for="addon'.$addon_id.'" class="btn">+</label>'."\n";
              if ( $addon_id == 1 )
-	         print "<input type='button' class='addonbtn disabled' value='-' disabled/>\n";
+	         print '<label class="btn disabled">-</label>'."\n";
              else
-	         print "<label for='addon". ($addon_id-1) ."'><input type='button' class='addonbtn disabled' value='-'/></label>\n";
+	         print '<label for="addon'. ($addon_id-1) .'" class="btn">-</label>'."\n";
              print "</div></div>\n"; 
              if ( $addon_id != $ADDON_NUMS )
                  print "<input id='addon$addon_id' class='addons' type='checkbox'/>\n";
@@ -158,7 +158,7 @@ require("timezone.php");
 	<input type="text" name="installoptions" id='installoptions' class='installopts' value="<?php echo $installoptions; ?>" /> 
         <?php 
 		if ($installoptions_warning != "") 
-			{echo ("</br> <font color=\"red\" >$installoptions_warning</font>");} 
+			{echo ("<br/> <font color=\"red\" >$installoptions_warning</font>");} 
 	?>
 	<span> (e.g. <em>ssh=1 sshpassword=12345678</em> or <em>vnc=1 vncpassword=12345678</em>) </span>
   </div>
