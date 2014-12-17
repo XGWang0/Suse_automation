@@ -463,6 +463,12 @@ sub process_request {
 		last;
             } elsif ($incoming =~ /^ping$/) {
                 print $sock "pong\n" ;
+            } elsif ($incoming =~ /^version$/) {
+				#get version from /usr/share/hamsta/Slave/.version
+				my $client_version = `cat /usr/share/hamsta/Slave/.version|head -1`;
+				chomp($client_version);
+				$client_version = "unknown" if not $client_version =~ /^[\d\.]+$/;
+                print $sock "$client_version\n" ;
             } elsif ($incoming =~ /^reserve$/) {
 		my $response = &reserve($ip_addr);
 		$response .= "The SUT was reserved by other hamsta master already, and the reserved master ip was $Slave::reserved_hamsta_master_ip!\n" if ( $response =~ /failed/ );
