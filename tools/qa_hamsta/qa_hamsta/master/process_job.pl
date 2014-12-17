@@ -540,8 +540,8 @@ sub build_ref($)
 		foreach my $jomid (@job_on_machine_id) {
 
 			# FIXME: this should be accessed by the PK job_part_on_machine_id, not by (job_part_id,job_on_machine_id)
-			my ($xml,$job_part_on_machine_id,$status,$does_reboot) = &job_part_info_get_by_pid_jomid($part,$jomid);
-			$job_ref->{'mm_jobs'}->{$part}->{$jomid} = [$xml,$job_part_on_machine_id,$jomid,$status,$does_reboot] if ($xml);
+			my ($xml,$job_part_on_machine_id,$status,$does_reboot,$machine_id) = &job_part_info_get_by_pid_jomid($part,$jomid);
+			$job_ref->{'mm_jobs'}->{$part}->{$jomid} = [$xml,$job_part_on_machine_id,$jomid,$status,$does_reboot,$machine_id] if ($xml);
 
 		}
 
@@ -582,8 +582,7 @@ sub connect_all ($)
 		{
 			$sock_canread->add($machine_sock{$ipaddr}) ;
 		}else{
-			&log(LOG_ERROR, "Can not create connection to $ipaddr"); 
-			&set_fail_release();
+			&set_fail_release("Can not create connection to $ipaddr");
 			return 0;
 		}
 
@@ -613,8 +612,7 @@ sub connect_all ($)
 				chomp($ping_ack);
 				if($ping_ack ne "pong")
 				{
-					&log(LOG_ERROR, "Can not get ping ACK from  $_ ,Got $ping_ack "); 
-					&set_fail_release();
+					&set_fail_release("Can not get ping ACK from  $_ ,Got $ping_ack");
 					return 0 ;
 				}
 			}
@@ -624,8 +622,7 @@ sub connect_all ($)
 	sleep 3; 
 	}
 
-	&log(LOG_ERROR, "Timeout to sync all machines :$@");
-	&set_fail_release();
+	&set_fail_release("Timeout to sync all machines");
 	return 0;
 
 }
@@ -655,8 +652,7 @@ sub send_xml($)
 			$machine_sock{$ip}->send("$_\n");
 			};
 			if ($@) {
-				&log(LOG_ERR, "PROCESS_JOB: send_job: $@");
-				&set_fail_release();
+				&set_fail_release("Sent XML to $ip failed");
 			}
 		}
 		close FH;
@@ -822,16 +818,18 @@ sub machine_status_timeout($$$$$) {
 
 sub set_fail_release()
 {
+	my $err_message = shift;
 	#Set Fail
-	&TRANSACTION( 'job_part_on_machine' );
+	&TRANSACTION( 'job_part_on_machine', 'log' );
 	foreach my $part (keys %{$job_ref->{'mm_jobs'}} )
 	{
-	        foreach my $jomid (keys %{$job_ref->{'mm_jobs'}->{$part}}) 
-	        {
+		foreach my $jomid (keys %{$job_ref->{'mm_jobs'}->{$part}})
+		{
 			my $job_part_on_machine_id = $job_ref->{'mm_jobs'}->{$part}->{$jomid}->[1];
+			my $machine_id = $job_ref->{'mm_jobs'}->{$part}->{$jomid}->[5];
+			&backend_err_log($machine_id,$job_part_on_machine_id,$err_message);
 			&job_part_on_machine_stop($job_part_on_machine_id,JS_FAILED);
-         	}
-
+		}
 	}
 	&TRANSACTION_END;
 
@@ -843,7 +841,7 @@ sub set_fail_release()
 
 	#set machine free
 	&TRANSACTION('machine');
-	foreach my $machine_id (keys %{$job_ref->{'aimed_host'}} ) 
+	foreach my $machine_id (keys %{$job_ref->{'aimed_host'}} )
 	{
 	    &machine_set_busy($machine_id,0);
 	}

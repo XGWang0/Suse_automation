@@ -187,4 +187,23 @@ sub get_master_version ()
     return Hamsta::version_to_array ($version);
 }
 
+
+sub backend_err_log ()
+{
+	my ($machine_id,$job_part_on_machine_id,$log_text) = @_;
+	my $f_log_text = &log( LOG_ERR,"$log_text");
+	my $time;
+	($time) = $f_log_text =~ /^([^\s]+\s[^\s]+)\s/;
+	&log_insert(
+		$machine_id,
+		$job_part_on_machine_id,
+		$time,
+		'ERROR',
+		'administrator',
+		$0,
+		$log_text
+	);
+
+}
+
 1;

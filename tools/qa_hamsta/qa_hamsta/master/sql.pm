@@ -352,8 +352,7 @@ sub job_part_on_machine_get_status($) # job_part_on_machine_id
 
 # FIXME: this function should be changed/removed in favor of accessing by table's PK
 sub job_part_info_get_by_pid_jomid()
-{	return $dbc->row_query("SELECT xml_file,job_part_on_machine_id,job_status_id,does_reboot FROM job_part_on_machine WHERE job_part_id=? AND job_on_machine_id=? ",$_[0],$_[1]); }
-
+{	return $dbc->row_query("SELECT xml_file,job_part_on_machine_id,job_status_id,does_reboot,machine_id FROM job_part_on_machine JOIN job_on_machine USING(job_on_machine_id) WHERE job_part_id=? AND job_on_machine_id=? ",$_[0],$_[1]); }
 ### group_machine functions
 
 sub group_machine_new($$) # group_id, machine_id
