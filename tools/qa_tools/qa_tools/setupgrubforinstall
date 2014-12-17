@@ -210,7 +210,7 @@ curl_download()
 {
 	url="$1"
 	file_path="$2"
-	curl -f -L -o "$file_path" "$url" 2>/tmp/$$_curl_err
+	/usr/bin/curl -f -L -o "$file_path" "$url" 2>/tmp/$$_curl_err
 	curl_re=$?
 	if [ $curl_re != "0" ];then
 		echo "down load $file_path failed"
