@@ -77,7 +77,8 @@ sub process_job($)
 
 	#set machine busy
 	&set_machine_busy(1);
-	&reserve_or_release_all("reserve");
+	#FIXME: automatic reservation temporarily disabled for easier upgrade
+	#&reserve_or_release_all("reserve");
 
 	#Do the work for each part
 
@@ -94,7 +95,8 @@ sub process_job($)
 
 	#release the machine
 	&set_machine_busy(0);
-	&reserve_or_release_all("release");
+	#FIXME: automatic reservation temporarily disabled for easier upgrade
+	#&reserve_or_release_all("release");
 
 	#send the email, email part will be process in subprocess.
 	#&send_email($job_id);
