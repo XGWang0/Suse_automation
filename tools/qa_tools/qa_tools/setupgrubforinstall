@@ -206,6 +206,21 @@ setupkexec()
 	echo "Start Kexec booting!"
 }
 
+curl_download()
+{
+	url="$1"
+	file_path="$2"
+	/usr/bin/curl -f -L -o "$file_path" "$url" 2>/tmp/$$_curl_err
+	curl_re=$?
+	if [ $curl_re != "0" ];then
+		echo "down load $file_path failed"
+		tail -1 /tmp/$$_curl_err
+		rm /tmp/$$_curl_err
+		exit 1
+	fi
+
+}
+
 download_installkernel()
 {
 	insturl=$1
@@ -245,8 +260,8 @@ download_installkernel()
 		fi
 	done
 
-	/usr/bin/curl -f -L -o "$imagedir"/linux "$kernelurl"
-	/usr/bin/curl -f -L -o "$imagedir"/initrd "$initrdurl"
+	curl_download "$kernelurl" "$imagedir/linux"
+	curl_download "$initrdurl" "$imagedir/initrd"
 
 	if [ ! -e "$imagedir"/linux -o ! -e "$imagedir"/initrd ]
 	then
@@ -255,6 +270,7 @@ download_installkernel()
 	fi
 
 }
+
 
 printhelp()
 {
