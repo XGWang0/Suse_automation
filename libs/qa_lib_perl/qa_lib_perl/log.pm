@@ -250,6 +250,7 @@ sub log # severity, message, ...
 	my $format=shift; # buggy Perl sprintf needs format separately
 	$format='' unless defined $format;
 	my $data;
+	my $re_data;
 
 	# when forwarding log output, it can contain '%' and should not be ran through 'printf'.
 	# TODO: can we find a better solution than this one ?
@@ -282,20 +283,27 @@ sub log # severity, message, ...
 #			$|=1;
 			foreach my $d (@data)
 			{
+				my ($d_time,$d_level,$d_info,$d_caller);
+				$re_data = "";
 				unless( &parse_log( $d ) )
 				{
-					print strftime("%Y-%m-%d %H:%M:%S %z\t", localtime) if $v{time};
-					print $levels[$msglevel]."\t" if $v{'names'} and $msglevel>=0 and $msglevel<@levels;
-					print $v{'info'}."\t" if $v{'info'};
-					print((&caller_info(1) || '(root)')."\t") if $v{'caller'};
+					print $d_time = strftime("%Y-%m-%d %H:%M:%S %z\t", localtime) if $v{time};
+					print $d_level = $levels[$msglevel]."\t" if $v{'names'} and $msglevel>=0 and $msglevel<@levels;
+					print $d_info = $v{'info'}."\t" if $v{'info'};
+					print( $d_caller = (&caller_info(1) || '(root)')."\t") if $v{'caller'};
 				}
 				print $d;
+				$re_data = (defined($d_time))?$d_time:"".
+					(defined($d_level))?$d_level:"".
+					(defined($d_info))?$d_info:"".
+					(defined($d_caller))?$d_caller:"".
+					$d;
 				print "\n";
 			}
 			select $oldh;
 		}
 	}
-	return undef;
+	return $re_data."\n";
 }
 
 # try to parse a line as log output

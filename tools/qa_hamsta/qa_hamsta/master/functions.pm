@@ -188,18 +188,17 @@ sub get_master_version ()
 }
 
 
-sub back_log ()
+sub backend_err_log ()
 {
 	my ($machine_id,$job_part_on_machine_id,$log_text) = @_;
-	my $time = strftime "%Y-%m-%d %H:%M:%S", localtime;
-	my $zone = strftime "%z", localtime;
-	$time = &convert_timezone($time,$zone);
-	&log( LOG_INFO, "Send message from backend, machine_id:$machine_id,job_part_on_machine_id:$job_part_on_machine_id,log_text:$log_text" );
+	my $f_log_text = &log( LOG_ERR,"$log_text");
+	my $time;
+	($time) = $f_log_text =~ /^([^\s]+\s[^\s]+)\s/;
 	&log_insert(
 		$machine_id,
 		$job_part_on_machine_id,
 		$time,
-		'MASTER-BACKEND',
+		'ERROR',
 		'administrator',
 		$0,
 		$log_text
