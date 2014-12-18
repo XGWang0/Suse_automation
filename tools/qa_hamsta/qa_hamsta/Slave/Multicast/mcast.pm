@@ -32,9 +32,11 @@ use warnings;
 
 BEGIN { push @INC, '.', '/usr/share/hamsta', '/usr/share/qa/lib'; }
 use log;
+use detect;
 
 use IO::Socket::Multicast;
 use Slave::Multicast::hwinfo_unique;
+use Slave::rsv_rls
 
 require 'Slave/config_slave.pm';
 
@@ -89,7 +91,7 @@ sub run() {
 	my $self_inc = 0;
 	while (1) {
 	    my $slave_ip;
-
+	    my $reserved_hamsta_ip;
 	    my $message = 
 			# An ID (hopefully) unique to this configuration (from hwinfo_unique.pm)
 			&unique_id()."\n".
@@ -99,7 +101,7 @@ sub run() {
 			&get_slave_description($stats_version)."\n".
 
 			# IP address of this slave (from hwinfo_unique.pm)	
-			($slave_ip = &get_slave_ip($Slave::multicast_address))."\n".
+			($slave_ip = &get_my_ip_addr($Slave::multicast_address))."\n".
 
 			# Reserved for transmitting some client dependent options to the 
 			# master (from hwinfo_unique.pm)	
@@ -108,7 +110,13 @@ sub run() {
 			# Whether the hardware configuration has changed since the last message
 			(&hal_devices_have_changed() ? "HWINFO_CHANGE" : "")."\n".
 			#self check hamsta software update status
-			&get_update_status($self_inc);
+			&get_update_status($self_inc)."\n".
+
+                        #Reservation status, 'r' means reserved, 'i' means idle
+                        (($reserved_hamsta_ip = &Slave::get_reserved_hamsta_ip()) ? 'r' : 'i')."\n".
+
+                        #Reserved hamsta IP, use '' if not reserved
+                        $reserved_hamsta_ip;
 			
 
 	    &log(LOG_DEBUG, "-->>$message<<--");

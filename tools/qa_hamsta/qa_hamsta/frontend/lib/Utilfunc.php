@@ -178,12 +178,14 @@ function act_menu($args)
 	print '<ul>';
 
 	/* Powerswitch menu */
-	print '<li class="active"><img src="' . $args['start']['src']  . '" alt="power"/>';
+	print '<li class="active"><a href="' . $args['start']['href'] . '" onclick="'
+		. $args['start']['onclick'] . '"><img src="' . $args['start']['src'] . '"alt="power"/></a>';
 	print make_submenu ($args, array ('start', 'restart', 'stop'));
 	print '</li>';
 
 	/* Send job menu */
-	print '<li class="has-sub"><img src="' . $args['send-job']['src']. '" alt="jobs"/>';
+	print '<li class="has-sub"><a href="' . $args['send-job']['href'] . '" onclick="'
+		. $args['send-job']['onclick'] . '"><img src="' . $args['send-job']['src']. '" alt="jobs"/></a>';
 	print '<ul>';
 	print '<li class="has-sub"><a href="' . $args['send-job']['href'] . '" onclick="'
 		. $args['send-job']['onclick'] . '"><img src="' . $args['send-job']['src']. '"/>Send job</a>';
@@ -217,15 +219,16 @@ function act_menu($args)
 	print '</li>';
 
 	/* Edit menu */
-	print '<li>';
-	print '<img src="' . $args['edit']['src'] . '" alt="edit/reserve" onclick="' . $args['edit']['onclick'] . '"/>';
+	print '<li><a href="' . $args['edit']['href'] . '" onclick="'
+		. $args['edit']['onclick'] . '">';
+	print '<img src="' . $args['edit']['src'] . '" alt="edit/reserve" onclick="' . $args['edit']['onclick'] . '"/></a>';
 	print make_submenu ($args, array ('edit', 'config', 'delete'));
 	print '</li>';
 
 	/* Console, VNC menu */
-	print "<li class='last'>"
-		. icon (array ('src'=>$args['vnc']['src'],'width'=>'','class'=>'',
-			       'alt'=>'console'));
+	print '<li class="last"><a href="' . $args['vnc']['href'] . '" onclick="'
+		. $args['vnc']['onclick'] . '"><img src="' 
+		. $args['vnc']['src'] . '" alt="console"/></a>';
 	print "<ul>";
 	print action_menu_item (array ('href'=>$args['vnc']['href'],
 				       'onclick'=>$args['vnc']['onclick'],
@@ -457,7 +460,8 @@ function job_icons ($xml_web_path, $machines_list, $custom = false,
 		'edit' => array (
 				'url'			=> "index.php?go=edit_jobs"
 								. "&file=$relative_xml_path&"
-								. "opt=edit&machine_list=$machines_ids",
+								. "opt=edit&machine_list=$machines_ids"
+								. "#roletab_0",
 				'type'			=> 'edit',
 				'fullname'		=> 'Edit the job definition.',
 				'err_noperm'	=> 'You are not allowed to edit'

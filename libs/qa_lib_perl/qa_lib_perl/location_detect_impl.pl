@@ -37,11 +37,11 @@ BEGIN {
 # NORMALLY, you want to use location.pl
 my $loc = undef;
 
-open IFCONFIG, "/sbin/ifconfig |" or die "Cannot run ifconfig: $!";
-while( my $row=<IFCONFIG> )
+open USE_GATE, "route -n|awk '\$4~/UG|GU/{print \$2}'|";
+while( my $row=<USE_GATE> )
 {
 #		print $row;
-	if( $row =~ /inet addr:(\d+)\.(\d+)\./ )
+	if( $row =~ /^(\d+)\.(\d+)\./ )
 	{
 		if( $1==10 )
 		{
@@ -56,7 +56,7 @@ while( my $row=<IFCONFIG> )
 		{   $loc='us'; }
 	}
 }
-close IFCONFIG;
+close USE_GATE;
 
 my $ret=0;
 if ($loc) {

@@ -115,7 +115,7 @@ sub unique_id () {
     my $routei = `route -n|awk '\$3~/0.0.0.0/{print \$NF}'`;
     chomp $routei;
     #find the mac for the route gateway interface
-    my $uid = `ifconfig $routei|awk '{print \$NF;exit}'`;
+    my $uid = `ifconfig2ip mac $routei | tr '[a-z]' '[A-Z]'`;
     chomp $uid;
     
     if($uid =~ /^([0-9a-f]{2}([:]|$)){6}$/i)

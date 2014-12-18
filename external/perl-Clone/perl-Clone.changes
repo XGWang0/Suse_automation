@@ -1,0 +1,66 @@
+-------------------------------------------------------------------
+Mon Dec  9 11:17:50 UTC 2013 - coolo@suse.com
+
+- updated to 0.36
+ - fixed compilation issue on AIX and C89 (GAAS)
+
+-------------------------------------------------------------------
+Fri Oct  4 09:11:38 UTC 2013 - coolo@suse.com
+
+- updated to 0.35
+  - SV's can be NULL (shit happens) (fixes RT86217) (Tux)
+  - making tests compatible with older versions of Test::More (GARU)
+
+-------------------------------------------------------------------
+Mon Jun  3 15:40:26 UTC 2013 - coolo@suse.com
+
+- updated to 0.34
+   - Stop skipping SvROK handling for all magical scalars. This fixes
+     RT issues 67105, 79730 and 80201 (FLORA).
+   - making the Changes file compliant to the CPAN::Changes spec (GARU).
+   - Fixing tests when Scalar::Util::weaken is not available. As a
+     result, tests should now pass even in odd OpenBSD versions (GARU).
+   - removed dubious documentation on the optional parameter until
+     it is 'fixed'. Right now it just increases the refcount when it's 0,
+     and clones otherwise (which isn't exactly what it says). This
+     fixes RT issue 57773 (GARU).
+   - updated remark on Storable's dclone() to address RT issue 50174 (GARU)
+   - updated Makefile.PL to include test dependencies (GARU)
+
+-------------------------------------------------------------------
+Fri Nov 18 11:10:34 UTC 2011 - coolo@suse.com
+
+- use original .tar.gz
+
+-------------------------------------------------------------------
+Wed Dec  1 13:31:03 UTC 2010 - coolo@novell.com
+
+- switch to perl_requires macro
+
+-------------------------------------------------------------------
+Fri Nov 26 16:44:33 UTC 2010 - chris@computersalat.de
+
+- recreated by cpanspec 1.78
+- bzipped Source
+
+-------------------------------------------------------------------
+Tue Oct 19 08:38:24 UTC 2010 - coolo@novell.com
+
+- add perl as explicit buildrequire
+
+-------------------------------------------------------------------
+Sun Jan 10 15:43:32 CET 2010 - jengelh@medozas.de
+
+- enable parallel build
+
+-------------------------------------------------------------------
+Sat Oct 17 18:26:41 CEST 2009 - rschweikert@novell.com
+
+- upgrade to version 0.31
+  o a lot of changes, please see Changes file
+
+-------------------------------------------------------------------
+Wed Mar 26 13:50:55 CET 2008 - anicka@suse.cz
+
+- package created (version 0.18) 
+

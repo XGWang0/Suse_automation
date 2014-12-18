@@ -153,6 +153,29 @@ sub read_xml($) # filename
 	return undef;
 }
 
+# return reboot value of a role part xml.
+sub get_reboot($)
+{
+    my $xml = shift;
+    my $ref = &read_xml($xml);
+    my $cmds;
+
+    if(defined($ref->{'roles'}->{'role'}->{'commands'}))
+    {
+        $cmds = $ref->{'roles'}->{'role'}->{'commands'};
+    } else {
+        &log( LOG_ERR, "commands not found in XML: $xml" );
+    }
+    
+    if(defined($cmds->{'worker'}->[0]->{'command'}->{'reboot'}))
+    {
+        return $cmds->{'worker'}->[0]->{'command'}->{'reboot'};
+    } else {
+        &log( LOG_NOTICE, "reboot not found in XML: $xml" );
+        return 0;
+    }
+}
+
 # Returns an array containing version of this master
 sub get_master_version ()
 {
@@ -162,6 +185,25 @@ sub get_master_version ()
     chomp ($version = <VERSION_FILE>);
     close (VERSION_FILE);
     return Hamsta::version_to_array ($version);
+}
+
+
+sub backend_err_log ()
+{
+	my ($machine_id,$job_part_on_machine_id,$log_text) = @_;
+	my $f_log_text = &log( LOG_ERR,"$log_text");
+	my $time;
+	($time) = $f_log_text =~ /^([^\s]+\s[^\s]+)\s/;
+	&log_insert(
+		$machine_id,
+		$job_part_on_machine_id,
+		$time,
+		'ERROR',
+		'administrator',
+		$0,
+		$log_text
+	);
+
 }
 
 1;

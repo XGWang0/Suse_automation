@@ -31,8 +31,15 @@ if (!defined('HAMSTA_FRONTEND')) {
 	return require("index.php");
 }
 
+$a_machines = request_array("a_machines");
+$job = new Job();
+
+foreach( $a_machines as $machine ) {
+	$job->add_machine_id($machine);
+}
+
 $search = new MachineSearch();
-$search->filter_in_array(request_array("a_machines"));
+$search->filter_in_array($a_machines);
 $machines = $search->query();
 $smtserver = $config->smtserver;
 
@@ -137,23 +144,29 @@ if (request_str("proceed")) {
 		system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $autoyastfile");
 		system("sed -i 's/ARGS/$args/g' $autoyastfile");
 		system("sed -i 's/REPOURL/$producturl/g' $autoyastfile");
-		foreach ($machines as $machine) {
-			if ($machine->send_job($autoyastfile)) {
-				Log::create($machine->get_id(), get_user_login ($user), 'REINSTALL', "has reinstalled this machine using $producturl_raw (Addon: " . ($addonurl ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
-			} else {
-				$errors['autoyastjob']=$machine->get_hostname().": ".$machine->errmsg;
-			}
-			if ($validation) {
-				$validationfiles = explode (" ", $config->xml->validation);
-				foreach ( $validationfiles as &$validationfile ) {
-					$randfile = "/tmp/validation_$rand.xml";
-					system("cp $validationfile $randfile");
-					$validationfile = $randfile;
-					system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $validationfile");
-					$machine->send_job($validationfile) or $errors['validationjob']=$machine->get_hostname().": ".$machine->errmsg;
+
+		#jobxml add
+		$job->addfile($autoyastfile);
+
+		if ($validation) {
+			$validationfiles = explode (" ", $config->xml->validation);
+			foreach ( $validationfiles as &$validationfile ) {
+				$randfile = "/tmp/validation_$rand.xml";
+				system("cp $validationfile $randfile");
+				$validationfile = $randfile;
+				system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $validationfile");
+				$job->addfile($validationfile);
 				}
-			}
 		}
+
+		if ( $job->send_job() ){
+			foreach( $a_machines as $machine ) {
+				Log::create($machine, get_user_login ($user), 'REINSTALL', "has reinstalled this machine using $producturl_raw (Addon: " . ($addonurl ? "yes" : "no") . ", Updates: " . (request_str("startupdate") == "update-smt" ? "SMT" : (request_str("startupdate") == "update-reg" ? "RegCode" : "no")) . ")");
+			}
+		}else{
+			$error = $job->errmsg;
+		}
+
 		if (count($errors)==0)
 			header("Location: index.php");
 	}

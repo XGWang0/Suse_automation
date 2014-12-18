@@ -379,8 +379,15 @@ foreach ($fields_list as $key=>$value)
 	if (method_exists ($machine, $fname)) {
 		$res = $machine->$fname();
 	}
-	if (isset ($display_fields) && in_array($key, $display_fields))
-		echo ("\t<td>$res</td>\n");
+        if (isset ($display_fields) && in_array($key, $display_fields)) {
+                echo ("\t<td>");
+                if ($key == 'reserved_master' ){
+                        echo ("<a href=$res>$res</a>");
+                }else{
+                        echo ("$res");
+                }
+                echo("</td>\n");
+        }
 }
 ?>
 		<td align="center">
@@ -550,6 +557,9 @@ $("label#action button[name='action']").click(function(){
 <tr>
 <td><button name="action" value="vhreinstall" class="button vhreinstall">Reinstall as Virt. Host</button></td>
 <td><button name="action" value="addsut" class="button addsut">Add SUT</button></td>
+</tr>
+<tr>
+<td><button name="action" value="release_machine_for_master" class="button release_machine_for_master">Release for master</button></td>
 </tr>
 </table>
 </label>

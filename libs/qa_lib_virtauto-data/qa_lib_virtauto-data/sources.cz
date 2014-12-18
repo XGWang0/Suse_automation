@@ -94,29 +94,29 @@ source.iso.sles-10-sp1-64=/MOUNT-VIRT/iso/sles10sp1/SLES-10-SP1-CD-x86_64-GM-CD1
 
 source.ftp.sles-10-sp2-32=ftp://schnell.suse.de/CD-ARCHIVE/SLES10/SLE-10-SP2/SLES-10-SP2-GM/i386/DVD1/
 source.ftp.sles-10-sp2-64=ftp://schnell.suse.de/CD-ARCHIVE/SLES10/SLE-10-SP2/SLES-10-SP2-GM/x86_64/DVD1/
-source.iso.sles-10-sp2-64=/MOUNT-VIRT/iso/SLES-10-SP2-GM/SLES-10-SP2-DVD-x86_64-GM-DVD1.iso
-source.iso.sles-10-sp2-32=/MOUNT-VIRT/iso/SLES-10-SP2-GM/SLES-10-SP2-DVD-i386-GM-DVD1.iso
+source.iso.sles-10-sp2-64=/MOUNT-VIRT/iso/sles10sp2/SLES-10-SP2-DVD-x86_64-GM-DVD1.iso
+source.iso.sles-10-sp2-32=/MOUNT-VIRT/iso/sles10sp2/SLES-10-SP2-DVD-i386-GM-DVD1.iso
 source.nfs.sles-10-sp2-32=
 source.nfs.sles-10-sp2-64=
 
 source.ftp.sles-10-sp3-32=ftp://schnell.suse.de/CD-ARCHIVE/SLES10/SLE-10-SP3/SLES-10-SP3-GM/i386/DVD1/
 source.ftp.sles-10-sp3-64=ftp://schnell.suse.de/CD-ARCHIVE/SLES10/SLE-10-SP3/SLES-10-SP3-GM/x86_64/DVD1/
-source.iso.sles-10-sp3-32=/MOUNT-VIRT/iso/SLES-10-SP3-GMC2/SLES-10-SP3-DVD-i386-GM-DVD1.iso
-source.iso.sles-10-sp3-64=/MOUNT-VIRT/iso/SLES-10-SP3-GMC2/SLES-10-SP3-DVD-x86_64-GM-DVD1.iso
+source.iso.sles-10-sp3-32=/MOUNT-VIRT/iso/sles10sp3/SLES-10-SP3-DVD-i386-GM-DVD1.iso
+source.iso.sles-10-sp3-64=/MOUNT-VIRT/iso/sles10sp3/SLES-10-SP3-DVD-x86_64-GM-DVD1.iso
 source.nfs.sles-10-sp3-32=
 source.nfs.sles-10-sp3-64=
 
 source.ftp.sles-10-sp4-32=ftp://schnell.suse.de/CD-ARCHIVE/SLES10/SLE-10-SP4/SLES-10-SP4-GM/i386/DVD1/
 source.ftp.sles-10-sp4-64=ftp://schnell.suse.de/CD-ARCHIVE/SLES10/SLE-10-SP4/SLES-10-SP4-GM/x86_64/DVD1/
-source.iso.sles-10-sp4-32=/MOUNT-VIRT/iso/SLES-10-SP4-GM/SLES-10-SP4-DVD-i386-GM-DVD1.iso
-source.iso.sles-10-sp4-64=/MOUNT-VIRT/iso/SLES-10-SP4-GM/SLES-10-SP4-DVD-x86_64-GM-DVD1.iso
+source.iso.sles-10-sp4-32=/MOUNT-VIRT/iso/sles10sp4/SLES-10-SP4-DVD-i386-GM-DVD1.iso
+source.iso.sles-10-sp4-64=/MOUNT-VIRT/iso/sles10sp4/SLES-10-SP4-DVD-x86_64-GM-DVD1.iso
 source.nfs.sles-10-sp4-32=
 source.nfs.sles-10-sp4-64=
 
 source.ftp.sles-11-fcs-32=ftp://schnell.suse.de/CD-ARCHIVE/SLE11/SLES-11-GM/i386/DVD1/
 source.ftp.sles-11-fcs-64=ftp://schnell.suse.de/CD-ARCHIVE/SLE11/SLES-11-GM/x86_64/DVD1/
-source.iso.sles-11-fcs-32=/MOUNT-VIRT/iso/SLES-11-GM/SLES-11-DVD-i586-GM-DVD1.iso
-source.iso.sles-11-fcs-64=/MOUNT-VIRT/iso/SLES-11-GM/SLES-11-DVD-x86_64-GM-DVD1.iso
+source.iso.sles-11-fcs-32=/MOUNT-VIRT/iso/sles11gm/SLES-11-DVD-i586-GM-DVD1.iso
+source.iso.sles-11-fcs-64=/MOUNT-VIRT/iso/sles11gm/SLES-11-DVD-x86_64-GM-DVD1.iso
 source.nfs.sles-11-fcs-32=
 source.nfs.sles-11-fcs-64=
 
@@ -129,8 +129,8 @@ source.nfs.sles-11-sp1-64=
 
 source.ftp.sles-11-sp2-32=ftp://schnell.suse.de/CD-ARCHIVE/SLE11/SLES-11-SP2-GM/i386/DVD1/
 source.ftp.sles-11-sp2-64=ftp://schnell.suse.de/CD-ARCHIVE/SLE11/SLES-11-SP2-GM/x86_64/DVD1/
-source.iso.sles-11-sp2-32=/MOUNT-VIRT/iso/SLES-11-SP2-Beta2/SLES-11-SP2-DVD-i586-Build0150-Media1.iso
-source.iso.sles-11-sp2-64=/MOUNT-VIRT/iso/SLES-11-SP2-Beta2/SLES-11-SP2-DVD-x86_64-Build0150-Media1.iso
+source.iso.sles-11-sp2-32=/MOUNT-VIRT/iso/sles11sp2/SLES-11-SP2-DVD-i586-GM-DVD1.iso
+source.iso.sles-11-sp2-64=/MOUNT-VIRT/iso/sles11sp2/SLES-11-SP2-DVD-x86_64-GM-DVD1.iso
 source.nfs.sles-11-sp2-32=
 source.nfs.sles-11-sp2-64=
 
@@ -236,8 +236,8 @@ source.iso.rhel-6-u4-64=/VIRT-MOUNT/iso/redhat/rhel6u4/rhel-server-6.4-x86_64-dv
 
 source.ftp.sled-10-sp3-32=ftp://schnell.suse.de/CD-ARCHIVE/SLED10/SLE-10-SP3/SLED-10-SP3-GM/i386/DVD1/
 source.ftp.sled-10-sp3-64=ftp://schnell.suse.de/CD-ARCHIVE/SLED10/SLE-10-SP3/SLED-10-SP3-GM/x86_64/DVD1/
-source.iso.sled-10-sp3-64=/MOUNT-VIRT/iso/SLED-10-SP3-GMC2/SLED-10-SP3-DVD-x86_64-GM-DVD1.iso
-source.iso.sled-10-sp3-32=/MOUNT-VIRT/iso/SLED-10-SP3-GMC2/SLED-10-SP3-DVD-i386-GM-DVD1.iso
+source.iso.sled-10-sp3-64=/MOUNT-VIRT/iso/sled10sp3/SLED-10-SP3-DVD-x86_64-GM-DVD1.iso
+source.iso.sled-10-sp3-32=/MOUNT-VIRT/iso/sled10sp3/SLED-10-SP3-DVD-i386-GM-DVD1.iso
 
 source.ftp.sled-10-sp4-32=ftp://schnell.suse.de/CD-ARCHIVE/SLES10/SLE-10-SP4/SLED-10-SP4-GM/i386/DVD1/
 source.ftp.sled-10-sp4-64=ftp://schnell.suse.de/CD-ARCHIVE/SLES10/SLE-10-SP4/SLED-10-SP4-GM/x86_64/DVD1/

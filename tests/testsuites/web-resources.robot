@@ -78,7 +78,7 @@ Reinstall Machine
     Click Button    Finish
     Click Button    Submit
     Page Should Contain    Machine ${SUT_NAME} reinstallation has been launched.
-    Sleep    60
+    Sleep    90
     Open Machine Detail Page    ${SUT_NAME}
     Element Should Contain    id=status_string    job running
     Element Text Should Be    id=job_overview  reinstall

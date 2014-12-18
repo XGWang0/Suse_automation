@@ -1,22 +1,21 @@
 <?xml version="1.0"?>
 <job>
-    <config>
-        <name>Delete virtual machine</name>
-        <debuglevel>4</debuglevel>
-        <distributable>0</distributable>
-        <parallel>0</parallel>
-        <mail notify="1"></mail>
-	<rpm>qa_hamsta qa_tools libvirt qa_lib_virtauto perl-XML-XPath</rpm>
-        <logdir>/tmp</logdir>
-        <description>Force-off and Delete virtual machine and all its data and disk images</description>
-        <motd>Deletion of virtual machine in progress...</motd>
-        <reboot>0</reboot>
-    </config>
-
-    <commands>
+  <config>
+    <name>Delete virtual machine</name>
+    <debuglevel>4</debuglevel>
+    <description>Force-off and Delete virtual machine and all its data and disk images</description>
+    <mail notify="1"></mail>
+    <motd>Deletion of virtual machine in progress...</motd>
+    <rpm>qa_hamsta qa_tools libvirt qa_lib_virtauto perl-XML-XPath</rpm>
+  </config>
+  <parts>
+    <part name="part1" id="1" />
+  </parts>
+  <roles>
+    <role name="role_1">
+      <commands part_id="1">
         <worker>
-            <!-- Required -->
-            <command execution="forked">
+          <command execution="forked" reboot="0"><![CDATA[
 #!/bin/bash
 
 hypervisor="`cat /var/lib/hamsta/VH | head -n 1`"
@@ -34,7 +33,9 @@ done;
 
 echo "Virtual machine with mac address MACADDR was not found on this host"
 exit 1;
-</command>
+]]></command>
         </worker>
-    </commands>
+      </commands>
+    </role>
+  </roles>
 </job>

@@ -101,6 +101,9 @@
 	   case 'machine_reserve':
 			$go = 'machine_reserve';
 			return require ('inc/machine_reserve.php');
+           case 'release_machine_for_master':
+			$go = "release_machine_for_master";
+			return require ('inc/release_machine_for_master.php');
 	}
 
 	$searched_fields = array();

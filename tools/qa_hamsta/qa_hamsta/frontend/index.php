@@ -66,6 +66,7 @@ require_once ('lib/ReservationsHelper.php');
 require("lib/request.php");
 require("lib/db.php");
 require("lib/machine.php");
+require("lib/job.php");
 require("lib/log.php");
 require("lib/module.php");
 require("lib/jobrun.php");
@@ -134,7 +135,8 @@ $pages = array(
     "qa_netconf",
     "usedby",
     "machine_privileges",
-    "machine_reserve"
+    "machine_reserve",
+    "release_machine_for_master"
 );
 
 if (!in_array($go, $pages)) {

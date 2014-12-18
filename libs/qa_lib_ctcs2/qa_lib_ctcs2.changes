@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Dec 18 00:00:00 UTC 2014 - vmarsik@suse.com
+- New 2.8.3 release from QA automation team
+- Merged mm_sync base branch
+- fixed bugs
+
+-------------------------------------------------------------------
 Tue Apr 15 14:37:39 CEST 2014 - chrubis@suse.com
 - Added ctcs2_check.py script
 

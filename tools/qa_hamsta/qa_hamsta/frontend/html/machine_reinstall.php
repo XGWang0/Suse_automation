@@ -42,81 +42,81 @@ Machines:
 
 <form enctype="multipart/form-data" action="index.php?go=machine_reinstall" method="POST" onsubmit="return checkcontents(this);">
 <input id="summary" type="checkbox"/>
-<label for="summary">show summary</label>
-<div id="finish">
-	<label for="summary"><input type="button" value="Edit"/></label>
-	<input type="submit" value="Submit" name='proceed'/>
+<label for="summary" class="button">show summary</label>
+<div class="finish">
+	<label for="summary" class="btn first">Edit</label>
+	<input type="submit" value="Submit" name="proceed" class="btn"/>
 </div>
 <div class="tabs">
-	<div id='tab-product' class="tab">
+	<div id="tab-product" class="tab">
 		<input type="radio" id="tab1" name="tab-group-1" checked/>
 		<div class="content">
-			<div class="breadcrumb">
-				<label for="tab1"><input type="button" value="Prev" class="disabled"/></label>
-				<label for="tab2"><input type="button" value="Next"/></label>
-				<label for="summary"><input type="button" value="Finish"/></label>
-				<label class='pos active first' for="tab1">Product</label>
-				>>
-				<label class='pos' for="tab2">Disk</label>
-				>>
-				<label class='pos' for="tab3">Advanced</label>
+			<div class="breadcrumb breadcrumb_top">
+				<label for="tab1" class="btn disabled">Prev</label>
+				<label for="tab2" class="btn">Next</label>
+				<label for="summary" class="btn">Finish</label>
+				<label for="tab1" class="btn active first">Product</label>
+				&raquo;
+				<label for="tab2" class="btn">Disk</label>
+				&raquo;
+				<label for="tab3" class="btn">Advanced</label>
 			</div>
 			<?php require ("req_rein_all.php"); ?>
-			<div class="breadcrumb_bottom">
-				<label for="tab1"><input type="button" value="Prev" class="disabled"/></label>
-				<label for="tab2"><input type="button" value="Next"/></label>
-				<label for="summary"><input type="button" value="Finish"/></label>
+			<div class="breadcrumb breadcrumb_bottom">
+				<label for="tab1" class="btn disabled">Prev</label>
+				<label for="tab2" class="btn">Next</label>
+				<label for="summary" class="btn">Finish</label>
 			</div>
 		</div>
 	</div>
-	<div id='tab-disk' class="tab">
+	<div id="tab-disk" class="tab">
 		<input type="radio" id="tab2" name="tab-group-1"/>
 		<div class="content">
-			<div class="breadcrumb">
-				<label for="tab1"><input type="button" value="Prev"/></label>
-				<label for="tab3"><input type="button" value="Next"/></label>
-				<label for="summary"><input type="button" value="Finish"/></label>
-				<label class='pos first' for="tab1">Product</label>
-				>>
-				<label class='pos active' for="tab2">Disk</label>
-				>>
-				<label class='pos' for="tab3">Advanced</label>
+			<div class="breadcrumb breadcrumb_top">
+				<label for="tab1" class="btn">Prev</label>
+				<label for="tab3" class="btn">Next</label>
+				<label for="summary" class="btn">Finish</label>
+				<label for="tab1" class="btn first">Product</label>
+				&raquo;
+				<label for="tab2" class="btn active">Disk</label>
+				&raquo;
+				<label for="tab3" class="btn">Advanced</label>
 			</div>
 			<?php require ("req_rein.php"); ?>
-			<div class="breadcrumb_bottom">
-				<label for="tab1"><input type="button" value="Prev"/></label>
-				<label for="tab3"><input type="button" value="Next"/></label>
-				<label for="summary"><input type="button" value="Finish"/></label>
+			<div class="breadcrumb breadcrumb_bottom">
+				<label for="tab1" class="btn">Prev</label>
+				<label for="tab3" class="btn">Next</label>
+				<label for="summary" class="btn">Finish</label>
 			</div>
 
 		</div>
 	</div>
-	<div id='tab-advanced' class="tab">
+	<div id="tab-advanced" class="tab">
 		<input type="radio" id="tab3" name="tab-group-1"/>
 		<div class="content">
-			<div class="breadcrumb">
-				<label for="tab2"><input type="button" value="Prev"/></label>
-				<label for="tab3"><input type="button" value="Next" class="disabled"/></label>
-				<label for="summary"><input type="button" value="Finish"/></label>
-				<label class='pos first' for="tab1">Product</label>
-				>>
-				<label class='pos' for="tab2">Disk</label>
-				>>
-				<label class='pos active' for="tab3">Advanced</label>
+			<div class="breadcrumb breadcrumb_top">
+				<label for="tab2" class="btn">Prev</label>
+				<label for="tab3" class="btn disabled">Next</label>
+				<label for="summary" class="btn">Finish</label>
+				<label for="tab1" class="btn first">Product</label>
+				&raquo;
+				<label for="tab2" class="btn">Disk</label>
+				&raquo;
+				<label for="tab3" class="btn active">Advanced</label>
 			</div>
 			<?php require ("req_sut.php"); ?>
-			<div class="breadcrumb_bottom">
-				<label for="tab2"><input type="button" value="Prev"/></label>
-				<label for="tab3"><input type="button" value="Next" class="disabled"/></label>
-				<label for="summary"><input type="button" value="Finish"/></label>
+			<div class="breadcrumb breadcrumb_bottom">
+				<label for="tab2" class="btn">Prev</label>
+				<label for="tab3" class="btn disabled">Next</label>
+				<label for="summary" class="btn">Finish</label>
 			</div>
 
 		</div>
 	</div>
 </div>
-<div id="finish">
-	<label for="summary"><input type="button" value="Edit"/></label>
-	<input type="submit" value="Submit" name='proceed'/>
+<div class="finish">
+	<label for="summary" class="btn first">Edit</label>
+	<input type="submit" value="Submit" class="btn" name="proceed"/>
 </div>
 
 <?php

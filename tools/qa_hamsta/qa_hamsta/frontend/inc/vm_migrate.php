@@ -31,8 +31,16 @@ if (!defined('HAMSTA_FRONTEND')) {
 	return require("index.php");
 }
 
+$a_machines = request_array("a_machines");
+
+$job = new Job();
+
+foreach( $a_machines as $machine ) {
+	$job->add_machine_id($machine);
+}
+
 $search = new MachineSearch();
-$search->filter_in_array(request_array("a_machines"));
+$search->filter_in_array($a_machines);
 $machines = $search->query();
 
 # check permissions
@@ -100,12 +108,15 @@ if (request_str("proceed")) {
 		system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $migratejobfile");
 		system("sed -i 's/ARGS/$args/g' $migratejobfile");
 
-		foreach ($machines as $machine) {
-			if (!$machine->send_job($migratejobfile)) {
-				$error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
-			} else {
-				Log::create($machine->get_id(), get_user_login ($user), 'VM-MIGRATION', "of host $host_name to remote host with IP $migrateeIP and live migration option as " . ($livemigration ? "yes" : "no") . " has been processed.");
+		#jobxml add
+		$job->addfile($migratejobfile);
+
+		if ( $job->send_job() ){
+			foreach( $a_machines as $machine ) {
+				Log::create($machine, get_user_login ($user), 'VM-MIGRATION', "of host $host_name to remote host with IP $migrateeIP and live migration option as " . ($livemigration ? "yes" : "no") . " has been processed.");
 			}
+		}else{
+			$error = $job->errmsg;
 		}
 
 		if (empty($error)) {

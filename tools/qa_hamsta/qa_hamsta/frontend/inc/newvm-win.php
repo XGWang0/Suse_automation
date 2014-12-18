@@ -30,9 +30,16 @@ if (!defined('HAMSTA_FRONTEND')) {
 	$go = 'newvm';
 	return require("index.php");
 }
+$a_machines = request_array("a_machines");
+
+$job = new Job();
+
+foreach( $a_machines as $machine ) {
+	$job->add_machine_id($machine);
+}
 
 $search = new MachineSearch();
-$search->filter_in_array(request_array("a_machines"));
+$search->filter_in_array($a_machines);
 $machines = $search->query();
 $perm=array('owner'=>'vm_admin','other'=>'vm_admin_reserved','url'=>'index.php?go=newvm');
 machine_permission_or_disabled($machines,$perm);
@@ -75,13 +82,17 @@ if (request_str("proceed")) {
 		system("sed -i '/<mail notify=/c\\\t<mail notify=\"1\">$email<\/mail>' $autoyastfile");
 		system("sed -i 's/ARGS/$args/g' $autoyastfile");
 
-		foreach ($machines as $machine) {
-			if (!$machine->send_job($autoyastfile)) {
-				$error = (empty($error) ? "" : $error) . "<p>".$machine->get_hostname().": ".$machine->errmsg."</p>";
-			} else {
-				Log::create($machine->get_id(), get_user_login ($user), 'VMNEW', "has installed new Windows virtual machine using \"$producturl_raw\"");
+		#jobxml add
+		$job->addfile($autoyastfile);
+
+		if ( $job->send_job() ){
+			foreach( $a_machines as $machine ) {
+				Log::create($machine, get_user_login ($user), 'VMNEW', "has installed new Windows virtual machine using \"$producturl_raw\"");
 			}
+		}else{
+			$error = $job->errmsg;
 		}
+
 
 		if (empty($error)) {
 			header("Location: index.php?go=qacloud");

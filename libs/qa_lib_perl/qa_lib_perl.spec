@@ -40,6 +40,7 @@ BuildRequires:  coreutils
 Requires:       perl
 Requires:       perl-XML-Simple
 Requires:       qa-config
+Requires:       libqainternal
 Provides:       qa_libperl
 Obsoletes:      qa_libperl
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build

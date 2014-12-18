@@ -26,6 +26,7 @@ package Slave::functions;
 use strict;
 BEGIN { push @INC, '.', '/usr/share/hamsta', '/usr/share/qa/lib'; }
 use log;
+use detect;
 use XML::Simple;
 
 BEGIN {
@@ -40,7 +41,8 @@ BEGIN {
 		&command
 		&install_rpms
 		&read_xml
-		&get_slave_ip
+                &section_run
+                &add_repos
 	);
 	%EXPORT_TAGS	= ();
 	@EXPORT_OK	= qw(
@@ -114,6 +116,29 @@ sub install_rpms # $upgrade_flag, @basenames
 	return $ret;
 }
 
+# add_repos: add repositories by zypper
+# input: @url - array which composed by repo urls
+# return: integer 
+#    0 - all success
+#    1 - some repos failed
+sub add_repos
+{
+    my @url = @_;
+
+    my $ret = 0;
+    foreach my $u (@url) {
+        my $exists = `zypper lr -u |grep "$u"`;
+        next if ( $exists ne "" );
+
+        my $rand = int(rand(100000));
+        $ret += &command("zypper ar $u jobrepo_$rand 2>/tmp/sut_repo_stderr_tmp") >> 8;
+        my $repo_stderr = `cat /tmp/sut_repo_stderr_tmp`;
+        chomp($repo_stderr);
+        &log(LOG_ERROR,"ERROR:REPO $u install/update error: $repo_stderr\n") if ( $repo_stderr ne "" );
+    }
+    return $ret;
+}
+
 # returns $pid and PIDs of all its subprocesses
 sub get_process_tree	# $pid
 {
@@ -132,44 +157,9 @@ sub get_process_tree	# $pid
 	return @ret;
 }
 
-our @force_array = qw(rpm attachment worker logger monitor role machine parameter);
+our @force_array = qw(rpm attachment worker logger monitor role machine parameter repository);
 our %force_array = map {$_=>1} @force_array;
 our @file_array = ();
-
-
-# get_slave_ip() : string
-# Returns the IP address of this slave
-sub get_slave_ip() {
-   my $hint_ip=&ip_to_number($_[0]);
-   my $ip;
-   my $ret=undef;
-   my $hint_match=-1;
-
-   my $dev=(split /\s/, `route -n | grep "^0.0.0.0"`)[-1]; #get the main communication device
-   open(CMDFH, "ifconfig $dev |") || die "error: $?";
-   foreach (<CMDFH>) {
-      if ($_=~/inet (\w+):(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/) {
-         $ip = "$2.$3.$4.$5";
-         my $ip_num=($2<<24) | ($3<<16) | ($4<<8) | $5;
-         my $match=defined $hint_ip ? ($hint_ip & $ip_num) : 0;
-         if( $match>=$hint_match ) {
-             $ret=$ip;
-             $hint_match=$match;
-         }
-      }
-   }
-   close(CMDFH);
-   return $ret;
-}
-
-sub ip_to_number()
-{
-    my $text=$_[0];
-    return undef unless defined $text and $text =~ /(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/;
-    return ($1<<24) | ($2<<16) | ($3<<8) | $4;
-}
-
-#
 
 
 # TODO: duplicite with Master
@@ -186,7 +176,8 @@ sub read_xml($$) # filename, map_roles
 
 	if( $map_roles )
 	{	
-		$role_id = &get_role_id( $ret );
+#xml2part done this
+#		$role_id = &get_role_id( $ret );
 		&get_parameters($ret)
 	}
 	
@@ -202,7 +193,7 @@ sub read_xml($$) # filename, map_roles
 sub get_role_id($) # XML_tree
 {
 	my $xml = shift;
-	my $ip = &get_slave_ip();
+	my $ip = &get_my_ip_addr();
 	my $my_role = undef;
 	foreach my $role (@{$xml->{'roles'}->{'role'}})
 	{
@@ -297,5 +288,22 @@ sub process_xml($$$) # XML, role_id, root_element_name
 	}
 }
 
+# Function for mm job
+# Used to run one or multiple secions.
+# possible sections may be finish, abort, kill derived from job xml.
+sub section_run 
+{
+    foreach my $sec (@_) {
+        if (-e $sec) {
+            my $type = $1 if( $sec =~ /(finish|abort)/ );
+            my $cmd = read_xml($sec,1);
+            my $command = Slave::Job::Command->new($type, $cmd);
+            unshift @{$command->{'command_objects'}}, $command;
+            &log(LOG_INFO, "Run $type section: ".$cmd->{'command'}->{'content'});
+            $command->run();
+            unlink $sec;
+        }
+    }
+}
 
 1;

@@ -1,22 +1,21 @@
 <?xml version="1.0"?>
 <job>
-    <config>
-        <name>QA_KERNEL_launch_all_test_sles11-sp2</name>
-        <debuglevel>4</debuglevel>
-        <distributable>0</distributable>
-        <parallel>0</parallel>
-        <mail notify="1"></mail>
-	<rpm>qa_hamsta qa_tools</rpm>
-        <logdir>/tmp</logdir>
-        <description>SLES11-SP2 QA kernel test</description>
-        <motd>[Custom job]: SLES11-SP2 QA kernel test is running</motd>
-        <reboot>0</reboot>
-    </config>
-
-    <commands>
+  <config>
+    <name>QA_KERNEL_launch_all_test_sles11-sp2</name>
+    <debuglevel>4</debuglevel>
+    <description>SLES11-SP2 QA kernel test</description>
+    <mail notify="1"></mail>
+    <motd>[Custom job]: SLES11-SP2 QA kernel test is running</motd>
+    <rpm>qa_hamsta qa_tools</rpm>
+  </config>
+  <parts>
+    <part name="part1" id="1" />
+  </parts>
+  <roles>
+    <role name="role_1">
+      <commands part_id="1">
         <worker>
-            <!-- Required -->
-	    <command execution="forked"><![CDATA[#!/bin/bash 
+          <command execution="forked" reboot="0"><![CDATA[#!/bin/bash 
 
 ARCH=$HOSTTYPE
 if [ "$ARCH" != "" ]; then
@@ -38,7 +37,7 @@ if [ -z "$release" ]; then
 fi
 
 mkdir -p /mounts/dist
-ipaddr_list=`ifconfig | grep "inet addr" | cut -d":" -f 2 | cut -d " " -f 1`
+ipaddr_list=`ifconfig2ip ip`
 if echo $ipaddr_list | grep "147\.2\." &>/dev/null;then
         mount -t nfs 147.2.207.208:/srv/ftp/dist /mounts/dist
 	zypper --no-gpg-checks -n ar http://147.2.207.208/dist/install/SLP/SLE-11-SP2-SDK-$release/$ARCH/DVD1 sle11-sp2-sdk
@@ -363,11 +362,10 @@ echo -e "All tests starts now\n"
 	echo "!!!All tests have finished. Next is to analyze results."
 	/usr/share/hamsta/testscript/report
 	/usr/share/qa/tools/remote_qa_db_report.pl -b -c "QA_KERNEL_launch_all_test_sles11-sp2"
-]]>
-</command>
-            <!-- Optional -->
-            <directory>/</directory>
-	    <timeout>604800</timeout> <!-- one week -->
+
+]]></command>
         </worker>
-    </commands>
+      </commands>
+    </role>
+  </roles>
 </job>
