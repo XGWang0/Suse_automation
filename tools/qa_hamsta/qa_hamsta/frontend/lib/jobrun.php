@@ -647,6 +647,15 @@ j.job_id DESC';
 	function pop_machine_id(){
 		return key($this->fields['machines']);
 	}
+	function get_machine_ids(){
+		$machine_ids=array();
+		foreach($this->fields['machines'] as $part_id => $value){
+			foreach( array_keys($this->fields['machines'][$part_id]) as $machine_id ) {
+			$machine_ids[$machine_id]=1;
+			}
+		}
+		return array_keys($machine_ids);
+	}
 
 	function machine_counts(){
 		return count($this->fields['machines']);
