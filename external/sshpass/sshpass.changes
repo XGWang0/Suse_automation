@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Dec 18 00:00:00 UTC 2014 - vmarsik@suse.com
+- New 2.8.3 release from QA automation team
+- Merged mm_sync base branch
+- fixed bugs
+
+-------------------------------------------------------------------
 Mon Nov  4 10:16:56 CET 2013 - llipavsky@suse.de
 
 - version update to 1.05
