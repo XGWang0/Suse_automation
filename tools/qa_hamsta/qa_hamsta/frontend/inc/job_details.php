@@ -43,6 +43,7 @@
     $d_return = request_int("d_return");
     $d_job= request_int("d_job");
     $delete_job= request_int("finished_job");
+# FIXME: if( machine_permission($a_machines,$perm_send_job) ) should be enough
 	if (((isset ($user) && machine_permission($a_machines,$perm_send_job)) || !$config->authentication->use ) &&
 	$delete_job) {
 		$job->set_failed();
