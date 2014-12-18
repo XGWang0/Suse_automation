@@ -303,7 +303,12 @@ sub log # severity, message, ...
 			select $oldh;
 		}
 	}
-	return $re_data."\n";
+	if(defined($re_data))
+	{
+		return $re_data."\n";
+	}else{
+		return undef;
+	}
 }
 
 # try to parse a line as log output
