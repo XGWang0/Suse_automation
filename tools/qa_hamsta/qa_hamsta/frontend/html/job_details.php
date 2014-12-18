@@ -178,6 +178,14 @@ tsRegister();
 <?php else: ?>
 <a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;d_job=1&amp;d_return=<?php echo($d_return); ?><?php echo($refresh_interval.$xml_norefresh); ?>" class="text-main">Show XML job description</a>
 <?php endif; ?>
+<?php
+# FIXME: if( machine_permission($a_machines,$perm_send_job) ) should be enough
+    if (((isset ($user) && machine_permission($a_machines,$perm_send_job)) || !$config->authentication->use) && !$job->is_finished ()) {
+?>
+    <a href="index.php?go=job_details&amp;id=<?php echo($job->get_id()); ?>&amp;finished_job=1" class="text-main">Set finished</a>
+<?php
+    }
+?>
 	<!--td>
 -	<a href="index.php?xml_file_name=<php echo($job->get_xml_filename()); ?>&amp;go=machines&amp;action=machine_send_job&amp;machines[a_machines]=a_machines&amp;a_machines[0]=<php echo($job->get_machine()->get_id()); >" class="text-main">Resend job</a>
 	</td-->

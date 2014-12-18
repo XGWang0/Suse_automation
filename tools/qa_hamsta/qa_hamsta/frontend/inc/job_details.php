@@ -33,7 +33,9 @@
         return require("index.php");
     }
 
+    global $config;
     $job = JobRun::get_by_id(request_int("id"));
+	$a_machines = $job->get_machine_ids();
     $job_part = $job->get_part_id();
     $job_roles = $job->get_roles();
     $roleNumber = count($job_roles);
@@ -41,12 +43,11 @@
     $d_return = request_int("d_return");
     $d_job= request_int("d_job");
     $delete_job= request_int("finished_job");
-if (isset ($user) && $delete_job) {
-	$part_id = request_int("part_id");
-	$mid = request_int("machine_id");
-	$job->set_status($part_id, $mid, 4);
-	$job->set_stopped($part_id, $mid);
-}
+# FIXME: if( machine_permission($a_machines,$perm_send_job) ) should be enough
+	if (((isset ($user) && machine_permission($a_machines,$perm_send_job)) || !$config->authentication->use ) &&
+	$delete_job) {
+		$job->set_failed();
+	}
 
     $html_title = "Job ".$job->get_id();
     #find max number of machines in all roles
