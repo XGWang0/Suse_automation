@@ -33,6 +33,7 @@
         return require("index.php");
     }
 
+    global $config;
     $job = JobRun::get_by_id(request_int("id"));
 	$a_machines = $job->get_machine_ids();
     $job_part = $job->get_part_id();
@@ -42,7 +43,8 @@
     $d_return = request_int("d_return");
     $d_job= request_int("d_job");
     $delete_job= request_int("finished_job");
-	if (isset ($user) && machine_permission($a_machines,$perm_send_job) && $delete_job) {
+	if (((isset ($user) && machine_permission($a_machines,$perm_send_job)) || !$config->authentication->use ) &&
+	$delete_job) {
 		$job->set_failed();
 	}
 
