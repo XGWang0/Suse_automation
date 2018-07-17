@@ -1,0 +1,10 @@
+#!/bin/bash
+
+cd "`dirname $0`"
+
+echo "Installing default configuration files to system (/etc/qavirttest)"
+
+sudo mkdir -p /etc/qavirttest
+sudo cp -i utils.config virttest/virttest.ini /etc/qavirttest
+
+echo "configuration file installation done. Please edit files in /etc/qavirttest to reflect your system settings"

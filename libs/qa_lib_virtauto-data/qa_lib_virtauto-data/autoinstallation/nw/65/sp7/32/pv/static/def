@@ -1,0 +1,234 @@
+[Initialization]
+Install=silent
+Install State=First
+Description=
+DescriptionID=
+
+[NWI:Language]
+Server Language=4
+Prompt=FALSE
+
+[Selected Nodes]
+prompt=false
+Non-Changeable Products=Script,Imonitor,Portal,ConsoleOneProducts,6pkLdap,SMS,Novell Certificate Server,NWNMAS,Apache2 Admin Server,Native File Services,Tomcat4,NWEMBOX,PHP,Perl,NSN,Beans,NSBS2Copy,NSBS2Extra,NWEMBOX87,iMonitor87,Ldap87
+Pattern Products=Script,Imonitor,Portal,ConsoleOneProducts,6pkLdap,SMS,Novell Certificate Server,NWNMAS,Apache2 Admin Server,Native File Services,Tomcat4,NWEMBOX,PHP,Perl,NSN,Beans,NSBS2Copy,NSBS2Extra
+DestinationNode=HealthChecks
+HealthChecks=NetWare Services
+NetWare Services=NetWare OS,Patterns,Products,NWUpdateGroup
+NetWare OS=NetWare65OS,NICI,Protocols,Time Zone,DS_Install,LicensePrompt,W0 install,NFA Install Module,Bash,RedCarpet,Rug,Support Pack
+Bash=netware65RPM,bashFiles
+RedCarpet=rcdFiles
+Rug=python,rugFiles
+Patterns=CustomNetWare
+Products=Novell Certificate Server,6pkLdap,Imonitor,Apache2 Admin Server,Tomcat4,Portal,SMS,ConsoleOneProducts,NWNMAS,Native File Services,NWEMBOX,NFA Module,iStorage,Perl,PHP,OpenSSH
+Novell Certificate Server=CertServ System Files,CertServ Public Files
+Imonitor=imonitor_DFG88
+Apache2 Admin Server=AApache2,AAp2Conf,adminsrv,welcome
+Tomcat4=Tomcat zip file,examples zip file,Tomcat admin configuration,Novell Tomcat Startup Scripts
+Apache2 Webserver=Ap2webcf
+Portal=portalzip,httpstkzip
+SMS=SMSSystemFiles
+ConsoleOneProducts=ConsoleOne,Reporting Snapin
+ConsoleOne=c1_core,c1_win32,c1_nw.zip
+Reporting Snapin=c1_rpt
+NDPS=NDPS Server Files,NDPSResourceFiles
+NDPS Server Files=Xfer IPP Login Files,IPP Login Files,IPrint Files,Gateway Files
+NDPSResourceFiles=NDPS Banner,NDPS Font,NDPS Prndef,NDPSPrndrv
+NDPSPrndrv=NDPSPrndrv-HP,NDPSPrndrv-Xerox,NDPSPrndrv-Kyocera,NDPSPrndrv-Lexmark,NDPSPrndrv-IBM,NDPSPrndrv-Oki,NDPSPrndrv-QMS
+NDPSPrndrv-HP=HPDrivers
+NDPSPrndrv-Xerox=XeroxDrivers
+NDPSPrndrv-Kyocera=KyoceraDrivers
+NDPSPrndrv-Lexmark=LexmarkDrivers
+NDPSPrndrv-IBM=IBMDrivers
+NDPSPrndrv-Oki=OkiDrivers
+NDPSPrndrv-QMS=QMSDrivers
+FTP Server=ftpfilezip
+QuickFinder Server=QFSearch1,QFTemplates,QF Sample Templates
+ipWanMan=dfgWanManSysSystem
+NWNMAS=NMAS Server System Files,NMAS Methods
+Native File Services=NFSNIS
+NFSNIS=NFSNIS-NLMs
+DNSDHCP=dnipFiles
+iFolder=iFolder install module
+iFolder install module=iFolder zip file,ifolder_en
+NWEMBOX=embox_DFG88
+NWSNMP=SNMP_SYSTEM_DFG,SNMP_ETC_DFG
+MySQL=MySQL install module
+MySQL install module=Product zip file,Configuration zip file,PHP Configuration zip file,JDBC Driver zip file,Manage zip file
+Tomcat5=tomcat5zip,tc5exmpl,nwtc5bin
+j2ee=exteNd Application Server zip file,exteNd Application Server NetWare Overlay,exteNd Application Server NetWare configuration files,exteNd Application Server IP address Management zip file
+OpenWbem=cimom,cimdb
+Beans=BEANS_ZIP
+iStorage=components
+NSN=NSN install module,UCS install module
+NSN install module=NSN Product zip file
+UCS install module=UCS Product zip file
+Perl=Perl install module
+Perl install module=Perl Product zip file
+PHP=PHP install module
+PHP install module=PHP Product zip file
+OpenSSH=SSH-Config,SSH-Core,SSH-Docs
+Wan Connectivity=WanConnectZip,UpgradeFrom
+eGuide=eGuideFiles
+Virtual Office=vofficeRPM,vofficewelcomeRPM,eGuideCf
+iManager2.5 Product=IMANAGER_ZIP_FILE,IMANAGER_CONF_FILES,IMANAGER_PACKAGE_FILES,IMANAGER_README_FILES
+NWUpdateGroup=NWUpdate
+
+[Product List]
+Essential Products=NetWare OS,HealthChecks,NetWare Services
+
+[NWI:Locale]
+Uses Vgadisp=false
+Code Page=437
+Country Code=001
+Keyboard=United States
+Prompt=FALSE
+
+[NWI:File Server]
+Prompt=FALSE
+Duplicate Server Name Check=false
+Servername=REPLACEMEWITHNAME
+Server ID Number=
+
+[NWI:Server Settings]
+Prompt=FALSE
+Load server at reboot=FALSE
+CD-ROM Driver=NetWare
+
+[NWI:Mouse and Video]
+Mouse=Auto
+Video Type=PlugNPlay
+Prompt=FALSE
+
+[NWI:Boot Partition]
+Prompt=FALSE
+Dos Partition Size=500
+
+[NWI:License]
+Display License Agreement=FALSE
+Prompt=FALSE
+MLA License Context=
+Install Licenses Later=TRUE
+Licenses File=
+
+[NWI:Install Options]
+Upgrade=FALSE
+Express=TRUE
+Prompt=FALSE
+Use Unsupported Drivers=FALSE
+
+[NWI:LdapConfig]
+Prompt=false
+ClearText=false
+
+[SMS]
+prompt=false
+
+[NWNMAS]
+Prompt=FALSE
+Method 0=CertMutual
+Method 1=ChallengeResponse
+Method 2=DigestMD5
+Method 3=NDS
+Method 4=SimplePassword
+
+[Beans]
+prompt=false
+
+[NSN]
+prompt=false
+
+[Perl]
+prompt=false
+
+[PHP]
+prompt=false
+
+[j2ee]
+prompt=false
+
+[MySQL]
+prompt=false
+rootPassword=root
+
+[DNSDHCP]
+prompt=false
+
+[iFolder]
+prompt=false
+
+[iStorage]
+prompt=false
+
+[RF Generator]
+Install Type=New
+Response File Name=REPLACEMEWITHNAME.rsp
+Response File Local Path=/root/
+Response File Path=A:\
+Source Location Path=
+Destination Location Path=
+NetWare Source Location=FALSE
+Launch VM Creator=FALSE
+
+[NOVELL:NOVELL_ROOT:1.0.0]
+silent=TRUE
+Prompt=FALSE
+closeScreen=SilentCloseScreen
+allowCloseScreen=TRUE
+Reboot=TRUE
+
+[NWI:NDS]
+Tree Name=REPLACEMEWITHTREE
+New Tree=TRUE
+Server Context=novell
+Admin Context=novell
+Admin Login Name=admin
+Admin Password=novell
+Prompt=FALSE
+Admin Language=4
+
+[NWI:Protocols]
+Single Network Adapter=TRUE
+Prompt=FALSE
+Default IP Frame Type=Ethernet_II
+Default IPX Frame Type=
+
+[NWI:TCPIP]
+Prompt=FALSE
+IP Address 1=REPLACEMEWITHIP
+Subnet Mask 1=REPLACEMEWITHMASK
+Gateway 1=REPLACEMEWITHGATEWAY
+
+[NWI:IPX]
+Prompt=FALSE
+Bind LAN Card 1=FALSE
+
+[NWI:Host Name]
+IP Address 1=REPLACEMEWITHIP
+Verify=FALSE
+Host Name 1=REPLACEMEWITHNAME.REPLACEMEWITHDOMAIN
+Prompt=FALSE
+
+[NWI:SLP Configuration]
+Prompt=FALSE
+Skip SLP=TRUE
+
+[NWI:DNS]
+Domain=REPLACEMEWITHDOMAIN
+Nameservers=REPLACEMEWITHDNS
+Prompt=FALSE
+
+[NWI:Time Zone]
+Time Zone=(GMT-07:00) US & Canada Mountain Time
+Prompt=FALSE
+Use Daylight Saving Time=TRUE
+
+[NWI:Time Synchronization]
+Prompt=FALSE
+Time Server Protocol=TIMESYNC
+Time Server Type=SINGLE
+Use Time Source=FALSE
+
+[NWI:Pool Sys]
+Sys Pool Size=9500
+Prompt=FALSE

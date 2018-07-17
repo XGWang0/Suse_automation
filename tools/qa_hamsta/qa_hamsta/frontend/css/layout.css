@@ -1,0 +1,194 @@
+/* ****************************************************************************
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
+  
+  THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+  CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+  RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+  THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+  THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+  TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+  PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+  PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+  AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+  LIABILITY.
+  
+  SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+  WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+  AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+  LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+  OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+  WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+  ****************************************************************************
+ */
+
+root
+{
+	display: block;
+}
+html
+{
+	background-color: #fff;
+}
+body
+{
+	margin: 0 auto;
+	padding: 0;
+	font-size: 15px;
+}
+#header
+{
+	background-color: #455560;
+	padding: 10px;
+	color: #ffffff;
+	position: relative;
+}
+	#header-links
+	{
+		position: absolute;
+		right: 20px;
+		top: 35px;
+		width: 290px;
+		height: 20px;
+		padding: 5px;
+		text-align: right;
+		border: 0px solid green;
+	}
+	#links
+	{
+		position: relative;
+		text-align: left;
+	}
+
+	#hlogo	{
+	    margin:0.5em 0 0.5em 0;
+	}
+
+	#hlogo a img	{	border: 0;	}
+	#hlogo img.logo
+	{
+		height: 40px;
+	}
+
+	#hlogo span#caption
+	{
+	    color:white;
+	    font-size:3.5em;
+	    font-weight:bold;
+	    text-shadow:#3a3a3b 3px 3px;
+	    margin-left:0.4em;
+	    white-space:nowrap;
+	}
+
+	#hlogo span#title
+	{
+	    margin:10px 0 10px 0;
+	}
+
+	#hlogo img.hamsta
+	{
+		width: 220px;
+		height: 160px;
+		margin-left: 50px;
+		margin-top: -10px;
+		position: absolute;
+	}
+
+	#header div.version
+	{
+		width: 150px;
+		position: absolute;
+		top: 5px;
+		left: 5px;
+	}
+
+#header div.rightmenu
+{
+    position:absolute;
+    top:5px;
+    right:5px;
+    z-index:100;
+}
+
+#content
+{
+	padding: 10px;
+	background-color: #ffffff;
+	min-height: 550px;
+}
+
+#footer
+{
+	background-color: #455560;
+	height: 1.4em;
+	padding: 0.5em;
+	color: #ffffff;
+	text-align: left;
+	position: relative;
+	margin-top:7em;
+}
+
+#footer #copyright
+{	
+	position: absolute;
+	right: 10px;
+	top: 0.9em;
+}
+
+.left {
+    float:left;
+}
+
+input.machineedit {
+    margin:2px;
+    width:230px;
+}
+
+input.dateornote {
+    margin:5px 0px 5px 25px;
+    width:200px;
+}
+
+span.userdet {
+    display:none;
+    visibility:hidden;
+}
+
+input[type="checkbox"][name^="used_by"]:checked + span.username + span.userdet {
+    display:block;
+    visibility:visible;
+}
+
+div.other_users {
+    display:block;
+    visibility:visible;
+}
+
+input[type="checkbox"][name="show_others"]:not(:checked) + div.other_users {
+    display:none;
+    visibility:hidden;
+}
+
+th.cloudtableheader {
+    width:6em;
+    display:block;
+}
+
+div.cloudtablevalues {
+    width:25em;
+    display:block !important;
+}
+
+div.machine_icons {
+    width:120px;
+}
+
+/* Moved due to bug 849798 - Machine action icon cover the machine
+   name */
+div.machine_icons_machine_details {
+    margin-left:20em;
+}
+
+div.margin_small {
+    margin:1em;
+}

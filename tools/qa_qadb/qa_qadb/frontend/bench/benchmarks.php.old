@@ -1,0 +1,147 @@
+<?php
+
+$tests = array();
+if( !empty( $_REQUEST['tests'] ) )
+	$tests = (array) $_REQUEST['tests'];
+
+if( count($tests) == 0 )
+{
+	header( 'Location: search.php' );
+	return;
+}
+
+require_once($_SERVER['DOCUMENT_ROOT'].'/config.php');
+require_once($_SERVER['DOCUMENT_ROOT'].'/hrf/phplot/phplot.php');
+require_once($_SERVER['DOCUMENT_ROOT'].'/hrf/phplot/phplot_data.php');
+
+?>
+<html>
+<head>
+    <link href="style.css" rel="stylesheet" type="text/css">
+</head
+<body>
+<?
+
+
+connect_to_mydb();
+
+#for( $i=0; $i<count($test); $i++ )
+#	echo $test[$i]."<br>\n";
+
+if( count($tests) == 0 )
+{
+# ask for benchmark combination
+
+	$sql = "SELECT DISTINCT s.submissionID,s.tcfID,test_host,architecture,submission_date,testsuiteName FROM all_submissions_view s,bench_data b WHERE s.tcfID=b.tcfID ORDER BY submission_date DESC";
+	$res = mysql_query( $sql );
+	$num = mysql_num_fields( $res );
+
+	?>
+<form action="benchmarks.php" method="get">
+<table class="dbdata" border="1">
+    <tr><th class="row_header"></th><?
+
+	for( $i=0; $i<$num; $i++ )
+	    echo '<th class="row_header">'.mysql_field_name( $res, $i )."</th>";
+	echo "</tr>\n";
+	$line=0;
+	while( $row = mysql_fetch_array( $res ) )
+	{
+	    $line++;
+	    echo "\t<tr class=\"".($line&1 ? 'even':'odd').'row">';
+	    echo '<td class="row_body"><input type="checkbox" name="tests[]" value="'.$row['tcfID'].'"></td>';
+	    for( $i=0; $i<$num; $i++ )
+		echo '<td class="row_body">'.$row[$i]."</td>";
+	    echo "</tr>\n";
+	}
+?>
+</table>
+<input type="submit">
+</form>
+<?
+}
+else
+{
+# return the benchmark results
+
+
+# 1. clear old images from the image directory
+	$imgdir_rel = '/output';
+	$imgdir = $_SERVER['DOCUMENT_ROOT'].$imgdir_rel;
+	if( $handle = opendir($imgdir) )
+	{
+		while (false !== ($file = readdir($handle))) {
+			if( $file=='.' || $file=='..' ) continue;
+
+			$stat = stat( "$imgdir/$file" );
+			if( $stat['atime']-time() > 600 )
+				unlink( "$imgdir/$file" );
+		}
+		closedir( $handle );
+	}
+	else
+		echo "Warning: cannot open the directory '$imgdir'<br>\n";
+
+
+# 2. read the data from DB
+	$parts = array();
+	$values = array();
+	for( $i=0; $i<count($tests); $i++ )
+	{
+		$sql = "SELECT bench_parts.part,result FROM bench_data,bench_parts WHERE bench_data.partID=bench_parts.partID AND tcfID=".(0+$tests[$i]);
+		$res = mysql_query( $sql );
+		while( $row = mysql_fetch_array( $res ) )
+		{
+			$part = $row[0];
+			$value = $row[1];
+			if( empty($values[$part]) )
+			{
+				$values[$part] = array();
+				array_push($parts, $part);
+			}
+			$values[$part][$i] = $value;
+		}
+	}
+
+# 3. print the table, prepare data for graph
+	echo "<table>\n\t<tr class=\"row_header\"><th>part</th>";
+	for( $i=0; $i<count($tests); $i++ )
+		echo '<th>'.$tests[$i]."</th>\n";
+	echo "</tr>\n";
+	$line=0;
+	$graph_data=array();
+	for( $i=0; $i<count($parts); $i++ )
+	{
+		$graph_column=array($parts[$i]);
+		$line++;
+		echo '<tr class="'.($line&1 ? 'even':'odd').'row"><td class="row_body">'.$parts[$i]."</td>";
+		for( $j=0; $j<count($tests); $j++ )
+		{
+			$val = (empty($values[$parts[$i]][$j]) ? '' : $values[$parts[$i]][$j]);
+			echo '<td class="row_body">'.$val.'</td>';
+			array_push($graph_column,$val);
+		}
+		echo "</tr>\n";
+		array_push($graph_data,$graph_column);
+	}
+	echo "</table>\n\n";
+
+# 4. make the graph
+	$graphname="img".uniqid().".png";
+	$graph =& new PHPlot_Data(800, 900);
+
+	$graph->SetOutputFile($imgdir.'/'.$graphname);
+	$graph->SetTitle("Benchmark results");
+	$graph->SetXTitle('X data');
+	$graph->SetYTitle('Y data');
+	$graph->SetXLabelAngle(90);
+	$graph->SetDataType("text-data");
+	$graph->SetDataValues($graph_data);
+	$graph->SetIsInline(1);
+	$graph->DrawGraph();
+
+	echo "<img src=\"$imgdir_rel/$graphname\" alt=\"Graph\">\n\n";
+}
+?>
+</body>
+</html>

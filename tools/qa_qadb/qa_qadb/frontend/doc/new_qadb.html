@@ -1,0 +1,789 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>QADB changes</title>
+<style type="text/css">
+body            { 
+	background-color:#eee; 
+	color:#000; 
+	counter-reset:chapter;
+}
+h2:before	{
+	content: counter(chapter) ". ";
+	counter-increment:chapter section;
+}
+
+h2	{ counter-reset:section; }
+h3:before	{
+	content: counter(chapter) "." counter(section) " ";
+	counter-increment:section;
+}
+div.todo, div.progress, div.done, div.skipped { border: solid 1em; }
+div.todo	{ border-color:#faa; }
+div.progress	{ border-color:#ffa; }
+div.done	{ border-color:#afa; }
+div.skipped	{ border-color:#999; }
+li.todo		{ background-color:#faa; }
+li.progress	{ background-color:#ffa; }
+li.done		{ background-color:#afa; }
+li.skipped	{ background-color:#999; }
+
+.legend li {
+	display: inline;
+	border: solid 1px black;
+	padding: .3em;
+}
+
+@media print {
+	div.todo, div.progress, div.done  { border: #ddd 1em; }
+	li.todo, li.progress, li.done  { border-width: 1px  }
+	div.todo, li.todo		{ border-style:dashed; }
+	div.progress, li.progress	{ border-style:dotted; }
+	div.done, li.done		{ border-style:solid; }
+	div.skipped, li.skipped	{
+		border: none;
+		text-decoration:line-through;
+	}
+}
+
+
+table       { 
+	border-collapse:collapse;
+	margin-top: 1em;
+}
+th,td   {
+    border: solid 1px black;
+    padding: 4px;
+    }
+th	{ background-color: #ccc; }
+td	{ background-color: #fff; }
+li	{ list-style-type: square; }
+
+hr	{ margin: 3em 0 2em 0; }
+</style>
+</head>
+<body>
+
+<h1>QADB changes</h1>
+
+<!--
+<table>
+  <tr><th>what<th>current QADB<th>proposed new QADB
+  <tr><th>integrity constrains<td>no<td>yes
+  <tr><th>transactions<td>no<td>one per test
+</table>
+-->
+
+<div class="legend">
+Legend:
+<ul>
+  <li class="todo">TODO</li>
+  <li class="progress">progress</li>
+  <li class="done">done</li>
+  <li class="skipped">skipped</li>
+</ul>
+</div>
+
+<hr>
+
+<div class="done">
+<h2>Database integrity</h2>
+
+<p>
+Integrity constraints should be set to grant the <b>validity of foreign keys</b>.
+</p>
+
+<p>
+This (and the following point) implies <b>using InnoDB engine everywhere</b>.
+We hope that there won't be any serious performance issues here.
+</p>
+
+<h3>Foreign keys</h3>
+<p>
+We shall implement <b>foreing key constraints</b>.
+</p>
+<p>
+Current dependence schema (without tables to be deleted):
+</p>
+<table>
+  <tr><th>what<th>referenced from
+  <tr><td>architecture<td>submissions
+  <tr><td>product<td rowspan=2>submissions, waiver_testcase
+  <tr><td>releases
+  <tr><td>kernel_branches<td>kotd_testing
+  <tr><td>submissions<td>product_testing, kotd_testing, maintenance_testing, tcf_group, released_rpms, (softwareConfig)
+  <tr><td>testcases<td>test_result
+  <tr><td>bench_part<td>bench_data
+  <tr><td>test_result<td>bench_data, waiver_data
+  <tr><td>waiver_testcase<td>waiver_data
+  <tr><td>rpm_basename<td rowspan=2>rpms, released_rpms
+  <tr><td>rpm_versions
+  <tr><td>rpms<td>softwareConfig
+  <tr><td>tcf_group<td>(softwareConfig), (test_result)
+  <tr><td>testsuites<td>tcf_group
+</table>
+</div>
+
+<div class="done">
+<h3>Deletions</h3>
+<p>
+Currently, you cannot delete unwanted data at all. We need to change this to remove broken results.
+</p>
+
+<p>
+We should implement:
+</p>
+  <ul>
+    <li><b>ON DELETE CASCADE</b> constraints.
+This causes deleting of related data, when deleting from a parent table (e.g. deleting from submissions causes deleting from tcf_group, which causes deleting from test_result etc.)
+See the listing above.</li>
+    <li><b>basic deleting GUI</b> - otherwise we can only delete via phpMyAdmin</li>
+    <li class="skipped">maybe set up <b>permissions</b> to ensure that the import process won't delete the whole database by mistake</li>
+  </ul>
+</div>
+
+<div class="done">
+<h3>Transactions</h3>
+
+<p>
+<b>Every test</b> (or subtest, depending on MySQL capabilities) will be submitted in <b>its own transaction</b> around.
+Which means that it will be either submitted complete, or not at all.
+</p>
+
+<p>
+We probably won't be able to make a transaction around the whole submission.
+In that case, if the submission fails in its half, we should be able to <b>delete the processed subtests afterwards</b>.
+This will delete test data, but newly inserted names of product/architecture etc. will stay in the database. These remains should not make much harm.
+</p>
+</div>
+
+<hr>
+<div class="done">
+<h2>Tables to be dropped</h2>
+<table>
+  <tr><th>what<th>why
+  <tr><th>tiobench_details<td rowspan=3><b>obsolete</b>, replaced by universal QADB benchmark tables; we can also drop column test_result.performanceID
+  <tr><th>dbenchdflt_details
+  <tr><th>dbenchsyncIO_details
+  <tr><th>tcf_results<td><b>not necessary</b>, is <b>1:n</b> relation between <i>test_result</i> and <i>tcf_group</i>, not <b>m:n</b> (verified on data)
+  <tr><th>rpms_SUT<td><b>obsolete</b> (usage not found in any script, note in QADB.pm that it is not used anymore and being removed from QADB)
+  <tr><th>all_submissions_view<td>not used
+</table>
+</div>
+<hr>
+
+<div class="done">
+<h2>RPM info</h2>
+<p>
+Currently, the table <i>softwareConfig</i> plus its indexes takes <b>1.2GB</b>, while the whole database incl. indexes takes <b>1.9GB</b>.
+This table stores RPM config info in a very inefficient way - complete RPM info details to every test run.
+The only known use of this data is currently displaying the RPM details in the submission detail view.
+</p>
+
+<h3>Statistics</h3>
+<p>
+At the moment (2009-04-14 17:38), the state of the table softwareConfig is following:
+</p>
+  <ul>
+    <li>34289366 records</li>
+    <li>425.1 MB of data on the disk</li>
+    <li>832.7 MB of indexes on the disk</li>
+    <li>1257.8 MB total on the disk</li>
+    <li>40422 total RPM configurations</li>
+    <li>38043 RPM configurations are duplicite</li>
+    <li><b>more than 94% of the data is duplicite</b></li>
+  </ul>
+
+<h3>Solutions</h3>
+<p>
+We can either <b>drop</b> the RPM info completely, or <b>optimize</b> it.
+</p>
+
+
+<h3>Dropping RPM info</h3>
+<p>
+Following tables would be dropped:
+</p>
+<ul>
+    <li>softwareConfig</li>
+    <li>rpms</li>
+    <li>rpm_basename</li>
+    <li>rpm_versions</li>
+    <li>released_rpms</li>
+  </ul>
+
+
+<h3>Optimizing RPM info</h3>
+<p>
+In brief, this includes:
+</p>
+  <ul>
+    <li><i>softwareConfig</i> will be <b>relinked to submissions</b>, which has less rows (linking RPM info to testsuite instead of submission has no sense anyway)</li>
+    <li><b>new table <i>rpmConfig</i></b> will be created and hold MD5 sums of the whole configuration</li>
+    <li><i>softwareConfig</i> will not be linked via tcfID to tcf_group, but to the new table <i>rpmConfig</i></li>
+    <li>this allows referencing one configuration from multiple tests, and joining duplicite configurations into one</li>
+    <li><b>md5sum</b> fields will allow a fast lookup if a matching configuration is already available</li>
+    <li>duplicite configurations will be removed</li>
+  </ul>
+</div>
+<div class="skipped">
+<p>
+A step further way would be making the RPM configuration <b>two-staged</b>:
+</p>
+  <ol>
+    <li><b>reference</b> configurations</li>
+    <li><b>diffs</b> to one of the reference configurations</li>
+  </ol>
+<p>
+This would be even more space-efficient, but is more complicated.
+</p>
+
+<p>
+Additionally, the table <b>rpm_versions</b> can be <b>merged</b> with the table <b>rpms</b>.
+The table <i>rpms</i> contains 93629 unique records, while there are 49414 (more than a half) unique RPM versions.
+While it is not clear if this merge would increase or decrease the space used, it surely would make the things simpler.
+</p>
+</div>
+<div class="done">
+<h3>MD5 lookup</h3>
+<p>
+Shell:
+</p>
+<pre>rpm -qa --qf "%{NAME} %{VERSION}-%{RELEASE}\n" | sort | md5sum</pre>
+SQL old DB:
+<pre>set group_concat_max_len=1048576;
+select c.swConfigID, md5(group_concat(b.basename,' ',v.version order by b.basename,v.version separator '\n')) from rpms r, rpm_basenames b, rpm_versions v, softwareConfig c where r.versionID=v.versionID and r.basenameID=b.basenameID and c.rpmID=r.rpmID and c.tcfID=?</pre>
+SQL new DB:
+<pre>set group_concat_max_len=1048576;
+select c.swConfigID, md5(group_concat(b.basename,' ',v.version order by b.basename,v.version separator '\n')) from rpms r, rpm_basenames b, rpm_versions v, softwareConfig c where r.versionID=v.versionID and r.basenameID=b.basenameID and c.rpmID=r.rpmID and c.configID=?</pre>
+
+</div>
+
+<hr>
+<div class="done">
+<h2>Unified API for enumeration tables</h2>
+
+<p>
+Some tables contain only valid values for <b>enumeration types</b>.
+They all contain just a string and its ID.
+They are often used in joins, making them more complicated.
+Yet there is no standard API for basic queries upon them, which leads to code redundancies.
+</p>
+
+<h3>affected tables</h3>
+  <ul>
+    <li>architecture</li>
+    <li>products</li>
+    <li>releases</li>
+    <li>kernel_branches</li>
+    <li>testsuites</li>
+    <li>testcases</li>
+    <li>bench_parts</li>
+    <li>rpm_basenames</li>
+    <li>rpm_versions (if not merged with rpms)</li>
+  </ul>
+
+<h3>proposed API</h3>
+  <ul>
+    <li>converting ID to string</li>
+    <li>converting string to ID</li>
+    <li>listing present values (incl. limited listing)</li>
+    <li>inserting new value</li>
+    <li>SQL wildcard search</li>
+    <li>querying number of records</li>
+    <li>number of references</li>
+  </ul>
+
+<h3>uniqueness</h3>
+
+<p>
+Additionaly, the string values should be marked as unique to prevent problems (unless we want to use synonyms - see below).
+</p>
+
+</div>
+<div class="skipped">
+<h3>synonyms</h3>
+<p>
+While migratine benchmark data, it would be useful to have synonyms.
+I.e. the old description with ID equal to the new description.
+</p>
+
+<p>
+Then, the migration process will look like
+</p>
+  <ul>
+    <li>adding new keys as synonyms to the old ones</li>
+    <li>releasing new parsing scripts that use new keys</li>
+    <li>waiting for the old scripts to disappear</li>
+    <li>removing the old keys from the database</li>
+  </ul>
+
+<p>
+Necessary changes:
+</p>
+  <ul>
+    <li>tables that should store synonyms cannot have the ID as its key (but the ID must be explicitly indexed)</li>
+    <li>the proposed API functions must deal with multiple IDs correctly</li>
+  </ul>
+
+<p>
+Foreign keys over non-unique values are problematic (see <a href="http://dev.mysql.com/doc/refman/5.0/en/innodb-foreign-key-constraints.html">http://dev.mysql.com/doc/refman/5.0/en/innodb-foreign-key-constraints.html</a>).
+We must <b>disable the foreign key constraint</b> when using synonyms.
+Otherwise undefined and possibly destructive effects might appear when deleting the synonym values (deleting the related values in tables below).
+</p>
+</div>
+
+<div class="done">
+<h3>API for other tables</h3>
+<p>
+Currently, most of the SQL is written directly in the PHP scripts themselves.
+This makes the frontend error-prone, non-transparent, and tends to redundant code.
+</p>
+
+<p>
+Following operations should be done via shared library functions:
+</p>
+  <ul>
+    <li>submission search according date, host, tester, arch, product, release</li>
+    <li>like above, plus searching for specific testsuites / tests</li>
+    <li>listing testsuites for a submissionID</li>
+    <li>listing tests for a testsuite</li>
+    <li>reading of submission / testsuite / test / RPM? / RPM info? / waiver? / waiver_data? based on its ID</li>
+  </ul>
+
+<h3>new enumeration tables</h3>
+<p>Following things could have their own enumeration table, but do not have one yet:
+</p>
+  <ul>
+    <li>test_host</li>
+    <li>tester</li>
+  </ul>
+</div>
+
+<hr>
+
+
+<div class="done">
+<h2>Waiver</h2>
+<p>
+Patrick Kirsch created a tool called Waiver, which was supposed to track randomly failing testcases.
+He reffered about this tool to be incomplete.
+</p>
+
+<h3>Waiver tables</h3>
+  <ul>
+    <li><b>waiver_data</b> - lists cases of randomly failing </li>
+    <li><b>waiver_testcase</b> - lists details for the previous table (product, release, testcase)</li>
+  </ul>
+<p>
+Following fields should be <b>added</b> to <i>waiver_testcase</i>:
+</p>
+  <ul>
+    <li>architecture</li>
+    <li>if the match is positive (good test) or negative (randomly failing test)</li>
+  </ul>
+
+<h3>Integrating with regression tool</h3>
+<p>
+Testcases listed under regression listing should be looked up in the waiver table (exact/partial match).
+When found, the user should be notified.
+</p>
+<p>
+<b>Exact match</b>: the testcase is definitely not a regression (negative entry), or definitely is a regression (positive entry).
+</p>
+<p>
+<b>Partial match</b>: only the testcase matches.
+The user will be notified that the testcase has a waiver entry.
+</p>
+
+<h3>Further changes</h3>
+<p>
+Adding two fields requires changing the waiver frontend to match.
+</p>
+</div>
+<hr>
+
+<h2>HW configuration</h2>
+<p>
+We need to have additional information about the tests and benchmarks, which is currently not available:
+</p>
+  <ul>
+    <li>used filesystem (and maybe partition) for disk benchmarks</li>
+    <li>test type (e.g. normal, syncIO, NFSv3, NFSv4 for dbench)</li>
+    <li>maybe other HW info as well</li>
+  </ul>
+
+<p>
+What to do with that?
+</p>
+
+<div class="done">
+<h3>New table that links testcases and testsuites</h3>
+<p>
+Currently, we need to link 3-5 large data tables to link testcases and testsuites, and this operation takes much time.
+To know if a testcase has benchmark data we need to do a subquery on another table, making it even worse.
+</p>
+<p>
+We want to add a <b>new table</b> that links testcases and testsuites, and that knows if a testcase is a benchmark.
+</p>
+  <ul>
+    <li>table name: tests</li>
+    <li>foreign keys: testcaseID, testsuiteID</li>
+    <li>initialization: during the migration</li>
+    <li>updating: qa_db_report.pl</li>
+    <li>regeneration: manually run a SQL statement</li>
+  </ul>
+
+
+<h3>Adding hwinfo to the submission table</h3>
+<p>
+We could add <b>hwinfo</b> records to the <b>submissions</b> table.
+Then it would be possible to see the current machine configuration at the submission time.
+</p>
+</div>
+
+<div class="skipped">
+<h3>Linking with Hamsta</h3>
+<p>
+Hamsta currently stores complete hwinfo output.
+We could make a link from the submission table to the related Hamsta records.
+</p>
+<p>
+This info could then be used to view a particular HW configuration, where the data were obtained.
+Then we could browse the hwinfo records by its cathegories.
+</p>
+<p>
+Known problems:
+</p>
+  <ul>
+    <li>the parsed hwinfo is difficult to parse automaticaly</li>
+    <li>Hamsta runs in Prague, in NUE there are different concurrent versions, no installation in China</li>
+    <li>some machines are not registered in Hamsta, some tests are not run by Hamsta</li>
+  </ul>
+</div>
+
+<hr>
+<div class="progress">
+<h2>Benchmark data</h2>
+
+<h3>Benchmark data keys</h3>
+<p>
+Note: benchmark keys are currently in following form:
+</p>
+<pre>key1=val1; key2=val2; key3=val3; ... ; keyn=valn</pre>
+<p>
+Following conventions apply:
+</p>
+  <ul>
+    <li><b>first keyval pair</b> is taken as <b>X-axis</b> value</li>
+    <li><b>last keyval pair</b> is taken as <b>units specification</b></li>
+    <li><b>middle keyval pairs</b> are taken as <b>Z-axis</b> values</li>
+  </ul>
+<p>
+This schema is far from being optimal, yet currently we see no better choice.
+</p>
+
+
+<h3>Limitations of the current state</h3>
+<p>
+Examples of operations, that are currently not possible:
+</p>
+  <ul>
+    <li>filtering testcases</li>
+    <li>filtering the middle part of benchmark keys</li>
+    <li>drawing data with different middle part key to the same graph</li>
+    <li>storing FS + NFS info to dbench data, allowing to filter/separate/compare/merge the values</li>
+  </ul>
+
+<div class="todo">
+<h3>random key numbers</h3>
+<p>
+Two benchmarks - <b>aim7</b> and <b>reaim</b> - output series of process numbers that differ from run to run.
+Results:
+</p>
+  <ul>
+    <li>too many records in <b>bench_parts</b> table</li>
+    <li>too wide (and very sparse) tables on the output, difficult to view or print</li>
+  </ul>
+
+<p>
+Proposed solution:
+</p>
+  <ul>
+    <li>make a series of process numbers, e.g. 50,70,100,150,200,300,500,700,1000,1500,2000,3000,5000,7000,10000</li>
+    <li>migrate old QADB data to the nearest number (or make an average for every run)</li>
+    <li>change the import script to do the same for new data</li>
+  </ul>
+</div>
+
+<div class="done">
+<h3>new API</h3>
+<p>
+An unified API for bench keys would make things easier.
+Following operations are needed:
+</p>
+  <ul>
+    <li>find used bench keys for a set of tests</li>
+    <li>find a subset of bench keys that matches some Z-axis criteria</li>
+    <li>find distinct Z-axis values for a set of tests</li>
+    <li>converting a subset of keys to a semantic tree (according to some criteria)</li>
+  </ul>
+<p>
+Many of the operations will have to be done in the client library, yet it seems to be better than moving to an overengineered multitable DB schema.
+</p>
+</div>
+
+<div class="todo">
+<h3>Storing FS and NFS info in testcase name</h3>
+<p>
+E.g. the testsuite <b>dbench</b> will have following testcases:
+dbench-ext3-default, dbench-reiserfs-syncIO, dbench-ext3-nfs3-default, dbench-reiserfs-ext4-default etc.
+</p>
+<p>
+Testcase support will be added to the web interface.
+</p>
+<p>
+This will allow following tasks:
+</p>
+  <ul>
+    <li>showing only data on a particular FS or NFS version (filtering by testcase)</li>
+    <li>showing all dbench data on a machine (merging all testcases of dbench testsuite</li>
+  </ul>
+
+<p>
+A problem might occur, when a bench testcase would appear in multiple testsuites (merging related testcases would be difficult).
+For that case, we should better make only testsuites that contain testcases of one type.
+Otherwise, we would have to filter testcases like 'dbench-%'.
+</p>
+
+
+<!--<h3>table sizes</h3>
+  <table>
+    <tr><th>table<th>rows<th>comment
+    <tr><td>submissions<td>2949<td>
+    <tr><td>tcf_group<td>41089<td>n:1 to submissions
+    <tr><td>tcf_results<td rowspan="2">6690766<td rowspan="2">n:1 to tcf_group
+    <tr><td>test_result
+    <tr><td>bench_data<td>31934<td>n:1 to test_result, but for benchmarks only; expected to grow dramatically
+  </table>
+-->
+
+<h3>moving parser code</h3>
+<p>
+Currenlty, the package <i>qa_tools</i> contains result parsers for all of the benchmarks.
+This has following disadvantages:
+</p>
+  <ul>
+    <li>changing a benchmark requires update of qa_tools</li>
+    <li>code that is related to a particular package version is contained in another package</li>
+  </ul>
+<p>
+We should move the benchmark parsers to CTCS2 stubs of every benchmark package.
+</p>
+
+</div>
+</div>
+<hr>
+
+<div class="done">
+<h2>Upgrade process</h2>
+<p>
+The new QADB schema will require a new import method.
+</p>
+<p>
+The migration process will probably look like:
+</p>
+  <ol>
+    <li class="done">preparing new QADB, preparing import script</li>
+    <li class="skipped">distributing qa_tools that imports into both versions (old by default)</li>
+    <li class="done">migrating QADB data</li>
+    <li class="done">distributing qa_tools that import to the new version by default</li>
+  </ol>
+</div>
+
+<h3>Keeping import script up-to-date</h3>
+<p>
+A broken / old import script can make mess in the database.
+How to keep the scripts up-to-date?
+The script can <b>try to ugrade itself when it runs</b> (and no often than once a day).
+</p>
+
+<hr>
+
+<div class="done">
+<h2>Archiving the results</h2>
+<p>
+We should archive the test result logs.
+Current situation is:
+</p>
+  <ul>
+    <li><b>Nuernberg</b>: data are copied to a shared NFS directory, which is mounted to every test machine on the site</li>
+    <li><b>Prague</b>: data are not archived</li>
+    <li><b>China</b>: situation not known</li>
+  </ul>
+
+<p>
+We should do following:
+</p>
+  <ul>
+    <li class="done"><b>copy the data automatically to NUE</b> in submission script (otherwise the system won't know where they are)</li>
+    <li class="done"><b>add URL of the directory</b> to the table <i>tcf_group</i> (testsuite)</li>
+    <li class="skipped"><b>add URL of the file</b> to the table <i>rest_results</i> (testcase)</li>
+    <li class="done"><b>display the URLs</b> in related listings on the frontend</li>
+  </ul>
+<p>
+<span class="done">To the <b>copying</b>: we should probably copy via <b>SSH</b>, because some test machines cannot use NFS.</span>
+<span class="skipped">We should copy the data <b>bzipped</b>, to minimize bandwidth and to make submissions from China possible.</span>
+</p>
+</div>
+
+<hr>
+
+<div class="done">
+<h2>User interface changes</h2>
+<p>
+
+</p>
+
+<h3>Search form</h3>
+  <ul>
+    <li><b>integrate benchmark</b> to the non-benchmark search</li>
+    <li>allow searching for <b>missing criteria</b> - testsuite, testcase, status</li>
+    <li>add <b>order by</b> field or allow to sort the results interactively</li>
+  </ul>
+
+<h3>Submission listing</h3>
+  <ul>
+    <li>add <b>link to logs</b></li>
+    <li>add <b>arch, product, date</b></li>
+    <li>add <b>related submission</b> (new DB field necessary)</li>
+    <li>allow to <b>edit the related submission</b></li>
+    <li>allow to <b>edit the comment</b></li>
+    <li>allow to <b>delete a submission or its parts</b></li>
+  </ul>
+</div>
+
+<hr>
+<div class="skipped">
+<h2>Authentication</h2>
+  <table>
+    <tr><th>what<th>risk<th>current state<th>suggested state
+    <tr><td>reading data using the frontend<td>low<td>QADB login required<td>no login required
+    <tr><td>submitting to QADB<td>medium<td>QADB login/password published in <i>qa_tools</i> package<td>keep current
+    <tr><td>deleting data from QADB<td>high<td>feature not yet implemented<td>require to log in, log the changes
+    <tr><td>changing a comment<td>medium<td>QADB login required<td>?
+  </table>
+
+<p>
+We need to have a public write access into QADB, in order to run the tests automatically.
+Then, while we share the password, it seems to have no reason to require login for read-only frontend access.
+</p>
+
+<p>
+We do not yet know how exactly to solve this.
+Available options include:
+</p>
+  <ul>
+    <li><b>keeping the current state</b> - little work, yet we should make at least <b>a tool to add/delete users</b></li>
+    <li><b>removing current restrictions</b> - QADB frontend would be public in the intranet, perhaps except deleting data</li>
+    <li><b>implementing Novell login</b></li>
+  </ul>
+
+<p>
+Further possible features include:
+</p>
+  <ul>
+    <li>making automated submit know who ran it (real names would replace the default user) - but we are not sure how to do it</li>
+    <li>for certain changes (e.g. desctructive ones), logging who did them and when</li>
+  </ul>
+<hr>
+</div>
+
+<div class="done">
+<h2>Documentation</h2>
+<p>
+We could make some basic documentation to QADB.
+And link it from the QADB frontend.
+The documentation could contain:
+</p>
+  <ul>
+    <li>brief description of system components</li> 
+    <li>description of tables, their foreign keys, and their relations</li>
+    <li>user manual of the web frontend</li>
+    <li>programmer overview of the web frontend</li>
+  </ul>
+We can place the documentation either on Novell Wiki, or on the QADB server itself.
+Placing to a public web site could also be of an advantage.
+</div>
+
+<div class="done">
+<h2>QA Maintenance tasks</h2>
+<p>QA Maintenance (Heiko Rommel) asked following features to be implemented:
+</p>
+<ol>
+  <li class="done">documentation
+  <ul>
+    <li>there is no <b>documentation</b> about qadb</li>
+    <li>as soon as there is any it should be <b>linked</b> on the qadb <b>start page</b> (maybe together with a list of <b>recent changes</b>)</li>
+  </ul></li>
+  <li class="done">user interface
+  <ul>
+    <li class="done"> display of query results:
+    <ul>
+      <li> should have a hyperlink to the test <b>logs</b></li>
+      <li> query by submission ID should <b>show</b> arch, product, date of submission etc.</li>
+      <li> current output is unsorted, it should be <b>sortable</b> by any displayed colum</li>
+    </ul></li>
+    <li class="done"> query
+    <ul>
+      <li class="done"> should be possible by <b>test suite</b></li>
+      <li class="done"> should be possible by <b>test case</b> (in order to more effeciently track a certain defect)</li>
+      <li class="done"> should be possible by <b>status</b> (active/valid or inactive/invalid)</li>
+      <li class="done"> should be possible by "similiar" submissions (e.g. the product, arch and test suite are identical) in order to be able to identify <b>predecessors</b> for regression analysis; see "submission -&gt; predecessor"</li>
+    </ul></li>
+    <li class="done"> submission
+    <ul>
+      <li class="done"> we need an additional field for the official <b>predecessor</b> (for maintenance testing: results of testing with previous maintenance update); this field can be empty during the submission but should be writable later on (in order to enter the predecessor later, see "query")</li>
+      <li class="done"> we need <b>write</b> access to the <b>comment</b> field through the webinterface</li>
+      <li class="done"> there should be a possibility to mark a submission as invalid (or even better: <b>delete</b> it) through the webinterface; we need strong links/foreign keys in the tables for safe deletes</li>
+      <li class="skipped"> a lot of submissions in the DB have a <b>wrong date</b> (the oldest one is 2007-03-26 but there have been submission like 165, 164, ... before that); we have to find out if there is something wrong in the backend concerning date mangling</li>
+      <li class="done"> failure during submission wastes a submission id (critical in combination of the inability to delete submissions); we need <b>transaction</b> here</li>
+    </ul></li>
+    <li class="skipped"> authentication
+    <ul>
+      <li> authentication is weak/insecure</li>
+      <li> authentication uses a separate user database; we should tie authentication to <b>eDirectoy</b> (filtered by QA team membership); most other tools (like pdb, swamp etc.) are already doing it</li>
+    </ul></li>
+    <li class="done"> waiver
+    <ul>
+      <li class="done"> must be dependent on the version of the test suite, the product and the architecture in order to make it appliable to old/maintained products; once a waver has been removed for a certain version+product+architecture all submissions analysis with a higher version (but same product+architecture) must ignore the waver (until it get's re-established)</li>
+      <li class="done"> must be usable as <b>filters</b> in regression analysis in the web frontend</li>
+    </ul></li>
+  </ul></li>
+  <li class="done">backend (db) structure
+  <ul>
+    <li class="skipped"> <b>test case names</b> should not be assumed to be <b>not unique</b> - qadb should be able to handle that (there is currently no relation between test case and test suite); see also "query by test case"</li>
+    <li class="done"> <b>rpm lists</b> should be <b>linked</b> to the <b>submission</b> id, not to the test suite (the current data on rpm lists is not even unique regarding submission ids); the current layout wastes about 75% of the database space</li>
+    <li class="done"> waivers need to get re-implemented (see "user interface -&gt; wavers")</li>
+  </ul></li>
+<!--  <li>current status:
+  <ul>
+    <li> kgw is currently working on the submission client (basically a perl cli to the QADB) with respect to all client-related defects</li>
+    <li> kgw has already spent some ITO on analysing the database layout and the usage of wavers (especially for ltp regression analysis)</li>
+    <li> the usage of qadb is growing in my team due to the increasing number of automated tests suites during testing maintenance updates</li>
+  </ul></li>-->
+  <li class="done">priorities from my team:
+  <ol>
+    <li class="done"> the correct implementation of <b>waivers</b> would be very helpful in reducing the costs on manual (and error-prone) regression analysis</li>
+    <li class="done"> the <b>query</b> and display of results should be enhanced in order to make this tool more usuable in QA</li>
+    <li class="done"> we need <b>documentation</b> on qadb to keep away the increasing number of requests from Patrick/Olli/Klaus</li>
+    <li class="skipped"> once we have authentication against <b>eDirectory</b> we can claim to have an enterprise-ready tool ;)</li>
+  </ol></li>
+</ol>
+</div>
+<p>
+  <img src="http://www.w3.org/Icons/valid-html401" alt="Valid HTML 4.01 Strict" height="31" width="88">
+</p>
+</body>
+</html>

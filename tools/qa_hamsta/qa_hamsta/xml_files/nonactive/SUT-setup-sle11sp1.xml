@@ -1,0 +1,153 @@
+<?xml version="1.0"?>
+<job>
+  <config>
+    <name>SUT setup</name>
+    <debuglevel>4</debuglevel>
+    <description>SUT setup</description>
+    <mail notify="0">yxu@suse.de</mail>
+  </config>
+  <parts>
+    <part name="part1" id="1" />
+  </parts>
+  <roles>
+    <role name="role_1">
+      <commands part_id="1">
+        <worker>
+          <command execution="forked" reboot="0"><![CDATA[
+
+#! /bin/bash
+
+rcypbind restart
+rcautofs restart
+
+# variables
+ARCH=`echo $HOSTTYPE`
+if [ "$ARCH" != "" ]; then
+        echo "architecture is $ARCH"
+        case $ARCH in
+        i[3-9]86)  ARCH="i586";;
+        p*pc) ARCH="ppc";;
+        p*pc64) ARCH="ppc64";;
+        esac
+else
+        echo "cannot determine architecture";
+        exit 1
+fi
+
+qa_tools="/usr/share/qa/tools"
+qa_tcf="/usr/share/qa/tcf"
+ctcs2_tools="/usr/lib/ctcs2/tools"
+ctcs2_tcf="/usr/lib/ctcs2/tcf"
+packdir="/mounts/dist/full/full-sle11-sp1-$ARCH/suse/$ARCH"
+packdir_noarch="/mounts/dist/full/full-sle11-sp1-$ARCH/suse/noarch"
+if [ "$ARCH" = "i586" ]; then
+	packdir_old="/mounts/dist/full/full-sle10-sp3-i386/suse/$ARCH"
+else
+	packdir_old="/mounts/dist/full/full-sle10-sp3-$ARCH/suse/$ARCH"
+fi
+
+
+# add installation resource to SUT
+zypper ar http://dist.suse.de/ibs/QA:/Head/SUSE_SLE-11-SP1_GA/QA:Head.repo
+
+zypper --non-interactive install php5-mysql php5-zlib php5 sqlite2
+
+rpm -Uhv $packdir_noarch/build.rpm
+rpm -Uhv $packdir_noarch/linux-kernel-headers.rpm
+rpm -Uhv $packdir_old/{db,db-devel}.rpm
+
+archpack="hwinfo hwinfo-devel dejagnu indent cabextract libbz2-devel glibc-devel zlib-devel libopenssl-devel popt-devel rpm-devel tcpd-devel libsensors3-devel perl-SNMP net-snmp net-snmp-devel cyrus-sasl-devel libapr1-devel libexpat-devel openldap2-devel libapr-util1-devel apache2-devel php5-sqlite"
+for package in $archpack ; do
+        rpm -Uhv --nodeps $packdir/$package.rpm
+done
+
+# install qa_* packages frpm IBS QA
+zypper --non-interactive install qa_fs_stress qa_process_stress qa_sched_stress qa_bzip2 qa_bind qa_openssh qa_cpio qa_nfs qa_net-snmp qa_indent qa_sharutils qa_cabextract qa_gzip qa_findutils qa_postfix qa_fetchmail qa_php5 qa_php5-server qa_siege qa_cracklib qa_coreutils qa_apparmor qa_apparmor-profiles qa_apache_testsuite qa_keys qa_tools libqainternal
+
+# install other QA packages from IBS QA
+zypper --non-interactive install ltp ctcs2 ltp-ctcs2-glue lmbench lmbench-ctcs2-glue bonnie bonnie-ctcs2-glue dbench dbench-ctcs2-glue interbench interbench-ctcs2-glue kernbench kernbench-ctcs2-glue libmicro libmicro-ctcs2-glue reaim reaim-ctcs2-glue tiobench tiobench-ctcs2-glue newburn newburn-memtst netperf netperf-ctcs2-glue memeat memtester autotest sysbench sysbench-ctcs2-glue qa_ftpload
+
+# check if all packages are installed
+FILES="/usr/bin/tiotest /usr/bin/dbench /usr/bin/bonnie /usr/bin/sysbench /usr/bin/sysbench-example-test /usr/bin/kernbench /usr/bin/interbench /usr/bin/netperf /usr/bin/ftpload /usr/bin/do_lmbench /usr/lib/reaim/reaim /usr/lib/autotest/bin/autotest /usr/lib/libMicro/bin/bench.sh  /usr/lib*/ltp/runltp $ctcs2_tcf/sysbench-full.tcf $ctcs2_tools/run $ctcs2_tools/newburn-run $qa_tcf/fs_stress.tcf $qa_tcf/memtst.tcf $qa_tcf/process_stress.tcf $qa_tcf/sched_stress.tcf $qa_tcf/netperf.tcf $qa_tcf/memeat.tcf $qa_tcf/memtester.tcf $qa_tcf/lmbench.tcf $qa_tools/siege-run $qa_tools/openssh-run $qa_tools/cpio-run $qa_tools/net-snmp-run $qa_tools/coreutils-run $qa_tools/indent-run $qa_tools/sharutils-run $qa_tools/cabextract-run $qa_tools/gzip-run $qa_tools/nfs-run $qa_tools/bzip2-run $qa_tools/findutils-run $qa_tools/postfix-run $qa_tools/apparmor-run $qa_tools/apparmor-profiles-run $qa_tools/fetchmail-run $qa_tools/php5-run $qa_tools/bind-run $qa_tools/cracklib-run $qa_tools/apache_testsuite-run $qa_tools/file_copy $qa_tools/do_process_stress $qa_tools/do_sched_stress $qa_tools/remote_qa_db_report.pl $qa_tools/interbench-run $qa_tools/kernbench-run"
+
+for file in $FILES ; do
+        if ! [ -e $file ]; then
+                echo -e "BE AWARE: $file doesn't exist. Please install needed packages manually.\n"
+        fi
+done
+
+
+#specify for s390x arch
+if [ "$ARCH" = "s390x" ] ; then
+        cp  /usr/share/qa/tcf/fs_stress.tcf /usr/share/qa/tcf/fs_stress.tcf.bak
+        if [ ! "`grep abuild /usr/share/qa/tcf/fs_stress.tcf`" ] ; then
+        sed -i '/^fg/s/$/ -d \/abuild/' /usr/share/qa/tcf/fs_stress.tcf
+        fi
+
+        cp /usr/lib/ctcs2/tcf/tiobench.tcf /usr/lib/ctcs2/tcf/tiobench.tcf.bak
+        if [ ! "`grep abuild /usr/lib/ctcs2/tcf/tiobench.tcf`" ] ; then
+        sed -i '/^fg/s/$/ --dir \/abuild/' /usr/lib/ctcs2/tcf/tiobench.tcf
+        fi
+
+        cp /usr/lib/reaim/reaim.config /usr/lib/reaim/reaim.config.bak
+        if [ ! "`grep abuild /usr/lib/reaim/reaim.config`" ] ; then
+        sed -i '/^DISKDIR/s/tmp/abuild/' /usr/lib/reaim/reaim.config
+        fi
+
+        if [ ! "`grep abuild /usr/lib/autotest/bin/job.py`" ] ; then
+        cp /usr/lib/autotest/bin/job.py /usr/lib/autotest/bin/job.py.bak
+        sed -i 's/self.tmpdir =.*/self.tmpdir ="\/abuild"/' /usr/lib/autotest/bin/job.py
+        fi
+
+        if [ ! "`grep abuild /usr/lib/ctcs2/tools/newburn-run`" ] ; then
+        cp /usr/lib/ctcs2/tools/newburn-run /usr/lib/ctcs2/tools/newburn-run.bak
+        sed -i 's/newburn-generator.*24h/newburn-generator -B \/abuild\/tmplinux\/ 24h/' /usr/lib/ctcs2/tools/newburn-run
+        fi
+
+	if [ ! "`grep abuild /usr/lib/ctcs2/bin/runtest`" ] ; then
+	cp /usr/lib/ctcs2/bin/runtest /usr/lib/ctcs2/bin/runtest.bak
+	sed -i "s/testpath=.*/testpath=\"\/abuild\"/g" /usr/lib/ctcs2/bin/runtest
+	ulimit -s 4096 
+	fi 
+
+fi
+
+
+#modify mysql
+service mysql start
+if [ -x /etc/init.d/mysql ] ; then
+grep max_connections /etc/init.d/mysql || ( sed -i 's@\(\$SAFE_MYSQLD\ \\\)@\1\n\t\t\t\-\-max_connections\=1000 \\@g' /etc/init.d/mysql && /etc/init.d/mysql restart )
+fi
+
+
+#modify php.ini for qa_php5 test
+cp /etc/php5/apache2/php.ini /etc/php5/apache2/php.ini.bak
+sed -i 's/track_errors =.*/track_errors = On/' /etc/php5/apache2/php.ini
+sed -i 's/display_errors =.*/display_errors = On/' /etc/php5/apache2/php.ini
+sed -i 's/;open_basedir =.*/open_basedir =/' /etc/php5/apache2/php.ini
+sed -i 's/error_reporting  =.*/error_reporting  =  E_ALL|E_STRICT/' /etc/php5/apache2/php.ini
+
+
+
+#modify httpd.conf for qa_apache test
+if [ ! "`grep perl_module /etc/apache2/httpd.conf`" ] ; then
+	cp /etc/apache2/httpd.conf /etc/apache2/httpd.conf.bak
+	if [ -e /usr/lib/apache2/mod_perl.so ] ; then
+		echo "LoadModule perl_module /usr/lib/apache2/mod_perl.so" >> /etc/apache2/httpd.conf
+	elif [ -e /usr/lib64/apache2/mod_perl.so ] ; then 
+		echo "LoadModule perl_module /usr/lib64/apache2/mod_perl.so" >> /etc/apache2/httpd.conf
+	fi
+
+service apache2 start
+
+fi
+
+
+echo -e "SUT has been setup. You can run various tests now.\n"
+
+            ]]></command>
+        </worker>
+      </commands>
+    </role>
+  </roles>
+</job>

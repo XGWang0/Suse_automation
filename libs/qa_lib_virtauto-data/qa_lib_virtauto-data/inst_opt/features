@@ -1,0 +1,14 @@
+#eoi=on
+#hyperv_vapic=on,hyperv_spinlocks=off
+#acpi=on
+#apic
+#clearxml
+#eoi
+#hap
+#hyperv_relaxed
+#hyperv_spinlocks
+#hyperv_spinlocks_retries
+#hyperv_vapic
+#pae
+#privnet
+#viridian

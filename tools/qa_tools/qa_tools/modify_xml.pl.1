@@ -1,0 +1,36 @@
+.\" Process this file with
+.\" groff -man -Tascii modify_xml.pl.1
+.\"
+.TH "modify_xml.pl" "1"
+.SH NAME
+modify_xml.pl \- merges XML template with a modfile
+.SH SYNOPSIS
+.B modify_xml.pl
+.I infile
+.B -m
+.I modfile outfile
+.br
+.B modify_xml.pl -c -m
+.I modfile outfile
+
+.SH DESCRIPTION
+This script merges AutoYaST template with a modfile.
+XML elements from 
+.I modfile
+that do not exist in 
+.I infile
+are added, the existing ones are merged.
+
+Result is then mostly used as an XML for 
+.BR setupgrubforinstall (8)
+and
+.BR AutoYaST.
+But theoretically it could have other applications as well.
+
+.SH AUTHOR
+Vilem Marsik <vmarsik@novell.com>
+
+.SH SEE ALSO
+.BR reinstall.pl (8),
+.BR setupgrubforinstall (8)
+

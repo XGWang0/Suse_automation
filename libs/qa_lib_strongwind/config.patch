@@ -1,0 +1,15 @@
+--- strongwind/config.py	2011-06-29 16:46:06.000000000 +0800
++++ /usr/lib/python2.6/site-packages/strongwind/config.py	2011-06-29 16:44:54.000000000 +0800
+@@ -20,7 +20,11 @@
+ 'Strongwind configuration'
+ 
+ # where to write procedure logger output, screenshots, etc.
+-OUTPUT_DIR = '/tmp/strongwind'
++import os
++if os.getenv('USERNAME') == 'root':
++    OUTPUT_DIR = '/tmp/strongwind'
++else:
++    OUTPUT_DIR = os.getenv('HOME') + '/strongwind'
+ 
+ # if a widget is not found in a search, how many times should we try the search again
+ RETRY_TIMES = 20

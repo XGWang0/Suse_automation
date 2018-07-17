@@ -1,0 +1,71 @@
+all: lib demo_use
+
+lib: libqainternal.so libqainternal.so.0 libqainternalperl.so
+
+clean:
+	rm -fv *.so *.so.0 *.so.0.0 *.o demo_use libqainternal_perlwrapper.c
+
+install: 
+	cp -v libqainternal.so.0.0 /usr/lib/
+	/sbin/ldconfig
+	ln -sf /usr/lib/libqainternal.so.0 /usr/lib/libqainternal.so
+	cp -v demo_use /usr/bin/
+	cp -v libqainternal.h /usr/include/
+
+uninstall:
+	rm -fv /usr/lib/libqainternal*
+	/sbin/ldconfig
+	rm -v /usr/bin/demo_use
+	rm -v /usr/include/libqainternal.h
+
+demo_use.o: demo_use.c
+	gcc -Wall -g -c demo_use.c -o demo_use.o
+
+demo_use: demo_use.o
+	gcc -g -o demo_use demo_use.o -L. -lqainternal
+
+libqainternal.o: libqainternal.c libqainternal.h
+	gcc -fPIC -Wall -g -c libqainternal.c
+
+version.o: version.c
+	gcc -fPIC -Wall -g -c version.c
+
+cleanup.o: cleanup.c cleanup.h handlemanager.h
+	gcc -fPIC -Wall -g -c cleanup.c
+
+md5.o: md5.c md5.h
+	gcc -fPIC -Wall -g -c md5.c
+
+compare.o: compare.c md5.h
+	gcc -fPIC -Wall -g -c compare.c
+
+file.o: file.c file.h handlemanager.h
+	gcc -fPIC -Wall -g -c file.c
+
+config.o: config.c handlemanager.h
+	gcc -fPIC -Wall -g -c config.c
+
+service.o: service.c service.h handlemanager.h
+	gcc -fPIC -Wall -g -c service.c
+
+execute.o: execute.c execute.h handlemanager.h
+	gcc -fPIC -Wall -g -c execute.c
+
+user.o: user.c user.h handlemanager.h
+	gcc -fPIC -Wall -g -c user.c
+
+error.o: error.c error.h handlemanager.h
+	gcc -fPIC -Wall -g -c error.c
+
+handlemanager.o: handlemanager.c handlemanager.h
+	gcc -fPIC -Wall -g -c handlemanager.c
+
+libqainternal.so.0.0: libqainternal.o version.o compare.o file.o handlemanager.o cleanup.o service.o execute.o user.o md5.o config.o error.o
+	gcc -g -shared -Wl,-soname,libqainternal.so.0 -o libqainternal.so.0.0 libqainternal.o version.o compare.o file.o handlemanager.o cleanup.o service.o execute.o user.o md5.o config.o error.o -lc -lcrypt
+
+libqainternal.so.0: libqainternal.so.0.0
+	/sbin/ldconfig -n .
+
+libqainternal.so: libqainternal.so.0
+	ln -sf libqainternal.so.0 libqainternal.so
+

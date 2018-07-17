@@ -1,0 +1,190 @@
+/*
+  TOC:
+  ====
+  0. global settings
+  1. navigation - by pkirsch
+  2. table headers & rows
+  3. buttons
+  4. resizeable table bodies
+  5. table row highlights
+*/
+
+
+/* 0. global settings */
+
+/* 1. navigation - by pkirsch */
+#subnav-hdr {
+	background-color:#68A;
+	color:#fff;
+	line-height:18px;
+	padding:2px 17px;
+	text-align:left;
+	font-weight:normal;
+}
+
+#subnav-hdr a:hover	{ color:#ccc; }
+
+#subnav-hdr .item {
+	padding: 1.5px 1em 1.5px 1em;
+	word-spacing: 0.3em;
+}
+
+/* 2. table headers & rows */
+.tbl th a
+{
+	color:#000;
+	text-decoration:none;
+}
+.tbl th a:hover { text-decoration:underline; }
+.tbl th {
+	background-color:#68a;
+	color:#fff;
+	text-align:left;
+	font-weight:normal;
+	font-size:110%;
+}
+.tbl th, #subnav-hdr {
+	border: solid 1px;
+	border-color: #8bd #568 #457 #8bd;
+}
+.tbl td
+{
+	border: solid 1px;
+	border-color: #ddd #aaa #888 #ddd;
+}
+.tbl.shrank .last { padding-right:16px; }
+.tbl {
+	border-spacing:0;
+	border: solid 1px;
+	border-color: #8bd #999 #777 #aaa;
+	font-size: 80%;
+}
+
+/* 3. buttons - taken from phpMyAdmin */
+
+/* 4. resizeable table bodies */
+.tbl.shrank tbody {
+        overflow: auto;
+        overflow-x:hidden;
+        height: 25em;
+}
+.tbl.shrank td:last-child { padding-right: 18px; }
+.tbl.controls td:last-child { white-space:nowrap; }
+
+/* 5. table row highlights */
+.failed.evenrow, .r.evenrow, .evenrow .r		{ background-color:#fbb; }
+.failed.oddrow,  .r.oddrow, .oddrow .r			{ background-color:#eaa; }
+.internalerr.evenrow, .wr.evenrow, .evenrow .wr		{ background-color:#fbf; }
+.internalerr.oddrow,  .wr.oddrow, .oddrow .wr		{ background-color:#eae; }
+.skipped.evenrow, .evenrow .skipped			{ background-color:#bbb; }
+.skipped.oddrow, .oddrow .skipped			{ background-color:#aaa; }
+.i.evenrow, .evenrow .i					{ background-color:#bfb; }
+.i.oddrow, .oddrow .i					{ background-color:#aea; }
+.wi.evenrow, .evenrow .wi				{ background-color:#bdd; }
+.wi.oddrow, .oddrow .wi					{ background-color:#acc; }
+.m.evenrow, .evenrow .m					{ background-color:#ffb; }
+.m.oddrow, .oddrow .m					{ background-color:#eea; }
+.evenrow						{ background-color:#eee; }
+.oddrow							{ background-color:#ccc; }
+
+.evenrow:hover						{ background-color:#fff; }
+.oddrow:hover						{ background-color:#fff; }
+.failed.evenrow:hover, .failed.oddrow:hover		{ background-color:#f44; }
+.r:hover, tr:hover .r					{ background-color:#fdd; }
+.internalerr.evenrow:hover, .internalerr.oddrow:hover	{ background-color:#f4f; }
+.skipped.evenrow:hover, .skipped.oddrow:hover		{ background-color:#bb8; }
+.wr:hover, tr:hover .wr					{ background-color:#fdf; }
+.i:hover, tr:hover .i					{ background-color:#cfc; }
+.wi:hover, tr:hover .wi					{ background-color:#dfd; }
+.m:hover, tr:hover .m					{ background-color:#ffd; }
+
+tr:hover td {
+	border-color: #666 #eee #fff #888;
+}
+
+/* buttons */
+a.btn:link, a.btn:visited
+{
+	text-decoration:none;
+	color: #000;
+}
+
+.btn,.btn_disabled
+{
+	padding: 0.1em 0.3em 0.1em 0.3em;
+	margin: 0.2em;
+	border: solid 1px;
+	border-color: #fff #888 #666 #eee ;
+	background-color: #9bc;
+}
+.btn:hover { background-color: #68a; }
+.evenrow a.btn					{ background-color: #bcd; }
+.oddrow a.btn 					{ background-color: #9bc; }
+.failed.evenrow a.btn, .r.evenrow a.btn		{ background-color:#f88; }
+.failed.oddrow a.btn,  .r.oddrow a.btn		{ background-color:#e77; }
+.internalerr.evenrow a.btn, .wr.evenrow	a.btn	{ background-color:#f8f; }
+.internalerr.oddrow a.btn,  .wr.oddrow a.btn	{ background-color:#e7e; }
+.skipped.evenrow a.btn				{ background-color:#eee; }
+.skipped.oddrow a.btn				{ background-color:#ddd; }
+.i.evenrow a.btn				{ background-color:#8f8; }
+.i.oddrow a.btn					{ background-color:#7e7; }
+.wi.evenrow a.btn				{ background-color:#8dd; }
+.wi.oddrow a.btn				{ background-color:#acc; }
+.m.evenrow a.btn				{ background-color:#ff8; }
+.m.oddrow a.btn					{ background-color:#ee7; }
+
+/* Links */
+
+/* Forms */
+input[type="submit"]
+{
+	float:left;
+	clear:both;
+	margin-bottom: 1em;
+}
+
+/* SQL info */
+
+/* database table description */
+
+
+/* cards */
+.steps { margin: 0 0 0.2em 1em; }
+.steps span
+{
+	display:inline;
+	margin: 0 1em 3em 0;
+	border:solid 1px;
+}
+.steps span.nosel
+{
+	border-color:#fff #999 #888 #fff;
+	border-bottom:none;
+	background-color:#9bc;
+}
+.steps span.sel
+{
+	border-color:#cef #568 #68a #cef;
+	background-color:#68a;
+}
+.steps2
+{
+	border: solid 1px;
+	border-color:#cef #568 #457 #cef;
+	background-color:#68a;
+}
+#card
+{
+	border: solid 1px;
+	border-color:#fff #aaa #999 #fff;
+}
+
+.list a {
+	display: block;
+	margin-left: 3em;
+}
+
+.confirm .message	{
+	margin: 1em;
+	font-size: 200%;
+}

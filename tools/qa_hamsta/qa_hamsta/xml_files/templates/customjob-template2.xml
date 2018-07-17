@@ -1,0 +1,7 @@
+</command>
+            <!-- Optional -->
+            <directory>/</directory>
+            <timeout>300000</timeout>
+        </worker>
+    </commands>
+</job>

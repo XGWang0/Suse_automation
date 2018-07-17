@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<job>
+  <config>
+    <name>virtualization repo add and rpm update</name>
+    <debuglevel>4</debuglevel>
+    <description>update the virtualization package,make sure the package is expect</description>
+    <mail notify="1"></mail>
+  </config>
+  <parts>
+    <part name="part1" id="1" />
+  </parts>
+  <roles>
+    <role name="role_1">
+      <commands part_id="1">
+        <worker>
+          <command execution="threaded" reboot="1"><![CDATA[#!/bin/bash
+source /usr/share/qa/virtautolib/lib/virtlib
+update_virt_rpms
+Re=$?
+if [ $Re -eq 0 ];then
+	shutdown -r 1
+	exit 0
+else
+	exit $Re
+fi
+
+]]></command>
+        </worker>
+      </commands>
+    </role>
+  </roles>
+</job>

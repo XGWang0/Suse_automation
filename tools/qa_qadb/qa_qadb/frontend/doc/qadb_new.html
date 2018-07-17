@@ -1,0 +1,848 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE></TITLE>
+	<STYLE TYPE="text/css">
+	<!--
+		table	{ border-collapse: collapse }
+		td,th 	{ 
+			border: solid 1px black;
+			padding: 4px;
+			}
+		th	{ background-color: #ccc; font-size:1em; }
+		td		{ font-size:0.8em; }
+		td:first-child	{ font-size:1em; }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Database QADB</H1>
+<p>
+This is the database after the migration in 2009.
+</p>
+<p>
+Note: Null info  does not match.
+</p>
+<UL>
+	<LI><A HREF="#architectures">architectures</A></LI>
+	<LI><A HREF="#bench_data">bench_data</A></LI>
+	<LI><A HREF="#bench_parts">bench_parts</A></LI>
+	<LI><A HREF="#kernel_branches">kernel_branches</A></LI>
+	<LI><A HREF="#kotd_testing">kotd_testing</A></LI>
+	<LI><A HREF="#maintenance_testing">maintenance_testing</A></LI>
+	<LI><A HREF="#product_testing">product_testing</A></LI>
+	<LI><A HREF="#products">products</A></LI>
+	<LI><A HREF="#released_rpms">released_rpms</A></LI>
+	<LI><A HREF="#releases">releases</A></LI>
+	<LI><A HREF="#rpm_basenames">rpm_basenames</A></LI>
+	<LI><A HREF="#rpm_versions">rpm_versions</A></LI>
+	<LI><A HREF="#rpms">rpms</A></LI>
+	<LI><A HREF="#rpmConfig">rpmConfig</A></LI>
+	<LI><A HREF="#softwareConfig">softwareConfig</A></LI>
+	<LI><A HREF="#submissions">submissions</A></LI>
+	<LI><A HREF="#tcf_group">tcf_group</A></LI>
+	<LI><A HREF="#test_result">test_result</A></LI>
+	<LI><A HREF="#testcases">testcases</A></LI>
+	<LI><A HREF="#tests">tests</A></LI>
+	<LI><A HREF="#testsuites">testsuites</A></LI>
+	<LI><A HREF="#waiver_data">waiver_data</A></LI>
+	<LI><A HREF="#waiver_testcase">waiver_testcase</A></LI>
+</UL>
+<A NAME="architectures"><H2>architectures</H2></A>
+<TABLE CELLPADDING=2 CELLSPACING=1>
+	<TR>
+		<TH>Field</TH>
+		<TH>Type</TH>
+		<TH>Null</TH>
+		<TH>Default</TH>
+	</TR>
+	<TR>
+		<TD><B>archID</B></TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+	</TR>
+	<TR>
+		<TD>architecture</TD>
+		<TD>varchar(21)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+	</TR>
+</TABLE>
+<p>Enumerates known architectures.</p>
+<A NAME="bench_data"><H2>bench_data</H2></A>
+<TABLE CELLPADDING=2 CELLSPACING=1>
+	<TR>
+		<TH>Field</TH>
+		<TH>Type</TH>
+		<TH>Null</TH>
+		<TH>Default</TH>
+		<th>References</th>
+	</TR>
+	<TR>
+		<TD><B>partID</B></TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>0</TD>
+		<td><a href="#bench_parts">bench_parts</a></td>
+	</TR>
+	<TR>
+		<TD>result</TD>
+		<TD>float</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD><B>resultsID</B></TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>0</TD>
+		<td><a href="#test_result">test_result</a></td>
+	</TR>
+</TABLE>
+<p>Used for benchmark results, stores one benchmark number per row.</p>
+<A NAME="bench_parts"><H2>bench_parts</H2></A>
+<TABLE CELLPADDING=2 CELLSPACING=1>
+	<TR>
+		<TH>Field</TH>
+		<TH>Type</TH>
+		<TH>Null</TH>
+		<TH>Default</TH>
+	</TR>
+	<TR>
+		<TD><B>partID</B></TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+	</TR>
+	<TR>
+		<TD>part</TD>
+		<TD>varchar(1000)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+	</TR>
+</TABLE>
+<p>Stores different benchmark parts and their names.</p>
+
+<A NAME="kernel_branches"><H2>kernel_branches</H2></A>
+<TABLE CELLPADDING=2 CELLSPACING=1>
+	<TR>
+		<TH>Field</TH>
+		<TH>Type</TH>
+		<TH>Null</TH>
+		<TH>Default</TH>
+	</TR>
+	<TR>
+		<TD><B>branchID</B></TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+	</TR>
+	<TR>
+		<TD>branch</TD>
+		<TD>varchar(32)</TD>
+		<TD>Yes</TD>
+		<TD></TD>
+	</TR>
+</TABLE>
+<p>Enumerates used kernel branches.</p>
+<A NAME="kotd_testing"><H2>kotd_testing</H2></A>
+<TABLE CELLPADDING=2 CELLSPACING=1>
+	<TR>
+		<TH>Field</TH>
+		<TH>Type</TH>
+		<TH>Null</TH>
+		<TH>Default</TH>
+		<th>References</th>
+	</TR>
+	<TR>
+		<TD><B>kotdID</B></TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>submissionID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>0</TD>
+		<td><a href="#submissions">submissions</a></td>
+	</TR>
+	<TR>
+		<TD>release</TD>
+		<TD>varchar(256)</TD>
+		<TD>Yes</TD>
+		<TD></TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>version</TD>
+		<TD>varchar(32)</TD>
+		<TD>Yes</TD>
+		<TD></TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>branch</TD>
+		<TD>varchar(32)</TD>
+		<TD>Yes</TD>
+		<TD></TD>
+		<td><a href="#kernel_branches">kernel_branches</a></td>
+	</TR>
+</TABLE>
+<p>Every KOTD submission has its details here.</p>
+<A NAME="maintenance_testing"><H2>maintenance_testing</H2></A>
+<TABLE CELLPADDING=2 CELLSPACING=1>
+	<TR>
+		<TH>Field</TH>
+		<TH>Type</TH>
+		<TH>Null</TH>
+		<TH>Default</TH>
+		<th>References</th>
+	</TR>
+	<TR>
+		<TD><B>maintID</B></TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>patchID</TD>
+		<TD>varchar(50)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>md5sum</TD>
+		<TD>char(32)</TD>
+		<TD>Yes</TD>
+		<TD></TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>status</TD>
+		<TD>enum('wip', 'rejected', 'approved')</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD><B>submissionID</B></TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>0</TD>
+		<td><a href="#submissions">submissions</a></td>
+	</TR>
+</TABLE>
+<p>Every maintainence testing submission has its details here.</p>
+<A NAME="product_testing"><H2>product_testing</H2></A>
+<TABLE CELLPADDING=2 CELLSPACING=1>
+	<TR>
+		<TH>Field</TH>
+		<TH>Type</TH>
+		<TH>Null</TH>
+		<TH>Default</TH>
+		<th>References</th>
+	</TR>
+	<TR>
+		<TD><B>prodtestID</B></TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD><B>submissionID</B></TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>0</TD>
+		<td><a href="#submissions">submissions</a></td>
+	</TR>
+</TABLE>
+<p>Every product testing submission has its details here.</p>
+<A NAME="products"><H2>products</H2></A>
+<TABLE CELLPADDING=2 CELLSPACING=1>
+	<TR>
+		<TH>Field</TH>
+		<TH>Type</TH>
+		<TH>Null</TH>
+		<TH>Default</TH>
+	</TR>
+	<TR>
+		<TD><B>productID</B></TD>
+		<TD>int(10)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+	</TR>
+	<TR>
+		<TD>product</TD>
+		<TD>varchar(50)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+	</TR>
+</TABLE>
+<p>Enumerates know products.</p>
+<A NAME="released_rpms"><H2>released_rpms</H2></A>
+<TABLE CELLPADDING=2 CELLSPACING=1>
+	<TR>
+		<TH>Field</TH>
+		<TH>Type</TH>
+		<TH>Null</TH>
+		<TH>Default</TH>
+		<th>References</th>
+	</TR>
+	<TR>
+		<TD><B>releasedrpmID</B></TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>basenameID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>0</TD>
+		<td><a href="#rpm_basenames">rpm_basenames</a></td>
+	</TR>
+	<TR>
+		<TD>submissionID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>0</TD>
+		<td><a href="#submissions">submissions</a></td>
+	</TR>
+	<TR>
+		<TD>versionID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td><a href="#rpm_versions">rpm_versions</a></td>
+	</TR>
+</TABLE>
+<p>Used to list relevant RPMs for maintainence testing.</p>
+<A NAME="releases"><H2>releases</H2></A>
+<TABLE CELLPADDING=2 CELLSPACING=1>
+	<TR>
+		<TH>Field</TH>
+		<TH>Type</TH>
+		<TH>Null</TH>
+		<TH>Default</TH>
+	</TR>
+	<TR>
+		<TD><B>releaseID</B></TD>
+		<TD>int(10)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+	</TR>
+	<TR>
+		<TD>release</TD>
+		<TD>varchar(50)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+	</TR>
+</TABLE>
+<p>Enumerates known releases.</p>
+<A NAME="rpm_basenames"><H2>rpm_basenames</H2></A>
+<TABLE CELLPADDING=2 CELLSPACING=1>
+	<TR>
+		<TH>Field</TH>
+		<TH>Type</TH>
+		<TH>Null</TH>
+		<TH>Default</TH>
+	</TR>
+	<TR>
+		<TD><B>basenameID</B></TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+	</TR>
+	<TR>
+		<TD><B>basename</B></TD>
+		<TD>varchar(50)</TD>
+		<TD>Yes</TD>
+		<TD></TD>
+	</TR>
+</TABLE>
+<p>Stores base RPM names.</p>
+<A NAME="rpm_versions"><H2>rpm_versions</H2></A>
+<TABLE CELLPADDING=2 CELLSPACING=1>
+	<TR>
+		<TH>Field</TH>
+		<TH>Type</TH>
+		<TH>Null</TH>
+		<TH>Default</TH>
+	</TR>
+	<TR>
+		<TD><B>versionID</B></TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+	</TR>
+	<TR>
+		<TD><B>version</B></TD>
+		<TD>varchar(50)</TD>
+		<TD>Yes</TD>
+		<TD></TD>
+	</TR>
+</TABLE>
+<p>Stores RPM versions.</p>
+<A NAME="rpms"><H2>rpms</H2></A>
+<TABLE CELLPADDING=2 CELLSPACING=1>
+	<TR>
+		<TH>Field</TH>
+		<TH>Type</TH>
+		<TH>Null</TH>
+		<TH>Default</TH>
+		<th>References</th>
+	</TR>
+	<TR>
+		<TD><B>rpmID</B></TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>basenameID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>0</TD>
+		<td><a href="#rpm_basenames">rpm_basenames</a></td>
+	</TR>
+	<TR>
+		<TD>versionID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>0</TD>
+		<td><a href="#rpm_versions">rpm_versions</a></td>
+	</TR>
+</TABLE>
+<p>Makes a combination of RPM name and version.</p>
+<A NAME="rpmConfig"><H2>rpmConfig</H2></A>
+<TABLE CELLPADDING=2 CELLSPACING=1>
+	<TR>
+		<TH>Field</TH>
+		<TH>Type</TH>
+		<TH>Null</TH>
+		<TH>Default</TH>
+	</TR>
+	<TR>
+		<TD><B>configID</B></TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+	</TR>
+	<TR>
+		<TD>md5sum</TD>
+		<TD>char(32)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+	</TR>
+</TABLE>
+<p>
+Stores MD5 sums of configurations.
+A configuration is alphabetically sorted, space-separated list of entries in form of <i>&lt;basename&gt;<b>-</b>&lt;version&gt;</i>
+</p>
+<A NAME="softwareConfig"><H2>softwareConfig</H2></A>
+<TABLE CELLPADDING=2 CELLSPACING=1>
+	<TR>
+		<TH>Field</TH>
+		<TH>Type</TH>
+		<TH>Null</TH>
+		<TH>Default</TH>
+		<th>References</th>
+	</TR>
+	<TR>
+		<TD>configID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td>rpmConfig</td>
+	</TR>
+	<TR>
+		<TD>rpmID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>0</TD>
+		<td><a href="#rpms">rpms</a></td>
+	</TR>
+</TABLE>
+<p>Lists all RPMs and their versions that were installed during a test.</p>
+<A NAME="submissions"><H2>submissions</H2></A>
+<TABLE CELLPADDING=2 CELLSPACING=1>
+	<TR>
+		<TH>Field</TH>
+		<TH>Type</TH>
+		<TH>Null</TH>
+		<TH>Default</TH>
+		<th>References</th>
+	</TR>
+	<TR>
+		<TD><B>submissionID</B></TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>submission_date</TD>
+		<TD>timestamp</TD>
+		<TD>Yes</TD>
+		<TD>CURRENT_TIMESTAMP</TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>test_host</TD>
+		<TD>varchar(50)</TD>
+		<TD>Yes</TD>
+		<TD></TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>tester</TD>
+		<TD>varchar(50)</TD>
+		<TD>Yes</TD>
+		<TD></TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>comment</TD>
+		<TD>varchar(100)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>archID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td><a href="#architectures">architectures</a></td>
+	</TR>
+	<TR>
+		<TD>productID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td><a href="#products">products</a></td>
+	</TR>
+	<TR>
+		<TD>releaseID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td><a href="#releases">releases</a></td>
+	</TR>
+	<TR>
+		<TD>active</TD>
+		<TD>tinyint(1)</TD>
+		<TD>Yes</TD>
+		<TD>1</TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>related_submission</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td><a href="#submissions">submissions</a></td>
+	</TR>
+	<TR>
+		<TD>configID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td><a href="#rpmConfig">rpmConfig</a></td>
+	</TR>
+	<TR>
+		<TD>hwinfo_bz2</TD>
+		<TD>blob</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td></td>
+	</TR>
+</TABLE>
+<p>Every submissions has its row here.</p>
+<A NAME="tcf_group"><H2>tcf_group</H2></A>
+<TABLE CELLPADDING=2 CELLSPACING=1>
+	<TR>
+		<TH>Field</TH>
+		<TH>Type</TH>
+		<TH>Null</TH>
+		<TH>Default</TH>
+		<th>References</th>
+	</TR>
+	<TR>
+		<TD><B>tcfID</B></TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>tcfnameID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>0</TD>
+		<td><a href="#testsuites">testsuites</a></td>
+	</TR>
+	<TR>
+		<TD>submissionID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>0</TD>
+		<td><a href="#submissions">submissions</a></td>
+	</TR>
+</TABLE>
+<p>Every run of a testsuite has its row here.</p>
+<A NAME="testcases"><H2>testcases</H2></A>
+<TABLE CELLPADDING=2 CELLSPACING=1>
+	<TR>
+		<TH>Field</TH>
+		<TH>Type</TH>
+		<TH>Null</TH>
+		<TH>Default</TH>
+	</TR>
+	<TR>
+		<TD><B>testcaseID</B></TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+	</TR>
+	<TR>
+		<TD><B>testcaseName</B></TD>
+		<TD>varchar(50)</TD>
+		<TD>Yes</TD>
+		<TD></TD>
+	</TR>
+</TABLE>
+<p>Enumerates known testcases.</p>
+<A NAME="test_result"><H2>test_result</H2></A>
+<TABLE CELLPADDING=2 CELLSPACING=1>
+	<TR>
+		<TH>Field</TH>
+		<TH>Type</TH>
+		<TH>Null</TH>
+		<TH>Default</TH>
+		<th>References</th>
+	</TR>
+	<TR>
+		<TD><B>resultsID</B></TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>times_run</TD>
+		<TD>int(5)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>succeeded</TD>
+		<TD>int(10)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>failed</TD>
+		<TD>int(10)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>internal_error</TD>
+		<TD>int(10)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>test_time</TD>
+		<TD>int(10)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>testcaseID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>0</TD>
+		<td><a href="#testcases">testcases</a></td>
+	</TR>
+	<TR>
+		<TD>tcfID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td><a href="#tcf_group">tcf_group</a></td>
+	</TR>
+</TABLE>
+<p>Every run of a subtest has its row here, to store its results.</p>
+<A NAME="tests"><H2>tests</H2></A>
+<TABLE CELLPADDING=2 CELLSPACING=1>
+	<TR>
+		<TH>Field</TH>
+		<TH>Type</TH>
+		<TH>Null</TH>
+		<TH>Default</TH>
+		<th>References</th>
+	</TR>
+	<TR>
+		<TD>testsuiteID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td><a href="#testsuites">testsuites</a></td>
+	</TR>
+	<TR>
+		<TD>testcaseID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td><a href="#testcases">testcases</a></td>
+	</TR>
+	<TR>
+		<TD>is_bench</TD>
+		<TD>tinyint(4)</TD>
+		<TD>Yes</TD>
+		<TD>0</TD>
+		<td></td>
+	</TR>
+</TABLE>
+<A NAME="testsuites"><H2>testsuites</H2></A>
+<TABLE CELLPADDING=2 CELLSPACING=1>
+	<TR>
+		<TH>Field</TH>
+		<TH>Type</TH>
+		<TH>Null</TH>
+		<TH>Default</TH>
+	</TR>
+	<TR>
+		<TD><B>testsuiteID</B></TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+	</TR>
+	<TR>
+		<TD><B>testsuiteName</B></TD>
+		<TD>varchar(50)</TD>
+		<TD>Yes</TD>
+		<TD></TD>
+	</TR>
+</TABLE>
+<p>Enumerates known testsuites.</p>
+<A NAME="waiver_data"><H2>waiver_data</H2></A>
+<TABLE CELLPADDING=2 CELLSPACING=1>
+	<TR>
+		<TH>Field</TH>
+		<TH>Type</TH>
+		<TH>Null</TH>
+		<TH>Default</TH>
+		<th>References</th>
+	</TR>
+	<TR>
+		<TD><B>waiverID</B></TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>bugID</TD>
+		<TD>varchar(50)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>explanation</TD>
+		<TD>text</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>resultsID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>0</TD>
+		<td><a href="#test_result">test_result</a></td>
+	</TR>
+</TABLE>
+<p>Lists waiver testcase occurences.</p>
+<A NAME="waiver_testcase"><H2>waiver_testcase</H2></A>
+<TABLE CELLPADDING=2 CELLSPACING=1>
+	<TR>
+		<TH>Field</TH>
+		<TH>Type</TH>
+		<TH>Null</TH>
+		<TH>Default</TH>
+		<th>References</th>
+	</TR>
+	<TR>
+		<TD><B>waiver_tcID</B></TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td></td>
+	</TR>
+	<TR>
+		<TD>waiverID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>0</TD>
+		<td><a href="#waiver_data">waiver_data</a></td>
+	</TR>
+	<TR>
+		<TD>productID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>0</TD>
+		<td><a href="#products">products</a></td>
+	</TR>
+	<TR>
+		<TD>releaseID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>0</TD>
+		<td><a href="#releases">releases</a></td>
+	</TR>
+	<TR>
+		<TD>testcaseID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>0</TD>
+		<td><a href="#testcases">testcases</a></td>
+	</TR>
+	<TR>
+		<TD>archID</TD>
+		<TD>int(11)</TD>
+		<TD>Yes</TD>
+		<TD>NULL</TD>
+		<td><a href="#architectures">architectures</a></td>
+	</TR>
+	<TR>
+		<TD>matchtype</TD>
+		<TD>tinyint(4)</TD>
+		<TD>Yes</TD>
+		<TD>0</TD>
+		<td></td>
+	</TR>
+</TABLE>
+<p>Lists waiver testcases.</p>
+<P><BR><BR>
+</P>
+</BODY>
+</HTML>

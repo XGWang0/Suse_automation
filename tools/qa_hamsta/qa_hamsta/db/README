@@ -1,0 +1,38 @@
+======================
+DB with update support
+======================
+
+This directory contain a database definition with update support.
+The initial state of database is in the file create_unpatched_db.sql.
+This file contains a database definition version 0 (actually version 
+000000000000, see later).  
+
+If you ever want to do some modification to the database, you are not 
+allowed to change any existing file in this directory. Instead, you create 
+the sql script which will modify the database to the required state. The
+script must be stored in directory patches, and must have name in following
+format: TIMESTAMP_description.sql
+
+TIMESTAMP is a datetime in format: YYYYMMDDhhmm
+
+Example: patches/201007301505_the_sample_sql_script.sql
+
+To apply the patch(es) to the database, script update_db.sh is used, this script 
+reads the current version from the DB (version is a timestamp of the last 
+applied patch), and then it applies all the patches with higher version (=newer
+timestamp) - in order in which the patches were created.
+
+Script update_db is safe to be run repeatedly, since it won't try to apply same 
+patches again.
+
+To create new DB, use the script create_db.sh. The script crates new DB from 
+the create_unpatched_db.sql file and than runs the update_db.sh, which will bring
+the DB to the up-to-date state.
+
+Never change any file in this directory, if you find that there is something 
+wrong in some patch, create a new one, which would fix the problem, don't fix
+the bug inside the exiting patch! Someone can already have the wrong patch 
+applied!
+
+For any question, please contact Lukas Lipavsky <llipavsky@suse.cz>
+

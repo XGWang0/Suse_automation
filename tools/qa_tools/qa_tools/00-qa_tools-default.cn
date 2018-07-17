@@ -1,0 +1,53 @@
+# ****************************************************************************
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
+#
+
+#
+# This file contains default configuration for qa_tools
+# Location specific: cn
+#
+# Please never edit this file directly, if you want to change
+# anything, do it in a new file. (Files are read in alphabetical
+# order, values from earlier files are overwritten
+# 
+# Don't forget, all values names must be specified by
+# <variable name>=<variable value>
+#
+
+
+# Set NIS domain
+nis_domain=""
+
+# FIXME
+# simpy add nis server list here, this server list should be detected automatically from 
+# DHCP answer 
+# Format: space separated list
+nis_server_list=""
+
+# Where to put autinstallation profile
+install_profile_nfs_server="147.2.207.67"
+install_profile_nfs_dir="/home/hamsta"
+
+# From where to get the autoinstallation profile
+install_profile_url_base="http://147.2.207.67/install/autoinst"
+

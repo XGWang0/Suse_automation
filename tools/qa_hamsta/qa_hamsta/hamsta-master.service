@@ -1,0 +1,15 @@
+[Unit]
+Description=HAMSTA master, HArdware Maintenance, Setup and Test Automation
+After=network.target
+After=mysql.service
+Requires=mysql.service
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/screen -l -dmS hamsta-master /usr/share/hamsta/master/master.pl
+ExecStop=/usr/bin/screen -S hamsta-master -X quit
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

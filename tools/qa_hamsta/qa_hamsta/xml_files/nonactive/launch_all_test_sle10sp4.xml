@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<job>
+  <config>
+    <name>Test all packages for sles 10 sp4</name>
+    <debuglevel>4</debuglevel>
+    <description>launch all SLES 10 SP4 Test cases,these include validation,regression,performance,kernel</description>
+    <mail notify="1"></mail>
+    <motd>All Tests Have been launched(validation,regression,performance,kernel)</motd>
+    <rpm>hamsta qa_tools qa_libperl qa_fs_stress qa_process_stress qa_sched_stress qa_bind qa_coreutils qa_openssh qa_cpio qa_net-snmp qa_indent qa_sharutils qa_cabextract qa_gzip qa_postfix qa_bzip2 qa_cracklib qa_siege libmicro reaim bonnie tiobench dbench ltp newburn memtester memeat newburn-memtst netperf lmbench sysbench autotest</rpm>
+  </config>
+  <parts>
+    <part name="part1" id="1" />
+  </parts>
+  <roles>
+    <role name="role_1">
+      <commands part_id="1">
+        <worker>
+          <command execution="forked" reboot="0"><![CDATA[#!/bin/bash
+		cd /usr/share/hamsta/testscript
+		./customtest qa_fs_stress qa_process_stress qa_sched_stress qa_bind qa_coreutils qa_openssh qa_cpio qa_net-snmp qa_indent qa_sharutils qa_cabextract qa_gzip qa_postfix qa_bzip2 qa_cracklib qa_siege libmicro reaim bonnie tiobench dbench ltp newburn memtester memeat newburn-memtst netperf lmbench sysbench autotest
+	    ]]></command>
+        </worker>
+      </commands>
+    </role>
+  </roles>
+</job>

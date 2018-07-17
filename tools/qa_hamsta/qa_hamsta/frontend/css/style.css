@@ -1,0 +1,306 @@
+/* ****************************************************************************
+  Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
+  
+  THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+  CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+  RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+  THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+  THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+  TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+  PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+  PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+  AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+  LIABILITY.
+  
+  SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+  WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+  AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+  LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+  OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+  WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+  ****************************************************************************
+ */
+
+table.sort th
+{
+	text-align: right;
+	padding: 3px;
+	color: #000000;
+	font-weight: normal;
+}
+
+table.sort td
+{
+	padding: 2px;
+}
+
+table.list th
+{
+	text-align: center;
+	background-color: #e78f08;
+	padding: 1px;
+	color: #ffffff;
+}
+
+table.list td
+{
+	padding: 2px;
+}
+
+table.list td[rowspan]
+{
+	vertical-align: middle;
+}
+
+table.list tr
+{
+    text-align:left;
+}
+
+table.shrank tbody {
+        overflow: auto;
+        overflow-x:hidden;
+        height: 25em;
+}
+
+table.shrank td:last-child { 
+	padding-right: 18px; 
+}
+
+th>a>img { border: none; }
+
+td.module_part_head {
+    background-color:#bbb;
+    font-weight:bold;
+    padding-top:5pt;
+    padding-bottom:5pt;
+}
+
+td
+{
+	vertical-align: top;
+	padding: 1px;
+}
+
+h1
+{
+	font-size: 100%;
+	color: #000000;
+	padding: 2px;
+}
+
+h2 {
+    font-size:120%;
+    font-weight:bold;
+}
+
+a {
+    color:#00a;
+}
+
+h3 {
+    color: #455560;
+    font-weight: bold;
+    font-family: arial, verdana, sans-serif;
+    font-size: 1.13em;
+}
+
+.file_list a:link, .file_list a:visited { font-size:small;}
+.file_list td { padding-left:1em; padding-right:1em; }
+
+.failmessage
+{
+    color: #333333;
+    padding: 5px;
+    border: 1px solid red;
+    background: #dddddd;
+    margin: 10px;
+    width: 325px;
+    text-align: center;
+}
+.successmessage
+{
+    color: #333333;
+    padding: 5px;
+    border: 1px solid green;
+    background: #dddddd;
+    margin: 10px;
+    width: 300px;
+    text-align: center;
+}
+.failmessage-big
+{
+    color: #333333;
+    padding: 5px;
+    border: 1px solid red;
+    background: #dddddd;
+    margin: 10px;
+    width: 825px;
+    text-align: left;
+}
+.successmessage-big
+{
+    color: #333333;
+    padding: 5px;
+    border: 1px solid green;
+    background: #dddddd;
+    margin: 10px;
+    width: 800px;
+    text-align: left;
+}
+
+#message{
+    float:right;
+    background-color: #87cefa;
+}
+
+.message {
+    margin-left: 4em;
+}
+
+.btrefresh {
+	        background: #F2F2F2;
+		border-bottom: #444444 1px solid;
+		border-left: 1px solid #444444;
+		border-right: 1px solid #444444;
+		border-top: 1px solid #444444;
+		color: #333333;
+		font-family: arial, verdana, sans-serif;
+}
+input[type="submit"] { cursor:move; }
+.tbrefresh {
+		background: #F1F1F1;
+		font-size: 1em;
+		font-family: arial, verdana, sans-serif;
+}
+
+div.vhost_details { 
+	border: solid black;
+	border-width: 1px 0 1px 0;
+	padding: .2em;
+	margin: 1em;
+}
+
+div.vhost_details div { 
+	display: inline; 
+}
+
+
+div.vhost_details div span:first-child { 
+	font-weight: bold;
+	margin-left: 1em;
+}
+
+div.vhost_details div span:first-child:after { 
+	content: ':';
+}
+
+div.vhost table {
+	margin-left: 5em;
+	margin-top: 1em;
+	margin-bottom: 1em;
+}
+
+div.soo_button {
+	font-size: 0.75em;
+	text-align: center;
+	display: block;
+	float: left;
+	cursor: pointer;
+	border: 1px solid transparent;
+	padding: 1px 15px;
+	margin: 0 .5em 0 0;
+	-moz-border-radius: 8px;
+	border-radius: 8px;
+}
+
+div.soo_button:hover, div.soo_button_chosen {
+	border: 1px solid rgb(128,128,128);
+	border: 1px solid rgba(128,128,128,0.25);
+	background: rgb(128,128,128);
+	background: rgba(128,128,128,0.1);
+}
+
+img.no-border {
+	border: 0em;
+}
+
+img.icon-small {
+	height: 27px;
+	width: 27px;
+	margin-top: -0.2em;
+	margin-bottom: -0.3em;
+	margin-left: -0.1em;
+	margin-right: -0.1em;
+}
+
+img.icon-notification {
+	height: 1.5em;
+	width: 1.5em;
+	padding-top: 0.2em;
+	margin-top: -0.2em;
+	margin-bottom: -0.3em;
+	margin-left: -0.1em;
+	margin-right: -0.1em;
+	float: right;
+	padding-left: 3px;
+
+}
+
+img.icon-miniinfo {
+	height:15px;
+	width:15px;
+}
+
+img.icon-big {
+	height: 35px;
+	width: 35px;
+}
+
+/* These are from TBLib */
+div.steps {
+	padding: 0.5em 2em 0em 2em;
+}
+
+.sel,.nosel {
+	border-radius: 25px;
+	border-style: dotted;
+	padding-left: 1.5em;
+	padding-right: 1.5em;
+	margin-bottom: -2em;
+}
+
+span.sel {
+	background-color: #e78f08;
+	border-style: dotted;
+}
+
+span.nosel {
+	background-color: #ffffff;
+}
+
+div.card {
+	border-style: solid;
+	border-width: 2px;
+}
+
+#card {
+	margin: 0em 1em 1em 1em;
+}
+
+a.btn { }
+
+label.patterns {
+    display:block;
+    width:200px;
+    float:left;
+}
+
+div.machine_table_usedby {
+    width:10em;
+}
+
+div.job_name {
+    width:24em;
+}

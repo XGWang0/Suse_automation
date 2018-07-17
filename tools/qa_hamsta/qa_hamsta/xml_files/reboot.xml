@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<job>
+  <config>
+    <name>Reboot</name>
+    <debuglevel>4</debuglevel>
+    <description>Reboot SUT</description>
+    <mail notify="1"></mail>
+  </config>
+  <parts>
+    <part name="part1" id="1" />
+  </parts>
+  <roles>
+    <role name="role_1">
+      <commands part_id="1">
+        <worker>
+          <command execution="threaded" reboot="1"><![CDATA[/sbin/shutdown -r 1]]></command>
+        </worker>
+      </commands>
+    </role>
+  </roles>
+</job>

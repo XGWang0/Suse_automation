@@ -1,0 +1,4 @@
+#-vga [std|cirrus|vmware|qxl|xenfb|none]
+#QXL, cirrus, VGA
+cirrus
+vga

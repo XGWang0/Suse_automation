@@ -1,0 +1,66 @@
+# ****************************************************************************
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
+#
+
+# Local settings (modify these)
+
+xen.user=root
+xen.pass=
+vm.user=root
+vm.pass=
+migrateeUser=root
+migrateePass=novell
+
+# Global settings (only modify these if you are running the entire suite of tests)
+
+xen.arch=64
+xen.base=amd
+xen.ip=
+team.key=putkeyhere
+
+# You can leave these as they are (for the Xen lab environment)
+
+dhcp.reserved.pool=151.155.146.41:151.155.146.42:151.155.146.43:151.155.146.44:151.155.146.45:151.155.146.51:151.155.146.52:151.155.146.53:151.155.146.54:151.155.146.55:151.155.146.61:151.155.146.62:151.155.146.63:151.155.146.64:151.155.146.65
+
+netinfo.ip=10.20.136.1
+netinfo.user=rd-qa
+netinfo.pass=
+
+pxe.ip=10.20.136.1
+pxe.user=rd-qa
+pxe.pass=
+pxe.tftpdir=/tftpboot
+
+http.ip=10.20.136.1
+http.user=rd-qa
+http.pass=
+http.autoyast.local=/srv/www/htdocs/install/autoyast
+http.autoyast.web=install/autoyast
+
+network.mask=255.255.252.0
+network.gateway=151.155.147.254
+network.nameserver=151.155.144.70
+network.network=151.155.144.0
+network.bcast=151.155.147.255
+network.domain=virt.lab.novell.com
+

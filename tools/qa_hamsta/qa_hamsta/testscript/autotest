@@ -1,0 +1,85 @@
+#!/bin/bash
+# ****************************************************************************
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
+#
+
+hn=`cat /etc/HOSTNAME`
+cache="/tmp/cache"
+ARCH=$HOSTTYPE
+date=`date +%Y-%m-%d-%H-%M-%S`
+if [ "$ARCH" != "" ]; then
+        case $ARCH in
+        i[3-9]86)  ARCH="i386";;
+        p*pc) ARCH="ppc";;
+        p*pc64) ARCH="ppc64";;
+	x86_64) ARCH="x86_64";;
+        esac
+else
+        echo "cannot determine architecture";
+        exit 1
+fi
+
+if ((`id -u`!=0))
+then
+    echo "you should be root to run this test"
+    exit 1
+fi
+
+>/tmp/autotest_$$
+
+#clean 
+
+if [ -f /var/log/qa/autotest/status ];then
+
+	rtime=`cat /var/log/qa/autotest/status |head -1|sed 's/.*timestamp=//;s/\t.*//'`
+	mkdir -p /var/log/qa/oldlogs/autotest/
+	mv /var/log/qa/autotest /var/log/qa/oldlogs/autotest/$rtime
+fi
+
+
+rm -rf /usr/lib/autotest/results/autotest
+for i in $@;do
+	[ -d /usr/lib/autotest/tests/$i ] && cat /usr/lib/autotest/tests/$i/control >> /tmp/autotest_$$
+done
+/usr/lib/autotest/bin/autotest -t autotest /tmp/autotest_$$
+returnvalue=$?
+cp -ar /usr/lib/autotest/results/autotest /var/log/qa/
+#generate rpmlist
+rpm -qa --qf "%{NAME} %{VERSION}-%{RELEASE}\n" | sort > /var/log/qa/autotest/rpmlist
+#generate hwinfo
+/usr/sbin/hwinfo --all > /var/log/qa/autotest/hwinfo
+
+#generate kernel
+kernel_v=`uname -r`
+kernel_rpm=`rpm -qf /boot/System.map-$kernel_v`
+if [ -n "$kernel_rpm" ];then       
+	rpm -qi "$kernel_rpm" > /var/log/qa/autotest/kernel
+else
+	uname -r > /var/log/qa/autotest/kernel
+fi
+
+rm -rf /etc/init.d/autotest
+rm -rf /usr/lib/autotest/results/autotest
+/usr/share/qa/tools/remote_qa_db_report.pl -c "autotest results on $hn-$ARCH"
+exit $returnvalue
+

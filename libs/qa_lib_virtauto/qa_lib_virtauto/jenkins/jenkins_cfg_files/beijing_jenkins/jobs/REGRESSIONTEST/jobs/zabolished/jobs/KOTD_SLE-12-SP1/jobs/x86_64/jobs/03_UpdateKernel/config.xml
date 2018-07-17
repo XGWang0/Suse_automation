@@ -1,0 +1,167 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.7.1">
+      <useBuildBlocker>false</useBuildBlocker>
+      <blockLevel>UNDEFINED</blockLevel>
+      <scanQueueFor>DISABLED</scanQueueFor>
+      <blockingJobs></blockingJobs>
+    </hudson.plugins.buildblocker.BuildBlockerProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>MACHINE</name>
+          <description></description>
+          <defaultValue>147.2.207.54</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition plugin="extended-choice-parameter@0.50">
+          <name>ARCH</name>
+          <description></description>
+          <quoteValue>false</quoteValue>
+          <saveJSONParameterToFile>false</saveJSONParameterToFile>
+          <visibleItemCount>6</visibleItemCount>
+          <type>PT_RADIO</type>
+          <value>i586,ia64,ppc,s390,s390x,x86_64</value>
+          <defaultValue>x86_64</defaultValue>
+          <multiSelectDelimiter>,</multiSelectDelimiter>
+        </com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>BUILD_VER</name>
+          <description></description>
+          <defaultValue>bbbbbbbbbbbbb</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>KERNEL_REPO</name>
+          <description></description>
+          <defaultValue>http://download.suse.de/ibs/Devel:/Kernel:/SLE12-SP1/standard/</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition plugin="extended-choice-parameter@0.50">
+          <name>KERNEL_NAME</name>
+          <description></description>
+          <quoteValue>false</quoteValue>
+          <saveJSONParameterToFile>false</saveJSONParameterToFile>
+          <visibleItemCount>6</visibleItemCount>
+          <type>PT_RADIO</type>
+          <value>kernel-debug,kernel-default,kernel-xen</value>
+          <defaultValue>kernel-default</defaultValue>
+          <multiSelectDelimiter>,</multiSelectDelimiter>
+        </com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>master</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>python /mnt/147.2.212.89/eclipse_ws/RegressionTest/installkernel.py  -r ${KERNEL_REPO} -m ${MACHINE} -A ${ARCH} -b &quot;${BUILD_VER}&quot; -k &quot;${KERNEL_NAME}&quot;</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <net.masterthought.jenkins.CucumberReportPublisher plugin="cucumber-reports@0.1.0">
+      <jsonReportDirectory></jsonReportDirectory>
+      <pluginUrlPath></pluginUrlPath>
+      <fileIncludePattern>*.json</fileIncludePattern>
+      <fileExcludePattern></fileExcludePattern>
+      <skippedFails>false</skippedFails>
+      <pendingFails>false</pendingFails>
+      <undefinedFails>false</undefinedFails>
+      <missingFails>false</missingFails>
+      <noFlashCharts>false</noFlashCharts>
+      <ignoreFailedTests>false</ignoreFailedTests>
+      <parallelTesting>false</parallelTesting>
+    </net.masterthought.jenkins.CucumberReportPublisher>
+    <hudson.plugins.emailext.ExtendedEmailPublisher plugin="email-ext@2.40.5">
+      <recipientList>$DEFAULT_RECIPIENTS</recipientList>
+      <configuredTriggers>
+        <hudson.plugins.emailext.plugins.trigger.FailureTrigger>
+          <email>
+            <recipientList>$DEFAULT_RECIPIENTS</recipientList>
+            <subject>Update Kernel Test On (Arch:${ARCH}, Ver: ${BUILD_VER}, Machine:${MACHINE}) Failure !! ($JOB_NAME (Build #$BUILD_NUMBER))</subject>
+            <body>$PROJECT_DEFAULT_CONTENT
+-------------------------------------------------------------------------
+Update Kernel Test is failed !!!
+
+MACH ：${MACHINE}
+ARCH  : ${ARCH}
+VERT  : ${BUILD_VER}
+K-REPO : ${KERNEL_REPO}
+
+More details about test result , please refer to : ${BUILD_URL}/cucumber-html-reports/</body>
+            <recipientProviders>
+              <hudson.plugins.emailext.plugins.recipients.ListRecipientProvider/>
+            </recipientProviders>
+            <attachmentsPattern></attachmentsPattern>
+            <attachBuildLog>false</attachBuildLog>
+            <compressBuildLog>false</compressBuildLog>
+            <replyTo>$PROJECT_DEFAULT_REPLYTO</replyTo>
+            <contentType>project</contentType>
+          </email>
+        </hudson.plugins.emailext.plugins.trigger.FailureTrigger>
+        <hudson.plugins.emailext.plugins.trigger.SuccessTrigger>
+          <email>
+            <recipientList>$DEFAULT_RECIPIENTS</recipientList>
+            <subject>Update Kernel Test On (Arch:${ARCH}, Ver: ${BUILD_VER}, Machine:${MACHINE}) Pass !! ($JOB_NAME (Build #$BUILD_NUMBER))</subject>
+            <body>$PROJECT_DEFAULT_CONTENT
+-------------------------------------------------------------------------
+Update Kernel Test is passed !!!
+
+MACH ：${MACHINE}
+ARCH  : ${ARCH}
+VERT  : ${BUILD_VER}
+K-REPO : ${KERNEL_REPO}
+
+More details about test result , please refer to : ${BUILD_URL}/cucumber-html-reports/</body>
+            <recipientProviders>
+              <hudson.plugins.emailext.plugins.recipients.ListRecipientProvider/>
+            </recipientProviders>
+            <attachmentsPattern></attachmentsPattern>
+            <attachBuildLog>false</attachBuildLog>
+            <compressBuildLog>false</compressBuildLog>
+            <replyTo>$PROJECT_DEFAULT_REPLYTO</replyTo>
+            <contentType>project</contentType>
+          </email>
+        </hudson.plugins.emailext.plugins.trigger.SuccessTrigger>
+      </configuredTriggers>
+      <contentType>default</contentType>
+      <defaultSubject>$DEFAULT_SUBJECT</defaultSubject>
+      <defaultContent>$DEFAULT_CONTENT</defaultContent>
+      <attachmentsPattern></attachmentsPattern>
+      <presendScript>$DEFAULT_PRESEND_SCRIPT</presendScript>
+      <attachBuildLog>false</attachBuildLog>
+      <compressBuildLog>false</compressBuildLog>
+      <replyTo>$DEFAULT_REPLYTO</replyTo>
+      <saveOutput>false</saveOutput>
+      <disabled>false</disabled>
+    </hudson.plugins.emailext.ExtendedEmailPublisher>
+    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.27">
+      <configs>
+        <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+              <properties>MACHINE=$MACHINE
+ARCH=$ARCH
+BUILD_VER=$BUILD_VER</properties>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+          </configs>
+          <projects>04_StressValidation</projects>
+          <condition>UNSTABLE_OR_BETTER</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+        </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+      </configs>
+    </hudson.plugins.parameterizedtrigger.BuildTrigger>
+  </publishers>
+  <buildWrappers>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.4.1">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

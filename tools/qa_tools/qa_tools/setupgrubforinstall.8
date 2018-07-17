@@ -1,0 +1,36 @@
+.\" Process this file with
+.\" groff -man -Tascii qa_db_report.pl.8
+.\"
+.TH "setupgrubforinstall" "8"
+.SH NAME
+setupgrubforinstall \- prepares machine for reinstallation using CML,
+.BR grub (8)
+, and
+.BR autoyast
+
+.SH SYNOPSIS
+.B setupgrubforinstall 
+.I <CML source URL> <AutoYaST profile URL>
+.br
+.B setupgrubforinstall
+.I <CML source URL> [<kernel cmdline>]
+
+.SH EXAMPLE
+setupgrubforinstall ftp://cml.suse.cz/netboot/find/openSUSE-11.0-RC3-DVD-x86_64 http://bender.suse.cz/autoinst/autoinst_vulture.xml
+
+.SH DESCRIPTION
+The script downloads the kernel and initrd from CML using 
+.BR curl (1)
+, stores them to a newly created subdirectory of
+.I /boot
+, creates a new entry in Grub config file, and makes it a default entry.
+
+As a result, the machine should boot the CML kernel on next reboot, and possibly start an AutoYaST reinstallation.
+
+The script tries to autodetect GRUB partition and computer IP address. The results are stored on the kernel commandline, which contains for the first case:
+
+vga=normal autoyast=<AutoYaST profile URL> netdevice=eth0 netwait=10 <detected IP address> install=<AutoYaST profile URL>
+
+.SH "SEE ALSO"
+.BR grub (8),
+.BR curl (1)

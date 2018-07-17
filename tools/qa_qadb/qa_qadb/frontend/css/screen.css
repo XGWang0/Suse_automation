@@ -1,0 +1,223 @@
+/*
+  TOC:
+  ====
+  0. global settings
+  1. navigation - by pkirsch
+  2. table headers & rows
+  3. buttons
+  4. resizeable table bodies
+  5. table row highlights
+*/
+
+
+/* 0. global settings */
+body {
+	background-color: #ccc;
+	font-family: arial,verdana,sans-serif;
+	margin: 0;
+}
+
+/* 1. navigation - by pkirsch */
+#subnav	{
+	background-color:#456;
+	margin-bottom: 0.5em;
+}
+#subnav-hdr {
+	color:#456;
+	line-height: 130%;
+	padding: 0.4em 0 0 1em;
+	font-size: 1.13em;
+}
+
+#subnav-hdr a:hover
+{
+	color:#e80;
+	background-color:#234;
+}
+
+#subnav-hdr a.item, #subnav-hdr .item a {
+	padding-top: 0.4em;
+	word-spacing: 0.3em;
+}
+#subnav-hdr .item {
+	padding-left: 0.45em;
+	padding-right: 0.35em;
+}
+
+
+/* 2. table headers & rows */
+.tbl th a
+{
+	color:#000;
+	text-decoration:none;
+}
+.tbl th a:hover { text-decoration:underline; }
+.tbl th, .benchtbl th {	
+	text-align:center;
+	font-weight:normal;
+	font-size:110%;
+}
+.tbl th	{ color: #fff;	}
+.benchtbl td { text-align: center;	}
+.tbl, .benchtbl {
+	border-spacing:2px;
+	font-size: 80%;
+}
+
+/* tables */
+.tbl.controls td:last-child { white-space:nowrap; }
+
+.tbl td 								{ background-color:#eee; }
+.tbl th									{ background-color:#68a; }
+.failed td, .r td, td.r, td.failed					{ background-color:#fbb; }
+.internalerr td, .wr td, td.internalerr, td.wr				{ background-color:#fbf; }
+.skipped td, td.skipped							{ background-color:#bbb; }
+.i td, td.i								{ background-color:#bfb; }
+.wi td, td.wi								{ background-color:#bdd; }
+.m td, td.m								{ background-color:#ffb; }
+
+/* table row highlights */
+.tbl td:hover, .tbl tr:hover td						{ background-color:#ccc; }
+.tbl th:hover, .tbl tr:hover th						{ background-color:#468; }
+td.failed:hover, tr.failed:hover td, tr:hover td.failed			{ background-color:#f99; }
+td.r:hover, tr.r:hover td, tr:hover td.r				{ background-color:#f99; }
+td.internalerr:hover, tr.internalerr:hover td, tr:hover td.internalerr	{ background-color:#f9f; }
+td.wr:hover, tr.wr:hover td, tr:hover td.wr				{ background-color:#f9f; }
+td.skipped:hover, tr.skipped:hover td, tr:hover td.skipped		{ background-color:#999; }
+td.i:hover, tr.i:hover td, tr:hover td.i				{ background-color:#9f9; }
+td.wi:hover, tr.wi:hover td, tr:hover td.wi				{ background-color:#9bb; }
+td.m:hover, tr.m:hover td, tr:hover td.m				{ background-color:#dd9; }
+
+/* specials for comparing submission details */
+.small, th.small	{ font-size:0.5em; }
+.tbl td.space, .tbl td.space:hover	{
+	background-color:transparent;
+	box-shadow:none;
+}
+
+/* benchmark tables */
+.benchtbl th	{
+	background-color:#68a;
+	color: #000;
+}
+.benchtbl td	{ background-color:#eee; }
+.benchtbl tr:hover td { background-color:#ccc; }
+.benchtbl tr:hover th { background-color:#468; }
+
+p.benchimg { text-align: center; }
+#bench_graphs h1 {
+	text-align: center;
+	text-transform: capitalize;
+	text-shadow: 2px 2px 0px #888;
+}
+
+/* forms */
+select, input { background-color: #eee; }
+select:hover, input:hover { background-color: #ccc; }
+select option:hover { background-color:#8ac; }
+
+/* CSS3 shadows, does not work in Konqueror */
+.tbl td, .tbl th, .btn, .btn_disabled, #card { box-shadow: 0.3em 0.3em 0.7em #000; }
+.benchtbl td, .benchtbl th { box-shadow: 2px 2px 1px #000; }
+table.benchtbl { box-shadow: 4px 4px 9px #000, 1px 1px 9px #000 inset; }
+select, input[type="text"], input[type="password"], #subnav { box-shadow: 0.1em 0.1em 0.3em #666; }
+img.benchimg { box-shadow: 3px 3px 7px #000; }
+
+/* buttons */
+a.btn:link, a.btn:visited
+{
+	text-decoration:none;
+	color: #000;
+}
+
+.btn,.btn_disabled
+{
+	padding: 0.1em 0.3em 0.1em 0.3em;
+	margin: 0.2em;
+	border: none;
+	display: inline-block;
+	min-width: 2em;
+	text-align: center;
+}
+.btn	{
+	background-color: #68a;
+}
+.btn_disabled	{
+	background-color: #aaa;
+	color: #444;
+	box-shadow: 0.3em 0.3em 0.7em #444;
+}
+.highlight	{
+	font-weight: bold;
+	color: black;
+}
+.btn:active	{
+	position:relative;
+	top:2px;
+}
+.btn:hover 			{ background-color:#468; }
+.failed a.btn, .r a.btn		{ background-color:#f88; }
+.internalerr a.btn, .wr	a.btn	{ background-color:#f8f; }
+.skipped a.btn			{ background-color:#eee; }
+.i a.btn			{ background-color:#8f8; }
+.wi a.btn			{ background-color:#8dd; }
+.m a.btn			{ background-color:#ff8; }
+
+/* Links */
+
+/* Forms */
+input[type="submit"]
+{
+	float:left;
+	clear:both;
+	margin-bottom: 1em;
+}
+
+select, input[type="text"], input[type="password"]	{
+	border: solid 2px #ccc;
+}
+
+hr	{ box-shadow: 3px 3px 7px #000; }
+
+/* SQL info */
+
+/* database table description */
+
+
+/* cards */
+.steps {
+	margin: 0 0 0 1em;
+	float: left;
+}
+.steps span
+{
+	display:block;
+	float: left;
+	margin: 0 1em 0 0;
+}
+.steps span.sel		{ background-color:#68a; }
+.steps span.nosel	{ background-color:#9bc; }
+.steps span.nosel:hover	{ background-color:#68a; }
+.steps span.sel:hover	{ background-color:#468; }
+.steps span,.steps2 { box-shadow: 0.4em -0.2em 0.7em -0.2em #000; }
+.steps2
+{
+	clear: left;
+	margin: 0 4px;
+	background-color:#68a;
+}
+#card {	margin: 0 4px;	}
+
+.list a {
+	display: block;
+	margin-left: 3em;
+}
+
+.confirm .message	{
+	margin: 1em;
+	font-size: 200%;
+}
+
+.message.center	{
+	margin: 0 auto;
+}

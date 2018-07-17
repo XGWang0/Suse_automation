@@ -1,0 +1,14 @@
+--- t/2_XMLout.t
++++ t/2_XMLout.t
+@@ -348,6 +348,11 @@
+     \s*<b\s+alpha="1"\s*/>
+   ){2}
+ \s*</opt>
++|
++<opt>
++  \s*<b\s+alpha="1"\s*/>
++  \s*<a\s+alpha="1"\s*/>
++\s*</opt>
+ }xs, 'and encodes as expected');
+ 
+ 

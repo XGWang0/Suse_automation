@@ -1,0 +1,379 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>&lt;font color=&quot;orange&quot; size=4&gt;&lt;b&gt;Summary: &lt;/font&gt;: Monitory jobs mainly forces on detecting package change of repository of virtualization (Devel and Test repositorys) and then triggering downstream jobs. It also supports both ways (Manual | Automatic) to be triggered.&lt;/b&gt;&lt;br&gt;&lt;br&gt;&#xd;
+&#xd;
+&lt;font color=&quot;orange&quot; size=4&gt;&lt;b&gt;Project: &lt;/font&gt;Virtualization&lt;/b&gt;&lt;br&gt;&lt;br&gt;&#xd;
+&#xd;
+&lt;font color=&quot;orange&quot; size=4&gt;&lt;b&gt;Work Flow: &lt;/font&gt;&lt;br&gt;&#xd;
+&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&#xd;
+1 Checking the downstream job running status, if it is running status, skip following check ; &lt;br&gt;&#xd;
+&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&#xd;
+2 Checking if default test machine setted on downstream job is available ; &lt;br&gt;&#xd;
+&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&#xd;
+3 According to giving product version to check the change packages ; &lt;br&gt;&#xd;
+&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &#xd;
+4 Trigger relevant downstream job when found change package; &lt;br&gt;&#xd;
+&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &#xd;
+&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &#xd;
+&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &#xd;
+&lt;font color=&quot;grey&quot; size=2&gt;&lt;b&gt;&lt;br /&gt;Notice : If you want to add or reduce the products for monitor, You can refer to : &lt;br /&gt; Prj1 :  Add or reduce parameter &quot;--gi-prd [PRODUCT_VERSION]&quot; to CMD of build -&gt; Execute Shell &lt;br /&gt;Prj2 :  Add or reduce parameter &quot;--hu-prd [PRODUCT_VERSION]&quot; to CMD of build -&gt; Execute Shell &lt;br /&gt;Prj3 :  Add or reduce parameter &quot;--gm-prd [PRODUCT_VERSION]&quot; to CMD of build -&gt; Execute Shell &lt;br /&gt;&#xd;
+&#xd;
+&#xd;
+&lt;br&gt;&#xd;
+&lt;font color=&quot;orange&quot; size=4&gt;&lt;b&gt;User GUide: &lt;/font&gt;https://wiki.microfocus.net/index.php/SUSE/Quality_Assurance/QAA_Document_Entry&lt;/b&gt;&lt;br&gt;&lt;br&gt;</description>
+  <keepDependencies>true</keepDependencies>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>HamsterServer_151.155.144.50</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>H/30 * * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>/usr/share/qa/virtautolib/jenkins/virt_repo_monitor_devel.py  --hu-prd sles-12-sp0-64 --hu-prd sles-12-sp1-64 --hu-prd sles-11-sp4-64 --hu-job &quot;${JOB_URL}../Prj2-Host_Updation_Unit&quot; --gi-prd sles-12-sp1-64 --gi-prd sles-12-sp0-64 --gi-prd sles-11-sp4-64 --gi-prd sles-11-sp3-64 --gi-job &quot;${JOB_URL}../Prj1-Guest_Installation_Unit&quot;
+
+#/usr/share/qa/virtautolib/jenkins/virt_repo_monitor_devel.py  --hu-prd sles-12-sp0-64 --hu-prd sles-12-sp1-64 --hu-prd sles-11-sp4-64 --hu-job &quot;${JOB_URL}../Prj2-Host_Updation_Unit&quot; --gi-prd sles-12-sp1-64 --gi-prd sles-12-sp0-64 --gi-prd sles-11-sp4-64 --gi-prd sles-11-sp3-64 --gi-job &quot;${JOB_URL}../Prj1-Guest_Installation_Unit&quot; --gm-prd sles-12-sp1-64 --gm-prd sles-12-sp0-64 --gm-prd sles-11-sp4-64 --gm-prd sles-11-sp3-64 --gm-job &quot;${JOB_URL}../Prj3-Guest_Migration_Unit/&quot;
+
+
+#ls -R ${WORKSPACE}/VIRT_TEST_CFG/*</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <org.jenkins__ci.plugins.flexible__publish.FlexiblePublisher plugin="flexible-publish@0.15.2">
+      <publishers>
+        <org.jenkins__ci.plugins.flexible__publish.ConditionalPublisher>
+          <condition class="org.jenkins_ci.plugins.run_condition.core.FileExistsCondition" plugin="run-condition@1.0">
+            <file>VIRT_TEST_CFG/GI/GI_TRIGGERED_JOB_PARAM_FILE</file>
+            <baseDir class="org.jenkins_ci.plugins.run_condition.common.BaseDirectory$Workspace"/>
+          </condition>
+          <publisherList>
+            <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.28">
+              <configs>
+                <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+                  <configs>
+                    <hudson.plugins.parameterizedtrigger.FileBuildParameters>
+                      <propertiesFile>${WORKSPACE}/VIRT_TEST_CFG/GI/GI_TRIGGERED_JOB_PARAM_FILE</propertiesFile>
+                      <failTriggerOnMissing>false</failTriggerOnMissing>
+                      <useMatrixChild>false</useMatrixChild>
+                      <onlyExactRuns>false</onlyExactRuns>
+                    </hudson.plugins.parameterizedtrigger.FileBuildParameters>
+                  </configs>
+                  <projects>QAA/VIRT_DEV_TEST/Prj1-Guest_Installation_Unit</projects>
+                  <condition>UNSTABLE_OR_BETTER</condition>
+                  <triggerWithNoParameters>false</triggerWithNoParameters>
+                </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+              </configs>
+            </hudson.plugins.parameterizedtrigger.BuildTrigger>
+            <hudson.plugins.emailext.ExtendedEmailPublisher plugin="email-ext@2.40.5">
+              <recipientList>xgwang@suse.com</recipientList>
+              <configuredTriggers>
+                <hudson.plugins.emailext.plugins.trigger.SuccessTrigger>
+                  <email>
+                    <recipientList></recipientList>
+                    <subject>$PROJECT_DEFAULT_SUBJECT</subject>
+                    <body>$PROJECT_DEFAULT_CONTENT</body>
+                    <recipientProviders>
+                      <hudson.plugins.emailext.plugins.recipients.ListRecipientProvider/>
+                    </recipientProviders>
+                    <attachmentsPattern></attachmentsPattern>
+                    <attachBuildLog>false</attachBuildLog>
+                    <compressBuildLog>false</compressBuildLog>
+                    <replyTo>$PROJECT_DEFAULT_REPLYTO</replyTo>
+                    <contentType>project</contentType>
+                  </email>
+                </hudson.plugins.emailext.plugins.trigger.SuccessTrigger>
+              </configuredTriggers>
+              <contentType>default</contentType>
+              <defaultSubject>$JOB_NAME (Build #$BUILD_NUMBER) - New version of packages were found, trigger Prj1-Guest_Installation_Unit.</defaultSubject>
+              <defaultContent>Jenkin&apos;s test results:
+
+Project:       $PROJECT_NAME  (Build #$BUILD_NUMBER)
+Test Node:     $NODE_NAME
+ 
+Test Results:  $BUILD_STATUS
+
+Trigger Target: Prj1-Guest_Installation_Unit</defaultContent>
+              <attachmentsPattern></attachmentsPattern>
+              <presendScript>$DEFAULT_PRESEND_SCRIPT</presendScript>
+              <attachBuildLog>false</attachBuildLog>
+              <compressBuildLog>false</compressBuildLog>
+              <replyTo>$DEFAULT_REPLYTO</replyTo>
+              <saveOutput>false</saveOutput>
+              <disabled>false</disabled>
+            </hudson.plugins.emailext.ExtendedEmailPublisher>
+          </publisherList>
+          <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Run" plugin="run-condition@1.0"/>
+          <executionStrategy class="org.jenkins_ci.plugins.flexible_publish.strategy.FailAtEndExecutionStrategy"/>
+        </org.jenkins__ci.plugins.flexible__publish.ConditionalPublisher>
+        <org.jenkins__ci.plugins.flexible__publish.ConditionalPublisher>
+          <condition class="org.jenkins_ci.plugins.run_condition.core.FileExistsCondition" plugin="run-condition@1.0">
+            <file>VIRT_TEST_CFG/GI/GI_TRIGGERED_JOB_NOHOST_FLAG</file>
+            <baseDir class="org.jenkins_ci.plugins.run_condition.common.BaseDirectory$Workspace"/>
+          </condition>
+          <publisherList>
+            <hudson.plugins.emailext.ExtendedEmailPublisher plugin="email-ext@2.40.5">
+              <recipientList>xgwang@suse.com</recipientList>
+              <configuredTriggers>
+                <hudson.plugins.emailext.plugins.trigger.AlwaysTrigger>
+                  <email>
+                    <recipientList></recipientList>
+                    <subject>$PROJECT_DEFAULT_SUBJECT</subject>
+                    <body>$PROJECT_DEFAULT_CONTENT</body>
+                    <recipientProviders>
+                      <hudson.plugins.emailext.plugins.recipients.ListRecipientProvider/>
+                    </recipientProviders>
+                    <attachmentsPattern></attachmentsPattern>
+                    <attachBuildLog>false</attachBuildLog>
+                    <compressBuildLog>false</compressBuildLog>
+                    <replyTo>$PROJECT_DEFAULT_REPLYTO</replyTo>
+                    <contentType>project</contentType>
+                  </email>
+                </hudson.plugins.emailext.plugins.trigger.AlwaysTrigger>
+              </configuredTriggers>
+              <contentType>default</contentType>
+              <defaultSubject>$JOB_NAME (Build #$BUILD_NUMBER) - New version of packages were found, Because host is occupied by Prj2-Host_Update_Unit, Prj1-Guest_Installation_Unit will not be triggered.</defaultSubject>
+              <defaultContent>Jenkin&apos;s test results:
+
+Project:       $PROJECT_NAME  (Build #$BUILD_NUMBER)
+Test Node:     $NODE_NAME
+ 
+Test Results:  Failure
+
+
+Failed Reason : Default host is occupied by  Prj2-Host_Update_Unit
+Trigger Target: Prj1-Guest_Installation_Unit</defaultContent>
+              <attachmentsPattern></attachmentsPattern>
+              <presendScript>$DEFAULT_PRESEND_SCRIPT</presendScript>
+              <attachBuildLog>false</attachBuildLog>
+              <compressBuildLog>false</compressBuildLog>
+              <replyTo>$DEFAULT_REPLYTO</replyTo>
+              <saveOutput>false</saveOutput>
+              <disabled>false</disabled>
+            </hudson.plugins.emailext.ExtendedEmailPublisher>
+          </publisherList>
+          <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+          <executionStrategy class="org.jenkins_ci.plugins.flexible_publish.strategy.FailAtEndExecutionStrategy"/>
+        </org.jenkins__ci.plugins.flexible__publish.ConditionalPublisher>
+        <org.jenkins__ci.plugins.flexible__publish.ConditionalPublisher>
+          <condition class="org.jenkins_ci.plugins.run_condition.core.FileExistsCondition" plugin="run-condition@1.0">
+            <file>VIRT_TEST_CFG/HU/HU_TRIGGERED_JOB_PARAM_FILE</file>
+            <baseDir class="org.jenkins_ci.plugins.run_condition.common.BaseDirectory$Workspace"/>
+          </condition>
+          <publisherList>
+            <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.28">
+              <configs>
+                <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+                  <configs>
+                    <hudson.plugins.parameterizedtrigger.FileBuildParameters>
+                      <propertiesFile>${WORKSPACE}/VIRT_TEST_CFG/HU/HU_TRIGGERED_JOB_PARAM_FILE</propertiesFile>
+                      <failTriggerOnMissing>false</failTriggerOnMissing>
+                      <useMatrixChild>false</useMatrixChild>
+                      <onlyExactRuns>false</onlyExactRuns>
+                    </hudson.plugins.parameterizedtrigger.FileBuildParameters>
+                  </configs>
+                  <projects>QAA/VIRT_DEV_TEST/Prj2-Host_Updation_Unit</projects>
+                  <condition>SUCCESS</condition>
+                  <triggerWithNoParameters>false</triggerWithNoParameters>
+                </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+              </configs>
+            </hudson.plugins.parameterizedtrigger.BuildTrigger>
+            <hudson.plugins.emailext.ExtendedEmailPublisher plugin="email-ext@2.40.5">
+              <recipientList>xgwang@suse.com</recipientList>
+              <configuredTriggers>
+                <hudson.plugins.emailext.plugins.trigger.AlwaysTrigger>
+                  <email>
+                    <recipientList></recipientList>
+                    <subject>$PROJECT_DEFAULT_SUBJECT</subject>
+                    <body>$PROJECT_DEFAULT_CONTENT</body>
+                    <recipientProviders>
+                      <hudson.plugins.emailext.plugins.recipients.ListRecipientProvider/>
+                    </recipientProviders>
+                    <attachmentsPattern></attachmentsPattern>
+                    <attachBuildLog>false</attachBuildLog>
+                    <compressBuildLog>false</compressBuildLog>
+                    <replyTo>$PROJECT_DEFAULT_REPLYTO</replyTo>
+                    <contentType>project</contentType>
+                  </email>
+                </hudson.plugins.emailext.plugins.trigger.AlwaysTrigger>
+              </configuredTriggers>
+              <contentType>default</contentType>
+              <defaultSubject>$JOB_NAME (Build #$BUILD_NUMBER) - New version of packages were found, trigger Prj2-Host_Update_Unit.</defaultSubject>
+              <defaultContent>Jenkin&apos;s test results:
+
+Project:       $PROJECT_NAME  (Build #$BUILD_NUMBER)
+Test Node:     $NODE_NAME
+ 
+Test Results:  $BUILD_STATUS
+
+Trigger Target: Prj2-Host_Update_Unit</defaultContent>
+              <attachmentsPattern></attachmentsPattern>
+              <presendScript>$DEFAULT_PRESEND_SCRIPT</presendScript>
+              <attachBuildLog>false</attachBuildLog>
+              <compressBuildLog>false</compressBuildLog>
+              <replyTo>$DEFAULT_REPLYTO</replyTo>
+              <saveOutput>false</saveOutput>
+              <disabled>false</disabled>
+            </hudson.plugins.emailext.ExtendedEmailPublisher>
+          </publisherList>
+          <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+          <executionStrategy class="org.jenkins_ci.plugins.flexible_publish.strategy.FailAtEndExecutionStrategy"/>
+        </org.jenkins__ci.plugins.flexible__publish.ConditionalPublisher>
+        <org.jenkins__ci.plugins.flexible__publish.ConditionalPublisher>
+          <condition class="org.jenkins_ci.plugins.run_condition.core.FileExistsCondition" plugin="run-condition@1.0">
+            <file>VIRT_TEST_CFG/HU/HU_TRIGGERED_JOB_NOHOST_FLAG</file>
+            <baseDir class="org.jenkins_ci.plugins.run_condition.common.BaseDirectory$Workspace"/>
+          </condition>
+          <publisherList>
+            <hudson.plugins.emailext.ExtendedEmailPublisher plugin="email-ext@2.40.5">
+              <recipientList>xgwang@suse.com</recipientList>
+              <configuredTriggers>
+                <hudson.plugins.emailext.plugins.trigger.AlwaysTrigger>
+                  <email>
+                    <recipientList></recipientList>
+                    <subject>$PROJECT_DEFAULT_SUBJECT</subject>
+                    <body>$PROJECT_DEFAULT_CONTENT</body>
+                    <recipientProviders>
+                      <hudson.plugins.emailext.plugins.recipients.ListRecipientProvider/>
+                    </recipientProviders>
+                    <attachmentsPattern></attachmentsPattern>
+                    <attachBuildLog>false</attachBuildLog>
+                    <compressBuildLog>false</compressBuildLog>
+                    <replyTo>$PROJECT_DEFAULT_REPLYTO</replyTo>
+                    <contentType>project</contentType>
+                  </email>
+                </hudson.plugins.emailext.plugins.trigger.AlwaysTrigger>
+              </configuredTriggers>
+              <contentType>default</contentType>
+              <defaultSubject>$JOB_NAME (Build #$BUILD_NUMBER) - New version of packages were found, Because host is occupied by Prj1-Guest_Installation_Unit, Prj2-Host_Update_Unit will not be triggered.</defaultSubject>
+              <defaultContent>Jenkin&apos;s test results:
+
+Project:       $PROJECT_NAME  (Build #$BUILD_NUMBER)
+Test Node:     $NODE_NAME
+ 
+Test Results:  Failure
+
+
+Failed Reason : Default host is occupied by  Prj1-Guest_Installation_Unit
+Trigger Target: Prj2-Host_Update_Unit </defaultContent>
+              <attachmentsPattern></attachmentsPattern>
+              <presendScript>$DEFAULT_PRESEND_SCRIPT</presendScript>
+              <attachBuildLog>false</attachBuildLog>
+              <compressBuildLog>false</compressBuildLog>
+              <replyTo>$DEFAULT_REPLYTO</replyTo>
+              <saveOutput>false</saveOutput>
+              <disabled>false</disabled>
+            </hudson.plugins.emailext.ExtendedEmailPublisher>
+          </publisherList>
+          <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+          <executionStrategy class="org.jenkins_ci.plugins.flexible_publish.strategy.FailAtEndExecutionStrategy"/>
+        </org.jenkins__ci.plugins.flexible__publish.ConditionalPublisher>
+        <org.jenkins__ci.plugins.flexible__publish.ConditionalPublisher>
+          <condition class="org.jenkins_ci.plugins.run_condition.core.FileExistsCondition" plugin="run-condition@1.0">
+            <file>VIRT_TEST_CFG/GM/GM_TRIGGERED_JOB_PARAM_FILE</file>
+            <baseDir class="org.jenkins_ci.plugins.run_condition.common.BaseDirectory$Workspace"/>
+          </condition>
+          <publisherList>
+            <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.28">
+              <configs>
+                <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+                  <configs>
+                    <hudson.plugins.parameterizedtrigger.FileBuildParameters>
+                      <propertiesFile>${WORKSPACE}/VIRT_TEST_CFG/GM/GM_TRIGGERED_JOB_PARAM_FILE</propertiesFile>
+                      <failTriggerOnMissing>false</failTriggerOnMissing>
+                      <useMatrixChild>false</useMatrixChild>
+                      <onlyExactRuns>false</onlyExactRuns>
+                    </hudson.plugins.parameterizedtrigger.FileBuildParameters>
+                  </configs>
+                  <projects>QAA/VIRT_DEV_TEST/Prj3-Guest_Migration_Unit</projects>
+                  <condition>SUCCESS</condition>
+                  <triggerWithNoParameters>false</triggerWithNoParameters>
+                </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+              </configs>
+            </hudson.plugins.parameterizedtrigger.BuildTrigger>
+            <hudson.plugins.emailext.ExtendedEmailPublisher plugin="email-ext@2.40.5">
+              <recipientList>xgwang@suse.com,xlai@suse.com</recipientList>
+              <configuredTriggers>
+                <hudson.plugins.emailext.plugins.trigger.AlwaysTrigger>
+                  <email>
+                    <recipientList></recipientList>
+                    <subject>$PROJECT_DEFAULT_SUBJECT</subject>
+                    <body>$PROJECT_DEFAULT_CONTENT</body>
+                    <recipientProviders>
+                      <hudson.plugins.emailext.plugins.recipients.ListRecipientProvider/>
+                    </recipientProviders>
+                    <attachmentsPattern></attachmentsPattern>
+                    <attachBuildLog>false</attachBuildLog>
+                    <compressBuildLog>false</compressBuildLog>
+                    <replyTo>$PROJECT_DEFAULT_REPLYTO</replyTo>
+                    <contentType>project</contentType>
+                  </email>
+                </hudson.plugins.emailext.plugins.trigger.AlwaysTrigger>
+              </configuredTriggers>
+              <contentType>default</contentType>
+              <defaultSubject>$JOB_NAME (Build #$BUILD_NUMBER) - New version of packages were found, trigger Prj3-Guest_Migration_Unit .</defaultSubject>
+              <defaultContent>Jenkin&apos;s test results:
+
+Project:       $PROJECT_NAME  (Build #$BUILD_NUMBER)
+Test Node:     $NODE_NAME
+ 
+Test Results:  $BUILD_STATUS
+
+Trigger Target: Prj3-Guest_Migration_Unit</defaultContent>
+              <attachmentsPattern></attachmentsPattern>
+              <presendScript>$DEFAULT_PRESEND_SCRIPT</presendScript>
+              <attachBuildLog>false</attachBuildLog>
+              <compressBuildLog>false</compressBuildLog>
+              <replyTo>$DEFAULT_REPLYTO</replyTo>
+              <saveOutput>false</saveOutput>
+              <disabled>false</disabled>
+            </hudson.plugins.emailext.ExtendedEmailPublisher>
+          </publisherList>
+          <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+          <executionStrategy class="org.jenkins_ci.plugins.flexible_publish.strategy.FailAtEndExecutionStrategy"/>
+        </org.jenkins__ci.plugins.flexible__publish.ConditionalPublisher>
+      </publishers>
+    </org.jenkins__ci.plugins.flexible__publish.FlexiblePublisher>
+    <org.jenkinsci.plugins.discardbuild.DiscardBuildPublisher plugin="discard-old-build@1.05">
+      <daysToKeep>30</daysToKeep>
+      <numToKeep>-1</numToKeep>
+      <resultsToDiscard>
+        <hudson.model.Result>
+          <name>NOT_BUILT</name>
+          <ordinal>3</ordinal>
+          <color>NOTBUILT</color>
+          <completeBuild>false</completeBuild>
+        </hudson.model.Result>
+        <hudson.model.Result>
+          <name>UNSTABLE</name>
+          <ordinal>1</ordinal>
+          <color>YELLOW</color>
+          <completeBuild>true</completeBuild>
+        </hudson.model.Result>
+        <hudson.model.Result>
+          <name>ABORTED</name>
+          <ordinal>4</ordinal>
+          <color>ABORTED</color>
+          <completeBuild>false</completeBuild>
+        </hudson.model.Result>
+      </resultsToDiscard>
+      <minLogFileSize>-1</minLogFileSize>
+      <maxLogFileSize>-1</maxLogFileSize>
+      <intervalDaysToKeep>-1</intervalDaysToKeep>
+      <intervalNumToKeep>-1</intervalNumToKeep>
+      <regexp></regexp>
+    </org.jenkinsci.plugins.discardbuild.DiscardBuildPublisher>
+  </publishers>
+  <buildWrappers>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.4.1">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

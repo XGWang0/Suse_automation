@@ -1,0 +1,110 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<com.tikal.jenkins.plugins.multijob.MultiJobProject plugin="jenkins-multijob-plugin@1.16">
+  <actions/>
+  <description>This Job only supports one orginal product for migration test</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.7.1">
+      <useBuildBlocker>false</useBuildBlocker>
+      <blockLevel>GLOBAL</blockLevel>
+      <scanQueueFor>DISABLED</scanQueueFor>
+      <blockingJobs></blockingJobs>
+    </hudson.plugins.buildblocker.BuildBlockerProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition plugin="extended-choice-parameter@0.50">
+          <name>ORG_PRODUCT</name>
+          <description>&lt;font color=&quot;black&quot;, size=4&gt;&lt;b&gt;Original Product Version&lt;/b&gt;&lt;/font&gt;</description>
+          <quoteValue>false</quoteValue>
+          <saveJSONParameterToFile>false</saveJSONParameterToFile>
+          <visibleItemCount>8</visibleItemCount>
+          <type>PT_CHECKBOX</type>
+          <value>SLES-11-SP3-64.XEN,SLES-11-SP3-64.KVM,SLES-11-SP4-64.XEN,SLES-11-SP4-64.KVM,SLES-12-SP0-64.XEN,SLES-12-SP0-64.KVM,SLES-12-SP1-64.XEN,SLES-12-SP1-64.KVM</value>
+          <defaultValue>SLES-11-SP4-64.KVM,SLES-12-SP1-64.KVM</defaultValue>
+          <multiSelectDelimiter>,</multiSelectDelimiter>
+        </com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition>
+        <com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition plugin="extended-choice-parameter@0.50">
+          <name>DEST_PRODUCT</name>
+          <description>&lt;font color=&quot;black&quot;, size=4&gt;&lt;b&gt;Destination Product Version&lt;/b&gt;&lt;/font&gt;</description>
+          <quoteValue>false</quoteValue>
+          <saveJSONParameterToFile>false</saveJSONParameterToFile>
+          <visibleItemCount>8</visibleItemCount>
+          <type>PT_CHECKBOX</type>
+          <value>SLES-11-SP3-64.XEN,SLES-11-SP3-64.KVM,SLES-11-SP4-64.XEN,SLES-11-SP4-64.KVM,SLES-12-SP0-64.XEN,SLES-12-SP0-64.KVM,SLES-12-SP1-64.XEN,SLES-12-SP1-64.KVM</value>
+          <defaultValue>SLES-12-SP1-64.KVM</defaultValue>
+          <multiSelectDelimiter>,</multiSelectDelimiter>
+        </com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>HOST_LIST</name>
+          <description>&lt;font color=&quot;black&quot;, size=4&gt;&lt;b&gt;Input a group host, at least 2 test machines&lt;/b&gt;&lt;/font&gt;
+</description>
+          <defaultValue>Apac2_Rat,Apac2_Ox</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition plugin="extended-choice-parameter@0.50">
+          <name>GUEST_PRODUCT</name>
+          <description>&lt;font color=&quot;black&quot;, size=3&gt;&lt;b&gt;VM-Guest OS type, you may select any type of products as vm-guest os installs on host &lt;/b&gt;&lt;/font&gt;</description>
+          <quoteValue>false</quoteValue>
+          <saveJSONParameterToFile>false</saveJSONParameterToFile>
+          <visibleItemCount>6</visibleItemCount>
+          <type>PT_CHECKBOX</type>
+          <value>sles-11-sp3,sles-11-sp4,sles-12-sp0,sles-12-sp1</value>
+          <defaultValue>sles-12-sp0</defaultValue>
+          <multiSelectDelimiter>,</multiSelectDelimiter>
+        </com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition>
+        <com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition plugin="extended-choice-parameter@0.50">
+          <name>TEST_MODE</name>
+          <description>&lt;font color=&quot;black&quot; size=3&gt;&lt;b&gt;std means that using standard repo&apos;s package to execute test.&lt;br&gt;dev means that using developer repo&apos;s package to execute test&lt;/b&gt;&lt;/font&gt;</description>
+          <quoteValue>false</quoteValue>
+          <saveJSONParameterToFile>false</saveJSONParameterToFile>
+          <visibleItemCount>2</visibleItemCount>
+          <type>PT_RADIO</type>
+          <value>std,dev</value>
+          <defaultValue>std</defaultValue>
+          <multiSelectDelimiter>,</multiSelectDelimiter>
+        </com.cwctravel.hudson.plugins.extended__choice__parameter.ExtendedChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>VIRT_PRODUCT_VERSION</name>
+          <description>&lt;font color=&quot;black&quot;, size=4&gt;&lt;b&gt; Virtualization production version&lt;/b&gt;&lt;/font&gt;</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>147.2.207.30</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>H 2 * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>python /usr/share/qa/virtautolib/jenkins/jenkins_run_milestone.py -t gm --gm-host ${HOST_LIST} --gm-org-product ${ORG_PRODUCT} --gm-dest-product ${DEST_PRODUCT} --gm-guest-product &quot;${GUEST_PRODUCT}&quot; --tst_mode ${TEST_MODE} --virt-product-ver &quot;${VIRT_PRODUCT_VERSION}&quot;</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <net.masterthought.jenkins.CucumberReportPublisher plugin="cucumber-reports@0.1.0">
+      <jsonReportDirectory></jsonReportDirectory>
+      <pluginUrlPath></pluginUrlPath>
+      <fileIncludePattern>*.json</fileIncludePattern>
+      <fileExcludePattern></fileExcludePattern>
+      <skippedFails>false</skippedFails>
+      <pendingFails>false</pendingFails>
+      <undefinedFails>false</undefinedFails>
+      <missingFails>false</missingFails>
+      <noFlashCharts>false</noFlashCharts>
+      <ignoreFailedTests>false</ignoreFailedTests>
+      <parallelTesting>false</parallelTesting>
+    </net.masterthought.jenkins.CucumberReportPublisher>
+  </publishers>
+  <buildWrappers>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.4.1">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</com.tikal.jenkins.plugins.multijob.MultiJobProject>

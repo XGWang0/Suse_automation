@@ -1,0 +1,56 @@
+<HTML>
+<BODY>
+<PRE>
+<!-- Manpage converted by man2html 3.0.1 -->
+
+</PRE>
+<H2>SYNOPSIS</H2><PRE>
+       product.pl [-v] [-d]
+
+
+</PRE>
+<H2>DESCRIPTION</H2><PRE>
+       product.pl  guesses  current machine's product and release, and outputs
+       it in the format &lt;product&gt;-&lt;release&gt; , suitable for  qa_db_report.pl  .
+       The  script  was  written to allow automatical QADB submissions without
+       any user interaction.
+
+       The product is guessed by reading the  output  of  /etc/suse/release  ,
+       zypper  -sl  ,  and  /var/lib/YaST2/install.inf .  Candidate products /
+       releases are checked against QADB via HTTP.  Best  matching  product  /
+       release is printed to STDOUT.
+
+
+
+</PRE>
+<H2>OPTIONS</H2><PRE>
+       -v     Verbose  mode.   Prints  a short summary of the detected product
+              and release, and sends it to STDERR.
+
+       -d     Disables QADB use.  By default, the script queries QADB for sup-
+              ported products and releases.  When this flag is specified, only
+              hardcoded (and possibly outdated) values are used instead.
+
+
+
+</PRE>
+<H2>AUTHOR</H2><PRE>
+       Vilem Marsik &lt;vmarsik@novell.com&gt;
+
+
+
+</PRE>
+<H2>SEE ALSO</H2><PRE>
+       <B><A HREF="arch.pl.1.html">arch.pl(1)</A></B>, <B><A HREF="location.pl.1.html">location.pl(1)</A></B>, <B><A HREF="remote_qa_db_report.pl.1.html">remote_qa_db_report.pl(1)</A></B>
+
+
+
+                                       1                      product.pl(QADB)
+</PRE>
+<HR>
+<ADDRESS>
+Man(1) output converted with
+<a href="http://www.oac.uci.edu/indiv/ehood/man2html.html">man2html</a>
+</ADDRESS>
+</BODY>
+</HTML>

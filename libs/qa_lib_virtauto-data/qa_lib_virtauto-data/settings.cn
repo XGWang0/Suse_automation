@@ -1,0 +1,75 @@
+# ****************************************************************************
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
+#
+
+# Local settings (modify these)
+
+xen.user=root
+xen.pass=novell
+vm.user=root
+vm.pass=novell
+migratee.user=root
+migratee.pass=susetesting
+migratee.vm.user=root
+migratee.vm.pass=susetesting
+
+# Global settings (only modify these if you are running the entire suite of tests)
+
+xen.arch=64
+xen.base=amd
+xen.ip=
+team.key=putkeyhere
+
+# You can leave these as they are (for the Xen lab environment)
+
+netinfo.ip=147.2.207.240
+netinfo.user=rd-qa
+netinfo.pass=
+http.ip=147.2.207.240
+http.user=rd-qa
+http.pass=
+http.autoyast.local=/srv/www/htdocs/install/autoyast
+http.autoyast.web=install/autoyast
+pxe.ip=147.2.207.240
+pxe.user=rd-qa
+pxe.pass=
+pxe.tftpdir=/suse/tftpboot/
+dhcp.reserved.pool=147.2.207.43:147.2.207.66:147.2.207.115:147.2.207.138:147.2.207.157:147.2.207.164:147.2.207.165:147.2.207.185:147.2.207.187:147.2.207.188
+network.mask=255.255.255.0
+network.gateway=147.2.207.254
+network.nameserver=147.2.136.75
+network.network=147.2.207.0
+network.bcast=147.2.207.255
+network.domain=bj.lab.novell.com
+MOUNT.addr=147.2.207.1
+
+#Virtual host update setting
+#You can leave these as they are.
+RUN_INSIDE_VM=/usr/share/qa/virtautolib/lib/vm-run-inside.sh
+RUN_FROM_HOST=/usr/share/qa/virtautolib/lib/vm-administration.sh
+LOG_RESULT_PRODUCT=/var/log/vh_upgrade/log_result_product
+LOG_RESULT_PRODUCT_UPGRADED=/var/log/vh_upgrade/log_result_product_upgraded
+VM_GUEST_CONFIG_PARAM_FILE=/usr/share/qa/virtautolib/data/vm_guest_config_in_vh_update
+HOST_UPGRADE_YAST_FILE=/usr/share/qa/virtautolib/data/autoupg_template.xml
+MAX_PARALLELL_INSTALL_VM_NUMBER=2
+

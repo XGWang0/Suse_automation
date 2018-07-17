@@ -1,0 +1,17 @@
+install
+key --skip
+lang en_US.UTF-8
+keyboard us
+xconfig --startxonboot --defaultdesktop=KDE
+network --device eth0 --bootproto dhcp
+rootpw --iscrypted $1$VBgEferM$lbesWMDWrwgJMbWKhAYXL0
+firewall --enabled --port=22:tcp
+authconfig --enableshadow --enablemd5
+selinux --enforcing
+timezone --utc America/Denver
+zerombr
+autopart
+bootloader --location=mbr --append="rhgb quiet"
+reboot
+%packages
+@ X Window System

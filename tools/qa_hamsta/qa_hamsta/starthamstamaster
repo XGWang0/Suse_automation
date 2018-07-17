@@ -1,0 +1,61 @@
+#!/bin/sh
+# ****************************************************************************
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
+#
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+#
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
+
+# Script for global configuration reading
+CONFIG_COMMAND=/usr/share/qa/tools/get_qa_config
+
+# TODO This should be fixed to be more generic (not MySQL only).
+# Connecting to DB should not be checked here but rather in the
+# application itself.
+
+# Get the DB information from global configuration
+# So far only MySQL is used
+DB_type="mysql"
+DB_host=`${CONFIG_COMMAND} 'hamsta_master_sql_host'`
+DB_port=`${CONFIG_COMMAND} 'hamsta_master_sql_port'`
+DB_name=`${CONFIG_COMMAND} 'hamsta_master_sql_db'`
+DB_user=`${CONFIG_COMMAND} 'hamsta_master_sql_user'`
+DB_passwd=`${CONFIG_COMMAND} 'hamsta_master_sql_pwd'`
+
+if [ "$DB_type" == "mysql" ];then
+	if [ "$DB_passwd" == "" ];then
+		passwd_arg=""
+	else
+		passwd_arg="-p$DB_passwd"
+	fi
+	#mysql -u $DB_user -h $DB_host $passwd_arg -e "use ${DB_name};"
+	if ! mysql -u $DB_user -h $DB_host -P $DB_port $passwd_arg -e "use ${DB_name};"; then
+	    echo "Hamsta database connection error. Check the database configuration in '/etc/qa/'."
+	    echo -e "\
+Used values\n\
+Host:\t'${DB_host}'\n\
+Port:\t\t'${DB_port}'\n\
+DB name:\t'${DB_name}'\n\
+User:\t'${DB_user}'\n\
+Password:\t'${DB_password}'"
+	    exit 1
+	fi
+fi
+
+screen -S hamsta-master -l -d -m /bin/bash -c 'cd /usr/share/hamsta/master; ./master.pl'

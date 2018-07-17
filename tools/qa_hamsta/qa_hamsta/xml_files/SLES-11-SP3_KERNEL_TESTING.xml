@@ -1,0 +1,356 @@
+<?xml version="1.0"?>
+<job>
+  <config>
+    <name>SLES-11-SP3_KERNEL_TESTING</name>
+    <debuglevel>4</debuglevel>
+    <description>SLES-11-SP3 QA kernel test</description>
+    <mail notify="1"></mail>
+    <motd>[Custom job]: SLES-11-SP3 QA kernel test is running</motd>
+    <rpm>qa_hamsta qa_tools</rpm>
+  </config>
+  <parts>
+    <part name="part1" id="1" />
+  </parts>
+  <roles>
+    <role name="role_1">
+      <commands part_id="1">
+        <worker>
+          <command execution="forked" reboot="0"><![CDATA[#!/bin/bash 
+
+ARCH=$HOSTTYPE
+if [ "$ARCH" != "" ]; then
+        echo "architecture is $ARCH"
+        case $ARCH in
+        i[3-9]86)  ARCH="i586";;
+        p*pc) ARCH="ppc";;
+        p*pc64) ARCH="ppc64";;
+        esac
+else
+        echo "cannot determine architecture";
+        exit 1
+fi
+
+release=`egrep -o '[aA]lpha[1-9]|[bB]eta[1-9]|RC[1-9]' /etc/issue`
+
+if [ -z "$release" ]; then
+        release="GMC"
+fi
+
+#ipaddr_list=`ifconfig2ip ip`
+#if echo $ipaddr_list | grep "147\.2\." &>/dev/null;then
+#        zypper --no-gpg-checks -n ar http://147.2.207.208/dist/ibs/QA:/Head/SUSE_SLE-11-SP3_GA qa-ibs
+#        zypper --no-gpg-checks -n ar http://147.2.207.208/dist/install/SLP/SLE-11-SP3-SDK-$release/$ARCH/DVD1 sle11-sp3-sdk
+#else
+        zypper --no-gpg-checks -n ar http://dist.suse.de/ibs/QA:/Head/SUSE_SLE-11-SP3_GA qa-ibs
+                if [ $ARCH != "i586" ];then
+                        zypper --no-gpg-checks -n ar http://dist.suse.de/install/SLP/SLE-11-SP3-SDK-$release/$ARCH/DVD1 sle11-sp3-sdk
+                else
+                        zypper --no-gpg-checks -n ar http://dist.suse.de/install/SLP/SLE-11-SP3-SDK-$release/i386/DVD1 sle11-sp3-sdk
+                fi
+#fi
+
+zypper --gpg-auto-import-keys ref
+
+TEST_PACKAGES="qa_test_ftpload qa_test_ltp qa_test_fs_stress qa_test_process_stress qa_test_sched_stress qa_test_bind qa_test_openssh qa_test_net-snmp qa_test_cpio qa_test_nfs qa_test_findutils qa_test_indent qa_test_sharutils qa_test_gzip qa_test_postfix qa_test_fetchmail qa_test_cracklib qa_test_coreutils qa_test_sysbench qa_test_lmbench qa_test_bonnie qa_test_dbench qa_test_interbench qa_test_kernbench qa_test_libmicro qa_test_reaim qa_test_siege qa_test_tiobench qa_test_bzip2 qa_test_newburn qa_test_newburn-memtst qa_test_netperf qa_test_memeat qa_test_memtester qa_test_autotest qa_test_apparmor qa_test_apparmor-profiles qa_test_apache_testsuite qa_test_php53"
+OTHER_QA_PACKAGES="qa_lib_ctcs2 qa_lib_keys qa_lib_perl qa_lib_config qa_tools qa_db_report qa_lib_internalapi"
+
+zypper -n in -l $TEST_PACKAGES $OTHER_QA_PACKAGES
+
+#specify for s390x arch
+if [ "$ARCH" = "s390x" ] ; then
+        cp  /usr/share/qa/tcf/fs_stress.tcf /usr/share/qa/tcf/fs_stress.tcf.bak
+	if [ ! "`grep abuild /usr/share/qa/tcf/fs_stress.tcf`" ] ; then
+        sed -i '/^fg/s/$/ -d \/abuild/' /usr/share/qa/tcf/fs_stress.tcf
+	rm /usr/lib/ctcs2/tcf/fs_stress.tcf && cp /usr/share/qa/tcf/fs_stress.tcf /usr/lib/ctcs2/tcf/fs_stress.tcf 
+	fi
+
+        cp /usr/lib/ctcs2/tcf/tiobench.tcf /usr/lib/ctcs2/tcf/tiobench.tcf.bak  
+	if [ ! "`grep abuild /usr/lib/ctcs2/tcf/tiobench.tcf`" ] ; then
+	sed -i '/^fg/s/$/ --dir \/abuild/' /usr/lib/ctcs2/tcf/tiobench.tcf 
+	fi
+
+        cp /usr/lib/reaim/reaim.config /usr/lib/reaim/reaim.config.bak  
+	if [ ! "`grep abuild /usr/lib/reaim/reaim.config`" ] ; then
+	sed -i '/^DISKDIR/s/tmp/abuild/' /usr/lib/reaim/reaim.config
+	fi
+
+	if [ ! "`grep abuild /usr/lib/autotest/bin/job.py`" ] ; then
+        cp /usr/lib/autotest/bin/job.py /usr/lib/autotest/bin/job.py.bak
+        sed -i 's/self.tmpdir =.*/self.tmpdir ="\/abuild"/' /usr/lib/autotest/bin/job.py
+	fi
+
+	if [ ! "`grep abuild /usr/lib/ctcs2/tools/newburn-run`" ] ; then
+	cp /usr/lib/ctcs2/tools/test_newburn-run /usr/lib/ctcs2/tools/test_newburn-run.bak
+	sed -i 's/newburn-generator.*24h/newburn-generator -B \/abuild\/tmplinux\/ 24h/' /usr/lib/ctcs2/tools/test_newburn-run
+	fi
+fi
+
+#modify mysql
+service mysql start
+
+if [ -x /etc/init.d/mysql ] ; then
+
+grep max_connections /etc/init.d/mysql || ( sed -i 's@\(\$SAFE_MYSQLD\ \\\)@\1\n\t\t\t\-\-max_connections\=1000 \\@g' /etc/init.d/mysql && /etc/init.d/mysql restart )
+
+fi
+
+#modify php.ini for qa_php5 test
+cp /etc/php5/apache2/php.ini /etc/php5/apache2/php.ini.bak
+sed -i 's/track_errors =.*/track_errors = On/' /etc/php5/apache2/php.ini
+sed -i 's/display_errors =.*/display_errors = On/' /etc/php5/apache2/php.ini
+sed -i 's/;open_basedir =.*/open_basedir =/' /etc/php5/apache2/php.ini
+sed -i 's/error_reporting  =.*/error_reporting  =  E_ALL|E_STRICT/' /etc/php5/apache2/php.ini
+
+#modify autotest-fio timer
+cp /usr/lib/ctcs2/tcf/autotest_quick.tcf /usr/lib/ctcs2/tcf/autotest_quick.tcf.bak
+lnumber=`grep -n "g 1 autotest-fio /usr/lib/autotest/bin/autotest /usr/lib/autotest/tests/fio/control" /usr/lib/ctcs2/tcf/autotest_quick.tcf | awk -F: '{print $1}'`
+(( lnumber-=1 ))
+sed -i "${lnumber}s/86400/3600/" /usr/lib/ctcs2/tcf/autotest_quick.tcf
+
+if [ "$ARCH" = "x86_64" -o "$ARCH" = "ppc64" -o "$ARCH" = "s390x" ] ; then
+        libs="lib64"
+else
+        libs="lib"
+fi
+
+#modify httpd.conf for qa_apache test
+if [ ! "`grep perl_module /etc/apache2/httpd.conf`" ] ; then
+cp /etc/apache2/httpd.conf /etc/apache2/httpd.conf.bak
+echo "LoadModule perl_module /usr/$libs/apache2/mod_perl.so" >> /etc/apache2/httpd.conf
+fi
+service apache2 start
+
+
+for pkg in $TEST_PACKAGES $OTHER_QA_PACKAGES $ADDITIONAL_PACKAGES ; do
+        if rpm -q $pkg > /dev/null 2>&1 ; then
+                echo -e "$pkg is installed\n"
+                echo -e "$pkg is installed\n" >> /root/install_packages_log
+        else
+                echo -e "$pkg is not installed. Please install needed packages manually.\n"
+                echo -e "$pkg is not installed. Please install needed packages manually.\n" >> /root/install_packages_log
+#               exit
+        fi
+done
+
+echo -e "You can run acceptance/kernel/performance/regression tests now.\n"
+
+#start all tests
+
+echo -e "\nBEWARE: ALL TESTS are running, Please see screen -r tests\n" > /etc/motd
+
+echo -e "All tests starts now, see screen -r tests for details\n"
+
+screen -L -S tests  -d -m /bin/bash -c '(
+
+        logger get sysinfo
+        echo -e "\nuname -a\n" > /var/log/qa/ctcs2/sysinfo
+        uname -a >> /var/log/qa/ctcs2/sysinfo 2>&1
+        echo -e "\ncat /proc/meminfo\n" >> /var/log/qa/ctcs2/sysinfo
+        cat /proc/meminfo >> /var/log/qa/ctcs2/sysinfo
+        echo -e "\ncat /proc/cpuinfo\n" >> /var/log/qa/ctcs2/sysinfo
+        cat /proc/cpuinfo >> /var/log/qa/ctcs2/sysinfo
+        echo -e "\ncat /etc/fstab\n" >> /var/log/qa/ctcs2/sysinfo
+        cat /etc/fstab >> /var/log/qa/ctcs2/sysinfo
+        echo -e "\nfdisk -l\n" >> /var/log/qa/ctcs2/sysinfo
+        fdisk -l >> /var/log/qa/ctcs2/sysinfo  2>&1
+        echo -e "\nrpm -qa\n" >> /var/log/qa/ctcs2/sysinfo
+        rpm -qa >> /var/log/qa/ctcs2/sysinfo  2>&1
+        echo -e "\ndmesg\n" >> /var/log/qa/ctcs2/sysinfo
+        dmesg >> /var/log/qa/ctcs2/sysinfo  2>&1
+        echo -e "\nhwinfo\n" >> /var/log/qa/ctcs2/sysinfo
+        hwinfo >> /var/log/qa/ctcs2/sysinfo  2>&1
+
+#Acceptance test start
+
+        logger NEW validation run
+
+        cd /usr/share/qa/tools
+
+        logger file system stress test runs now
+        ./test_fs_stress-run
+
+        logger process_stress runs now
+        ./test_process_stress-run
+
+        logger sched_stress runs now
+        ./test_sched_stress-run
+
+        logger END of validation tests
+
+#Regression test start
+
+        logger NEW regression run
+
+        cd /usr/share/qa/tools
+
+        logger qa_test_bind runs now
+        ./test_bind-run
+
+        logger qa_test_coreutils runs now
+        ./test_coreutils-run
+
+        logger qa_test_openssh runs now
+        ./test_openssh-run
+
+        logger qa_test_apache_testsuite runs now
+        ./test_apache_testsuite-run
+
+        logger qa_test_cpio runs now
+        ./test_cpio-run
+
+        logger qa_test_net-snmp runs now
+        ./test_net-snmp-run
+
+        logger qa_test_indent runs now
+        ./test_indent-run
+
+        logger qa_test_sharutils runs now
+        ./test_sharutils-run
+
+        logger qa_test_gzip runs now
+        ./test_gzip-run
+
+        logger qa_test_findutils runs now
+        ./test_findutils-run
+
+        logger qa_test_postfix runs now
+        ./test_postfix-run
+
+        logger qa_test_fetchmail runs now
+        ./test_fetchmail-run
+
+        logger qa_test_php53 runs now
+        ./test_php53-run
+
+        logger qa_test_nfs runs now
+        ./test_nfs-run
+
+        logger qa_test_bzip2 runs now
+        ./test_bzip2-run
+
+        logger qa_test_apparmor runs now
+        ./test_apparmor-run
+
+        logger qa_test_apparmor-profiles runs now
+        ./test_apparmor-profiles-run
+
+        logger qa_test_cracklib runs now
+        ./test_cracklib-run
+
+        logger END of regression tests
+
+#Performance test start
+
+        ARCH=$HOSTTYPE
+        if [ "$ARCH" != "s390x" ] ; then
+
+        logger NEW performance run
+
+        cd /usr/share/qa/tools
+
+        logger qa_test_siege runs now
+        ./test_siege-run
+
+        logger qa_test_interbench runs now
+        ./test_interbench-run
+
+        logger qa_test_libmicro runs now
+        ./test_libmicro-run
+        ./test_libmicro-bench-run
+
+        logger qa_test_bonnie runs now
+        ./test_bonnie-run
+
+        logger qa_test_dbench runs now
+        mkdir -p /abuild
+        ./test_dbench-run
+        rm -r /abuild/dbench*
+
+        cd /usr/lib/ctcs2/tools
+
+        logger qa_test_reaim runs now
+        ./test_reaim-run
+
+        logger qa_test_tiobench runs now
+#       ./test_tiobench-run
+        ./test_tiobench-bench-run
+
+        logger END of performance tests
+
+        else
+                echo "skip performance tests on $ARCH architecture!"
+        fi
+
+#Kernel test start
+
+        logger NEW kerneltest run
+
+        cd /usr/lib/ctcs2
+
+        logger qa_test_ltp runs now
+        ./tools/test_ltp-run
+        ARCH=$HOSTTYPE
+        if [ "$ARCH" = "s390x" ] ; then
+                rm /test -rf
+        fi
+
+        logger qa_test_newburn runs now
+        ./tools/test_newburn-run
+
+        logger qa_test_memtst runs now
+        ./tools/test_newburn-memtst-run
+
+        cd /usr/share/qa
+
+        logger qa_test_memtester runs now
+        ./tools/test_memtester-run
+
+        logger qa_test_memeater runs now
+        ./tools/test_memeat-run
+
+        logger qa_test_netperf runs now
+        ./tools/test_netperf-run
+
+        logger qa_test_ftpload runs now
+        ./tools/test_ftpload-run
+
+        logger qa_lmbench runs now
+        ./tools/test_lmbench-run
+
+        logger qa_test_sysbench runs now
+        if [ $ARCH = "s390x" ] ; then
+                if [ ! "`grep abuild /usr/lib/ctcs2/bin/runtest`" ] ; then
+                        cp /usr/lib/ctcs2/bin/runtest /usr/lib/ctcs2/bin/runtest.bak
+                        sed -i "s/testpath=.*/testpath=\"\/abuild\"/g" /usr/lib/ctcs2/bin/runtest
+                fi 
+                ulimit -s 4096 
+        fi
+        cd /abuild
+        /usr/lib/ctcs2/tools/test_sysbench-run
+        rm /abuild/testfile*
+        rm /usr/lib/ctcs2/bin/testfile*
+        killall sysbench
+        if [ $ARCH = "s390x" ] ; then
+                cp /usr/lib/ctcs2/bin/runtest.bak /usr/lib/ctcs2/bin/runtest
+                ulimit -s 8192
+        fi
+
+        logger qa_test_autotest runs now
+        cd /abuild
+        /usr/share/qa/tools/test_autotest-run
+        rm /abuild/testfile*
+        rm /usr/lib/ctcs2/bin/testfile*
+
+        logger END of Kernel tests
+
+        echo "!!!All tests have finished. Next is to analyze results."
+
+	/usr/share/hamsta/testscript/report
+	/usr/share/qa/tools/remote_qa_db_report.pl -b -c "SLES-11-SP3_KERNEL_TESTING"
+
+]]></command>
+        </worker>
+      </commands>
+    </role>
+  </roles>
+</job>

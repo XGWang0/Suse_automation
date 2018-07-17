@@ -1,0 +1,244 @@
+-------------------------------------------------------------------
+Thu Apr 18 19:38:29 UTC 2013 - dmueller@suse.com
+
+- update to 3.3:
+  * and various bugfixes, upgrading is strongly recommended
+  * Fix various nbd-server misbehave bugs
+
+-------------------------------------------------------------------
+Tue Jul 10 07:08:17 UTC 2012 - aj@suse.de
+
+- Fix restart_on_update usage.
+
+-------------------------------------------------------------------
+Fri May 18 13:44:05 UTC 2012 - tabraham@novell.com
+
+- Update to nbd-3.1
+  * minor bug fixes
+  * new feature: ability for the client to list the exports a server
+    supports
+
+-------------------------------------------------------------------
+Wed Feb 29 15:51:37 UTC 2012 - tabraham@novell.com
+
+-  Update to nbd-3.0
+   * minor bug fixes
+
+- removed obsolete nbd-2.9.25-have_falloc_ph.diff
+- compile with -fno-strict-aliasing to prevent breakage with new gcc
+
+-------------------------------------------------------------------
+Thu Jan  5 20:31:57 UTC 2012 - tabraham@novell.com
+
+-  Update to nbd-2.9.25
+   * TRIM now uses FALLOC_FL_PUNCH_HOLE
+   * minor bug fixes
+
+- removed obsolete nbd-2.9.20-bigendian.diff
+- refreshed nbd-2.9.20-close.diff
+
+-------------------------------------------------------------------
+Fri Sep 16 13:46:09 UTC 2011 - rfno@fietze-home.de
+
+- Install nbd-server.5 man page
+
+-------------------------------------------------------------------
+Mon Apr  4 17:30:17 CEST 2011 - ms@suse.de
+
+- socklen_t is always 32bit, size_t is 64bit. so a classical
+  big endian 64bit error (bnc #674281)
+
+-------------------------------------------------------------------
+Fri Feb 25 12:40:16 CET 2011 - ms@suse.de
+
+- Update to nbd-2.9.20:
+  * Documentation update
+  * Fix buffer size checking (bnc #674281)
+  * Extend test suite and fix named exports
+
+-------------------------------------------------------------------
+Wed Aug  5 11:58:52 CEST 2009 - ms@suse.de
+
+- fixed missing close to open (bnc #528272)
+
+-------------------------------------------------------------------
+Thu Jul  9 11:41:55 CEST 2009 - ms@suse.de
+
+- Update to nbd-2.9.13:
+  * Documentation update
+  * Don't try working on partitions
+    When a partition is given to the -d or -c command line options, reduce
+    it to the master device instead. This assumes udev-style naming
+    of device entries, though.
+  * Fix autodetection
+    Everything else in nbd-server was already 64bit-clean, but this part,
+    where the size of a block device is autodected, wasn't.
+    Replace the ioctl() to BLKGETSIZE with its 64bit version, so that trying
+    to detect the size of a multi-terabyte block device does not fail.
+  * Avoid unaligned access
+  * Actually go daemon
+    just doing chdir("/") leave file descriptors open, which is not ideal.
+    Doing it this way closes everything, including any system-specific
+    things we're not aware of.
+  * Remove support for timeout option
+
+-------------------------------------------------------------------
+Mon May  4 10:40:15 CEST 2009 - ms@suse.de
+
+- Update to nbd-2.9.12:
+  * use atoll instead of atol ... so that multi-terabyte exports work, too
+  * Change meaning of -swap option: rather than trying to use a kernel patch
+    which has been effectively dead since sometime around 2.1.something, do an
+    mlockall() so that the kernel won't throw us out. The MCL_CURRENT | MCL_FUTURE
+    bit might prove to be problematic, but if so, we'll deal with it when
+    we get there
+  * Use right printf() format string
+
+-------------------------------------------------------------------
+Wed Aug 20 08:13:31 CEST 2008 - garloff@suse.de
+
+- Update to nbd-2.9.11:
+  * nbd-client: new option -c to check for connection, -d to
+    drop connection, -persist to infinitely retry connections
+    dropped by server. timeout= setting 
+  * nbd-server: drop autoreadonly option 
+
+-------------------------------------------------------------------
+Thu Nov 15 14:26:56 CET 2007 - garloff@suse.de
+
+- Update to nbd-2.9.9:
+  * Document -C option of nbd-server.
+  * Fix name of /var/run/ file.
+
+-------------------------------------------------------------------
+Wed Nov  7 22:12:26 CET 2007 - garloff@suse.de
+
+- Split nbd into nbd and nbd-doc packages.
+- Update to nbd-2.9.8:
+  * nbd-server can now setuid to specified user and group.
+  * prerun and postrun scripts can be specified.
+  * IP address to bind to (listenaddress) can be configured.
+  * Socket Direct Protocol (sdp) -- not enabled.
+  * server exits now after connection has gone (oops!).
+  * nbd-client: timeout parameter.
+
+-------------------------------------------------------------------
+Mon Jul 30 15:51:16 CEST 2007 - garloff@suse.de
+
+- Convert options from old nbd-server.conf to new nbd-server/config
+  on update and drop support for old config file syntax.
+- Fix daemonize(0) segfault and pid filename.
+- Fix compiler warnings.
+- Fix /dev filename docu.
+- Use startproc, killproc, checkproc in init script
+- nbd-server does not support SIGHUP, fix init script accordingly.
+
+-------------------------------------------------------------------
+Tue Jul 17 00:54:45 CEST 2007 - garloff@suse.de
+
+- Update to nbd-2.9.5:
+  * Support for more platforms, pkgconfig, debug build.
+  * -o option to convert cmdline options to config file.
+  * Fix duplication in handling nonblocking server socket.
+
+-------------------------------------------------------------------
+Mon Mar 12 23:45:45 CET 2007 - garloff@suse.de
+
+- Update to 2.9.2:
+  * make child socket nonblocking 
+  * Reintegrate fix for 64bit on looking for file size. 
+  * Fix cross-compiling 
+  * Search for libraries to allow linking on Solaris 
+- Update to 2.9.1:
+  * A fix for a piece of code following a null pointer, and one
+    for a memory leak (if only minor).
+- Update to 2.9.0:
+  * * Configuration file support
+  * The ability to server multiple nbd-server exports from one server
+  * Better multiple-file support (files can now be of any random size)
+  * Better support for virtualizing servers (in addition to replacing
+    %s with the client's IP address, it is now also possible to use 
+    other options which allow for hashed directories)
+  * Support for changing uid and gid after startup
+  * The ability to do the copy-on-write stuff with a sparse file rather
+    than a mapped file (specified by a config file option), which may be
+    slightly faster.
+
+-------------------------------------------------------------------
+Sat Nov 18 01:49:07 CET 2006 - garloff@suse.de
+
+- Add nbd-server init script (parses /etc/nbd-server.conf).
+
+-------------------------------------------------------------------
+Thu Oct 19 14:03:52 CEST 2006 - garloff@suse.de
+
+- Update to nbd-2.8.7:
+  * A fix for build against nbd.h for kernel 2.6.18 (and above, 
+    presumably)
+
+-------------------------------------------------------------------
+Fri Oct 13 00:50:12 CEST 2006 - ro@suse.de
+
+- include linux/types.h before linux/nbd.h 
+
+-------------------------------------------------------------------
+Mon Aug  7 15:32:39 CEST 2006 - garloff@suse.de
+
+- Update to nbd-2.8.6:
+  * performance/reliability improvements: Use select() rather than
+    accept() and waitpid() with WNOHANG rather than wait().
+- Update to nbd-2.8.5:
+  * -persist option.
+  * Add export verification.
+  * Make sure queue is empty for write requests to read-only export.
+- Update to nbd-2.8.4:
+  * Includes the previous fix (closing server socket)
+
+-------------------------------------------------------------------
+Mon Mar  6 14:14:26 CET 2006 - garloff@suse.de
+
+- Make sure children quit when they finish serving, rather than
+  trying to do stuff with a server socket that they've closed
+  already in a loop. Whoops. (Fix from nbd-2.8.4.)
+ 
+-------------------------------------------------------------------
+Wed Jan 25 21:38:34 CET 2006 - mls@suse.de
+
+- converted neededforbuild to BuildRequires
+
+-------------------------------------------------------------------
+Mon Jan 23 16:07:50 CET 2006 - garloff@suse.de
+
+- Enable -fstack-protector.
+
+-------------------------------------------------------------------
+Mon Jan  9 14:41:25 CET 2006 - garloff@suse.de
+
+- Update to nbd-2.8.3:
+  * CVE-2005-3534.
+  * A fix for 64bit systems regarding the BLKGETSIZE ioctl().
+  * Better handling of SIGCHLD.
+
+-------------------------------------------------------------------
+Tue Dec 20 00:05:22 CET 2005 - garloff@suse.de
+
+- Update to nbd-2.8.2:
+  * Enable LFS by default.
+
+-------------------------------------------------------------------
+Wed Nov  2 22:27:40 CET 2005 - dmueller@suse.de
+
+- don't build as root 
+
+-------------------------------------------------------------------
+Fri Oct 28 10:22:59 CEST 2005 - garloff@suse.de
+
+- Update to version 2.8.1.
+- Documentation added.
+
+-------------------------------------------------------------------
+Mon Jul  4 18:24:39 CEST 2005 - garloff@suse.de
+
+- Initial creation of package.
+
+-------------------------------------------------------------------

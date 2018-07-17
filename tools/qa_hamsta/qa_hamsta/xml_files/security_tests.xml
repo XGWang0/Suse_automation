@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<job>
+  <config>
+    <name>security_tests</name>
+    <debuglevel>3</debuglevel>
+    <description>Run tests of security team</description>
+    <mail notify="1">thomas@suse.de</mail>
+    <motd>Running security tests</motd>
+    <rpm>qa_hamsta</rpm>
+    <rpm>qa_tools</rpm>
+    <rpm>qa_lib_perl</rpm>
+    <rpm>qa_test_lynis</rpm>
+  </config>
+  <parts>
+    <part name="part1" id="1" />
+  </parts>
+  <roles>
+    <role name="role_1">
+      <commands part_id="1">
+        <worker>
+          <command execution="forked" reboot="0"><![CDATA[#!/bin/bash
+cd /usr/share/hamsta/testscript
+./customtest qa_test_lynis
+            ]]></command>
+        </worker>
+      </commands>
+    </role>
+  </roles>
+</job>

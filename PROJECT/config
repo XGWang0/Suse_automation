@@ -1,0 +1,8 @@
+# This file contain project configuration
+# 
+# This is normal bash file, that is sourced in various scripts (during build)
+# When any value in this file is changed, whole project will be rebuild!
+
+# version (currently only value used in this file)
+# this value replaces every occurence of @@VERSION@@ in specfile during build
+VERSION="2.7.5"

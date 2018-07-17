@@ -1,0 +1,35 @@
+-------------------------------------------------------------------
+Mon Nov 14 00:00:00 UTC 2011 - llipavsky@suse.cz
+
+- New 2.2 release from QA Automation team, includes:
+- Automated stage testing
+- Repartitioning support during reinstall
+- Possible to leave some space unparditioned during reinstall
+- Added "default additional RPMs to hamsta frontend"
+- Optimized hamsta mutlticast format
+- Mutliple build-validation jobs
+- Code cleanup
+- Bugfixes
+
+-------------------------------------------------------------------
+Sun Sep  4 00:00:00 UTC 2011 - llipavsky@suse.cz
+
+- New, updated release from the automation team. Includes:
+- Improved virtual machine handling/QA cloud
+- Rename of QA packages
+- Upgrade support
+- Changed format od /etc/qa files
+- More teststsuites
+- Many bug fixes
+
+-------------------------------------------------------------------
+Tue Aug 16 00:00:00 UTC 2011 - llipavsky@suse.cz
+
+- Package rename: spec_generator -> qa_sdk_spec_generator
+
+-------------------------------------------------------------------
+Fri Aug 27 00:00:00 UTC 2010 - jtang@novell.com
+
+- initial release
+
+

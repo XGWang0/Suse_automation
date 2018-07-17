@@ -1,0 +1,175 @@
+.\" Process this file with
+.\" groff -man -Tascii remote_qa_db_report.pl.1
+.\"
+.TH "remote_qa_db_report.pl" "QADB" "1"
+.SH NAME
+remote_qa_db_report.pl \- submit CTCS2 test results into QADB via remote machine
+.SH SYNOPSIS
+.B remote\_qa\_db\_report.pl -p 
+.I product-release
+.B -[bhADL] [-c
+.I comment
+.B ] [-v
+.I <n>
+.B ] [-a
+.I arch
+.B ] [-f
+.I path
+.B ] [-F
+.I tcflist
+.B ] [-k
+.I kernel
+.B ] [-m
+.I testhost
+.B ] [-t
+.I type
+.B ] [-T
+.I tester
+.B ]
+.SH DESCRIPTION
+.B remote_qa_db_report.pl
+reads test result directories (default in /var/log/qa),
+compresses them and copies via SCP to rd-qa@qadb.suse.de, 
+remotely runs
+.BR qa_db_report.pl (1)
+to store the results into QADB,
+copies the logs to the archive at 
+.I qainst.suse.de:/suse/rd-qa/Exports/Results
+, and moves the processed log to a subdirectory named
+.I oldlogs/.
+
+The most of the options should have sane default values,
+but you need to specify at least the product.
+
+
+.SH OPTIONS
+
+.IP "\fB-a arch"
+Here you can specify the architecture.
+Architecture must already exist in QADB, table architectures.
+When omitted, the script tries to auto-detect it.
+
+.IP "\fB-A"
+Do not copy the logs to the archive using SCP.
+
+.IP "\fB-b"
+Batch processing - not interactive, does not ask for confirmations.
+When
+.I hwinfo
+or
+.I rpmlist
+is missing, prints a warning and generates it automatically, using current machine's data.
+Multiple submissions caused by multiple different RPM or hwinfo configurations
+are automatically created.
+
+.IP "\fB-c comment"
+Here you can specify the comment related to your submission(s).
+
+
+.B NOTE
+Submission type is set at the end of the whole submit process, so you cannot see it in QADB earlier.
+
+When the submit fails, the newly inserted data are deleted from the database again (you will need the DELETE privilege for that).
+
+
+.IP "\fB-D"
+Do not write to the database.
+
+.IP "\fB-f path"
+The path to your CTCS2 test results,
+.I /var/log/qa
+by default. This directory must contain correct structure (parser directories) such as ctcs2 subdirectory, etc.
+This argument cannot be set together with -P
+
+.IP "\fB-F TCFLIST"
+comma-separated list of test-runs (relative paths) that should be processed.
+If not set, all test-runs are processed.
+This argument cannot be set together with -P
+
+Example:
+
+-F 'ctcs2/qa_siege-2009-12-03-11-13-37'
+
+.IP "\fB-P DIRECT_PATH_LIST"
+comma-separated list of parser:directory pairs. This allows specification of directories which
+contain individual testsuite results without the need to have them in typical results structure
+(dir/parser/testsuite-timestamp). The directory still MUST have a name in format testsuite-timestamp!
+If this argument is used, arguments -F and/or -f and/or -R cannot be used!
+This argument implies (automatically sets) -L!
+
+Example: -P 'ctcs2:/tmp/qa_siege-2009-12-03-11-13-37'
+
+.IP "\fB-k KERNEL"
+Kernel version for KOTD tests
+
+.IP "\fB-L"
+Do not moves logs to oldlogs.
+
+
+.IP "\fB-m testhost"
+The machine you ran the tests on.
+By default hostname of the current machine.
+
+.IP "\fB-p product\-release"
+This is the only mandatory switch.
+Product must already exist in QADB, table products.
+Release will be created, when not known in QADB.
+
+Example : SLES-10-beta1 , SLES-9-SP4-RC1 , ...
+
+
+Currently, following architectures exist:
+i586, ia64, ppc, ppc64, s390, s390x, x86_64, xen0-i586, xen0-x86_64, xen0-x86_64-xenU-i586, xenU-i586, xenU-x86_64
+
+.IP "\fB-t type"
+Submission type.
+.RS 
+.B product
+.RS
+The default submission type, means that you submit results from a product test.
+.RE
+.B patch:<md5sum>
+.RS
+Testing a patch with given md5sum.
+.I /mounts/work/built/patchinfo
+with details about the specified patch must be available, otherwise the submit fails.
+.RE
+.B kotd:<release>:<version>:<branch>:<flavor>
+.RS
+This one means that you submit results from Kernel of the day testing, with given kernel release, version, branch, and flavor.
+.RE
+.RE
+
+.IP "\fB-T tester"
+Username of the tester.
+
+.IP "\fB-v <n>"
+Sets the verbosity level.
+Default value is 5, you can set following values:
+
+.nf
+0 : no messages at all
+1 : critical errors
+2 : errors
+3 : warnings
+4 : notices
+5 : info
+6 : details
+7 : debug messages
+.fi
+
+All messages are sent to 
+.B STDERR.
+
+
+.SH KNOWN BUGS
+Inotify not yet implemented, you cannot submit your results while the test runs.
+
+.SH AUTHOR
+Vilem Marsik <vmarsik@novell.com>, using work of Patrick Kirsch
+
+.SH "SEE ALSO"
+.BR product.pl (1),
+.BR arch.pl (1),
+
+

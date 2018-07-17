@@ -1,0 +1,332 @@
+#!/bin/bash
+# ****************************************************************************
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
+#
+
+curlprobe()
+{
+	local url="$1"
+	/usr/bin/curl -o /dev/null -I -L -f -s "$url" || return 1
+}
+
+get_bootloader()
+{
+	grub="`find /boot/ -name 'grub.cfg'`"
+
+	if [ -z "$grub" ];then
+		#"grub version is 2"
+		echo 1
+	else
+		#"grub version is 1"
+		echo 2 
+	fi
+}
+
+setupgrub1()
+{
+	bootloaderconf=/boot/grub/menu.lst
+	grubpartition=`awk '/^root/ {print $2;exit}' < /etc/grub.conf`
+	if [ -z "$grubpartition" ]
+	then
+		grubpartition=`perl -ne 'print "$1\n" if $_=~/setup.+(\(hd\d+,\d+\))/' /etc/grub.conf | head -n 1`
+	fi
+
+	# extract the product part from the URL, ugly but seems to work
+	title=`echo $insturl | sed -e 's/\//\n/g' | grep -v '\..\+\.' | awk '{ print length, $0 }' | sort -gr | cut -d\  -f2 | head -n1`
+	count=`grep "title Installation" $bootloaderconf | grep -c "$title"`
+	if [ $count -gt 0 ]
+	then
+		title="$title ($((count+1)))"
+	fi
+	echo "" >> $bootloaderconf
+	echo "title Installation $title" >> $bootloaderconf
+	echo "    kernel $grubpartition$imagedir/linux $params" >> $bootloaderconf
+	echo "    initrd $grubpartition$imagedir/initrd" >> $bootloaderconf
+	sync
+
+	# start the installation with reboot
+	item=`grep title -c $bootloaderconf`
+	item=$((item-1)) # the new config is written and then its counted
+	if [ `grep '^default' $bootloaderconf | wc -l` -gt 0 ];then
+		sed  -i "s/^default.*$/default $item/" $bootloaderconf
+	else # SLMS creates menu.lst without 'default'
+		sed -i "1idefault $item" $bootloaderconf
+	fi
+	echo "edited menu.lst"
+	echo "done."
+
+}
+
+setupgrub2()
+{
+	#grub bin name
+	if which grub2-mkconfig
+	then
+		grubn=grub2
+		grubdir=/boot/grub2
+	else
+		grubn=grub
+		grubdir=/boot/grub
+	fi
+
+	#set the menuentry name
+	title=`echo $insturl | sed -e 's/\//\n/g' | grep -v '\..\+\.' | awk '{ print length, $0 }' | sort -gr | cut -d\  -f2 | head -n1`
+	title="$title-`date +%m%d%y%H%M%S`"
+
+	#find out the root partition filesystem
+	rootpartition=`df / | awk 'END { print $1; }'`
+
+	#find out the boot partition filesystem
+	bootpartition=`df /boot | awk 'END { print $1; }'`
+	echo "boot partition is $bootpartition"
+	bootfs=`awk -v p=$bootpartition '$1==p{print $3;exit}' /proc/mounts`
+	echo "boot filesystem is $bootfs"
+	if [ "$bootfs" = "ext3" ] || [ "$bootfs" = "ext4" ]
+	then
+		bootfs=ext2
+		elif find $grubdir -type f -name "${bootfs}.mod"
+		then
+		echo "find the filesystem module ${bootfs}.mod"
+	else
+		echo "Can not verify boot filesystem" >&2
+		exit 2
+	fi
+
+	#compare the root/boot partition
+	if [ "$rootpartition" != "$bootpartition" ]
+	then
+		imagedir=${imagedir#/boot}
+	fi
+
+	#find out the UUID of boot partition
+	#partition name
+	pname=${bootpartition##*/}
+
+	uuid=`ls -l /dev/disk/by-uuid/ |awk -v p=$pname '{gsub(/.*\//,"",$NF);a[$NF]=$9}END{print a[p]}'`
+
+
+	#find out the custom config of autoinstall #/etc/grub.d/
+	#get largest index of grub config
+	index=`ls /etc/grub.d|awk -F_ '/_/{a=($1>a)?$1:a}END{print a}'`
+
+	#get largest index of autoinstall grub config
+	aindex=`ls /etc/grub.d | awk -F_ '/autoinstall/ {a=($1>a)?$1:a}END{print a}'`
+
+	if [ "$index" = "$aindex" ]
+	then
+		#already have a custom autoinstall config
+		#create a new one
+		customname=$((index + 1))
+	elif [ "$aindex" = "" ]
+	then
+		#no autoinstall config
+		customname=$((index + 1))
+	elif [ "$index" -gt "$aindex" ]
+	then
+		#make sure the entry is the last one
+		customname=$((index + 1))
+	fi
+
+	customname="${customname}_autoinstall"
+	echo "create config file $customname"
+
+
+	#find out the rootsubvol
+	. /etc/default/grub
+	. /usr/share/grub2/grub-mkconfig_lib
+
+	rootsubvol=`make_system_path_relative_to_its_root /`
+
+	#build the config file
+	cat<<eof >/etc/grub.d/$customname
+echo "menuentry $title  {
+	insmod gzio
+	insmod part_msdos
+	insmod $bootfs
+	search --no-floppy --fs-uuid --set=root $uuid
+	linux ${rootsubvol}$imagedir/linux $params
+	initrd ${rootsubvol}$imagedir/initrd
+}"
+eof
+
+	chmod a+x /etc/grub.d/$customname
+
+	#update the grub.cfg
+	$grubn-mkconfig -o $grubdir/grub.cfg
+
+	#sleep a while
+	sleep 5
+
+	#change bootloader default boot
+	echo "$grubn-set-default $title"
+	$grubn-set-default $title
+	exit $?
+}
+
+setupkexec()
+{
+
+	# start the installation with kexec
+	if [ ! -e '/sbin/kexec' ]; then
+	echo "Could not find kexec-utils package"
+	exit 1
+	fi
+	comments="
+	echo \"Install booting by Kexec\"
+	echo \"kexec -d -l $imagedir/linux --initrd=$imagedir/initrd --append='$params'\"
+        /sbin/kexec -l '$imagedir/linux' --initrd='$imagedir/initrd' --append='$params'"
+	sh -c "$comments"
+	echo "Start Kexec booting!"
+}
+
+curl_download()
+{
+	url="$1"
+	file_path="$2"
+	/usr/bin/curl -f -L -o "$file_path" "$url" 2>/tmp/$$_curl_err
+	curl_re=$?
+	if [ $curl_re != "0" ];then
+		echo "down load $file_path failed"
+		tail -1 /tmp/$$_curl_err
+		rm /tmp/$$_curl_err
+		exit 1
+	fi
+
+}
+
+download_installkernel()
+{
+	insturl=$1
+
+	###add vnc and ssh tag to kernel parameter #######
+	#params="$params $ssh_enable $vnc_enable"
+
+	imagedir='/boot/loader'
+	TMPFILE=`mktemp -q /tmp/distinst.XXXXXX`
+	if [ $? -ne 0 ]
+	then
+		echo "$0: Cannot create temp file, exiting."
+		exit 1
+	fi
+	imagedir=`mktemp -d -q $imagedir-XXXXXX`
+	if [ $? -ne 0 ]
+	then
+		echo "$0: Cannot create temp directory, exiting"
+		exit 1
+	fi
+	mkdir -p "$imagedir"
+
+
+	case $insturl in
+		*i386*) arch="i386";;
+		*i586*) arch="i386";;
+		*x86_64*) arch="x86_64";;
+		*ppc64le*) arch="ppc64le";;
+	esac
+
+	for DIR in "boot/$arch/loader" "boot/loader" "boot/i386/loader" "boot/x86_64/loader" "boot/i586/loader" "boot/$arch"
+	do
+		if curlprobe "$insturl/$DIR/linux"
+		then
+			kernelurl="$insturl/$DIR/linux"
+			initrdurl="$insturl/$DIR/initrd"
+			break
+		fi
+	done
+
+	curl_download "$kernelurl" "$imagedir/linux"
+	curl_download "$initrdurl" "$imagedir/initrd"
+
+	if [ ! -e "$imagedir"/linux -o ! -e "$imagedir"/initrd ]
+	then
+		echo "Could not download image/initrd from '$insturl' to '$imagedir'"
+		exit 1
+	fi
+
+}
+
+
+printhelp()
+{
+	cmd=`basename $0`
+	echo "$cmd by vmarsik, based on setupgrubfornfsinstall"
+	echo
+	echo -e "Usage:\t$cmd <CML source> <boot_type> [<cmdline arguments...>]"
+	echo
+	echo -e "Example:\t$cmd ftp://cml.suse.cz/netboot/find/openSUSE-11.0-RC3-DVD-x86_64 kexec autoyast=http://bender.suse.cz/autoinst/autoinst_vulture.xml"
+	echo -e "\t(yet you perhaps would like to use IP addresses instead of hostnames...)"
+	echo
+	exit 1
+}
+
+cleanup()
+{
+	[ -f $TMPFILE ] && rm $TMPFILE
+	[ -f /etc/grub.d/$customname ] && rm /etc/grub.d/$customname
+}
+
+trap cleanup EXIT
+
+
+if [ "$#" -lt 1 -o "$1" == "--help" ]
+then
+	printhelp
+fi
+
+#get the install repository
+insturl=$1
+shift
+
+#get the boot type  : kexec ; grub
+boottype=$1
+shift
+
+#save the kernel cmdline para
+params="$@"
+if [ -z "`echo $params|grep 'install='`" ]
+then
+	params="$params install=$insturl"
+fi
+
+#down the install kernel from install repository
+download_installkernel $insturl
+
+
+#find out the grub version
+grubv=`get_bootloader|tail -1`
+
+#setup kexec
+if [ "$boottype" = "kexecboot" ]
+then
+	setupkexec
+#setup grub1
+elif [ $grubv = 1 ]
+then
+	setupgrub1
+#setup grub2
+elif [ $grubv = 2 ]
+then
+	setupgrub2
+fi
+
+

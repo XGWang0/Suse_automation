@@ -1,0 +1,75 @@
+#!/bin/bash
+# ****************************************************************************
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
+#
+
+# Summary ctcs2 reports, and send mail to mailaddr if given.
+#   
+#   Usage: ./report [mailaddr]
+source /usr/share/hamsta/testscript/config
+j=4 #This means ignor first 4 lines of input
+
+if [ "x$TESTS_LOGDIR" != "x" ]; then
+        logdir=$TESTS_LOGDIR/ctcs2
+fi
+
+rm -rf /var/log/qa/_REMOTE
+chmod +x /usr/lib/ctcs2/tools/report.py
+/usr/lib/ctcs2/tools/report.py $logdir/* > $input
+modulnumber=`grep -c "Results from" $input`
+
+uname -a > $output
+sed -e "s/Welcome to //" -e "s/\\\r.*$//" /etc/issue >> $output
+
+echo -e "Packge Name\t\tFailed\tTotal" >> $output
+
+for i in `grep -n "\/table" $input | cut -d ":" -f1`;do
+  if [ $i -gt $j ];then
+    awk "NR>=$j && NR<$i" $input > $cache
+    iname=`grep -n "Results from" $cache`
+    
+    # Get package name
+    iname=${iname#*ctcs2\/}
+    iname=${iname%<*}
+    iname=`echo $iname | sed -e 's/.\{20\}$//'`
+
+    r_n=`printf "%-20s" $iname`
+    #r_n=`printf "%-20s" ${iname%-2009*}`
+    r_f=`grep -c "FF6060" $cache`
+    r_t=`grep -c "FFFFFF" $cache`
+    echo -e "$r_n\t$r_f\t$r_t" >> $output
+    j=$i
+    ((s_f+=$r_f))
+    ((s_t+=$r_t))
+  fi
+done
+echo "------------------------------------" >> $output
+echo -e "Total: $modulnumber\t\t$s_f\t$s_t" >> $output
+sed "s/^/| /g" $output
+
+# If given $1, send mail. In custom test, we don't give mail address, since we want to leave mail function to hamsta job mail tag.
+if [ -z "$1" ]; then 
+    exit 0
+fi
+mail -s "$MAILFILTER Test results on $hn `date +%D`" -a $input $1 < $output
+

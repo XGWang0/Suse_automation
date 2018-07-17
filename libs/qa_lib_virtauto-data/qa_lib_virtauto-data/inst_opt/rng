@@ -1,0 +1,2 @@
+#/dev/random or entropy Gthering daemon (TCP or UDP, need hostname and port)
+#/dev/random should be the default

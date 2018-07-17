@@ -1,0 +1,81 @@
+# ****************************************************************************
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
+
+#
+# This file contains default configuration for hamsta-master
+#
+# Please never edit this file directly, if you want to change
+# anything, do it in a new file. (Files are read in alphabetical
+# order, values from earlier files are overwritten
+# 
+# Don't forget, all values names must be specified by
+# <variable name>=<variable value>
+#
+
+# Hamsta master root directory
+hamsta_master_root='/var/log/hamsta/master/'
+
+# TCP/IP settings
+hamsta_master_cli_port='18431'			# cmdline port
+hamsta_master_max_cli_connections='1024'	# max cmdline connections
+
+# Database settings
+hamsta_master_sql_host='localhost'		# MySQL host
+hamsta_master_sql_port='3306'			# MySQL port (not empty!)
+hamsta_master_sql_db='hamsta_db'		# MySQL database
+hamsta_master_sql_user='hwdb'			# MySQL username
+hamsta_master_sql_pwd=''			# MySQL password
+hamsta_master_die_on_sql_failure=0		# let a thread die on error
+
+# SMTP settings
+hamsta_master_mail_from='hamsta-master@suse.de'	# SMTP From: header
+# SMTP relaying :
+# - set empty login and password, if no login required
+# - set empty relay host, if you don't need a SMTP relay at all
+hamsta_master_smtp_relay='relay.suse.de'	# SMTP relay host
+hamsta_master_smtp_login=''			# SMTP relay login
+hamsta_master_smtp_password=''			# SMTP relay password
+
+# Log verbosities
+#-1 			nothing
+# 0 (LOG_CRIT)		critical errors only
+# 1 (LOG_ERR)		errors
+# 2 (LOG_WARNING)	warnings
+# 3 (LOG_NOTICE)	important state messages
+# 4 (LOG_INFO)		normal state informations
+# 5 (LOG_DETAIL)	detailed state info
+# 6 (LOG_DEBUG)		full SQL queries, hwinfo details
+hamsta_master_loglevel_multicast=4	# SUT multicast monitor thread
+hamsta_master_loglevel_scheduler=4	# job scheduler
+hamsta_master_loglevel_job=4		# process that starts a job on SUT, can be overriden in job XML
+hamsta_master_loglevel_main=4		# main process
+
+# delay before a dead thread respawns (secs)
+hamsta_master_respawn_delay=30
+
+# Use master authentication 0 means no, 1 means yes
+#
+# This applies to command line. If you set this to yes, you have to
+# set up authentication for the Hamsta front-end because to run jobs
+# the front-end uses command line interface.
+hamsta_master_authentication=0

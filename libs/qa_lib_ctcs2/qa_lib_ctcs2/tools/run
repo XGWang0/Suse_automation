@@ -1,0 +1,1326 @@
+#!/usr/bin/perl -w
+
+#
+# This program is part of the VA Cerberus Test Control System.
+# Unless otherwise noted, Copyright (c) 1999,2000 VA Linux Systems, 
+# All Rights Reserved.
+# You may distribute this program under the terms of the GNU General
+# Public License, Version 2, or, at your option, any later version.
+#
+#
+# Modified by Lukas Lipavsky <llipavsky@suse.cz>
+# Thu Jun 10 08:49:43 CEST 2010
+# Add SKIPPED testcase support
+
+#
+# run
+#	- a program to parse test control files (.tcf) and report results
+#	  back in human and machine readable forms, redirecting logging
+#	  information to the screen and files.  suspend/resume capability.
+#
+
+# need to track down our dead children
+use lib '/usr/lib/ctcs2/lib/perl';
+use POSIX;
+use POSIX qw(:signal_h :errno_h :sys_wait_h);
+use Time::HiRes qw(usleep);
+use strict;
+
+#
+# If PATH_PREFIX is set we use it to locate perl libraries
+# as well as path for runtest script (see bellow).
+#
+# If you want to run this script directly from git checkout do:
+#
+# PATH_PREFIX=.. ./run foo.tcf 
+#
+BEGIN {
+	if (defined($ENV{PATH_PREFIX})) {
+		my $include_dir = "$ENV{PATH_PREFIX}/lib/perl/";
+	
+		print "INFO: Using perl include directory '$include_dir'\n";
+
+		push(@INC, $include_dir);
+	}
+}
+
+# this is my hacked up color library.  Eventually run should use
+# curses directly.
+use color;
+use timecalc;
+use hashstore;
+
+# -t parameter
+my $timestamp_file = 0;
+
+# tcf being parsed
+my $filename;
+
+# emergency exit signal flag
+my $eexit = 0;
+
+# test run complete signal flag
+my $trcomplete = 0;
+
+# number of CTRL-Cs I've received (to implement the reprimand)
+my $ctrlc = 0;
+
+# all my children, indexed by pid and returning the hash key for the processes
+# table
+my %running_pids;
+
+# hash of arrays for test results, indexed by the Friendly test name
+my %test_results = ();
+# order in which tests completed
+my @test_order = ();
+
+# hash for timer parameters (stop vs run, clock, etc)
+my %timers = ();
+
+# environment variables for tests.  This should be set with set_environment,
+# which supports both lists and single values intelligently.
+my %environment;
+
+# Has a notification message been printed yet.  This is _not_ persistent
+# between passes to insure that if a test run is already finished, the
+# notify message gets printed if the luser decides to run the program
+# again.
+my $notified = 0;
+
+# hash of lists for currently running processes and their state
+my %processes;
+
+# hash all testcase logs that should be processed by benchmark parsers
+# format 'path to testcaselog' => 'path to parser with arguments'
+#
+# It will be run following way:
+# cat $key | $parser > "$key.bench.xml"
+my %benchparsers;
+
+# Currently set benchparser
+my $benchparser;
+
+# Global variables to support autoexit
+my $autoexit_days;
+my $autoexit_starttime;
+my $autoexit_endtime;
+my $autoexit_stagger_limit;
+my %daytoletter = ("Sun","S","Mon","M","Tue","T","Wed","W","Thu","U","Fri","F","Sat","A");
+
+# Global variables to support show the case name and it's status
+my $opt_width = 0;                # width of console
+my $total_cases = 0;              # total number of testcases
+my $cur_case = 0;                 # current case number
+my $casename_width = 0;           # width of current case name 
+my $process_foreground = 0;       # the process is foreground process or not
+my $current_case = "";            # current test case name
+
+# log directory
+my $logdir = "/var/log/qa/ctcs2";
+if (defined($ENV{TESTS_LOGDIR})) {
+	$logdir = "$ENV{TESTS_LOGDIR}/ctcs2";
+	print "INFO: Variable TESTS_LOGDIR is set, logs will be stored in $logdir.\n";
+} elsif ($> != 0) { # $> is effective UID - so if not run by root
+	$logdir = "$ENV{HOME}/var-log-qa/ctcs2";
+	print "INFO: Not running as root, logs will be stored in $logdir.\n";
+}
+
+# path to the runtest script
+my $runtest_path = '/usr/lib/ctcs2/bin/runtest';
+	
+if (defined($ENV{PATH_PREFIX})) {
+	$runtest_path = "$ENV{PATH_PREFIX}/bin/runtest";
+	print "INFO: Using path to runtest script '$runtest_path'\n";
+}
+
+# Default polling interval is 0.1 sec = 100000 usecs
+# but it could be overridden by ONE_SEC_POLLING env variable
+# to 1 second (which was used previously)
+my $polling_interval = 100000;
+
+if (defined($ENV{ONE_SEC_POLLING})) {
+	$polling_interval = 1000000;
+}
+
+# hash key: state_directory
+# location of the current state information
+# state information hiearchy:
+#     $state_directory/
+#           test_results     # storage of hash of arrays
+#           environment      # storage for environment hash
+#           timer_state      # storage for timer/process state
+#           process_state    # storage for active processes states
+#           TEST1            etc, etc... names of test equal the logfile names
+#           MYTEST
+
+
+# add times together
+# there is probably a more elegant way to do this.
+sub add_times {
+	my $time1 = shift;
+	my $time2 = shift;
+	my $time3;
+	my $t1hrs = int($time1 / 100) ;
+	my $t1mins = int ($time1 % 100) ;
+	my $t2hrs = int($time2 / 100) ;
+	my $t2mins = int ($time2 % 100) ;
+	my $t3hrs = "00";
+	my $t3mins = "00";
+	$time1 = "$t1hrs"."h"."$t1mins"."m";
+	$time2 = "$t2hrs"."h"."$t2mins"."m";
+#	print "$time1\n";
+#	print "$time2\n";
+	$time3 = sectotime(timetosec($time1) + timetosec($time2));
+#	print "$time3\n";
+	$time3 =~ /(\d*)h/;
+	if ($1 ne "") {
+		$t3hrs = sprintf("%02d",$1);
+	}
+	$time3 =~ /()/;
+	$time3 =~ /(\d*)m/;
+	if ($1 ne "") {
+		$t3mins = sprintf("%02d",$1);
+	}
+	return "$t3hrs" . "$t3mins";
+}
+
+# Create a file in the log directory to notify runtest processes that an interrupt
+# has been called for.  This whole interrupt flag deal is to kill off a race condition
+# that sometimes occurs when subprocesses of a test terminate with SIGINT before the parent
+# even receives the signal.  Yes, this does happen.
+sub set_interrupt_flag {
+	open TEST, ">". $environment{"save_directory"}."/interrupt-flag" or
+		warn "Warning: can't set interrupt-flag\n";
+	close TEST;
+}
+
+# Clear the interrupt flag after processes have terminated.
+sub clear_interrupt_flag {
+	unlink $environment{"interrupt_flag"};
+}
+
+# Set appropriate test environment and real environment variables for interrupt flag.
+sub prepare_interrupt_flag {
+	if (!defined($environment{"interrupt_flag"})) {
+		$environment{"interrupt_flag"} = $environment{"save_directory"} . "/interrupt-flag";
+	}
+	# remember, this needs to be relative to the runin directory.
+	# Ick.
+	$ENV{"interrupt_flag"} = "../" . $environment{"interrupt_flag"};
+	unlink $environment{"interrupt_flag"};
+}
+
+# since reapers are not safe in perl, we must poll for zombies (sigh)
+sub check_processes {
+	foreach (keys %running_pids) {
+		if (waitpid($_,&WNOHANG)) {
+			# end the test in the table if it is done
+			process_stop($_,$? >> 8);
+		}
+	}
+	return scalar(keys %running_pids);
+}
+
+sub do_on_event {
+	return if (!defined($environment{"on_event"}));
+#	print("on_event: ", join ' ',@{$environment{"on_event"}} );
+	system((join ' ', @{$environment{"on_event"}}) . " >>/dev/null 2>&1 &");
+}
+
+sub display_notify {
+	# time
+	my $t = shift;
+	color("bold", "fwhite");
+	my $d;
+	$d = `date`;
+	# strip newline
+	$d =~ s/\n//gs;
+
+	print($d, ": VA-CTCS notify (", sectotime($t),") : ");
+
+	color("fgreen");
+
+	print $environment{"notify_message"};
+
+	color("reset");
+	print("\n");
+
+	do_on_event();
+}
+
+sub display_clock {
+	color("fcyan");
+	printf("\r\e[${casename_width}C\e[KTTIME: %-18s", sectotime(shift));
+	color("reset");
+	STDOUT->flush();
+}
+
+sub timer_start {
+	my $time = shift;
+	my $seconds = timetosec($time);
+	alarm($seconds);
+	$timers{ttrun} = $seconds;
+	$timers{start} = time;
+	$timers{state} = "running";
+}
+
+sub timer_stop {
+	alarm(0);
+	$timers{ttrun} = 0;
+	$timers{start} = 0;
+	$timers{state} = "stopped";
+}
+
+sub timer_pause {
+	if ($timers{state} eq "paused") {
+		# unpause
+		timer_start("$timers{ttrun}s");
+	} elsif ($timers{state} eq "running") {
+		# pause timer
+		alarm(0);
+		$timers{ttrun} = $timers{ttrun} - (time - $timers{start});
+		$timers{state} = "paused";
+	}
+}
+
+# called whenever a subprocess begins successfully
+sub process_start {
+	my $pid = shift;
+	my $key = shift;
+	my @processinfo = @_;
+	$running_pids{$pid} = $key;
+	$processes{$key} = \@processinfo;
+	my $time_of_start=time;
+	if ($timestamp_file) {
+		print TIMESTAMPFILE "$time_of_start : $key\n";
+	}
+	
+	# Write processes - so we see what is running from outside
+	save_hash(\%processes, $environment{"save_directory"}."/process_state") or warn "Can't save process state!\n";
+}
+
+
+# print the case name, caculate the width of the name
+#      [<case num>/<total case num>] casename clock/status
+# the width will be caculated by the case name and the total number of the test cases
+sub ptr_n {
+	my $name = shift;
+	
+	my $num_len = length($total_cases);
+	my $label_len = $num_len * 2 + 4;
+
+	# if some crazy guys name his cases by a big lone string, cut it
+	my $name_max = $opt_width - 40 - $label_len;
+	if (length($name) > $name_max) {
+		$name = substr($name, 0 , $name_max);
+		$name = "$name...";
+	}
+
+	my $label = sprintf("[%${num_len}d/%${num_len}d] ", ++$cur_case, $total_cases);
+	$name = "$label$name";
+
+	$casename_width = $opt_width - $label_len - 20;
+	$ENV{CASENAMEWIDTH} = $casename_width;
+
+	if ($process_foreground) {
+		printf("%-${casename_width}s", $name);
+		STDOUT->flush();
+	}
+}
+
+# print the result of the test case
+# For forground testing, will control the print contend by working with clock
+# For background testing, just print the result
+sub ptr_r {
+	my $case = shift;
+	my $color = shift;
+	my $result = shift;
+	my $bg = shift;
+
+	if ($process_foreground) {
+		# Print name for background running tests
+		if ($bg) {
+			color("bold", "fblack");
+			print("\r($case)");
+			color("reset");
+		}
+
+		color($color);
+	
+		# The string should can cover all of the time string
+		printf("\r\e[${casename_width}C\e[K%-18s\n", $result);
+        	color("reset");
+	} else {
+		printf("%s ... ... %s", $case, "$result\n");
+	}
+}
+
+# Check it is a foreground process or not, since the forground process 
+# need show the clock, it will print some special character which should
+# be ignored for background process.
+sub process_fb {
+	if (-t STDOUT) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+# called whenever a subprocess ends
+# does all bookkeeping for the process, tallying results, etc
+# All of this will be a lot easier when I do my redesign, since
+# iterating of tests will be handled by the same process.
+sub process_stop {
+	my $fail;
+	my $succeed;
+	my $internal_err;
+	my $skip;
+	my $count;
+	my $time;
+	my $line;
+
+	my $pid = shift;
+	my $result = shift;
+	my $key = $running_pids{$pid};
+	if (!defined($key)) {
+		return;
+	}
+
+	my @testarray = @{$processes{$key}};
+	
+	my $starttime = $testarray[0];
+	my $endtime = time;
+	
+	open (LOGFILE, $testarray[1]);
+	while (<LOGFILE>) {
+		if (/^\d* fail \d* succeed \d* count \d* internal_error \d* skipped\n/) {
+			$line = $_;
+		}
+	}
+	close LOGFILE;
+	
+	$fail = 0;
+	$succeed = 0;
+	$internal_err = 0;
+	$skip = 0;
+	$count = 0;
+	$time = $endtime - $starttime;
+	my $test_time = sectotime($time);
+
+	# if the finish case name is not the current case name, it means that 
+	# it is a background test case, we don't care this type of cases, 
+	# and we don't print any information for them.
+	my $bg = 1;
+
+	if ("$key" eq "$current_case") {
+		$bg = 0;
+	}
+
+	if ($line =~ /(\d+)\s+\w+\s+(\d+)\s+\w+\s+(\d+)\s+\w+\s+(\d+)\s+\w+\s+(\d+)/) {
+		$fail = $1;
+		$succeed = $2;
+		$count = $3;
+		$internal_err = $4;
+		$skip = $5;
+
+
+		if ($count >= $testarray[3] && ($fail == 0) && ($skip == 0) && ($internal_err == 0)) {
+			if ($ENV{RUNIN_VERBOSE}){
+				ptr_r($key, "fgreen", "PASSED ($test_time)", $bg);
+			} else {
+				ptr_r($key, "fgreen", "PASSED ($test_time)", $bg);
+			}
+		}
+		if (($fail == 0) && ($internal_err == 0) && ($skip != 0)) {
+			ptr_r($key, "fyellow", "SKIPPED ($test_time)", $bg);
+		}
+		if (($internal_err != 0) || ($fail != 0)) {
+			ptr_r($key, "fred", "FAILED ($test_time)", $bg);
+		}
+		if ($count < $testarray[3]) {
+			ptr_r($key, "fmagenta", "TIMEOUT ($test_time)", $bg);
+		}
+	} else {
+		# no result, some error occured
+		print("\r\e[${casename_width}C\e[K\n");
+		warn("    Test result inconclusive for $key, no results found\n");
+		ptr_r($key, "fred", "FAIL ($test_time)" , $bg);
+	}
+	
+	if (defined($test_results{$key}->[0])) {
+		$test_results{$key}->[0] +=  $fail;
+		$test_results{$key}->[1] +=  $succeed;
+		$test_results{$key}->[2] +=  $count;
+		$test_results{$key}->[3] +=  $time;
+		$test_results{$key}->[4] +=  $internal_err;
+		$test_results{$key}->[5] +=  $skip;
+	} else {
+		push @test_order, $key; # so we keep track in which order tests finished (or wrote the results for the first time)
+		$test_results{$key} = [$fail,$succeed,$count,$time,$internal_err,$skip];
+	}
+	
+	if (($count >= $testarray[3] and $testarray[3] > 0) or $timers{state} eq "finished") {
+		# test completed all iterations, delete from process queue
+		delete $processes{$running_pids{$pid}};
+	} elsif ($testarray[3] > 0) {
+		# test completed >= 0 iterations but not all, decrement from running total
+		$processes{$running_pids{$pid}}->[3] = $testarray[3] - $count;
+	} elsif (not $testarray[2] eq "bg") {
+		# (at this point, $testarray[3]==0 and it doesn't matter what count is)
+		delete $processes{$running_pids{$pid}};
+	} 
+	# otherwise, $testarray[2] eq "bg" and $testarray[3] == 0.
+	# We should never delete background/0 processes from the active queue.
+
+	# However, regardless, we should always note that the process has stopped.
+       	delete $running_pids{$pid};
+}
+
+sub run {
+	my $mode = shift; 
+	my $iterations = shift;
+	my $testname = shift;
+	my $testprogram = shift;
+	my @testparms = @_;
+	my $pid;
+	my $key = $testname;
+	my $logfilename = $environment{save_directory} . "/$testname";
+	my %reversepid = reverse %running_pids;
+
+	if (exists($reversepid{$key})) {
+		# we can't have two processes running with the same test name, sorry :)
+		warn ("Can't run process $testname multiple times at once \n");
+		return;
+	}
+
+	$current_case = $testname;
+	ptr_n($testname) if ($mode eq "fg");
+	
+	# make a break for the various attempts to start the program.
+	# Otherwise the current implementation will pick up results from previous
+	# passes when the process exits if it hasn't had time to generate any
+	# output.
+	# Yet another hack that I want to get rid of when I integrate
+	# runtest.
+	open(T, ">>$logfilename");
+	print T "--\n";
+	print T "INFO: synchronous logging activated\n" if $environment{"SYNC_LOGGING"};
+	close T;
+
+	# set synchronous writes.  Failure may only indicate that it's already done,
+	# so who cares.
+	system("chattr +S $logfilename >>/dev/null 2>&1") if $environment{"SYNC_LOGGING"};
+
+	# set this log to be parsed by the bench parser if some is set
+	$benchparsers{$logfilename} = $benchparser if $benchparser;
+	
+	# fork
+	if ($pid = fork) {
+		# in parent
+		process_start($pid, $key, time, $logfilename, $mode, $iterations, $testname, $testprogram, @testparms);
+	} elsif (defined ($pid)) {
+		# in child, exec program
+		# we don't want to pretend we're the parent, so,
+		disable_handlers();
+		# set my process group so I can be killed later
+		POSIX::setpgid($$,$$);
+		
+		# set our environment variables for runtest
+		$ENV{KEYVALUE} = "$key";
+		if (defined $test_results{$key}->[3]) {
+			$ENV{ELAPSEDTIME} = "@{$test_results{$key}}[3]";
+		} else {
+			$ENV{ELAPSEDTIME} = "0";
+		}
+		
+		# verbosity option
+		$ENV{RUNIN_VERBOSE} = $environment{"verbose"};
+				
+		my $tp = join ' ', @testparms;
+
+		# on some situations (unknown), tests blocks on stdin if it is kept to its
+		# original value. So set it to /dev/null.
+		# When the test blocks, it has many weird consequences, like unability to
+		# kill the test by sigint, which result in wrong behavior of the all testsuite!
+		# This is also a fix for bnc#216220 - ctcs2 + qa_php5 problems
+		open STDIN, "</dev/null" or die "Cannot set test's STDIN to /dev/null!";
+
+		# Redirect stderr to /dev/null, keeps the ctcs2 terminal output readable
+		exec("sh","-c","exec $runtest_path $iterations $testprogram $tp >> $logfilename 2> /dev/null") or die ("Can't exec subprocess\n");
+	} else {
+		warn("Fork error, aieeeee!\n");
+	}
+	
+	return $pid;
+}
+
+sub foreground_run {
+	# wrapper for run that waits until the process exits.
+	wait_on_tests(run(@_));
+} 
+
+sub background_run {
+	# run is a background run.
+	run(@_);
+}
+
+sub set_environment {
+	my $key = shift;
+	if ($#_ > 0) {
+		$environment{$key} = \@_;
+	} else {
+		$environment{$key} = shift;
+	}
+}
+
+# Check if we're in the time frame specified by $environment{"autoexit_timeframe"}
+sub autoexit_check {
+#	print("in autoexit_check\n");
+	my ($day, $clock);
+	my @thetime;
+	defined($environment{"autoexit_timeframe"}) or return 0;
+
+	if (not defined($autoexit_starttime)) {
+		my $offset;
+		($autoexit_days,$autoexit_starttime, $autoexit_endtime, $autoexit_stagger_limit) = split '-',$environment{"autoexit_timeframe"};
+		$offset = int (rand $autoexit_stagger_limit);
+		if (add_times($autoexit_starttime,$offset) > $autoexit_starttime) {
+			$autoexit_starttime = add_times($autoexit_starttime,$offset);
+		}
+	}
+#	print("$autoexit_starttime is my start time\n\n");
+	@thetime = localtime(time);
+	($day,$clock) = split ' ',strftime("%a %H%M",@thetime);
+	$day = $daytoletter{"$day"};
+
+#	print "$autoexit_days-$autoexit_starttime-$autoexit_endtime-$autoexit_stagger_limit $day $clock\n";
+
+	$autoexit_days =~ /$day/ and $clock <= $autoexit_endtime and $clock >= $autoexit_starttime and return 1;
+
+	return 0;
+}
+
+sub wait_on_tests {
+	my $waitfor = shift;
+	my $testfunc;
+	my $nice = 0;
+	my $current_time;
+	my $current_check_every=20;
+	my $current_next_check=$current_check_every;
+	my $autoexit_check_every=20;
+	my $autoexit_next_check=$autoexit_check_every;
+
+	if (defined(POSIX::nice(-10))) {
+		++$nice;
+	}
+
+	# this allows us to switch between waiting for a specific process or all processes.
+	if (defined($waitfor)) {
+		$testfunc = sub { return (check_processes && defined ($running_pids{shift(@_)})) };
+	} else {
+		$testfunc = sub { return check_processes };
+		# waitfor must be defined to avoid useless warnings.
+		$waitfor = "";
+	}
+
+	# this loop is actually where the test control program spends most of it's time.
+	# It wouldn't be necessary to burn cycles here if Perl was reentrant/signal safe.
+	# Actually, it turns out that it is a good thing this loop is here, since we need to 
+	# periodically check state.
+	# Another thing -- it's not possible to rely on signal delivery under Linux
+	# while things like burn are running.  See my attempts to stop processes in cleanup()
+	my $last_time = 0;
+
+	while (&$testfunc($waitfor) and (not $eexit) and (not $timers{state} eq "finished")) {
+		$current_time = $timers{gtime} + (time - $timers{gstart});
+		# this should reduce overhead in the checking area by close to 95%
+		if ($current_time >= $current_next_check) {
+			$current_next_check = $current_time + $current_check_every;
+			if (!$notified
+			  && defined($environment{"notify_message"})
+			  && $current_time >= $environment{"notify"}) {
+				display_notify($current_time);
+				$notified = 1;
+			}
+			if ($notified && defined ($environment{"autoexit"})) {
+				if ($current_time >= $autoexit_next_check) {
+					$autoexit_next_check = $current_time + $autoexit_check_every;
+					if(autoexit_check) {
+						$eexit = 1;
+					}
+				} 
+			}
+		}
+
+
+		# for background process, don't print the clock
+		# or we can ignore the clock string line from slave(Command.pm +257)
+		if ($process_foreground && $current_time != $last_time) {
+			display_clock($current_time);
+			$last_time = $current_time;
+		}
+
+		usleep($polling_interval);
+	}
+
+	if ($eexit or $timers{state} eq "finished") { 
+		# This is not clean_exit for a reason, see comment in parse_control_file
+		cleanup(); 
+	}
+
+	if ($nice) {
+		POSIX::nice(10);
+	}
+
+	# write results again -> so now it will contain the results of the test we were waiting for
+	save_hash(\%test_results, $environment{"save_directory"}."/test_results", @test_order) or warn "Can't save test results!\n";
+	# Write processes - so we see what is running
+	save_hash(\%processes, $environment{"save_directory"}."/process_state") or warn "Can't save process state!\n";
+}
+
+# kill off all subprocesses
+sub cleanup {
+	my $nice;
+	if (defined(POSIX::nice(-15))) {
+		++$nice;
+	}
+	my $key;
+	# this should be factorable by 30.
+	# Very large systems take a long time to shut down cleanly.
+	# We're reflecting this now.
+	my $patience=120;
+	my $p;
+	my @pids = (keys %running_pids);
+
+	set_interrupt_flag;
+
+	foreach $key (@pids) {
+		kill TERM=> -$key;
+	}
+
+	# After a while, start sending more signals, until
+	# patience runs out.  Then send SIGKILLs.  Yes, it's brutal.
+	# Yes, it's wrong.  But sometimes for no apparent reason
+	# signals disappear on me, and this is the only way to
+	# guarantee they will be sent eventually.
+	# OK, this doesn't guarantee it, this is still vulnerable to
+	# a live-lock type situation if the system is so busy that NO
+	# SIGKILLs get through.  It does seem to work in practice pretty
+	# well.
+	while (check_processes() > 0) {
+		sleep 1;
+		$patience -= 1;
+		if ($patience % 30 == 0) {
+				foreach $key (keys %running_pids) {
+					kill TERM=> -$key;
+				}
+		}
+		if ($patience < 0) {
+			foreach $key (keys %running_pids) {
+				kill KILL=> -$key;
+			}
+		}
+	}
+
+	# this is now handled by the check_processes call in the loop above
+	#foreach $key (@pids) {
+	#	waitpid($key, 0);
+	#	process_stop($key, $? >> 8);
+	#}
+
+	# after all processes have died, it's OK to delete the
+	# interrupt flag
+	clear_interrupt_flag;
+	
+	if ($timers{state} eq "running") {
+		#    print "pausing timer\n";
+		timer_pause();
+	}
+	
+	if ($nice) {
+		POSIX::nice(15);
+	}
+}
+
+# ALRM received
+# Signals are NOT safe in Perl, so be paranoid.
+sub ALARM {
+	if (not $timers{state} eq "running") {
+		# where did this come from?
+		return;
+	}
+	$timers{state} = "finished";
+	$timers{ttrun} = 0;
+}
+
+# INT/TERM received.
+# Signals are NOT safe in Perl, so be paranoid.
+sub DEATHBYSIGNAL {
+	# uh oh -- hostile signals
+	# emergency exit in progress
+	$ctrlc = $ctrlc + 1;
+	if ($ctrlc < 2) {
+		print "Aborting on signal $_[0], please wait...\n";
+	} else {
+		print "Hey, stop hitting CTRL-C already, I'm working on it!\n";
+	}
+	$eexit = 1;
+}
+
+sub report {
+	my $key;
+	my $fail;
+	my $attempt;
+	my $succeed;
+	my $interr;
+	my $skip;
+	my $time;
+	my $failflag = 0;
+	
+	my @passing;
+	my @interr_failed;
+	my @skipped;
+
+	print("Displaying report...\n");
+	color("fcyan");
+	print("Total test time: ");
+	color("bold");
+	print sectotime($timers{gtime}) . "\n";
+	color("reset");
+
+       	foreach $key (sort keys %test_results) {
+		$fail = @{$test_results{$key}}[0];
+		$attempt = @{$test_results{$key}}[2];
+		$succeed = @{$test_results{$key}}[1];
+		$time = sectotime(@{$test_results{$key}}[3]);
+		$interr = @{$test_results{$key}}[4];
+		$skip = @{$test_results{$key}}[5];
+		if ($fail) {
+			if (!$failflag) {
+				color("fred");
+				print("Tests FAILED:\n");
+				++$failflag;
+			}
+			color("bold","fred");
+			print("$key ran $attempt times in $time, failed on $fail attempts.\n");
+			color("reset");
+		} elsif ($interr) {
+			push (@interr_failed,$key);
+		} elsif ($skip) {
+			push (@skipped,$key);
+		} elsif ($succeed) {
+			push (@passing,$key);
+		} else {
+			#no succeed, no fail, no internal error - it means killed before any output has been written
+			#it is a king of internal error
+			push (@interr_failed,$key);
+		}
+	}
+
+	if ($#interr_failed >= 0) {
+		color("fmagenta");
+		print("Tests with internal errors:\n");
+		color("bold");
+		foreach (@interr_failed) {
+			$fail = @{$test_results{$_}}[0];
+			$attempt = @{$test_results{$_}}[2];
+			$succeed = @{$test_results{$_}}[1];
+			$time = sectotime(@{$test_results{$_}}[3]);
+			$interr = @{$test_results{$_}}[4];
+			print("$_ ran $attempt times in $time, had internal errors on $interr attempts.\n");
+		}
+		color("reset");
+	}
+	
+	if ($#skipped >= 0) {
+		color("fblue");
+		print("Tests skipped:\n");
+		color("bold");
+		foreach (@skipped) {
+			$fail = @{$test_results{$_}}[0];
+			$attempt = @{$test_results{$_}}[2];
+			$time = sectotime(@{$test_results{$_}}[3]);
+			$skip = @{$test_results{$_}}[5];
+			print("$_ ran $attempt times in $time, had skipped on $skip attempts.\n");
+		}
+		color("reset");
+	}
+
+	if ($#passing >= 0) {
+		color("fgreen");
+		print("Tests passed:\n");
+		color("bold");	
+		if ($environment{"verbose"}) {
+			foreach (@passing) {
+				$fail = @{$test_results{$_}}[0];
+				$attempt = @{$test_results{$_}}[2];
+				$succeed = @{$test_results{$_}}[1];
+				$time = sectotime(@{$test_results{$_}}[3]);
+				print("$_ ran $attempt times in $time, failed on $fail attempts.\n");
+			}
+		} else {
+			foreach (@passing) {
+				print "$_ ";
+			}
+			print "\n";
+		}
+		color("reset");
+	}
+	
+	if (!$trcomplete) {
+		if (!$failflag) {
+			color("fbrown","bold");
+			print("**** Test run was interrupted ****\n");
+		} else {
+			color("fred","bold");
+			print("**** Test run was interrupted with errors ****\n");
+		}
+	} else {
+		if (!$failflag) {
+			color("fgreen","bold");
+			print("**** Test run completed successfully ****\n");
+		} else {
+			color("fred","bold");
+			print("**** Test run completed with errors ****\n");
+		}
+	}
+	color("reset");
+	print "\n";
+}
+
+sub init_environment {
+	# all initialization for the environment hash should be here.
+	set_environment("LINE", 0);
+	set_environment("runin_directory", "./runin");
+	set_environment("WAIT", 0);
+	set_environment("verbose", 0);
+	set_environment("LOOP", 0);
+
+	# SYNC_LOGGING overrrides the synclog and asynclog commands
+	if (defined($ENV{SYNC_LOGGING})) {
+		set_environment("SYNC_LOGGING", 2);
+	} else {
+		set_environment("SYNC_LOGGING", 0);
+	}
+}
+
+sub init_timer {
+	$timers{state} = "unset";
+	$timers{gtime} = 0;
+	$timers{waiting} = 0;
+}
+
+sub restore_timer {
+	if ($timers{state} eq "paused") {
+		timer_pause();
+	}
+}
+
+sub display_events {
+	if (defined($environment{"notify_message"}) and
+	    defined($environment{"notify"})) {
+		print "**** ";
+		color("fwhite","bold");
+		print "Upcoming event:  ";
+# printing this in green gets confusing -- looks like the test is already
+# complete for example if you don't look closely.
+#		color("fgreen","bold");
+		color("reset");
+		print $environment{"notify_message"};
+		print " at ";
+		color("fwhite","bold");
+		print sectotime($environment{"notify"});
+		color("reset");
+		print "\n";
+	}	
+}
+
+# get basic state information from previous runs if possible and bring system
+# state up to speed.
+sub restore_state {
+	# strip path from filename
+	my @tmp = split /\//, $filename;
+	$filename = $tmp[$#tmp];
+
+	# set up the log directory
+	my ($sec, $min, $hour, $day, $mon, $year) = localtime(time);
+	my $timestamp = sprintf( "%4d-%02d-%02d-%02d-%02d-%02d", $year+1900, $mon+1, $day, $hour, $min, $sec);	
+	my $basename = $logdir . "/" . substr( $filename, 0, -4 ) . "-" . $timestamp;	 
+
+        if (! -d $logdir) {
+                `mkdir -m 0755 -p "$logdir"`
+        }
+
+	my $realname = $basename;
+
+	mkdir $realname, 0755 or die "Could not create $realname";
+	
+	# strip newline
+	$realname =~ s/\s//gs;
+	$environment{"save_directory"} = $realname;
+	load_hash(\%environment, $environment{"save_directory"} . "/environment") or init_environment();
+	prepare_interrupt_flag;
+	if (defined($environment{"on_event"})) {
+		$ENV{CTCS_ON_EVENT}= join ' ',@{$environment{"on_event"}};
+	}
+	if (defined($environment{"on_error"})) {
+		$ENV{CTCS_ON_ERROR}= join ' ',@{$environment{"on_error"}};
+	}
+	%timers = ();
+	%test_results = ();
+	%processes = ();
+	load_hash(\%timers, $environment{"save_directory"} . "/timer_state") or init_timer();
+	load_hash(\%test_results, $environment{"save_directory"} . "/test_results");
+	load_hash(\%processes, $environment{"save_directory"} . "/process_state");
+	
+	# test run complete flag reset
+	$trcomplete = 0;
+
+	#tables initialized, it is now safe to enable signal handling
+	enable_handlers();
+	
+	global_timer_start();
+	restore_timer();
+	
+	print "Initializing test run for control file $filename...\n";
+	print "Current time: " . `date`;
+	
+	print "****";
+	color("fwhite", "bold");
+	print " Test in progress ";
+	color("reset");
+	print "****\n";
+
+	display_events();
+	
+	restore_processes();
+	
+	# this is necessary because the wait command is the only one that can 
+	# exit via interrupt without first having either done all it is going
+	# to do or recorded it in the process table.  In other words, a wait
+	# command can't be "stored" in the process table, so we emulate that
+	# with an test script environment variable.
+	if ($environment{WAIT}) {
+		wait_on_tests();
+		if (not $eexit) { $environment{WAIT} = 0 }
+	}
+}
+
+sub restore_processes {
+	my $key;
+	# launch all background tasks first, then launch foreground if necessary
+	my @processes = (keys %processes);
+	
+        foreach $key (@processes) {
+		if (defined($processes{$key}->[2]) and $processes{$key}->[2] eq "bg") {
+			my @test=@{$processes{$key}};
+			shift @test;
+			shift @test;
+			delete $processes{$key};
+			background_run (@test); 
+		}
+	}
+	foreach $key (@processes) {
+		if (defined($processes{$key}->[2]) and $processes{$key}->[2] eq "fg") {
+			my @test=@{$processes{$key}};
+			shift @test;
+			shift @test;
+			delete $processes{$key};
+			foreground_run (@test);
+		}
+	}
+}
+
+# put out state information in the various files
+sub save_state {
+	save_hash(\%environment, $environment{"save_directory"}."/environment") or warn "Can't save environment!\n";
+	save_hash(\%timers, $environment{"save_directory"}."/timer_state") or warn "Can't save timer state!\n";
+	save_hash(\%test_results, $environment{"save_directory"}."/test_results", @test_order) or warn "Can't save test results!\n";
+	save_hash(\%processes, $environment{"save_directory"}."/process_state") or warn "Can't save process state!\n";
+	# FIXME : all this should be shared with remote_qa_db_report, somehow
+	
+	unless (system('which rpm >/dev/null 2>/dev/null')) {
+		# If we have RPM, we collect RPM list for further processing.
+		# Please do not change the format, it is used by other tools in the chain as well.
+		my $rpmlist_file = $environment{"save_directory"} . "/rpmlist";
+		system("rpm -qa --qf \"%{NAME} %{VERSION}-%{RELEASE}\n\" | sort > $rpmlist_file ");
+		
+		# Collect info about RPM of a running kernel, if available
+		my $kernel_file = $environment{'save_directory'} . '/kernel';
+		my $kernel_rpm = `rpm -qf /boot/System.map-\$(uname -r)`;
+
+		if ($kernel_rpm) {
+			chomp $kernel_rpm;
+			system("rpm -qi '$kernel_rpm' > '$kernel_file'");
+		} else {
+			system("uname -r > '$kernel_file'");
+		}
+	}
+
+	if (-x '/usr/sbin/hwinfo') {
+		# If we have hwinfo, we collect its results for further processing.
+		my $hwinfo_file = $environment{"save_directory"} . "/hwinfo";
+		system("/usr/sbin/hwinfo --all > $hwinfo_file ");
+	}
+
+	# Create "done" file which contain time of completion
+	`date --utc +'%y-%m-%d %H:%M:%S UTC' > "$environment{"save_directory"}/done"`
+}
+
+sub global_timer_start {
+	$timers{gstart} = time;
+}
+
+sub global_timer_stop {
+	if (!$timers{gstart}) {
+		# timers already stopped, no need to do it again
+		return;
+	}
+	$timers{gtime} += (time - $timers{gstart});
+	$timers{gstart} = 0;
+}
+
+sub clean_exit {
+	print "Exiting test run..\n";
+	# stop people from hitting control-C
+	$ctrlc += 2;
+	cleanup();
+	global_timer_stop();
+	if (not $eexit) {
+		%processes = ();
+	}
+	save_state();
+	report();  
+}
+
+sub run_bench_parsers {
+	my $result = 0;
+	return 0 unless %benchparsers;
+
+	print "Running benchmark parsers...\n";
+	while (my ($log, $parser) = each %benchparsers) {
+		my $res = system("cat $log | $parser > $log.bench.xml");
+		warn "Error while running benchmark parser '$parser' on results '$log'!\n" if $res;
+		$result += $res;
+	}
+	print "Benchmark parsers finished.\n";
+	return $result;
+}
+
+sub parse_control_file {
+	my $controlfile = shift;
+	my @lines = <$controlfile>;
+	my $l;
+
+	$total_cases = 0;
+	foreach (@lines) {
+		$total_cases += $_ =~ /^\s*fg/;
+	}
+
+	$l = $environment{LINE};
+
+	if ($timestamp_file) {
+		my $tmp = $environment{"save_directory"}."/timestamp_log";
+		open TIMESTAMPFILE, ">> $tmp" or die "Can't open file $tmp : $!";
+	}
+	
+	# so we are sure that this file will exist from the beggining
+	save_hash(\%test_results, $environment{"save_directory"}."/test_results", @test_order) or warn "Can't save test results!\n";
+
+	DATALOOP: while ($l <= $#lines and $_ = $lines[$l] and not $eexit) {
+		# if we are finished with a timer, we need to skip to the next
+		# wait command.  Putting this here works because even if we are interrupted
+		# during a finished state, we are still guaranteed to resume processing
+		# at the correct line, because the timer state will be stored
+		# correctly.  This is also why we don't stop the timer
+		# somewhere at the end of wait_on_tests.
+		if ($timers{state} eq "finished") {
+			if (!( (/^\s*wait/i) || (/^\s*cleanup/i) ) ) {
+				$l = ++$environment{LINE};
+				next;
+			} else {
+				timer_stop;
+			}
+		}
+		
+		if (/^\#/) {
+			# comment, ignore
+		} elsif (/^\s*$/) {
+			# whitespace, ignore
+		} elsif (/^\s*on\s+event\s+/) {
+			my @onevent;
+			@onevent = split;
+			shift(@onevent);
+			shift(@onevent);
+			$environment{"on_event"} = \@onevent;
+			$ENV{CTCS_ON_EVENT}= join ' ',@{$environment{"on_event"}};
+		} elsif (/^\s*on\s+error\s+/) {
+			my @onerror;
+			@onerror=split;
+			shift(@onerror);
+			shift(@onerror);
+			$environment{"on_error"} = \@onerror;
+			$ENV{CTCS_ON_ERROR} = join ' ',@{$environment{"on_error"}};
+		} elsif (/^\s*notify\s+(\w+)\s+(\w+)/) {
+			# Set the notify variable
+			$environment{"notify"} = timetosec($1);
+			$environment{"notify_message"} = $2;
+			$notified = 0;
+			display_events();
+		} elsif (/^\s*timer\s+(\w+)/i) {
+			# start timing the tests
+			timer_start($1);
+		} elsif (/^\s*bg\s+/) {
+			background_run(split);
+		} elsif (/^\s*bgif\s+/) {
+		        my @condition=split;
+                        shift(@condition);
+                        my $testcond = shift (@condition);
+                        if (system($testcond) == 0) {
+                                #do the test
+                                my @restored;
+                                push(@restored,'bg');
+                                push(@restored,@condition);
+                                foreground_run(@restored);
+                        }
+		} elsif (/^\s*fg\s+/) {
+			foreground_run(split);
+		} elsif (/^\s*fgif\s+/) {
+			my @condition=split;
+			shift(@condition);
+			my $testcond = shift (@condition);
+			if (system($testcond) == 0) {
+				#do the test
+				my @restored;
+				push(@restored,'fg');
+				push(@restored,@condition);
+				foreground_run(@restored);
+			} 
+		} elsif (/^\s*set (\w+) (\S+)/i) {
+			my @array = split;
+			shift @array;
+			set_environment(@array);
+		} elsif (/^\s*cleanup/i) {
+			cleanup();
+		} elsif (/^\s*wait/i) {
+			# about this, see note in restore_state
+			$environment{WAIT} = 1;
+			wait_on_tests();
+			if (not $eexit) { $environment{WAIT} = 0 };
+		} elsif (/^\s*synclog/i) {
+			if ($environment{SYNC_LOGGING} != 2) {
+				set_environment("SYNC_LOGGING", 1);
+			}
+		} elsif (/^\s*asynclog/i) {
+			if ($environment{SYNC_LOGGING} != 2) {
+				set_environment("SYNC_LOGGING", 0);
+			}
+		} elsif (/^\s*begin/i) {
+			# infinite loop construct
+			print "begin\n";
+			$environment{LOOP} =  $l;
+		} elsif (/^\s*loop/i) {
+			# go to loop
+			print "loop\n";
+			$l = $environment{LOOP};
+			$environment{LINE} = $l;
+			next;
+		} elsif (/^\s*exit/i) {
+			timer_stop(); # exits do not need to resume timer
+			$l = $#lines;
+			$environment{LINE} = $l;
+			next;
+		} elsif (/^\s*benchparser(.*)/i) {
+			$benchparser = $1;
+			chomp $benchparser;
+			$benchparser =~ s/^\s*//;
+			$benchparser =~ s/\s*$//;
+			
+		} else {
+			die("Line ", $l + 1,":  Syntax error\n");
+		}
+		$l = ++$environment{LINE};
+	}
+
+	if ($timestamp_file) {
+		close TIMESTAMPFILE;
+	}
+
+	if (not $eexit) { 
+		print "****";
+		color("fwhite","bold");
+		print " Test run complete ";
+		color("reset");
+		print "****\n";
+		print "Current time: ".`date`;
+		$trcomplete = 1;
+		timer_stop(); 
+		
+		run_bench_parsers();
+	}
+	clean_exit();
+	return;
+}
+
+sub enable_handlers {
+	$SIG{"ALRM"} = \&ALARM;
+# wtf?  why did I do this in the first place?
+#	$SIG{"CHLD"} = 'IGNORE';
+	$SIG{"CHLD"} = 'DEFAULT';
+	$SIG{"INT"} = \&DEATHBYSIGNAL;
+	$SIG{"TERM"} = \&DEATHBYSIGNAL;
+	$SIG{"HUP"} = \&DEATHBYSIGNAL;
+	$SIG{"USR1"} = 'IGNORE';
+}
+
+sub disable_handlers {
+	$SIG{"ALRM"} = 'DEFAULT';
+	$SIG{"CHLD"} = 'DEFAULT';
+	$SIG{"INT"} = 'DEFAULT';
+	$SIG{"TERM"} = 'DEFAULT';
+	$SIG{"HUP"} = 'DEFAULT';
+	$SIG{"USR1"} = 'DEFAULT';
+}
+
+sub print_help {
+	print "usage:\n\trun -h\n\trun --help\nprint this help.\n";
+	print "usage:\n\trun -t\n\trun --timestamp\n";
+	print "switch on logging timestamps to file timestamp_log in log directory.\n";
+}
+
+sub main {
+	my @params = @_;
+
+	# get the width of console for output the test name and test status 
+	$opt_width = `stty size 2>/dev/null | cut -d' ' -f2`;
+	$process_foreground = process_fb($$);
+	$ENV{PROCESSFOREGROUND} = $process_foreground;
+
+	if (!$opt_width or $opt_width eq "") {
+        	$opt_width = 80;
+	}
+
+	foreach (@_) {
+		if (($_ eq "-h") or ($_ eq "--help")) {
+			print_help();
+		} elsif (($_ eq "-t") or ($_ eq "--timestamp")) {
+			$timestamp_file=1;	
+		} elsif (not $eexit and open('DATAFILE', $_)) {
+			$filename = $_;
+			restore_state($filename);
+			parse_control_file('DATAFILE');
+			close('DATAFILE');
+		} elsif (not $eexit) {
+			die ("Can not open file $_\n");
+		}
+	}
+}
+
+#
+# START
+#
+if($#ARGV == -1) {
+	exit 1
+} else {
+	main(@ARGV);
+}

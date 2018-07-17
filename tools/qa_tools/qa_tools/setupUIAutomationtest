@@ -1,0 +1,150 @@
+#!/bin/bash
+# ****************************************************************************
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
+#
+# Set up user and display to "root" ":0" as defaut if there is no X window running
+user_info=(`who |awk {'print $1,$2'} |grep :[0-9]`)
+if [ -z $user_info ]; then
+	sut_user=root
+	display=:0
+else
+	sut_user=${user_info[0]}
+	display=${user_info[1]}
+fi
+
+# Install require patterns
+system=`cat /etc/SuSE-release |head -n 1 |awk '{print $4}'`
+if [ "$system" = "Desktop" ]; then
+	p1="desktop-gnome"
+elif [ "$system" = "Server" ]; then
+	p1="gnome"
+fi
+p2="X11"
+patterns="$p1 $p2"
+
+for p in $patterns; do
+	result=`zypper --no-refresh -n search -i -t pattern $p |tail -n 1`
+
+	if [ "$result" = "No packages found." ]; then
+		zypper -n install -l -t pattern $p
+		rei=$?
+	else
+		echo $result
+	fi
+done
+
+# Setup X
+# change runlevel to 5
+comments="
+sed -i '/id:3:initdefault/s/3/5/' /etc/inittab |grep initdefault
+SuSEconfig
+sed -i '/DISPLAYMANAGER=\"\"/s/\"\"/\"gdm\"/' /etc/sysconfig/displaymanager
+sed -i '/DEFAULT_WM=\"\"/s/\"\"/\"gnome\"/' /etc/sysconfig/windowmanager
+rm -fr /etc/X11/xorg.conf*
+sax2 -a -V 0:1024x768@60
+sed -i '/user=\"gdm\"/s/gdm/gdm/g' /etc/dbus-1/system.d/gdm.conf
+"
+if [ "$rei" ]; then
+	sh -c "$comments"
+fi
+
+# Enable accessibility
+status=`sudo gconftool-2 -g /desktop/gnome/interface/accessibility`
+if [ "$status" = "false" ]; then
+	sudo gconftool-2 -s --type=Boolean /desktop/gnome/interface/accessibility true
+else
+	echo "accessibility is enabled"
+fi
+
+# Enable xhost +
+if [ "$sut_user" = "root" ]; then
+	xhost_path=/$sut_user/.config/autostart
+else
+	xhost_path=/home/$sut_user/.config/autostart
+fi
+
+if [ ! -f $xhost_path/xhost.desktop ]; then
+	echo "Setup: autostart xhost + when gdm restart"
+	mkdir -p $xhost_path
+	cat >>$xhost_path/xhost.desktop <<'EOF'
+[Desktop Entry]
+Type=Application
+Exec=xhost +
+Hidden=false
+X-Gnome-Autostart-enabled=true
+Name=xhost
+Comment=xhost + to allow hamsta run UI tests
+EOF
+	autoxhost=true
+fi
+
+# Make user auto login X window
+gdm_conf_path="/etc/gdm/custom.conf"
+gdm_status=`grep -5R 'daemon' $gdm_conf_path`
+sut_status=`echo "$gdm_status" |grep "$sut_user"`
+
+if [ -z "$gdm_status" ]; then
+	echo "Setup: user auto login X window when gdm restart"
+	cat >>$gdm_conf_path <<EOF
+
+[daemon]
+TimedLoginEnable=true
+AutomaticLoginEnable=true
+TimedLogin=$sut_user
+AutomaticLogin=$sut_user
+TimeLoginDelay=5
+EOF
+	autologin=true
+elif [ -n "$gdm_status" ] && [ -z "$sut_status" ]; then
+	sed -i "s/TimedLogin=.*/TimedLogin=$sut_user/g" $gdm_conf_path
+	sed -i "s/AutomaticLogin=.*/AutomaticLogin=$sut_user/g" $gdm_conf_path
+	autologin=true
+fi
+
+# Restart gnome session to keep only one X window running
+displays=(`who |awk {'print $2'} |grep :[0-9]`)
+if [ "${#displays[*]}" -eq 0 ]; then
+	autologin=true
+elif [ "${#displays[*]}" -gt 1 ]; then
+	autologin=true
+fi
+
+echo "$sut_user is automatic login"
+
+# Reset xrandr
+default_size=`DISPLAY=$display xrandr  |grep "*" |awk '{print $1}'`
+
+if [ "$default_size" == "800x600" ]; then
+	echo "Reset xrandr to 1024x768, currently is $default_size"
+	/usr/sbin/sax2 -a -V 0:1024x768@60
+	rexrandr=true
+fi
+
+# Restart gnome session
+if [ $autoxhost ] || [ $autologin ] || [ $rexrandr ]; then
+	echo "Restart gnome session"
+	sudo /usr/sbin/rcxdm restart
+else
+	echo "Done!"
+	exit 0
+fi

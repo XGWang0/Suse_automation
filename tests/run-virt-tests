@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Usage: $0 [test_network_number]
+
+[ -z $1 ] || NETWORK=$1
+
+echo Running tests in network $NETWORK
+
+# otherwise network is unset and will be set in config
+utils/00_convert_to_python2
+
+utils/00_delete_previous_robot_results
+
+utils/01_check_test_added
+
+utils/02_build_repo
+
+utils/03_check_build
+
+if [ $? -ne 0 ]
+then
+	echo "ERROR: Build of test repository failed." >&1
+	exit 1
+fi
+
+utils/04_prepare_virtenv
+
+utils/05_check_image_build
+
+if [ $? -ne 0 ]
+then
+	echo "ERROR: Build of kiwi images failed." >&1
+	exit 1
+fi
+
+utils/10_run_tests
+
+utils/98_delete_virtenv
+
+#utils/99_delete_repo
+

@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<job>
+  <config>
+    <name>Update Tools</name>
+    <debuglevel>3</debuglevel>
+    <description>Update the tools.</description>
+    <mail notify="1"></mail>
+    <motd>[Custom job]: </motd>
+    <rpm></rpm>
+  </config>
+  <parts>
+    <part name="part1" id="1" />
+  </parts>
+  <roles>
+    <role name="role_1">
+      <commands part_id="1">
+        <worker>
+          <command execution="forked" reboot="0"><![CDATA[
+		    repo=`zypper lr -u | grep "/ibs/QA:/Head"  | awk '{print $1;}'`;
+			if [ -z $repo ] ; then
+		   	    repo=`zypper lr -u | grep "/ibs/QA%3a/Head" | awk '{print $1;}'`;
+			fi
+		    zypper --gpg-auto-import-keys ref -r $repo;
+		    bash -c 'zypper --non-interactive up --auto-agree-with-licenses -r '$repo'; rchamsta restart' &
+	    ]]></command>
+        </worker>
+      </commands>
+    </role>
+  </roles>
+</job>

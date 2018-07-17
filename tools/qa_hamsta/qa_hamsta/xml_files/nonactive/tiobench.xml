@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<job>
+  <config>
+    <name>tiobench</name>
+    <debuglevel>4</debuglevel>
+    <description>QA siege benchmark against http://localhost, different number of threads</description>
+    <mail notify="0">vmarsik@suse.cz</mail>
+    <rpm>hamsta tiobench-ctcs2-glue</rpm>
+  </config>
+  <parts>
+    <part name="part1" id="1" />
+  </parts>
+  <roles>
+    <role name="role_1">
+      <commands part_id="1">
+        <worker>
+          <command execution="forked" reboot="0"><![CDATA[#!/bin/bash
+		/etc/init.d/apache2 start
+		echo Running TIObench in Screen
+		screen -S tiobench-hamsta -L -d -m /bin/bash -c '/usr/share/qa/tools/tiobench-run'
+		sleep 1
+		while screen -ls | grep tiobench-hamsta > /dev/null ; do sleep 1; done
+		echo Done
+           ]]></command>
+        </worker>
+      </commands>
+    </role>
+  </roles>
+</job>

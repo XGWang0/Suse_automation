@@ -1,0 +1,218 @@
+-------------------------------------------------------------------
+Fri Aug 16 15:28:43 CEST 2013 - pkacer@suse.com
+
+- New 2.6 release from QA Automation team
+- The Machines page has been greatly improved
+- Layout changes at the Machine details page
+- Web UI menu was changed (renamed entries and added link to documentation)
+- Web UI bottom menu was removed
+- Machine reservations can be shared by users
+- Improved QA network configuration (synchronization and web UI)
+- Title of Hamsta changed from image to text
+- All user roles are now checked for privileges (without need to switch user roles)
+- Ajaxterm was removed
+- A lot of bugs were fixed
+
+-------------------------------------------------------------------
+Fri Jan 18 15:20:21 CET 2013 - llipavsky@suse.cz
+
+- New 2.5 release from QA Automation team
+- Authentication and Authorization in Hamsta
+- ctcs2 improvements, speedup, and new tcf commands
+- New SUT can be added to Hamsta from hamsta web interface
+- Timezone support in reinstall
+- Reinstall can now be done using kexec
+- Centralized configuration of SUTs
+- Sessions support in Hamsta
+- AutoPXE now supports ia64 architecture
+- Hamsta is no longer configured using config.php, config.ini is used instead
+- ...and many small improvements and bug fixes
+ 
+
+-------------------------------------------------------------------
+Fri Aug 10 13:19:11 CEST 2012 - llipavsky@suse.cz
+
+- Web user-friendly editor for jobs
+- HA Server yast2 UI Automation
+- Build mapping in QADB (buildXXX -> beta Y)
+- Improved regression analysis
+- Support for benchmark parsers in benchmark testsuite (author of testsuite will also provide a script to parse the results)
+- Power switch support in Hamsta (thanks mpluskal!)
+- Only results created in the job are submitted to QADB
+- QADB improvements
+
+-------------------------------------------------------------------
+Wed May  2 09:11:28 CEST 2012 - llipavsky@suse.cz
+
+- New 2.3 release from QA Automation team, includes: 
+- out-of date and developement SUTs are marked in web frontend and can be updated from the frontend 
+- HA Server yast2-cluster UI Automation 
+- Improved CLI interface to Hamsta 
+- It is possible to get/choose all patterns from all products during SUT intallation (until now, only SLES/D & SDK patterns were shown) 
+- Parametrized jobs 
+- Better web editors of jobs. Now with multimachine job support 
+- Hamsta client one-click installer 
+- QADB improvements 
+- No more Novell icon in Hamsta ;-)
+
+-------------------------------------------------------------------
+Tue Feb  7 11:23:26 CET 2012 - llipavsky@suse.cz
+
+- Bug 742864: switch from bzip2 to gzip for log transfers
+
+-------------------------------------------------------------------
+Mon Nov 14 11:12:09 CET 2011 - llipavsky@suse.cz
+
+- New 2.2 release from QA Automation team, includes:
+- Automated stage testing
+- Repartitioning support during reinstall
+- Possible to leave some space unparditioned during reinstall
+- Added "default additional RPMs to hamsta frontend"
+- Optimized hamsta mutlticast format
+- Mutliple build-validation jobs 
+- Code cleanup
+- Bugfixes 
+
+-------------------------------------------------------------------
+Sun Sep  4 21:48:06 CEST 2011 - llipavsky@suse.cz
+
+- New, updated release from the automation team. Includes:
+- Improved virtual machine handling/QA cloud
+- Rename of QA packages
+- Upgrade support
+- More teststsuites
+- Many bug fixes
+
+-------------------------------------------------------------------
+Wed Apr 13 13:16:00 MDT 2011 - dcollingridge@novell.com
+
+- New, updated release from the automation team. Includes:
+- Various bug fixes
+
+-------------------------------------------------------------------
+Tue Feb  8 10:38:42 CET 2011 - vmarsik@suse.cz
+
+- Reduced verbosity of qa_db_report
+
+-------------------------------------------------------------------
+Tue Feb  8 10:38:42 CET 2011 - llipavsky@suse.cz
+
+- Parsers are no more loaded in BEGIN{}, &log is used everywhere
+
+-------------------------------------------------------------------
+Wed Jan 26 10:35:03 CET 2011 - llipavsky@suse.cz
+
+- Move to the new config schema
+
+-------------------------------------------------------------------
+Fri Jan 14 15:13:15 CET 2011 - llipavsky@suse.cz
+
+- Add sub-parsers support
+
+-------------------------------------------------------------------
+Fri Jan  7 11:17:03 CET 2011 - llipavsky@suse.cz
+
+- filter hwinfo (overwrite the hwinfo) before submission - this
+  used to be done on many different places before (ctcs, resuls.pm,
+  etc.)
+
+-------------------------------------------------------------------
+Fri Nov 19 15:31:43 CET 2010 - llipavsky@suse.cz
+
+- add check in writing url into testcases which should drastically 
+  lower the probability of the stale locks in qa_db_report
+
+-------------------------------------------------------------------
+Fri Oct 15 15:18:11 CEST 2010 - llipavsky@suse.cz
+
+- fox bnc#646986 - qa_db_report.pl fails on standard reaim log 
+                   directory
+
+-------------------------------------------------------------------
+Thu Oct 14 17:59:56 CEST 2010 - llipavsky@suse.cz
+
+- fix bnc#632337 - log archive for non-kernel (ltp, newburn, reaim) 
+                   submissions is wrong
+
+-------------------------------------------------------------------
+Mon Oct 11 14:32:57 CEST 2010 - llipavsky@suse.cz
+
+- fix bnc#632291 - Maintenance submission submission is broken
+
+-------------------------------------------------------------------
+Fri Oct  8 13:00:00 CEST 2010 - vmarsik@suse.cz
+
+- fixed wrong function when no release specified under the '-p' arg
+
+-------------------------------------------------------------------
+Mon Oct  4 15:00:44 CEST 2010 - llipavsky@suse.cz
+
+- add support for relative url in testcase
+
+-------------------------------------------------------------------
+Tue Aug 31 18:48:18 CEST 2010 - llipavsky@suse.cz
+
+- fix bnc#634310 - qa_db_remote not able to submit results 
+                   specified with -f
+- fix bnc#634312 - remote_qa_db_report not able to submit test 
+                   results specified with -F option
+
+-------------------------------------------------------------------
+Mon Aug 23 2010 vmarsik@suse.cz
+
+- moved functions.pm from qa_tools to qa_db_report
+
+-------------------------------------------------------------------
+Thu Aug  5 14:24:25 CEST 2010 - llipavsky@suse.cz
+
+- add delete-logs (-R) support
+
+-------------------------------------------------------------------
+Thu Aug  5 11:10:32 CEST 2010 - llipavsky@suse.cz
+
+- Fix bnc#628237 - qa_db_report.pl: does not accept user's reply, 
+  call to 'die_cleanly' fails
+
+-------------------------------------------------------------------
+Fri Jul 23 17:32:32 CEST 2010 - llipavsky@suse.cz
+
+- version 0.17 - Multiple parsers support
+
+-------------------------------------------------------------------
+Tue Jun 29 15:22:15 CEST 2010 - llipavsky@suse.cz
+
+- fix bnc#617403 - remote submission of results by qa_tools 0.52 
+                   always uses proxy user
+
+-------------------------------------------------------------------
+Mon Jun 28 2010 llipavsky@suse.cz
+
+- fix bnc#617395 - submission script in qa_tools 0.52 throws several thousand 
+                   perl warnings
+- moved results/ and results.pm to qa_libperl
+
+-------------------------------------------------------------------
+Fri Jun 11 2010 llipavsky@suse.cz
+
+- Write skipped testcases to QADB
+
+-------------------------------------------------------------------
+Thu Jun 10 2010 llipavsky@suse.cz
+
+- Add support for skipped testcases
+
+-------------------------------------------------------------------
+Wed Mar 24 2010 llipavsky@suse.cz
+
+- bnc#590648 - qadb remote submit fails
+
+-------------------------------------------------------------------
+Tue Mar 23 2010 llipavsky@suse.cz
+
+- bnc#590316 - qa_db_report package fails to build
+
+-------------------------------------------------------------------
+Fri Mar 12 2010 vmarsik@suse.cz
+
+- created this package by splitting qa_tools
+

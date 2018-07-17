@@ -1,0 +1,12 @@
+#!/bin/bash
+
+MY_DIR="`dirname $0`"
+cd $MY_DIR
+MY_DIR=`pwd`
+
+source /etc/qavirttest/utils.config
+
+cd virttest
+./test_prepare.py -n $NETWORK http://localhost:$REPOPORT/$REPOPATH 
+./generate_robot_config.py -n $NETWORK "$MY_DIR/../testsuites/config-${NETWORK}.robot"
+

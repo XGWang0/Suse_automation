@@ -1,0 +1,51 @@
+-------------------------------------------------------------------
+Mon Feb 25 13:46:08 CET 2008 - anicka@suse.cz
+
+- update to 6.00
+ * Removed the circular dependency on Object::Deadly. It was only
+   used for testing and would only succeed if you already had O::D
+   installed.
+
+-------------------------------------------------------------------
+Mon Jun 18 10:12:02 CEST 2007 - anicka@suse.cz
+
+- update to 5.9 
+  * Test::Exceptions is mandatory for testing.
+  * bugfix
+
+-------------------------------------------------------------------
+Wed Dec 13 12:04:39 CET 2006 - anicka@suse.cz
+
+- update to 5.8
+  * Stop testing that ->VERSION is a specific thing.
+
+-------------------------------------------------------------------
+Thu Oct  5 13:09:21 CEST 2006 - anicka@suse.cz
+
+- update to 5.7
+  * Stop PAUSE from attempting to index DB package.
+  * test fixes
+  * bugfixes
+  * Use named lexicals in diag().
+  * Use exists &foo/defined &foo instead of symbol table hackery.
+  * Changed f() so it accepts 1st parameter of 
+    carp/cluck/confess/croak instead of 1/2/3/4.
+  * Renamed files. 
+
+-------------------------------------------------------------------
+Mon Sep 25 14:59:38 CEST 2006 - anicka@suse.cz
+
+- update to 5.4
+ *  Made Carp::Clan safe for overloaded objects.
+ *  Added diag() to 01_..._carp.t
+
+-------------------------------------------------------------------
+Wed Jan 25 21:39:30 CET 2006 - mls@suse.de
+
+- converted neededforbuild to BuildRequires
+
+-------------------------------------------------------------------
+Mon Aug  1 14:40:41 CEST 2005 - mjancar@suse.cz
+
+- initial version 5.3
+

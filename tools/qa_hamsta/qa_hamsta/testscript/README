@@ -1,0 +1,21 @@
+====Caution!!!====
+"Smoke test" and "test all" are done by "custome test" now, triggered by validation test in pre-defined job list.
+"Custom test" receives a parameter list, which stands for the test suites list.
+Please make sure SLES, SDK and QA repos are added before test.(This could be done when you reinstall this machine.)
+This work suppose to be done by reinstall.pl, anyway you can also add/modify manually if it dosen't work.
+
+Usage:
+============
+you'd better start a screen before tests.
+./customtest <package list>
+
+It includes install, run, summary, report and submit procedues.
+
+
+Other scripts
+=================
+./go is used for summary, report and submit when the validation tests are done.
+
+
+Contact:
+aguo@suse.com

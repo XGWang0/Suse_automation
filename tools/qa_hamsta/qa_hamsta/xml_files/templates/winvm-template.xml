@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<job>
+  <config>
+    <name>New virtual machine from REPOURL</name>
+    <debuglevel>4</debuglevel>
+    <description>Installs new virtualmachine from REPOURL</description>
+    <mail notify="1"></mail>
+    <rpm>qa_hamsta qa_tools qa_lib_perl qa_lib_virtauto</rpm>
+  </config>
+  <parts>
+    <part name="part1" id="1" />
+  </parts>
+  <roles>
+    <role name="role_1">
+      <commands part_id="1">
+        <worker>
+          <command execution="threaded" reboot="0"><![CDATA[/usr/share/qa/tools/winvm.pl ARGS]]></command>
+        </worker>
+      </commands>
+    </role>
+  </roles>
+</job>

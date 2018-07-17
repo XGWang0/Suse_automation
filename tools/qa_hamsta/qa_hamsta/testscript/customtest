@@ -1,0 +1,107 @@
+#!/bin/bash				
+# ****************************************************************************
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
+#
+
+source /usr/share/hamsta/testscript/config
+list=$@
+suitesnum=$#
+[ $# -lt 1 ] && echo "Usage: $0 <package list>" && exit 1
+
+if ((`id -u`!=0));then
+  echo "you should be root to run this test"
+  exit 1
+fi
+rm -rf $output
+
+# set the working directory
+export TESTS_LOGDIR="${logdir%/*}/hamsta"
+
+if [ "x$TESTS_LOGDIR" != "x" ]; then
+	logdir=$TESTS_LOGDIR/ctcs2
+fi
+
+mkdir -p /abuild $logdir/
+#((`ls $logdir/ | wc -l`==0)) || (cd $logdir/../ && tar zcf Oldlog-`date +%F-%H-%M-%S`.tgz ctcs2 && rm -rf $logdir/*)
+
+returncode=0
+# Check qa_lib_ctcs2, qa_hamsta, qa_tools, qa_lib_perl
+rpm -q qa_hamsta qa_tools qa_lib_perl >/dev/null 2>&1
+((returncode+=$?))
+if [ "$returncode" != "0" ]; then
+	echo "Fail: one of packages: \"qa_lib_ctcs2\" \"qa_hamsta\" \"qa_tools\" \"qa_lib_perl\" was not installed."
+	exit $returncode
+fi
+
+# Run test packages, Check package installation
+for suite in $list;do
+  suite=${suite#qa_}
+  if [ -f /usr/share/qa/tools/$suite-run ];then
+    /usr/share/qa/tools/$suite-run
+  elif [ -f /usr/lib/ctcs2/tools/$suite-run ];then
+	if [ "$suite"="newburn" ];then
+		cd /usr/lib/ctcs2
+		./tools/$suite-run
+   	else 
+		/usr/lib/ctcs2/tools/$suite-run	
+        fi
+  else
+    echo "$suite-run doesnot exist in /usr/share/qa/tools/ or /usr/lib/ctcs2/tools/. Maybe this package is not installed correctly"
+    ((returncode+=1))
+    exit $returncode
+  fi
+done
+echo "Tests completed. summarizing and submitting..."
+
+## Check test result (make sure all test results in /var/log/qa/ctcs2/ are submitted everytime)
+# Check whether all test suites were implemented
+#resultsnum=`find $logdir -name test_results | wc -l`
+#((returncode+=$(expr $suitesnum - $resultsnum)))
+
+# Check whether empty files
+for file in `find $logdir -name test_results`; do
+	[ -z "$(cat $file)" ] && ((returncode+=1))
+done
+
+# Check whether cases in tcf equals found in test_results 
+#runtimes=0 #cases in tcf files
+#for suite in $list; do 
+#	for file in $(rpm -ql $(rpm -q $suite) | grep -e "tcf$"); do 
+#		for ret in $(grep -iE "fg|bg" $file | awk '{print $2}'); do
+#			[ $ret -eq 0 ] && ((runtimes+=1)) || ((runtimes+=ret))
+#		done
+#	done
+#done
+#casesnum=0 #cases in test_results
+#((casenum+=$(find $logdir -name test_results -exec grep ^[1-9] {} \; | wc -l)))
+#((returncode+=$(expr runtimes - casenum)))
+
+# Find all ^[1-9] lines which means test case fails
+((returncode+=`find $logdir -name test_results -exec grep "^[1-9] " {} \; | wc -l`))
+/usr/share/hamsta/testscript/report
+((returncode+=$?))
+/usr/share/qa/tools/remote_qa_db_report.pl -b -c "QA packages test results on $hn-$ARCH"
+((returncode+=$?))
+# The returncode means how many errors are met during testing
+exit $returncode
+

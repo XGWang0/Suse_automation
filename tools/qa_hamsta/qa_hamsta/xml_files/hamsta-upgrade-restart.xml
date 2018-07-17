@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<job>
+  <config>
+    <name>upgrade/restart Hamsta</name>
+    <description>Upgrade and restart Hamsta client</description>
+    <mail notify="0">vmarsik@suse.cz</mail>
+    <motd>Hamsta upgrade and restart</motd>
+  </config>
+  <parts>
+    <part name="part1" id="1" />
+  </parts>
+  <roles>
+    <role name="role_1">
+      <commands part_id="1">
+        <worker>
+          <command execution="forked" reboot="0"><![CDATA[#!/bin/sh
+retv=0
+err_p=""
+zypper -n --gpg-auto-import-keys ref 
+zypper_retv=$?
+retv=$((retv + zypper_retv))
+for hamsta_rpm in qa_hamsta qa_hamsta-cmdline qa_hamsta-common qa_tools qa_lib_perl qa_lib_ctcs2 qa_lib_config qa_lib_keys
+do
+zypper -n in -l $hamsta_rpm
+zypper_retv=$?
+if [ $zypper_retv -ne 0 ];then
+  err_p="$err_p $hamsta_rpm"
+  echo "$hamsta_rpm update failed with return value $zypper_retv"
+fi
+retv=$((retv + zypper_retv))
+done
+
+if [ $retv -ne 0 ];then
+  echo "Package :$err_p update failed"
+  exit $retv
+else
+  (sleep 10;rchamsta restart)&
+  exit 0
+fi
+	    ]]></command>
+        </worker>
+      </commands>
+    </role>
+  </roles>
+</job>

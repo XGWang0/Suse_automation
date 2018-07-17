@@ -1,0 +1,153 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <add-on>
+    <add_on_products config:type="list">
+      <listentry>
+        <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+        <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+        <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+        <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+        <accept_verification_failed config:type="boolean">true</accept_verification_failed>
+        <ask_on_error config:type="boolean">false</ask_on_error>
+        <import_gpg_key config:type="boolean">true</import_gpg_key>
+        <media_url><![CDATA[QA_HEAD_REPO]]></media_url>
+        <product_dir>/</product_dir>
+      </listentry>
+    </add_on_products>
+  </add-on>
+  <backup>
+    <modified config:type="boolean">true</modified>
+    <remove_old config:type="boolean">false</remove_old>
+    <sysconfig config:type="boolean">true</sysconfig>
+  </backup>
+  <bootloader>
+    <global>
+      <activate>false</activate>
+      <boot_extended>false</boot_extended>
+      <boot_mbr>true</boot_mbr>
+      <boot_root>true</boot_root>
+      <generic_mbr>false</generic_mbr>
+      <timeout config:type="integer">5</timeout>
+    </global>
+    <loader_type>BOOTLOADER</loader_type>
+  </bootloader>
+  <firewall>
+    <enable_firewall config:type="boolean">false</enable_firewall>
+    <start_firewall config:type="boolean">false</start_firewall>
+  </firewall>
+  <general>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+    <mouse>
+      <id>none</id>
+    </mouse>
+    <signature-handling>
+      <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+      <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+      <accept_verification_failed config:type="boolean">false</accept_verification_failed>
+      <import_gpg_key config:type="boolean">true</import_gpg_key>
+    </signature-handling>
+  </general>
+  <keyboard>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language>
+    <language>en_US</language>
+    <languages>en_US</languages>
+  </language>
+  <partitioning config:type="list">
+    <partition>
+      <uuid>UUID</uuid>
+      <mountby>uuid</mountby>
+    </partition>
+  </partitioning>
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">120</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">30</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">30</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">120</timeout>
+    </yesno_messages>
+  </report>
+  <runlevel>
+    <default>3</default>
+    <services config:type="list">
+      <service>
+        <service_name>nfs</service_name>
+        <service_status>enable</service_status>
+      </service>
+      <service>
+        <service_name>hamsta</service_name>
+        <service_status>enable</service_status>
+      </service>
+      <service>
+        <service_name>sshd</service_name>
+        <service_status>enable</service_status>
+      </service>
+    </services>
+  </runlevel>
+  <software>
+    <packages config:type="list">
+      <package>qa_tools</package>
+      <package>qa_hamsta</package>
+      <package>autoyast2</package>
+      <package>vim</package>
+      <package>mc</package>
+      <package>iputils</package>
+      <package>less</package>
+      <package>screen</package>
+      <package>lsof</package>
+      <package>pciutils</package>
+      <package>tcpdump</package>
+      <package>telnet</package>
+      <package>zip</package>
+      <package>SuSEfirewall2</package>
+      <package>curl</package>
+      <package>wget</package>
+      <package>perl</package>
+      <package>openssh</package>
+      <package>yast2-runlevel</package>
+      <package>nfs-utils</package>
+      <package>qa_test_virtualization</package>
+      <package>autoyast2-installation</package>
+      <package>apparmor-profile-editor</package>
+      <package>sles-release</package>
+    </packages>
+    <patterns config:type="list">
+      <pattern>base</pattern>
+      <pattern>VIRT_PATTERN</pattern>
+    </patterns>
+    <products config:type="list">
+      <listentry>SLES</listentry>
+    </products>
+    <remove-packages config:type="list"/>
+    <remove-patterns config:type="list"/>
+    <remove-products config:type="list"/>
+  </software>
+  <timezone>
+    <hwclock>UTC</hwclock>
+    <timezone>Europe/Prague</timezone>
+  </timezone>
+  <upgrade>
+    <only_installed_packages config:type="boolean">false</only_installed_packages>
+    <stop_on_solver_conflict config:type="boolean">false</stop_on_solver_conflict>
+  </upgrade>
+</profile>

@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<job>
+  <config>
+    <name>qa_ha_yast2_UItest</name>
+    <debuglevel>4</debuglevel>
+    <description>HA Server yast2 tools UI Automation test</description>
+    <mail notify="1"></mail>
+    <rpm>qa_test_yast_HA</rpm>
+  </config>
+  <parameters>
+    <parameter name="TestSuite" default="cluster" type="enum">
+      <option value="cluster">cluster</option>
+      <option value="iplb">iplb</option>
+      <option value="drbd">drbd</option>
+    </parameter>
+  </parameters>
+  <parts>
+    <part name="part1" id="1" />
+  </parts>
+  <roles>
+    <role name="client" num_max="2" num_min="1">
+      <commands part_id="1">
+        <worker>
+          <command execution="forked" reboot="0"><![CDATA[
+                #!/bin/bash
+                echo $ROLE_1_IP
+           ]]></command>
+        </worker>
+      </commands>
+    </role>
+    <role name="server" num_max="1" num_min="1">
+      <commands part_id="1">
+        <worker>
+          <command execution="forked" reboot="0"><![CDATA[
+                #!/bin/bash
+                /usr/share/qa/qa_test_yast_HA/setup_config.py $param_TestSuite `echo $ROLE_1_IP |sed "s/,/ /g"`
+                echo $param_TestSuite
+                /usr/share/qa/tools/setupUIAutomationtest
+                sleep 60
+                /usr/share/hamsta/testscript/customtest qa_test_HA_yast-$param_TestSuite
+            ]]></command>
+        </worker>
+      </commands>
+    </role>
+  </roles>
+</job>

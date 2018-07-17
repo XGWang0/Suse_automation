@@ -1,0 +1,93 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.buildblocker.BuildBlockerProperty plugin="build-blocker-plugin@1.7.1">
+      <useBuildBlocker>false</useBuildBlocker>
+      <blockLevel>GLOBAL</blockLevel>
+      <scanQueueFor>DISABLED</scanQueueFor>
+      <blockingJobs></blockingJobs>
+    </hudson.plugins.buildblocker.BuildBlockerProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>master</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <org.jenkinsci.plugins.scripttrigger.ScriptTrigger plugin="scripttrigger@0.31">
+      <spec>*/5 * * * *</spec>
+      <labelRestriction>false</labelRestriction>
+      <enableConcurrentBuild>false</enableConcurrentBuild>
+      <script>/usr/share/qa/dashboard_generator.py  -p hu -t dev -n 50</script>
+      <exitCode>0</exitCode>
+    </org.jenkinsci.plugins.scripttrigger.ScriptTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#/usr/share/qa/dashboard_generator.py  -p hu -t dev -n 50
+
+build_path=`echo &quot;$JOB_URL&quot; | sed -e &quot;s@${JENKINS_URL}@${JENKINS_HOME}/@g&quot; -e &quot;s@/job/@/jobs/@g&quot;`
+
+echo ${build_path}
+
+cp -r ${JENKINS_HOME}/VIRT-DASHBOARD/archive ${build_path}/builds/${BUILD_NUMBER}/</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <org.jenkinsci.plugins.discardbuild.DiscardBuildPublisher plugin="discard-old-build@1.05">
+      <daysToKeep>-1</daysToKeep>
+      <numToKeep>1</numToKeep>
+      <resultsToDiscard>
+        <hudson.model.Result>
+          <name>NOT_BUILT</name>
+          <ordinal>3</ordinal>
+          <color>NOTBUILT</color>
+          <completeBuild>false</completeBuild>
+        </hudson.model.Result>
+        <hudson.model.Result>
+          <name>SUCCESS</name>
+          <ordinal>0</ordinal>
+          <color>BLUE</color>
+          <completeBuild>true</completeBuild>
+        </hudson.model.Result>
+        <hudson.model.Result>
+          <name>ABORTED</name>
+          <ordinal>4</ordinal>
+          <color>ABORTED</color>
+          <completeBuild>false</completeBuild>
+        </hudson.model.Result>
+        <hudson.model.Result>
+          <name>FAILURE</name>
+          <ordinal>2</ordinal>
+          <color>RED</color>
+          <completeBuild>true</completeBuild>
+        </hudson.model.Result>
+        <hudson.model.Result>
+          <name>UNSTABLE</name>
+          <ordinal>1</ordinal>
+          <color>YELLOW</color>
+          <completeBuild>true</completeBuild>
+        </hudson.model.Result>
+      </resultsToDiscard>
+      <minLogFileSize>-1</minLogFileSize>
+      <maxLogFileSize>-1</maxLogFileSize>
+      <intervalDaysToKeep>-1</intervalDaysToKeep>
+      <intervalNumToKeep>-1</intervalNumToKeep>
+      <regexp></regexp>
+    </org.jenkinsci.plugins.discardbuild.DiscardBuildPublisher>
+    <hudson.plugins.summary__report.ACIPluginPublisher plugin="summary_report@1.13">
+      <name>Prj2-Host_Updation_Unit.xml</name>
+      <shownOnProjectPage>true</shownOnProjectPage>
+    </hudson.plugins.summary__report.ACIPluginPublisher>
+  </publishers>
+  <buildWrappers>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.4.1">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+</project>

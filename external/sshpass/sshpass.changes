@@ -1,0 +1,27 @@
+-------------------------------------------------------------------
+Thu Dec 18 00:00:00 UTC 2014 - vmarsik@suse.com
+- New 2.8.3 release from QA automation team
+- Merged mm_sync base branch
+- fixed bugs
+
+-------------------------------------------------------------------
+Mon Nov  4 10:16:56 CET 2013 - llipavsky@suse.de
+
+- version update to 1.05
+  * OpenSSH version 5.6 closed our leaked slave PTY fd, breaking sshpass.
+    This reverted the "better detection of child exit", unfortunately.
+- remove our manpage, program provides its own 
+
+
+-------------------------------------------------------------------
+Thu Apr 29 17:00:09 CEST 2010 - llipavsky@suse.cz
+
+- Copied package to internal QA repo, repacked it, marked myself as 
+  maintainer for our internal needs. But all credits for packaging
+  still belong to Alessandro de Oliveira Faria!
+
+-------------------------------------------------------------------
+Wed Oct 22 00:45:48 Brasil/East 2009 - alessandrofaria@netitec.com.br
+
+- New package : Alessandro de Oliveira Faria. 
+

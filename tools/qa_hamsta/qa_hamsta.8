@@ -1,0 +1,39 @@
+." Manpage for hamsta.
+." Contact David Mulder <dmulder@novell.com> to correct errors or typos.
+.TH man 8 "21 Oct 2011" "HAMSTA_VERSION" "hamsta man page"
+.SH NAME
+hamsta
+.SH SYNOPSIS
+None.
+.SH TYPE
+tool
+.SH DESCRIPTION
+Developed and maintained at SUSE over the last 5+ years, Hamsta (HArdware Maintenance, Setup & Test Automation) is a Web-based tool for managing test machines and launching automated tests. Each managed system is listed in the user interface and individuals can search for machines, reserve machines, run certain configuration tasks and launch and monitor our automated test suites. Hamsta also automatically stores a complete record of each system's hardware information, including a change history. Fully automated installations of any test system can also be performed using Hamsta with the click of a button. Supported test machine architectures include x86, x86_64, ppc/ppc64, IA64 and s390/s390x.
+.br
+Allows to build a network of test machines. Machines are monitored bythe master node, and receive planned jobs. The results plus monitoringinfo is sent back to the master. Also allows an automated installationof systems. Hamsta solves the need of distributing different local test(automation) frameworks (like STAF,LTP etc.), with their integratedtests, towards extending the coverage of tested hardware configurationsin a distributed and large scale computing environment.
+.br
+Hamsta consists of two main components: masters and clients. The master, once installed and started, listens for client connections. Once a connection is made, the master immediately retrieves the client's hardware information and then continues to monitor that client's status, and send workloads, as requested by the user. The Hamsta master was developed using PHP and JavaScript for the WebUI and uses a MySQL database. Both the master and clients also have various Perl scripts that are used to handle various back-end and helper tasks. All required scripts and components are easily installed via an RPM package.
+.SH README
+None.
+.SH OPTIONS
+None.
+.SH WHAT IT DOES
+None.
+.SH COMMON PROBLEMS
+None.
+.SH WARNINGS
+None.
+.SH SEE ALSO
+None.
+.SH BUGS
+None.
+.SH DISTRIBUTION
+Internal code. Not to be distributed.
+.SH LICENSE
+SUSE Proprietary. It does, however include makedoc.sh which is used to generate PHP documentation and it remote-sources in JQuery and gs_sortable, however, all three of these are just used as libraries.
+.SH UPSTREAM
+None.
+.SH AUTHOR
+Patrick Kirsch <pkirsch@suse.de>, Vilem Marsik <vmarsik@suse.cz>, Leon Wang <llwang@novell.com>
+.SH MAINTAINER
+None.

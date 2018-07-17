@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<job>
+  <config>
+    <name>qa_ha_cts2</name>
+    <debuglevel>4</debuglevel>
+    <description>HA setup and run of CTS</description>
+    <mail notify="0">vpelcak@suse.cz</mail>
+  </config>
+  <parts>
+    <part name="part1" id="1" />
+  </parts>
+  <roles>
+    <role name="client" num_min="1">
+      <commands part_id="1">
+        <worker>
+          <command execution="forked" reboot="0"><![CDATA[#!/bin/bash
+                zypper in -y qa_test_hacluster
+                /usr/share/qa/qa_test_hacluster/cts_helper.sh -p 9191
+           ]]></command>
+        </worker>
+      </commands>
+    </role>
+    <role name="server" num_max="1" num_min="1">
+      <commands part_id="1">
+        <worker>
+          <command execution="forked" reboot="0"><![CDATA[#!/bin/bash
+                zypper in -y qa_test_hacluster
+                /usr/share/qa/qa_test_hacluster/cts_runner.sh -l /var/log/cluster_test.log -s sbd -p 9191 -t 5
+            ]]></command>
+        </worker>
+      </commands>
+    </role>
+  </roles>
+</job>

@@ -1,0 +1,23 @@
+Term::ReadPassword		command_frontend.pl
+Term::ReadLine			command_frontend.pl
+XML::Dumper			master/master_cmdline_server.pl, master/cmdline.pm, master/master.pl, master/active_hosts.pm, master/hwinfo_xml_sql.pm, Slave/hwinfo_xml.pm, Slave/run_job.pl
+IO::Socket (default)		command_frontend.pl, master/active_hosts.pm
+IO::Socket::INET (default)	feed_hamsta.pl, master/process_job.pl, master/cmdline.pm, Slave/slave_diplom.pl
+IO::Socket::Multicast		Slave/Multicast/hwinfo_unique.pm, Slave/Multicast/mcast.pm
+Net::Server(::Prefork)		Slave/slave_diplom.pl
+Switch (default)		master/cmdline.pm
+threads (default)		command_frontend.pl, master/cmdline.pm, Slave/slave_diplom.pl, Slave/Job/Job.pm, Slave/Job/Command.pm, Slave/Job/UserLogging.pm
+URI(::Escape)			master/active_hosts.pm, Slave/slave_diplom.pl
+Proc::Fork			master/master_cmdline_server.pl, master/master.pl, Slave/slave_diplom.pl, Slave/Job/Command.pm
+XML::Simple			Slave/slave_diplom.pl, Slave/Job/Job.pm
+DBI, DBD::mysql			master/sql.pm, master/hwinfo_xml_sql.pm
+
+Term::ReadPassword	cmdline
+Term::ReadLine		cmdline
+XML::Dumper		master, slave
+IO::Socket::Multicast	slave
+Net::Server		slave
+URI			master, slave
+Proc::Fork		master, slave
+XML::Simple		slave
+DBI			master

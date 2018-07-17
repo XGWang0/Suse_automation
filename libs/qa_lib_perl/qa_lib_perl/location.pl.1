@@ -1,0 +1,39 @@
+.\" Process this file with
+.\" groff -man -Tascii location.pl.1
+.\"
+.TH "location.pl" "1"
+.SH NAME
+location.pl \- guesses machine's location
+.SH SYNOPSIS
+.B location.pl
+.SH DESCRIPTION
+.B location.pl guesses machine's location.
+The location returned is one of following:
+.B cz
+,
+.B de
+,
+.B cn
+,
+.B us
+, or
+.B (unknown)
+if the detection fails.
+
+The location is guessed by reading IP address of local network interfaces.
+If the machine has more than one network interfaces, the last matching one is used.
+See the Perl module
+.I detect.pm
+for more details.
+Update the heuristics at the same place.
+
+.SH BUGS
+It is just a simple heuristics.
+
+.SH AUTHOR
+Vilem Marsik <vmarsik@novell.com>
+
+.SH "SEE ALSO"
+.BR arch.pl (1),
+.BR product.pl (1),
+.BR remote_qa_db_report.pl (1)

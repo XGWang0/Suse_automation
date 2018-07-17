@@ -1,0 +1,36 @@
+#x86           qemu64  QEMU Virtual CPU version 1.4.2
+#x86           phenom  AMD Phenom(tm) 9550 Quad-Core Processor
+#x86         core2duo  Intel(R) Core(TM)2 Duo CPU     T7700  @ 2.40GHz
+#x86            kvm64  Common KVM processor
+#x86           qemu32  QEMU Virtual CPU version 1.4.2
+#x86            kvm32  Common 32-bit KVM processor
+#x86          coreduo  Genuine Intel(R) CPU           T2600  @ 2.16GHz
+#x86              486
+#x86          pentium
+#x86         pentium2
+#x86         pentium3
+#x86           athlon  QEMU Virtual CPU version 1.4.2
+#x86             n270  Intel(R) Atom(TM) CPU N270   @ 1.60GHz
+#x86           Conroe  Intel Celeron_4x0 (Conroe/Merom Class Core 2)
+#x86           Penryn  Intel Core 2 Duo P9xxx (Penryn Class Core 2)
+#x86          Nehalem  Intel Core i7 9xx (Nehalem Class Core i7)
+#x86         Westmere  Westmere E56xx/L56xx/X56xx (Nehalem-C)
+#x86      SandyBridge  Intel Xeon E312xx (Sandy Bridge)
+#x86          Haswell  Intel Core Processor (Haswell)
+#x86       Opteron_G1  AMD Opteron 240 (Gen 1 Class Opteron)
+#x86       Opteron_G2  AMD Opteron 22xx (Gen 2 Class Opteron)
+#x86       Opteron_G3  AMD Opteron 23xx (Gen 3 Class Opteron)
+#x86       Opteron_G4  AMD Opteron 62xx class CPU
+#x86       Opteron_G5  AMD Opteron 63xx class CPU
+#x86             host  KVM processor with all supported host features (only available in KVM mode)
+#
+#Recognized CPUID flags:
+#  pbe ia64 tm ht ss sse2 sse fxsr mmx acpi ds clflush pn pse36 pat cmov mca pge mtrr sep apic cx8 mce pae msr tsc pse de vme fpu
+#  hypervisor rdrand f16c avx osxsave xsave aes tsc-deadline popcnt movbe x2apic sse4.2|sse4_2 sse4.1|sse4_1 dca pcid pdcm xtpr cx16 fma cid ssse3 tm2 est smx vmx ds_cpl monitor dtes64 pclmulqdq|pclmuldq pni|sse3
+#  smap adx rdseed rtm invpcid erms bmi2 smep avx2 hle bmi1 fsgsbase
+#  3dnow 3dnowext lm|i64 rdtscp pdpe1gb fxsr_opt|ffxsr mmxext nx|xd syscall
+#  perfctr_nb perfctr_core topoext tbm nodeid_msr tce fma4 lwp wdt skinit xop ibs osvw 3dnowprefetch misalignsse sse4a abm cr8legacy extapic svm cmp_legacy lahf_lm
+#  pmm-en pmm phe-en phe ace2-en ace2 xcrypt-en xcrypt xstore-en xstore
+#  kvm_pv_eoi kvm_steal_time kvm_asyncpf kvmclock kvm_mmu kvm_nopiodelay kvmclock
+#  pfthreshold pause_filter decodeassists flushbyasid vmcb_clean tsc_scale nrip_save svm_lock lbrv npt
+#qemu64

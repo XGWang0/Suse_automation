@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  job-11 - - Relax NG schema definition for Hamsta job XML
+  See file http://qadb.suse.de/xml_files/relax/job-11.rnc for compact definition.
+  See file http://qadb.suse.de/xml_files/relax/job-11.rng for XML definition.
+-->
+<!-- Import the XML datatypes schema so we have them available -->
+<grammar xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+  <start>
+    <ref name="job"/>
+  </start>
+  <define name="job">
+    <element name="job">
+      <interleave>
+        <optional>
+          <element name="roles">
+            <ref name="role"/>
+          </element>
+        </optional>
+        <ref name="config"/>
+        <ref name="parameters"/>
+        <ref name="commands"/>
+      </interleave>
+    </element>
+  </define>
+  <define name="role">
+    <zeroOrMore>
+      <element name="role">
+        <attribute name="id">
+          <data type="integer"/>
+        </attribute>
+        <attribute name="name"/>
+        <optional>
+          <attribute name="num_min">
+            <data type="integer"/>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="num_max">
+            <data type="integer"/>
+          </attribute>
+        </optional>
+        <ref name="machine"/>
+      </element>
+    </zeroOrMore>
+  </define>
+  <define name="machine">
+    <zeroOrMore>
+      <element name="machine">
+        <attribute name="name"/>
+        <attribute name="ip"/>
+        <empty/>
+      </element>
+    </zeroOrMore>
+  </define>
+  <define name="config">
+    <element name="config">
+      <interleave>
+        <element name="name">
+          <text/>
+        </element>
+        <optional>
+          <element name="debuglevel">
+            <data type="integer"/>
+          </element>
+        </optional>
+        <element name="distributable">
+          <data type="integer"/>
+        </element>
+        <optional>
+          <element name="job_id">
+            <text/>
+          </element>
+        </optional>
+        <optional>
+          <element name="parallel">
+            <data type="integer"/>
+          </element>
+        </optional>
+        <element name="mail">
+          <attribute name="notify"/>
+          <text/>
+        </element>
+        <zeroOrMore>
+          <element name="rpm">
+            <optional>
+              <attribute name="upgrade">
+                <data type="integer"/>
+              </attribute>
+            </optional>
+            <text/>
+          </element>
+        </zeroOrMore>
+        <element name="logdir">
+          <text/>
+        </element>
+        <element name="description">
+          <text/>
+        </element>
+        <optional>
+          <element name="motd">
+            <text/>
+          </element>
+        </optional>
+        <optional>
+          <element name="useinfo">
+            <text/>
+          </element>
+        </optional>
+      </interleave>
+    </element>
+  </define>
+  <define name="parameters">
+    <optional>
+      <element name="parameters">
+        <oneOrMore>
+          <element name="parameter">
+            <attribute name="type">
+              <choice>
+                <value>string</value>
+                <value>textarea</value>
+                <value>enum</value>
+              </choice>
+            </attribute>
+            <attribute name="name"/>
+            <optional>
+              <attribute name="default"/>
+            </optional>
+            <optional>
+              <attribute name="label"/>
+            </optional>
+            <choice>
+              <zeroOrMore>
+                <element name="option">
+                  <attribute name="value"/>
+                  <text/>
+                </element>
+              </zeroOrMore>
+              <text/>
+            </choice>
+          </element>
+        </oneOrMore>
+      </element>
+    </optional>
+  </define>
+  <define name="commands">
+    <element name="commands">
+      <interleave>
+        <ref name="worker"/>
+        <ref name="logger"/>
+        <ref name="monitor"/>
+      </interleave>
+    </element>
+  </define>
+  <define name="worker">
+    <element name="worker">
+      <interleave>
+        <oneOrMore>
+          <element name="command">
+            <optional>
+              <attribute name="execution">
+                <choice>
+                  <value>threaded</value>
+                  <value>forked</value>
+                </choice>
+              </attribute>
+            </optional>
+            <optional>
+              <attribute name="role_id">
+                <data type="integer"/>
+              </attribute>
+            </optional>
+            <text/>
+          </element>
+        </oneOrMore>
+        <optional>
+          <element name="directory">
+            <text/>
+          </element>
+        </optional>
+        <optional>
+          <element name="timeout">
+            <data type="integer"/>
+          </element>
+        </optional>
+        <optional>
+          <element name="notify">
+            <attribute name="pattern"/>
+            <attribute name="mail"/>
+            <empty/>
+          </element>
+        </optional>
+        <optional>
+          <element name="stdout">
+            <text/>
+          </element>
+        </optional>
+        <optional>
+          <element name="stderr">
+            <text/>
+          </element>
+        </optional>
+        <optional>
+          <element name="exitcode">
+            <data type="integer"/>
+          </element>
+        </optional>
+      </interleave>
+    </element>
+  </define>
+  <define name="logger">
+    <zeroOrMore>
+      <element name="logger">
+        <interleave>
+          <optional>
+            <element name="command">
+              <optional>
+                <attribute name="execution">
+                  <choice>
+                    <value>threaded</value>
+                    <value>forked</value>
+                  </choice>
+                </attribute>
+              </optional>
+              <optional>
+                <attribute name="role_id">
+                  <data type="integer"/>
+                </attribute>
+              </optional>
+              <text/>
+            </element>
+          </optional>
+          <optional>
+            <element name="directory">
+              <text/>
+            </element>
+          </optional>
+          <optional>
+            <element name="timeout">
+              <data type="integer"/>
+            </element>
+          </optional>
+          <optional>
+            <element name="notify">
+              <attribute name="pattern"/>
+              <attribute name="mail"/>
+              <empty/>
+            </element>
+          </optional>
+          <optional>
+            <element name="stdout">
+              <text/>
+            </element>
+          </optional>
+          <optional>
+            <element name="stderr">
+              <text/>
+            </element>
+          </optional>
+          <optional>
+            <element name="exitcode">
+              <data type="integer"/>
+            </element>
+          </optional>
+        </interleave>
+      </element>
+    </zeroOrMore>
+  </define>
+  <define name="monitor">
+    <optional>
+      <element name="monitor">
+        <interleave>
+          <oneOrMore>
+            <element name="command">
+              <optional>
+                <attribute name="execution">
+                  <choice>
+                    <value>threaded</value>
+                    <value>forked</value>
+                  </choice>
+                </attribute>
+              </optional>
+              <optional>
+                <attribute name="role_id">
+                  <data type="integer"/>
+                </attribute>
+              </optional>
+              <text/>
+            </element>
+          </oneOrMore>
+          <optional>
+            <element name="directory">
+              <text/>
+            </element>
+          </optional>
+          <optional>
+            <element name="timeout">
+              <data type="integer"/>
+            </element>
+          </optional>
+          <optional>
+            <element name="notify">
+              <attribute name="pattern"/>
+              <attribute name="mail"/>
+              <empty/>
+            </element>
+          </optional>
+          <optional>
+            <element name="stdout">
+              <text/>
+            </element>
+          </optional>
+          <optional>
+            <element name="stderr">
+              <text/>
+            </element>
+          </optional>
+          <optional>
+            <element name="exitcode">
+              <data type="integer"/>
+            </element>
+          </optional>
+          <optional>
+            <element name="cycle_count">
+              <data type="integer"/>
+            </element>
+          </optional>
+        </interleave>
+      </element>
+    </optional>
+  </define>
+</grammar>

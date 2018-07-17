@@ -1,0 +1,283 @@
+#!/bin/bash
+# CREATED: 2010-08-20
+# REVISED: 2010-08-20
+# DESCRIPTION: Looks in the dir/tgz and finds out the executale scripts. Creates a TCF file based on them.
+
+function Usage()
+{
+	cat <<EOF
+$0 useage :
+Usage:  $0 scrpit1 script2 foo.tar.gz 
+        $0 script1 script2 script_dir_search -t 300 -n 2  -f  
+The generator is looking up the dir/ tgz and find out the executale script .convert to a tcf format
+Details:
+	-h show this message
+	-d destination tar.gz directory;
+	-t timeout.
+	-n times to run.
+	-f run the test script in frontground
+	-b run the test script in background
+	-o additional options after the test script need to be quoted " "(conflict with multiple executable script)
+	-r a regex of executable script name(require script_dir)
+EOF
+exit 2;
+}
+
+function gen_package-run()
+{
+cat <<'eof'
+
+CTCS2_DIR=/usr/lib/ctcs2
+TCF_DIR=/usr/share/qa/tcf
+
+cd $CTCS2_DIR
+tools/run $TCF_DIR/
+eof
+}
+
+function findexec()
+{
+	dir=$1
+	reg=$2
+	find $dir -maxdepth 3 -perm -110 -type f \( -name "*$reg*.sh" -o -name "*$reg*.pl" -o -name "*$reg*.py" \)
+}
+
+function verify()
+{
+	echo "Please check the following information"
+	tmpi=0
+	for script_tmp
+	do
+		outfile[$tmpi]=$script_tmp
+		echo " [ $tmpi ] :"
+		tcf show $script_tmp
+		tmpi=`expr $tmpi + 1`
+	done
+	echo "Please select one or multiple (seperated by space) executables or hit ENTER to use all(Ctr-c to abort)"
+	while :
+	do
+		read number
+		if [ -z "$number" ];then
+			prefix=1
+			for script_tmp1 in ${outfile[@]}
+			do
+				tcf write $script_tmp1 $prefix
+				prefix=`expr $prefix + 1`
+			done
+			unset prefix
+			break
+		elif [ -n "`echo $number|grep '^[0-9 ]\+'`" ];then
+			for num in $number
+			do
+				if [ $num -ge $tmpi ];then
+					echo "the number should be less than $tmpi "
+					continue 2
+				fi
+			done
+			prefix=1
+			for num in $number
+			do
+				tcf write ${outfile[$num]} $prefix
+				prefix=`expr $prefix + 1`
+			done
+			unset prefix
+			break
+		else
+			echo " input available plz retry"
+		fi
+	done
+}
+
+
+function tcf()
+{
+	tcf_type=$1
+	shift
+	script_tmp=$1
+	script_alias=${script_tmp##*/}
+	del_prefix=${DEST%/*}
+	script_qa_local=`echo $script_tmp|sed "s#$del_prefix#/usr/share/qa#"`
+	if [ -n "$2" ];then
+		script_alias=$2_${script_alias}
+	fi
+	if [ "$tcf_type" == "write" ];then
+		method='|tee -a $TCF'
+	else
+		method=''
+	fi
+	eval echo "timer $TIMEOUT"$method
+	eval echo "$RUNTYPE $TIMES $script_alias $script_qa_local $CMDOPT"$method
+	eval echo "$RUNMETHOD"$method
+	eval echo ""$method
+}
+
+TIMEOUT= 
+DEST=
+TIMEOUT= 
+TIMES=
+RUNTYPE= 
+RUNMETHOD=
+CMDOPT=
+SCRIPT_REG=
+TCF=
+pre_files=
+newline='
+'
+#make it work when use ./tcf_generator file1 file2 file3 dir1/
+while [ -f "$1" ] && [ -z "`file $1|grep 'compressed'`" ]
+do
+	PACKAGE_DIR=`pwd`
+	if [ -n "`echo $1|grep '/'`" ];then
+		cd ${1%/*}
+		tmp_dirname=`pwd`
+		tmp_filename=${1##*/}
+		cd $OLDPWD
+	else 
+		tmp_dirname=`pwd`
+		tmp_filename=$1
+	fi
+
+	tmp_fullname=${tmp_dirname}"/"${tmp_filename}
+
+	pre_files=${pre_files}${newline}${tmp_fullname}
+
+	shift
+
+done
+
+if [ -f $1 -o -d $1 ];then 
+	DEST=$1
+	shift
+fi
+
+#get opt form command line
+while getopts :d:n:t:o:r:fb opts
+do
+	case $opts in
+		f)	if [ -n "$RUNTYPE" ];then 
+				echo "pick one of (b:background;f:frontground)"
+				exit 2
+			fi
+			RUNTYPE="fg"
+			;;
+		b)	if [ -n "$RUNTYPE" ];then
+				echo "pick one of (b:background;f:frontground)"
+				exit 2
+			fi
+			RUNTYPE="bg"
+			;;
+		t)	TIMEOUT=$OPTARG
+			;;
+		d)	DEST=$OPTARG
+			;;
+		n)	TIMES=$OPTARG
+			;;
+		o)	CMDOPT=$OPTARG
+			;;
+		r)	SCRIPT_REG=$OPTARG
+			;;
+		?)	Usage
+			;;
+	esac
+done
+#check dir name;
+if [ -z "$DEST" -a -z "$PACKAGE_DIR" ];then
+	echo "option -d $DEST is required "
+	Usage
+	exit 2
+elif [ -f "$DEST" ];then
+	tar xf $DEST
+	if [ $? != 0 ];then
+		echo "can't unzip tar failed "
+		exit 2;
+	fi
+
+	tar_return="`tar tf $DEST`" 
+	if [ "`echo \"$tar_return\"|wc -l`" == "`echo \"$tar_return\"|grep '/'|wc -l`" ];then  #fix vi show" 
+		mdir="`echo \"$tar_return\"|awk -F'/' '{a[$1]++;file=$1}END{if(length(a)==1){print file}else{print \"M#\"}}'`" 
+		if [ "$mdir" == "M#" ];then
+			# found Multiple Untar directory in local dirctory , use local directory
+			DEST="."
+		else
+			DEST=$mdir
+		fi
+	else
+		# found Untar file in local directory,use local directory
+		DEST="."
+	fi
+	cd ${DEST}
+	if [ $? != 0 ];then
+		echo "can't change dir "
+		exit 2;
+	fi
+	DEST=`pwd`
+	cd $OLDPWD
+elif [ -d "$DEST" ];then
+	cd $DEST
+	DEST=`pwd`
+	cd $OLDPWD
+elif [ -z "$DEST" ];then
+	No_find="marked"
+fi
+#make sure that PACKAGE_DIR work well
+if [ -n "$PACKAGE_DIR" ];then
+		DEST=$PACKAGE_DIR
+		test_qa_prefix=${DEST##*/}
+		if [ -z "`echo $test_qa_prefix|grep '^qa_'`" ];then
+			echo "The qa_package directory should begin with prefix *qa_*"
+			exit 2
+		fi
+fi
+
+#tcf filename
+TCF=${DEST##*/}
+TCF="$TCF.tcf"
+if [ -f $TCF ];then
+	rm $TCF
+fi
+
+#check the times ;
+
+if [ -z "$TIMES" ];then
+	TIMES=1
+elif [ -z "`echo $TIMES|grep '^[0-9]\+$'`" ];then 
+	echo "-t should follow a number "
+	exit 2
+fi
+#check the timeout;
+if [ -z "$TIMEOUT" ];then
+	TIMEOUT=300
+elif [ -z "`echo $TIMEOUT|grep '^[0-9]\+$'`" ];then 
+	echo "-t should follow a number "
+	exit 2
+fi
+#check the bf fg;
+if [ -z "$RUNTYPE" ];then
+	RUNTYPE="fg"
+fi
+#check the run method
+if [ -z "$RUNMETHOD" ];then
+	RUNMETHOD="wait"
+fi
+
+#find exec script
+if [ -z "$No_find" ];then
+	filefind=`findexec $DEST $SCRIPT_REG`
+fi
+filefind="${filefind}${pre_files}"
+if [ -z "$filefind" ];then
+	echo "can't find any executable script"
+	exit 2
+else
+verify $filefind
+echo generate "*$TCF*" succeed
+fi
+echo start to generate run script
+run_name=${TCF%.tcf}
+run_name=${run_name:3}-run
+gen_package-run>$run_name
+sed -i "\$s/\$/$TCF/" $run_name
+chmod a+x $run_name
+echo generate package-run succeed
+exit 0
+

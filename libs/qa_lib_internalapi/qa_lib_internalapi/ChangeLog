@@ -1,0 +1,11 @@
+Thu Jul 20 14:16:40 EDT 2006
+
+ - converted tabs to 8 spaces
+ - doxygen documentation added
+ - some code cleanup in service.c
+
+2005-11-15/13:40
+
+ - initial (autotools) release
+
+

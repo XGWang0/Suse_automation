@@ -1,0 +1,408 @@
+body  {
+  background-color: #fff; 
+  font-family:arial,sans-serif;
+  font-size: 16px;
+}
+
+h1 {
+  font-size: 1.5em;
+  padding-left:3em;
+  width: 90%;
+  background-color:#fff;
+}
+
+/* table's colors etc. */
+table#machines {
+  margin: 1em 0 0.5em 4em;
+  border-spacing: 0px 0px;
+  empty-cells: show;
+  table-layout: fixed;
+  box-shadow: 4px 4px 6px #000;
+  -webkit-box-shadow: 4px 4px 6px #000;
+  -moz-box-shadow: 4px 4px 6px #000;
+}
+table#machines th {
+  background-color: #e78f08; 
+}
+table#machines tbody {
+  background-color: #ddd;
+}
+table#machines td, table#machines th {
+  padding:0.1em 0.2em 0.1em 0.2em;
+  border: solid white;
+  border-width: 1px 1px;
+  white-space: nowrap; /* css-3 */
+  white-space: -moz-nowrap; /* Mozilla, since 1999 */
+  white-space: -nowrap; /* Opera 4-6 */
+  white-space: -o-nowrap; /* Opera 7 */
+}
+table#machines td:last-child, table#machines th:last-child {
+  border-right-width:1px;
+}
+table#machines tr {
+  font-family: arial, verdana, sans-serif;
+  font-size: 0.9em;
+}
+tr.up {
+  background-color:#300;
+}
+tr.down {
+  background-color:#fcc;
+}
+
+/* general form settings */
+form#filter,form#fields,label#action,table#adv_tbl  {
+  font-weight:bold;
+  font-size:0.8em;
+  display:table;
+}
+select {
+  font-size:0.8em;
+}
+input[type="submit"]  {
+  font-weight:bold;
+  cursor: pointer;
+}
+
+
+/* blue boxes */
+form#filter,label#fields,label#action {
+  background-color:#455560;
+  color: #fff;
+  box-shadow: 4px 4px 6px #000;
+  -webkit-box-shadow: 4px 4px 6px #000;
+  -moz-box-shadow: 4px 4px 6px #000;
+  border:solid black;
+  border-width:1px 0 0 1px;
+}
+/* fields form */
+select#fields  {
+  font-size:0.7em;
+}
+form#fields  select[multiple]  {
+  margin: 1em 0 1em 0;
+}
+.fields  {
+  position: fixed;
+  top: 8.5em;
+  right:-9em;
+/*  right:0; */  
+  padding: 0 0.5em 0.5em 3em;
+  border-radius: 1em 0 0 1em;
+  z-index: 10;
+  transition:right 0.1s;
+  -moz-transition:right 0.1s; /* Firefox 4 */
+  -webkit-transition:right 0.1s; /* Safari and Chrome */
+  -o-transition:right 0.1s; /* Opera */
+}
+/*
+form#fields:hover {
+  right:0; 
+}
+*/
+form#fields h3  {
+  position: absolute;
+  transform: rotate(90deg);
+  -ms-transform:rotate(90deg);
+  -moz-transform:rotate(90deg);
+  -webkit-transform:rotate(90deg);
+  left:-2.5em;
+  top:8em;
+  color: #fff;
+}
+input#fieldsCheck:checked + .fields{right:0em;}
+/* action */
+.action  {
+  position: fixed;
+  padding: 1.5em 3em;
+  margin-left:-2.5em;
+  left:-30.8em;
+  bottom: 7em;
+  border-radius: 0 1em 1em 0;
+  z-index: 10;
+  transition:left 0.1s;
+  -moz-transition:left 0.1s; /* Firefox 4 */
+  -webkit-transition:left 0.1s; /* Safari and Chrome */
+  -o-transition:left 0.1s; /* Opera */
+}
+/*
+form#action:hover {
+  left:0;
+}
+*/
+label#action h3  {
+  transform: rotate(270deg);
+  -ms-transform:rotate(270deg);
+  -moz-transform:rotate(270deg);
+  -webkit-transform:rotate(270deg);
+  float:right;
+  margin-top: 7em;
+  margin-right:-3.5em;
+  color: #fff;
+}
+label#action input[type="submit"]{
+  margin: 0.5em 5em;
+}
+input#actionCheck:checked + .action{left:0em;}
+input#blkAni:checked + .noani{}
+input#fieldsCheck,input#actionCheck,input#blkAni {
+  display: none;
+} 
+/* action tab enhancement */
+div#chkedsut {
+  transform: rotate(90deg);
+  -ms-transform:rotate(90deg);
+  -moz-transform:rotate(90deg);
+  -webkit-transform:rotate(90deg);
+  float:right;
+  margin-right:-5em;
+  color: #fff;
+}
+input#showmore {  display: none;} 
+
+/* animations */
+div#advanced {
+  transition-property: opacity, visibility, left, right, height;
+  transition-duration: 0.5s;
+  transition-timing-function: ease-in-out;
+}
+
+/* main search box */
+input.hider { display:none; }
+div#advanced  {
+  visibility:hidden;
+  height:0;
+  opacity:0;
+}
+input.hider:checked+div#advanced  {
+  visibility:visible;
+  opacity:1;
+  height:11em;
+}
+#label_advanced {
+  margin-left: 3em;
+}
+form#filter {
+  margin-left: 4.5em;
+  border-radius: 0.5em;
+}
+form#filter input[type="checkbox"]  {
+  position: relative;
+  top:2px;
+}
+form#filter > div {
+  margin: 0.5em 1.5em;
+  width: 530px;
+}
+input.inputctrl  {
+  border: none;
+  background-color: #fff;
+  float:left;
+  height: 20px;
+}
+input#displmatch  {
+  margin-left: 1em;
+}
+label#displabel  {
+  font-size:0.7em
+}
+input#searchall  {
+  margin-left: 1em;
+}
+label#searchlabel  {
+  font-size:0.7em
+}
+/* fulltext search field */
+div#fulltext_input {
+  background-color: #fff;
+  display:inline;
+  border: solid 1px #000;
+  float:left;
+}
+div#fulltext_input #x {
+  font-weight: bold;
+  color: #c63;
+  margin:1px 0;
+}
+div#fulltext_input #submit {
+  color: transparent;  
+  background: url("../images/search.png") no-repeat #79d center;
+  width: 50px;
+  margin:1px 1px;
+}
+div#fields_list {
+  width: 13em;
+  height: 37em;
+  overflow-y: auto;
+  background-color: #fff;
+  margin: 2em 0 1em 0;
+  font-size:0.8em;
+  font-weight:normal;
+  border-radius: 0.3em;
+  color: black;
+}
+div.hidden {
+  display: none;
+  width: 0;
+  height: 0;
+  z-index: -1;
+}
+div.show {
+  position: fixed;
+  display: inline;
+  background-color: #fff;
+  top: 0px;
+  left: 0px;
+  margin: 0px;
+  width: 100%;
+  z-index: 8;
+}
+div.ChromeHeight {
+  height: 80px;
+}
+div.otherHeight {
+  height: 87px;
+}
+thead.float {
+  position: fixed;
+  z-index: 9;
+}
+thead.plain {
+  position: relative;
+  z-index: 0;
+}
+form.float {
+  position: fixed;
+  z-index: 10;
+  top: 0px;
+}
+.button
+{    
+        display: inline-block;
+        white-space: nowrap;
+        background-color: #ccc;
+        background-image: -webkit-gradient(linear, left top, left bottom, from(#eee), to(#ccc));
+        background-image: -webkit-linear-gradient(top, #eee, #ccc);
+        background-image: -moz-linear-gradient(top, #eee, #ccc);
+        background-image: -ms-linear-gradient(top, #eee, #ccc);
+        background-image: -o-linear-gradient(top, #eee, #ccc);
+        background-image: linear-gradient(top, #eee, #ccc);
+        filter: progid:DXImageTransform.Microsoft.gradient(startColorStr='#eeeeee', EndColorStr='#cccccc');
+        border: 1px solid #777;
+        padding: 0 1.5em;
+        margin: 0.2em;
+        font: bold 1em/2em Arial, Helvetica;
+        text-decoration: none;
+        color: #333;
+        text-shadow: 0 1px 0 rgba(255,255,255,.8);
+        -moz-border-radius: .2em;
+        -webkit-border-radius: .2em;
+        border-radius: .2em;
+        -moz-box-shadow: 0 0 1px 1px rgba(255,255,255,.8) inset, 0 1px 0 rgba(0,0,0,.3);
+        -webkit-box-shadow: 0 0 1px 1px rgba(255,255,255,.8) inset, 0 1px 0 rgba(0,0,0,.3);
+        box-shadow: 0 0 1px 1px rgba(255,255,255,.8) inset, 0 1px 0 rgba(0,0,0,.3);
+        height:30px;
+        width:185px;
+}
+
+.buttonlong{
+        width:380px;
+}
+
+.button:hover
+{
+        background-color: #ddd;    
+        background-image: -webkit-gradient(linear, left top, left bottom, from(#fafafa), to(#ddd));
+        background-image: -webkit-linear-gradient(top, #fafafa, #ddd);
+        background-image: -moz-linear-gradient(top, #fafafa, #ddd);
+        background-image: -ms-linear-gradient(top, #fafafa, #ddd);
+        background-image: -o-linear-gradient(top, #fafafa, #ddd);
+        background-image: linear-gradient(top, #fafafa, #ddd);
+        filter: progid:DXImageTransform.Microsoft.gradient(startColorStr='#fafafa', EndColorStr='#dddddd');
+}
+
+.button:active
+{
+        -moz-box-shadow: 0 0 4px 2px rgba(0,0,0,.3) inset;
+        -webkit-box-shadow: 0 0 4px 2px rgba(0,0,0,.3) inset;
+        box-shadow: 0 0 4px 2px rgba(0,0,0,.3) inset;
+        position: relative;
+        top: 1px;
+}
+
+.button:focus
+{
+        outline: 0;
+        background: #fafafa;
+}
+.button:before
+{
+        background: #ccc;
+        background: rgba(0,0,0,.1);
+        float: left;
+        width: 1em;
+        text-align: center;
+        font-size: 1.5em;
+        margin: 0 0.7em 0 -1.3em;
+        padding: 0 0.6em 0 0.3em;
+        -moz-box-shadow: 1px 0 0 rgba(0,0,0,.5), 2px 0 0 rgba(255,255,255,.5);
+        -webkit-box-shadow: 1px 0 0 rgba(0,0,0,.5), 2px 0 0 rgba(255,255,255,.5);
+        box-shadow: 1px 0 0 rgba(0,0,0,.5), 2px 0 0 rgba(255,255,255,.5);
+        -moz-border-radius: .15em 0 0 .15em;
+        -webkit-border-radius: .15em 0 0 .15em;
+        border-radius: .15em 0 0 .15em;
+        pointer-events: none;
+        height:28px;
+}
+.machine_send_job:before
+{
+        content: url("../images/27/icon-send-job.png");
+}
+.addsut:before
+{
+        content: url("../images/27/icon-add.png");
+}
+.edit:before
+{
+        content: url("../images/27/icon-edit.png");
+}
+.machine_reinstall:before
+{
+        content: url("../images/27/icon-reinstall.png");
+}
+.merge_machines:before
+{
+         content: url("../images/27/icon-merge-machines.png");
+}
+.delete:before
+{
+        content: url("../images/27/icon-delete.png");
+}
+.create_group:before
+{
+        content: url("../images/27/icon-create-group.png");
+}
+.upgrade:before
+{
+        content: url("../images/27/icon-upgrade.png");
+}
+.group_del_machines:before
+{
+        content: url("../images/27/icon-group-del-machines.png");
+}
+.machine_config:before
+{
+        content: url("../images/27/icon-config.png");
+}
+.vhreinstall:before
+{
+        content: url("../images/27/icon-vhreinstall.png");
+}
+.machine_reserve:before
+{
+        content: url("../images/27/icon-reserve.png");
+}
+.release_machine_for_master:before
+{
+        content: url("../images/27/icon-release-for-master.png");
+}

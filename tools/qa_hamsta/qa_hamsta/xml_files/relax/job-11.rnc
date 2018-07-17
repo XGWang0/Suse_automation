@@ -1,0 +1,123 @@
+# job-11 -- Relax NG schema definition for Hamsta job XML
+# See file http://qadb.suse.de/xml_files/relax/job-11.rnc for compact definition.
+# See file http://qadb.suse.de/xml_files/relax/job-11.rng for XML definition.
+
+# Import the XML datatypes schema so we have them available
+namespace xsd = "http://www.w3.org/2001/XMLSchema-datatypes"
+
+start = job
+
+job = element job {
+  element roles { role }?&
+  config&
+  parameters&
+  commands
+}
+
+role = element role {
+  attribute id { xsd:integer },
+  attribute name { text },
+  attribute num_min { xsd:integer }?,
+  attribute num_max { xsd:integer }?,
+  machine
+}*
+
+machine = element machine {
+  attribute name { text },
+  attribute ip { text },
+  empty
+}*
+
+config = element config {
+  element name { text }&
+  element debuglevel { xsd:integer }?&
+  element distributable { xsd:integer }&
+  element job_id { text }?&
+  element parallel { xsd:integer }?&
+  element mail {
+    attribute notify { text },
+    text
+  }&
+  element rpm {
+    attribute upgrade { xsd:integer }?,
+    text
+  }*&
+  element logdir { text }&
+  element description { text }&
+  element motd { text }?&
+  element useinfo { text }?
+}
+
+parameters = element parameters {
+  element parameter {
+    attribute type { "string" | "textarea" | "enum" },
+    attribute name { text },
+    attribute default { text }?,
+    attribute label { text }?,
+    (element option {
+      attribute value { text },
+      text
+    }* | text)
+  }+
+}?
+
+commands = element commands {
+  worker&
+  logger&
+  monitor
+}
+
+worker = element worker {
+  element command {
+    attribute execution { "threaded" | "forked" }?,
+    attribute role_id { xsd:integer }?,
+    text
+  }+&
+  element directory { text }?&
+  element timeout { xsd:integer }?&
+  element notify {
+    attribute pattern { text },
+    attribute mail { text },
+    empty
+  }?&
+  element stdout { text }?&
+  element stderr { text }?&
+  element exitcode { xsd:integer }?
+}
+
+logger = element logger {
+  element command {
+    attribute execution { "threaded" | "forked" }?,
+    attribute role_id { xsd:integer }?,
+    text
+  }?&
+  element directory { text }?&
+  element timeout { xsd:integer }?&
+  element notify {
+    attribute pattern { text },
+    attribute mail { text },
+    empty
+  }?&
+  element stdout { text }?&
+  element stderr { text }?&
+  element exitcode { xsd:integer }?
+}*
+
+monitor = element monitor {
+ element command {
+    attribute execution { "threaded" | "forked" }?,
+    attribute role_id { xsd:integer }?,
+    text
+  }+&
+  element directory { text }?&
+  element timeout { xsd:integer }?&
+  element notify {
+    attribute pattern { text },
+    attribute mail { text },
+    empty
+  }?&
+  element stdout { text }?&
+  element stderr { text }?&
+  element exitcode { xsd:integer }?&
+  element cycle_count { xsd:integer }?
+}?

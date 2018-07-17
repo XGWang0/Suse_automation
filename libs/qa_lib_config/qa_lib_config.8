@@ -1,0 +1,67 @@
+." Manpage for qa_lib_config.
+." Contact David Mulder <dmulder@novell.com> to correct errors or typos.
+.TH man 8 "21 Oct 2011" "1.0" "qa_lib_config man page"
+.SH NAME
+qa_lib_config
+.SH SYNOPSIS
+Configuration system used by QA packages.
+.SH TYPE
+lib
+.SH DESCRIPTION
+Contains shell and perl bindings to work with qa configuration in \fI/etc/qa\fR.
+
+All (except for web frontends - since they do not have access to \fI/etc\fR) our tools now use package
+.B qa_lib_config
+to read its configuration.
+
+All QA tools now store their configuration in \fI/etc/qa\fR. This directory contains many different files. Files are read in alphabetical order, where latter overwrites the former. If some configuration values need to be modified by user, it is reccomended that new values are added into the file \fI/etc/qa/99-local.conf\fR or custom configuration \fBrpm\fR(1) is created. Each user can also have his own \fI~/.qarc\fR which is read after all above.
+
+The format of the files is very simple. The config value is defined as \fIvarname\fR='\fIvalue\fR'.
+
+To access the config in bash code, use \fBsource /usr/share/qa/lib/config [module]\fR and then use function \fBget_qa_config\fR(<var_name>). It is recommended to always source with module argument, even when it is empty (\fBsource /usr/share/qa/lib/config ''\fR), since otherwise environment
+.RB $ 1
+is passed to sourced file, which may lead to unexpected failures. See
+.I http://fixunix.com/help/10524-curious-bash-source-behaviour-comments.html
+for details.
+
+To get just a value of single key from command line, use \fB/usr/share/qa/tools/get_qa_config [module] key\fR.
+
+To update network QA configuration, use \fB/usr/share/qa/tools/sync_qa_config [server IP address]\fR.
+
+To access the library in perl, import module by
+
+.B use qaconfig;
+
+Then you can access the config values via \fB%qaconf\fR hash by
+
+\fB$qaconf\fR{<var_name>}
+
+To access variables with common prefix (\fIhamsta_master_XYZ\fR for example), hash of values can be obtained by \fBget_qa_config()\fR function (result will contain value of variable \fIXYZ\fR, not \fIhamsta_master_XYZ\fR):
+
+.B use qaconfig qw(get_qa_config);
+.br
+.B %config_module = get_qa_config("prefix");
+.SH README
+None.
+.SH OPTIONS
+None.
+.SH WHAT IT DOES
+None.
+.SH COMMON PROBLEMS
+None.
+.SH WARNINGS
+None.
+.SH SEE ALSO
+None.
+.SH BUGS
+No known bugs.
+.SH DISTRIBUTION
+None.
+.SH LICENSE
+SUSE Proprietary
+.SH UPSTREAM
+None.
+.SH AUTHOR
+Lukas Lipavsky <llipavsky@suse.cz>
+.SH MAINTAINER
+Lukas Lipavsky <llipavsky@suse.cz>
